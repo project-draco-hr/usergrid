@@ -1,0 +1,13 @@
+{
+  Map<String,Object> jsonOrganization=new HashMap<String,Object>();
+  jsonOrganization.putAll(JsonUtils.toJsonMap(organization));
+  BiMap<UUID,String> applications=getApplicationsForOrganization(organization.getUuid());
+  jsonOrganization.put("applications",applications.inverse());
+  List<UserInfo> users=getAdminUsersForOrganization(organization.getUuid());
+  Map<String,Object> jsonUsers=new HashMap<String,Object>();
+  for (  UserInfo u : users) {
+    jsonUsers.put(u.getUsername(),u);
+  }
+  jsonOrganization.put("users",jsonUsers);
+  return jsonOrganization;
+}

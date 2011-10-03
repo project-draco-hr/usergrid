@@ -1,0 +1,15 @@
+{
+  UUID uuid=uuid(properties.get(MESSAGE_ID),null);
+  if (uuid == null) {
+    if (properties.containsKey(MESSAGE_TIMESTAMP)) {
+      long ts=getLongValue(properties,MESSAGE_TIMESTAMP);
+      uuid=newTimeUUID(ts);
+    }
+ else {
+      uuid=newTimeUUID();
+    }
+    properties.put(MESSAGE_ID,uuid);
+    properties.put(MESSAGE_TIMESTAMP,getTimestampInMillis(uuid));
+  }
+  return uuid;
+}

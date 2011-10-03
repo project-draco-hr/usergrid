@@ -1,0 +1,9 @@
+{
+  BiMap<UUID,String> organizations=HashBiMap.create();
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  Results results=em.getCollection(em.getApplicationRef(),"groups",null,10000,Level.ALL_PROPERTIES,false);
+  for (  Entity entity : results.getEntities()) {
+    organizations.put(entity.getUuid(),(String)entity.getProperty("path"));
+  }
+  return organizations;
+}

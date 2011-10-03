@@ -1,0 +1,42 @@
+{
+  UUID applicationId=createApplication("testCollection");
+  assertNotNull(applicationId);
+  EntityManager em=emf.getEntityManager(applicationId);
+  assertNotNull(em);
+  Map<String,Object> properties=new LinkedHashMap<String,Object>();
+  properties.put("username","edanuff");
+  properties.put("email","ed@anuff.com");
+  Entity user=em.create("user",properties);
+  assertNotNull(user);
+  properties=new LinkedHashMap<String,Object>();
+  properties.put("actor",new LinkedHashMap<String,Object>(){
+{
+      put("displayName","Ed Anuff");
+      put("objectType","person");
+    }
+  }
+);
+  properties.put("verb","tweet");
+  properties.put("content","I ate a sammich");
+  Entity activity=em.create("activity",properties);
+  assertNotNull(activity);
+  logger.info(activity.getClass());
+  logger.info(JsonUtils.mapToFormattedJsonString(activity));
+  activity=em.get(activity.getUuid());
+  logger.info(activity.getClass());
+  logger.info(JsonUtils.mapToFormattedJsonString(activity));
+  em.addToCollection(user,"activities",activity);
+  Results r=em.getCollection(user,"activities",null,null,10,Results.Level.LINKED_PROPERTIES,false);
+  logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+  assertEquals(1,r.size());
+  properties=new LinkedHashMap<String,Object>();
+  properties.put("foo","bar");
+  em.updateProperties(new SimpleCollectionRef(user,"activities",activity),properties);
+  r=em.getCollection(user,"activities",null,null,10,Results.Level.LINKED_PROPERTIES,false);
+  logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+  assertEquals(1,r.size());
+  em.removeFromCollection(user,"activities",activity);
+  r=em.getCollection(user,"activities",null,null,10,Results.Level.LINKED_PROPERTIES,false);
+  logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+  assertEquals(0,r.size());
+}

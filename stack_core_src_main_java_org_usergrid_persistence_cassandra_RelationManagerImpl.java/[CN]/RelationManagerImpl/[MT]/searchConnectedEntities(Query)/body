@@ -1,0 +1,54 @@
+{
+  if (query == null) {
+    query=new Query();
+  }
+  String connectedEntityType=query.getEntityType();
+  String connectionType=query.getConnectionType();
+  headEntity=em.validate(headEntity);
+  if (!query.hasFilterPredicates() && !query.hasSortPredicates()) {
+    List<ConnectionRefImpl> connections=getConnections(new ConnectionRefImpl(headEntity,new ConnectedEntityRefImpl(NULL_ID),new ConnectedEntityRefImpl(connectionType,connectedEntityType,null)),false);
+    Results results=Results.fromConnections(connections);
+    results=em.loadEntities(results,query.getResultsLevel(),query.getLimit());
+    return results;
+  }
+  Results results=null;
+  String composite_cursor=null;
+  QueryProcessor qp=new QueryProcessor(query);
+  List<QuerySlice> slices=qp.getSlices();
+  int search_count=query.getLimit() + 1;
+  if (slices.size() > 1) {
+    search_count=DEFAULT_SEARCH_COUNT;
+  }
+  for (  QuerySlice slice : slices) {
+    Results r=searchConnections(new ConnectionRefImpl(headEntity,new ConnectedEntityRefImpl(connectionType,connectedEntityType,null)),slice,search_count,query.getResultsLevel());
+    if (r.getCursor() != null) {
+      if (composite_cursor != null) {
+        composite_cursor+="|";
+      }
+ else {
+        composite_cursor="";
+      }
+      composite_cursor+=slice.hashCode() + ":" + r.getCursor();
+    }
+    if (results != null) {
+      results.and(r);
+    }
+ else {
+      results=r;
+    }
+  }
+  if (results == null) {
+    return null;
+  }
+  results=em.loadEntities(results,query.getResultsLevel(),query.getLimit());
+  if (results != null) {
+    results.setQuery(query);
+    if (results.hasMoreResults() && (composite_cursor != null)) {
+      results.setCursor(composite_cursor);
+    }
+ else {
+      results.setCursor(null);
+    }
+  }
+  return results;
+}

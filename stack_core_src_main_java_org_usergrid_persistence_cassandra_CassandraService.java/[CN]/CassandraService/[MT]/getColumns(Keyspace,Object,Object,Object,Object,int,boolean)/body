@@ -1,0 +1,41 @@
+{
+  if (logger.isInfoEnabled()) {
+    logger.info("getColumns cf=" + columnFamily + " key="+ key+ " start="+ start+ " finish="+ finish+ " count="+ count+ " reversed="+ reversed);
+  }
+  SliceQuery<ByteBuffer,ByteBuffer,ByteBuffer> q=createSliceQuery(ko,be,be,be);
+  q.setColumnFamily(columnFamily.toString());
+  q.setKey(bytebuffer(key));
+  ByteBuffer start_bytes=null;
+  if (start instanceof DynamicComposite) {
+    start_bytes=((DynamicComposite)start).serialize();
+  }
+ else   if (start instanceof List) {
+    start_bytes=DynamicComposite.toByteBuffer((List<?>)start);
+  }
+ else {
+    start_bytes=bytebuffer(start);
+  }
+  ByteBuffer finish_bytes=null;
+  if (finish instanceof DynamicComposite) {
+    finish_bytes=((DynamicComposite)finish).serialize();
+  }
+ else   if (finish instanceof List) {
+    finish_bytes=DynamicComposite.toByteBuffer((List<?>)finish);
+  }
+ else {
+    finish_bytes=bytebuffer(finish);
+  }
+  q.setRange(start_bytes,finish_bytes,reversed,count);
+  QueryResult<ColumnSlice<ByteBuffer,ByteBuffer>> r=q.execute();
+  ColumnSlice<ByteBuffer,ByteBuffer> slice=r.get();
+  List<HColumn<ByteBuffer,ByteBuffer>> results=slice.getColumns();
+  if (logger.isInfoEnabled()) {
+    if (results == null) {
+      logger.info("getColumns returned null");
+    }
+ else {
+      logger.info("getColumns returned " + results.size() + " columns");
+    }
+  }
+  return results;
+}

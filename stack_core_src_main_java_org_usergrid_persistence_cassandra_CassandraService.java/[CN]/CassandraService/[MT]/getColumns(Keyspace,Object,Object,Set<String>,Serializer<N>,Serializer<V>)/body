@@ -1,0 +1,21 @@
+{
+  if (logger.isInfoEnabled()) {
+    logger.info("getColumns cf=" + columnFamily + " key="+ key+ " names="+ columnNames);
+  }
+  SliceQuery<ByteBuffer,N,V> q=createSliceQuery(ko,be,nameSerializer,valueSerializer);
+  q.setColumnFamily(columnFamily.toString());
+  q.setKey(bytebuffer(key));
+  q.setColumnNames((N[])nameSerializer.fromBytesSet(se.toBytesSet(new ArrayList<String>(columnNames))).toArray());
+  QueryResult<ColumnSlice<N,V>> r=q.execute();
+  ColumnSlice<N,V> slice=r.get();
+  List<HColumn<N,V>> results=slice.getColumns();
+  if (logger.isInfoEnabled()) {
+    if (results == null) {
+      logger.info("getColumns returned null");
+    }
+ else {
+      logger.info("getColumns returned " + results.size() + " columns");
+    }
+  }
+  return results;
+}

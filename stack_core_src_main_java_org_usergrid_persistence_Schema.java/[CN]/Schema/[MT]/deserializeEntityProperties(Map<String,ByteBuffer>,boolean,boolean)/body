@@ -1,0 +1,32 @@
+{
+  if (columns == null) {
+    return null;
+  }
+  String entityType=string(columns.get(PROPERTY_TYPE));
+  if (entityType == null) {
+    logger.error("No type for entity found!",new Throwable());
+    return null;
+  }
+  if (checkId && !columns.containsKey(PROPERTY_UUID)) {
+    logger.error("No id for entity (" + entityType + ") found!",new Throwable());
+    return null;
+  }
+  if (checkRequired) {
+    Set<String> required_properties=Schema.getDefaultSchema().getRequiredProperties(entityType);
+    if (required_properties != null) {
+      for (      String property_name : required_properties) {
+        if (!columns.containsKey(property_name)) {
+          logger.error("Entity (" + entityType + ") missing required property: "+ property_name,new Throwable());
+          return null;
+        }
+      }
+    }
+  }
+  Map<String,Object> properties_map=new TreeMap<String,Object>(String.CASE_INSENSITIVE_ORDER);
+  for (  Entry<String,ByteBuffer> column : columns.entrySet()) {
+    String propertyName=column.getKey();
+    Object propertyValue=deserializeEntityProperty(entityType,propertyName,column.getValue());
+    properties_map.put(propertyName,propertyValue);
+  }
+  return properties_map;
+}

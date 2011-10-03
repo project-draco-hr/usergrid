@@ -1,0 +1,28 @@
+{
+  if (last < first) {
+    return null;
+  }
+  if (first == last) {
+    return singularize(stringOrSubstringAfterLast(collections[0],':'));
+  }
+  int i=first + 1;
+  String containerType=singularize(collections[first]);
+  while (i <= last) {
+    String collectionName=stringOrSubstringBeforeFirst(collections[i],':');
+    String nextType=Schema.getDefaultSchema().getCollectionType(containerType,collectionName);
+    if (nextType == null) {
+      if (collections[i].indexOf(':') >= 0) {
+        nextType=stringOrSubstringAfterLast(collections[i],':');
+      }
+ else       if ((i < last) && (collections[last].indexOf(':') >= 0)) {
+        nextType=stringOrSubstringAfterLast(collections[last],':');
+      }
+ else {
+        return "entity";
+      }
+    }
+    containerType=nextType;
+    i++;
+  }
+  return containerType;
+}

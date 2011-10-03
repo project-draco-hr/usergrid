@@ -1,0 +1,11 @@
+{
+  Subject currentUser=SecurityUtils.getSubject();
+  if (currentUser == null) {
+    return null;
+  }
+  if (!currentUser.hasRole(ROLE_APPLICATION_ADMIN) && !currentUser.hasRole(ROLE_APPLICATION_USER)) {
+    return null;
+  }
+  Session session=currentUser.getSession();
+  return (BiMap<UUID,String>)session.getAttribute("applications");
+}

@@ -1,0 +1,18 @@
+{
+  String url=urlList.getSelectedItem().toString();
+  if (url.contains("?")) {
+    url+="&";
+  }
+ else {
+    url+="?";
+  }
+  url+="api_url=" + URLEncoder.encode("http://localhost:8080","UTF-8");
+  if (app.isAutoLogin()) {
+    String access_token=app.getAccessToken();
+    if (access_token != null) {
+      url+="&admin_email=" + URLEncoder.encode(app.getAdminUserEmail(),"UTF-8");
+      url+="&access_token=" + access_token;
+    }
+  }
+  return new URI(url);
+}

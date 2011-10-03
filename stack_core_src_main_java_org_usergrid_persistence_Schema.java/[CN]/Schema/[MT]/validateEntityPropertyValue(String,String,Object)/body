@@ -1,0 +1,19 @@
+{
+  entityType=normalizeEntityType(entityType);
+  if ((propertyValue instanceof String) && ((String)propertyValue).equals("")) {
+    propertyValue=null;
+  }
+  if (!hasProperty(entityType,propertyName)) {
+    return propertyValue;
+  }
+  Class<?> type=getPropertyType(entityType,propertyName);
+  if (type != null) {
+    try {
+      propertyValue=mapper.convertValue(propertyValue,type);
+    }
+ catch (    Exception e) {
+      throw new PropertyTypeConversionException(entityType,propertyName,propertyValue,type,e);
+    }
+  }
+  return propertyValue;
+}

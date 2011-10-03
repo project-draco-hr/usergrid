@@ -1,0 +1,14 @@
+{
+  ReentrantLock lock=localLocks.get().get(lockPath);
+  if (lock != null) {
+    return lock;
+  }
+synchronized (this) {
+    lock=globalLocks.get(lockPath);
+    if (lock == null) {
+      lock=new ReentrantLock();
+      globalLocks.put(lockPath,lock);
+    }
+  }
+  return lock;
+}

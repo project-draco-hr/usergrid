@@ -1,0 +1,18 @@
+{
+  User user=new User();
+  user.setProperty("foo","bar");
+  assertEquals("{\"type\":\"user\",\"foo\":\"bar\"}",JsonUtils.mapToJsonString(user));
+  String json="{\"username\":\"edanuff\", \"bar\" : \"baz\" }";
+  Map<String,Object> p=(Map<String,Object>)JsonUtils.parse(json);
+  user=new User();
+  user.addProperties(p);
+  assertEquals("edanuff",user.getUsername());
+  assertEquals("baz",user.getProperty("bar"));
+  json="{\"username\":\"edanuff\", \"foo\" : {\"a\":\"bar\", \"b\" : \"baz\" } }";
+  p=(Map<String,Object>)JsonUtils.parse(json);
+  user=new User();
+  user.addProperties(p);
+  assertEquals("edanuff",user.getUsername());
+  assertTrue(Map.class.isAssignableFrom(user.getProperty("foo").getClass()));
+  assertEquals("baz",((Map<String,Object>)user.getProperty("foo")).get("b"));
+}

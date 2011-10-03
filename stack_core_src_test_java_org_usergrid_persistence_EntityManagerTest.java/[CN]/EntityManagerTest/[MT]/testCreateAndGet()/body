@@ -1,0 +1,49 @@
+{
+  logger.info("EntityDaoTest.testCreateAndGet");
+  UUID applicationId=createApplication("testCreateAndGet");
+  EntityManager em=emf.getEntityManager(applicationId);
+  int i=0;
+  List<Entity> things=new ArrayList<Entity>();
+  for (i=0; i < 10; i++) {
+    Map<String,Object> properties=new LinkedHashMap<String,Object>();
+    properties.put("name","thing" + i);
+    Entity thing=em.create("thing",properties);
+    assertNotNull("thing should not be null",thing);
+    assertFalse("thing id not valid",thing.getUuid().equals(new UUID(0,0)));
+    assertEquals("name not expected value","thing" + i,thing.getProperty("name"));
+    things.add(thing);
+  }
+  assertEquals("should be ten entities",10,things.size());
+  i=0;
+  for (  Entity entity : things) {
+    Entity thing=em.get(entity.getUuid());
+    assertNotNull("thing should not be null",thing);
+    assertFalse("thing id not valid",thing.getUuid().equals(new UUID(0,0)));
+    assertEquals("name not expected value","thing" + i,thing.getProperty("name"));
+    i++;
+  }
+  List<UUID> ids=new ArrayList<UUID>();
+  for (  Entity entity : things) {
+    ids.add(entity.getUuid());
+    Entity en=em.get(entity.getUuid());
+    String type=en.getType();
+    assertEquals("type not expected value","thing",type);
+    Object property=en.getProperty("name");
+    assertNotNull("thing name property should not be null",property);
+    assertTrue("thing name should start with \"thing\"",property.toString().startsWith("thing"));
+    Map<String,Object> properties=en.getProperties();
+    assertEquals("number of properties wrong",5,properties.size());
+  }
+  i=0;
+  Results results=em.get(ids,Results.Level.CORE_PROPERTIES);
+  for (  Entity thing : results) {
+    assertNotNull("thing should not be null",thing);
+    assertFalse("thing id not valid",thing.getUuid().equals(new UUID(0,0)));
+    assertEquals("wrong type","thing",thing.getType());
+    assertNotNull("thing name should not be null",thing.getProperty("name"));
+    String name=thing.getProperty("name").toString();
+    assertEquals("unexpected name","thing" + i,name);
+    i++;
+  }
+  assertEquals("entities unfound entity name count incorrect",10,i);
+}

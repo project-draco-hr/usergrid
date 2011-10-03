@@ -1,0 +1,14 @@
+{
+  if (organizationId == null) {
+    return null;
+  }
+  BiMap<UUID,String> applications=HashBiMap.create();
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  Results results=em.getConnectedEntities(organizationId,"owns",APPLICATION_INFO,Level.ALL_PROPERTIES);
+  if (!results.isEmpty()) {
+    for (    Entity entity : results.getEntities()) {
+      applications.put(entity.getUuid(),entity.getName());
+    }
+  }
+  return applications;
+}

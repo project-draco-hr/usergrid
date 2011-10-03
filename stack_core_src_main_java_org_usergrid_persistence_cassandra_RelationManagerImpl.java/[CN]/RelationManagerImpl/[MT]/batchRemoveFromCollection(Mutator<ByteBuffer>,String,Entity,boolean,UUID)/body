@@ -1,0 +1,52 @@
+{
+  long timestamp=getTimestampInMicros(timestampUuid);
+  if (!force && headEntity.getUuid().equals(applicationId)) {
+    return batch;
+  }
+  Object collections_key=key(headEntity.getUuid(),Schema.DICTIONARY_COLLECTIONS,collectionName);
+  for (  String propertyName : entity.getProperties().keySet()) {
+    boolean collection_indexes_property=getDefaultSchema().isPropertyIndexedInCollection(headEntity.getType(),collectionName,propertyName);
+    boolean item_schema_has_property=getDefaultSchema().hasProperty(entity.getType(),propertyName);
+    boolean collection_indexes_dynamic_properties=getDefaultSchema().hasProperty(entity.getType(),propertyName) && getDefaultSchema().isCollectionIndexingDynamicProperties(headEntity.getType(),collectionName);
+    boolean fulltext_indexed=getDefaultSchema().isPropertyFulltextIndexed(entity.getType(),propertyName);
+    if (collection_indexes_property || (!item_schema_has_property && collection_indexes_dynamic_properties)) {
+      IndexUpdate indexUpdate=batchStartIndexUpdate(batch,entity,propertyName,null,timestampUuid,item_schema_has_property,false,false,fulltext_indexed);
+      batchUpdateCollectionIndex(indexUpdate,headEntity,collectionName);
+    }
+  }
+  Set<String> dictionaryNames=em.getDictionaryNames(entity);
+  for (  String dictionaryName : dictionaryNames) {
+    boolean has_dictionary=getDefaultSchema().hasDictionary(entity.getType(),dictionaryName);
+    boolean dictionary_indexed=getDefaultSchema().isDictionaryIndexedInCollection(headEntity.getType(),collectionName,dictionaryName);
+    if (dictionary_indexed || !has_dictionary) {
+      Set<Object> elementValues=em.getDictionaryAsSet(entity,dictionaryName);
+      for (      Object elementValue : elementValues) {
+        IndexUpdate indexUpdate=batchStartIndexUpdate(batch,entity,dictionaryName,elementValue,timestampUuid,has_dictionary,true,true,false);
+        batchUpdateCollectionIndex(indexUpdate,headEntity,collectionName);
+      }
+    }
+  }
+  addDeleteToMutator(batch,ENTITY_ID_SETS,collections_key,entity.getUuid(),timestamp);
+  CollectionInfo collection=getDefaultSchema().getCollection(headEntity.getType(),collectionName);
+  if (collection != null) {
+    if (collection.hasSubkeys()) {
+      List<String[]> combos=collection.getSubkeyCombinations();
+      for (      String[] combo : combos) {
+        List<Object> subkey_props=new ArrayList<Object>();
+        for (        String subkey_name : combo) {
+          Object subkey_value=null;
+          if (subkey_name != null) {
+            subkey_value=entity.getProperty(subkey_name);
+          }
+          subkey_props.add(subkey_value);
+        }
+        addDeleteToMutator(batch,ENTITY_ID_SETS,key(collections_key,subkey_props.toArray()),entity.getUuid(),timestamp);
+      }
+    }
+  }
+  addDeleteToMutator(batch,ENTITY_COMPOSITE_DICTIONARIES,key(entity.getUuid(),Schema.DICTIONARY_CONTAINER_ENTITIES),asList(headEntity.getType(),collectionName,headEntity.getUuid()),timestamp);
+  if (!headEntity.getType().equalsIgnoreCase(TYPE_APPLICATION) && !Schema.isAssociatedEntityType(entity.getType())) {
+    em.deleteEntity(new SimpleCollectionRef(headEntity,collectionName,entity).getUuid());
+  }
+  return batch;
+}

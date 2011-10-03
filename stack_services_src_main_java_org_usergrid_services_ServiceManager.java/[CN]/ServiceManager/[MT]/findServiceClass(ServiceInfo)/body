@@ -1,0 +1,21 @@
+{
+  Class<Service> cls=null;
+  for (  String pattern : info.getPatterns()) {
+    for (    String prefix : package_prefixes) {
+      try {
+        String classname=prefix + "." + ServiceInfo.getClassName(pattern);
+        logger.info("Attempting to instantiate service class " + classname);
+        cls=(Class<Service>)Class.forName(classname);
+        if (cls.isInterface()) {
+          cls=(Class<Service>)Class.forName(classname + "Impl");
+        }
+        if ((cls != null) && !Modifier.isAbstract(cls.getModifiers())) {
+          return cls;
+        }
+      }
+ catch (      ClassNotFoundException e1) {
+      }
+    }
+  }
+  return null;
+}

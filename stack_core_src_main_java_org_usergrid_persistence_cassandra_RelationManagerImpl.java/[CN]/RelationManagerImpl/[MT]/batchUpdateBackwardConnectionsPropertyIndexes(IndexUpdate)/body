@@ -1,0 +1,14 @@
+{
+  logger.info("batchUpdateBackwordConnectionsPropertyIndexes");
+  boolean entitySchemaHasProperty=indexUpdate.isSchemaHasProperty();
+  if (entitySchemaHasProperty) {
+    if (!getDefaultSchema().isPropertyIndexedInConnections(indexUpdate.getEntity().getType(),indexUpdate.getEntryName())) {
+      return indexUpdate;
+    }
+  }
+  List<ConnectionRefImpl> connections=getConnections(ConnectionRefImpl.toConnectedEntity(indexUpdate.getEntity()),true);
+  for (  ConnectionRefImpl connection : connections) {
+    batchUpdateConnectionIndex(indexUpdate,connection);
+  }
+  return indexUpdate;
+}

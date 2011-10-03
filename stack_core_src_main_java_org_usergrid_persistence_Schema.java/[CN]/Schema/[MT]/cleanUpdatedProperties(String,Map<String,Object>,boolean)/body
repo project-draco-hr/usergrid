@@ -1,0 +1,29 @@
+{
+  if (properties == null) {
+    return null;
+  }
+  entityType=normalizeEntityType(entityType);
+  properties.remove(PROPERTY_UUID);
+  properties.remove(PROPERTY_TYPE);
+  properties.remove(PROPERTY_METADATA);
+  properties.remove(PROPERTY_MEMBERSHIP);
+  properties.remove(PROPERTY_CONNECTION);
+  Iterator<Entry<String,Object>> iterator=properties.entrySet().iterator();
+  while (iterator.hasNext()) {
+    Entry<String,Object> entry=iterator.next();
+    if (hasProperty(entityType,entry.getKey())) {
+      if (!create && !isPropertyMutable(entityType,entry.getKey())) {
+        iterator.remove();
+        continue;
+      }
+      Object propertyValue=entry.getValue();
+      if ((propertyValue instanceof String) && (((String)propertyValue) == "")) {
+        propertyValue=null;
+      }
+      if ((propertyValue == null) && isRequiredProperty(entityType,entry.getKey())) {
+        iterator.remove();
+      }
+    }
+  }
+  return properties;
+}

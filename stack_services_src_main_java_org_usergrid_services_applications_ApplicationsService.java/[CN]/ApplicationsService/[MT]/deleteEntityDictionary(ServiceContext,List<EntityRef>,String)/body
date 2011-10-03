@@ -1,0 +1,29 @@
+{
+  if ("rolenames".equalsIgnoreCase(dictionary)) {
+    if (context.parameterCount() == 2) {
+      String roleName=context.getParameters().get(1).getName();
+      if (isBlank(roleName)) {
+        return null;
+      }
+      return deleteApplicationRole(roleName);
+    }
+ else     if (context.parameterCount() > 2) {
+      String roleName=context.getParameters().get(1).getName();
+      if (isBlank(roleName)) {
+        return null;
+      }
+      Query q=context.getParameters().get(2).getQuery();
+      if (q == null) {
+        return null;
+      }
+      List<String> permissions=q.getPermissions();
+      if (permissions == null) {
+        return null;
+      }
+      for (      String permission : permissions) {
+        revokeApplicationRolePermission(roleName,permission);
+      }
+    }
+  }
+  return super.deleteEntityDictionary(context,refs,dictionary);
+}

@@ -1,0 +1,41 @@
+{
+  IndexedSlicesQuery<UUID,String,ByteBuffer> q=createIndexedSlicesQuery(ko,ue,se,be);
+  q.setColumnFamily(ApplicationCF.ENTITY_PROPERTIES.toString());
+  if ((propertyNames != null) && (propertyNames.length > 0) && (outputEntities != null)) {
+    q.setColumnNames(propertyNames);
+  }
+ else {
+    q.setColumnNames(PROPERTY_UUID);
+  }
+  if (entityType != null) {
+    q.addEqualsExpression(PROPERTY_TYPE,bytebuffer(entityType));
+  }
+  if ((propertyName != null) && (propertyValue != null)) {
+    q.addEqualsExpression(propertyName,bytebuffer(propertyValue));
+  }
+  QueryResult<OrderedRows<UUID,String,ByteBuffer>> r=q.execute();
+  OrderedRows<UUID,String,ByteBuffer> rows=r.get();
+  for (  Row<UUID,String,ByteBuffer> row : rows) {
+    UUID entityId=row.getKey();
+    ColumnSlice<String,ByteBuffer> slice=row.getColumnSlice();
+    List<HColumn<String,ByteBuffer>> columns=slice.getColumns();
+    logger.info("Indexed Entity " + entityId.toString() + " found");
+    if (outputList != null) {
+      outputList.add(entityId);
+    }
+    if (outputEntities != null) {
+      Map<String,Object> entityProperties=Schema.deserializeEntityProperties(columns);
+      if (entityProperties == null) {
+        continue;
+      }
+      String type=(String)entityProperties.get(PROPERTY_TYPE);
+      UUID id=(UUID)entityProperties.get(PROPERTY_UUID);
+      logger.info("Entity2 " + id + " found");
+      Entity entity=new DynamicEntity(type,id);
+      for (      Map.Entry<String,Object> entry : entityProperties.entrySet()) {
+        entity.setProperty(entry.getKey(),entry.getValue());
+      }
+      outputEntities.add(entity);
+    }
+  }
+}

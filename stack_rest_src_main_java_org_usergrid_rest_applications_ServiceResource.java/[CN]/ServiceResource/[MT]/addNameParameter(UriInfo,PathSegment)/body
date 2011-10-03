@@ -1,0 +1,15 @@
+{
+  logger.info("ServiceResource.addNameParameter");
+  logger.info("Current segment is " + itemName.getPath());
+  if (itemName.getPath().startsWith("{")) {
+    Query query=Query.fromJsonString(itemName.getPath());
+    if (query != null) {
+      addParameter(getServiceParameters(),query);
+    }
+  }
+ else {
+    addParameter(getServiceParameters(),itemName.getPath());
+  }
+  addMatrixParams(getServiceParameters(),ui,itemName);
+  return new ServiceResource(this);
+}

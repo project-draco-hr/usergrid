@@ -1,0 +1,26 @@
+{
+  if ((organizationId == null) || (applicationName == null)) {
+    return null;
+  }
+  if (properties == null) {
+    properties=new HashMap<String,Object>();
+  }
+  UUID applicationId=emf.createApplication(applicationName,properties);
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  properties.put("name",applicationName);
+  Entity applicationEntity=em.create(applicationId,APPLICATION_INFO,properties);
+  Map<String,String> credentials=new HashMap<String,String>();
+  credentials.put("secret",generateOAuthSecretKey(AuthPrincipalType.APPLICATION));
+  em.addMapToDictionary(applicationEntity,DICTIONARY_CREDENTIALS,credentials);
+  addApplicationToOrganization(organizationId,applicationId);
+  UserInfo user=null;
+  try {
+    user=SubjectUtils.getUser();
+  }
+ catch (  UnavailableSecurityManagerException e) {
+  }
+  if ((user != null) && user.isAdminUser()) {
+    postOrganizationActivity(organizationId,user,"create",applicationEntity,"Application",applicationName,"<a mailto=\"" + user.getEmail() + "\">"+ user.getName()+ " ("+ user.getEmail()+ ")</a> created a new application named "+ applicationName,null);
+  }
+  return applicationId;
+}

@@ -1,0 +1,17 @@
+{
+  int l=24;
+  ByteBuffer fullCollectionNameBytes=getCString(fullCollectionName);
+  l+=fullCollectionNameBytes.capacity();
+  ByteBuffer selectorBytes=encodeDocument(selector);
+  l+=selectorBytes.capacity();
+  ByteBuffer updateBytes=encodeDocument(update);
+  l+=updateBytes.capacity();
+  messageLength=l;
+  buffer=super.encode(buffer);
+  buffer.writeInt(0);
+  buffer.writeBytes(fullCollectionNameBytes);
+  buffer.writeInt(flags);
+  buffer.writeBytes(selectorBytes);
+  buffer.writeBytes(updateBytes);
+  return buffer;
+}

@@ -1,0 +1,32 @@
+{
+  MongoCommand command=commands.get(commandName);
+  if (command != null) {
+    return command;
+  }
+  String clazz="org.usergrid.mongo.commands." + StringUtils.capitalize(commandName);
+  Class<MongoCommand> cls=null;
+  try {
+    cls=(Class<MongoCommand>)Class.forName(clazz);
+  }
+ catch (  ClassNotFoundException e) {
+    logger.error("Couldn't find command class",e);
+  }
+  try {
+    if (cls != null) {
+      command=cls.newInstance();
+    }
+  }
+ catch (  Exception e) {
+    logger.error("Couldn't find instantiate class",e);
+  }
+  if (command != null) {
+    MongoCommand oldCommand=commands.putIfAbsent(commandName,command);
+    if (oldCommand != null) {
+      command=oldCommand;
+    }
+  }
+ else {
+    logger.warn("Mongo command handler not found for " + commandName);
+  }
+  return command;
+}

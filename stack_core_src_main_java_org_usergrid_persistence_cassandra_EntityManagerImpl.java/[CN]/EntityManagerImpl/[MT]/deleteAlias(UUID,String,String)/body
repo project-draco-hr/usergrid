@@ -1,0 +1,14 @@
+{
+  if (ownerId == null) {
+    ownerId=applicationId;
+  }
+  if (aliasType == null) {
+    return;
+  }
+  if (alias == null) {
+    return;
+  }
+  alias=alias.toLowerCase().trim();
+  UUID keyId=CassandraPersistenceUtils.aliasID(ownerId,aliasType,alias);
+  cass.deleteRow(cass.getApplicationKeyspace(applicationId),ENTITY_ALIASES,keyId);
+}

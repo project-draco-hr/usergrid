@@ -1,0 +1,17 @@
+{
+  if (hc.isTracingEnabled()) {
+    hc.trace(String.format("forwarding view to JSP page: \"%s\", it = %s",resolvedPath,ReflectionHelper.objectToString(viewable.getModel())));
+  }
+  out.flush();
+  RequestDispatcher d=servletContext.getRequestDispatcher(resolvedPath);
+  if (d == null) {
+    throw new ContainerException("No request dispatcher for: " + resolvedPath);
+  }
+  d=new RequestDispatcherWrapper(d,basePath,hc,viewable);
+  try {
+    d.forward(requestInvoker.get(),responseInvoker.get());
+  }
+ catch (  Exception e) {
+    throw new ContainerException(e);
+  }
+}

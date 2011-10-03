@@ -1,0 +1,18 @@
+{
+  if (NULL_ID.equals(startResult)) {
+    startResult=null;
+  }
+  Object indexKey=key(headEntity.getUuid(),collectionName);
+  if (subkeyProperties != null) {
+    if (subkey_key == null) {
+      String collectionType=em.getEntityType(headEntity.getUuid());
+      CollectionInfo collection=getDefaultSchema().getCollection(collectionType,collectionName);
+      subkey_key=getCFKeyForSubkey(collection,subkeyProperties,null);
+    }
+    if (subkey_key != null) {
+      indexKey=key(headEntity.getUuid(),collectionName,subkey_key);
+    }
+  }
+  List<HColumn<ByteBuffer,ByteBuffer>> results=searchIndex(indexKey,searchName,searchStartValue,searchFinishValue,startResult,cursor,count,reversed);
+  return getIndexResults(results,true,null,itemType,level);
+}

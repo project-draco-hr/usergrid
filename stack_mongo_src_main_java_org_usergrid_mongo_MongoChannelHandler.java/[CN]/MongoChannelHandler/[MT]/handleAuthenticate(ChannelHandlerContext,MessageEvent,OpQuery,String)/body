@@ -1,0 +1,27 @@
+{
+  logger.info("Authenticating for database " + databaseName + "... ");
+  String name=(String)opQuery.getQuery().get("user");
+  String nonce=(String)opQuery.getQuery().get("nonce");
+  String key=(String)opQuery.getQuery().get("key");
+  UserInfo user=null;
+  try {
+    user=management.verifyMongoCredentials(name,nonce,key);
+  }
+ catch (  Exception e1) {
+    return handleAuthFails(ctx,e,opQuery);
+  }
+  if (user == null) {
+    return handleAuthFails(ctx,e,opQuery);
+  }
+  PrincipalCredentialsToken token=PrincipalCredentialsToken.getFromAdminUserInfoAndPassword(user,key);
+  Subject subject=SecurityUtils.getSubject();
+  try {
+    subject.login(token);
+  }
+ catch (  AuthenticationException e2) {
+    return handleAuthFails(ctx,e,opQuery);
+  }
+  OpReply reply=new OpReply(opQuery);
+  reply.addDocument(map("ok",1.0));
+  return reply;
+}

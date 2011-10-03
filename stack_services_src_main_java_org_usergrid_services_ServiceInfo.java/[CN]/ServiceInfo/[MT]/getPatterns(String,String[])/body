@@ -1,0 +1,16 @@
+{
+  if (collections == null) {
+    collections=split(servicePattern,"/*/");
+  }
+  List<String> patterns=new ArrayList<String>();
+  patterns.add(servicePattern);
+  if (servicePattern.indexOf(':') >= 0) {
+    patterns.add(removeTypeSpecifiers(collections));
+  }
+  String s=getFallbackPattern(collections,0,collections.length - 1);
+  while (s != null) {
+    patterns.add(s);
+    s=getFallbackPattern(s);
+  }
+  return patterns;
+}

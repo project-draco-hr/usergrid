@@ -1,0 +1,37 @@
+{
+  logger.info(organization);
+  BiMap<UUID,String> applications=managementService.getApplicationsForOrganization(organization.getKey());
+  for (  Entry<UUID,String> application : applications.entrySet()) {
+    logger.info(application.getValue() + " : " + application.getKey());
+    JsonGenerator jg=getJsonGenerator(createOutputFile("application",application.getValue()));
+    EntityManager em=emf.getEntityManager(application.getKey());
+    Entity nsEntity=em.get(application.getKey());
+    nsEntity.setMetadata("organization",organization);
+    jg.writeStartArray();
+    jg.writeObject(nsEntity);
+    JsonGenerator collectionsJg=getJsonGenerator(createOutputFile("collections",application.getValue()));
+    collectionsJg.writeStartObject();
+    Map<String,Object> metadata=em.getApplicationCollectionMetadata();
+    echo(JsonUtils.mapToFormattedJsonString(metadata));
+    for (    String collectionName : metadata.keySet()) {
+      Results r=em.getCollection(em.getApplicationRef(),collectionName,null,100000,Results.Level.IDS,false);
+      echo(r.size() + " entity ids loaded");
+      int size=r.size();
+      for (int i=0; i < size; i+=MAX_ENTITY_FETCH) {
+        int finish=Math.min(i + MAX_ENTITY_FETCH,size);
+        List<UUID> entityIds=r.getIds().subList(i,finish);
+        logger.info("Retrieving entities " + i + " through "+ (finish - 1)+ " Found:"+ entityIds.size());
+        Results entities=em.get(entityIds,Results.Level.ALL_PROPERTIES);
+        for (        Entity entity : entities) {
+          jg.writeObject(entity);
+          echo(entity);
+          saveCollectionMembers(collectionsJg,em,application.getValue(),entity);
+        }
+      }
+    }
+    collectionsJg.writeEndObject();
+    collectionsJg.close();
+    jg.writeEndArray();
+    jg.close();
+  }
+}

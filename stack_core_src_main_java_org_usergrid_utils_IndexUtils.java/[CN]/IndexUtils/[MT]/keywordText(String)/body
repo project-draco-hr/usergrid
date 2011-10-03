@@ -1,0 +1,18 @@
+{
+  TokenStream ts=analyzer.tokenStream("keywords",new StringReader(source));
+  StringBuilder builder=new StringBuilder();
+  boolean first=true;
+  try {
+    while (ts.incrementToken()) {
+      if (!first) {
+        builder.append(' ');
+      }
+      first=false;
+      builder.append(ts.getAttribute(TermAttribute.class).term());
+    }
+  }
+ catch (  IOException e) {
+    logger.error("Error getting keywords ",e);
+  }
+  return builder.toString();
+}

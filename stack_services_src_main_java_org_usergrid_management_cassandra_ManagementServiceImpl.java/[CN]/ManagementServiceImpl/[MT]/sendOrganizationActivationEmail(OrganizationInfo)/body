@@ -1,0 +1,16 @@
+{
+  try {
+    String token=getActivationTokenForOrganization(organization.getUuid());
+    String activation_url=String.format(properties.getProperty("usergrid.organization.activation.url"),organization.getUuid().toString()) + "?token=" + token;
+    if (newOrganizationsNeedSysAdminApproval()) {
+      activation_url+="&confirm=true";
+      sendHtmlMail(properties,properties.getProperty("usergrid.sysadmin.email"),"Usergrid Mailer <mailer@usergrid.com>","Request For Organization Account Activation " + organization.getName(),"<p>To activate the organization account for " + organization.getName() + ", click here:</p>\n<p><a href=\""+ activation_url+ "\">"+ activation_url+ "</a></p>");
+    }
+ else {
+      sendOrganizationEmail(organization,"Organization Account Confirmation","<p>To activate your organization account, click here:</p>\n<p><a href=\"" + activation_url + "\">"+ activation_url+ "</a></p>");
+    }
+  }
+ catch (  Exception e) {
+    logger.error("Unable to send activation emails to " + organization.getName(),e);
+  }
+}

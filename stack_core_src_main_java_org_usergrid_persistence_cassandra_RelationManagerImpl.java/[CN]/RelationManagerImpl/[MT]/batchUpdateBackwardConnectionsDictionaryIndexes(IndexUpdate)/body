@@ -1,0 +1,12 @@
+{
+  logger.info("batchUpdateBackwardConnectionsListIndexes");
+  boolean entityHasDictionary=getDefaultSchema().isDictionaryIndexedInConnections(indexUpdate.getEntity().getType(),indexUpdate.getEntryName());
+  if (!entityHasDictionary) {
+    return indexUpdate;
+  }
+  List<ConnectionRefImpl> connections=getConnections(ConnectionRefImpl.toConnectedEntity(indexUpdate.getEntity()),true);
+  for (  ConnectionRefImpl connection : connections) {
+    batchUpdateConnectionIndex(indexUpdate,connection);
+  }
+  return indexUpdate;
+}

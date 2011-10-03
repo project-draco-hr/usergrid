@@ -1,0 +1,24 @@
+{
+  ThreadState threadState=null;
+  if (subject != null) {
+    threadState=new SubjectThreadState(subject);
+    threadState.bind();
+  }
+  try {
+    Message message=null;
+    if (e.getMessage() instanceof Message) {
+      message=(Message)e.getMessage();
+    }
+    if (message != null) {
+      logger.info(">>> " + message.toString());
+      OpReply reply=handleMessage(ctx,e,message);
+      logger.info("<<< " + reply.toString() + "\n");
+      e.getChannel().write(reply);
+    }
+  }
+  finally {
+    if (threadState != null) {
+      threadState.clear();
+    }
+  }
+}

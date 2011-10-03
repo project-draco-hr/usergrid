@@ -1,0 +1,22 @@
+{
+  List<UUID> ids=new ArrayList<UUID>();
+  IndexedSlicesQuery<UUID,String,ByteBuffer> q=createIndexedSlicesQuery(ko,ue,se,be);
+  q.setColumnFamily(ApplicationCF.ENTITY_PROPERTIES.toString());
+  if (start != null) {
+    q.setStartKey(start);
+  }
+  q.setRange(null,null,false,count);
+  q.setColumnNames(PROPERTY_UUID);
+  q.addEqualsExpression(PROPERTY_TYPE,bytebuffer(entityType));
+  if (subkeyProperties != null) {
+    for (    Map.Entry<String,Object> entry : subkeyProperties.entrySet()) {
+      q.addEqualsExpression(entry.getKey(),bytebuffer(entry.getValue()));
+    }
+  }
+  QueryResult<OrderedRows<UUID,String,ByteBuffer>> r=q.execute();
+  OrderedRows<UUID,String,ByteBuffer> rows=r.get();
+  for (  Row<UUID,String,ByteBuffer> row : rows) {
+    ids.add(row.getKey());
+  }
+  return ids;
+}

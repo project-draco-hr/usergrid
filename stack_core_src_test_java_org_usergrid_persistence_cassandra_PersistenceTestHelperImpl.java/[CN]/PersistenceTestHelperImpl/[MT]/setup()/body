@@ -1,0 +1,19 @@
+{
+  String maven_opts=System.getenv("MAVEN_OPTS");
+  logger.info("Maven options: " + maven_opts);
+  logger.info("Starting Cassandra");
+  embedded=new EmbeddedServerHelper();
+  embedded.setup();
+  String[] locations={"testApplicationContext.xml"};
+  ac=new ClassPathXmlApplicationContext(locations);
+  AutowireCapableBeanFactory acbf=ac.getAutowireCapableBeanFactory();
+  acbf.autowireBeanProperties(this,AutowireCapableBeanFactory.AUTOWIRE_BY_NAME,false);
+  acbf.initializeBean(this,"testClient");
+  assertNotNull(emf);
+  assertTrue("EntityManagerFactory is instance of EntityManagerFactoryImpl",emf instanceof EntityManagerFactoryImpl);
+  Setup setup=((EntityManagerFactoryImpl)emf).getSetup();
+  logger.info("Setting up Usergrid schema");
+  setup.setup();
+  logger.info("Usergrid schema setup");
+  setup.checkKeyspaces();
+}

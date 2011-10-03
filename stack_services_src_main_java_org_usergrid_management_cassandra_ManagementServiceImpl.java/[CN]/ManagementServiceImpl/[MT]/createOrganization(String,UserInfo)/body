@@ -1,0 +1,16 @@
+{
+  if ((organizationName == null) || (user == null)) {
+    return null;
+  }
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  Group organizationEntity=new Group();
+  organizationEntity.setPath(organizationName);
+  organizationEntity=em.create(organizationEntity);
+  em.addToCollection(organizationEntity,"users",new SimpleEntityRef(User.ENTITY_TYPE,user.getUuid()));
+  Map<String,String> credentials=new HashMap<String,String>();
+  credentials.put("secret",generateOAuthSecretKey(AuthPrincipalType.ORGANIZATION));
+  em.addMapToDictionary(organizationEntity,DICTIONARY_CREDENTIALS,credentials);
+  OrganizationInfo organization=new OrganizationInfo(organizationEntity.getUuid(),organizationName);
+  postOrganizationActivity(organization.getUuid(),user,"create",organizationEntity,"Organization",organization.getName(),"<a mailto=\"" + user.getEmail() + "\">"+ user.getName()+ " ("+ user.getEmail()+ ")</a> created a new organization account named "+ organizationName,null);
+  return organization;
+}

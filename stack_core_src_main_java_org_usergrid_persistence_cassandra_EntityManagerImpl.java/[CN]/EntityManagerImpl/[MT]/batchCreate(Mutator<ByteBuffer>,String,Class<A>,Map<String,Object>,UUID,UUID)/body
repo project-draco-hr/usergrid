@@ -1,0 +1,109 @@
+{
+  long timestamp=getTimestampInMicros(timestampUuid);
+  String eType=Schema.normalizeEntityType(entityType);
+  boolean is_application=TYPE_APPLICATION.equals(eType);
+  if (((applicationId == null) || applicationId.equals(UUIDUtils.zeroUUID)) && !is_application) {
+    return null;
+  }
+  if (properties == null) {
+    properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
+  }
+  if (entityClass == null) {
+    entityClass=(Class<A>)DynamicEntity.class;
+  }
+  Set<String> required=getDefaultSchema().getRequiredProperties(entityType);
+  if (required != null) {
+    for (    String p : required) {
+      if (!PROPERTY_UUID.equals(p) && !PROPERTY_TYPE.equals(p) && !PROPERTY_CREATED.equals(p)&& !PROPERTY_MODIFIED.equals(p)) {
+        Object v=properties.get(p);
+        if (getDefaultSchema().isPropertyTimestamp(entityType,p)) {
+          if (v == null) {
+            properties.put(p,timestamp);
+          }
+          long ts=getLong(v);
+          if (ts <= 0) {
+            properties.put(p,timestamp);
+          }
+          continue;
+        }
+        if (v == null) {
+          throw new RequiredPropertyNotFoundException(entityType,p);
+        }
+ else         if ((v instanceof String) && isBlank((String)v)) {
+          throw new RequiredPropertyNotFoundException(entityType,p);
+        }
+      }
+    }
+  }
+  UUID itemId=UUIDUtils.newTimeUUID();
+  if (is_application) {
+    itemId=applicationId;
+  }
+  if (importId != null) {
+    itemId=importId;
+  }
+  String collection_name=Schema.defaultCollectionName(eType);
+  Object collection_key=key(applicationId,Schema.DICTIONARY_COLLECTIONS,collection_name);
+  CollectionInfo collection=null;
+  if (!is_application) {
+    collection=getDefaultSchema().getCollection(TYPE_APPLICATION,collection_name);
+    addInsertToMutator(m,ENTITY_ID_SETS,collection_key,itemId,null,timestamp);
+    addInsertToMutator(m,ENTITY_DICTIONARIES,key(applicationId,Schema.DICTIONARY_COLLECTIONS),collection_name,null,timestamp);
+    addInsertToMutator(m,ENTITY_COMPOSITE_DICTIONARIES,key(itemId,Schema.DICTIONARY_CONTAINER_ENTITIES),asList(TYPE_APPLICATION,collection_name,applicationId),null,timestamp);
+    if (collection != null) {
+      if (collection.hasSubkeys()) {
+        List<String[]> combos=collection.getSubkeyCombinations();
+        for (        String[] combo : combos) {
+          List<Object> subkey_props=new ArrayList<Object>();
+          for (          String subkey_name : combo) {
+            Object subkey_value=null;
+            if (subkey_name != null) {
+              subkey_value=properties.get(subkey_name);
+            }
+            subkey_props.add(subkey_value);
+          }
+          Object subkey_key=key(subkey_props.toArray());
+          addInsertToMutator(m,ENTITY_ID_SETS,key(collection_key,subkey_key),itemId,null,timestamp);
+        }
+      }
+    }
+  }
+  properties.put(PROPERTY_UUID,itemId);
+  properties.put(PROPERTY_TYPE,Schema.normalizeEntityType(entityType,false));
+  properties.put(PROPERTY_CREATED,timestamp);
+  properties.put(PROPERTY_MODIFIED,timestamp);
+  if (properties.containsKey(PROPERTY_TIMESTAMP)) {
+    long ts=getLong(properties.get(PROPERTY_TIMESTAMP));
+    if (ts <= 0) {
+      properties.put(PROPERTY_TIMESTAMP,timestamp);
+    }
+  }
+  A entity=EntityFactory.newEntity(itemId,eType,entityClass);
+  logger.info("Entity created of type " + entity.getClass().getName());
+  String aliasName=getDefaultSchema().aliasProperty(entityType);
+  logger.info("Alias property is " + aliasName);
+  for (  String prop_name : properties.keySet()) {
+    Object propertyValue=properties.get(prop_name);
+    if (propertyValue == null) {
+      continue;
+    }
+    if (!is_application && !isPropertyValueUniqueForEntity(applicationId,entityType,prop_name,propertyValue)) {
+      throw new DuplicateUniquePropertyExistsException(entityType,prop_name,propertyValue);
+    }
+    if (!Schema.isAssociatedEntityType(entityType) && prop_name.equals(aliasName)) {
+      String aliasValue=propertyValue.toString().toLowerCase().trim();
+      logger.info("Alias property value for " + aliasName + " is "+ aliasValue);
+      createAlias(applicationId,ref(entityType,itemId),entityType,aliasValue);
+    }
+    entity.setProperty(prop_name,propertyValue);
+    batchSetProperty(m,entity,prop_name,propertyValue,true,true,timestampUuid);
+  }
+  if (entity instanceof Event) {
+    addEventCounterMutations(m,applicationId,(Event)entity,timestamp);
+  }
+  if (!is_application) {
+    batchIncrementAggregateCounters(m,applicationId,null,null,null,null,"application.collection." + collection_name,1L,timestamp);
+    batchIncrementAggregateCounters(m,applicationId,null,null,null,null,"application.entities",1L,timestamp);
+  }
+  return entity;
+}

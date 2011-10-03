@@ -1,0 +1,48 @@
+{
+  long timestamp=getTimestampInMicros(timestampUuid);
+  Entity connectedEntity=em.loadPartialEntity(connection.getConnectedEntityId());
+  if (connectedEntity == null) {
+    return batch;
+  }
+  Object connection_id=connection.getUuid();
+  Map<String,Object> columns=connection.toColumnMap();
+  if (disconnect) {
+    addDeleteToMutator(batch,ENTITY_CONNECTIONS,connection_id,timestamp,columns.keySet().toArray());
+    addDeleteToMutator(batch,ENTITY_COMPOSITE_DICTIONARIES,key(connection.getConnectingEntityId(),DICTIONARY_CONNECTED_ENTITIES,connection.getConnectionType()),asList(connection.getConnectedEntityId(),connection.getConnectedEntityType()),timestamp);
+    addDeleteToMutator(batch,ENTITY_COMPOSITE_DICTIONARIES,key(connection.getConnectedEntityId(),DICTIONARY_CONNECTING_ENTITIES,connection.getConnectionType()),asList(connection.getConnectingEntityId(),connection.getConnectingEntityType()),timestamp);
+  }
+ else {
+    addInsertToMutator(batch,ENTITY_CONNECTIONS,connection_id,columns,timestamp);
+    addInsertToMutator(batch,ENTITY_COMPOSITE_DICTIONARIES,key(connection.getConnectingEntityId(),DICTIONARY_CONNECTED_ENTITIES,connection.getConnectionType()),asList(connection.getConnectedEntityId(),connection.getConnectedEntityType()),timestamp,timestamp);
+    addInsertToMutator(batch,ENTITY_COMPOSITE_DICTIONARIES,key(connection.getConnectedEntityId(),DICTIONARY_CONNECTING_ENTITIES,connection.getConnectionType()),asList(connection.getConnectingEntityId(),connection.getConnectingEntityType()),timestamp,timestamp);
+    addInsertToMutator(batch,ENTITY_DICTIONARIES,key(connection.getConnectingEntityId(),DICTIONARY_CONNECTED_TYPES),connection.getConnectionType(),null,timestamp);
+    addInsertToMutator(batch,ENTITY_DICTIONARIES,key(connection.getConnectedEntityId(),DICTIONARY_CONNECTING_TYPES),connection.getConnectionType(),null,timestamp);
+  }
+  for (  String propertyName : connectedEntity.getProperties().keySet()) {
+    Object propertyValue=connectedEntity.getProperties().get(propertyName);
+    boolean indexed=getDefaultSchema().isPropertyIndexed(connectedEntity.getType(),propertyName);
+    boolean connection_indexes_property=getDefaultSchema().isPropertyIndexedInConnections(connectedEntity.getType(),propertyName);
+    boolean item_schema_has_property=getDefaultSchema().hasProperty(connectedEntity.getType(),propertyName);
+    boolean fulltext_indexed=getDefaultSchema().isPropertyFulltextIndexed(connectedEntity.getType(),propertyName);
+    if (indexed && (connection_indexes_property || !item_schema_has_property)) {
+      IndexUpdate indexUpdate=batchStartIndexUpdate(batch,connectedEntity,propertyName,disconnect ? null : propertyValue,timestampUuid,item_schema_has_property,false,false,fulltext_indexed);
+      batchUpdateConnectionIndex(indexUpdate,connection);
+    }
+  }
+  Set<String> dictionaryNames=em.getDictionaryNames(connectedEntity);
+  for (  String dictionaryName : dictionaryNames) {
+    boolean has_dictionary=getDefaultSchema().hasDictionary(connectedEntity.getType(),dictionaryName);
+    boolean dictionary_indexed=getDefaultSchema().isDictionaryIndexedInConnections(connectedEntity.getType(),dictionaryName);
+    if (dictionary_indexed || !has_dictionary) {
+      Set<Object> elementValues=em.getDictionaryAsSet(connectedEntity,dictionaryName);
+      for (      Object elementValue : elementValues) {
+        IndexUpdate indexUpdate=batchStartIndexUpdate(batch,connectedEntity,dictionaryName,elementValue,timestampUuid,has_dictionary,true,disconnect,false);
+        batchUpdateConnectionIndex(indexUpdate,connection);
+      }
+    }
+  }
+  if (disconnect) {
+    cass.deleteRow(cass.getApplicationKeyspace(applicationId),ENTITY_CONNECTIONS,connection_id,timestamp);
+  }
+  return batch;
+}

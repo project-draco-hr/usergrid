@@ -1,0 +1,13 @@
+{
+  logger.info("SystemFilter.authorize");
+  try {
+    if (!request.isUserInRole("sysadmin")) {
+      throw mappableSecurityException("unauthorized","No system access authorized",SecurityException.REALM);
+    }
+  }
+ catch (  IllegalStateException e) {
+    if ((request.getUserPrincipal() == null) || !"sysadmin".equals(request.getUserPrincipal().getName())) {
+      throw mappableSecurityException("unauthorized","No system access authorized",SecurityException.REALM);
+    }
+  }
+}

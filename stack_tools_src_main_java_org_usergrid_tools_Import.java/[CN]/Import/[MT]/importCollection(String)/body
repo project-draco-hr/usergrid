@@ -1,0 +1,14 @@
+{
+  String applicationName=getApplicationFromColllection(collectionFileName);
+  File collectionFile=new File(importDir,collectionFileName);
+  logger.info("Loading collections file: " + collectionFile.getAbsolutePath());
+  logger.info("  for application: " + applicationName);
+  EntityManager em=emf.getEntityManager(emf.lookupApplication(applicationName));
+  JsonParser jp=getJsonParserForFile(collectionFile);
+  jp.nextToken();
+  while (jp.nextToken() != JsonToken.END_OBJECT) {
+    importEntitysStuff(jp,em);
+  }
+  logger.info("----- End of collections -----");
+  jp.close();
+}

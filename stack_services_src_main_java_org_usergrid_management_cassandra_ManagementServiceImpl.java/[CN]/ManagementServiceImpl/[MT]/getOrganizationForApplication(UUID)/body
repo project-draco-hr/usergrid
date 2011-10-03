@@ -1,0 +1,12 @@
+{
+  if (applicationId == null) {
+    return null;
+  }
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  Results r=em.getConnectingEntities(applicationId,"owns","group",Level.ALL_PROPERTIES);
+  Entity entity=r.getEntity();
+  if (entity != null) {
+    return new OrganizationInfo(entity.getUuid(),(String)entity.getProperty("path"));
+  }
+  return null;
+}

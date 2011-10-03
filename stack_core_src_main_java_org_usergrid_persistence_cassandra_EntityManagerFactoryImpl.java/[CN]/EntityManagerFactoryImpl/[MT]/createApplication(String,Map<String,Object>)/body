@@ -1,0 +1,11 @@
+{
+  name=name.toLowerCase();
+  HColumn<String,ByteBuffer> column=cass.getColumn(cass.getSystemKeyspace(),APPLICATIONS_CF,name,PROPERTY_UUID);
+  if (column != null) {
+    throw new ApplicationAlreadyExistsException(name);
+  }
+  UUID applicationId=UUIDUtils.newTimeUUID();
+  logger.info("New application id " + applicationId.toString());
+  initializeApplication(applicationId,name,properties);
+  return applicationId;
+}

@@ -1,0 +1,13 @@
+{
+  ChannelBuffer msg=(ChannelBuffer)e.getMessage();
+  Message mongo_message=MongoMessageDecoder.decode(msg);
+  if (mongo_message != null) {
+    System.out.println(">>> " + mongo_message.toString());
+  }
+synchronized (trafficLock) {
+    outboundChannel.write(msg);
+    if (!outboundChannel.isWritable()) {
+      e.getChannel().setReadable(false);
+    }
+  }
+}

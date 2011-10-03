@@ -1,0 +1,76 @@
+{
+  if (uuid_set == null) {
+    uuid_set=new TreeSet<UUID>(new UUIDComparator());
+  }
+  if ((bounds == null) && ((start_uuid == null) || (finish_uuid == null))) {
+    logger.error("Necessary queue bounds not found");
+    return uuid_set;
+  }
+  if (start_uuid == null) {
+    start_uuid=bounds.getOldest();
+  }
+  if (start_uuid == null) {
+    logger.error("No first message in queue");
+    return uuid_set;
+  }
+  if (finish_uuid == null) {
+    if (reversed) {
+      finish_uuid=bounds.getOldest();
+    }
+ else {
+      finish_uuid=bounds.getNewest();
+    }
+  }
+  if (finish_uuid == null) {
+    logger.error("No last message in queue");
+    return uuid_set;
+  }
+  long start_ts_shard=roundLong(getTimestampInMillis(start_uuid),QUEUE_SHARD_INTERVAL);
+  long finish_ts_shard=roundLong(getTimestampInMillis(finish_uuid),QUEUE_SHARD_INTERVAL);
+  long current_ts_shard=start_ts_shard;
+  if (reversed) {
+    current_ts_shard=finish_ts_shard;
+  }
+  ByteBuffer start=null;
+  if (slice.getCursor() != null) {
+    start=slice.getCursor();
+  }
+ else   if (slice.getStart() != null) {
+    DynamicComposite s=new DynamicComposite(slice.getStart().getCode(),slice.getStart().getValue());
+    if (!slice.getStart().isInclusive()) {
+      setEqualityFlag(s,ComponentEquality.GREATER_THAN_EQUAL);
+    }
+    start=s.serialize();
+  }
+  ByteBuffer finish=null;
+  if (slice.getFinish() != null) {
+    DynamicComposite f=new DynamicComposite(slice.getFinish().getCode(),slice.getFinish().getValue());
+    if (slice.getFinish().isInclusive()) {
+      setEqualityFlag(f,ComponentEquality.GREATER_THAN_EQUAL);
+    }
+    finish=f.serialize();
+  }
+  while ((current_ts_shard >= start_ts_shard) && (current_ts_shard <= finish_ts_shard) && (uuid_set.size() < limit)) {
+    while (true) {
+      List<HColumn<ByteBuffer,ByteBuffer>> results=createSliceQuery(ko,be,be,be).setColumnFamily(PROPERTY_INDEX.getColumnFamily()).setKey(bytebuffer(key(queueId,current_ts_shard,slice.getPropertyName()))).setRange(start,finish,false,DEFAULT_SEARCH_COUNT).execute().get().getColumns();
+      for (      HColumn<ByteBuffer,ByteBuffer> column : results) {
+        DynamicComposite c=DynamicComposite.fromByteBuffer(column.getName().duplicate());
+        UUID uuid=c.get(2,ue);
+        if ((UUIDComparator.staticCompare(uuid,start_uuid) >= 0) && (UUIDComparator.staticCompare(uuid,finish_uuid) <= 0)) {
+          add(uuid_set,uuid,reversed,limit);
+        }
+      }
+      if (results.size() < DEFAULT_SEARCH_COUNT) {
+        break;
+      }
+      start=results.get(results.size() - 1).getName().duplicate();
+    }
+    if (reversed) {
+      current_ts_shard-=QUEUE_SHARD_INTERVAL;
+    }
+ else {
+      current_ts_shard+=QUEUE_SHARD_INTERVAL;
+    }
+  }
+  return uuid_set;
+}

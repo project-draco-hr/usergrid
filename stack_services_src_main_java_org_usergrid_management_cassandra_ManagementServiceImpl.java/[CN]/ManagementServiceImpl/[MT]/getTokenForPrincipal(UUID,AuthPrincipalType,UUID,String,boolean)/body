@@ -1,0 +1,11 @@
+{
+  if ((type == null) || (id == null)) {
+    return null;
+  }
+  String principalSecret=null;
+  if (useSecret) {
+    principalSecret=getSecret(applicationId,type,id);
+  }
+  String secret=(tokenSalt != null ? tokenSalt : "") + (principalSecret != null ? principalSecret : "");
+  return new AuthPrincipalInfo(type,id,applicationId).constructAccessToken(sessionSecretSalt,secret);
+}

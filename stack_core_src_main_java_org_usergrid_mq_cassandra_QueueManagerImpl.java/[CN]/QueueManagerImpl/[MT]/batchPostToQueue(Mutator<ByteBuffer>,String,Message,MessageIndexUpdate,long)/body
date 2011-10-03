@@ -1,0 +1,22 @@
+{
+  queuePath=normalizeQueuePath(queuePath);
+  UUID queueId=getQueueId(queuePath);
+  message.sync();
+  addMessageToMutator(batch,message,timestamp);
+  long shard_ts=roundLong(message.getTimestamp(),QUEUE_SHARD_INTERVAL);
+  batch.addInsertion(getQueueShardRowKey(queueId,shard_ts),QUEUE_INBOX.getColumnFamily(),createColumn(message.getUuid(),ByteBuffer.allocate(0),timestamp,ue,be));
+  long oldest_ts=Long.MAX_VALUE - getTimestampInMicros(message.getUuid());
+  batch.addInsertion(bytebuffer(queueId),QUEUE_PROPERTIES.getColumnFamily(),createColumn(QUEUE_OLDEST,message.getUuid(),oldest_ts,se,ue));
+  long newest_ts=getTimestampInMicros(message.getUuid());
+  batch.addInsertion(bytebuffer(queueId),QUEUE_PROPERTIES.getColumnFamily(),createColumn(QUEUE_NEWEST,message.getUuid(),newest_ts,se,ue));
+  batch.addInsertion(bytebuffer(getQueueId("/")),QUEUE_SUBSCRIBERS.getColumnFamily(),createColumn(queuePath,queueId,timestamp,se,ue));
+  CounterUtils.batchIncrementQueueCounter(batch,getQueueId("/"),queuePath,1L,timestamp);
+  if (indexUpdate == null) {
+    indexUpdate=new MessageIndexUpdate(message);
+  }
+  indexUpdate.addToMutation(batch,queueId,shard_ts,timestamp);
+  addMessageCounterMutations(batch,applicationId,queueId,message,timestamp);
+  batch.addInsertion(bytebuffer(queueId),QUEUE_PROPERTIES.getColumnFamily(),createColumn(QUEUE_CREATED,timestamp / 1000,Long.MAX_VALUE - timestamp,se,le));
+  batch.addInsertion(bytebuffer(queueId),QUEUE_PROPERTIES.getColumnFamily(),createColumn(QUEUE_MODIFIED,timestamp / 1000,timestamp,se,le));
+  return message;
+}

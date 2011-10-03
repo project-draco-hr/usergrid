@@ -1,0 +1,25 @@
+{
+  Map<String,Object> map=new LinkedHashMap<String,Object>();
+  map.put(CONNECTING_ENTITY_TYPE,typeOrDefault(getConnectingEntityType()));
+  map.put(CONNECTING_ENTITY_ID,idOrDefault(getConnectingEntityId()));
+  for (int i=0; i < MAX_LINKS; i++) {
+    String pairedConnectionType=null;
+    String pairedConnectingEntityType=null;
+    UUID pairedConnectingEntityId=null;
+    if (i < pairedConnections.size()) {
+      ConnectedEntityRef pairedConnection=pairedConnections.get(i);
+      if (pairedConnection != null) {
+        pairedConnectionType=pairedConnection.getConnectionType();
+        pairedConnectingEntityType=pairedConnection.getType();
+        pairedConnectingEntityId=pairedConnection.getUuid();
+      }
+    }
+    map.put(PAIRED_CONNECTION_TYPE + i,typeOrDefault(pairedConnectionType));
+    map.put(PAIRED_CONNECTING_ENTITY_TYPE + i,typeOrDefault(pairedConnectingEntityType));
+    map.put(PAIRED_CONNECTING_ENTITY_ID + i,idOrDefault(pairedConnectingEntityId));
+  }
+  map.put(CONNECTION_TYPE,typeOrDefault(getConnectionType()));
+  map.put(CONNECTED_ENTITY_TYPE,typeOrDefault(getConnectedEntityType()));
+  map.put(CONNECTED_ENTITY_ID,idOrDefault(getConnectedEntityId()));
+  return map;
+}

@@ -1,0 +1,6 @@
+{
+  long timestamp=cass.createTimestamp();
+  Mutator<ByteBuffer> m=createMutator(cass.getApplicationKeyspace(applicationId),be);
+  CounterUtils.batchIncrementAggregateCounters(m,applicationId,null,null,getQueueId(queuePath),category,counterName,value,timestamp);
+  batchExecute(m,CassandraService.RETRY_COUNT);
+}

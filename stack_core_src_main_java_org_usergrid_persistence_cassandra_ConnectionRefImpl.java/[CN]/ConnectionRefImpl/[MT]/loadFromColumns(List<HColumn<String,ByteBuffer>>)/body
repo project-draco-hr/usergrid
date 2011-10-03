@@ -1,0 +1,22 @@
+{
+  List<ConnectedEntityRef> pairedConnections=new ArrayList<ConnectedEntityRef>();
+  Map<String,ByteBuffer> map=CassandraPersistenceUtils.getColumnMap(columns);
+  String connectingEntityType=filterDefault(string(map.get(CONNECTING_ENTITY_TYPE)));
+  UUID connectingEntityId=filterDefault(uuid(map.get(CONNECTING_ENTITY_ID)));
+  EntityRef connectingEntity=ref(connectingEntityType,connectingEntityId);
+  int i=0;
+  UUID pairedConnectingEntityId=filterDefault(uuid(map.get(PAIRED_CONNECTING_ENTITY_ID)));
+  while (pairedConnectingEntityId != null) {
+    String pairedConnectionType=filterDefault(StringUtils.lowerCase(string(map.get(PAIRED_CONNECTION_TYPE + i))));
+    String pairedConnectingEntityType=filterDefault(string(map.get(PAIRED_CONNECTING_ENTITY_TYPE + i)));
+    ConnectedEntityRef pairedConnection=new ConnectedEntityRefImpl(pairedConnectionType,pairedConnectingEntityType,pairedConnectingEntityId);
+    pairedConnections.add(pairedConnection);
+    i++;
+    pairedConnectingEntityId=filterDefault(uuid(map.get(PAIRED_CONNECTING_ENTITY_ID + i)));
+  }
+  String connectionType=filterDefault(StringUtils.lowerCase(string(map.get(CONNECTION_TYPE))));
+  String connectedEntityType=filterDefault(string(map.get(CONNECTED_ENTITY_TYPE)));
+  UUID connectedEntityId=filterDefault(uuid(map.get(CONNECTED_ENTITY_ID)));
+  ConnectedEntityRef connectedEntity=new ConnectedEntityRefImpl(connectionType,connectedEntityType,connectedEntityId);
+  return new ConnectionRefImpl(connectingEntity,pairedConnections,connectedEntity);
+}

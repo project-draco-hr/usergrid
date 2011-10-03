@@ -1,0 +1,26 @@
+{
+  if (ownerId == null) {
+    ownerId=applicationId;
+  }
+  if (aliasType == null) {
+    return null;
+  }
+  if (alias == null) {
+    return null;
+  }
+  alias=alias.toLowerCase().trim();
+  UUID keyId=CassandraPersistenceUtils.aliasID(ownerId,aliasType,alias);
+  Set<String> columnNames=new LinkedHashSet<String>();
+  columnNames.add("entityId");
+  columnNames.add("entityType");
+  List<HColumn<String,ByteBuffer>> columns=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_ALIASES,keyId,columnNames,se,be);
+  if (columns != null) {
+    Map<String,ByteBuffer> cols=CassandraPersistenceUtils.getColumnMap(columns);
+    String entityType=string(cols.get("entityType"));
+    UUID entityId=uuid(cols.get("entityId"),null);
+    if ((entityId != null) && (entityType != null)) {
+      return ref(entityType,entityId);
+    }
+  }
+  return null;
+}

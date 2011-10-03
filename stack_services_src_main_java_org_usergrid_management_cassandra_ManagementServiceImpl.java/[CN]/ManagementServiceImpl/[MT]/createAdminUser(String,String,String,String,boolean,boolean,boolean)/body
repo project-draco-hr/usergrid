@@ -1,0 +1,23 @@
+{
+  if ((username == null) || (name == null) || (email == null)|| (password == null)) {
+    return null;
+  }
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  User user=new User();
+  user.setUsername(username);
+  user.setName(name);
+  user.setEmail(email);
+  user.setActivated(activated);
+  user.setDisabled(disabled);
+  user=em.create(user);
+  Map<String,String> credentials=new HashMap<String,String>();
+  credentials.put("password",hashPassword(password));
+  credentials.put("mongo_pwd",mongoPassword(username,password));
+  credentials.put("secret",generateOAuthSecretKey(AuthPrincipalType.ADMIN_USER));
+  em.addMapToDictionary(user,DICTIONARY_CREDENTIALS,credentials);
+  UserInfo userInfo=new UserInfo(MANAGEMENT_APPLICATION_ID,user.getUuid(),username,name,email,activated,disabled);
+  if (sendEmail && !activated) {
+    sendAdminUserActivationEmail(userInfo);
+  }
+  return userInfo;
+}

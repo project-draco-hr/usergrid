@@ -1,0 +1,41 @@
+{
+  if ((query != null) && (properties == null)) {
+    properties=query.getEqualityFilters();
+  }
+  if (properties == null) {
+    return null;
+  }
+  Set<String> keys_used=new LinkedHashSet<String>();
+  Object best_key=null;
+  int most_keys_matched=0;
+  if (collection.hasSubkeys()) {
+    List<String[]> combos=collection.getSubkeyCombinations();
+    for (    String[] combo : combos) {
+      int keys_matched=0;
+      List<Object> subkey_props=new ArrayList<Object>();
+      Set<String> subkey_names=new LinkedHashSet<String>();
+      for (      String subkey_name : combo) {
+        Object subkey_value=null;
+        if (subkey_name != null) {
+          subkey_value=properties.get(subkey_name);
+          if (subkey_value != null) {
+            keys_matched++;
+            subkey_names.add(subkey_name);
+          }
+        }
+        subkey_props.add(subkey_value);
+      }
+      Object subkey_key=key(subkey_props.toArray());
+      if (keys_matched > most_keys_matched) {
+        best_key=subkey_key;
+        keys_used=subkey_names;
+      }
+    }
+  }
+  if (query != null) {
+    for (    String key : keys_used) {
+      query.removeFiltersForProperty(key);
+    }
+  }
+  return best_key;
+}

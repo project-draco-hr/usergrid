@@ -1,0 +1,40 @@
+{
+  User user=null;
+  try {
+    Entity entity=getUserEntityByIdentifier(applicationId,Identifier.fromUUID(UUID.fromString(identifier)));
+    if (entity != null) {
+      user=(User)entity.toTypedEntity();
+    }
+  }
+ catch (  Exception e) {
+    logger.error("Unable to get user " + identifier + " as a UUID, trying username...");
+  }
+  if (user != null) {
+    return user;
+  }
+  try {
+    Entity entity=getUserEntityByIdentifier(applicationId,Identifier.fromName(identifier));
+    if (entity != null) {
+      user=(User)entity.toTypedEntity();
+    }
+  }
+ catch (  Exception e) {
+    logger.error("Unable to get user " + identifier + " as a username, trying email");
+  }
+  if (user != null) {
+    return user;
+  }
+  try {
+    Entity entity=getUserEntityByIdentifier(applicationId,Identifier.fromEmail(identifier));
+    if (entity != null) {
+      user=(User)entity.toTypedEntity();
+    }
+  }
+ catch (  Exception e) {
+    logger.error("Unable to get user " + identifier + " as an email address, failed...");
+  }
+  if (user != null) {
+    return user;
+  }
+  return null;
+}

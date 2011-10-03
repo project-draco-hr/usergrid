@@ -1,0 +1,13 @@
+{
+  if (localLocks.get() == null) {
+    return;
+  }
+  UGReentranLock lock=localLocks.get().get(lockPath);
+  if (lock == null) {
+    return;
+  }
+  lock.unlock();
+  if (lock.getHoldCount() == 0) {
+    localLocks.get().remove(lockPath);
+  }
+}

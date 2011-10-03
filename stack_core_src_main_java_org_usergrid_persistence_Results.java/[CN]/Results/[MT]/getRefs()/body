@@ -1,0 +1,33 @@
+{
+  if (refs != null) {
+    return refs;
+  }
+  List<?> l=getEntities();
+  if ((l != null) && (l.size() > 0)) {
+    return (List<EntityRef>)l;
+  }
+  if (connections != null) {
+    refs=new ArrayList<EntityRef>();
+    for (    ConnectionRef connection : connections) {
+      if (forwardConnections) {
+        ConnectedEntityRef c=connection.getConnectedEntity();
+        if (c != null) {
+          refs.add(c);
+        }
+      }
+ else {
+        EntityRef c=connection.getConnectingEntity();
+        if (c != null) {
+          refs.add(c);
+        }
+      }
+    }
+    return refs;
+  }
+  if (ref != null) {
+    refs=new ArrayList<EntityRef>();
+    refs.add(ref);
+    return refs;
+  }
+  return new ArrayList<EntityRef>();
+}

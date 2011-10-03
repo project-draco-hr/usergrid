@@ -1,0 +1,23 @@
+{
+  Future<Boolean> status=pool.submit(new Callable<Boolean>(){
+    @Override public Boolean call() throws Exception {
+      try {
+        manager.lock(application,entity);
+        System.out.println("Lock2 acquired");
+      }
+ catch (      Exception e) {
+        return false;
+      }
+      return true;
+    }
+  }
+);
+  boolean wasLocked=true;
+  try {
+    wasLocked=status.get(2,TimeUnit.SECONDS);
+  }
+ catch (  Exception e) {
+    wasLocked=false;
+  }
+  return wasLocked;
+}

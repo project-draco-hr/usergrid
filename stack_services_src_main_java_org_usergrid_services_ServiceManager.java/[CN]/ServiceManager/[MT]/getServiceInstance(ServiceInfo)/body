@@ -1,0 +1,35 @@
+{
+  Class<Service> cls=findServiceClass(info);
+  if (cls != null) {
+    Service s=null;
+    try {
+      try {
+        s=cls.newInstance();
+      }
+ catch (      Exception e) {
+      }
+      if (s == null) {
+        try {
+          String cname=cls.getName();
+          s=(Service)Class.forName(cname + "Impl").newInstance();
+        }
+ catch (        Exception e) {
+        }
+      }
+    }
+ catch (    Exception e) {
+    }
+    if (s instanceof AbstractService) {
+      AbstractService as=((AbstractService)s);
+      as.setServiceManager(this);
+      as.init(info);
+    }
+    if (s != null) {
+      if (s.getEntityType() == null) {
+        throw new UndefinedServiceEntityTypeException();
+      }
+    }
+    return s;
+  }
+  return null;
+}

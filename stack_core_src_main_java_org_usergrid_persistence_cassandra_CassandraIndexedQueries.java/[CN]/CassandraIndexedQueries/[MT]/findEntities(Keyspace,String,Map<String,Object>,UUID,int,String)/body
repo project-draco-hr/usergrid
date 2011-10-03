@@ -1,0 +1,42 @@
+{
+  List<Entity> entities=new ArrayList<Entity>();
+  IndexedSlicesQuery<UUID,String,ByteBuffer> q=createIndexedSlicesQuery(ko,ue,se,be);
+  q.setColumnFamily(ApplicationCF.ENTITY_PROPERTIES.toString());
+  if (start != null) {
+    q.setStartKey(start);
+  }
+  q.setRange(null,null,false,count);
+  if ((propertyNames == null) || (propertyNames.length == 0)) {
+    propertyNames=Schema.getDefaultSchema().getAllPropertyNamesAsArray();
+  }
+  q.setColumnNames(propertyNames);
+  q.addEqualsExpression(PROPERTY_TYPE,bytebuffer(entityType));
+  if (subkeyProperties != null) {
+    for (    Map.Entry<String,Object> entry : subkeyProperties.entrySet()) {
+      q.addEqualsExpression(entry.getKey(),bytebuffer(entry.getValue()));
+    }
+  }
+  QueryResult<OrderedRows<UUID,String,ByteBuffer>> r=q.execute();
+  OrderedRows<UUID,String,ByteBuffer> rows=r.get();
+  for (  Row<UUID,String,ByteBuffer> row : rows) {
+    ColumnSlice<String,ByteBuffer> slice=row.getColumnSlice();
+    if (slice == null) {
+      logger.warn("Unable to get slice for row " + row.getKey());
+      continue;
+    }
+    List<HColumn<String,ByteBuffer>> columns=slice.getColumns();
+    if (columns == null) {
+      logger.warn("Unable to get columns for row " + row.getKey());
+      continue;
+    }
+    Map<String,Object> entityProperties=Schema.deserializeEntityProperties(columns);
+    if (entityProperties == null) {
+      logger.warn("Unable to get correct entities properties from row " + row.getKey());
+      continue;
+    }
+    entityType=(String)entityProperties.get(PROPERTY_TYPE);
+    UUID id=(UUID)entityProperties.get(PROPERTY_UUID);
+    entities.add(new DynamicEntity(entityType,id,entityProperties));
+  }
+  return entities;
+}

@@ -1,0 +1,34 @@
+{
+  if (properties == null) {
+    properties=new HashMap<String,Object>();
+  }
+  String organizationName=null;
+  if (organizationInfo != null) {
+    organizationName=organizationInfo.getName();
+  }
+  if (organizationName == null) {
+    organizationName=(String)properties.get(PROPERTY_PATH);
+  }
+  if (organizationName == null) {
+    organizationName=(String)properties.get(PROPERTY_NAME);
+  }
+  if (organizationName == null) {
+    return null;
+  }
+  if (organizationId == null) {
+    if (organizationInfo != null) {
+      organizationId=organizationInfo.getUuid();
+    }
+  }
+  if (organizationId == null) {
+    organizationId=uuid(properties.get(PROPERTY_UUID));
+  }
+  if (organizationId == null) {
+    return null;
+  }
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  properties.put(PROPERTY_PATH,organizationName);
+  properties.put(PROPERTY_SECRET,generateOAuthSecretKey(AuthPrincipalType.ORGANIZATION));
+  Entity organization=em.create(organizationId,Group.ENTITY_TYPE,properties);
+  return new OrganizationInfo(organization.getUuid(),organizationName);
+}

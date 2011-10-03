@@ -1,0 +1,45 @@
+{
+  logger.info("ManagementResource.getAccessToken");
+  UserInfo user=null;
+  try {
+    if (authorization != null) {
+      String type=stringOrSubstringBeforeFirst(authorization,' ').toUpperCase();
+      if ("BASIC".equals(type)) {
+        String token=stringOrSubstringAfterFirst(authorization,' ');
+        String[] values=Base64.decodeToString(token).split(":");
+        if (values.length >= 2) {
+          client_id=values[0].toLowerCase();
+          client_secret=values[1];
+        }
+      }
+    }
+    if (GrantType.PASSWORD.toString().equals(grant_type)) {
+      try {
+        user=management.verifyAdminUserPasswordCredentials(username,password);
+      }
+ catch (      Exception e1) {
+      }
+    }
+ else     if ("client_credentials".equals(grant_type)) {
+      try {
+        AccessInfo access_info=management.authorizeClient(client_id,client_secret);
+        if (access_info != null) {
+          return Response.status(SC_OK).type(APPLICATION_JSON_TYPE).entity(mapToJsonString(access_info)).build();
+        }
+      }
+ catch (      Exception e1) {
+      }
+    }
+    if (user == null) {
+      OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription("invalid username or password").buildJSONMessage();
+      return Response.status(response.getResponseStatus()).type(APPLICATION_JSON_TYPE).entity(response.getBody()).build();
+    }
+    AccessInfo access_info=new AccessInfo().withExpiresIn(3600).withAccessToken(management.getAccessTokenForAdminUser(user.getUuid())).withProperty("user",management.getAdminUserOrganizationData(user.getUuid()));
+    return Response.status(SC_OK).type(APPLICATION_JSON_TYPE).entity(mapToJsonString(access_info)).build();
+  }
+ catch (  OAuthProblemException e) {
+    logger.error("OAuth Error",e);
+    OAuthResponse res=OAuthResponse.errorResponse(SC_BAD_REQUEST).error(e).buildJSONMessage();
+    return Response.status(res.getResponseStatus()).type(APPLICATION_JSON_TYPE).entity(res.getBody()).build();
+  }
+}

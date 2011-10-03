@@ -1,0 +1,35 @@
+{
+  if (type == null) {
+    String errorMsg="Entity type cannot be null";
+    logger.error(errorMsg);
+    throw new IllegalArgumentException(errorMsg);
+  }
+  if ("entity".equalsIgnoreCase(type) || "dynamicentity".equalsIgnoreCase(type)) {
+    String errorMsg="Unable to instantiate entity (" + type + ") because that is not a valid type.";
+    logger.error(errorMsg);
+    throw new IllegalArgumentException(errorMsg);
+  }
+  Class<? extends Entity> expectedCls=Schema.getDefaultSchema().getEntityClass(type);
+  if ((expectedCls != null) && !DynamicEntity.class.isAssignableFrom(entityClass) && !expectedCls.isAssignableFrom(entityClass)) {
+    String errorMsg="Unable to instantiate entity (" + type + ") because type and entityClass do not match, either use DynamicClass as entityClass or fix mismatch.";
+    logger.error(errorMsg);
+    throw new IllegalArgumentException(errorMsg);
+  }
+ else {
+    try {
+      A entity=entityClass.newInstance();
+      entity.setUuid(id);
+      entity.setType(type);
+      return entity;
+    }
+ catch (    IllegalAccessException e) {
+      String errorMsg="Unable to access entity (" + type + "): "+ e.getMessage();
+      logger.error(errorMsg);
+    }
+catch (    InstantiationException e) {
+      String errorMsg="Unable to instantiate entity (" + type + "): "+ e.getMessage();
+      logger.error(errorMsg);
+    }
+  }
+  return null;
+}

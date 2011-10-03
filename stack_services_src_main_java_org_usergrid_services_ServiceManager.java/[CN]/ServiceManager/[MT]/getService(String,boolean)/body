@@ -1,0 +1,19 @@
+{
+  if (serviceType == null) {
+    return null;
+  }
+  serviceType=ServiceInfo.normalizeServicePattern(serviceType);
+  logger.info("Looking up service pattern: " + serviceType);
+  ServiceInfo info=ServiceInfo.getServiceInfo(serviceType);
+  if (info == null) {
+    return null;
+  }
+  Service service=getServiceInstance(info);
+  if (service != null) {
+    logger.info("Returning service instance: " + service.getClass());
+  }
+  if (service == null) {
+    logger.info("Service " + serviceType + " not found");
+  }
+  return service;
+}

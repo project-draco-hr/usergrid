@@ -1,0 +1,96 @@
+{
+  SimpleAuthorizationInfo info=new SimpleAuthorizationInfo();
+  Map<UUID,String> organizationSet=HashBiMap.create();
+  Map<UUID,String> applicationSet=HashBiMap.create();
+  OrganizationInfo organization=null;
+  ApplicationInfo application=null;
+  for (  PrincipalIdentifier principal : principals.byType(PrincipalIdentifier.class)) {
+    if (principal instanceof OrganizationPrincipal) {
+      organization=((OrganizationPrincipal)principal).getOrganization();
+      role(info,principal,ROLE_ORGANIZATION_ADMIN);
+      role(info,principal,ROLE_APPLICATION_ADMIN);
+      grant(info,principal,"organizations:access:" + organization.getUuid());
+      organizationSet.put(organization.getUuid(),organization.getName());
+      Map<UUID,String> applications=null;
+      try {
+        applications=management.getApplicationsForOrganization(organization.getUuid());
+      }
+ catch (      Exception e) {
+        e.printStackTrace();
+      }
+      if ((applications != null) && !applications.isEmpty()) {
+        grant(info,principal,"applications:access:" + StringUtils.join(applications.keySet(),','));
+        grant(info,principal,"applications:admin:" + StringUtils.join(applications.keySet(),','));
+        applicationSet.putAll(applications);
+      }
+    }
+ else     if (principal instanceof ApplicationPrincipal) {
+      role(info,principal,ROLE_APPLICATION_ADMIN);
+      application=((ApplicationPrincipal)principal).getApplication();
+      grant(info,principal,"applications:access:" + application.getId());
+      grant(info,principal,"applications:admin:" + application.getId());
+      applicationSet.put(application.getId(),application.getName());
+    }
+ else     if (principal instanceof AdminUserPrincipal) {
+      UserInfo user=((AdminUserPrincipal)principal).getUser();
+      if (user.getUsername().equals("superuser")) {
+        role(info,principal,ROLE_SERVICE_ADMIN);
+        role(info,principal,ROLE_ORGANIZATION_ADMIN);
+        role(info,principal,ROLE_APPLICATION_ADMIN);
+        role(info,principal,ROLE_ADMIN_USER);
+        grant(info,principal,"system:access");
+        grant(info,principal,"organizations:access:*");
+        grant(info,principal,"applications:access:*");
+        grant(info,principal,"applications:admin:*");
+        grant(info,principal,"users:access:*");
+      }
+ else {
+        role(info,principal,ROLE_ADMIN_USER);
+        try {
+          Map<UUID,String> userOrganizations=management.getOrganizationsForAdminUser(user.getUuid());
+          if (userOrganizations != null) {
+            for (            UUID id : userOrganizations.keySet()) {
+              grant(info,principal,"organizations:access:" + id);
+            }
+            organizationSet.putAll(userOrganizations);
+            Map<UUID,String> userApplications=management.getApplicationsForOrganizations(userOrganizations.keySet());
+            if ((userApplications != null) && !userApplications.isEmpty()) {
+              grant(info,principal,"applications:access:" + StringUtils.join(userApplications.keySet(),','));
+              grant(info,principal,"applications:admin:" + StringUtils.join(userApplications.keySet(),','));
+              applicationSet.putAll(userApplications);
+            }
+            role(info,principal,ROLE_ORGANIZATION_ADMIN);
+            role(info,principal,ROLE_APPLICATION_ADMIN);
+          }
+        }
+ catch (        Exception e) {
+          e.printStackTrace();
+        }
+      }
+    }
+ else     if (principal instanceof ApplicationUserPrincipal) {
+      role(info,principal,ROLE_APPLICATION_USER);
+      UUID applicationId=((ApplicationUserPrincipal)principal).getApplicationId();
+      grant(info,principal,"applications:access:" + applicationId);
+      EntityManager em=emf.getEntityManager(applicationId);
+      try {
+        String appName=(String)em.getProperty(em.getApplicationRef(),"name");
+        applicationSet.put(applicationId,appName);
+        application=new ApplicationInfo(applicationId,appName);
+      }
+ catch (      Exception e) {
+      }
+    }
+  }
+  Subject currentUser=SecurityUtils.getSubject();
+  Session session=currentUser.getSession();
+  session.setAttribute("applications",applicationSet);
+  session.setAttribute("organizations",organizationSet);
+  if (organization != null) {
+    session.setAttribute("organization",organization);
+  }
+  if (application != null) {
+    session.setAttribute("application",application);
+  }
+  return info;
+}

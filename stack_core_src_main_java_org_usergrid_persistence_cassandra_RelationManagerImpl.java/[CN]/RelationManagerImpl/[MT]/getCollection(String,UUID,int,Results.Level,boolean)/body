@@ -1,0 +1,11 @@
+{
+  List<UUID> ids=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(headEntity.getUuid(),DICTIONARY_COLLECTIONS,collectionName),startResult,null,count + 1,reversed);
+  Results results=null;
+  if (resultsLevel == Results.Level.IDS) {
+    results=Results.fromIdList(ids);
+  }
+ else {
+    results=Results.fromIdList(ids,getDefaultSchema().getCollectionType(headEntity.getType(),collectionName));
+  }
+  return em.loadEntities(results,resultsLevel,count);
+}

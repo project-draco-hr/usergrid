@@ -1,0 +1,20 @@
+{
+  UUID subscriberQueueId=getQueueId(subscriberQueuePath);
+  Keyspace ko=cass.getApplicationKeyspace(applicationId);
+  if (firstSubscriptionQueuePath != null) {
+    limit+=1;
+  }
+  List<HColumn<String,UUID>> columns=createSliceQuery(ko,ue,se,ue).setKey(subscriberQueueId).setColumnFamily(QUEUE_SUBSCRIPTIONS.getColumnFamily()).setRange(normalizeQueuePath(firstSubscriptionQueuePath),null,false,limit + 1).execute().get().getColumns();
+  QueueSet queues=new QueueSet();
+  int count=Math.min(limit,columns.size());
+  if (columns != null) {
+    for (int i=firstSubscriptionQueuePath != null ? 1 : 0; i < count; i++) {
+      HColumn<String,UUID> column=columns.get(i);
+      queues.addQueue(column.getName(),column.getValue());
+    }
+  }
+  if (columns.size() > limit) {
+    queues.setMore(true);
+  }
+  return queues;
+}

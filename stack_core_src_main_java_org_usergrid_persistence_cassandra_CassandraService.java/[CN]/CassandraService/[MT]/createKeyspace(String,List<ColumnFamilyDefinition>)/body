@@ -1,0 +1,20 @@
+{
+  logger.info("Creating keyspace: " + keyspace);
+  try {
+    KeyspaceDefinition ks_def=HFactory.createKeyspaceDefinition(keyspace,"org.apache.cassandra.locator.SimpleStrategy",1,new ArrayList<ColumnFamilyDefinition>());
+    cluster.addKeyspace(ks_def);
+  }
+ catch (  Throwable e) {
+    logger.error("Exception while creating keyspace, " + keyspace + " - probably already exists",e);
+  }
+  if (cf_defs != null) {
+    for (    ColumnFamilyDefinition cfDef : cf_defs) {
+      try {
+        cluster.addColumnFamily(cfDef);
+      }
+ catch (      Throwable e) {
+        logger.error("Exception while creating CF, " + cfDef.getName() + " - probably already exists",e);
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  int l=28;
+  ByteBuffer fullCollectionNameBytes=getCString(fullCollectionName);
+  l+=fullCollectionNameBytes.capacity();
+  ByteBuffer queryBytes=encodeDocument(query);
+  l+=queryBytes.capacity();
+  ByteBuffer returnFieldSelectorBytes=encodeDocument(returnFieldSelector);
+  l+=returnFieldSelectorBytes.capacity();
+  messageLength=l;
+  buffer=super.encode(buffer);
+  buffer.writeInt(flags);
+  buffer.writeBytes(fullCollectionNameBytes);
+  buffer.writeInt(numberToSkip);
+  buffer.writeInt(numberToReturn);
+  buffer.writeBytes(queryBytes);
+  buffer.writeBytes(returnFieldSelectorBytes);
+  return buffer;
+}

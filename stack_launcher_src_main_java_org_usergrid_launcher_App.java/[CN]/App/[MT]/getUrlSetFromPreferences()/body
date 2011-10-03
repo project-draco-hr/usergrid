@@ -1,0 +1,28 @@
+{
+  Set<String> urls=new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+  urls.add("http://usergrid.github.com/console");
+  ObjectMapper mapper=new ObjectMapper();
+  String json=null;
+  try {
+    json=prefs.get("urlList",null);
+  }
+ catch (  Exception e) {
+  }
+  if (json == null) {
+    return urls;
+  }
+  List<String> strings=null;
+  try {
+    strings=mapper.readValue(json,new TypeReference<List<String>>(){
+    }
+);
+  }
+ catch (  Exception e) {
+  }
+  if (strings == null) {
+    return urls;
+  }
+  urls=new LinkedHashSet<String>(strings);
+  urls.addAll(strings);
+  return urls;
+}

@@ -1,0 +1,11 @@
+{
+  OrganizationInfo acc=null;
+  File organizationFile=new File(importDir,organizationFileName);
+  logger.info("Loading organization file: " + organizationFile.getAbsolutePath());
+  JsonParser jp=getJsonParserForFile(organizationFile);
+  acc=jp.readValueAs(OrganizationInfo.class);
+  Map<String,Object> properties=new LinkedHashMap<String,Object>();
+  echo(acc);
+  managementService.importOrganization(acc.getUuid(),acc,properties);
+  jp.close();
+}

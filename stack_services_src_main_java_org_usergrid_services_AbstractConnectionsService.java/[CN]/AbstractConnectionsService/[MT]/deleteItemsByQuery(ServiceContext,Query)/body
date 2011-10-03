@@ -1,0 +1,21 @@
+{
+  if (!query.hasFilterPredicates() && (query.getEntityType() != null) && query.containsNameOrEmailIdentifiersOnly()) {
+    String name=query.getSingleNameOrEmailIdentifier();
+    String nameProperty=Schema.getDefaultSchema().aliasProperty(query.getEntityType());
+    if (nameProperty == null) {
+      nameProperty="name";
+    }
+    EntityRef ref=em.getAlias(query.getEntityType(),name);
+    if (ref == null) {
+      return null;
+    }
+    Entity entity=em.get(ref);
+    if (entity == null) {
+      return null;
+    }
+    entity=importEntity(context,entity);
+    em.deleteConnection(em.connectionRef(context.getOwner(),query.getConnectionType(),entity));
+    return new ServiceResults(null,context,Type.CONNECTION,Results.fromEntity(entity),null,null);
+  }
+  return getItemsByQuery(context,query);
+}

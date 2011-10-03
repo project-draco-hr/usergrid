@@ -1,0 +1,38 @@
+{
+  EntityRef owner=request.getOwner();
+  String collectionName="application".equals(owner.getType()) ? pluralize(info.getItemType()) : info.getCollectionName();
+  List<ServiceParameter> parameters=filter(request.getParameters(),replaceParameters);
+  ServiceParameter first_parameter=null;
+  if (!isEmpty(parameters)) {
+    first_parameter=parameters.get(0);
+    parameters=dequeueCopy(parameters);
+  }
+  if (first_parameter instanceof NameParameter) {
+    if (hasServiceMetadata(first_parameter.getName())) {
+      return new ServiceContext(this,action,request,previousResults,owner,collectionName,parameters,payload).withServiceMetadata(first_parameter.getName());
+    }
+ else     if (hasServiceCommand(first_parameter.getName())) {
+      return new ServiceContext(this,action,request,previousResults,owner,collectionName,parameters,payload).withServiceCommand(first_parameter.getName());
+    }
+  }
+  Query query=null;
+  if (first_parameter instanceof QueryParameter) {
+    query=first_parameter.getQuery();
+  }
+  parameters=mergeQueries(query,parameters);
+  if (first_parameter instanceof IdParameter) {
+    UUID id=first_parameter.getId();
+    return new ServiceContext(this,action,request,previousResults,owner,collectionName,Query.fromUUID(id),parameters,payload);
+  }
+ else   if (first_parameter instanceof NameParameter) {
+    String name=first_parameter.getName();
+    return new ServiceContext(this,action,request,previousResults,owner,collectionName,Query.fromIdentifier(name),parameters,payload);
+  }
+ else   if (query != null) {
+    return new ServiceContext(this,action,request,previousResults,owner,collectionName,query,parameters,payload);
+  }
+ else   if (first_parameter == null) {
+    return new ServiceContext(this,action,request,previousResults,owner,collectionName,null,null,payload);
+  }
+  return null;
+}

@@ -1,0 +1,19 @@
+{
+  if (metadataMerged) {
+    return;
+  }
+  if (metadata == null) {
+    return;
+  }
+  metadataMerged=true;
+  getEntities();
+  if (entities != null) {
+    for (    Entity entity : entities) {
+      entity.clearMetadata();
+      Map<String,Object> entityMetadata=metadata.get(entity.getUuid());
+      if (entityMetadata != null) {
+        entity.mergeMetadata(entityMetadata);
+      }
+    }
+  }
+}

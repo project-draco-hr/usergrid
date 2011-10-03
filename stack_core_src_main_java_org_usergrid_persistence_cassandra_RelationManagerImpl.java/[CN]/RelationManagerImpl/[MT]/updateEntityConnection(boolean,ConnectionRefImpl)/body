@@ -1,0 +1,11 @@
+{
+  UUID timestampUuid=newTimeUUID();
+  Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
+  batchUpdateEntityConnection(batch,disconnect,connection,timestampUuid);
+  ConnectionRefImpl loopback=connection.getConnectionToConnectionEntity();
+  if (!disconnect) {
+    em.insertEntity(CONNECTION_ENTITY_CONNECTION_TYPE,loopback.getConnectedEntityId());
+  }
+  batchUpdateEntityConnection(batch,disconnect,loopback,timestampUuid);
+  batchExecute(batch,CassandraService.RETRY_COUNT);
+}

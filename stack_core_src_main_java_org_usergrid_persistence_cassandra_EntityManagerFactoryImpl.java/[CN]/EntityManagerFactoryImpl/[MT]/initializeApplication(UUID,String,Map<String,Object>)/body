@@ -1,0 +1,21 @@
+{
+  name=name.toLowerCase();
+  if (properties == null) {
+    properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
+  }
+  properties.put(PROPERTY_NAME,name);
+  getSetup().setupApplicationKeyspace(applicationId,name);
+  getSetup().checkKeyspaces();
+  Keyspace ko=cass.getSystemKeyspace();
+  Mutator<ByteBuffer> m=createMutator(ko,be);
+  long timestamp=cass.createTimestamp();
+  addInsertToMutator(m,APPLICATIONS_CF,name,PROPERTY_UUID,applicationId,timestamp);
+  addInsertToMutator(m,APPLICATIONS_CF,name,PROPERTY_NAME,name,timestamp);
+  batchExecute(m,RETRY_COUNT);
+  EntityManager em=getEntityManager(applicationId);
+  ((EntityManagerImpl)em).create(TYPE_APPLICATION,APPLICATION_ENTITY_CLASS,properties);
+  em.createRole("admin","Administrator");
+  em.createRole("default","Default");
+  em.createRole("guest","Guest");
+  return applicationId;
+}

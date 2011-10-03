@@ -1,0 +1,51 @@
+{
+  if (query == null) {
+    query=new Query();
+  }
+  publisherQueuePath=normalizeQueuePath(publisherQueuePath);
+  UUID publisherQueueId=getQueueId(publisherQueuePath);
+  if (!query.hasFilterPredicates() && !query.hasSortPredicates()) {
+    return getSubscribers(publisherQueuePath,null,query.getLimit());
+  }
+  QueueSet results=null;
+  String composite_cursor=null;
+  QueryProcessor qp=new QueryProcessor(query);
+  List<QuerySlice> slices=qp.getSlices();
+  int search_count=query.getLimit() + 1;
+  if (slices.size() > 1) {
+    search_count=DEFAULT_SEARCH_COUNT;
+  }
+  for (  QuerySlice slice : slices) {
+    QueueSet r=null;
+    try {
+      r=searchQueueIndex(publisherQueueId,slice,search_count);
+    }
+ catch (    Exception e) {
+      logger.error("Error during search",e);
+    }
+    if (r == null) {
+      continue;
+    }
+    if (r.size() > query.getLimit()) {
+      r.setCursorToLastResult();
+    }
+    if (r.getCursor() != null) {
+      if (composite_cursor != null) {
+        composite_cursor+="|";
+      }
+ else {
+        composite_cursor="";
+      }
+      int hashCode=slice.hashCode();
+      logger.info("Cursor hash code: " + hashCode);
+      composite_cursor+=hashCode + ":" + r.getCursor();
+    }
+    if (results != null) {
+      results.and(r);
+    }
+ else {
+      results=r;
+    }
+  }
+  return results;
+}

@@ -1,0 +1,18 @@
+{
+  int l=24;
+  numberOfCursorIDs=0;
+  if (cursorIDs != null) {
+    numberOfCursorIDs=cursorIDs.size();
+    l+=numberOfCursorIDs * 8;
+  }
+  messageLength=l;
+  buffer=super.encode(buffer);
+  buffer.writeInt(0);
+  buffer.writeInt(numberOfCursorIDs);
+  if (cursorIDs != null) {
+    for (    Long cursorID : cursorIDs) {
+      buffer.writeLong(cursorID);
+    }
+  }
+  return buffer;
+}

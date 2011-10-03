@@ -1,0 +1,37 @@
+{
+  logger.info("testQueryProcessor");
+  Query q=new Query();
+  q.addFilter("a<10");
+  q.addFilter("a>5");
+  QueryProcessor qp=new QueryProcessor(q);
+  testIntRange(5,false,10,false,qp,1);
+  q=new Query();
+  q.addFilter("a<=10");
+  q.addFilter("a>=5");
+  qp=new QueryProcessor(q);
+  testIntRange(5,true,10,true,qp,1);
+  q=new Query();
+  q.addFilter("a<=10");
+  q.addFilter("a>3");
+  q.addFilter("a>=5");
+  qp=new QueryProcessor(q);
+  testIntRange(3,false,10,true,qp,1);
+  q=new Query();
+  q.addFilter("a<=10");
+  q.addFilter("a>5");
+  q.addFilter("a>=5");
+  qp=new QueryProcessor(q);
+  testIntRange(5,true,10,true,qp,1);
+  q=new Query();
+  q.addFilter("a<=10");
+  q.addFilter("a>5");
+  q.addFilter("a>=5");
+  q.addFilter("a<10");
+  qp=new QueryProcessor(q);
+  testIntRange(5,true,10,true,qp,1);
+  q=new Query();
+  q.addFilter("name > 'bob'");
+  q.addFilter("name <= 'david'");
+  qp=new QueryProcessor(q);
+  testStringRange("bob",false,"david",true,qp,1);
+}

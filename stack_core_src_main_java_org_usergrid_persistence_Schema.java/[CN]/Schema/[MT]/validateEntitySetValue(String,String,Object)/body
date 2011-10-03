@@ -1,0 +1,14 @@
+{
+  entityType=normalizeEntityType(entityType);
+  if ((elementValue instanceof String) && ((String)elementValue).equals("")) {
+    elementValue=null;
+  }
+  if (!hasDictionary(entityType,dictionaryName)) {
+    return elementValue;
+  }
+  Class<?> type=getDictionaryKeyType(entityType,dictionaryName);
+  if (type != null) {
+    elementValue=mapper.convertValue(elementValue,type);
+  }
+  return elementValue;
+}

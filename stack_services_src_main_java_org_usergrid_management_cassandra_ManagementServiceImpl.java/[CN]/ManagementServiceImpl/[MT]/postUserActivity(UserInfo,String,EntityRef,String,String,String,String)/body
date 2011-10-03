@@ -1,0 +1,19 @@
+{
+  ServiceManager sm=smf.getServiceManager(MANAGEMENT_APPLICATION_ID);
+  Map<String,Object> properties=new HashMap<String,Object>();
+  properties.put("verb",verb);
+  properties.put("category","admin");
+  if (content != null) {
+    properties.put("content",content);
+  }
+  if (title != null) {
+    properties.put("title",title);
+  }
+  properties.put("actor",user.getUuid());
+  properties.put("actorName",user.getName());
+  properties.put("object",object.getUuid());
+  properties.put("objectEntityType",object.getType());
+  properties.put("objectType",objectType);
+  properties.put("objectName",objectName);
+  sm.newRequest(ServiceAction.POST,parameters("users",user.getUuid(),"activities"),payload(properties)).execute().getEntity();
+}

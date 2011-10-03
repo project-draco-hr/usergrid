@@ -1,0 +1,47 @@
+{
+  try {
+    if (props == null) {
+      props=System.getProperties();
+    }
+    String protocol=props.getProperty("mail.transport.protocol","smtp");
+    String host=props.getProperty("mail." + protocol + ".host");
+    String username=props.getProperty("mail." + protocol + ".username");
+    String password=props.getProperty("mail." + protocol + ".password");
+    Session session=Session.getInstance(props);
+    MimeMultipart msgContent=new MimeMultipart("alternative");
+    if ((htmlText != null) && (plainText == null)) {
+      try {
+        plainText=Jsoup.parse(htmlText).body().wrap("<pre></pre>").text();
+      }
+ catch (      Exception e) {
+        logger.error(e);
+      }
+    }
+    if (plainText != null) {
+      MimeBodyPart plainPart=new MimeBodyPart();
+      plainPart.setContent(plainText,"text/plain");
+      plainPart.setHeader("MIME-Version","1.0");
+      plainPart.setHeader("Content-Type","text/plain; charset=iso-8859-1");
+      msgContent.addBodyPart(plainPart);
+    }
+    if (htmlText != null) {
+      MimeBodyPart htmlPart=new MimeBodyPart();
+      htmlPart.setContent(htmlText,"text/html");
+      htmlPart.setHeader("MIME-Version","1.0");
+      htmlPart.setHeader("Content-Type","text/html; charset=iso-8859-1");
+      msgContent.addBodyPart(htmlPart);
+    }
+    MimeMessage msg=new MimeMessage(session);
+    msg.setContent(msgContent);
+    msg.setFrom(new InternetAddress(from));
+    msg.addRecipient(Message.RecipientType.TO,new InternetAddress(to));
+    msg.setSubject(subject);
+    Transport transport=session.getTransport();
+    transport.connect(host,username,password);
+    transport.sendMessage(msg,msg.getAllRecipients());
+    transport.close();
+  }
+ catch (  Exception e) {
+    logger.error(e);
+  }
+}

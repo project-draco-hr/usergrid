@@ -1,0 +1,26 @@
+{
+  UserInfo user=management.createAdminUser("edanuff","Ed Anuff","ed@anuff.com","test",false,false,false);
+  assertNotNull(user);
+  OrganizationInfo organization=management.createOrganization("ed-organization",user);
+  assertNotNull(organization);
+  Map<UUID,String> userOrganizations=management.getOrganizationsForAdminUser(user.getUuid());
+  assertEquals("wrong number of organizations",1,userOrganizations.size());
+  List<UserInfo> users=management.getAdminUsersForOrganization(organization.getUuid());
+  assertEquals("wrong number of users",1,users.size());
+  UUID applicationId=management.createApplication(organization.getUuid(),"ed-application");
+  assertNotNull(applicationId);
+  Map<UUID,String> applications=management.getApplicationsForOrganization(organization.getUuid());
+  assertEquals("wrong number of applications",1,applications.size());
+  OrganizationInfo organization2=management.getOrganizationForApplication(applicationId);
+  assertNotNull(organization2);
+  assertEquals("wrong organization name","ed-organization",organization2.getName());
+  boolean verified=management.verifyAdminUserPassword(user.getUuid(),"test");
+  assertTrue(verified);
+  management.activateOrganization(user.getUuid());
+  UserInfo u=management.verifyAdminUserPasswordCredentials(user.getUuid().toString(),"test");
+  assertNotNull(u);
+  String token=management.getAccessTokenForAdminUser(user.getUuid());
+  assertNotNull(token);
+  UUID userId=management.getAdminUserIdFromAccessToken(token);
+  assertEquals(user.getUuid(),userId);
+}

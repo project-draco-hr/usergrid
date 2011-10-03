@@ -1,0 +1,25 @@
+{
+  if ("rolenames".equalsIgnoreCase(dictionary)) {
+    if (context.parameterCount() == 1) {
+      return getApplicationRoles();
+    }
+ else     if (context.parameterCount() == 2) {
+      String roleName=context.getParameters().get(1).getName();
+      if (isBlank(roleName)) {
+        return null;
+      }
+      return getApplicationRolePermissions(roleName);
+    }
+  }
+ else   if ("counters".equals(dictionary)) {
+    if (context.parameterCount() == 1) {
+      return getApplicationCounterNames();
+    }
+ else     if (context.parameterCount() > 1) {
+      if (context.getParameters().get(1) instanceof QueryParameter) {
+        return getApplicationCounters(((QueryParameter)context.getParameters().get(1)).getQuery());
+      }
+    }
+  }
+  return super.getEntityDictionary(context,refs,dictionary);
+}

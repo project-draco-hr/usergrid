@@ -1,0 +1,28 @@
+{
+  logger.info("Starting test...");
+  startSpring();
+  UserInfo user=managementService.createAdminUser("admin","admin","admin@ug.com","none",false,false,false);
+  logger.info("Creating organization: sample-organization");
+  OrganizationInfo organization=managementService.createOrganization("sample-organization",user);
+  logger.info("creating application: testEntityManagerTest");
+  UUID applicationId=managementService.createApplication(organization.getUuid(),"sample-application");
+  ServiceManager sm=smf.getServiceManager(applicationId);
+  EntityManager em=emf.getEntityManager(applicationId);
+  Map<String,Object> properties=new LinkedHashMap<String,Object>();
+  properties.put("username","edanuff");
+  properties.put("email","ed@anuff.com");
+  properties.put("name","Ed Anuff");
+  Entity user1=em.create("user",properties);
+  properties=Activity.newActivity(Activity.VERB_POST,null,"I ate a sammich",null,user1,null,"tweet",null,null).getProperties();
+  @SuppressWarnings("unused") Entity activity=testRequest(sm,ServiceAction.POST,1,properties,"users",user1.getUuid(),"activities").getEntity();
+  properties=Activity.newActivity(Activity.VERB_POST,null,"cool pic dude",null,user1,null,"tweet",null,null).getProperties();
+  activity=testRequest(sm,ServiceAction.POST,1,properties,"users",user1.getUuid(),"activities").getEntity();
+  properties=new LinkedHashMap<String,Object>();
+  properties.put("username","justin");
+  properties.put("email","justin@gmail.com");
+  properties.put("name","Justin Clark");
+  Entity user2=em.create("user",properties);
+  properties=Activity.newActivity(Activity.VERB_POST,null,"ATT U-verse May payment",null,user2,null,"payment",null,null).getProperties();
+  activity=testRequest(sm,ServiceAction.POST,1,properties,"users",user2.getUuid(),"activities").getEntity();
+  em.createConnection(user1,"workWith",user2);
+}

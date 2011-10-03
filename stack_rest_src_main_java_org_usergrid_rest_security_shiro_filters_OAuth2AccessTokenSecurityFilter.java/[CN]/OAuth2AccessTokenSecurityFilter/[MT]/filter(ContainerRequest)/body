@@ -1,0 +1,91 @@
+{
+  try {
+    try {
+      String accessToken=request.getQueryParameters().getFirst("access_token");
+      if (accessToken == null) {
+        OAuthAccessResourceRequest oauthRequest=new OAuthAccessResourceRequest(httpServletRequest,ParameterStyle.HEADER);
+        accessToken=oauthRequest.getAccessToken();
+      }
+      if (accessToken == null) {
+        return request;
+      }
+      AuthPrincipalInfo principal=null;
+      try {
+        principal=AuthPrincipalInfo.getFromAccessToken(accessToken);
+      }
+ catch (      BadAccessTokenException e1) {
+        e1.printStackTrace();
+      }
+      if (principal == null) {
+        return request;
+      }
+      PrincipalCredentialsToken token=null;
+      if (AuthPrincipalType.ADMIN_USER.equals(principal.getType())) {
+        UserInfo user=null;
+        try {
+          user=management.getAdminUserInfoFromAccessToken(accessToken);
+        }
+ catch (        Exception e) {
+          e.printStackTrace();
+        }
+        if (user == null) {
+          throwBadTokenError();
+        }
+        token=PrincipalCredentialsToken.getFromAdminUserInfoAndAccessToken(user,accessToken);
+      }
+ else       if (AuthPrincipalType.APPLICATION_USER.equals(principal.getType())) {
+        UserInfo user=null;
+        try {
+          user=management.getAppUserFromAccessToken(accessToken);
+        }
+ catch (        Exception e) {
+          e.printStackTrace();
+        }
+        if (user == null) {
+          throwBadTokenError();
+        }
+        token=PrincipalCredentialsToken.getFromAppUserInfoAndAccessToken(user,accessToken);
+      }
+ else       if (AuthPrincipalType.ORGANIZATION.equals(principal.getType())) {
+        OrganizationInfo organization=null;
+        try {
+          organization=management.getOrganizationInfoFromAccessToken(accessToken);
+        }
+ catch (        Exception e) {
+          e.printStackTrace();
+        }
+        if (organization == null) {
+          throwBadTokenError();
+        }
+        token=PrincipalCredentialsToken.getFromOrganizationInfoAndAccessToken(organization,accessToken);
+      }
+ else       if (AuthPrincipalType.APPLICATION.equals(principal.getType())) {
+        ApplicationInfo application=null;
+        try {
+          application=management.getApplicationInfoFromAccessToken(accessToken);
+        }
+ catch (        Exception e) {
+          e.printStackTrace();
+        }
+        if (application == null) {
+          throwBadTokenError();
+        }
+        token=PrincipalCredentialsToken.getFromApplicationInfoAndAccessToken(application,accessToken);
+      }
+      Subject subject=SecurityUtils.getSubject();
+      subject.login(token);
+    }
+ catch (    OAuthProblemException e) {
+      String errorCode=e.getError();
+      if (OAuthUtils.isEmpty(errorCode)) {
+        return request;
+      }
+      OAuthResponse oauthResponse=OAuthResponse.errorResponse(HttpServletResponse.SC_UNAUTHORIZED).setRealm(REALM).setError(e.getError()).setErrorDescription(e.getDescription()).setErrorUri(e.getDescription()).buildHeaderMessage();
+      throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).header(OAuth.HeaderType.WWW_AUTHENTICATE,oauthResponse.getHeader(OAuth.HeaderType.WWW_AUTHENTICATE)).build());
+    }
+  }
+ catch (  OAuthSystemException ose) {
+    throw new WebApplicationException(ose);
+  }
+  return request;
+}

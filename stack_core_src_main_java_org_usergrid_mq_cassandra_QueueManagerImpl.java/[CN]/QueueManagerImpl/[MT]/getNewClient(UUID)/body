@@ -1,0 +1,8 @@
+{
+  UUID clientId=newTimeUUID();
+  long timestamp=cass.createTimestamp();
+  Mutator<UUID> batch=createMutator(cass.getApplicationKeyspace(applicationId),ue);
+  batch.addInsertion(clientId,CONSUMERS.getColumnFamily(),createColumn("timestamp",timestamp,timestamp,se,le));
+  batchExecute(batch,RETRY_COUNT);
+  return null;
+}

@@ -1,0 +1,20 @@
+{
+  ReCaptchaImpl reCaptcha=new ReCaptchaImpl();
+  reCaptcha.setPrivateKey(properties.getProperty("usergrid.recaptcha.private"));
+  ReCaptchaResponse reCaptchaResponse=reCaptcha.checkAnswer(httpServletRequest.getRemoteAddr(),challenge,uresponse);
+  if ((email != null) && reCaptchaResponse.isValid()) {
+    user=management.getAppUserByIdentifier(getApplicationId(),Identifier.fromEmail(email));
+    if (user != null) {
+      management.sendAppUserPasswordReminderEmail(getApplicationId(),user);
+      return new Viewable("resetpw_email_success",this);
+    }
+ else {
+      errorMsg="We don't recognize that email, try again...";
+      return new Viewable("resetpw_email_form",this);
+    }
+  }
+ else {
+    errorMsg="Incorrect Captcha, try again...";
+    return new Viewable("resetpw_email_form",this);
+  }
+}

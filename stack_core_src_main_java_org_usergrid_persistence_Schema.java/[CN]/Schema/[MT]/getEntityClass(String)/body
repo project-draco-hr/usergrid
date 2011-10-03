@@ -1,0 +1,20 @@
+{
+  type=getAssociatedEntityType(type);
+  Class<? extends Entity> cls=typeToEntityClass.get(type);
+  if (cls != null) {
+    return cls;
+  }
+  cls=entityClassForName(ENTITIES_PACKAGE_PREFIX + InflectionUtils.camelCase(type,true));
+  if (cls == null) {
+    cls=entityClassForName(ENTITIES_PACKAGE_PREFIX + type);
+  }
+  if (cls == null) {
+    cls=entityClassForName(type);
+  }
+  if (cls == null) {
+    return null;
+  }
+  typeToEntityClass.put(type,cls);
+  entityClassToType.put(cls,type);
+  return cls;
+}

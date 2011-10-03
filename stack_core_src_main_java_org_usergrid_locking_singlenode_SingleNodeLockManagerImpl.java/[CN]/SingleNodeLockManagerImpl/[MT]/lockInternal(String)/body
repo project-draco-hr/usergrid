@@ -1,0 +1,16 @@
+{
+  if (localLocks.get() == null) {
+    localLocks.set(new HashMap<String,ReentrantLock>());
+  }
+  ReentrantLock lock=getCreateLockInternal(lockPath);
+  try {
+    boolean acquired=lock.tryLock(2000,TimeUnit.MILLISECONDS);
+    if (!acquired) {
+      throw new UGLockException("Timeout for locked: " + lockPath);
+    }
+  }
+ catch (  InterruptedException e) {
+    throw new UGLockException(e);
+  }
+  localLocks.get().put(lockPath,lock);
+}

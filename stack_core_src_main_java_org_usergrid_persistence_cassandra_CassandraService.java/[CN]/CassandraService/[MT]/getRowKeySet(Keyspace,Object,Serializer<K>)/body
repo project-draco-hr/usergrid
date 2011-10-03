@@ -1,0 +1,21 @@
+{
+  if (logger.isInfoEnabled()) {
+    logger.info("getRowKeys cf=" + columnFamily);
+  }
+  RangeSlicesQuery<K,ByteBuffer,ByteBuffer> q=createRangeSlicesQuery(ko,keySerializer,be,be);
+  q.setColumnFamily(columnFamily.toString());
+  q.setKeys(null,null);
+  q.setColumnNames(new ByteBuffer[0]);
+  QueryResult<OrderedRows<K,ByteBuffer,ByteBuffer>> r=q.execute();
+  OrderedRows<K,ByteBuffer,ByteBuffer> rows=r.get();
+  Set<K> results=new LinkedHashSet<K>();
+  for (  Row<K,ByteBuffer,ByteBuffer> row : rows) {
+    results.add(row.getKey());
+  }
+  if (logger.isInfoEnabled()) {
+{
+      logger.info("getRowKeys returned " + results.size() + " rows");
+    }
+  }
+  return results;
+}

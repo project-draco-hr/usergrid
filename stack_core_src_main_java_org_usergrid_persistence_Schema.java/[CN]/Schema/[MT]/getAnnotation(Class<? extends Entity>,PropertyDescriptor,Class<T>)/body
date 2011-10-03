@@ -1,0 +1,20 @@
+{
+  try {
+    if ((descriptor.getReadMethod() != null) && descriptor.getReadMethod().isAnnotationPresent(annotationClass)) {
+      return descriptor.getReadMethod().getAnnotation(annotationClass);
+    }
+    if ((descriptor.getWriteMethod() != null) && descriptor.getWriteMethod().isAnnotationPresent(annotationClass)) {
+      return descriptor.getWriteMethod().getAnnotation(annotationClass);
+    }
+    Field field=FieldUtils.getField(entityClass,descriptor.getName(),true);
+    if (field != null) {
+      if (field.isAnnotationPresent(annotationClass)) {
+        return field.getAnnotation(annotationClass);
+      }
+    }
+  }
+ catch (  Exception e) {
+    logger.error("Could not retrive the annotations",e);
+  }
+  return null;
+}

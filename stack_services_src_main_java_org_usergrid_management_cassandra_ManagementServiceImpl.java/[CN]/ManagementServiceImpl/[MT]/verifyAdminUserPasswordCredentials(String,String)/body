@@ -1,0 +1,19 @@
+{
+  UserInfo userInfo=null;
+  Entity user=findUserEntity(MANAGEMENT_APPLICATION_ID,name);
+  if (user == null) {
+    return null;
+  }
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  if (checkPassword(password,(String)em.getDictionaryElementValue(user,DICTIONARY_CREDENTIALS,"password"))) {
+    userInfo=getUserInfo(MANAGEMENT_APPLICATION_ID,user);
+    if (!userInfo.isActivated()) {
+      throw new UnactivatedAdminUserException();
+    }
+    if (userInfo.isDisabled()) {
+      throw new DisabledAdminUserException();
+    }
+    return userInfo;
+  }
+  return null;
+}

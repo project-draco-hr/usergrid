@@ -1,0 +1,27 @@
+{
+  int count=1;
+  Results.Level level=Results.Level.REFS;
+  if (!context.moreParameters()) {
+    count=0;
+    level=Results.Level.ALL_PROPERTIES;
+  }
+  if (context.getRequest().isReturnsTree()) {
+    level=Results.Level.ALL_PROPERTIES;
+  }
+  query=new Query(query);
+  query.setResultsLevel(level);
+  query.setLimit(query.getLimit(count));
+  if (!query.isReversedSet()) {
+    query.setReversed(isCollectionReversed(context));
+  }
+  query.addSort(getCollectionSort(context));
+  Results r=em.searchCollection(context.getOwner(),context.getCollectionName(),query);
+  List<ServiceRequest> nextRequests=null;
+  if (!r.isEmpty()) {
+    if (!context.moreParameters()) {
+      importEntities(context,r);
+    }
+    nextRequests=context.getNextServiceRequests(r.getRefs());
+  }
+  return new ServiceResults(this,context,Type.COLLECTION,r,null,nextRequests);
+}

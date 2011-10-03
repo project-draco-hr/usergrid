@@ -1,0 +1,20 @@
+{
+  UUID[] index_keys=connection.getIndexIds();
+  for (  IndexEntry entry : indexUpdate.getPrevEntries()) {
+    if (entry.getValue() != null) {
+      batchDeleteConnectionIndexEntries(indexUpdate,entry,connection,index_keys);
+    }
+ else {
+      logger.error("Unexpected condition - deserialized property value is null");
+    }
+  }
+  if ((indexUpdate.getNewEntries().size() > 0) && (!indexUpdate.isMultiValue() || (indexUpdate.isMultiValue() && !indexUpdate.isRemoveListEntry()))) {
+    for (    IndexEntry indexEntry : indexUpdate.getNewEntries()) {
+      batchAddConnectionIndexEntries(indexUpdate,indexEntry,connection,index_keys);
+    }
+  }
+  for (  String index : indexUpdate.getIndexesSet()) {
+    addInsertToMutator(indexUpdate.getBatch(),ENTITY_DICTIONARIES,key(connection.getConnectingIndexId(),Schema.DICTIONARY_INDEXES),index,null,indexUpdate.getTimestamp());
+  }
+  return indexUpdate;
+}

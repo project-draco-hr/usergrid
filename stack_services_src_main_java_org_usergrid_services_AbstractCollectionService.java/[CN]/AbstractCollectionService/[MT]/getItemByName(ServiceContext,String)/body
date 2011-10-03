@@ -1,0 +1,16 @@
+{
+  String nameProperty=Schema.getDefaultSchema().aliasProperty(getEntityType());
+  if (nameProperty == null) {
+    nameProperty="name";
+  }
+  EntityRef entity=em.getAlias(getEntityType(),name);
+  if (entity == null) {
+    throw new ServiceResourceNotFoundException(context);
+  }
+  if (!context.moreParameters()) {
+    entity=em.get(entity);
+    entity=importEntity(context,(Entity)entity);
+  }
+  List<ServiceRequest> nextRequests=context.getNextServiceRequests(entity);
+  return new ServiceResults(this,context,Type.COLLECTION,Results.fromRef(entity),null,nextRequests);
+}

@@ -1,0 +1,26 @@
+{
+  String[] segments=StringUtils.split(name,'.');
+  for (int j=0; j < segments.length; j++) {
+    name=StringUtils.join(segments,'.',0,j + 1);
+    if ("system".equals(name)) {
+      continue;
+    }
+    handleAggregateCounterRow(m,getAggregateCounterRow(name,null,null,null,null,resolution),resolution.round(counterTimestamp),value);
+    for (int i=0; i < 16; i++) {
+      boolean include_user=(i & 0x01) != 0;
+      boolean include_group=(i & 0x02) != 0;
+      boolean include_queue=(i & 0x04) != 0;
+      boolean include_category=(i & 0x08) != 0;
+      Object[] parameters={include_user ? userId : null,include_group ? groupId : null,include_queue ? queueId : null,include_category ? category : null};
+      int non_null=0;
+      for (      Object p : parameters) {
+        if (p != null) {
+          non_null++;
+        }
+      }
+      if (non_null > 0) {
+        handleAggregateCounterRow(m,getAggregateCounterRow(name,(UUID)parameters[0],(UUID)parameters[1],(UUID)parameters[2],(String)parameters[3],resolution),resolution.round(counterTimestamp),value);
+      }
+    }
+  }
+}

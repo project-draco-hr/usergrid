@@ -1,0 +1,18 @@
+{
+  if (identifier == null) {
+    return null;
+  }
+  if (identifier.isUUID()) {
+    return new SimpleEntityRef("user",identifier.getUUID());
+  }
+  if (identifier.isName()) {
+    return this.getAlias(null,"user",identifier.getName());
+  }
+  if (identifier.isEmail()) {
+    Results r=getRelationManager(ref(applicationId)).searchCollection("users","user",null,null,"email",identifier.getEmail(),null,null,null,1,false,REFS);
+    if (r != null) {
+      return r.getRef();
+    }
+  }
+  return null;
+}

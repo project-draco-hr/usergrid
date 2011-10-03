@@ -1,0 +1,16 @@
+{
+  logger.info("do test");
+  Hazelcast.addInstanceListener(this);
+  ITopic<Object> topic=Hazelcast.getTopic("default");
+  topic.addMessageListener(this);
+  topic.publish("my-message-object");
+  Collection<Instance> instances=Hazelcast.getInstances();
+  for (  Instance instance : instances) {
+    logger.info("ID: [" + instance.getId() + "] Type: ["+ instance.getInstanceType()+ "]");
+  }
+  Set<Member> setMembers=Hazelcast.getCluster().getMembers();
+  for (  Member member : setMembers) {
+    logger.info("isLocalMember " + member.localMember());
+    logger.info("member.inetsocketaddress " + member.getInetSocketAddress());
+  }
+}

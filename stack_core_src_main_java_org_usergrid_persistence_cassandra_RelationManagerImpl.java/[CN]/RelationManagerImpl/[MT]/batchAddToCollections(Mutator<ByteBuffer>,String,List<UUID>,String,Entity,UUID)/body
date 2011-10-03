@@ -1,0 +1,71 @@
+{
+  long timestamp=getTimestampInMicros(timestampUuid);
+  if (Schema.isAssociatedEntityType(entity.getType())) {
+    logger.error("Cant add an extended type to any collection",new Throwable());
+    return batch;
+  }
+  Map<UUID,CollectionRef> membershipRefs=new LinkedHashMap<UUID,CollectionRef>();
+  for (  UUID ownerId : ownerIds) {
+    CollectionRef membershipRef=new SimpleCollectionRef(new SimpleEntityRef(ownerType,ownerId),collectionName,entity);
+    membershipRefs.put(ownerId,membershipRef);
+    Object collections_key=key(ownerId,Schema.DICTIONARY_COLLECTIONS,collectionName);
+    addInsertToMutator(batch,ENTITY_ID_SETS,collections_key,entity.getUuid(),membershipRef.getUuid(),timestamp);
+    addInsertToMutator(batch,ENTITY_COMPOSITE_DICTIONARIES,key(entity.getUuid(),Schema.DICTIONARY_CONTAINER_ENTITIES),asList(ownerType,collectionName,ownerId),membershipRef.getUuid(),timestamp);
+  }
+  CollectionInfo collection=getDefaultSchema().getCollection(ownerType,collectionName);
+  if (collection != null) {
+    if (collection.hasSubkeys()) {
+      List<String[]> combos=collection.getSubkeyCombinations();
+      for (      String[] combo : combos) {
+        List<Object> subkey_props=new ArrayList<Object>();
+        for (        String subkey_name : combo) {
+          Object subkey_value=null;
+          if (subkey_name != null) {
+            subkey_value=entity.getProperty(subkey_name);
+          }
+          subkey_props.add(subkey_value);
+        }
+        for (        UUID ownerId : ownerIds) {
+          addInsertToMutator(batch,ENTITY_ID_SETS,key(ownerId,Schema.DICTIONARY_COLLECTIONS,collectionName,subkey_props.toArray()),entity.getUuid(),membershipRefs.get(ownerId).getUuid(),timestamp);
+        }
+      }
+    }
+  }
+  for (  String propertyName : entity.getProperties().keySet()) {
+    boolean indexed_property=getDefaultSchema().isPropertyIndexed(entity.getType(),propertyName);
+    if (indexed_property) {
+      boolean collection_indexes_property=getDefaultSchema().isPropertyIndexedInCollection(ownerType,collectionName,propertyName);
+      boolean item_schema_has_property=getDefaultSchema().hasProperty(entity.getType(),propertyName);
+      boolean collection_indexes_dynamic_properties=getDefaultSchema().hasProperty(entity.getType(),propertyName) && getDefaultSchema().isCollectionIndexingDynamicProperties(ownerType,collectionName);
+      boolean fulltext_indexed=getDefaultSchema().isPropertyFulltextIndexed(entity.getType(),propertyName);
+      if (collection_indexes_property || (!item_schema_has_property && collection_indexes_dynamic_properties)) {
+        Object propertyValue=entity.getProperty(propertyName);
+        IndexUpdate indexUpdate=batchStartIndexUpdate(batch,entity,propertyName,propertyValue,timestampUuid,item_schema_has_property,false,false,fulltext_indexed,true);
+        for (        UUID ownerId : ownerIds) {
+          EntityRef owner=new SimpleEntityRef(ownerType,ownerId);
+          batchUpdateCollectionIndex(indexUpdate,owner,collectionName);
+        }
+      }
+    }
+  }
+  Set<String> dictionaryNames=em.getDictionaryNames(entity);
+  for (  String dictionaryName : dictionaryNames) {
+    boolean has_dictionary=getDefaultSchema().hasDictionary(entity.getType(),dictionaryName);
+    boolean dictionary_indexed=getDefaultSchema().isDictionaryIndexedInCollection(ownerType,collectionName,dictionaryName);
+    if (dictionary_indexed || !has_dictionary) {
+      Set<Object> elementValues=em.getDictionaryAsSet(entity,dictionaryName);
+      for (      Object elementValue : elementValues) {
+        IndexUpdate indexUpdate=batchStartIndexUpdate(batch,entity,dictionaryName,elementValue,timestampUuid,has_dictionary,true,false,false,true);
+        for (        UUID ownerId : ownerIds) {
+          EntityRef owner=new SimpleEntityRef(ownerType,ownerId);
+          batchUpdateCollectionIndex(indexUpdate,owner,collectionName);
+        }
+      }
+    }
+  }
+  for (  UUID ownerId : ownerIds) {
+    EntityRef owner=new SimpleEntityRef(ownerType,ownerId);
+    batchCreateCollectionMembership(batch,owner,collectionName,entity,membershipRefs.get(ownerId),timestampUuid);
+  }
+  return batch;
+}

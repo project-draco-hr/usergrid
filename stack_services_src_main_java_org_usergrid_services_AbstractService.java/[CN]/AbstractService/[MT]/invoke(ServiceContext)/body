@@ -1,0 +1,28 @@
+{
+  ServiceResults results=null;
+  String metadataType=checkForServiceMetadata(context);
+  if (metadataType != null) {
+    return handleServiceMetadata(context,metadataType);
+  }
+  String serviceCommand=checkForServiceCommand(context);
+  if (serviceCommand != null) {
+    return handleServiceCommand(context,serviceCommand);
+  }
+  String entityDictionary=checkForEntityDictionaries(context);
+  String entityCommand=checkForEntityCommands(context);
+  if (context.isByQuery()) {
+    results=invokeItemsWithQuery(context,context.getQuery());
+  }
+ else   if (context.isByName()) {
+    results=invokeItemWithName(context,context.getName());
+  }
+ else   if (context.isByUuid()) {
+    results=invokeItemWithId(context,context.getUuid());
+  }
+ else {
+    results=invokeCollection(context);
+  }
+  results=handleEntityDictionary(context,results,entityDictionary);
+  results=handleEntityCommand(context,results,entityCommand);
+  return results;
+}

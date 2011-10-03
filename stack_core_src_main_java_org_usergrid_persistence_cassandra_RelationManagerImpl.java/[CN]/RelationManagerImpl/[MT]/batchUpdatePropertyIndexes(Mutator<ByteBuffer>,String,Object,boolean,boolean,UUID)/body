@@ -1,0 +1,63 @@
+{
+  Entity entity=getHeadEntity();
+  UUID associatedId=null;
+  String associatedType=null;
+  if (Schema.isAssociatedEntityType(entity.getType())) {
+    Object item=entity.getProperty(PROPERTY_ITEM);
+    if ((item instanceof UUID) && (entity.getProperty(PROPERTY_COLLECTION_NAME) instanceof String)) {
+      associatedId=(UUID)item;
+      associatedType=string(entity.getProperty(PROPERTY_ITEM_TYPE));
+      String entryName=TYPE_MEMBER + "." + propertyName;
+      logger.info("Extended property " + entity.getType() + "("+ entity.getUuid()+ ")."+ propertyName+ " indexed as "+ associatedType+ "("+ associatedId+ ")."+ entryName);
+      propertyName=entryName;
+    }
+  }
+  IndexUpdate indexUpdate=batchStartIndexUpdate(batch,entity,propertyName,propertyValue,timestampUuid,entitySchemaHasProperty,false,false,getDefaultSchema().isPropertyFulltextIndexed(entity.getType(),propertyName),noRead);
+  String effectiveType=entity.getType();
+  if (associatedType != null) {
+    indexUpdate.setAssociatedId(associatedId);
+    effectiveType=associatedType;
+  }
+  Map<String,Set<CollectionInfo>> containers=getDefaultSchema().getContainersIndexingProperty(effectiveType,propertyName);
+  Map<String,java.util.Set<CollectionInfo>> containersIndexDynamicProperties=null;
+  if (!entitySchemaHasProperty) {
+    containersIndexDynamicProperties=getDefaultSchema().getContainersIndexingDynamicProperties(effectiveType);
+  }
+  Map<String,java.util.Set<CollectionInfo>> copy=new TreeMap<String,java.util.Set<CollectionInfo>>(CASE_INSENSITIVE_ORDER);
+  if (containers != null) {
+    copy.putAll(containers);
+  }
+  if (containersIndexDynamicProperties != null) {
+    copy.putAll(containersIndexDynamicProperties);
+  }
+  containers=copy;
+  if (containers != null) {
+    Map<EntityRef,Set<String>> containerEntities=null;
+    if (noRead) {
+      containerEntities=new LinkedHashMap<EntityRef,Set<String>>();
+      EntityRef applicationRef=new SimpleEntityRef(TYPE_APPLICATION,applicationId);
+      addMapSet(containerEntities,applicationRef,defaultCollectionName(entity.getType()));
+    }
+ else {
+      containerEntities=getContainingCollections();
+    }
+    for (    EntityRef containerEntity : containerEntities.keySet()) {
+      if (containerEntity.getType().equals(TYPE_APPLICATION) && Schema.isAssociatedEntityType(entity.getType())) {
+        logger.info("Extended properties for " + entity.getType() + " not indexed by application");
+        continue;
+      }
+      Set<String> collectionNames=containerEntities.get(containerEntity);
+      Set<CollectionInfo> collections=containers.get(containerEntity.getType());
+      if (collections != null) {
+        for (        CollectionInfo collection : collections) {
+          if (collectionNames.contains(collection.getName())) {
+            batchUpdateCollectionIndex(indexUpdate,containerEntity,collection.getName());
+          }
+        }
+      }
+    }
+  }
+  if (!noRead) {
+    batchUpdateBackwardConnectionsPropertyIndexes(indexUpdate);
+  }
+}

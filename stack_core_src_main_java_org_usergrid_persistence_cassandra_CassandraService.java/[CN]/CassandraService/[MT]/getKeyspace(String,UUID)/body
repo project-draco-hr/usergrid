@@ -1,0 +1,13 @@
+{
+  Map<String,String> accessMap=new HashMap<String,String>();
+  accessMap.put("username",properties.getProperty("cassandra.username"));
+  accessMap.put("password",properties.getProperty("cassandra.password"));
+  Keyspace ko=null;
+  if (USE_VIRTUAL_KEYSPACES && (prefix != null)) {
+    ko=createVirtualKeyspace(keyspace,prefix,ue,cluster,createDefaultConsistencyLevelPolicy(),ON_FAIL_TRY_ALL_AVAILABLE,accessMap);
+  }
+ else {
+    ko=HFactory.createKeyspace(keyspace,cluster,createDefaultConsistencyLevelPolicy(),ON_FAIL_TRY_ALL_AVAILABLE,accessMap);
+  }
+  return ko;
+}

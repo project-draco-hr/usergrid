@@ -1,0 +1,8 @@
+{
+  long timestamp=System.currentTimeMillis();
+  ByteBuffer bytes=ByteBuffer.allocate(28);
+  bytes.putLong(timestamp);
+  bytes.put(sha(timestamp + salt + secret+ uuid));
+  String digest=encodeBase64URLSafeString(bytes.array());
+  return encodeBase64URLSafeString(bytes(uuid)) + ":" + ((applicationId != null) && !MANAGEMENT_APPLICATION_ID.equals(applicationId) ? encodeBase64URLSafeString(bytes(applicationId)) + ":" : "")+ type.getBase64Prefix()+ digest;
+}

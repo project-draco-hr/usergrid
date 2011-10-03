@@ -1,0 +1,41 @@
+{
+  if (obj == null) {
+    return null;
+  }
+  if (org.apache.commons.lang.StringUtils.isBlank(path)) {
+    return obj;
+  }
+  String segment=stringOrSubstringBeforeFirst(path,'.');
+  String remaining=substringAfter(path,".");
+  if (obj instanceof Map) {
+    Map<?,?> map=(Map<?,?>)obj;
+    Object child=map.get(segment);
+    Object result=select(child,remaining,buildResultTree);
+    if (result != null) {
+      if (buildResultTree) {
+        Map<Object,Object> results=new LinkedHashMap<Object,Object>();
+        results.put(segment,result);
+        return results;
+      }
+ else {
+        return result;
+      }
+    }
+    return null;
+  }
+  if (obj instanceof List) {
+    List<Object> results=new ArrayList<Object>();
+    List<?> list=(List<?>)obj;
+    for (    Object i : list) {
+      Object result=select(i,path,buildResultTree);
+      if (result != null) {
+        results.add(result);
+      }
+    }
+    if (!results.isEmpty()) {
+      return results;
+    }
+    return null;
+  }
+  return obj;
+}

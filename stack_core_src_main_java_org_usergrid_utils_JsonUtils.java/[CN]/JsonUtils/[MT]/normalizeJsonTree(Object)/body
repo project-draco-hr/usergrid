@@ -1,0 +1,50 @@
+{
+  if (obj instanceof Map) {
+    @SuppressWarnings("unchecked") Map<Object,Object> m=(Map<Object,Object>)obj;
+    for (    Object k : m.keySet()) {
+      Object o=m.get(k);
+      UUID uuid=tryConvertToUUID(o);
+      if (uuid != null) {
+        m.put(k,uuid);
+      }
+ else       if (o instanceof Integer) {
+        m.put(k,((Integer)o).longValue());
+      }
+ else       if (o instanceof BigInteger) {
+        m.put(k,((BigInteger)o).longValue());
+      }
+    }
+  }
+ else   if (obj instanceof List) {
+    @SuppressWarnings("unchecked") List<Object> l=(List<Object>)obj;
+    for (int i=0; i < l.size(); i++) {
+      Object o=l.get(i);
+      UUID uuid=tryConvertToUUID(o);
+      if (uuid != null) {
+        l.set(i,uuid);
+      }
+ else       if ((o instanceof Map) || (o instanceof List)) {
+        normalizeJsonTree(o);
+      }
+ else       if (o instanceof Integer) {
+        l.set(i,((Integer)o).longValue());
+      }
+ else       if (o instanceof BigInteger) {
+        l.set(i,((BigInteger)o).longValue());
+      }
+    }
+  }
+ else   if (obj instanceof String) {
+    UUID uuid=tryConvertToUUID(obj);
+    if (uuid != null) {
+      return uuid;
+    }
+  }
+ else   if (obj instanceof Integer) {
+    return ((Integer)obj).longValue();
+  }
+ else   if (obj instanceof BigInteger) {
+    return ((BigInteger)obj).longValue();
+  }
+  return obj;
+}

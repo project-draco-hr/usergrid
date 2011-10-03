@@ -1,0 +1,14 @@
+{
+  AuthPrincipalInfo auth_principal=AuthPrincipalInfo.getFromAccessToken(token);
+  if (AuthPrincipalType.APPLICATION_USER.equals(auth_principal.getType())) {
+    UUID appId=auth_principal.getApplicationId();
+    if (appId != null) {
+      EntityManager em=emf.getEntityManager(appId);
+      Entity user=em.get(getEntityRefFromAccessToken(appId,token,APPLICATION_USER,MAX_TOKEN_AGE,null,true));
+      if (user != null) {
+        return new UserInfo(appId,user.getProperties());
+      }
+    }
+  }
+  return null;
+}

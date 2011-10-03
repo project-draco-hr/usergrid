@@ -1,0 +1,26 @@
+{
+  logger.info("Handling a query... ");
+  ApplicationInfo application=SubjectUtils.getApplication(Identifier.fromName(databaseName));
+  if (application == null) {
+    OpReply reply=new OpReply(opQuery);
+    return reply;
+  }
+  int count=opQuery.getNumberToReturn();
+  if (count <= 0) {
+    count=30;
+  }
+  EntityManager em=emf.getEntityManager(application.getId());
+  OpReply reply=new OpReply(opQuery);
+  try {
+    Results results=em.getCollection(em.getApplicationRef(),collectionName,null,count,Results.Level.ALL_PROPERTIES,false);
+    if (!results.isEmpty()) {
+      for (      Entity entity : results.getEntities()) {
+        reply.addDocument(map(entry("_id",entity.getUuid()),entity,entry(Schema.PROPERTY_UUID,entity.getUuid().toString())));
+      }
+    }
+  }
+ catch (  Exception ex) {
+    logger.error("Unable to retrieve collections",ex);
+  }
+  return reply;
+}

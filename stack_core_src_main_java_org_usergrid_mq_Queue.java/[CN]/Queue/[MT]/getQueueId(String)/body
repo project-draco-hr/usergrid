@@ -1,0 +1,27 @@
+{
+  if (queuePath == null) {
+    return null;
+  }
+  UUID uuid=UUIDUtils.tryGetUUID(queuePath);
+  if (uuid != null) {
+    return uuid;
+  }
+  if ((queuePath.length() == 38) && queuePath.startsWith("/") && queuePath.endsWith("/")) {
+    uuid=UUIDUtils.tryExtractUUID(queuePath,1);
+    if (uuid != null) {
+      return uuid;
+    }
+  }
+ else   if ((queuePath.length() == 37) && queuePath.startsWith("/")) {
+    uuid=UUIDUtils.tryExtractUUID(queuePath,1);
+    if (uuid != null) {
+      return uuid;
+    }
+  }
+  queuePath=normalizeQueuePath(queuePath);
+  if (queuePath == null) {
+    return null;
+  }
+  uuid=nameUUIDFromBytes(queuePath.getBytes());
+  return uuid;
+}

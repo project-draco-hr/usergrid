@@ -1,0 +1,27 @@
+{
+  if ("rolenames".equalsIgnoreCase(dictionary)) {
+    if (context.parameterCount() == 1) {
+      String name=payload.getStringProperty("name");
+      if (isBlank(name)) {
+        return null;
+      }
+      String title=payload.getStringProperty("title");
+      if (isBlank(title)) {
+        title=name;
+      }
+      return newApplicationRole(name,title);
+    }
+ else     if (context.parameterCount() == 2) {
+      String roleName=context.getParameters().get(1).getName();
+      if (isBlank(roleName)) {
+        return null;
+      }
+      String permission=payload.getStringProperty("permission");
+      if (isBlank(permission)) {
+        return null;
+      }
+      return grantApplicationRolePermission(roleName,permission);
+    }
+  }
+  return super.postEntityDictionary(context,refs,dictionary,payload);
+}

@@ -1,0 +1,15 @@
+{
+  logger.info("QueueSubscriberResource.executePut: " + queuePath);
+  if (StringUtils.isNotBlank(subscriberPath)) {
+    return mq.subscribeToQueue(queuePath,subscriberPath);
+  }
+ else   if ((json != null) && (json.containsKey("subscriber"))) {
+    String subscriber=(String)json.get("subscriber");
+    return mq.subscribeToQueue(queuePath,subscriber);
+  }
+ else   if ((json != null) && (json.containsKey("subscribers"))) {
+    @SuppressWarnings("unchecked") List<String> subscribers=(List<String>)json.get("subscribers");
+    return mq.addSubscribersToQueue(queuePath,subscribers);
+  }
+  return null;
+}

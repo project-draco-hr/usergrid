@@ -1,0 +1,93 @@
+{
+  if (node == null) {
+    return;
+  }
+  if (node instanceof Collection) {
+    Object[] new_history=Arrays.copyOf(history,history.length + 1);
+    new_history[history.length]=node;
+    @SuppressWarnings("unchecked") Collection<Object> c=(Collection<Object>)node;
+    for (    Object o : c) {
+      buildKeyValueSet(o,keyValues,path,fulltextIndex,new_history);
+    }
+  }
+ else   if (node instanceof Map) {
+    Object[] new_history=Arrays.copyOf(history,history.length + 1);
+    new_history[history.length]=node;
+    @SuppressWarnings("unchecked") Map<Object,Object> m=(Map<Object,Object>)node;
+    for (    Entry<Object,Object> e : m.entrySet()) {
+      String new_path=path;
+      String key=e.getKey().toString();
+      key=quoteString(key);
+      if (key.indexOf('\\') == -1) {
+        new_path=(path != null ? path + "." : "") + key;
+      }
+ else {
+        new_path=(path != null ? path : "") + "[\"" + key+ "\"]";
+      }
+      buildKeyValueSet(e.getValue(),keyValues,new_path,fulltextIndex,new_history);
+    }
+  }
+ else   if (node instanceof ArrayNode) {
+    Object[] new_history=Arrays.copyOf(history,history.length + 1);
+    new_history[history.length]=node;
+    ArrayNode c=(ArrayNode)node;
+    for (    JsonNode o : c) {
+      buildKeyValueSet(o,keyValues,path,fulltextIndex,new_history);
+    }
+  }
+ else   if (node instanceof ObjectNode) {
+    Object[] new_history=Arrays.copyOf(history,history.length + 1);
+    new_history[history.length]=node;
+    ObjectNode c=(ObjectNode)node;
+    Iterator<Entry<String,JsonNode>> i=c.getFields();
+    while (i.hasNext()) {
+      Entry<String,JsonNode> e=i.next();
+      String new_path=path;
+      String key=e.getKey();
+      key=quoteString(key);
+      if (key.indexOf('\\') == -1) {
+        new_path=(path != null ? path + "." : "") + key;
+      }
+ else {
+        new_path=(path != null ? path : "") + "[\"" + key+ "\"]";
+      }
+      buildKeyValueSet(e.getValue(),keyValues,new_path,fulltextIndex,new_history);
+    }
+  }
+ else   if (!isBasicType(node.getClass()) && (!(node instanceof JsonNode))) {
+    buildKeyValueSet(toJsonNode(node),keyValues,path,fulltextIndex,history);
+  }
+ else {
+    if (node instanceof JsonNode) {
+      if (((JsonNode)node).isTextual()) {
+        node=((JsonNode)node).getTextValue();
+        UUID uuid=UUIDUtils.tryGetUUID((String)node);
+        if (uuid != null) {
+          node=uuid;
+        }
+      }
+ else       if (((JsonNode)node).isNumber()) {
+        node=((JsonNode)node).getNumberValue();
+      }
+ else {
+        return;
+      }
+    }
+    if (path == null) {
+      path="";
+    }
+    List<Object> l=keyValues.get(path);
+    if (l == null) {
+      l=new ArrayList<Object>();
+      keyValues.put(path,l);
+    }
+    l.add(node);
+    if ((node instanceof String) && fulltextIndex) {
+      String keywords_path=(path.length() > 0) ? path + ".keywords" : "keywords";
+      List<Object> keywords=cast(keywords((String)node));
+      if (keywords.size() > 0) {
+        keyValues.put(keywords_path,keywords);
+      }
+    }
+  }
+}

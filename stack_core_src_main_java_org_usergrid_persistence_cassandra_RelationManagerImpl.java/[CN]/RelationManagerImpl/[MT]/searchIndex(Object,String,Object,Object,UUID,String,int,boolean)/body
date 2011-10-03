@@ -1,0 +1,76 @@
+{
+  searchStartValue=toIndexableValue(searchStartValue);
+  searchFinishValue=toIndexableValue(searchFinishValue);
+  if (NULL_ID.equals(startResult)) {
+    startResult=null;
+  }
+  List<HColumn<ByteBuffer,ByteBuffer>> results=null;
+  Object index_key=key(indexKey,searchName);
+  Object start=null;
+  Object finish=null;
+  if ("*".equals(searchStartValue)) {
+    if (isNotBlank(cursor)) {
+      byte[] cursorBytes=decodeBase64(cursor);
+      if (reversed) {
+        finish=cursorBytes;
+      }
+ else {
+        start=cursorBytes;
+      }
+    }
+  }
+ else   if (StringUtils.isString(searchStartValue) && StringUtils.isStringOrNull(searchFinishValue)) {
+    String strStartValue=searchStartValue.toString().toLowerCase().trim();
+    String strFinishValue=strStartValue;
+    if (searchFinishValue != null) {
+      strFinishValue=searchFinishValue.toString().toLowerCase().trim();
+    }
+    if (strStartValue.endsWith("*")) {
+      strStartValue=removeEnd(strStartValue,"*");
+      finish=new DynamicComposite(indexValueCode(""),strStartValue + "\uFFFF");
+      if (isBlank(strStartValue)) {
+        strStartValue="\0000";
+      }
+    }
+ else {
+      finish=new DynamicComposite(indexValueCode(""),strFinishValue + "\u0000");
+    }
+    if (startResult != null) {
+      start=new DynamicComposite(indexValueCode(strStartValue),strStartValue,startResult);
+    }
+ else {
+      start=new DynamicComposite(indexValueCode(strStartValue),strStartValue);
+    }
+    if (isNotBlank(cursor)) {
+      byte[] cursorBytes=decodeBase64(cursor);
+      start=cursorBytes;
+    }
+  }
+ else   if (StringUtils.isString(searchFinishValue)) {
+    String strFinishValue=searchFinishValue.toString().toLowerCase().trim();
+    finish=new DynamicComposite(indexValueCode(strFinishValue),strFinishValue);
+    if (isNotBlank(cursor)) {
+      byte[] cursorBytes=decodeBase64(cursor);
+      start=cursorBytes;
+    }
+  }
+ else   if (searchStartValue != null) {
+    if (searchFinishValue == null) {
+      searchFinishValue=searchStartValue;
+    }
+    if (startResult != null) {
+      start=new DynamicComposite(indexValueCode(searchStartValue),searchStartValue,startResult);
+    }
+ else {
+      start=new DynamicComposite(indexValueCode(searchStartValue),searchStartValue);
+    }
+    finish=new DynamicComposite(indexValueCode(searchFinishValue),searchFinishValue);
+    setEqualityFlag((DynamicComposite)finish,ComponentEquality.GREATER_THAN_EQUAL);
+    if (isNotBlank(cursor)) {
+      byte[] cursorBytes=decodeBase64(cursor);
+      start=cursorBytes;
+    }
+  }
+  results=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_INDEX,index_key,start,finish,count,reversed);
+  return results;
+}

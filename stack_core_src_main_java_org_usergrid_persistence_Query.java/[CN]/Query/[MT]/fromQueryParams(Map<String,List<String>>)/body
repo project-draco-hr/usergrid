@@ -1,0 +1,136 @@
+{
+  String type=null;
+  Query q=null;
+  String ql=null;
+  String connection=null;
+  UUID start=null;
+  String cursor=null;
+  Integer limit=null;
+  List<String> permissions=null;
+  Boolean reversed=null;
+  Long startTime=null;
+  Long finishTime=null;
+  Boolean pad=null;
+  CounterResolution resolution=null;
+  List<Identifier> users=null;
+  List<Identifier> groups=null;
+  List<Identifier> identifiers=null;
+  List<String> categories=null;
+  List<CounterFilterPredicate> counterFilters=null;
+  List<String> l=null;
+  ql=first(params.get("ql"));
+  type=first(params.get("type"));
+  reversed=firstBoolean(params.get("reversed"));
+  connection=first(params.get("connection"));
+  start=firstUuid(params.get("start"));
+  cursor=first(params.get("cursor"));
+  limit=firstInteger(params.get("limit"));
+  permissions=params.get("permission");
+  startTime=firstLong(params.get("start_time"));
+  finishTime=firstLong(params.get("end_time"));
+  l=params.get("resolution");
+  if (!isEmpty(l)) {
+    resolution=CounterResolution.fromString(l.get(0));
+  }
+  users=Identifier.fromList(params.get("user"));
+  groups=Identifier.fromList(params.get("group"));
+  categories=params.get("category");
+  l=params.get("counter");
+  if (!isEmpty(l)) {
+    counterFilters=CounterFilterPredicate.fromList(l);
+  }
+  pad=firstBoolean(params.get("pad"));
+  for (  Entry<String,List<String>> param : params.entrySet()) {
+    if ((param.getValue() == null) || (param.getValue().size() == 0)) {
+      Identifier identifier=Identifier.from(param.getKey());
+      if (identifier != null) {
+        if (identifiers == null) {
+          identifiers=new ArrayList<Identifier>();
+        }
+        identifiers.add(identifier);
+      }
+    }
+  }
+  if (ql != null) {
+    q=Query.fromQL(ql);
+  }
+  l=params.get("filter");
+  if (!isEmpty(l)) {
+    q=newQueryIfNull(q);
+    for (    String s : l) {
+      q.addFilter(s);
+    }
+  }
+  l=params.get("sort");
+  if (!isEmpty(l)) {
+    q=newQueryIfNull(q);
+    for (    String s : l) {
+      q.addSort(s);
+    }
+  }
+  if (type != null) {
+    q=newQueryIfNull(q);
+    q.setEntityType(type);
+  }
+  if (connection != null) {
+    q=newQueryIfNull(q);
+    q.setConnectionType(connection);
+  }
+  if (permissions != null) {
+    q=newQueryIfNull(q);
+    q.setPermissions(permissions);
+  }
+  if (start != null) {
+    q=newQueryIfNull(q);
+    q.setStartResult(start);
+  }
+  if (cursor != null) {
+    q=newQueryIfNull(q);
+    q.setCursor(cursor);
+  }
+  if (limit != null) {
+    q=newQueryIfNull(q);
+    q.setLimit(limit);
+  }
+  if (startTime != null) {
+    q=newQueryIfNull(q);
+    q.setStartTime(startTime);
+  }
+  if (finishTime != null) {
+    q=newQueryIfNull(q);
+    q.setFinishTime(finishTime);
+  }
+  if (resolution != null) {
+    q=newQueryIfNull(q);
+    q.setResolution(resolution);
+  }
+  if (categories != null) {
+    q=newQueryIfNull(q);
+    q.setCategories(categories);
+  }
+  if (counterFilters != null) {
+    q=newQueryIfNull(q);
+    q.setCounterFilters(counterFilters);
+  }
+  if (pad != null) {
+    q=newQueryIfNull(q);
+    q.setPad(pad);
+  }
+  if (users != null) {
+    q=newQueryIfNull(q);
+    q.setUsers(users);
+  }
+  if (groups != null) {
+    q=newQueryIfNull(q);
+    q.setGroups(groups);
+  }
+  if (identifiers != null) {
+    q=newQueryIfNull(q);
+    q.setIdentifiers(identifiers);
+  }
+  if (reversed != null) {
+    q=newQueryIfNull(q);
+    q.setReversed(reversed);
+  }
+  return q;
+}

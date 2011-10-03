@@ -1,0 +1,22 @@
+{
+  Map<String,Object> json=new HashMap<String,Object>();
+  json.putAll(JsonUtils.toJsonMap(user));
+  Map<String,Map<String,Object>> jsonOrganizations=new HashMap<String,Map<String,Object>>();
+  json.put("organizations",jsonOrganizations);
+  Map<UUID,String> organizations=getOrganizationsForAdminUser(user.getUuid());
+  for (  Entry<UUID,String> organization : organizations.entrySet()) {
+    Map<String,Object> jsonOrganization=new HashMap<String,Object>();
+    jsonOrganizations.put(organization.getValue(),jsonOrganization);
+    jsonOrganization.put(PROPERTY_NAME,organization.getValue());
+    jsonOrganization.put(PROPERTY_UUID,organization.getKey());
+    BiMap<UUID,String> applications=getApplicationsForOrganization(organization.getKey());
+    jsonOrganization.put("applications",applications.inverse());
+    List<UserInfo> users=getAdminUsersForOrganization(organization.getKey());
+    Map<String,Object> jsonUsers=new HashMap<String,Object>();
+    for (    UserInfo u : users) {
+      jsonUsers.put(u.getUsername(),u);
+    }
+    jsonOrganization.put("users",jsonUsers);
+  }
+  return json;
+}

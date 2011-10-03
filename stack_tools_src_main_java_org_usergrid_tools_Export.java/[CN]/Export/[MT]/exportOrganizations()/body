@@ -1,0 +1,11 @@
+{
+  BiMap<UUID,String> organizationNames=managementService.getOrganizations();
+  for (  Entry<UUID,String> organizationName : organizationNames.entrySet()) {
+    if (organizationName.equals(properties.getProperty("usergrid.test-account.organization"))) {
+      continue;
+    }
+    OrganizationInfo acc=managementService.getOrganizationByUuid(organizationName.getKey());
+    logger.info("Exporting Organization: " + acc.getName());
+    saveOrganizationInFile(acc);
+  }
+}

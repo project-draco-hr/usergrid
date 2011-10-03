@@ -1,0 +1,30 @@
+{
+  if (isEmpty(parameters)) {
+    return null;
+  }
+  if (isEmpty(refs)) {
+    return null;
+  }
+  String next_service=null;
+  String name=null;
+  if (ServiceParameter.firstParameterIsName(parameters)) {
+    name=parameters.get(0).toString();
+    next_service=normalizeServicePattern(service.getServiceType() + "/*/" + name);
+    parameters=dequeueCopy(parameters);
+  }
+ else   if (ServiceParameter.moreParameters(parameters)) {
+    throw new ServiceResourceNotFoundException(this);
+  }
+ else {
+    return null;
+  }
+  List<ServiceRequest> requests=null;
+  if (next_service != null) {
+    requests=new ArrayList<ServiceRequest>();
+    for (    EntityRef ref : refs) {
+      ServiceRequest req=new ServiceRequest(request,ref,request.getPath() + "/" + ref.getUuid()+ "/"+ name,name,next_service,parameters);
+      requests.add(req);
+    }
+  }
+  return requests;
+}

@@ -1,0 +1,20 @@
+{
+  lockManager.lockProperty(MANAGEMENT_APPLICATION_ID,"users","username","email");
+  try {
+    EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+    if (!isBlank(username)) {
+      em.setProperty(new SimpleEntityRef(User.ENTITY_TYPE,user.getUuid()),"username",username);
+    }
+    if (!isBlank(name)) {
+      em.setProperty(new SimpleEntityRef(User.ENTITY_TYPE,user.getUuid()),"name",name);
+    }
+    if (!isBlank(email)) {
+      em.setProperty(new SimpleEntityRef(User.ENTITY_TYPE,user.getUuid()),"email",email);
+    }
+    user=getAdminUserByUuid(user.getUuid());
+  }
+  finally {
+    lockManager.unlockProperty(MANAGEMENT_APPLICATION_ID,"users","username","email");
+  }
+  return user;
+}

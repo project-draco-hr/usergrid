@@ -1,0 +1,21 @@
+{
+  if (indexes == null) {
+    return null;
+  }
+  String[] index_entries=split(indexes,',');
+  List<ColumnDef> columns=new ArrayList<ColumnDef>();
+  for (  String index_entry : index_entries) {
+    String column_name=stringOrSubstringBeforeFirst(index_entry,':').trim();
+    String comparer=substringAfterLast(index_entry,":").trim();
+    if (StringUtils.isBlank(comparer)) {
+      comparer="UUIDType";
+    }
+    if (StringUtils.isNotBlank(column_name)) {
+      ColumnDef cd=new ColumnDef(bytebuffer(column_name),comparer);
+      cd.setIndex_name(column_name);
+      cd.setIndex_type(IndexType.KEYS);
+      columns.add(cd);
+    }
+  }
+  return ThriftColumnDef.fromThriftList(columns);
+}

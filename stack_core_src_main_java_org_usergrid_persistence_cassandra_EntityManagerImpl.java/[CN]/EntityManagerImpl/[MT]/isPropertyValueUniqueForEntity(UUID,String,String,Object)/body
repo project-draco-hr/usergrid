@@ -1,0 +1,22 @@
+{
+  if (!getDefaultSchema().isPropertyUnique(entityType,propertyName)) {
+    return true;
+  }
+  if (propertyValue == null) {
+    return true;
+  }
+  String propertyPath="/" + defaultCollectionName(entityType) + "/@"+ propertyName;
+  cass.getLockManager().lock(applicationId,propertyPath);
+  Results r=getRelationManager(ref(applicationId)).searchCollection(pluralize(entityType),entityType,null,null,propertyName,propertyValue,null,null,null,1000,false,IDS);
+  cass.getLockManager().unlock(applicationId,propertyPath);
+  if (r == null) {
+    return true;
+  }
+  if ((thisEntity != null) && (r.size() > 0) && r.getId().equals(thisEntity)) {
+    return true;
+  }
+  if (r.size() > 1) {
+    logger.info("Warning: Multiple instances with duplicate value of " + propertyValue + " for propertyName "+ propertyName+ " of entity type "+ entityType);
+  }
+  return r.isEmpty();
+}

@@ -1,0 +1,10 @@
+{
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  em.setProperty(new SimpleEntityRef(Group.ENTITY_TYPE,organizationId),"activated",true);
+  List<UserInfo> users=getAdminUsersForOrganization(organizationId);
+  for (  UserInfo user : users) {
+    if (!user.isActivated()) {
+      activateAdminUser(user.getUuid());
+    }
+  }
+}

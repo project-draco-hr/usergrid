@@ -1,0 +1,22 @@
+{
+  logger.info("testEntityClasses");
+  Schema mapper=Schema.getDefaultSchema();
+  assertEquals("group",mapper.getEntityType(Group.class));
+  assertEquals(User.class,mapper.getEntityClass("user"));
+  Entity entity=EntityFactory.newEntity(null,"user");
+  assertEquals(User.class,entity.getClass());
+  User user=(User)entity;
+  user.setUsername("testuser");
+  assertEquals(user.getUsername(),user.getProperty("username"));
+  user.setProperty("username","blahblah");
+  assertEquals("blahblah",user.getUsername());
+  entity=EntityFactory.newEntity(null,"foobar");
+  assertEquals(DynamicEntity.class,entity.getClass());
+  Map<String,Object> properties=new LinkedHashMap<String,Object>();
+  properties.put(Schema.PROPERTY_UUID,new UUID(1,2));
+  properties.put("foo","bar");
+  entity.setProperties(properties);
+  assertEquals(new UUID(1,2),entity.getUuid());
+  assertEquals(new UUID(1,2),entity.getProperty(Schema.PROPERTY_UUID));
+  assertEquals("bar",entity.getProperty("foo"));
+}

@@ -1,0 +1,25 @@
+{
+  if (cf_defs == null) {
+    cf_defs=new ArrayList<ColumnFamilyDefinition>();
+  }
+  CFEnum[] values=null;
+  try {
+    values=(CFEnum[])invokeStaticMethod(cfEnum,"values",(Object[])null);
+  }
+ catch (  Exception e) {
+    logger.error("Couldn't get CFEnum values",e);
+  }
+  if (values == null) {
+    return null;
+  }
+  for (  CFEnum cf : values) {
+    String defaultValidationClass=cf.getValidator();
+    List<ColumnDefinition> metadata=cf.getMetadata();
+    ColumnFamilyDefinition cf_def=HFactory.createColumnFamilyDefinition(keyspace,cf.getColumnFamily(),ComparatorType.getByClassName(cf.getComparator()),metadata);
+    if (defaultValidationClass != null) {
+      cf_def.setDefaultValidationClass(defaultValidationClass);
+    }
+    cf_defs.add(cf_def);
+  }
+  return cf_defs;
+}

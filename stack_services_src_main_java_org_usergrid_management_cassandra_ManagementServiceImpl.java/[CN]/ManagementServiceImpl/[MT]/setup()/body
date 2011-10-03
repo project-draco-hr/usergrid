@@ -1,0 +1,31 @@
+{
+  if (parseBoolean(properties.getProperty("usergrid.setup-test-account"))) {
+    String test_app_name=getPropertyValue("usergrid.test-account.app");
+    String test_organization_name=getPropertyValue("usergrid.test-account.organization");
+    String test_admin_username=getPropertyValue("usergrid.test-account.admin-user.username");
+    String test_admin_name=getPropertyValue("usergrid.test-account.admin-user.name");
+    String test_admin_email=getPropertyValue("usergrid.test-account.admin-user.email");
+    String test_admin_password=getPropertyValue("usergrid.test-account.admin-user.password");
+    if (anyNull(test_app_name,test_organization_name,test_admin_username,test_admin_name,test_admin_email,test_admin_password)) {
+      logger.warn("Missing values for test app, check properties.  Skipping test app setup...");
+      return;
+    }
+    UserInfo user=createAdminUser(test_admin_username,test_admin_name,test_admin_email,test_admin_password,true,false,false);
+    OrganizationInfo organization=createOrganization(test_organization_name,user);
+    UUID appId=createApplication(organization.getUuid(),test_app_name);
+    postOrganizationActivity(organization.getUuid(),user,"create",new SimpleEntityRef(APPLICATION_INFO,appId),"Application",test_app_name,"<a mailto=\"" + user.getEmail() + "\">"+ user.getName()+ " ("+ user.getEmail()+ ")</a> created a new application named "+ test_app_name,null);
+    boolean superuser_enabled=parseBoolean(properties.getProperty("usergrid.sysadmin.login.allowed"));
+    String superuser_username=getPropertyValue("usergrid.sysadmin.login.name");
+    String superuser_email=getPropertyValue("usergrid.sysadmin.login.email");
+    String superuser_password=getPropertyValue("usergrid.sysadmin.login.password");
+    if (!anyNull(superuser_username,superuser_email,superuser_password)) {
+      user=createAdminUser(superuser_username,"Super User",superuser_email,superuser_password,superuser_enabled,!superuser_enabled,false);
+    }
+ else {
+      logger.warn("Missing values for superuser account, check properties.  Skipping superuser account setup...");
+    }
+  }
+ else {
+    logger.warn("Test app creation disabled");
+  }
+}

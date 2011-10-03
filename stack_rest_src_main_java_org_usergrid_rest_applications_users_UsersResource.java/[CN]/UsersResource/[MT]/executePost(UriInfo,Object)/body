@@ -1,0 +1,24 @@
+{
+  String password=null;
+  if (json instanceof Map) {
+    @SuppressWarnings("unchecked") Map<String,Object> map=(Map<String,Object>)json;
+    password=(String)map.get("password");
+    map.remove("password");
+    map.put("activated",true);
+  }
+ else   if (json instanceof List) {
+    @SuppressWarnings("unchecked") List<Object> list=(List<Object>)json;
+    for (    Object obj : list) {
+      if (obj instanceof Map) {
+        @SuppressWarnings("unchecked") Map<String,Object> map=(Map<String,Object>)obj;
+        map.remove("password");
+      }
+    }
+  }
+  ApiResponse response=super.executePost(ui,json);
+  if (isNotBlank(password) && (response.getEntities() != null) && (response.getEntities().size() == 1)) {
+    Entity user=response.getEntities().get(0);
+    management.setAppUserPassword(getApplicationId(),user.getUuid(),password);
+  }
+  return response;
+}
