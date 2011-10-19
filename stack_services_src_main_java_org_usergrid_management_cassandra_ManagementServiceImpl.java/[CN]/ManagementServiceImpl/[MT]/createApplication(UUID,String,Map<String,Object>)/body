@@ -9,8 +9,8 @@
   EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
   properties.put("name",applicationName);
   Entity applicationEntity=em.create(applicationId,APPLICATION_INFO,properties);
-  Map<String,String> credentials=new HashMap<String,String>();
-  credentials.put("secret",generateOAuthSecretKey(AuthPrincipalType.APPLICATION));
+  Map<String,CredentialsInfo> credentials=new HashMap<String,CredentialsInfo>();
+  credentials.put("secret",plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.APPLICATION)));
   em.addMapToDictionary(applicationEntity,DICTIONARY_CREDENTIALS,credentials);
   addApplicationToOrganization(organizationId,applicationId);
   UserInfo user=null;

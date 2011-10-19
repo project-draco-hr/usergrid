@@ -1,0 +1,18 @@
+{
+  if ("plaintext".equals(cipher)) {
+    return secret;
+  }
+ else   if ("bcrypt".equals(cipher)) {
+    return BCrypt.hashpw(secret,BCrypt.gensalt());
+  }
+ else   if ("sha-1".equals(cipher)) {
+    return encodeBase64URLSafeString(computeHash(secret));
+  }
+ else   if ("md5".equals(cipher)) {
+    return DigestUtils.md5Hex(secret);
+  }
+ else   if ("aes".equals(cipher)) {
+    return AESUtils.encrypt(salt,secret);
+  }
+  return secret;
+}

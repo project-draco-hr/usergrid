@@ -1,10 +1,10 @@
 {
   EntityManager em=emf.getEntityManager(AuthPrincipalType.APPLICATION_USER.equals(type) ? applicationId : MANAGEMENT_APPLICATION_ID);
   if (AuthPrincipalType.ORGANIZATION.equals(type) || AuthPrincipalType.APPLICATION.equals(type)) {
-    return (String)em.getDictionaryElementValue(new SimpleEntityRef(type.getEntityType(),id),DICTIONARY_CREDENTIALS,"secret");
+    return getCredentialsSecret((CredentialsInfo)em.getDictionaryElementValue(new SimpleEntityRef(type.getEntityType(),id),DICTIONARY_CREDENTIALS,"secret"));
   }
  else   if (AuthPrincipalType.ADMIN_USER.equals(type) || AuthPrincipalType.APPLICATION_USER.equals(type)) {
-    return (String)em.getDictionaryElementValue(new SimpleEntityRef(type.getEntityType(),id),DICTIONARY_CREDENTIALS,"password");
+    return getCredentialsSecret((CredentialsInfo)em.getDictionaryElementValue(new SimpleEntityRef(type.getEntityType(),id),DICTIONARY_CREDENTIALS,"password"));
   }
   throw new IllegalArgumentException("Must specify an admin user, organization or application principal");
 }

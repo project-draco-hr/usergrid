@@ -10,10 +10,10 @@
   user.setActivated(activated);
   user.setDisabled(disabled);
   user=em.create(user);
-  Map<String,String> credentials=new HashMap<String,String>();
-  credentials.put("password",hashPassword(password));
-  credentials.put("mongo_pwd",mongoPassword(username,password));
-  credentials.put("secret",generateOAuthSecretKey(AuthPrincipalType.ADMIN_USER));
+  Map<String,CredentialsInfo> credentials=new HashMap<String,CredentialsInfo>();
+  credentials.put("password",passwordCredentials(password));
+  credentials.put("mongo_pwd",mongoPasswordCredentials(username,password));
+  credentials.put("secret",plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.ADMIN_USER)));
   em.addMapToDictionary(user,DICTIONARY_CREDENTIALS,credentials);
   UserInfo userInfo=new UserInfo(MANAGEMENT_APPLICATION_ID,user.getUuid(),username,name,email,activated,disabled);
   if (sendEmail && !activated) {

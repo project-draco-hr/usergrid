@@ -4,9 +4,9 @@
   }
   EntityManager em=emf.getEntityManager(applicationId);
   Entity user=em.get(userId);
-  if (!checkPassword(oldPassword,(String)em.getDictionaryElementValue(user,DICTIONARY_CREDENTIALS,"password"))) {
+  if (!checkPassword(oldPassword,(CredentialsInfo)em.getDictionaryElementValue(user,DICTIONARY_CREDENTIALS,"password"))) {
     logger.info("Old password doesn't match");
     throw new IncorrectPasswordException();
   }
-  em.addToDictionary(user,DICTIONARY_CREDENTIALS,"password",hashPassword(newPassword));
+  em.addToDictionary(user,DICTIONARY_CREDENTIALS,"password",passwordCredentials(newPassword));
 }
