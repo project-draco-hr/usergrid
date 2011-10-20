@@ -1,0 +1,12 @@
+{
+  EntityManager em=emf.getEntityManager(applicationId);
+  User user=em.get(userId,User.class);
+  if (user == null) {
+    return;
+  }
+  if (user.getEmail() == null) {
+    return;
+  }
+  String pin=getCredentialsSecret((CredentialsInfo)em.getDictionaryElementValue(user,DICTIONARY_CREDENTIALS,"pin"));
+  sendHtmlMail(properties,getMailTo(user.getEmail()),"Usergrid Mailer <mailer@usergrid.com>","Your app pin","<p>Your application pin is:</p>\n<p>" + pin + "</p>");
+}
