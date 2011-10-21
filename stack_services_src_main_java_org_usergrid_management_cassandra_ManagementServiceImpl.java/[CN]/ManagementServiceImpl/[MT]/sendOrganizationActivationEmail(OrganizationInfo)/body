@@ -4,7 +4,7 @@
     String activation_url=String.format(properties.getProperty("usergrid.organization.activation.url"),organization.getUuid().toString()) + "?token=" + token;
     if (newOrganizationsNeedSysAdminApproval()) {
       activation_url+="&confirm=true";
-      sendHtmlMail(properties,properties.getProperty("usergrid.sysadmin.email"),"Usergrid Mailer <mailer@usergrid.com>","Request For Organization Account Activation " + organization.getName(),emailMsg(hashMap("organization_name",organization.getName()).map("activation_url",activation_url),EMAIL_SYSADMIN_ORGANIZATION_ACTIVATION));
+      sendHtmlMail(properties,getPropertyValue("usergrid.sysadmin.email"),getPropertyValue(EMAIL_MAILER),"Request For Organization Account Activation " + organization.getName(),emailMsg(hashMap("organization_name",organization.getName()).map("activation_url",activation_url),EMAIL_SYSADMIN_ORGANIZATION_ACTIVATION));
     }
  else {
       sendOrganizationEmail(organization,"Organization Account Confirmation",emailMsg(hashMap("organization_name",organization.getName()).map("activation_url",activation_url),EMAIL_ORGANIZATION_ACTIVATION));
