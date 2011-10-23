@@ -1,7 +1,16 @@
 {
   logger.info("Creating keyspace: " + keyspace);
+  String strategy_class=getString(properties,"cassandra.keyspace.strategy","org.apache.cassandra.locator.SimpleStrategy");
+  logger.info("Using strategy: " + strategy_class);
+  int replication_factor=getIntValue(properties,"cassandra.keyspace.replication",1);
+  logger.info("Using replication (may be overriden by strategy options): " + replication_factor);
   try {
-    KeyspaceDefinition ks_def=HFactory.createKeyspaceDefinition(keyspace,"org.apache.cassandra.locator.SimpleStrategy",1,new ArrayList<ColumnFamilyDefinition>());
+    ThriftKsDef ks_def=(ThriftKsDef)HFactory.createKeyspaceDefinition(keyspace,strategy_class,replication_factor,new ArrayList<ColumnFamilyDefinition>());
+    @SuppressWarnings({"unchecked","rawtypes"}) Map<String,String> strategy_options=filter((Map)properties,"cassandra.keyspace.strategy.options.");
+    if (strategy_options.size() > 0) {
+      logger.info("Strategy options: " + mapToFormattedJsonString(strategy_options));
+      ks_def.setStrategyOptions(strategy_options);
+    }
     cluster.addKeyspace(ks_def);
   }
  catch (  Throwable e) {
