@@ -1,0 +1,17 @@
+{
+  Subject currentUser=null;
+  try {
+    currentUser=SecurityUtils.getSubject();
+  }
+ catch (  UnavailableSecurityManagerException e) {
+    return;
+  }
+  String permission=getPermissionFromPath(em.getApplicationRef().getUuid(),context.getAction().toString().toLowerCase(),path);
+  boolean permitted=currentUser.isPermitted(permission);
+  logger.info("---- Check permissions for path -----------------------------------");
+  logger.info("Requested path: " + path);
+  logger.info("Requested action: " + context.getAction());
+  logger.info("Requested permission: " + permission);
+  logger.info("Permitted: " + permitted);
+  logger.info("-------------------------------------------------------------------");
+}

@@ -19,16 +19,14 @@
         e.printStackTrace();
       }
       if ((applications != null) && !applications.isEmpty()) {
-        grant(info,principal,"applications:access:" + StringUtils.join(applications.keySet(),','));
-        grant(info,principal,"applications:admin:" + StringUtils.join(applications.keySet(),','));
+        grant(info,principal,"applications:admin,access,get,put,post,delete:" + StringUtils.join(applications.keySet(),','));
         applicationSet.putAll(applications);
       }
     }
  else     if (principal instanceof ApplicationPrincipal) {
       role(info,principal,ROLE_APPLICATION_ADMIN);
       application=((ApplicationPrincipal)principal).getApplication();
-      grant(info,principal,"applications:access:" + application.getId());
-      grant(info,principal,"applications:admin:" + application.getId());
+      grant(info,principal,"applications:admin,access,get,put,post,delete:" + application.getId());
       applicationSet.put(application.getId(),application.getName());
     }
  else     if (principal instanceof AdminUserPrincipal) {
@@ -39,24 +37,23 @@
         role(info,principal,ROLE_APPLICATION_ADMIN);
         role(info,principal,ROLE_ADMIN_USER);
         grant(info,principal,"system:access");
-        grant(info,principal,"organizations:access:*");
-        grant(info,principal,"applications:access:*");
-        grant(info,principal,"applications:admin:*");
+        grant(info,principal,"organizations:admin,access,get,put,post,delete:*");
+        grant(info,principal,"applications:admin,access,get,put,post,delete:*");
         grant(info,principal,"users:access:*");
       }
  else {
+        grant(info,principal,getPermissionFromPath(MANAGEMENT_APPLICATION_ID,"access,get,put,post,delete","/users/" + user.getUuid(),"/users/" + user.getUuid() + "/feed"));
         role(info,principal,ROLE_ADMIN_USER);
         try {
           Map<UUID,String> userOrganizations=management.getOrganizationsForAdminUser(user.getUuid());
           if (userOrganizations != null) {
             for (            UUID id : userOrganizations.keySet()) {
-              grant(info,principal,"organizations:access:" + id);
+              grant(info,principal,"organizations:admin,access,get,put,post,delete:" + id);
             }
             organizationSet.putAll(userOrganizations);
             Map<UUID,String> userApplications=management.getApplicationsForOrganizations(userOrganizations.keySet());
             if ((userApplications != null) && !userApplications.isEmpty()) {
-              grant(info,principal,"applications:access:" + StringUtils.join(userApplications.keySet(),','));
-              grant(info,principal,"applications:admin:" + StringUtils.join(userApplications.keySet(),','));
+              grant(info,principal,"applications:admin,access,get,put,post,delete:" + StringUtils.join(userApplications.keySet(),','));
               applicationSet.putAll(userApplications);
             }
             role(info,principal,ROLE_ORGANIZATION_ADMIN);
@@ -71,7 +68,9 @@
  else     if (principal instanceof ApplicationUserPrincipal) {
       role(info,principal,ROLE_APPLICATION_USER);
       UUID applicationId=((ApplicationUserPrincipal)principal).getApplicationId();
-      grant(info,principal,"applications:access:" + applicationId);
+      UserInfo user=((ApplicationUserPrincipal)principal).getUser();
+      grant(info,principal,getPermissionFromPath(applicationId,"access,get,put,post,delete","/users/" + user.getUuid()));
+      grant(info,principal,getPermissionFromPath(applicationId,"access,get,put,post,delete","/users/" + user.getUsername()));
       EntityManager em=emf.getEntityManager(applicationId);
       try {
         String appName=(String)em.getProperty(em.getApplicationRef(),"name");

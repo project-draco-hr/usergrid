@@ -1,0 +1,27 @@
+{
+  if (!(p instanceof PathBasedWildcardPermission)) {
+    return false;
+  }
+  PathBasedWildcardPermission wp=(PathBasedWildcardPermission)p;
+  List<Set<String>> otherParts=wp.getParts();
+  int i=0;
+  for (  Set<String> otherPart : otherParts) {
+    if ((getParts().size() - 1) < i) {
+      return true;
+    }
+ else {
+      Set<String> part=getParts().get(i);
+      if (!part.contains(WILDCARD_TOKEN) && !partContainsPart(part,otherPart)) {
+        return false;
+      }
+      i++;
+    }
+  }
+  for (; i < getParts().size(); i++) {
+    Set<String> part=getParts().get(i);
+    if (!part.contains(WILDCARD_TOKEN)) {
+      return false;
+    }
+  }
+  return true;
+}
