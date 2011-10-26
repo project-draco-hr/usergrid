@@ -42,7 +42,8 @@
         grant(info,principal,"users:access:*");
       }
  else {
-        grant(info,principal,getPermissionFromPath(MANAGEMENT_APPLICATION_ID,"access,get,put,post,delete","/users/" + user.getUuid(),"/users/" + user.getUuid() + "/feed"));
+        grant(info,principal,getPermissionFromPath(MANAGEMENT_APPLICATION_ID,"access"));
+        grant(info,principal,getPermissionFromPath(MANAGEMENT_APPLICATION_ID,"get,put,post,delete","/users/${user}","/users/${user}/feed"));
         role(info,principal,ROLE_ADMIN_USER);
         try {
           Map<UUID,String> userOrganizations=management.getOrganizationsForAdminUser(user.getUuid());
@@ -68,9 +69,8 @@
  else     if (principal instanceof ApplicationUserPrincipal) {
       role(info,principal,ROLE_APPLICATION_USER);
       UUID applicationId=((ApplicationUserPrincipal)principal).getApplicationId();
-      UserInfo user=((ApplicationUserPrincipal)principal).getUser();
-      grant(info,principal,getPermissionFromPath(applicationId,"access,get,put,post,delete","/users/" + user.getUuid()));
-      grant(info,principal,getPermissionFromPath(applicationId,"access,get,put,post,delete","/users/" + user.getUsername()));
+      grant(info,principal,getPermissionFromPath(applicationId,"access"));
+      grant(info,principal,getPermissionFromPath(applicationId,"get,put,post,delete","/users/${user}"));
       EntityManager em=emf.getEntityManager(applicationId);
       try {
         String appName=(String)em.getProperty(em.getApplicationRef(),"name");
