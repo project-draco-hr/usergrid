@@ -1,14 +1,14 @@
 {
-  logger.warn("Creating keyspace: " + keyspace);
+  logger.info("Creating keyspace: " + keyspace);
   String strategy_class=getString(properties,"cassandra.keyspace.strategy","org.apache.cassandra.locator.SimpleStrategy");
-  logger.warn("Using strategy: " + strategy_class);
+  logger.info("Using strategy: " + strategy_class);
   int replication_factor=getIntValue(properties,"cassandra.keyspace.replication",1);
-  logger.warn("Using replication (may be overriden by strategy options): " + replication_factor);
+  logger.info("Using replication (may be overriden by strategy options): " + replication_factor);
   try {
     ThriftKsDef ks_def=(ThriftKsDef)HFactory.createKeyspaceDefinition(keyspace,strategy_class,replication_factor,new ArrayList<ColumnFamilyDefinition>());
     @SuppressWarnings({"unchecked","rawtypes"}) Map<String,String> strategy_options=filter((Map)properties,"cassandra.keyspace.strategy.options.",true);
     if (strategy_options.size() > 0) {
-      logger.warn("Strategy options: " + mapToFormattedJsonString(strategy_options));
+      logger.info("Strategy options: " + mapToFormattedJsonString(strategy_options));
       ks_def.setStrategyOptions(strategy_options);
     }
     cluster.addKeyspace(ks_def);
@@ -18,7 +18,7 @@
   }
   boolean delay_configuration=(!"org.apache.cassandra.locator.SimpleStrategy".equals(strategy_class)) || (replication_factor > 1);
   if (delay_configuration) {
-    logger.warn("Waiting 10s after keyspace creation");
+    logger.info("Waiting 10s after keyspace creation");
     try {
       Thread.sleep(10000);
     }
@@ -35,7 +35,7 @@
       }
       if (delay_configuration) {
         try {
-          logger.warn("Waiting 2s after CF creation");
+          logger.info("Waiting 2s after CF creation");
           Thread.sleep(2000);
         }
  catch (        InterruptedException e) {
@@ -45,7 +45,7 @@
   }
   if (delay_configuration) {
     try {
-      logger.warn("Waiting 5s before continuing setup");
+      logger.info("Waiting 5s before continuing setup");
       Thread.sleep(5000);
     }
  catch (    InterruptedException e) {
