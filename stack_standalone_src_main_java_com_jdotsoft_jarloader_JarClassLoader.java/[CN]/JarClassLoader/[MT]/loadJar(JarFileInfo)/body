@@ -1,0 +1,23 @@
+{
+  lstJarFile.add(jarFileInfo);
+  try {
+    Enumeration<JarEntry> en=jarFileInfo.jarFile.entries();
+    final String EXT_JAR=".jar";
+    while (en.hasMoreElements()) {
+      JarEntry je=en.nextElement();
+      if (je.isDirectory()) {
+        continue;
+      }
+      String s=je.getName().toLowerCase();
+      if (s.lastIndexOf(EXT_JAR) == (s.length() - EXT_JAR.length())) {
+        JarEntryInfo inf=new JarEntryInfo(jarFileInfo,je);
+        File fileTemp=createTempFile(inf);
+        logInfo(LogArea.JAR,"Loading inner JAR %s from temp file %s",inf.jarEntry,getFilename4Log(fileTemp));
+        loadJar(new JarFileInfo(new JarFile(fileTemp),inf.getName(),jarFileInfo,fileTemp));
+      }
+    }
+  }
+ catch (  JarClassLoaderException e) {
+    throw new RuntimeException("ERROR on loading inner JAR: " + e.getMessageAll());
+  }
+}

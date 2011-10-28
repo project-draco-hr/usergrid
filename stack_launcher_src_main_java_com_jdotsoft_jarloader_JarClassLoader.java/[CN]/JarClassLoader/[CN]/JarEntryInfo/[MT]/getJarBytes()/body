@@ -1,0 +1,27 @@
+{
+  DataInputStream dis=null;
+  byte[] a_by=null;
+  try {
+    long lSize=jarEntry.getSize();
+    if ((lSize <= 0) || (lSize >= Integer.MAX_VALUE)) {
+      throw new JarClassLoaderException("Invalid size " + lSize + " for entry "+ jarEntry);
+    }
+    a_by=new byte[(int)lSize];
+    InputStream is=jarFileInfo.jarFile.getInputStream(jarEntry);
+    dis=new DataInputStream(is);
+    dis.readFully(a_by);
+  }
+ catch (  IOException e) {
+    throw new JarClassLoaderException(null,e);
+  }
+ finally {
+    if (dis != null) {
+      try {
+        dis.close();
+      }
+ catch (      IOException e) {
+      }
+    }
+  }
+  return a_by;
+}
