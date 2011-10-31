@@ -4,13 +4,21 @@
   }
   CustomPermission wp=(CustomPermission)p;
   List<Set<String>> otherParts=wp.getParts();
+  boolean isApp=false;
   int i=0;
   for (  Set<String> otherPart : otherParts) {
     if ((getParts().size() - 1) < i) {
       return true;
     }
  else {
+      if ((i == 0) && otherPart.contains("applications")) {
+        isApp=true;
+      }
       Set<String> part=getParts().get(i);
+      if (isApp && (i >= 2)) {
+        part=makePaths(part);
+        otherPart=makePaths(otherPart);
+      }
       if (!part.contains(WILDCARD_TOKEN) && !partContainsPart(part,otherPart)) {
         return false;
       }
