@@ -1,0 +1,18 @@
+{
+  List<KeyspaceDefinition> ksDefs=null;
+  try {
+    ksDefs=cluster.describeKeyspaces();
+  }
+ catch (  Exception e) {
+    db_logger.error("Unable to describe keyspaces",e);
+  }
+  if (ksDefs != null) {
+    for (    KeyspaceDefinition ksDef : ksDefs) {
+      System.out.println("Keyspace: " + ksDef.getName().toString());
+      for (      ColumnFamilyDefinition cf : ksDef.getCfDefs()) {
+        System.out.println("CF: " + cf.getName());
+        System.out.println(JsonUtils.mapToFormattedJsonString(cf));
+      }
+    }
+  }
+}
