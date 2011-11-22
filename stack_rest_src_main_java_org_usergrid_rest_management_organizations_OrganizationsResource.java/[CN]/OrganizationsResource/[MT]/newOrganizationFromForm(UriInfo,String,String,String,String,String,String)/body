@@ -1,0 +1,13 @@
+{
+  logger.info("New organization: " + organizationName);
+  ApiResponse response=new ApiResponse(ui);
+  response.setAction("new organization");
+  OrganizationOwnerInfo organizationOwner=management.createOwnerAndOrganization(organizationName,username,name,email,password,false,false,false);
+  if (organizationOwner == null) {
+    return null;
+  }
+  management.sendOrganizationActivationEmail(organizationOwner.getOrganization());
+  response.setData(organizationOwner);
+  response.setSuccess();
+  return new JSONWithPadding(response,callback);
+}

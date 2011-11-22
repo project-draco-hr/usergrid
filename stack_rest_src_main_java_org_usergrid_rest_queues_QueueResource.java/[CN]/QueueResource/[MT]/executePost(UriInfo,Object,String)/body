@@ -1,0 +1,10 @@
+{
+  logger.info("QueueResource.executePost: " + queuePath);
+  if (json instanceof Map) {
+    return new JSONWithPadding(new QueueResults(mq.postToQueue(queuePath,new Message((Map<String,Object>)json))),callback);
+  }
+ else   if (json instanceof List) {
+    return new JSONWithPadding(new QueueResults(mq.postToQueue(queuePath,Message.fromList((List<Map<String,Object>>)json))),callback);
+  }
+  return null;
+}

@@ -1,0 +1,16 @@
+{
+  if (json == null) {
+    return null;
+  }
+  String oldPassword=string(json.get("oldpassword"));
+  String newPassword=string(json.get("newpassword"));
+  if (isApplicationAdmin(Identifier.fromUUID(getApplicationId()))) {
+    management.setAdminUserPassword(getApplicationId(),newPassword);
+  }
+ else {
+    management.setAppUserPassword(getApplicationId(),getUser().getUuid(),oldPassword,newPassword);
+  }
+  ApiResponse response=new ApiResponse(ui);
+  response.setAction("set user password");
+  return new JSONWithPadding(response,callback);
+}

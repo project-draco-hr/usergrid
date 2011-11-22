@@ -1,0 +1,13 @@
+{
+  String applicationName=(String)json.get("name");
+  if (isEmpty(applicationName)) {
+    return null;
+  }
+  ApiResponse response=new ApiResponse(ui);
+  response.setAction("new application for organization");
+  UUID applicationId=management.createApplication(organization.getUuid(),applicationName);
+  LinkedHashMap<String,UUID> applications=new LinkedHashMap<String,UUID>();
+  applications.put(applicationName,applicationId);
+  response.setData(applications);
+  return new JSONWithPadding(response,callback);
+}

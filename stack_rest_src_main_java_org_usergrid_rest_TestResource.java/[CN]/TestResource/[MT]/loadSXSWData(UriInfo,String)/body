@@ -1,0 +1,79 @@
+{
+  ApiResponse response=new ApiResponse(ui);
+  response.setAction("loading sxsw data");
+  Map<String,String> properties=emf.getServiceProperties();
+  if (properties == null) {
+    response.setError("Unable to retrieve system properties, database is probably down.");
+    return new JSONWithPadding(response);
+  }
+  if ("true".equalsIgnoreCase(properties.get("test.sxsw_data.loaded"))) {
+    response.setError("SXSW test data already loaded.");
+    return new JSONWithPadding(response);
+  }
+  emf.setServiceProperty("test.sxsw_data.loaded","true");
+  UUID nsId=emf.lookupApplication("sxsw");
+  if (nsId == null) {
+    response.setError("No SXSW application created.");
+    return new JSONWithPadding(response);
+  }
+  ServiceManager sm=smf.getServiceManager(nsId);
+  logger.info("Loading SXSW data");
+  logger.info("Fetching SXSW conference events");
+  Object json=JsonUtils.loadFromUrl(getSampleDataUrl("sxsw_events.json"));
+  List<Map<String,Object>> set=(List<Map<String,Object>>)json;
+  logger.info("SXSW conference events fetched");
+  String pattern="EEEE MMMM d hh:mma zzz yyyy";
+  SimpleDateFormat format=new SimpleDateFormat(pattern);
+  logger.info("Preparing SXSW conference events");
+  for (  Map<String,Object> event : set) {
+    String timestr=(String)event.get("time");
+    String datestr=(String)event.get("date");
+    if (StringUtils.isNotBlank(datestr) && StringUtils.isNotBlank(timestr)) {
+      datestr=datestr + " " + timestr+ " CST 2011";
+      Date d=format.parse(datestr);
+      event.put("time",d.getTime());
+      event.put("date",DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(d));
+    }
+ else {
+      event.remove("date");
+      event.remove("time");
+    }
+  }
+  logger.info("SXSW conference events prepared");
+  logger.info("Storing SXSW conference events");
+  ServiceRequest request=sm.newRequest(ServiceAction.POST,parameters("conference_events"),batchPayload(set));
+  ServiceResults conference_events=request.execute();
+  logger.info("SXSW conference events stored");
+  logger.info("Fetching SXSW presenters");
+  json=JsonUtils.loadFromUrl(getSampleDataUrl("sxsw_presenters.json"));
+  set=(List<Map<String,Object>>)json;
+  logger.info("SXSW presenters fetched");
+  logger.info("Storing SXSW presenters");
+  request=sm.newRequest(ServiceAction.POST,parameters("presenters"),batchPayload(set));
+  ServiceResults sxsw_presenters=request.execute();
+  logger.info("SXSW presenters stored");
+  logger.info("Fetching SXSW events to presenters list");
+  json=JsonUtils.loadFromUrl(getSampleDataUrl("sxsw_event_presenters.json"));
+  logger.info("SXSW events to presenters list fetched");
+  logger.info("Connecting SXSW events to presenters");
+  Map<String,List<String>> map=(Map<String,List<String>>)json;
+  EntityManager em=sm.getEntityManager();
+  for (  Entry<String,List<String>> list : map.entrySet()) {
+    if (StringUtils.isNotBlank(list.getKey()) && CollectionUtils.isNotEmpty(list.getValue())) {
+      Entity event=conference_events.findForProperty("eventid",list.getKey()).getEntity();
+      if (event != null) {
+        for (        String name : list.getValue()) {
+          Entity presenter=sxsw_presenters.findForProperty("name",name).getEntity();
+          if (presenter != null) {
+            logger.info("Connecting " + event.getProperty("title") + " to presenter "+ presenter.getProperty("name"));
+            em.createConnection(event,"presenter",presenter);
+          }
+        }
+      }
+    }
+  }
+  logger.info("SXSW events connected to presenters");
+  response.setSuccess();
+  logger.info("SXSW data loaded");
+  return new JSONWithPadding(response,callback);
+}
