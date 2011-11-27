@@ -31,7 +31,7 @@
       try {
         AccessInfo access_info=management.authorizeClient(client_id,client_secret);
         if (access_info != null) {
-          return new JSONWithPadding(Response.status(SC_OK).type(APPLICATION_JSON_TYPE).entity(mapToJsonString(access_info)).build(),callback);
+          return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
         }
       }
  catch (      Exception e1) {
@@ -40,18 +40,18 @@
  else     if ("authorization_code".equals(grant_type)) {
       AccessInfo access_info=new AccessInfo();
       access_info.setAccessToken(code);
-      return new JSONWithPadding(Response.status(SC_OK).type(APPLICATION_JSON_TYPE).entity(mapToJsonString(access_info)).build(),callback);
+      return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
     }
     if (user == null) {
       OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription("invalid username or password").buildJSONMessage();
-      return new JSONWithPadding(Response.status(response.getResponseStatus()).type(APPLICATION_JSON_TYPE).entity(response.getBody()).build(),callback);
+      return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
     }
     AccessInfo access_info=new AccessInfo().withExpiresIn(3600).withAccessToken(management.getAccessTokenForAppUser(services.getApplicationId(),user.getUuid())).withProperty("user",user);
-    return new JSONWithPadding(Response.status(SC_OK).type(APPLICATION_JSON_TYPE).entity(mapToJsonString(access_info)).build(),callback);
+    return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
   }
  catch (  OAuthProblemException e) {
     logger.error("OAuth Error",e);
     OAuthResponse res=OAuthResponse.errorResponse(SC_BAD_REQUEST).error(e).buildJSONMessage();
-    return new JSONWithPadding(Response.status(res.getResponseStatus()).type(APPLICATION_JSON_TYPE).entity(res.getBody()).build(),callback);
+    return Response.status(res.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(res.getBody(),callback)).build();
   }
 }
