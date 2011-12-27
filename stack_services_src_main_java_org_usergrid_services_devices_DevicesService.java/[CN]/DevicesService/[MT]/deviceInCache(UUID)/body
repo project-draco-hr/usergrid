@@ -1,0 +1,13 @@
+{
+synchronized (deviceCache) {
+    Long timestamp=(Long)deviceCache.put(deviceId,System.currentTimeMillis());
+    if (timestamp == null) {
+      return false;
+    }
+    if ((timestamp - System.currentTimeMillis()) > MAX_DEVICE_CACHE_AGE) {
+      deviceCache.remove(deviceId);
+      return false;
+    }
+    return true;
+  }
+}
