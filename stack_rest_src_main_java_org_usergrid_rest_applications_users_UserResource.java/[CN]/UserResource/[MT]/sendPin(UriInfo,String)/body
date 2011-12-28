@@ -1,7 +1,12 @@
 {
   logger.info("UserResource.sendPin");
-  management.sendAppUserPin(getApplicationId(),getUser().getUuid());
   ApiResponse response=new ApiResponse(ui);
   response.setAction("retrieve user pin");
+  if (getUser() != null) {
+    management.sendAppUserPin(getApplicationId(),getUserUuid());
+  }
+ else {
+    response.setError("User not found");
+  }
   return new JSONWithPadding(response,callback);
 }
