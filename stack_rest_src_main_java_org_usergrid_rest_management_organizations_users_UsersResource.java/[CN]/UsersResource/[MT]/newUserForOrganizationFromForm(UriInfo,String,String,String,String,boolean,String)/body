@@ -2,7 +2,13 @@
   logger.info("New user for organization: " + username);
   ApiResponse response=new ApiResponse(ui);
   response.setAction("create user");
-  UserInfo user=management.createAdminUser(email,email,email,password,false,false,true);
+  UserInfo user=null;
+  if (invite) {
+    user=management.getAdminUserByEmail(email);
+  }
+  if (user == null) {
+    user=management.createAdminUser(email,email,email,password,false,false,true);
+  }
   if (user == null) {
     return null;
   }

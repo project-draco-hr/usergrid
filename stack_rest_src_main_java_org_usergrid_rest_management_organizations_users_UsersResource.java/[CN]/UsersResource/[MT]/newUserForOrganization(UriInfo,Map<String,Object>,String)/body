@@ -3,7 +3,14 @@
   response.setAction("new user for organization");
   String email=string(json.get("email"));
   String password=string(json.get("password"));
-  UserInfo user=management.createAdminUser(email,email,email,password,false,false,true);
+  boolean invite=getBoolean(getObject(json,"invite",true));
+  UserInfo user=null;
+  if (invite) {
+    user=management.getAdminUserByEmail(email);
+  }
+  if (user == null) {
+    user=management.createAdminUser(email,email,email,password,false,false,true);
+  }
   if (user == null) {
     return null;
   }
