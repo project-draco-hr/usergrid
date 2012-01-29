@@ -89,4 +89,21 @@
   assertTrue(isNotBlank(user_access_token));
   node=resource().path("/test-app/users/ed@anuff.com/test").get(JsonNode.class);
   logNode(node);
+  payload=hashMap("email","ed.anuff@gmail.com").map("username","ed.anuff").map("name","Ed Anuff").map("password","sesame").map("pin","1234");
+  node=resource().path("/test-app/users").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+  logNode(node);
+  assertEquals("ed.anuff",node.get("entities").get(0).get("username").getTextValue());
+  payload=hashMap("foo","bar");
+  node=resource().path("/test-app/devices/" + UUID.randomUUID()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(JsonNode.class,payload);
+  logNode(node);
+  payload=hashMap("foo","bar");
+  err_thrown=false;
+  try {
+    node=resource().path("/test-app/items").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+  }
+ catch (  UniformInterfaceException e) {
+    assertEquals("Should receive a 401 Unauthorized",401,e.getResponse().getStatus());
+    err_thrown=true;
+  }
+  assertTrue("Error should have been thrown",err_thrown);
 }
