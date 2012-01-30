@@ -1,11 +1,14 @@
 {
   Set<String> set=Schema.getDefaultSchema().getCollectionNames(ref.getType());
+  set=new LinkedHashSet<String>(set);
   if (addedCollections != null) {
-    set=new LinkedHashSet<String>(set);
     set.addAll(addedCollections);
   }
+  if (hiddenCollections != null) {
+    set.removeAll(hiddenCollections);
+  }
   if (set.size() > 0) {
-    return new LinkedHashSet<String>(set);
+    return set;
   }
   return null;
 }
