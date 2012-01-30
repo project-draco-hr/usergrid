@@ -1,0 +1,14 @@
+{
+  if (db_logger.isInfoEnabled()) {
+    db_logger.info("getColumn cf=" + columnFamily + " key="+ key+ " column="+ columns);
+  }
+  SliceQuery<ByteBuffer,N,V> q=HFactory.createSliceQuery(ko,be,nameSerializer,valueSerializer);
+  QueryResult<ColumnSlice<N,V>> r=q.setKey(bytebuffer(key)).setColumnNames(columns).setColumnFamily(columnFamily.toString()).execute();
+  ColumnSlice<N,V> result=r.get();
+  if (db_logger.isInfoEnabled()) {
+    if (result == null) {
+      db_logger.info("getColumn returned null");
+    }
+  }
+  return result;
+}
