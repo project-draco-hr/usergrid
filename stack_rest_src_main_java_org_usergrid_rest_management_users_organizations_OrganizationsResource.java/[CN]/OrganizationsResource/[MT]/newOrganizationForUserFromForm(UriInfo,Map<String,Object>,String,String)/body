@@ -1,0 +1,12 @@
+{
+  ApiResponse response=new ApiResponse(ui);
+  response.setAction("new organization for user");
+  if (organizationName == null) {
+    return null;
+  }
+  OrganizationInfo organization=management.createOrganization(organizationName,user);
+  response.setData(organization);
+  management.activateOrganization(organization.getUuid());
+  management.sendOrganizationActivationEmail(organization);
+  return new JSONWithPadding(response,callback);
+}
