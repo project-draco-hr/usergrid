@@ -4,6 +4,9 @@
   }
   httpServer=HttpServer.createSimpleServer(".",port);
   ServletHandler handler=new ServletHandler();
+  handler.addContextParameter("contextConfigLocation","classpath:standaloneApplicationContext.xml");
+  handler.addServletListener(ContextLoaderListener.class.getName());
+  handler.addServletListener(RequestContextListener.class.getName());
   com.sun.jersey.api.json.JSONConfiguration.badgerFish();
   handler.addInitParameter("com.sun.jersey.config.property.packages","org.usergrid");
   handler.addInitParameter("com.sun.jersey.api.json.POJOMappingFeature","true");
@@ -13,14 +16,12 @@
   handler.addInitParameter("com.sun.jersey.config.feature.DisableWADL","true");
   handler.addInitParameter("com.sun.jersey.config.property.JSPTemplatesBasePath","/WEB-INF/jsp");
   handler.addInitParameter("com.sun.jersey.config.property.WebPageContentRegex","/(((images|css|js|jsp|WEB-INF/jsp)/.*)|(favicon\\.ico))");
-  handler.addContextParameter("contextConfigLocation","classpath:standaloneApplicationContext.xml");
-  handler.addServletListener(ContextLoaderListener.class.getName());
-  handler.addServletListener(RequestContextListener.class.getName());
   handler.setServletInstance(new SpringServlet());
   handler.setProperty("load-on-startup",1);
   Map<String,String> initParameters=new HashMap<String,String>();
   initParameters.put("targetFilterLifecycle","true");
   handler.addFilter(new DelegatingFilterProxy(),"shiroFilter",initParameters);
+  handler.addFilter(new SwaggerServlet(),"swagger",null);
   setupJspMappings();
   httpServer.getServerConfiguration().addHttpHandler(handler,"/*");
   ClasspathStaticHttpHandler static_handler=new ClasspathStaticHttpHandler("/html/css/");
