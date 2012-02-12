@@ -1,0 +1,22 @@
+{
+  Batch batch=null;
+  try {
+    batch=queue.poll(5000L,TimeUnit.MILLISECONDS);
+  }
+ catch (  InterruptedException ie) {
+    ie.printStackTrace();
+  }
+ finally {
+    if (batch == null) {
+      throw new CounterProcessingUnavailableException("Timed out polling for available batch");
+    }
+  }
+  batch.add(count);
+  boolean wasSubmitted=maybeSubmit(batch);
+  if (wasSubmitted) {
+    queue.add(new Batch());
+  }
+ else {
+    queue.add(batch);
+  }
+}
