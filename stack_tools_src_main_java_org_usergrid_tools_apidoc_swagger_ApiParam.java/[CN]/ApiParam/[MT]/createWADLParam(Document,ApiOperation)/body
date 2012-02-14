@@ -1,0 +1,34 @@
+{
+  Element param=doc.createElement("param");
+  if (name != null) {
+    param.setAttribute("name",name);
+  }
+  if ((required != null) && required) {
+    param.setAttribute("required",required.toString());
+  }
+  if ((allowMultiple != null) && allowMultiple) {
+    param.setAttribute("repeating",allowMultiple.toString());
+  }
+  if (dataType != null) {
+    param.setAttribute("type","xsd:" + dataType.toLowerCase());
+  }
+  if (defaultValue != null) {
+    param.setAttribute("default",defaultValue);
+  }
+  if (description != null) {
+    Element d=doc.createElement("doc");
+    d.setTextContent(description);
+    param.appendChild(d);
+  }
+  if (paramType != null) {
+    param.setAttribute("style","post".equalsIgnoreCase(paramType) ? "query" : "path".equalsIgnoreCase(paramType) ? "template" : paramType);
+  }
+  if ((allowableValues != null) && (allowableValues.values != null) && (!allowableValues.values.isEmpty())) {
+    for (    String v : allowableValues.values) {
+      Element option=doc.createElement("option");
+      option.setAttribute("value",v);
+      param.appendChild(option);
+    }
+  }
+  return param;
+}
