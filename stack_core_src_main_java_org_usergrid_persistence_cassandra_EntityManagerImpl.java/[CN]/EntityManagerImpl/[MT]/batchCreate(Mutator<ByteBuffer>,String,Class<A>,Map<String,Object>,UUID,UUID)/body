@@ -18,11 +18,13 @@
         Object v=properties.get(p);
         if (getDefaultSchema().isPropertyTimestamp(entityType,p)) {
           if (v == null) {
-            properties.put(p,timestamp);
+            properties.put(p,timestamp / 1000);
           }
-          long ts=getLong(v);
-          if (ts <= 0) {
-            properties.put(p,timestamp);
+ else {
+            long ts=getLong(v);
+            if (ts <= 0) {
+              properties.put(p,timestamp / 1000);
+            }
           }
           continue;
         }
@@ -70,8 +72,8 @@
   }
   properties.put(PROPERTY_UUID,itemId);
   properties.put(PROPERTY_TYPE,Schema.normalizeEntityType(entityType,false));
-  properties.put(PROPERTY_CREATED,timestamp);
-  properties.put(PROPERTY_MODIFIED,timestamp);
+  properties.put(PROPERTY_CREATED,timestamp / 1000);
+  properties.put(PROPERTY_MODIFIED,timestamp / 1000);
   if (properties.containsKey(PROPERTY_TIMESTAMP)) {
     long ts=getLong(properties.get(PROPERTY_TIMESTAMP));
     if (ts <= 0) {
