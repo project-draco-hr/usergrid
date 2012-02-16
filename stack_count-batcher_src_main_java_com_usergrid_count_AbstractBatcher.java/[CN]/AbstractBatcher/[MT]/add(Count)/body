@@ -1,0 +1,25 @@
+{
+  invocationCounter.inc();
+  final TimerContext context=addTimer.time();
+  Batch batch=null;
+  try {
+    batch=queue.poll(100L,TimeUnit.MILLISECONDS);
+    batch.add(count);
+    boolean wasSubmitted=maybeSubmit(batch);
+    if (wasSubmitted) {
+      queue.offer(new Batch());
+    }
+ else {
+      queue.offer(batch);
+    }
+  }
+ catch (  InterruptedException ie) {
+    ie.printStackTrace();
+  }
+ finally {
+    context.stop();
+    if (batch == null) {
+      throw new CounterProcessingUnavailableException("Timed out polling for available batch");
+    }
+  }
+}
