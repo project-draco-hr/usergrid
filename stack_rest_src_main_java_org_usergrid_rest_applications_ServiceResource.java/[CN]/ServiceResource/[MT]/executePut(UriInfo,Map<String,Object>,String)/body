@@ -5,15 +5,6 @@
   response.setApplication(services.getApplicationId());
   response.setParams(ui.getQueryParameters());
   ServicePayload payload=getPayload(json);
-  try {
-    executeServiceRequest(ui,response,ServiceAction.PUT,payload);
-  }
- catch (  Exception e) {
-    response.setError(e);
-    logger.error("Error while putting",e);
-    if (e instanceof UnauthorizedException) {
-      throw new UnauthorizedApiRequestException(response);
-    }
-  }
+  executeServiceRequest(ui,response,ServiceAction.PUT,payload);
   return new JSONWithPadding(response,callback);
 }
