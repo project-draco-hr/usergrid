@@ -1,0 +1,8 @@
+{
+  Mutator<String> mutator=HFactory.createMutator(keyspace,StringSerializer.get());
+  for (  Count count : counts) {
+    HCounterColumn<String> column=new HCounterColumnImpl<String>(count.getColumnName(),count.getValue(),StringSerializer.get());
+    mutator.addCounter(count.getKeyName(),columnFamilyName,column);
+  }
+  mutator.execute();
+}
