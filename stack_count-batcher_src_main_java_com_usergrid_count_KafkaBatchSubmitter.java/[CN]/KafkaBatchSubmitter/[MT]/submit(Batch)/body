@@ -1,0 +1,13 @@
+{
+  return executor.submit(new Callable<Object>(){
+    final TimerContext timer=addTimer.time();
+    @Override public Object call() throws Exception {
+      for (      Count c : batch.getCounts()) {
+        countProducer.send(c);
+      }
+      timer.stop();
+      return true;
+    }
+  }
+);
+}
