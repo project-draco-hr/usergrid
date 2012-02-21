@@ -1,5 +1,8 @@
 {
   logger.info("AuthResource.keys");
+  if (!isApplicationAdmin(Identifier.fromUUID(applicationId))) {
+    throw new UnauthorizedException();
+  }
   ClientCredentialsInfo kp=new ClientCredentialsInfo(management.getClientIdForApplication(services.getApplicationId()),management.getClientSecretForApplication(services.getApplicationId()));
   return new JSONWithPadding(new ApiResponse(ui).withCredentials(kp).withAction("get application keys").withSuccess(),callback);
 }
