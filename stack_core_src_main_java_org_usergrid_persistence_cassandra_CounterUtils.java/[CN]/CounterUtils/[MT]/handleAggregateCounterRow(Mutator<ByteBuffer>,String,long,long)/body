@@ -1,7 +1,11 @@
 {
-  if (m != null) {
-    HCounterColumn<Long> c=createCounterColumn(column,value,le);
-    m.addCounter(bytebuffer(key),APPLICATION_AGGREGATE_COUNTERS.toString(),c);
+  if (StringUtils.equals(counterType,"o") || StringUtils.equals(counterType,"p")) {
+    if (m != null) {
+      HCounterColumn<Long> c=createCounterColumn(column,value,le);
+      m.addCounter(bytebuffer(key),APPLICATION_AGGREGATE_COUNTERS.toString(),c);
+    }
   }
-  batcher.add(new Count(APPLICATION_AGGREGATE_COUNTERS.toString(),key,Long.toString(column),value));
+  if (StringUtils.equals(counterType,"n") || StringUtils.equals(counterType,"p")) {
+    batcher.add(new Count(APPLICATION_AGGREGATE_COUNTERS.toString(),key,se.fromByteBuffer(le.toByteBuffer(column)),value));
+  }
 }
