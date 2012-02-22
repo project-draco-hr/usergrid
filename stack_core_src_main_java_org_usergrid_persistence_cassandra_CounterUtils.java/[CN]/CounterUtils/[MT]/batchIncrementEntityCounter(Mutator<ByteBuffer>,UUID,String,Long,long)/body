@@ -1,7 +1,11 @@
 {
-  HCounterColumn<String> c=createCounterColumn(name,value);
-  m.addCounter(bytebuffer(entityId),ENTITY_COUNTERS.toString(),c);
+  if ("o".equals(counterType) || "p".equals(counterType)) {
+    HCounterColumn<String> c=createCounterColumn(name,value);
+    m.addCounter(bytebuffer(entityId),ENTITY_COUNTERS.toString(),c);
+  }
   addInsertToMutator(m,ENTITY_DICTIONARIES,key(entityId,DICTIONARY_COUNTERS),name,null,timestamp);
-  batcher.add(new Count(ENTITY_COUNTERS.toString(),entityId.toString(),name,value));
+  if ("n".equals(counterType) || "p".equals(counterType)) {
+    batcher.add(new Count(ENTITY_COUNTERS.toString(),entityId,name,value));
+  }
   return m;
 }
