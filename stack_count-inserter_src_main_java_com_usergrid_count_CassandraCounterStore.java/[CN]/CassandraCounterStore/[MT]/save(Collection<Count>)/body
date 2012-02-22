@@ -1,8 +1,9 @@
 {
-  Mutator<String> mutator=HFactory.createMutator(keyspace,StringSerializer.get());
+  Mutator<ByteBuffer> mutator=HFactory.createMutator(keyspace,ByteBufferSerializer.get());
   for (  Count count : counts) {
-    HCounterColumn<String> column=new HCounterColumnImpl<String>(count.getColumnName(),count.getValue(),StringSerializer.get());
-    mutator.addCounter(count.getKeyName(),count.getTableName(),column);
+    HCounterColumn column=new HCounterColumnImpl(count.getColumnName(),count.getValue(),count.getColumnNameSerializer());
+    mutator.addCounter(count.getKeyNameBytes(),count.getTableName(),column);
+    log.info("added counter: {} ",column);
   }
   mutator.execute();
 }
