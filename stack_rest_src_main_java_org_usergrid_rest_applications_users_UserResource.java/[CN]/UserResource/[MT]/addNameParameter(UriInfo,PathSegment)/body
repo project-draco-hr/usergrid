@@ -2,7 +2,8 @@
   String resourceClass=USER_EXTENSION_RESOURCE_PREFIX + StringUtils.capitalize(itemName.getPath()) + "Resource";
   AbstractUserExtensionResource extensionResource=null;
   try {
-    extensionResource=(AbstractUserExtensionResource)Class.forName(resourceClass).getConstructor(UserResource.class).newInstance(this);
+    @SuppressWarnings("unchecked") Class<AbstractUserExtensionResource> extensionCls=(Class<AbstractUserExtensionResource>)Class.forName(resourceClass);
+    extensionResource=getSubResource(extensionCls).init(this);
   }
  catch (  Exception e) {
   }
