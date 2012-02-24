@@ -2,13 +2,15 @@
   Object json=body.getEntity();
   String password=null;
   String pin=null;
+  Boolean registration_requires_email_confirmation=(Boolean)this.getServices().getEntityManager().getProperty(this.getServices().getApplicationRef(),"registration_requires_email_confirmation");
+  boolean activated=!((registration_requires_email_confirmation != null) && registration_requires_email_confirmation);
   if (json instanceof Map) {
     @SuppressWarnings("unchecked") Map<String,Object> map=(Map<String,Object>)json;
     password=(String)map.get("password");
     map.remove("password");
     pin=(String)map.get("pin");
     map.remove("pin");
-    map.put("activated",true);
+    map.put("activated",activated);
   }
  else   if (json instanceof List) {
     @SuppressWarnings("unchecked") List<Object> list=(List<Object>)json;
