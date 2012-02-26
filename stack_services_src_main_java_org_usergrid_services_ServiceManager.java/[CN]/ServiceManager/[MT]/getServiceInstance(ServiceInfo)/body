@@ -4,14 +4,15 @@
     Service s=null;
     try {
       try {
-        s=cls.newInstance();
+        s=applicationContext.getAutowireCapableBeanFactory().createBean(cls);
       }
  catch (      Exception e) {
       }
       if (s == null) {
         try {
           String cname=cls.getName();
-          s=(Service)Class.forName(cname + "Impl").newInstance();
+          cls=(Class<Service>)Class.forName(cname + "Impl");
+          s=applicationContext.getAutowireCapableBeanFactory().createBean(cls);
         }
  catch (        Exception e) {
         }
