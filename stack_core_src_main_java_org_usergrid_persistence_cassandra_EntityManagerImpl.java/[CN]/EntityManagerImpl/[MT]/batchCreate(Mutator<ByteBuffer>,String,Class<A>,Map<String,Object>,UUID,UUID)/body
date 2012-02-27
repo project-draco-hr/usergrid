@@ -82,6 +82,17 @@
   }
   A entity=EntityFactory.newEntity(itemId,eType,entityClass);
   logger.info("Entity created of type {}",entity.getClass().getName());
+  if (entity instanceof Event) {
+    for (    String prop_name : properties.keySet()) {
+      Object propertyValue=properties.get(prop_name);
+      if (propertyValue != null) {
+        entity.setProperty(prop_name,propertyValue);
+      }
+    }
+    storeEventAsMessage(m,(Event)entity,timestamp);
+    incrementEntityCollection("events");
+    return entity;
+  }
   String aliasName=getDefaultSchema().aliasProperty(entityType);
   logger.info("Alias property is {}",aliasName);
   for (  String prop_name : properties.keySet()) {
@@ -103,22 +114,8 @@
     entity.setProperty(prop_name,propertyValue);
     batchSetProperty(m,entity,prop_name,propertyValue,true,true,timestampUuid);
   }
-  if (entity instanceof Event) {
-    counterUtils.addEventCounterMutations(m,applicationId,(Event)entity,timestamp);
-  }
   if (!is_application) {
-    try {
-      incrementAggregateCounters(null,null,null,"application.collection." + collection_name,1L);
-    }
- catch (    Exception e) {
-      logger.error("Unable to increment counter application.collection." + collection_name,e);
-    }
-    try {
-      incrementAggregateCounters(null,null,null,"application.entities",1L);
-    }
- catch (    Exception e) {
-      logger.error("Unable to increment counter application.entities",e);
-    }
+    incrementEntityCollection(collection_name);
   }
   return entity;
 }

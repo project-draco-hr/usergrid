@@ -13,6 +13,9 @@
     return null;
   }
   for (  CFEnum cf : values) {
+    if (!cf.create()) {
+      continue;
+    }
     String defaultValidationClass=cf.getValidator();
     List<ColumnDefinition> metadata=cf.getMetadata();
     ColumnFamilyDefinition cf_def=HFactory.createColumnFamilyDefinition(keyspace,cf.getColumnFamily(),ComparatorType.getByClassName(cf.getComparator()),metadata);
