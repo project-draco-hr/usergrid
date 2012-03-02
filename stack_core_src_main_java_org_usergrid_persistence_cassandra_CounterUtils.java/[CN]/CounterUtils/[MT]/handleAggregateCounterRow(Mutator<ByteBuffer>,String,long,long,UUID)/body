@@ -6,6 +6,7 @@
     }
   }
   if ("n".equals(counterType) || "p".equals(counterType)) {
-    batcher.add(new Count(APPLICATION_AGGREGATE_COUNTERS.toString(),key,column,value));
+    PrefixedSerializer ps=new PrefixedSerializer(applicationId,UUIDSerializer.get(),StringSerializer.get());
+    batcher.add(new Count(APPLICATION_AGGREGATE_COUNTERS.toString(),ps.toByteBuffer(key),column,value));
   }
 }
