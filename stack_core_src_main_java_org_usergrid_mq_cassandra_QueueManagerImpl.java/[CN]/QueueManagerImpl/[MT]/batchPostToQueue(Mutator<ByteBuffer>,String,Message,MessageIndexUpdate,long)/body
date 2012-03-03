@@ -10,7 +10,7 @@
   long newest_ts=getTimestampInMicros(message.getUuid());
   batch.addInsertion(bytebuffer(queueId),QUEUE_PROPERTIES.getColumnFamily(),createColumn(QUEUE_NEWEST,message.getUuid(),newest_ts,se,ue));
   batch.addInsertion(bytebuffer(getQueueId("/")),QUEUE_SUBSCRIBERS.getColumnFamily(),createColumn(queuePath,queueId,timestamp,se,ue));
-  counterUtils.batchIncrementQueueCounter(batch,getQueueId("/"),queuePath,1L,timestamp);
+  counterUtils.batchIncrementQueueCounter(batch,getQueueId("/"),queuePath,1L,timestamp,applicationId);
   if (indexUpdate == null) {
     indexUpdate=new MessageIndexUpdate(message);
   }

@@ -5,7 +5,8 @@
   }
   addInsertToMutator(m,ENTITY_DICTIONARIES,key(entityId,DICTIONARY_COUNTERS),name,null,timestamp);
   if ("n".equals(counterType) || "p".equals(counterType)) {
-    batcher.add(new Count(ENTITY_COUNTERS.toString(),entityId,name,value));
+    PrefixedSerializer ps=new PrefixedSerializer(applicationId,UUIDSerializer.get(),UUIDSerializer.get());
+    batcher.add(new Count(ENTITY_COUNTERS.toString(),ps.toByteBuffer(entityId),name,value));
   }
   return m;
 }
