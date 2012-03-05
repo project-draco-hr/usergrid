@@ -1,0 +1,13 @@
+{
+  if ("o".equals(counterType) || "p".equals(counterType)) {
+    HCounterColumn<String> c=createCounterColumn(name,value);
+    ByteBuffer keybytes=bytebuffer(queueId);
+    m.addCounter(keybytes,QueuesCF.COUNTERS.toString(),c);
+  }
+  m.addInsertion(bytebuffer(key(queueId,DICTIONARY_COUNTERS).toString()),QueuesCF.QUEUE_DICTIONARIES.toString(),createColumn(name,ByteBuffer.allocate(0),timestamp,se,be));
+  if ("n".equals(counterType) || "p".equals(counterType)) {
+    PrefixedSerializer ps=new PrefixedSerializer(applicationId,UUIDSerializer.get(),UUIDSerializer.get());
+    batcher.add(new Count(QueuesCF.COUNTERS.toString(),ps.toByteBuffer(queueId),name,value));
+  }
+  return m;
+}
