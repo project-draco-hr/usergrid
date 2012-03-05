@@ -1,0 +1,15 @@
+{
+  List<LocationIndexEntry> list=new ArrayList<LocationIndexEntry>();
+  for (  String geoCell : curGeocellsUnique) {
+    List<HColumn<ByteBuffer,ByteBuffer>> columns;
+    try {
+      columns=cass.getColumns(cass.getApplicationKeyspace(em.applicationId),ApplicationCF.ENTITY_INDEX,key(key,geoCell),startResult,null,count,reversed);
+      List<LocationIndexEntry> entries=getLocationIndexEntries(columns);
+      list=mergeLocationEntries(list,entries);
+    }
+ catch (    Exception e) {
+      e.printStackTrace();
+    }
+  }
+  return list;
+}

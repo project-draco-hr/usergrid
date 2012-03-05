@@ -1,0 +1,23 @@
+{
+  List<LocationIndexEntry> entries=new ArrayList<LocationIndexEntry>();
+  if (columns != null) {
+    LocationIndexEntry prevEntry=null;
+    for (    HColumn<ByteBuffer,ByteBuffer> column : columns) {
+      DynamicComposite composite=DynamicComposite.fromByteBuffer(column.getName());
+      UUID uuid=composite.get(0,UUIDSerializer.get());
+      UUID timestampUuid=composite.get(1,UUIDSerializer.get());
+      composite=DynamicComposite.fromByteBuffer(column.getValue());
+      Double latitude=composite.get(0,DoubleSerializer.get());
+      Double longitude=composite.get(1,DoubleSerializer.get());
+      if ((prevEntry != null) && uuid.equals(prevEntry.getUuid())) {
+        prevEntry.setLatitude(latitude);
+        prevEntry.setLongitude(longitude);
+      }
+ else {
+        prevEntry=new LocationIndexEntry(uuid,timestampUuid,latitude,longitude);
+        entries.add(prevEntry);
+      }
+    }
+  }
+  return entries;
+}
