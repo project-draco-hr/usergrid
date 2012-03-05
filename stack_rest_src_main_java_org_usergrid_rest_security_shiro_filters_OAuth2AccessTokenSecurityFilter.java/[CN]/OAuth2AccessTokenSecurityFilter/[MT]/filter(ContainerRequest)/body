@@ -92,12 +92,11 @@ catch (        Exception e) {
       if (OAuthUtils.isEmpty(errorCode)) {
         return request;
       }
-      OAuthResponse oauthResponse=OAuthResponse.errorResponse(HttpServletResponse.SC_UNAUTHORIZED).setRealm(REALM).setError(e.getError()).setErrorDescription(e.getDescription()).setErrorUri(e.getDescription()).buildHeaderMessage();
-      throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).header(OAuth.HeaderType.WWW_AUTHENTICATE,oauthResponse.getHeader(OAuth.HeaderType.WWW_AUTHENTICATE)).build());
+      throw new MappableContainerException(e);
     }
   }
  catch (  OAuthSystemException ose) {
-    throw new WebApplicationException(ose);
+    throw new MappableContainerException(ose);
   }
   return request;
 }
