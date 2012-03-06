@@ -1,10 +1,11 @@
 {
-  List<LocationIndexEntry> list=new ArrayList<LocationIndexEntry>();
+  List<EntityLocationRef> list=new ArrayList<EntityLocationRef>();
   for (  String geoCell : curGeocellsUnique) {
+    logger.info("Finding entities for cell: " + geoCell);
     List<HColumn<ByteBuffer,ByteBuffer>> columns;
     try {
       columns=cass.getColumns(cass.getApplicationKeyspace(em.applicationId),ApplicationCF.ENTITY_INDEX,key(key,geoCell),startResult,null,count,reversed);
-      List<LocationIndexEntry> entries=getLocationIndexEntries(columns);
+      List<EntityLocationRef> entries=getLocationIndexEntries(columns);
       list=mergeLocationEntries(list,entries);
     }
  catch (    Exception e) {
