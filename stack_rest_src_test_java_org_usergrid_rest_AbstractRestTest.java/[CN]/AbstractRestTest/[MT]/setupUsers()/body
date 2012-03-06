@@ -1,9 +1,8 @@
 {
-  if (userInited)   return;
+  if (usersSetup)   return;
   JsonNode node=resource().path("/management/token").queryParam("grant_type","password").queryParam("username","test@usergrid.com").queryParam("password","test").accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
   String mgmToken=node.get("access_token").getTextValue();
   Map<String,String> payload=hashMap("email","ed@anuff.com").map("username","edanuff").map("name","Ed Anuff").map("password","sesame").map("pin","1234");
   node=resource().path("/test-app/users").queryParam("access_token",mgmToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
-  userInited=true;
-  access_token=acquireToken();
+  usersSetup=true;
 }
