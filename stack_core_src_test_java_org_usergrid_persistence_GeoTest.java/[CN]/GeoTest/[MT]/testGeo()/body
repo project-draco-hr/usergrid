@@ -11,14 +11,14 @@
   assertNotNull(user);
   EntityLocationRef loc=new EntityLocationRef(user,37.776753,-122.407846);
   GeoIndexManager geo=((EntityManagerImpl)em).getGeoIndexManager();
-  geo.storeLocation(em.getApplicationRef(),"users","location",loc);
+  geo.storeLocationInIndex(em.getApplicationRef(),"users","location",loc);
   Point center=new Point(37.774277,-122.404744);
   Results results=geo.proximitySearchCollection(em.getApplicationRef(),"users","location",center,200,null,10,false,Level.ALL_PROPERTIES);
   assertEquals(0,results.size());
   results=geo.proximitySearchCollection(em.getApplicationRef(),"users","location",center,400,null,10,false,Level.ALL_PROPERTIES);
   this.dump(results.getEntities());
   assertEquals(1,results.size());
-  geo.deleteLocation(em.getApplicationRef(),"users","location",loc);
+  geo.removeLocationFromIndex(em.getApplicationRef(),"users","location",loc);
   results=geo.proximitySearchCollection(em.getApplicationRef(),"users","location",center,400,null,10,false,Level.ALL_PROPERTIES);
   this.dump(results.getEntities());
   assertEquals(0,results.size());
