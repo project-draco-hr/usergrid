@@ -35,6 +35,11 @@
   }
   if (validIndexableValueOrJson(entryValue) && (!isMultiValue || (isMultiValue && !removeListEntry))) {
     List<Map.Entry<String,Object>> list=IndexUtils.getKeyValueList(entryName,entryValue,fulltextIndexed);
+    if (entryName.equalsIgnoreCase("location") && (entryValue instanceof Map)) {
+      @SuppressWarnings("rawtypes") double latitude=MapUtils.getDoubleValue((Map)entryValue,"latitude");
+      @SuppressWarnings("rawtypes") double longitude=MapUtils.getDoubleValue((Map)entryValue,"longitude");
+      list.add(new AbstractMap.SimpleEntry<String,Object>("location.coordinates",latitude + "," + longitude));
+    }
     for (    Map.Entry<String,Object> indexEntry : list) {
       if (validIndexableValue(indexEntry.getValue())) {
         indexUpdate.addNewEntry(indexEntry.getKey(),toIndexableValue(indexEntry.getValue()));
