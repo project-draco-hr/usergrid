@@ -3,8 +3,13 @@
     String token=getActivationTokenForOrganization(organization.getUuid());
     String activation_url=String.format(properties.getProperty("usergrid.organization.activation.url"),organization.getUuid().toString()) + "?token=" + token;
     if (newOrganizationsNeedSysAdminApproval()) {
+      List<UserInfo> users=getAdminUsersForOrganization(organization.getUuid());
+      String organization_owners=null;
+      for (      UserInfo user : users) {
+        organization_owners=(organization_owners == null) ? user.getHTMLDisplayEmailAddress() : organization_owners + ", " + user.getHTMLDisplayEmailAddress();
+      }
       activation_url+="&confirm=true";
-      sendHtmlMail(properties,getPropertyValue("usergrid.sysadmin.email"),getPropertyValue(EMAIL_MAILER),"Request For Organization Account Activation " + organization.getName(),emailMsg(hashMap("organization_name",organization.getName()).map("activation_url",activation_url),EMAIL_SYSADMIN_ORGANIZATION_ACTIVATION));
+      sendHtmlMail(properties,getPropertyValue("usergrid.sysadmin.email"),getPropertyValue(EMAIL_MAILER),"Request For Organization Account Activation " + organization.getName(),appendEmailFooter(emailMsg(hashMap("organization_name",organization.getName()).map("activation_url",activation_url).map("organization_owners",organization_owners),EMAIL_SYSADMIN_ORGANIZATION_ACTIVATION)));
     }
  else {
       sendOrganizationEmail(organization,"Organization Account Confirmation",emailMsg(hashMap("organization_name",organization.getName()).map("activation_url",activation_url),EMAIL_ORGANIZATION_ACTIVATION));

@@ -3,7 +3,7 @@
   String activation_url=String.format(properties.getProperty("usergrid.admin.activation.url"),user.getUuid().toString()) + "?token=" + token;
   if (newAdminUsersNeedSysAdminApproval()) {
     activation_url+="&confirm=true";
-    sendHtmlMail(properties,getPropertyValue("usergrid.sysadmin.email"),getPropertyValue(EMAIL_MAILER),"Request For User Account Activation " + user.getEmail(),emailMsg(hashMap("user_email",user.getEmail()).map("activation_url",activation_url),EMAIL_SYSADMIN_ADMIN_ACTIVATION));
+    sendHtmlMail(properties,getPropertyValue("usergrid.sysadmin.email"),getPropertyValue(EMAIL_MAILER),"Request For User Account Activation " + user.getEmail(),appendEmailFooter(emailMsg(hashMap("user_email",user.getEmail()).map("activation_url",activation_url),EMAIL_SYSADMIN_ADMIN_ACTIVATION)));
   }
  else {
     sendAdminUserEmail(user,"User Account Confirmation: " + user.getEmail(),emailMsg(hashMap("user_email",user.getEmail()).map("activation_url",activation_url),EMAIL_ADMIN_ACTIVATION));
