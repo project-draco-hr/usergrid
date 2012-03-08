@@ -1,4 +1,15 @@
 {
+  if (slice.operator == FilterOperator.WITHIN) {
+    Object v=slice.getValue();
+    if ((v instanceof List) && (((List)v).size() >= 3)) {
+      double maxDistance=getDouble(((List)v).get(0));
+      double latitude=getDouble(((List)v).get(1));
+      double longitude=getDouble(((List)v).get(2));
+      Results r=em.getGeoIndexManager().proximitySearchConnections(connection.getIndexId(),slice.getPropertyName(),new Point(latitude,longitude),maxDistance,null,count,false,level);
+      return r;
+    }
+    return new Results();
+  }
   List<HColumn<ByteBuffer,ByteBuffer>> results=searchIndex(key(connection.getIndexId(),INDEX_CONNECTIONS),slice,count);
   return getIndexResults(results,true,connection.getConnectionType(),connection.getConnectedEntityType(),level);
 }

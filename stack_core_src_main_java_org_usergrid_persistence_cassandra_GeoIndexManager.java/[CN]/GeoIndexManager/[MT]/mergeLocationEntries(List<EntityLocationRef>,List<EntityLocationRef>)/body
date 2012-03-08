@@ -1,0 +1,22 @@
+{
+  if ((lists == null) || (lists.length == 0)) {
+    return list;
+  }
+  LinkedHashMap<UUID,EntityLocationRef> merge=new LinkedHashMap<UUID,EntityLocationRef>();
+  for (  EntityLocationRef loc : list) {
+    merge.put(loc.getUuid(),loc);
+  }
+  for (  List<EntityLocationRef> l : lists) {
+    for (    EntityLocationRef loc : l) {
+      if (merge.containsKey(loc.getUuid())) {
+        if (UUIDUtils.compare(loc.getTimestampUuid(),merge.get(loc.getUuid()).getTimestampUuid()) > 0) {
+          merge.put(loc.getUuid(),loc);
+        }
+      }
+ else {
+        merge.put(loc.getUuid(),loc);
+      }
+    }
+  }
+  return new ArrayList<EntityLocationRef>(merge.values());
+}

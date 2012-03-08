@@ -25,6 +25,10 @@
           }
         }
       }
+      if ("location.coordinates".equals(entry.getPath())) {
+        EntityLocationRef loc=new EntityLocationRef(indexUpdate.getEntity(),entry.getTimestampUuid(),entry.getValue().toString());
+        batchRemoveLocationFromCollectionIndex(indexUpdate.getBatch(),index_key,loc);
+      }
     }
  else {
       logger.error("Unexpected condition - deserialized property value is null");
@@ -51,6 +55,10 @@
             addInsertToMutator(indexUpdate.getBatch(),indexesCf,index_subkey_key,indexEntry.getIndexComposite(),null,indexUpdate.getTimestamp());
           }
         }
+      }
+      if ("location.coordinates".equals(indexEntry.getPath())) {
+        EntityLocationRef loc=new EntityLocationRef(indexUpdate.getEntity(),indexEntry.getTimestampUuid(),indexEntry.getValue().toString());
+        batchStoreLocationInCollectionIndex(indexUpdate.getBatch(),index_key,loc);
       }
     }
   }

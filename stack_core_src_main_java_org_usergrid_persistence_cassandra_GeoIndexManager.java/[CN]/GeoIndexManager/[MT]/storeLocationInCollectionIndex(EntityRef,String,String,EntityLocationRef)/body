@@ -1,0 +1,6 @@
+{
+  Keyspace ko=cass.getApplicationKeyspace(em.applicationId);
+  Mutator<ByteBuffer> m=createMutator(ko,ByteBufferSerializer.get());
+  batchStoreLocationInCollectionIndex(m,key(owner.getUuid(),collectionName,propertyName),location);
+  batchExecute(m,CassandraService.RETRY_COUNT);
+}
