@@ -1,0 +1,13 @@
+{
+  if ("permissions".equalsIgnoreCase(dictionary)) {
+    EntityRef entityRef=refs.get(0);
+    checkPermissionsForEntitySubPath(context,entityRef,"permissions");
+    String permission=payload.getStringProperty("permission");
+    if (isBlank(permission)) {
+      return null;
+    }
+    em.grantUserPermission(entityRef.getUuid(),permission);
+    return genericServiceResults().withData(em.getUserPermissions(entityRef.getUuid()));
+  }
+  return super.postEntityDictionary(context,refs,dictionary,payload);
+}
