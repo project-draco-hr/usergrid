@@ -1,0 +1,13 @@
+{
+  List<EntityLocationRef> locations=null;
+  GeocellQuery baseQuery=new GeocellQuery();
+  try {
+    locations=GeocellManager.proximitySearch(center,count,maxDistance,EntityLocationRef.class,baseQuery,gqe,GeocellManager.MAX_GEOCELL_RESOLUTION);
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+  @SuppressWarnings("unchecked") Results results=Results.fromRefList((List<EntityRef>)cast(locations));
+  results=em.loadEntities(results,level,count);
+  return results;
+}

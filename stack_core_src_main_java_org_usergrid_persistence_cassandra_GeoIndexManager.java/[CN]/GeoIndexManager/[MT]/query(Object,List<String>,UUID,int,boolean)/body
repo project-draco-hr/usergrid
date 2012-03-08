@@ -1,0 +1,18 @@
+{
+  List<EntityLocationRef> list=new ArrayList<EntityLocationRef>();
+  List<Object> keys=new ArrayList<Object>();
+  for (  String geoCell : curGeocellsUnique) {
+    keys.add(key(key,DICTIONARY_GEOCELL,geoCell));
+  }
+  try {
+    Map<ByteBuffer,List<HColumn<ByteBuffer,ByteBuffer>>> rows=cass.multiGetColumns(cass.getApplicationKeyspace(em.applicationId),ApplicationCF.ENTITY_INDEX,keys,startResult,null,count,reversed);
+    for (    List<HColumn<ByteBuffer,ByteBuffer>> columns : rows.values()) {
+      List<EntityLocationRef> entries=getLocationIndexEntries(columns);
+      list=mergeLocationEntries(list,entries);
+    }
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+  return list;
+}
