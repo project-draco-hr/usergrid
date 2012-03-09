@@ -1,0 +1,53 @@
+{
+  logger.info("AuthResource.authFB");
+  try {
+    if (StringUtils.isEmpty(fb_access_token)) {
+      logger.error("Missing FB Access token");
+      OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_REQUEST).setErrorDescription("missing access token").buildJSONMessage();
+      return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapJSONPResponse(callback,response.getBody())).build();
+    }
+    FacebookClient facebookClient=new DefaultFacebookClient(fb_access_token);
+    com.restfb.types.User fb_user=facebookClient.fetchObject("me",com.restfb.types.User.class);
+    User user=null;
+    if (fb_user != null) {
+      EntityManager em=services.getEntityManager();
+      Results r=em.searchCollection(em.getApplicationRef(),"users",Query.findForProperty("facebook.id",fb_user.getId()));
+      if (r.size() > 1) {
+        logger.error("Multiple users for FB ID: " + fb_user.getId());
+        OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_REQUEST).setErrorDescription("multiple users with same Facebook ID").buildJSONMessage();
+        return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapJSONPResponse(callback,response.getBody())).build();
+      }
+      if (r.size() < 1) {
+        Map<String,Object> fb_map=JsonUtils.toJsonMap(fb_user);
+        Map<String,Object> properties=new LinkedHashMap<String,Object>();
+        properties.put("facebook",fb_map);
+        properties.put("username",fb_user.getUsername() != null ? fb_user.getUsername() : "fb_" + fb_user.getId());
+        properties.put("name",fb_user.getName());
+        if (fb_user.getEmail() != null) {
+          properties.put("email",fb_user.getEmail());
+        }
+        user=em.create("user",User.class,properties);
+      }
+ else {
+        user=(User)r.getEntity().toTypedEntity();
+        Map<String,Object> fb_map=JsonUtils.toJsonMap(fb_user);
+        Map<String,Object> properties=new LinkedHashMap<String,Object>();
+        properties.put("facebook",fb_map);
+        em.setProperty(user,"facebook",fb_map);
+        user.setProperty("facebook",fb_map);
+      }
+    }
+    if (user == null) {
+      logger.error("Unable to find or create user");
+      OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_REQUEST).setErrorDescription("invalid user").buildJSONMessage();
+      return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapJSONPResponse(callback,response.getBody())).build();
+    }
+    AccessInfo access_info=new AccessInfo().withExpiresIn(management.getMaxTokenAge() / 1000).withAccessToken(management.getAccessTokenForAppUser(services.getApplicationId(),user.getUuid())).withProperty("user",user);
+    return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
+  }
+ catch (  Exception e) {
+    logger.error("FB Auth Error",e);
+    OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_REQUEST).buildJSONMessage();
+    return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapJSONPResponse(callback,response.getBody())).build();
+  }
+}
