@@ -1,0 +1,33 @@
+{
+  QueryFilterParser.value_return retval=new QueryFilterParser.value_return();
+  retval.start=input.LT(1);
+  Object root_0=null;
+  Token set2=null;
+  Object set2_tree=null;
+  try {
+{
+      root_0=(Object)adaptor.nil();
+      set2=(Token)input.LT(1);
+      if (input.LA(1) == INT || input.LA(1) == FLOAT || (input.LA(1) >= STRING && input.LA(1) <= BOOLEAN) || input.LA(1) == UUID) {
+        input.consume();
+        adaptor.addChild(root_0,(Object)adaptor.create(set2));
+        state.errorRecovery=false;
+      }
+ else {
+        MismatchedSetException mse=new MismatchedSetException(null,input);
+        throw mse;
+      }
+    }
+    retval.stop=input.LT(-1);
+    retval.tree=(Object)adaptor.rulePostProcessing(root_0);
+    adaptor.setTokenBoundaries(retval.tree,retval.start,retval.stop);
+  }
+ catch (  RecognitionException re) {
+    reportError(re);
+    recover(input,re);
+    retval.tree=(Object)adaptor.errorNode(input,retval.start,input.LT(-1),re);
+  }
+ finally {
+  }
+  return retval;
+}
