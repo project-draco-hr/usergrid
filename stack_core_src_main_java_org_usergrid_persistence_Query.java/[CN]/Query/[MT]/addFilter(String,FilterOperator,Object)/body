@@ -1,0 +1,25 @@
+{
+  if ((propertyName == null) || (operator == null) || (value == null)) {
+    return this;
+  }
+  if (PROPERTY_TYPE.equalsIgnoreCase(propertyName) && (value != null)) {
+    if (operator == FilterOperator.EQUAL) {
+      type=value.toString();
+    }
+  }
+ else   if ("connection".equalsIgnoreCase(propertyName) && (value != null)) {
+    if (operator == FilterOperator.EQUAL) {
+      connection=value.toString();
+    }
+  }
+ else {
+    for (    FilterPredicate f : filterPredicates) {
+      if (f.getPropertyName().equals(propertyName) && f.getValue().equals(value) && "*".equals(value)) {
+        logger.error("Attempted to set wildcard wilder for " + f.getPropertyName() + " more than once, discardng...");
+        return this;
+      }
+    }
+    filterPredicates.add(FilterPredicate.normalize(new FilterPredicate(propertyName,operator,value)));
+  }
+  return this;
+}
