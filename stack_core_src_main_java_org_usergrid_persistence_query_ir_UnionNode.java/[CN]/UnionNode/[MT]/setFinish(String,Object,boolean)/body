@@ -1,0 +1,14 @@
+{
+  QuerySlice slice=getSlice(fieldName);
+  RangeValue existingFinish=slice.getFinish();
+  Object indexedValue=toIndexableValue(finish);
+  byte code=indexValueCode(indexedValue);
+  RangeValue newFinish=new RangeValue(code,indexedValue,inclusive);
+  if (existingFinish == null) {
+    slice.setFinish(newFinish);
+    return;
+  }
+  if (existingFinish != null && newFinish == null || (existingFinish != null && existingFinish.compareTo(newFinish,false) < 0)) {
+    slice.setFinish(newFinish);
+  }
+}

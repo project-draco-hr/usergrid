@@ -1,0 +1,14 @@
+{
+  QuerySlice slice=getSlice(fieldName);
+  RangeValue existingStart=slice.getStart();
+  Object indexedValue=toIndexableValue(start);
+  byte code=indexValueCode(indexedValue);
+  RangeValue newStart=new RangeValue(code,indexedValue,inclusive);
+  if (existingStart == null) {
+    slice.setStart(newStart);
+    return;
+  }
+  if (existingStart != null && newStart == null || (existingStart != null && existingStart.compareTo(newStart,false) < 0)) {
+    slice.setStart(newStart);
+  }
+}
