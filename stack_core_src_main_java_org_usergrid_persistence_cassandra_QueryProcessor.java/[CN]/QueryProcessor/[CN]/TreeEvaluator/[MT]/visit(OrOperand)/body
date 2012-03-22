@@ -1,6 +1,12 @@
 {
-  op.getLeft().visit(this);
-  op.getRight().visit(this);
-  OrNode orNode=new OrNode(nodes.pop(),nodes.pop());
+  Operand left=op.getLeft();
+  Operand right=op.getRight();
+  createNewSlice(left);
+  left.visit(this);
+  createNewSlice(right);
+  right.visit(this);
+  QueryNode rightResult=nodes.pop();
+  QueryNode leftResult=nodes.pop();
+  OrNode orNode=new OrNode(leftResult,rightResult);
   nodes.push(orNode);
 }
