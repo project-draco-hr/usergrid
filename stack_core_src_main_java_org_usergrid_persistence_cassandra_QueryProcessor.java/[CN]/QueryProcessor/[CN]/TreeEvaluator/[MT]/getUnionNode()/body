@@ -1,9 +1,8 @@
 {
-  QueryNode currentLeaf=nodes.peek();
-  if (currentLeaf instanceof UnionNode) {
-    return (UnionNode)currentLeaf;
+  if (nodes.size() == 0 || !(nodes.peek() instanceof SliceNode)) {
+    SliceNode newUnion=new SliceNode(contextCount++);
+    nodes.push(newUnion);
+    return newUnion;
   }
-  UnionNode newUnion=new UnionNode(contextCount++);
-  nodes.push(newUnion);
-  return newUnion;
+  return (SliceNode)nodes.peek();
 }
