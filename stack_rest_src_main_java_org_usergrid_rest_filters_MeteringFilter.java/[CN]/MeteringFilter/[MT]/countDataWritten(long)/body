@@ -1,4 +1,5 @@
 {
+  TimerContext timer=(TimerContext)httpServletRequest.getAttribute("application.request.requestTimer");
   try {
     UUID applicationId=(UUID)httpServletRequest.getAttribute("applicationId");
     if (applicationId != null) {
@@ -29,5 +30,11 @@
   }
  catch (  Exception e) {
     logger.error("Unable to capture output",e);
+  }
+ finally {
+    if (timer != null) {
+      timer.stop();
+    }
+    activeRequests.dec();
   }
 }
