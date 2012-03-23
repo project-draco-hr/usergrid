@@ -1,0 +1,22 @@
+{
+  Results results=null;
+  int limit=query.getLimit() + 1;
+  Level resultsLevel=query.getResultsLevel();
+  for (  QuerySlice slice : node.getAllSlices()) {
+    queryProcessor.applyCursorAndSort(slice);
+    List<HColumn<ByteBuffer,ByteBuffer>> columns=searchIndex(key(connection.getIndexId(),INDEX_CONNECTIONS),slice,limit);
+    Results r=getIndexResults(columns,true,connection.getConnectionType(),connection.getConnectedEntityType(),resultsLevel);
+    if (r.size() > query.getLimit()) {
+      r.setCursorToLastResult();
+    }
+    if (r.getCursor() != null) {
+    }
+    if (results != null) {
+      results.and(r);
+    }
+ else {
+      results=r;
+    }
+  }
+  this.results.push(results);
+}

@@ -1,0 +1,40 @@
+{
+  if (!collection.hasSubkeys()) {
+    return null;
+  }
+  Set<String> fields_used=null;
+  Object best_key=null;
+  int most_keys_matched=0;
+  List<String[]> combos=collection.getSubkeyCombinations();
+  for (  String[] combo : combos) {
+    int keys_matched=0;
+    List<Object> subkey_props=new ArrayList<Object>();
+    Set<String> subkey_names=new LinkedHashSet<String>();
+    for (    String subkey_name : combo) {
+      QuerySlice slice=node.getSlice(subkey_name);
+      if (slice == null || !slice.isEquals()) {
+        continue;
+      }
+      Object subkey_value=null;
+      if (subkey_name != null) {
+        subkey_value=slice.getStart().getValue();
+        if (subkey_value != null) {
+          keys_matched++;
+          subkey_names.add(subkey_name);
+        }
+      }
+      subkey_props.add(subkey_value);
+    }
+    Object subkey_key=key(subkey_props.toArray());
+    if (keys_matched > most_keys_matched) {
+      best_key=subkey_key;
+      fields_used=subkey_names;
+    }
+  }
+  if (fields_used != null) {
+    for (    String field : fields_used) {
+      node.removeSlice(field);
+    }
+  }
+  return best_key;
+}
