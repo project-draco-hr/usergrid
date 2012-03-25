@@ -1,0 +1,53 @@
+{
+  CounterQuery q=null;
+  Integer limit=null;
+  Long startTime=null;
+  Long finishTime=null;
+  Boolean pad=null;
+  CounterResolution resolution=null;
+  List<CounterFilterPredicate> counterFilters=null;
+  List<String> categories=null;
+  List<String> l=null;
+  limit=firstInteger(params.get("limit"));
+  startTime=firstLong(params.get("start_time"));
+  finishTime=firstLong(params.get("end_time"));
+  l=params.get("resolution");
+  if (!isEmpty(l)) {
+    resolution=CounterResolution.fromString(l.get(0));
+  }
+  categories=params.get("category");
+  l=params.get("counter");
+  if (!isEmpty(l)) {
+    counterFilters=CounterFilterPredicate.fromList(l);
+  }
+  pad=firstBoolean(params.get("pad"));
+  if (limit != null) {
+    q=newQueryIfNull(q);
+    q.setLimit(limit);
+  }
+  if (startTime != null) {
+    q=newQueryIfNull(q);
+    q.setStartTime(startTime);
+  }
+  if (finishTime != null) {
+    q=newQueryIfNull(q);
+    q.setFinishTime(finishTime);
+  }
+  if (resolution != null) {
+    q=newQueryIfNull(q);
+    q.setResolution(resolution);
+  }
+  if (categories != null) {
+    q=newQueryIfNull(q);
+    q.setCategories(categories);
+  }
+  if (counterFilters != null) {
+    q=newQueryIfNull(q);
+    q.setCounterFilters(counterFilters);
+  }
+  if (pad != null) {
+    q=newQueryIfNull(q);
+    q.setPad(pad);
+  }
+  return q;
+}

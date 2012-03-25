@@ -1,0 +1,27 @@
+{
+  if (ql == null) {
+    return null;
+  }
+  ql=ql.trim();
+  String qlt=ql.toLowerCase();
+  if (!qlt.startsWith("select") && !qlt.startsWith("insert") && !qlt.startsWith("update")&& !qlt.startsWith("delete")) {
+    if (qlt.startsWith("order by")) {
+      ql="select * " + ql;
+    }
+ else {
+      ql="select * where " + ql;
+    }
+  }
+  try {
+    ANTLRStringStream in=new ANTLRStringStream(ql.trim());
+    QueryFilterLexer lexer=new QueryFilterLexer(in);
+    CommonTokenStream tokens=new CommonTokenStream(lexer);
+    QueryFilterParser parser=new QueryFilterParser(tokens);
+    Query q=parser.ql();
+    return q;
+  }
+ catch (  Exception e) {
+    logger.error("Unable to parse \"" + ql + "\"",e);
+  }
+  return null;
+}

@@ -9,4 +9,14 @@
   GreaterThan equal=(GreaterThan)root;
   assertEquals("a",equal.getProperty().getValue());
   assertEquals(5,((IntegerLiteral)equal.getLiteral()).getValue().intValue());
+  queryString="select * where a gt 5";
+  in=new ANTLRStringStream(queryString);
+  lexer=new QueryFilterLexer(in);
+  tokens=new TokenRewriteStream(lexer);
+  parser=new QueryFilterParser(tokens);
+  query=parser.ql().query;
+  root=query.getRootOperand();
+  equal=(GreaterThan)root;
+  assertEquals("a",equal.getProperty().getValue());
+  assertEquals(5,((IntegerLiteral)equal.getLiteral()).getValue().intValue());
 }
