@@ -14,7 +14,6 @@
     }
     return em.loadEntities(results,query.getResultsLevel(),ids,query.getLimit());
   }
-  String composite_cursor=null;
   QueryProcessor qp=new QueryProcessor(query);
   SearchCollectionVisitor visitor=new SearchCollectionVisitor(query,qp,collection);
   qp.getFirstNode().visit(visitor);
@@ -33,12 +32,7 @@
   results=em.loadEntities(results,query.getResultsLevel(),ids,query.getLimit());
   if (results != null) {
     results.setQuery(query);
-    if (results.hasMoreResults() && (composite_cursor != null)) {
-      results.setCursor(composite_cursor);
-    }
- else {
-      results.setCursor(null);
-    }
+    results.setCursor(null);
   }
   if (results.getLevel().ordinal() >= Results.Level.CORE_PROPERTIES.ordinal()) {
     List<Entity> entities=results.getEntities();
@@ -47,5 +41,6 @@
     }
   }
   logger.info("Query cursor: " + results.getCursor());
+  results.setCursor(qp.getCursor());
   return results;
 }
