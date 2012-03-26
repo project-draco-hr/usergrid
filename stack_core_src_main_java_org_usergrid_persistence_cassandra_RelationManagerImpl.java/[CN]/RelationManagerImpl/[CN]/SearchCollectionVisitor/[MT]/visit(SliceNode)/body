@@ -1,13 +1,13 @@
 {
-  Object joinedRowKey=getCFKeyForSubkey(collection,node);
-  Object indexKey=joinedRowKey == null ? key(headEntity.getUuid(),collection.getName()) : key(headEntity.getUuid(),collection.getName(),joinedRowKey);
   Results results=null;
   int limit=query.getLimit() + 1;
   Level resultsLevel=query.getResultsLevel();
+  Object subKey=getCFKeyForSubkey(collection,node);
   for (  QuerySlice slice : node.getAllSlices()) {
+    Object indexKey=subKey == null ? key(headEntity.getUuid(),collection.getName(),slice.getPropertyName()) : key(headEntity.getUuid(),collection.getName(),subKey,slice.getPropertyName());
     queryProcessor.applyCursorAndSort(slice);
     List<HColumn<ByteBuffer,ByteBuffer>> columns=searchIndex(indexKey,slice,limit);
-    Results r=getIndexResults(columns,true,null,query.getEntityType(),resultsLevel);
+    Results r=getIndexResults(columns,true,query.getConnectionType(),collection.getType(),resultsLevel);
     if (r.size() > query.getLimit()) {
       r.setCursorToLastResult();
     }
