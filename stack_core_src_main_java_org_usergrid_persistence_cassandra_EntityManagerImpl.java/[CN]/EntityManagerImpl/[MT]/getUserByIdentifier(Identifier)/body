@@ -9,7 +9,12 @@
     return this.getAlias(null,"user",identifier.getName());
   }
   if (identifier.isEmail()) {
-    Results r=getRelationManager(ref(applicationId)).searchCollection("users","user",null,null,"email",identifier.getEmail(),null,null,null,1,false,REFS);
+    Query query=new Query();
+    query.setEntityType("user");
+    query.addEqualityFilter("email",identifier.getEmail());
+    query.setLimit(1);
+    query.setResultsLevel(REFS);
+    Results r=getRelationManager(ref(applicationId)).searchCollection("users",query);
     if (r != null) {
       return r.getRef();
     }

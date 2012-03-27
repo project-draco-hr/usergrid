@@ -4,57 +4,20 @@
   }
   headEntity=em.validate(headEntity);
   CollectionInfo collection=getDefaultSchema().getCollection(headEntity.getType(),collectionName);
-  Object subkey_key=null;
-  Map<String,Object> subkeyProperties=query.getEqualityFilters();
-  if (subkeyProperties != null) {
-    subkey_key=getCFKeyForSubkey(collection,subkeyProperties,query);
-  }
   boolean reversed=query.isReversed();
-  if (!query.hasFilterPredicatesExcludingSubkeys(subkeyProperties) && !query.hasSortPredicates()) {
+  if (!query.hasQueryPredicates() && !query.hasSortPredicates()) {
     Map<UUID,UUID> ids=null;
-    if (subkey_key != null) {
-      ids=cass.getIdPairList(cass.getApplicationKeyspace(applicationId),key(headEntity.getUuid(),DICTIONARY_COLLECTIONS,collectionName,subkey_key),query.getStartResult(),null,query.getLimit() + 1,reversed);
-    }
- else {
-      ids=cass.getIdPairList(cass.getApplicationKeyspace(applicationId),key(headEntity.getUuid(),DICTIONARY_COLLECTIONS,collectionName),query.getStartResult(),null,query.getLimit() + 1,reversed);
-    }
+    ids=cass.getIdPairList(cass.getApplicationKeyspace(applicationId),key(headEntity.getUuid(),DICTIONARY_COLLECTIONS,collectionName),query.getStartResult(),null,query.getLimit() + 1,reversed);
     Results results=Results.fromIdList(new ArrayList<UUID>(ids.keySet()),collection.getType());
     if (results != null) {
       results.setQuery(query);
     }
     return em.loadEntities(results,query.getResultsLevel(),ids,query.getLimit());
   }
-  Results results=null;
-  String composite_cursor=null;
   QueryProcessor qp=new QueryProcessor(query);
-  List<QuerySlice> slices=qp.getSlices();
-  int search_count=query.getLimit() + 1;
-  if (slices.size() > 1) {
-    search_count=DEFAULT_SEARCH_COUNT;
-  }
-  for (  QuerySlice slice : slices) {
-    Results r=searchCollection(collectionName,collection.getType(),subkeyProperties,subkey_key,slice,search_count,query.getResultsLevel());
-    if (r.size() > query.getLimit()) {
-      r.setCursorToLastResult();
-    }
-    if (r.getCursor() != null) {
-      if (composite_cursor != null) {
-        composite_cursor+="|";
-      }
- else {
-        composite_cursor="";
-      }
-      int hashCode=slice.hashCode();
-      logger.info("Cursor hash code: " + hashCode);
-      composite_cursor+=hashCode + ":" + r.getCursor();
-    }
-    if (results != null) {
-      results.and(r);
-    }
- else {
-      results=r;
-    }
-  }
+  SearchCollectionVisitor visitor=new SearchCollectionVisitor(query,qp,collection);
+  qp.getFirstNode().visit(visitor);
+  Results results=visitor.getResults();
   if (results == null) {
     return null;
   }
@@ -69,12 +32,7 @@
   results=em.loadEntities(results,query.getResultsLevel(),ids,query.getLimit());
   if (results != null) {
     results.setQuery(query);
-    if (results.hasMoreResults() && (composite_cursor != null)) {
-      results.setCursor(composite_cursor);
-    }
- else {
-      results.setCursor(null);
-    }
+    results.setCursor(null);
   }
   if (results.getLevel().ordinal() >= Results.Level.CORE_PROPERTIES.ordinal()) {
     List<Entity> entities=results.getEntities();
@@ -83,5 +41,6 @@
     }
   }
   logger.info("Query cursor: " + results.getCursor());
+  results.setCursor(qp.getCursor());
   return results;
 }
