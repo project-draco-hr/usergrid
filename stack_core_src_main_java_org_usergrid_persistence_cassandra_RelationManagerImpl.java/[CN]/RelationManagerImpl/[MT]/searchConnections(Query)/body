@@ -4,26 +4,13 @@
   }
   headEntity=em.validate(headEntity);
   Results results=null;
-  List<FilterPredicate> l=query.getFilterPredicates();
-  int search_count=query.getLimit() + 1;
-  if (l.size() > 1) {
-    search_count=DEFAULT_SEARCH_COUNT;
-  }
-  for (  FilterPredicate f : l) {
-    String prop=f.getPropertyName();
-    Object startValue=f.getStartValue();
-    Object finishValue=f.getFinishValue();
-    Results r=searchConnections(new ConnectionRefImpl(headEntity,new ConnectedEntityRefImpl(ConnectionRefImpl.CONNECTION_ENTITY_CONNECTION_TYPE,ConnectionRefImpl.CONNECTION_ENTITY_TYPE,null)),prop,startValue,finishValue,query.getStartResult(),f.getCursor(),search_count,query.isReversed(),Level.IDS);
-    if (results != null) {
-      results.and(r);
-    }
- else {
-      results=r;
-    }
-  }
-  if (results == null) {
+  if (!query.hasQueryPredicates()) {
     return null;
   }
-  results.trim(query.getLimit());
+  QueryProcessor qp=new QueryProcessor(query);
+  ConnectionRefImpl connectionRef=new ConnectionRefImpl(headEntity,new ConnectedEntityRefImpl(ConnectionRefImpl.CONNECTION_ENTITY_CONNECTION_TYPE,ConnectionRefImpl.CONNECTION_ENTITY_TYPE,null));
+  SearchConnectionVisitor visitor=new SearchConnectionVisitor(query,qp,connectionRef);
+  qp.getFirstNode().visit(visitor);
+  results=visitor.getResults();
   return (List)getConnections(results.getIds());
 }

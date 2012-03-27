@@ -1,0 +1,14 @@
+{
+  if (cursorString == null || cursorString.indexOf(':') < 0) {
+    return;
+  }
+  String[] cursorTokens=split(cursorString,'|');
+  for (  String c : cursorTokens) {
+    String[] parts=split(c,':');
+    if (parts.length == 2 && isNotBlank(parts[1])) {
+      int hashCode=parseInt(parts[0]);
+      ByteBuffer cursorBytes=ByteBuffer.wrap(decodeBase64(parts[1]));
+      cursors.put(hashCode,cursorBytes);
+    }
+  }
+}

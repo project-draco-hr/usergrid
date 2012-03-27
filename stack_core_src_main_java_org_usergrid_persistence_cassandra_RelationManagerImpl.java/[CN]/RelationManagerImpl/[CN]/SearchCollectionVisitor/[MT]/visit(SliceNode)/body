@@ -1,0 +1,25 @@
+{
+  Results results=null;
+  int limit=query.getLimit() + 1;
+  Level resultsLevel=query.getResultsLevel();
+  Object subKey=getCFKeyForSubkey(collection,node);
+  for (  QuerySlice slice : node.getAllSlices()) {
+    Object indexKey=subKey == null ? key(headEntity.getUuid(),collection.getName()) : key(headEntity.getUuid(),collection.getName(),subKey);
+    queryProcessor.applyCursorAndSort(slice);
+    List<HColumn<ByteBuffer,ByteBuffer>> columns=searchIndex(indexKey,slice,limit);
+    Results r=getIndexResults(columns,true,query.getConnectionType(),collection.getType(),resultsLevel);
+    if (r.size() > query.getLimit()) {
+      r.setCursorToLastResult();
+    }
+    if (r.getCursor() != null) {
+      queryProcessor.updateCursor(slice,r.getCursor());
+    }
+    if (results != null) {
+      results.and(r);
+    }
+ else {
+      results=r;
+    }
+  }
+  this.results.push(results);
+}
