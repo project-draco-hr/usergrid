@@ -1,5 +1,7 @@
 {
-  if (access_token != null)   return;
-  JsonNode node=resource().path("/test-app/token").queryParam("grant_type","password").queryParam("username","ed@anuff.com").queryParam("password","sesame").accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
-  this.access_token=node.get("access_token").getTextValue();
+  WebApplicationContext context=ContextLoader.getCurrentWebApplicationContext();
+  managementService=(ManagementService)context.getBean("managementService");
+  ApplicationInfo appInfo=managementService.getApplication("test-app");
+  User user=managementService.getAppUserByIdentifier(appInfo.getId(),Identifier.from("ed@anuff.com"));
+  this.access_token=managementService.getAccessTokenForAppUser(appInfo.getId(),user.getUuid());
 }
