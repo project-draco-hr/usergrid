@@ -1,8 +1,19 @@
 {
   int localCallCount=batch.getLocalCallCount();
-  if (localCallCount > 0 && localCallCount % batchSize == 0) {
-    log.info("submit triggered...");
-    batchSubmitter.submit(batch);
+  if (batchSize == 0 || (localCallCount > 0 && localCallCount % batchSize == 0)) {
+    log.debug("submit triggered...");
+    Future f=batchSubmitter.submit(batch);
+    if (batchSize == 0) {
+      try {
+        f.get();
+      }
+ catch (      InterruptedException e) {
+        e.printStackTrace();
+      }
+catch (      ExecutionException e) {
+        e.printStackTrace();
+      }
+    }
     batchSubmissionCount.incrementAndGet();
     return true;
   }
