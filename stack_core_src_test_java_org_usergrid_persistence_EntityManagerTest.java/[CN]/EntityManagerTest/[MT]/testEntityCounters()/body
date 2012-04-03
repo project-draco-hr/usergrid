@@ -3,6 +3,7 @@
   EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
   Group organizationEntity=new Group();
   organizationEntity.setPath("testCounterOrg");
+  organizationEntity.setProperty("name","testCounterOrg");
   organizationEntity=em.create(organizationEntity);
   UUID applicationId=emf.createApplication("testEntityCounters");
   Map<String,Object> properties=new LinkedHashMap<String,Object>();
@@ -19,6 +20,8 @@
   logger.info("Entity counters: {}",counts);
   assertNotNull(counts);
   assertEquals(4,counts.size());
+  Entity entity=em.get(new SimpleEntityRef(Group.ENTITY_TYPE,organizationEntity.getUuid()));
+  assertEquals("testCounterOrg",entity.getName());
   em=emf.getEntityManager(applicationId);
   counts=em.getEntityCounters(applicationId);
   logger.info("Entity counters: {}",counts);
