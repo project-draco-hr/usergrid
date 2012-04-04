@@ -1,0 +1,11 @@
+{
+  UUID user1=createUser("user1","user1","Jane Smith 1");
+  UUID user2=createUser("user2","user2","John Smith 2");
+  UUID user3=createUser("user3","user3","John Smith 3");
+  String ql="username = 'user*'";
+  JsonNode node=resource().path("/test-app/users").queryParam("ql",ql).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  JsonNode entities=node.get("entities");
+  assertEquals(user1,UUIDUtils.tryExtractUUID(entities.get(0).get("uuid").asText()));
+  assertEquals(user2,UUIDUtils.tryExtractUUID(entities.get(1).get("uuid").asText()));
+  assertEquals(user3,UUIDUtils.tryExtractUUID(entities.get(2).get("uuid").asText()));
+}
