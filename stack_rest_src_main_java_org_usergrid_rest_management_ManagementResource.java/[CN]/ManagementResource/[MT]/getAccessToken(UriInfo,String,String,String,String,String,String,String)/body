@@ -35,6 +35,7 @@
       return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
     }
     AccessInfo access_info=new AccessInfo().withExpiresIn(management.getMaxTokenAge() / 1000).withAccessToken(management.getAccessTokenForAdminUser(user.getUuid())).withProperty("user",management.getAdminUserOrganizationData(user.getUuid()));
+    management.countAdminUserAction(user,"login");
     return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
   }
  catch (  OAuthProblemException e) {
