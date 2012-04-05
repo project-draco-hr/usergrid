@@ -1,9 +1,12 @@
 {
+  if (logger.isDebugEnabled()) {
+    logger.debug("BIQC: Incrementing property {} of queue {} by value {}",new Object[]{name,queueId,value});
+  }
+  m.addInsertion(bytebuffer(key(queueId,DICTIONARY_COUNTERS).toString()),QueuesCF.QUEUE_DICTIONARIES.toString(),createColumn(name,ByteBuffer.allocate(0),timestamp,se,be));
   if ("o".equals(counterType) || "p".equals(counterType)) {
     HCounterColumn<String> c=createCounterColumn(name,value);
     ByteBuffer keybytes=bytebuffer(queueId);
     m.addCounter(keybytes,QueuesCF.COUNTERS.toString(),c);
-    m.addInsertion(bytebuffer(key(queueId,DICTIONARY_COUNTERS).toString()),QueuesCF.QUEUE_DICTIONARIES.toString(),createColumn(name,ByteBuffer.allocate(0),timestamp,se,be));
   }
   if ("n".equals(counterType) || "p".equals(counterType)) {
     PrefixedSerializer ps=new PrefixedSerializer(applicationId,UUIDSerializer.get(),UUIDSerializer.get());
