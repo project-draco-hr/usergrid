@@ -1,18 +1,15 @@
 {
   ServicePayload payload=context.getPayload();
-  @SuppressWarnings("unchecked") Map<String,String> actor=(Map<String,String>)payload.getProperty(Activity.PROP_ACTOR);
   Entity user=em.get(context.getOwner());
-  if (actor == null) {
-    actor=new HashMap<String,String>();
-    payload.setProperty(Activity.PROP_ACTOR,actor);
+  Object actor=payload.getProperty(Activity.PROP_ACTOR);
+  if (actor instanceof Map) {
+    handleDynamicPayload((Map<String,String>)actor,user,payload);
   }
-  if (user != null) {
-    if (actor.get(User.PROP_UUID) == null && user.getUuid() != null) {
-      actor.put(User.PROP_UUID,user.getUuid().toString());
-    }
-    if (actor.get(User.PROP_EMAIL) == null && user.getProperty(User.PROP_EMAIL) != null) {
-      actor.put(User.PROP_EMAIL,user.getProperty(User.PROP_EMAIL).toString());
-    }
+ else   if (actor instanceof ActivityObject) {
+    handleDynamicPayload((ActivityObject)actor,user,payload);
+  }
+ else   if (actor == null) {
+    handleDynamicPayload((ActivityObject)actor,user,payload);
   }
   ServiceResults results=super.postCollection(context);
   distribute(context.getOwner(),results.getEntity());
