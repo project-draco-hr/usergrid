@@ -1,11 +1,6 @@
 {
   long timestamp=cass.createTimestamp();
-  if (counterUtils.getIsCounterBatched()) {
-    counterUtils.batchIncrementAggregateCounters(null,applicationId,userId,groupId,null,category,counters,timestamp);
-  }
- else {
-    Mutator<ByteBuffer> m=createMutator(cass.getApplicationKeyspace(applicationId),be);
-    counterUtils.batchIncrementAggregateCounters(m,applicationId,userId,groupId,null,category,counters,timestamp);
-    batchExecute(m,CassandraService.RETRY_COUNT);
-  }
+  Mutator<ByteBuffer> m=createMutator(cass.getApplicationKeyspace(applicationId),be);
+  counterUtils.batchIncrementAggregateCounters(m,applicationId,userId,groupId,null,category,counters,timestamp);
+  batchExecute(m,CassandraService.RETRY_COUNT);
 }
