@@ -4,6 +4,7 @@
   }
   headEntity=em.validate(headEntity);
   CollectionInfo collection=getDefaultSchema().getCollection(headEntity.getType(),collectionName);
+  query.setEntityType(collection.getType());
   boolean reversed=query.isReversed();
   if (!query.hasQueryPredicates() && !query.hasSortPredicates()) {
     Map<UUID,UUID> ids=null;
@@ -14,7 +15,7 @@
     }
     return em.loadEntities(results,query.getResultsLevel(),ids,query.getLimit());
   }
-  QueryProcessor qp=new QueryProcessor(query);
+  QueryProcessor qp=new QueryProcessor(query,collection);
   SearchCollectionVisitor visitor=new SearchCollectionVisitor(query,qp,collection);
   qp.getFirstNode().visit(visitor);
   Results results=visitor.getResults();

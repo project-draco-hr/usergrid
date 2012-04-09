@@ -1,0 +1,21 @@
+{
+  UserRepo.INSTANCE.load(resource(),access_token);
+  UUID userId=UserRepo.INSTANCE.getByUserName("user1");
+  Map<String,Object> rootPayload=new HashMap<String,Object>();
+  rootPayload.put("email","rod@rodsimpson.com");
+  rootPayload.put("verb","POST");
+  rootPayload.put("content","Look! more new content");
+  UUID testUUID=UUIDUtils.newTimeUUID();
+  String testEmail="foo@bar.com";
+  Map<String,String> actorPayload=hashMap("displayName","Dino");
+  actorPayload.put("uuid",testUUID.toString());
+  actorPayload.put("email",testEmail);
+  rootPayload.put("actor",actorPayload);
+  JsonNode putResponse=resource().path(String.format("/test-app/users/%s/activities",userId)).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,rootPayload);
+  UUID activityId=getNewActivityId(putResponse);
+  assertNotNull(activityId);
+  JsonNode actor=getActor(putResponse);
+  UUID actorId=UUIDUtils.tryGetUUID(actor.get("uuid").getTextValue());
+  assertEquals(testUUID,actorId);
+  assertEquals(testEmail,actor.get("email").asText());
+}
