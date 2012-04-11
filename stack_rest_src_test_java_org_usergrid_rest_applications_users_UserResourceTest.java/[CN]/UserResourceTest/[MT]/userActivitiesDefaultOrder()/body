@@ -1,0 +1,21 @@
+{
+  UserRepo.INSTANCE.load(resource(),access_token);
+  UUID userId=UserRepo.INSTANCE.getByUserName("user1");
+  Map<String,Object> rootPayload=new HashMap<String,Object>();
+  rootPayload.put("email","rod@rodsimpson.com");
+  rootPayload.put("verb","POST");
+  rootPayload.put("content","activity 1");
+  JsonNode putResponse=resource().path(String.format("/test-app/users/%s/activities",userId)).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,rootPayload);
+  UUID firstActivityId=getNewActivityId(putResponse);
+  rootPayload=new HashMap<String,Object>();
+  rootPayload.put("email","rod@rodsimpson.com");
+  rootPayload.put("verb","POST");
+  rootPayload.put("content","activity 2");
+  putResponse=resource().path(String.format("/test-app/users/%s/activities",userId)).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,rootPayload);
+  UUID secondActivityId=getNewActivityId(putResponse);
+  JsonNode getResponse=resource().path(String.format("/test-app/users/%s/activities",userId)).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  JsonNode entity=getEntity(getResponse,0);
+  assertEquals(secondActivityId,UUIDUtils.tryGetUUID(entity.get("uuid").asText()));
+  entity=getEntity(getResponse,1);
+  assertEquals(firstActivityId,UUIDUtils.tryGetUUID(entity.get("uuid").asText()));
+}
