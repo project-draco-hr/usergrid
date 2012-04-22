@@ -1,0 +1,20 @@
+{
+  startSpring();
+  setVerbose(line);
+  prepareBaseOutputFileName(line);
+  outputDir=createOutputParentDir();
+  logger.info("Export directory: " + outputDir.getAbsolutePath());
+  BiMap<UUID,String> organizations=managementService.getOrganizations();
+  ListMultimap<Integer,Entity> usersForApp=ArrayListMultimap.create();
+  ListMultimap<Integer,Entity> requestsForApp=ArrayListMultimap.create();
+  for (  Map.Entry<UUID,String> organization : organizations.entrySet()) {
+    if (organization.equals(properties.getProperty("usergrid.test-account.organization"))) {
+      continue;
+    }
+    BiMap<UUID,String> applications=managementService.getApplicationsForOrganization(organization.getKey());
+    for (    UUID uuid : applications.keySet()) {
+      EntityManager em=emf.getEntityManager(uuid);
+      System.out.println(em.getApplicationCounters());
+    }
+  }
+}
