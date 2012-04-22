@@ -1,0 +1,19 @@
+{
+  UUID applicationId=createApplication("testMiddleName");
+  assertNotNull(applicationId);
+  EntityManager em=emf.getEntityManager(applicationId);
+  assertNotNull(em);
+  String middleName="middleName" + UUIDUtils.newTimeUUID();
+  Map<String,Object> properties=new LinkedHashMap<String,Object>();
+  properties.put("username","edanuff");
+  properties.put("email","ed@anuff.com");
+  properties.put("middlename",middleName);
+  Entity user=em.create("user",properties);
+  assertNotNull(user);
+  Query query=new Query();
+  query.addEqualityFilter("middlename",middleName);
+  Results r=em.searchCollection(em.getApplicationRef(),"users",query);
+  assertTrue(r.size() > 0);
+  Entity returned=r.getEntities().get(0);
+  assertEquals(user.getUuid(),returned.getUuid());
+}
