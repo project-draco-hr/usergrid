@@ -1,7 +1,11 @@
 {
+  String propertyName=op.getProperty().getValue();
+  if (!schema.isPropertyFulltextIndexed(entityType,propertyName)) {
+    throw new NoFullTextIndexException(entityType,propertyName);
+  }
   String fieldName=appendSuffix(op.getProperty().getValue(),"keywords");
-  String string=((StringLiteral)op.getString()).getValue();
+  StringLiteral string=op.getString();
   SliceNode node=getUnionNode(op);
-  node.setStart(fieldName,string,true);
-  node.setFinish(fieldName,string,true);
+  node.setStart(fieldName,string.getValue(),true);
+  node.setFinish(fieldName,string.getEndValue(),true);
 }
