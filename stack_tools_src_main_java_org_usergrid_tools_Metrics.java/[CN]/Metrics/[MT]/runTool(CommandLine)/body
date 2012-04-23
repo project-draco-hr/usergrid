@@ -5,16 +5,28 @@
   outputDir=createOutputParentDir();
   logger.info("Export directory: " + outputDir.getAbsolutePath());
   BiMap<UUID,String> organizations=managementService.getOrganizations();
-  ListMultimap<Integer,Entity> usersForApp=ArrayListMultimap.create();
-  ListMultimap<Integer,Entity> requestsForApp=ArrayListMultimap.create();
+  ListMultimap<OrgScore,AppScore> appScores=ArrayListMultimap.create();
   for (  Map.Entry<UUID,String> organization : organizations.entrySet()) {
-    if (organization.equals(properties.getProperty("usergrid.test-account.organization"))) {
-      continue;
-    }
+    System.out.println("Org Name: " + organization.getValue());
+    OrgScore orgScore=new OrgScore(organization.getKey(),organization.getValue());
     BiMap<UUID,String> applications=managementService.getApplicationsForOrganization(organization.getKey());
+    orgScore.setAppCount(applications.size());
     for (    UUID uuid : applications.keySet()) {
+      AppScore appScore=new AppScore(orgScore,uuid,applications.get(uuid));
       EntityManager em=emf.getEntityManager(uuid);
-      System.out.println(em.getApplicationCounters());
+      Map<String,Long> counters=em.getApplicationCounters();
+      appScore.setUserCount(counters.get("application.collection.users"));
+      appScore.setRequestCount(counters.get("application.requests"));
+      System.out.println(applications.get(uuid) + " has counters: " + em.getApplicationCounters());
+      appScores.put(orgScore,appScore);
     }
   }
+  JsonGenerator jg=getJsonGenerator(outputDir);
+  jsonLineWriter(jg,MetricSort.APP_REQ_COUNT,appScores);
+  jsonLineWriter(jg,MetricSort.APP_USER_COUNT,appScores);
+  jsonLineWriter(jg,MetricSort.ORG_ADMIN_COUNT,appScores);
+  jsonLineWriter(jg,MetricSort.ORG_USER_COUNT,appScores);
+  jsonLineWriter(jg,MetricSort.ORG_APP_COUNT,appScores);
+  jsonLineWriter(jg,MetricSort.ORG_ADMIN_LOGIN_COUNT,appScores);
+  jg.close();
 }
