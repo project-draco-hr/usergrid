@@ -1,16 +1,16 @@
 {
-  name=name.toLowerCase();
+  String appName=buildAppName(organizationName,name);
   if (properties == null) {
     properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
   }
-  properties.put(PROPERTY_NAME,name);
-  getSetup().setupApplicationKeyspace(applicationId,name);
+  properties.put(PROPERTY_NAME,appName);
+  getSetup().setupApplicationKeyspace(applicationId,appName);
   getSetup().checkKeyspaces();
   Keyspace ko=cass.getSystemKeyspace();
   Mutator<ByteBuffer> m=createMutator(ko,be);
   long timestamp=cass.createTimestamp();
-  addInsertToMutator(m,APPLICATIONS_CF,name,PROPERTY_UUID,applicationId,timestamp);
-  addInsertToMutator(m,APPLICATIONS_CF,name,PROPERTY_NAME,name,timestamp);
+  addInsertToMutator(m,APPLICATIONS_CF,appName,PROPERTY_UUID,applicationId,timestamp);
+  addInsertToMutator(m,APPLICATIONS_CF,appName,PROPERTY_NAME,appName,timestamp);
   batchExecute(m,RETRY_COUNT);
   EntityManager em=getEntityManager(applicationId);
   ((EntityManagerImpl)em).create(TYPE_APPLICATION,APPLICATION_ENTITY_CLASS,properties);

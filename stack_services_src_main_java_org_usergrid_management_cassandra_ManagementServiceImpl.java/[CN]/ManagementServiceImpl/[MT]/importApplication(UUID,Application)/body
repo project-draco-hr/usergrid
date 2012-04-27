@@ -1,7 +1,8 @@
 {
-  UUID applicationId=emf.importApplication(application.getUuid(),application.getName(),application.getProperties());
+  OrganizationInfo organization=getOrganizationByUuid(organizationId);
+  UUID applicationId=emf.importApplication(organization.getName(),application.getUuid(),application.getName(),application.getProperties());
   EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
-  properties.put("name",application.getName());
+  properties.put("name",buildAppName(application.getName(),organization));
   Entity app=em.create(applicationId,APPLICATION_INFO,null);
   Map<String,CredentialsInfo> credentials=new HashMap<String,CredentialsInfo>();
   credentials.put("secret",CredentialsInfo.plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.APPLICATION)));
