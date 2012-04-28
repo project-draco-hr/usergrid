@@ -5,9 +5,10 @@
   if (properties == null) {
     properties=new HashMap<String,Object>();
   }
-  UUID applicationId=emf.createApplication(applicationName,properties);
+  OrganizationInfo organizationInfo=getOrganizationByUuid(organizationId);
+  UUID applicationId=emf.createApplication(organizationInfo.getName(),applicationName,properties);
   EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
-  properties.put("name",applicationName);
+  properties.put("name",buildAppName(applicationName,organizationInfo));
   Entity applicationEntity=em.create(applicationId,APPLICATION_INFO,properties);
   Map<String,CredentialsInfo> credentials=new HashMap<String,CredentialsInfo>();
   credentials.put("secret",plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.APPLICATION)));
