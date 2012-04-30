@@ -4,7 +4,11 @@
     return null;
   }
   EntityManager em=emf.getEntityManager(applicationId);
-  if (checkPassword(password,(CredentialsInfo)em.getDictionaryElementValue(user,DICTIONARY_CREDENTIALS,"password"))) {
+  CredentialsInfo credentialsInfo=(CredentialsInfo)em.getDictionaryElementValue(user,DICTIONARY_CREDENTIALS,"password");
+  if (StringUtils.equals(user.getHashtype(),User.HASHTYPE_MD5)) {
+    password=credentialsInfo.encrypt(User.HASHTYPE_MD5,"",password);
+  }
+  if (checkPassword(password,credentialsInfo)) {
     if (!user.activated()) {
       throw new UnactivatedAdminUserException();
     }
