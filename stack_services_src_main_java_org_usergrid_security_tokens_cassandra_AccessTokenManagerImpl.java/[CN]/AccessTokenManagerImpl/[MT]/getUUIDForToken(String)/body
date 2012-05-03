@@ -1,0 +1,15 @@
+{
+  byte[] bytes=decodeBase64(token);
+  UUID uuid=uuid(bytes);
+  long timestamp=getTimestampInMillis(uuid);
+  if ((maxTokenAge > 0) && (System.currentTimeMillis() > (timestamp + maxTokenAge))) {
+    return null;
+  }
+  ByteBuffer expected=ByteBuffer.allocate(20);
+  expected.put(sha(uuid + tokenSecretSalt));
+  ByteBuffer signature=ByteBuffer.wrap(bytes,16,20);
+  if (!signature.equals(expected)) {
+    return null;
+  }
+  return uuid;
+}
