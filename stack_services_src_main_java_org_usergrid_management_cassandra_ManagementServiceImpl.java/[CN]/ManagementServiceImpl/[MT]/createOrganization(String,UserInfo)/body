@@ -3,6 +3,9 @@
     return null;
   }
   EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  if (!em.isPropertyValueUniqueForEntity("group","path",organizationName)) {
+    throw new DuplicateUniquePropertyExistsException("group","path",organizationName);
+  }
   Group organizationEntity=new Group();
   organizationEntity.setPath(organizationName);
   organizationEntity=em.create(organizationEntity);

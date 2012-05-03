@@ -12,6 +12,12 @@
     password=encodeBase64URLSafeString(bytes(UUID.randomUUID()));
   }
   EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  if (!em.isPropertyValueUniqueForEntity("user","username",username)) {
+    throw new DuplicateUniquePropertyExistsException("user","username",username);
+  }
+  if (!em.isPropertyValueUniqueForEntity("user","email",email)) {
+    throw new DuplicateUniquePropertyExistsException("user","username",username);
+  }
   User user=new User();
   user.setUsername(username);
   user.setName(name);
