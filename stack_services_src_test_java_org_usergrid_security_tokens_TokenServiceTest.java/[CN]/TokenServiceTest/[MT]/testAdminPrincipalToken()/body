@@ -2,6 +2,9 @@
   String tokenStr=tokenService.createToken(new AuthPrincipalInfo(AuthPrincipalType.ADMIN_USER,adminUser.getUuid(),null),null);
   log.info("token: " + tokenStr);
   TokenInfo tokenInfo=tokenService.getTokenInfo(tokenStr);
+  long last_access=tokenInfo.getAccessed();
   assertEquals("access",tokenInfo.getType());
   assertEquals(adminUser.getUuid(),tokenInfo.getPrincipal().getUuid());
+  tokenInfo=tokenService.getTokenInfo(tokenStr);
+  assertTrue(last_access < tokenInfo.getAccessed());
 }

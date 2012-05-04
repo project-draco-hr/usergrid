@@ -2,8 +2,8 @@
   if (uuid == null) {
     return null;
   }
-  Map<String,ByteBuffer> columns=getColumnMap(cassandra.getAllColumns(cassandra.getSystemKeyspace(),TOKENS_CF,uuid));
-  if (!hasKeys(columns,TOKEN_UUID,TOKEN_TYPE,TOKEN_CREATED,TOKEN_ACCESSED)) {
+  Map<String,ByteBuffer> columns=getColumnMap(cassandra.getColumns(cassandra.getSystemKeyspace(),TOKENS_CF,uuid,TOKEN_PROPERTIES,StringSerializer.get(),ByteBufferSerializer.get()));
+  if (!hasKeys(columns,REQUIRED_TOKEN_PROPERTIES)) {
     return null;
   }
   String type=string(columns.get(TOKEN_TYPE));
