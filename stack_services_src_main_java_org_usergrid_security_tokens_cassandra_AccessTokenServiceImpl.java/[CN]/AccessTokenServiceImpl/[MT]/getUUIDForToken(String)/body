@@ -1,14 +1,21 @@
 {
-  byte[] bytes=decodeBase64(token);
+  AccessTokenType tokenType=AccessTokenType.getFromBase64String(token);
+  byte[] bytes=decodeBase64(token.substring(AccessTokenType.BASE64_PREFIX_LENGTH));
   UUID uuid=uuid(bytes);
   long timestamp=getTimestampInMillis(uuid);
-  if ((maxTokenAge > 0) && (System.currentTimeMillis() > (timestamp + maxTokenAge))) {
+  if ((getExpirationForTokenType(tokenType) > 0) && (System.currentTimeMillis() > (timestamp + getExpirationForTokenType(tokenType)))) {
     return null;
   }
+  int i=16;
+  long expires=Long.MAX_VALUE;
+  if (tokenType.getExpires()) {
+    expires=ByteBuffer.wrap(bytes,i,8).getLong();
+    i=24;
+  }
   ByteBuffer expected=ByteBuffer.allocate(20);
-  expected.put(sha(uuid + tokenSecretSalt));
+  expected.put(sha(tokenType.getPrefix() + uuid + tokenSecretSalt+ expires));
   expected.rewind();
-  ByteBuffer signature=ByteBuffer.wrap(bytes,16,20);
+  ByteBuffer signature=ByteBuffer.wrap(bytes,i,20);
   if (!signature.equals(expected)) {
     return null;
   }
