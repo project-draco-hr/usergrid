@@ -1,0 +1,29 @@
+{
+  if (uuid == null) {
+    return null;
+  }
+  Map<String,ByteBuffer> columns=getColumnMap(cassandra.getAllColumns(cassandra.getSystemKeyspace(),TOKENS_CF,uuid));
+  if (!hasKeys(columns,TOKEN_UUID,TOKEN_TYPE,TOKEN_CREATED,TOKEN_ACCESSED)) {
+    return null;
+  }
+  String type=string(columns.get(TOKEN_TYPE));
+  long created=getLong(columns.get(TOKEN_CREATED));
+  long accessed=getLong(columns.get(TOKEN_ACCESSED));
+  String principalTypeStr=string(columns.get(TOKEN_PRINCIPAL_TYPE));
+  AuthPrincipalType principalType=null;
+  if (principalTypeStr != null) {
+    try {
+      principalType=AuthPrincipalType.valueOf(principalTypeStr.toUpperCase());
+    }
+ catch (    IllegalArgumentException e) {
+    }
+  }
+  AuthPrincipalInfo principal=null;
+  if (principalType != null) {
+    UUID entityId=uuid(columns.get(TOKEN_ENTITY));
+    UUID appId=uuid(columns.get(TOKEN_APPLICATION));
+    principal=new AuthPrincipalInfo(principalType,entityId,appId);
+  }
+  @SuppressWarnings("unchecked") Map<String,Object> state=(Map<String,Object>)JsonUtils.fromByteBuffer(columns.get(TOKEN_STATE));
+  return new AccessTokenInfo(uuid,type,created,accessed,principal,state);
+}
