@@ -4,7 +4,7 @@
   UUID uuid=uuid(bytes);
   long timestamp=getTimestampInMillis(uuid);
   if ((getExpirationForTokenType(tokenType) > 0) && (currentTimeMillis() > (timestamp + getExpirationForTokenType(tokenType)))) {
-    return null;
+    throw new ExpiredTokenException("Token expired " + (currentTimeMillis() - (timestamp + getExpirationForTokenType(tokenType))) + " millisecons ago.");
   }
   int i=16;
   long expires=Long.MAX_VALUE;
@@ -17,7 +17,7 @@
   expected.rewind();
   ByteBuffer signature=ByteBuffer.wrap(bytes,i,20);
   if (!signature.equals(expected)) {
-    return null;
+    throw new BadTokenException("Invalid token signature");
   }
   return uuid;
 }

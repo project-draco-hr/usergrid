@@ -5,14 +5,14 @@
   }
   if ((expectedType != null) && !principal.getType().equals(expectedType)) {
     logger.info("Token is not of expected type {}",token);
-    throw new BadAccessTokenException("Token is not of expected type " + token);
+    throw new BadTokenException("Token is not of expected type " + token);
   }
   String digestPart=stringOrSubstringAfterLast(token,':').substring(BASE64_PREFIX_LENGTH);
   ByteBuffer bytes=ByteBuffer.wrap(decodeBase64(digestPart));
   if (bytes.remaining() != 28) {
     String error_str="Token digest is wrong size: " + digestPart + " is "+ bytes.remaining()+ " bytes, expected 28";
     logger.info(error_str);
-    throw new BadAccessTokenException(error_str);
+    throw new BadTokenException(error_str);
   }
   long timestamp=bytes.getLong();
   long current_time=System.currentTimeMillis();
@@ -30,7 +30,7 @@
   ByteBuffer digest=ByteBuffer.wrap(sha(timestamp + sessionSecretSalt + secret+ principal.getUuid()));
   boolean verified=digest.equals(bytes);
   if (!verified) {
-    throw new InvalidAccessTokenException();
+    throw new InvalidTokenException();
   }
   return user;
 }

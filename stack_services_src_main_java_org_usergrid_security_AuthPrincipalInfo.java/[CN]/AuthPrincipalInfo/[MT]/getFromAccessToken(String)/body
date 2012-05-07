@@ -1,14 +1,14 @@
 {
   String uuidStr=stringOrSubstringBeforeFirst(token,':');
   if (isEmpty(uuidStr)) {
-    throw new BadAccessTokenException("Unable to get uuid from token");
+    throw new BadTokenException("Unable to get uuid from token");
   }
   UUID uuid=null;
   try {
     uuid=uuid(decodeBase64(uuidStr));
   }
  catch (  Exception e) {
-    throw new BadAccessTokenException("Unable to get entity from token");
+    throw new BadTokenException("Unable to get entity from token");
   }
   UUID applicationId=MANAGEMENT_APPLICATION_ID;
   int first_colon=token.indexOf(':');
@@ -20,7 +20,7 @@
         applicationId=uuid(decodeBase64(uuidStr));
       }
  catch (      Exception e) {
-        throw new BadAccessTokenException("Unable to get application from token");
+        throw new BadTokenException("Unable to get application from token");
       }
       if (applicationId == null) {
         applicationId=MANAGEMENT_APPLICATION_ID;
@@ -29,7 +29,7 @@
   }
   AuthPrincipalType type=AuthPrincipalType.getFromBase64String(stringOrSubstringAfterLast(token,':'));
   if (type == null) {
-    throw new BadAccessTokenException("Unable to get type from token");
+    throw new BadTokenException("Unable to get type from token");
   }
   return new AuthPrincipalInfo(type,uuid,applicationId);
 }
