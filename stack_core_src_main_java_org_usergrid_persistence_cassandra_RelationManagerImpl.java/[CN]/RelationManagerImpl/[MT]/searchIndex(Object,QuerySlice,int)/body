@@ -1,26 +1,10 @@
 {
-  Object start=null;
-  if (slice.getCursor() != null) {
-    start=slice.getCursor();
-  }
- else   if (slice.getStart() != null) {
-    start=new DynamicComposite(slice.getStart().getCode(),slice.getStart().getValue());
-    if (!slice.getStart().isInclusive()) {
-      setEqualityFlag((DynamicComposite)start,ComponentEquality.GREATER_THAN_EQUAL);
-    }
-  }
-  Object finish=null;
-  if (slice.getFinish() != null) {
-    finish=new DynamicComposite(slice.getFinish().getCode(),slice.getFinish().getValue());
-    if (slice.getFinish().isInclusive()) {
-      setEqualityFlag((DynamicComposite)finish,ComponentEquality.GREATER_THAN_EQUAL);
-    }
-  }
+  Object start=getStart(slice);
+  Object finish=getFinish(slice);
   if (slice.isReversed() && (start != null) && (finish != null)) {
     Object temp=start;
     start=finish;
     finish=temp;
   }
-  List<HColumn<ByteBuffer,ByteBuffer>> results=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_INDEX,key(indexKey,slice.getPropertyName()),start,finish,count,slice.isReversed());
-  return results;
+  return cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_INDEX,key(indexKey,slice.getPropertyName()),start,finish,count,slice.isReversed());
 }
