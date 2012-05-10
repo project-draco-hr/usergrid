@@ -1,0 +1,24 @@
+{
+  List<String> keys=indexBucketLocator.getBuckets(applicationId,indexPath);
+  List<Object> cassKeys=new ArrayList<Object>(keys.size());
+  for (  String bucket : keys) {
+    cassKeys.add(key(keyPrefix,bucket));
+  }
+  Map<ByteBuffer,List<HColumn<ByteBuffer,ByteBuffer>>> results=cass.multiGetColumns(cass.getApplicationKeyspace(applicationId),columnFamily,cassKeys,start,finish,count,reversed);
+  final Comparator<ByteBuffer> comparator=reversed ? new DynamicCompositeReverseComparator(columnFamily) : new DynamicCompositeForwardComparator(columnFamily);
+  TreeSet<HColumn<ByteBuffer,ByteBuffer>> resultsTree=new TreeSet<HColumn<ByteBuffer,ByteBuffer>>(new Comparator<HColumn<ByteBuffer,ByteBuffer>>(){
+    @Override public int compare(    HColumn<ByteBuffer,ByteBuffer> first,    HColumn<ByteBuffer,ByteBuffer> second){
+      return comparator.compare(first.getName(),second.getName());
+    }
+  }
+);
+  for (  List<HColumn<ByteBuffer,ByteBuffer>> cols : results.values()) {
+    for (    HColumn<ByteBuffer,ByteBuffer> col : cols) {
+      resultsTree.add(col);
+      if (resultsTree.size() > count) {
+        resultsTree.remove(resultsTree.last());
+      }
+    }
+  }
+  return new ArrayList<HColumn<ByteBuffer,ByteBuffer>>(resultsTree);
+}
