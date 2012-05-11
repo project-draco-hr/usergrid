@@ -3,10 +3,12 @@
   Entity indexedEntity=indexUpdate.getEntity();
   String bucketId=indexBucketLocator.getBucket(applicationId,indexedEntity.getUuid(),indexedEntity.getType(),indexUpdate.getEntryName());
   CollectionInfo collection=getDefaultSchema().getCollection(owner.getType(),collectionName);
+  Object index_name=null;
   Object index_key=null;
   for (  IndexEntry entry : indexUpdate.getPrevEntries()) {
     if (entry.getValue() != null) {
-      index_key=key(owner.getUuid(),collectionName,entry.getPath(),bucketId);
+      index_name=key(owner.getUuid(),collectionName,entry.getPath());
+      index_key=key(index_name,bucketId);
       addDeleteToMutator(indexUpdate.getBatch(),ENTITY_INDEX,index_key,entry.getIndexComposite(),indexUpdate.getTimestamp());
       if (collection != null) {
         if (collection.hasSubkeys()) {
@@ -28,7 +30,7 @@
       }
       if ("location.coordinates".equals(entry.getPath())) {
         EntityLocationRef loc=new EntityLocationRef(indexUpdate.getEntity(),entry.getTimestampUuid(),entry.getValue().toString());
-        batchRemoveLocationFromCollectionIndex(indexUpdate.getBatch(),index_key,loc);
+        batchRemoveLocationFromCollectionIndex(indexUpdate.getBatch(),index_name,loc);
       }
     }
  else {
@@ -37,7 +39,8 @@
   }
   if ((indexUpdate.getNewEntries().size() > 0) && (!indexUpdate.isMultiValue() || (indexUpdate.isMultiValue() && !indexUpdate.isRemoveListEntry()))) {
     for (    IndexEntry indexEntry : indexUpdate.getNewEntries()) {
-      index_key=key(owner.getUuid(),collectionName,indexEntry.getPath(),bucketId);
+      index_name=key(owner.getUuid(),collectionName,indexEntry.getPath());
+      index_key=key(index_name,bucketId);
       addInsertToMutator(indexUpdate.getBatch(),ENTITY_INDEX,index_key,indexEntry.getIndexComposite(),null,indexUpdate.getTimestamp());
       if (collection != null) {
         if (collection.hasSubkeys()) {
@@ -59,7 +62,7 @@
       }
       if ("location.coordinates".equals(indexEntry.getPath())) {
         EntityLocationRef loc=new EntityLocationRef(indexUpdate.getEntity(),indexEntry.getTimestampUuid(),indexEntry.getValue().toString());
-        batchStoreLocationInCollectionIndex(indexUpdate.getBatch(),index_key,loc);
+        batchStoreLocationInCollectionIndex(indexUpdate.getBatch(),index_name,loc);
       }
     }
   }
