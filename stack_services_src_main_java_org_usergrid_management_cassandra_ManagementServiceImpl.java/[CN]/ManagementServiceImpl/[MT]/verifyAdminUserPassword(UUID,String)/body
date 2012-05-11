@@ -3,8 +3,10 @@
     return false;
   }
   EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
-  Entity user=em.get(userId);
-  if (checkPassword(password,(CredentialsInfo)em.getDictionaryElementValue(user,DICTIONARY_CREDENTIALS,"password"))) {
+  User user=em.get(userId,User.class);
+  CredentialsInfo credentialsInfo=(CredentialsInfo)em.getDictionaryElementValue(user,DICTIONARY_CREDENTIALS,"password");
+  password=maybeSaltPassword(password,user,credentialsInfo);
+  if (checkPassword(password,credentialsInfo)) {
     return true;
   }
   return false;
