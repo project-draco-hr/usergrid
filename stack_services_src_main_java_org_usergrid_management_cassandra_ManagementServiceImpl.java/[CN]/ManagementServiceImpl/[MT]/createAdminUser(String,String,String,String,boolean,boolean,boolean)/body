@@ -17,6 +17,7 @@
   user.setName(name);
   user.setEmail(email);
   user.setActivated(activated);
+  user.setConfirmed(false);
   user.setDisabled(disabled);
   user=em.create(user);
   Map<String,CredentialsInfo> credentials=new HashMap<String,CredentialsInfo>();
@@ -25,7 +26,7 @@
   credentials.put("secret",plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.ADMIN_USER)));
   em.addMapToDictionary(user,DICTIONARY_CREDENTIALS,credentials);
   UserInfo userInfo=new UserInfo(MANAGEMENT_APPLICATION_ID,user.getUuid(),username,name,email,activated,disabled);
-  if (sendEmail && !activated) {
+  if (sendEmail) {
     sendAdminUserActivationEmail(userInfo);
   }
   return userInfo;

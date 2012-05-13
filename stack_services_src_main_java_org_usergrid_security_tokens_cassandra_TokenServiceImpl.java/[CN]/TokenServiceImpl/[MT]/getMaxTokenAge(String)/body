@@ -1,10 +1,10 @@
 {
-  TokenType tokenType=TokenType.getFromBase64String(token);
-  byte[] bytes=decodeBase64(token.substring(TokenType.BASE64_PREFIX_LENGTH));
+  TokenCategory tokenCategory=TokenCategory.getFromBase64String(token);
+  byte[] bytes=decodeBase64(token.substring(TokenCategory.BASE64_PREFIX_LENGTH));
   UUID uuid=uuid(bytes);
   long timestamp=getTimestampInMillis(uuid);
   int i=16;
-  if (tokenType.getExpires()) {
+  if (tokenCategory.getExpires()) {
     long expires=ByteBuffer.wrap(bytes,i,8).getLong();
     return expires - timestamp;
   }

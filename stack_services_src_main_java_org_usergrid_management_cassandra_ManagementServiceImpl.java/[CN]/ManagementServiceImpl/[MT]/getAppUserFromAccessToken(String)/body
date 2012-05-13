@@ -1,20 +1,14 @@
 {
-  TokenInfo tokenInfo=tokens.getTokenInfo(token);
-  if (tokenInfo == null) {
-    return null;
-  }
-  AuthPrincipalInfo auth_principal=tokenInfo.getPrincipal();
+  AuthPrincipalInfo auth_principal=getPrincipalFromAccessToken(token,null,APPLICATION_USER);
   if (auth_principal == null) {
     return null;
   }
-  if (AuthPrincipalType.APPLICATION_USER.equals(auth_principal.getType())) {
-    UUID appId=auth_principal.getApplicationId();
-    if (appId != null) {
-      EntityManager em=emf.getEntityManager(appId);
-      Entity user=em.get(auth_principal.getUuid());
-      if (user != null) {
-        return new UserInfo(appId,user.getProperties());
-      }
+  UUID appId=auth_principal.getApplicationId();
+  if (appId != null) {
+    EntityManager em=emf.getEntityManager(appId);
+    Entity user=em.get(auth_principal.getUuid());
+    if (user != null) {
+      return new UserInfo(appId,user.getProperties());
     }
   }
   return null;

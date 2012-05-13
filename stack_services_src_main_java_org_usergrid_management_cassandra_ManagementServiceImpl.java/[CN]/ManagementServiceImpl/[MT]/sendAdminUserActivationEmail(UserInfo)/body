@@ -1,11 +1,15 @@
 {
-  String token=getActivationTokenForAdminUser(user.getUuid());
-  String activation_url=String.format(properties.getProperty(PROPERTIES_ADMIN_ACTIVATION_URL),user.getUuid().toString()) + "?token=" + token;
-  if (newAdminUsersNeedSysAdminApproval()) {
-    activation_url+="&confirm=true";
+  if (newAdminUsersRequireConfirmation()) {
+    String token=getActivationTokenForAdminUser(user.getUuid());
+    String confirmation_url=String.format(properties.getProperty(PROPERTIES_ADMIN_CONFIRMATION_URL),user.getUuid().toString()) + "?token=" + token;
+    sendAdminUserEmail(user,"User Account Confirmation: " + user.getEmail(),emailMsg(hashMap("user_email",user.getEmail()).map("confirmation_url",confirmation_url),PROPERTIES_EMAIL_ADMIN_CONFIRMATION));
+  }
+ else   if (newAdminUsersNeedSysAdminApproval()) {
+    String token=getActivationTokenForAdminUser(user.getUuid());
+    String activation_url=String.format(properties.getProperty(PROPERTIES_ADMIN_ACTIVATION_URL),user.getUuid().toString()) + "?token=" + token;
     sendHtmlMail(properties,getPropertyValue(PROPERTIES_SYSADMIN_EMAIL),getPropertyValue(PROPERTIES_MAILER_EMAIL),"Request For User Account Activation " + user.getEmail(),appendEmailFooter(emailMsg(hashMap("user_email",user.getEmail()).map("activation_url",activation_url),PROPERTIES_EMAIL_SYSADMIN_ADMIN_ACTIVATION)));
   }
  else {
-    sendAdminUserEmail(user,"User Account Confirmation: " + user.getEmail(),emailMsg(hashMap("user_email",user.getEmail()).map("activation_url",activation_url),PROPERTIES_EMAIL_ADMIN_CONFIRMATION));
+    sendAdminUserActivatedEmail(user);
   }
 }
