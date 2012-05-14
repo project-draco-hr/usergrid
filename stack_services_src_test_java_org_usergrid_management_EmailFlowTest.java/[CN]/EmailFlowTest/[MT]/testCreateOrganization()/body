@@ -1,0 +1,20 @@
+{
+  properties.setProperty(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"false");
+  properties.setProperty(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
+  properties.setProperty(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"true");
+  OrganizationOwnerInfo org_owner=management.createOwnerAndOrganization("test-org-1","test-user-1","Test User","test-user-1@mockserver.com","testpassword",false,false,true);
+  assertNotNull(org_owner);
+  List<Message> inbox=org.jvnet.mock_javamail.Mailbox.get("test-user-1@mockserver.com");
+  assertFalse(inbox.isEmpty());
+  Message account_confirmation_message=inbox.get(0);
+  assertEquals("User Account Confirmation: test-user-1@mockserver.com",account_confirmation_message.getSubject());
+  account_confirmation_message.getContent();
+  String body=((MimeMultipart)account_confirmation_message.getContent()).getBodyPart(0).getContent().toString();
+  String token=StringUtils.substringAfterLast(body,"token=");
+  logger.info(token);
+  assertTrue(management.handleConfirmationTokenForAdminUser(org_owner.owner.getUuid(),token));
+  Message account_activation_message=inbox.get(2);
+  assertEquals("User Account Activated",account_activation_message.getSubject());
+  MockImapClient client=new MockImapClient("mockserver.com","test-user-1","somepassword");
+  client.processMail();
+}
