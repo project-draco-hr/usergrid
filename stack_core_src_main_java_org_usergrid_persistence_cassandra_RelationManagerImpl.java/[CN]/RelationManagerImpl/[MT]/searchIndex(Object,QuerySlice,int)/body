@@ -6,5 +6,7 @@
     start=finish;
     finish=temp;
   }
-  return cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_INDEX,key(indexKey,slice.getPropertyName()),start,finish,count,slice.isReversed());
+  Object keyPrefix=key(indexKey,slice.getPropertyName());
+  IndexBucketScanner scanner=new IndexBucketScanner(cass,indexBucketLocator,ENTITY_INDEX,applicationId,IndexType.CONNECTION,keyPrefix,start,finish,slice.isReversed(),count,slice.getPropertyName());
+  return scanner.load();
 }
