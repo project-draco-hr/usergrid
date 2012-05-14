@@ -1,5 +1,11 @@
 {
-  String token=getActivationTokenForAppUser(applicationId,user.getUuid());
-  String activation_url=String.format(properties.getProperty(PROPERTIES_USER_ACTIVATION_URL),applicationId.toString(),user.getUuid().toString()) + "?token=" + token;
-  sendAppUserEmail(user,"User Account Confirmation: " + user.getEmail(),emailMsg(hashMap("activation_url",activation_url),PROPERTIES_EMAIL_USER_CONFIRMATION));
+  if (newAppUsersRequireConfirmation(applicationId)) {
+    sendAppUserConfirmationEmail(applicationId,user);
+  }
+ else   if (newAppUsersNeedAdminApproval(applicationId)) {
+    sendAdminRequestAppUserActivationEmail(applicationId,user);
+  }
+ else {
+    sendAppUserActivatedEmail(applicationId,user);
+  }
 }

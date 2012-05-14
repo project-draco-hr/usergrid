@@ -1,9 +1,17 @@
 {
   AuthPrincipalInfo principal=getPrincipalFromAccessToken(token,TOKEN_TYPE_CONFIRM,APPLICATION_USER);
   if ((principal != null) && userId.equals(principal.getUuid())) {
-    activateAdminUser(principal.getUuid());
-    UserInfo user=getAdminUserByUuid(principal.getUuid());
-    sendAdminUserActivatedEmail(user);
+    EntityManager em=emf.getEntityManager(applicationId);
+    User user=em.get(userId,User.class);
+    confirmAppUser(applicationId,user.getUuid());
+    if (newAppUsersNeedAdminApproval(applicationId)) {
+      sendAppUserConfirmedAwaitingActivationEmail(applicationId,user);
+      sendAdminRequestAppUserActivationEmail(applicationId,user);
+    }
+ else {
+      activateAppUser(applicationId,principal.getUuid());
+      sendAppUserActivatedEmail(applicationId,user);
+    }
     return true;
   }
   return false;

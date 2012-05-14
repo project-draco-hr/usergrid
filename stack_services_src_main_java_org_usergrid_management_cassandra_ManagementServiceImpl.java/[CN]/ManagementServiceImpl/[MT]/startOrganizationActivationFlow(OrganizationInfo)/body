@@ -8,8 +8,8 @@
       for (      UserInfo user : users) {
         organization_owners=(organization_owners == null) ? user.getHTMLDisplayEmailAddress() : organization_owners + ", " + user.getHTMLDisplayEmailAddress();
       }
-      activation_url+="&confirm=true";
       sendHtmlMail(properties,getPropertyValue(PROPERTIES_SYSADMIN_EMAIL),getPropertyValue(PROPERTIES_MAILER_EMAIL),"Request For Organization Account Activation " + organization.getName(),appendEmailFooter(emailMsg(hashMap("organization_name",organization.getName()).map("activation_url",activation_url).map("organization_owners",organization_owners),PROPERTIES_EMAIL_SYSADMIN_ORGANIZATION_ACTIVATION)));
+      sendOrganizationEmail(organization,"Organization Account Confirmed",emailMsg(hashMap("organization_name",organization.getName()),PROPERTIES_EMAIL_ORGANIZATION_CONFIRMED_AWAITING_ACTIVATION));
     }
  else {
       sendOrganizationEmail(organization,"Organization Account Confirmation",emailMsg(hashMap("organization_name",organization.getName()).map("activation_url",activation_url),PROPERTIES_EMAIL_ORGANIZATION_CONFIRMATION));
