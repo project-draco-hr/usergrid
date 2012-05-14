@@ -7,6 +7,8 @@
   assertNotNull(org_owner);
   List<Message> inbox=org.jvnet.mock_javamail.Mailbox.get("test-user-1@mockserver.com");
   assertFalse(inbox.isEmpty());
+  MockImapClient client=new MockImapClient("mockserver.com","test-user-1","somepassword");
+  client.processMail();
   Message account_confirmation_message=inbox.get(0);
   assertEquals("User Account Confirmation: test-user-1@mockserver.com",account_confirmation_message.getSubject());
   String token=getTokenFromMessage(account_confirmation_message);
@@ -14,6 +16,6 @@
   assertTrue(management.handleConfirmationTokenForAdminUser(org_owner.owner.getUuid(),token));
   Message account_activation_message=inbox.get(2);
   assertEquals("User Account Activated",account_activation_message.getSubject());
-  MockImapClient client=new MockImapClient("mockserver.com","test-user-1","somepassword");
+  client=new MockImapClient("mockserver.com","test-user-1","somepassword");
   client.processMail();
 }
