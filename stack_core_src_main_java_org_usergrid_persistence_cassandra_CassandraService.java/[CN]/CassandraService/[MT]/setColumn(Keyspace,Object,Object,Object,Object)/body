@@ -1,21 +1,3 @@
 {
-  if (db_logger.isInfoEnabled()) {
-    db_logger.info("setColumn cf=" + columnFamily + " key="+ key+ " name="+ columnName+ " value="+ columnValue);
-  }
-  ByteBuffer name_bytes=null;
-  if (columnName instanceof List) {
-    name_bytes=DynamicComposite.toByteBuffer((List<?>)columnName);
-  }
- else {
-    name_bytes=bytebuffer(columnName);
-  }
-  ByteBuffer value_bytes=null;
-  if (columnValue instanceof List) {
-    value_bytes=DynamicComposite.toByteBuffer((List<?>)columnValue);
-  }
- else {
-    value_bytes=bytebuffer(columnValue);
-  }
-  Mutator<ByteBuffer> m=createMutator(ko,be);
-  m.insert(bytebuffer(key),columnFamily.toString(),createColumn(name_bytes,value_bytes,be,be));
+  this.setColumn(ko,columnFamily,key,columnName,columnValue,0);
 }

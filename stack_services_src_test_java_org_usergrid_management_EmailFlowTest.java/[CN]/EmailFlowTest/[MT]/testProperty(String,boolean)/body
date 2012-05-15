@@ -1,0 +1,18 @@
+{
+  Properties properties=helper.getProperties();
+  String propertyValue=properties.getProperty(propertyName);
+  assertTrue(propertyName + " was not found",isNotBlank(propertyValue));
+  logger.info(propertyName + "=" + propertyValue);
+  if (containsSubstitution) {
+    Map<String,String> valuesMap=new HashMap<String,String>();
+    valuesMap.put("reset_url","test-url");
+    valuesMap.put("organization_name","test-org");
+    valuesMap.put("activation_url","test-url");
+    valuesMap.put("confirmation_url","test-url");
+    valuesMap.put("user_email","test-email");
+    valuesMap.put("pin","test-pin");
+    StrSubstitutor sub=new StrSubstitutor(valuesMap);
+    String resolvedString=sub.replace(propertyValue);
+    assertNotSame(propertyValue,resolvedString);
+  }
+}

@@ -1,7 +1,7 @@
 {
-  UserInfo user=management.createAdminUser("edanuff","Ed Anuff","ed@anuff.com","test",false,false,false);
+  UserInfo user=management.createAdminUser("edanuff","Ed Anuff","ed@anuff.com","test",false,false,true);
   assertNotNull(user);
-  OrganizationInfo organization=management.createOrganization("ed-organization",user);
+  OrganizationInfo organization=management.createOrganization("ed-organization",user,true);
   assertNotNull(organization);
   Map<UUID,String> userOrganizations=management.getOrganizationsForAdminUser(user.getUuid());
   assertEquals("wrong number of organizations",1,userOrganizations.size());
@@ -16,11 +16,12 @@
   assertEquals("wrong organization name","ed-organization",organization2.getName());
   boolean verified=management.verifyAdminUserPassword(user.getUuid(),"test");
   assertTrue(verified);
-  management.activateOrganization(user.getUuid());
+  management.activateOrganization(organization2);
   UserInfo u=management.verifyAdminUserPasswordCredentials(user.getUuid().toString(),"test");
   assertNotNull(u);
   String token=management.getAccessTokenForAdminUser(user.getUuid());
   assertNotNull(token);
-  UUID userId=management.getAdminUserIdFromAccessToken(token);
-  assertEquals(user.getUuid(),userId);
+  AuthPrincipalInfo principal=((ManagementServiceImpl)management).getPrincipalFromAccessToken(token,null,null);
+  assertNotNull(principal);
+  assertEquals(user.getUuid(),principal.getUuid());
 }
