@@ -1,0 +1,18 @@
+{
+  AuthPrincipalInfo principal=getPrincipalFromAccessToken(token,TOKEN_TYPE_CONFIRM,ADMIN_USER);
+  if ((principal != null) && userId.equals(principal.getUuid())) {
+    UserInfo user=getAdminUserByUuid(principal.getUuid());
+    confirmAdminUser(user.getUuid());
+    if (newAdminUsersNeedSysAdminApproval()) {
+      sendAdminUserConfirmedAwaitingActivationEmail(user);
+      sendSysAdminRequestAdminActivationEmail(user);
+    }
+ else {
+      activateAdminUser(principal.getUuid());
+      sendAdminUserActivatedEmail(user);
+      sendSysAdminNewAdminActivatedNotificationEmail(user);
+    }
+    return true;
+  }
+  return false;
+}

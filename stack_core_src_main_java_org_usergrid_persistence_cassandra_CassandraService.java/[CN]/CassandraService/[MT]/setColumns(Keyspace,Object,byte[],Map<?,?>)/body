@@ -1,28 +1,3 @@
 {
-  if (db_logger.isInfoEnabled()) {
-    db_logger.info("setColumns cf=" + columnFamily + " key="+ key+ " map="+ map);
-  }
-  Mutator<ByteBuffer> m=createMutator(ko,be);
-  long timestamp=createTimestamp();
-  for (  Object name : map.keySet()) {
-    Object value=map.get(name);
-    if (value != null) {
-      ByteBuffer name_bytes=null;
-      if (name instanceof List) {
-        name_bytes=DynamicComposite.toByteBuffer((List<?>)name);
-      }
- else {
-        name_bytes=bytebuffer(name);
-      }
-      ByteBuffer value_bytes=null;
-      if (value instanceof List) {
-        value_bytes=DynamicComposite.toByteBuffer((List<?>)value);
-      }
- else {
-        value_bytes=bytebuffer(value);
-      }
-      m.addInsertion(bytebuffer(key),columnFamily.toString(),createColumn(name_bytes,value_bytes,timestamp,be,be));
-    }
-  }
-  batchExecute(m,CassandraService.RETRY_COUNT);
+  this.setColumns(ko,columnFamily,key,map,0);
 }

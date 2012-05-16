@@ -1,0 +1,11 @@
+{
+  TokenInfo tokenInfo=null;
+  UUID uuid=getUUIDForToken(token);
+  if (uuid != null) {
+    tokenInfo=getTokenInfo(uuid);
+    if (tokenInfo != null) {
+      cassandra.setColumn(cassandra.getSystemKeyspace(),TOKENS_CF,uuid,TOKEN_ACCESSED,currentTimeMillis(),(int)(maxPersistenceTokenAge / 1000));
+    }
+  }
+  return tokenInfo;
+}
