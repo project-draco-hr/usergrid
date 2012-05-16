@@ -1,8 +1,10 @@
 {
   Point p=location.getPoint();
   List<String> cells=GeocellManager.generateGeoCell(p);
+  ByteBuffer columnName=location.getColumnName().serialize();
+  long ts=location.getTimestampInMicros();
   for (  String cell : cells) {
-    addLocationEntryInsertionToMutator(m,key(key,DICTIONARY_GEOCELL,cell),location);
+    batchDeleteConnectionIndexEntries(m,locator,appId,propertyName,cell,index_keys,columnName,ts);
   }
   logger.info("Geocells to be saved for Point(" + location.latitude + ","+ location.longitude+ ") are: "+ cells);
 }
