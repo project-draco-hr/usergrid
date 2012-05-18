@@ -1,0 +1,26 @@
+{
+  logger.info("EntityDaoTest.testCreateAndDeleteUser");
+  UUID applicationId=createApplication("testOrganization","testCreateAndDeleteUser");
+  EntityManager em=emf.getEntityManager(applicationId);
+  String name="test.thing" + UUIDUtils.newTimeUUID();
+  Map<String,Object> properties=new LinkedHashMap<String,Object>();
+  properties.put("username",name);
+  properties.put("foo","bar");
+  logger.info("Starting entity create");
+  Entity user=em.create("user",properties);
+  logger.info("Entity created");
+  logger.info("Starting entity delete");
+  em.delete(user);
+  logger.info("Entity deleted");
+  Results r=em.searchCollection(em.getApplicationRef(),"users",new Query().addEqualityFilter("username",name));
+  assertEquals(0,r.size());
+  properties=new LinkedHashMap<String,Object>();
+  properties.put("username",name);
+  properties.put("foo","bar");
+  logger.info("Starting entity create");
+  user=em.create("user",properties);
+  logger.info("Entity created");
+  r=em.searchCollection(em.getApplicationRef(),"users",new Query().addEqualityFilter("username",name));
+  assertEquals(1,r.size());
+  assertEquals(user.getUuid(),r.getEntity().getUuid());
+}
