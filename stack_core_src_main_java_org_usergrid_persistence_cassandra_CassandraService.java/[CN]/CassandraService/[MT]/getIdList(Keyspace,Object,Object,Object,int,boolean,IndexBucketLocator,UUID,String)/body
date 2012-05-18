@@ -1,0 +1,18 @@
+{
+  if (count <= 0) {
+    count=DEFAULT_COUNT;
+  }
+  List<UUID> ids=new ArrayList<UUID>();
+  if (NULL_ID.equals(start)) {
+    start=null;
+  }
+  IndexBucketScanner scanner=new IndexBucketScanner(this,locator,ENTITY_ID_SETS,applicationId,IndexType.COLLECTION,key,start,finish,reversed,count,collectionName);
+  List<HColumn<ByteBuffer,ByteBuffer>> results=scanner.load();
+  if (results != null) {
+    for (    HColumn<ByteBuffer,ByteBuffer> result : results) {
+      ByteBuffer bytes=result.getName();
+      ids.add(uuid(bytes));
+    }
+  }
+  return ids;
+}

@@ -1,12 +1,15 @@
 {
   logger.info("batchUpdateCollectionIndex");
-  ApplicationCF indexesCf=ENTITY_INDEX;
+  Entity indexedEntity=indexUpdate.getEntity();
+  String bucketId=indexBucketLocator.getBucket(applicationId,IndexType.COLLECTION,indexedEntity.getUuid(),indexedEntity.getType(),indexUpdate.getEntryName());
   CollectionInfo collection=getDefaultSchema().getCollection(owner.getType(),collectionName);
-  Object index_key=key(owner.getUuid(),collectionName,indexUpdate.getEntryName());
+  Object index_name=null;
+  Object index_key=null;
   for (  IndexEntry entry : indexUpdate.getPrevEntries()) {
     if (entry.getValue() != null) {
-      index_key=key(owner.getUuid(),collectionName,entry.getPath());
-      addDeleteToMutator(indexUpdate.getBatch(),indexesCf,index_key,entry.getIndexComposite(),indexUpdate.getTimestamp());
+      index_name=key(owner.getUuid(),collectionName,entry.getPath());
+      index_key=key(index_name,bucketId);
+      addDeleteToMutator(indexUpdate.getBatch(),ENTITY_INDEX,index_key,entry.getIndexComposite(),indexUpdate.getTimestamp());
       if (collection != null) {
         if (collection.hasSubkeys()) {
           List<String[]> combos=collection.getSubkeyCombinations();
@@ -21,13 +24,13 @@
             }
             Object subkey_key=key(subkey_props.toArray());
             Object index_subkey_key=key(owner.getUuid(),collectionName,subkey_key,entry.getPath());
-            addDeleteToMutator(indexUpdate.getBatch(),indexesCf,index_subkey_key,entry.getIndexComposite(),indexUpdate.getTimestamp());
+            addDeleteToMutator(indexUpdate.getBatch(),ENTITY_INDEX,index_subkey_key,entry.getIndexComposite(),indexUpdate.getTimestamp());
           }
         }
       }
       if ("location.coordinates".equals(entry.getPath())) {
         EntityLocationRef loc=new EntityLocationRef(indexUpdate.getEntity(),entry.getTimestampUuid(),entry.getValue().toString());
-        batchRemoveLocationFromCollectionIndex(indexUpdate.getBatch(),index_key,loc);
+        batchRemoveLocationFromCollectionIndex(indexUpdate.getBatch(),indexBucketLocator,applicationId,index_name,loc);
       }
     }
  else {
@@ -36,8 +39,9 @@
   }
   if ((indexUpdate.getNewEntries().size() > 0) && (!indexUpdate.isMultiValue() || (indexUpdate.isMultiValue() && !indexUpdate.isRemoveListEntry()))) {
     for (    IndexEntry indexEntry : indexUpdate.getNewEntries()) {
-      index_key=key(owner.getUuid(),collectionName,indexEntry.getPath());
-      addInsertToMutator(indexUpdate.getBatch(),indexesCf,index_key,indexEntry.getIndexComposite(),null,indexUpdate.getTimestamp());
+      index_name=key(owner.getUuid(),collectionName,indexEntry.getPath());
+      index_key=key(index_name,bucketId);
+      addInsertToMutator(indexUpdate.getBatch(),ENTITY_INDEX,index_key,indexEntry.getIndexComposite(),null,indexUpdate.getTimestamp());
       if (collection != null) {
         if (collection.hasSubkeys()) {
           List<String[]> combos=collection.getSubkeyCombinations();
@@ -51,14 +55,14 @@
               subkey_props.add(subkey_value);
             }
             Object subkey_key=key(subkey_props.toArray());
-            Object index_subkey_key=key(owner.getUuid(),collectionName,subkey_key,indexEntry.getPath());
-            addInsertToMutator(indexUpdate.getBatch(),indexesCf,index_subkey_key,indexEntry.getIndexComposite(),null,indexUpdate.getTimestamp());
+            Object index_subkey_key=key(owner.getUuid(),collectionName,subkey_key,indexEntry.getPath(),bucketId);
+            addInsertToMutator(indexUpdate.getBatch(),ENTITY_INDEX,index_subkey_key,indexEntry.getIndexComposite(),null,indexUpdate.getTimestamp());
           }
         }
       }
       if ("location.coordinates".equals(indexEntry.getPath())) {
         EntityLocationRef loc=new EntityLocationRef(indexUpdate.getEntity(),indexEntry.getTimestampUuid(),indexEntry.getValue().toString());
-        batchStoreLocationInCollectionIndex(indexUpdate.getBatch(),index_key,loc);
+        batchStoreLocationInCollectionIndex(indexUpdate.getBatch(),indexBucketLocator,applicationId,index_name,indexedEntity.getUuid(),loc);
       }
     }
   }

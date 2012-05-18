@@ -1,3 +1,7 @@
 {
-  return cass.countColumns(cass.getApplicationKeyspace(applicationId),ENTITY_ID_SETS,key(headEntity.getUuid(),DICTIONARY_COLLECTIONS,collectionName));
+  long result=0;
+  for (  String bucketId : indexBucketLocator.getBuckets(applicationId,IndexType.COLLECTION,collectionName)) {
+    result+=cass.countColumns(cass.getApplicationKeyspace(applicationId),ENTITY_ID_SETS,key(headEntity.getUuid(),DICTIONARY_COLLECTIONS,collectionName,bucketId));
+  }
+  return result;
 }

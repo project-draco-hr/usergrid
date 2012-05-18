@@ -2,8 +2,9 @@
   logger.info("EntityDaoTest.testCreateAndDelete");
   UUID applicationId=createApplication("testOrganization","testCreateAndDelete");
   EntityManager em=emf.getEntityManager(applicationId);
+  String name="test.thing" + UUIDUtils.newTimeUUID();
   Map<String,Object> properties=new LinkedHashMap<String,Object>();
-  properties.put("name","test.thing.1");
+  properties.put("name",name);
   properties.put("foo","bar");
   logger.info("Starting entity create");
   Entity thing=em.create("thing",properties);
@@ -11,4 +12,6 @@
   logger.info("Starting entity delete");
   em.delete(thing);
   logger.info("Entity deleted");
+  Results r=em.searchCollection(em.getApplicationRef(),"thing",new Query().addEqualityFilter("name",name));
+  assertEquals(0,r.size());
 }
