@@ -7,13 +7,14 @@
     if (newAppUsersNeedAdminApproval(applicationId)) {
       sendAppUserConfirmedAwaitingActivationEmail(applicationId,user);
       sendAdminRequestAppUserActivationEmail(applicationId,user);
+      return ActivationState.CONFIRMED_AWAITING_ACTIVATION;
     }
  else {
       activateAppUser(applicationId,principal.getUuid());
       sendAppUserActivatedEmail(applicationId,user);
       sendAdminNewAppUserActivatedNotificationEmail(applicationId,user);
+      return ActivationState.ACTIVATED;
     }
-    return true;
   }
-  return false;
+  return ActivationState.UNKNOWN;
 }

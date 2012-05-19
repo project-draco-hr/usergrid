@@ -6,13 +6,14 @@
     if (newAdminUsersNeedSysAdminApproval()) {
       sendAdminUserConfirmedAwaitingActivationEmail(user);
       sendSysAdminRequestAdminActivationEmail(user);
+      return ActivationState.CONFIRMED_AWAITING_ACTIVATION;
     }
  else {
       activateAdminUser(principal.getUuid());
       sendAdminUserActivatedEmail(user);
       sendSysAdminNewAdminActivatedNotificationEmail(user);
+      return ActivationState.ACTIVATED;
     }
-    return true;
   }
-  return false;
+  return ActivationState.UNKNOWN;
 }
