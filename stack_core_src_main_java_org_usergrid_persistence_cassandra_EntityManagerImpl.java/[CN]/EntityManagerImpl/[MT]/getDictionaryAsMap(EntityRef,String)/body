@@ -1,6 +1,7 @@
 {
   entity=validate(entity);
   Map<Object,Object> dictionary=new LinkedHashMap<Object,Object>();
+  Object placeholder=new Object();
   ApplicationCF dictionaryCf=null;
   boolean entityHasDictionary=getDefaultSchema().hasDictionary(entity.getType(),dictionaryName);
   if (entityHasDictionary) {
@@ -21,12 +22,15 @@
  else {
       name=CompositeUtils.deserialize(result.getName());
     }
-    Object value=null;
+    Object value=placeholder;
     if (entityHasDictionary && coTypeIsBasic) {
       value=object(setCoType,result.getValue());
     }
  else     if (result.getValue().remaining() > 0) {
       value=Schema.deserializePropertyValueFromJsonBinary(result.getValue().slice(),setCoType);
+      if (value == null) {
+        value=placeholder;
+      }
     }
     if (name != null) {
       dictionary.put(name,value);
