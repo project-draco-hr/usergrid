@@ -10,6 +10,9 @@
   managementService.importApplication(UUID.fromString(organizationId),application);
   echo(application);
   EntityManager em=emf.getEntityManager(application.getUuid());
+  for (  Entry<String,String> entry : em.getRoles().entrySet()) {
+    em.deleteRole(entry.getKey());
+  }
   while (jp.nextValue() != JsonToken.END_ARRAY) {
     @SuppressWarnings("unchecked") Map<String,Object> entityProps=jp.readValueAs(HashMap.class);
     UUID uuid=getId(entityProps);
@@ -17,7 +20,10 @@
     try {
       em.create(uuid,type,entityProps);
     }
- catch (    Exception e) {
+ catch (    DuplicateUniquePropertyExistsException de) {
+      logger.error("Unable to create entity.  It appears to be a duplicate",de);
+    }
+catch (    Exception e) {
       logger.error("Unable to create entity " + uuid + " of type "+ type+ ", skipping but this may indicate a bad import...",e);
     }
     echo(entityProps);

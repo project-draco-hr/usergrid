@@ -3,7 +3,11 @@
   EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
   Results results=em.getCollection(em.getApplicationRef(),"groups",null,10000,Level.ALL_PROPERTIES,false);
   for (  Entity entity : results.getEntities()) {
-    organizations.put(entity.getUuid(),(String)entity.getProperty("path"));
+    String path=(String)entity.getProperty("path");
+    if (organizations.containsValue(path)) {
+      path+="DUPLICATE";
+    }
+    organizations.put(entity.getUuid(),path);
   }
   return organizations;
 }
