@@ -5,35 +5,35 @@
       if (management.checkPasswordResetTokenForAdminUser(user.getUuid(),token)) {
         if ((password1 != null) && password1.equals(password2)) {
           management.setAdminUserPassword(user.getUuid(),password1);
-          return new Viewable("resetpw_set_success",this);
+          return handleViewable("resetpw_set_success",this);
         }
  else {
           errorMsg="Passwords didn't match, let's try again...";
-          return new Viewable("resetpw_set_form",this);
+          return handleViewable("resetpw_set_form",this);
         }
       }
  else {
         errorMsg="Something odd happened, let's try again...";
-        return new Viewable("resetpw_email_form",this);
+        return handleViewable("resetpw_email_form",this);
       }
     }
     if (!useReCaptcha()) {
       management.startAdminUserPasswordResetFlow(user);
-      return new Viewable("resetpw_email_success",this);
+      return handleViewable("resetpw_email_success",this);
     }
     ReCaptchaImpl reCaptcha=new ReCaptchaImpl();
     reCaptcha.setPrivateKey(properties.getProperty("usergrid.recaptcha.private"));
     ReCaptchaResponse reCaptchaResponse=reCaptcha.checkAnswer(httpServletRequest.getRemoteAddr(),challenge,uresponse);
     if (reCaptchaResponse.isValid()) {
       management.startAdminUserPasswordResetFlow(user);
-      return new Viewable("resetpw_email_success",this);
+      return handleViewable("resetpw_email_success",this);
     }
  else {
       errorMsg="Incorrect Captcha";
-      return new Viewable("resetpw_email_form",this);
+      return handleViewable("resetpw_email_form",this);
     }
   }
  catch (  Exception e) {
-    return new Viewable("error",e);
+    return handleViewable("error",e);
   }
 }
