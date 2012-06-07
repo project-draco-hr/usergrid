@@ -22,14 +22,17 @@
       if (isNotBlank(state)) {
         redirect_uri+="&state=" + URLEncoder.encode(state,"UTF-8");
       }
-      throw new WebApplicationException(temporaryRedirect(new URI(state)).build());
+      throw new RedirectionException(state);
     }
  else {
       errorMsg="Username or password do not match";
     }
     return handleViewable("authorize_form",this);
   }
- catch (  Exception e) {
+ catch (  RedirectionException e) {
+    throw e;
+  }
+catch (  Exception e) {
     return handleViewable("error",e);
   }
 }
