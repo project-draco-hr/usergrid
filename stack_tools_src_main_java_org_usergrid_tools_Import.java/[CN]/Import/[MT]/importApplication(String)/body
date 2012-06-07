@@ -6,10 +6,15 @@
   validateStartArray(token);
   token=jp.nextValue();
   Application application=jp.readValueAs(Application.class);
-  @SuppressWarnings("unchecked") String organizationId=((Map<String,String>)application.getMetadata("organization")).get("key");
-  managementService.importApplication(UUID.fromString(organizationId),application);
+  @SuppressWarnings("unchecked") String orgName=((Map<String,String>)application.getMetadata("organization")).get("value");
+  OrganizationInfo info=managementService.getOrganizationByName(orgName);
+  if (info == null) {
+    logger.error("Unable to import application '{}' for organisation with name '{}'",application.getName(),orgName);
+    return;
+  }
+  UUID appId=managementService.importApplication(info.getUuid(),application);
   echo(application);
-  EntityManager em=emf.getEntityManager(application.getUuid());
+  EntityManager em=emf.getEntityManager(appId);
   for (  Entry<String,String> entry : em.getRoles().entrySet()) {
     em.deleteRole(entry.getKey());
   }

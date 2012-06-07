@@ -6,6 +6,11 @@
     }
     OrganizationInfo acc=managementService.getOrganizationByUuid(organizationName.getKey());
     logger.info("Exporting Organization: " + acc.getName());
-    saveOrganizationInFile(acc);
+    ExportOrg exportOrg=new ExportOrg(acc);
+    List<UserInfo> users=managementService.getAdminUsersForOrganization(organizationName.getKey());
+    for (    UserInfo user : users) {
+      exportOrg.addAdmin(user.getUsername());
+    }
+    saveOrganizationInFile(exportOrg);
   }
 }
