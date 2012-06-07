@@ -6,14 +6,16 @@
   acc=jp.readValueAs(ExportOrg.class);
   Map<String,Object> properties=new LinkedHashMap<String,Object>();
   echo(acc);
-  OrganizationInfo orgInfo=managementService.getOrganizationByName(acc.getName());
-  if (orgInfo == null) {
-    orgInfo=managementService.importOrganization(acc.getUuid(),acc,properties);
+  Entity org=managementService.getOrganizationEntityByName(acc.getName());
+  if (org == null) {
+    managementService.importOrganization(acc.getUuid(),acc,properties);
+    org=managementService.getOrganizationEntityByName(acc.getName());
   }
   for (  String exportedUser : acc.getAdmins()) {
     UserInfo existing=managementService.getAdminUserByUsername(exportedUser);
     if (existing != null) {
-      managementService.addAdminUserToOrganization(existing,orgInfo);
+      EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+      em.addToCollection(org,"users",new SimpleEntityRef(User.ENTITY_TYPE,existing.getUuid()));
     }
   }
   jp.close();
