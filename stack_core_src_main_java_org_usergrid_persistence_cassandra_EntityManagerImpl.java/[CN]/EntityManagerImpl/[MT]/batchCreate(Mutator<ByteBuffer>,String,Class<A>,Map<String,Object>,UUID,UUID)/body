@@ -1,12 +1,27 @@
 {
-  long timestamp=getTimestampInMicros(timestampUuid);
   String eType=Schema.normalizeEntityType(entityType);
   boolean is_application=TYPE_APPLICATION.equals(eType);
   if (((applicationId == null) || applicationId.equals(UUIDUtils.zeroUUID)) && !is_application) {
     return null;
   }
+  long timestamp=getTimestampInMicros(timestampUuid);
+  UUID itemId=UUIDUtils.newTimeUUID();
+  if (is_application) {
+    itemId=applicationId;
+  }
+  if (importId != null) {
+    itemId=importId;
+  }
   if (properties == null) {
     properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
+  }
+  if (importId != null) {
+    if (isTimeBased(importId)) {
+      timestamp=UUIDUtils.getTimestampInMicros(importId);
+    }
+ else     if (properties.get(PROPERTY_CREATED) != null) {
+      timestamp=getLong(properties.get(PROPERTY_CREATED)) * 1000;
+    }
   }
   if (entityClass == null) {
     entityClass=(Class<A>)DynamicEntity.class;
@@ -37,13 +52,6 @@
       }
     }
   }
-  UUID itemId=UUIDUtils.newTimeUUID();
-  if (is_application) {
-    itemId=applicationId;
-  }
-  if (importId != null) {
-    itemId=importId;
-  }
   String collection_name=Schema.defaultCollectionName(eType);
   String bucketId=indexBucketLocator.getBucket(applicationId,IndexType.COLLECTION,itemId,collection_name);
   Object collection_key=key(applicationId,Schema.DICTIONARY_COLLECTIONS,collection_name,bucketId);
@@ -73,12 +81,22 @@
   }
   properties.put(PROPERTY_UUID,itemId);
   properties.put(PROPERTY_TYPE,Schema.normalizeEntityType(entityType,false));
-  properties.put(PROPERTY_CREATED,timestamp / 1000);
-  properties.put(PROPERTY_MODIFIED,timestamp / 1000);
+  if (importId != null) {
+    if (properties.get(PROPERTY_CREATED) == null) {
+      properties.put(PROPERTY_CREATED,timestamp / 1000);
+    }
+    if (properties.get(PROPERTY_MODIFIED) == null) {
+      properties.put(PROPERTY_MODIFIED,timestamp / 1000);
+    }
+  }
+ else {
+    properties.put(PROPERTY_CREATED,timestamp / 1000);
+    properties.put(PROPERTY_MODIFIED,timestamp / 1000);
+  }
   if (properties.containsKey(PROPERTY_TIMESTAMP)) {
     long ts=getLong(properties.get(PROPERTY_TIMESTAMP));
     if (ts <= 0) {
-      properties.put(PROPERTY_TIMESTAMP,timestamp);
+      properties.put(PROPERTY_TIMESTAMP,timestamp / 1000);
     }
   }
   A entity=EntityFactory.newEntity(itemId,eType,entityClass);
@@ -92,7 +110,7 @@
       }
     }
     Message message=storeEventAsMessage(m,event,timestamp);
-    incrementEntityCollection("events");
+    incrementEntityCollection("events",timestamp);
     entity.setUuid(message.getUuid());
     return entity;
   }
@@ -118,7 +136,7 @@
     batchSetProperty(m,entity,prop_name,propertyValue,true,true,timestampUuid);
   }
   if (!is_application) {
-    incrementEntityCollection(collection_name);
+    incrementEntityCollection(collection_name,timestamp);
   }
   return entity;
 }
