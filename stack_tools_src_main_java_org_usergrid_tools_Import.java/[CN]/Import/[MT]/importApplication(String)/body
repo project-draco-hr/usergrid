@@ -12,7 +12,16 @@
     logger.error("Unable to import application '{}' for organisation with name '{}'",application.getName(),orgName);
     return;
   }
-  UUID appId=managementService.importApplication(info.getUuid(),application);
+  UUID appId=null;
+  try {
+    appId=managementService.importApplication(info.getUuid(),application);
+  }
+ catch (  ApplicationAlreadyExistsException aaee) {
+    ApplicationInfo appInfo=managementService.getApplicationInfo(orgName + "/" + application.getName());
+    if (appInfo != null) {
+      appId=appInfo.getId();
+    }
+  }
   echo(application);
   EntityManager em=emf.getEntityManager(appId);
   for (  Entry<String,String> entry : em.getRoles().entrySet()) {
