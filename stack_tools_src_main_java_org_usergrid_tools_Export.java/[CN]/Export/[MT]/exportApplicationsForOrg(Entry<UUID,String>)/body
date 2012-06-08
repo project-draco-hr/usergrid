@@ -16,8 +16,10 @@
     }
     EntityManager em=emf.getEntityManager(application.getKey());
     Entity nsEntity=em.get(application.getKey());
+    Map<String,Long> entityCounters=em.getApplicationCounters();
     nsEntity.setMetadata("organization",organization);
     nsEntity.setMetadata("dictionaries",dictionaries);
+    nsEntity.setMetadata("counters",entityCounters);
     jg.writeStartArray();
     jg.writeObject(nsEntity);
     JsonGenerator collectionsJg=getJsonGenerator(createOutputFile("collections",application.getValue()));
