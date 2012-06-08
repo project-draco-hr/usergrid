@@ -73,6 +73,14 @@
   }
   properties.put(PROPERTY_UUID,itemId);
   properties.put(PROPERTY_TYPE,Schema.normalizeEntityType(entityType,false));
+  if (importId != null) {
+    if (isTimeBased(importId)) {
+      timestamp=UUIDUtils.getTimestampInMicros(importId);
+    }
+ else     if (properties.get(PROPERTY_CREATED) != null) {
+      timestamp=getLong(properties.get(PROPERTY_CREATED)) * 1000;
+    }
+  }
   if (properties.get(PROPERTY_CREATED) == null) {
     properties.put(PROPERTY_CREATED,timestamp / 1000);
   }
@@ -82,7 +90,7 @@
   if (properties.containsKey(PROPERTY_TIMESTAMP)) {
     long ts=getLong(properties.get(PROPERTY_TIMESTAMP));
     if (ts <= 0) {
-      properties.put(PROPERTY_TIMESTAMP,timestamp);
+      properties.put(PROPERTY_TIMESTAMP,timestamp / 1000);
     }
   }
   A entity=EntityFactory.newEntity(itemId,eType,entityClass);
@@ -96,7 +104,7 @@
       }
     }
     Message message=storeEventAsMessage(m,event,timestamp);
-    incrementEntityCollection("events");
+    incrementEntityCollection("events",timestamp);
     entity.setUuid(message.getUuid());
     return entity;
   }
@@ -122,7 +130,7 @@
     batchSetProperty(m,entity,prop_name,propertyValue,true,true,timestampUuid);
   }
   if (!is_application) {
-    incrementEntityCollection(collection_name);
+    incrementEntityCollection(collection_name,timestamp);
   }
   return entity;
 }
