@@ -40,11 +40,7 @@
   for (  Entry<String,Object> stat : stats.entrySet()) {
     String entryName=stat.getKey();
     long amount=Long.parseLong(stat.getValue().toString());
-    if (entryName.startsWith("application.collection") || entryName.equals("application.entities")) {
-      em.incrementApplicationCounter(entryName,1);
-      em.incrementApplicationCounter(entryName,-1);
-    }
- else {
+    if (!entryName.startsWith("application.collection") && !entryName.equals("application.entities")) {
       em.incrementApplicationCounter(entryName,amount);
     }
   }
