@@ -36,14 +36,6 @@
       em.addMapToDictionary(appEntity,dictionary.getKey(),value);
     }
   }
-  @SuppressWarnings("unchecked") Map<String,Object> stats=(Map<String,Object>)application.getMetadata("counters");
-  for (  Entry<String,Object> stat : stats.entrySet()) {
-    String entryName=stat.getKey();
-    long amount=Long.parseLong(stat.getValue().toString());
-    if (!entryName.startsWith("application.collection") && !entryName.equals("application.entities")) {
-      em.incrementApplicationCounter(entryName,amount);
-    }
-  }
   @SuppressWarnings("unchecked") List<String> collections=(List<String>)application.getMetadata("collections");
   for (  String collectionName : collections) {
     em.createApplicationCollection(collectionName);
