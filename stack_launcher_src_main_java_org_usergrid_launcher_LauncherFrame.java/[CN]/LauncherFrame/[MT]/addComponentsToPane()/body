@@ -68,10 +68,16 @@
       if (app.serverIsStarted() && (status == Status.GREEN)) {
         storeAdminUrls();
         storeAdminEmail();
+        String adminUri=null;
         try {
+          adminUri=getAdminURI().toString();
           Desktop.getDesktop().browse(getAdminURI());
         }
- catch (        Exception e) {
+ catch (        IOException e) {
+          JOptionPane.showMessageDialog(null,new JTextArea("Error opening URL in browser." + " Please open the following URL in a browser manually:\n" + adminUri),"Warning",JOptionPane.WARNING_MESSAGE);
+        }
+catch (        Exception ex) {
+          JOptionPane.showMessageDialog(null,new JTextArea("Error opening URL in browser." + "Please open the following URL in a browser manually:" + adminUri),"Warning",JOptionPane.WARNING_MESSAGE);
         }
       }
  else {
