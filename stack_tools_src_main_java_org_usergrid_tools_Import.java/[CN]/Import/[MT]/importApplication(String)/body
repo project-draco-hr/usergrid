@@ -12,11 +12,33 @@
     logger.error("Unable to import application '{}' for organisation with name '{}'",application.getName(),orgName);
     return;
   }
-  UUID appId=managementService.importApplication(info.getUuid(),application);
+  UUID appId=null;
+  try {
+    appId=managementService.importApplication(info.getUuid(),application);
+  }
+ catch (  ApplicationAlreadyExistsException aaee) {
+    ApplicationInfo appInfo=managementService.getApplicationInfo(orgName + "/" + application.getName());
+    if (appInfo != null) {
+      appId=appInfo.getId();
+    }
+  }
   echo(application);
   EntityManager em=emf.getEntityManager(appId);
   for (  Entry<String,String> entry : em.getRoles().entrySet()) {
     em.deleteRole(entry.getKey());
+  }
+  @SuppressWarnings("unchecked") Map<String,Object> dictionaries=(Map<String,Object>)application.getMetadata("dictionaries");
+  if (dictionaries != null) {
+    EntityManager rootEm=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+    Entity appEntity=rootEm.get(appId);
+    for (    Entry<String,Object> dictionary : dictionaries.entrySet()) {
+      @SuppressWarnings("unchecked") Map<Object,Object> value=(Map<Object,Object>)dictionary.getValue();
+      em.addMapToDictionary(appEntity,dictionary.getKey(),value);
+    }
+  }
+  @SuppressWarnings("unchecked") List<String> collections=(List<String>)application.getMetadata("collections");
+  for (  String collectionName : collections) {
+    em.createApplicationCollection(collectionName);
   }
   while (jp.nextValue() != JsonToken.END_ARRAY) {
     @SuppressWarnings("unchecked") Map<String,Object> entityProps=jp.readValueAs(HashMap.class);
@@ -27,10 +49,13 @@
     }
  catch (    DuplicateUniquePropertyExistsException de) {
       logger.error("Unable to create entity.  It appears to be a duplicate",de);
+      continue;
     }
-catch (    Exception e) {
-      logger.error("Unable to create entity " + uuid + " of type "+ type+ ", skipping but this may indicate a bad import...",e);
+    if (em.get(uuid) == null) {
+      logger.error("Holy hell, we wrote an entity and it's missing.  Entity Id was {} and type is {}",uuid,type);
+      System.exit(1);
     }
+    logger.info("Counts {}",JsonUtils.mapToFormattedJsonString(em.getApplicationCounters()));
     echo(entityProps);
   }
   logger.info("----- End of application:" + application.getName());

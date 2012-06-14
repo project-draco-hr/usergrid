@@ -4,9 +4,24 @@
   for (  Entry<UUID,String> application : applications.entrySet()) {
     logger.info(application.getValue() + " : " + application.getKey());
     JsonGenerator jg=getJsonGenerator(createOutputFile("application",application.getValue()));
+    EntityManager rootEm=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+    Entity appEntity=rootEm.get(application.getKey());
+    Map<String,Object> dictionaries=new HashMap<String,Object>();
+    for (    String dictionary : rootEm.getDictionaries(appEntity)) {
+      Map<Object,Object> dict=rootEm.getDictionaryAsMap(appEntity,dictionary);
+      if (dict.isEmpty()) {
+        continue;
+      }
+      dictionaries.put(dictionary,dict);
+    }
     EntityManager em=emf.getEntityManager(application.getKey());
     Entity nsEntity=em.get(application.getKey());
+    Set<String> collections=em.getApplicationCollections();
+    Map<String,Long> entityCounters=em.getApplicationCounters();
     nsEntity.setMetadata("organization",organization);
+    nsEntity.setMetadata("dictionaries",dictionaries);
+    nsEntity.setMetadata("counters",entityCounters);
+    nsEntity.setMetadata("collections",collections);
     jg.writeStartArray();
     jg.writeObject(nsEntity);
     JsonGenerator collectionsJg=getJsonGenerator(createOutputFile("collections",application.getValue()));
