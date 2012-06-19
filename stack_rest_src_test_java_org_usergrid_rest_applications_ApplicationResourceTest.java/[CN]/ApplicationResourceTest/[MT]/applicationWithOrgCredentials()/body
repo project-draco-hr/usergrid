@@ -1,0 +1,7 @@
+{
+  OrganizationInfo orgInfo=managementService.getOrganizationByName("test-organization");
+  String clientId=managementService.getClientIdForOrganization(orgInfo.getUuid());
+  String clientSecret=managementService.getClientSecretForOrganization(orgInfo.getUuid());
+  JsonNode node=resource().path("/test-organization/test-app/users").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  assertNotNull(node.get("entities"));
+}

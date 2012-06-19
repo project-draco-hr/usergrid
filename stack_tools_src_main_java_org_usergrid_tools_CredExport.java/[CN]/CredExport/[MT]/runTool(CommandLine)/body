@@ -1,0 +1,37 @@
+{
+  String appOption=line.getOptionValue("app");
+  String orgOption=line.getOptionValue("org");
+  startSpring();
+  UUID orgId=UUIDUtils.tryExtractUUID(orgOption);
+  OrganizationInfo org=null;
+  if (orgId != null) {
+    org=managementService.getOrganizationByUuid(orgId);
+  }
+ else {
+    org=managementService.getOrganizationByName(orgOption);
+  }
+  if (org == null) {
+    System.out.println(String.format("Unable to find org with name or id %s",orgOption));
+    System.exit(1);
+  }
+  UUID appID=UUIDUtils.tryExtractUUID(appOption);
+  ApplicationInfo app=null;
+  if (appID != null) {
+    app=managementService.getApplicationInfo(appID);
+  }
+ else {
+    app=managementService.getApplicationInfo(orgOption + "/" + appOption);
+  }
+  if (app == null) {
+    System.err.println(String.format("Could not find an appliation with the name or id of %s",appOption));
+    System.exit(2);
+  }
+  System.out.println(String.format("Org Id: %s",org.getUuid()));
+  System.out.println(String.format("Org Name: %s",org.getName()));
+  System.out.println(String.format("Org Client Id: %s",managementService.getClientIdForOrganization(org.getUuid())));
+  System.out.println(String.format("Org Client Secret: %s",managementService.getClientSecretForOrganization(org.getUuid())));
+  System.out.println(String.format("App Id: %s",app.getId()));
+  System.out.println(String.format("App Name: %s",app.getName()));
+  System.out.println(String.format("App Client Id: %s",managementService.getClientIdForApplication(app.getId())));
+  System.out.println(String.format("App Client Secret: %s",managementService.getClientSecretForApplication(app.getId())));
+}

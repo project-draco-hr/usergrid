@@ -7,13 +7,12 @@
   query.setEntityType(collection.getType());
   boolean reversed=query.isReversed();
   if (!query.hasQueryPredicates() && !query.hasSortPredicates()) {
-    Map<UUID,UUID> ids=null;
-    ids=cass.getIdPairList(cass.getApplicationKeyspace(applicationId),key(headEntity.getUuid(),DICTIONARY_COLLECTIONS,collectionName),query.getStartResult(),null,query.getLimit() + 1,reversed);
-    Results results=Results.fromIdList(new ArrayList<UUID>(ids.keySet()),collection.getType());
+    List<UUID> ids=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(headEntity.getUuid(),DICTIONARY_COLLECTIONS,collectionName),query.getStartResult(),null,query.getLimit() + 1,reversed,indexBucketLocator,applicationId,collectionName);
+    Results results=Results.fromIdList(ids,collection.getType());
     if (results != null) {
       results.setQuery(query);
     }
-    return em.loadEntities(results,query.getResultsLevel(),ids,query.getLimit());
+    return em.loadEntities(results,query.getResultsLevel(),query.getLimit());
   }
   QueryProcessor qp=new QueryProcessor(query,collection);
   SearchCollectionVisitor visitor=new SearchCollectionVisitor(query,qp,collection);

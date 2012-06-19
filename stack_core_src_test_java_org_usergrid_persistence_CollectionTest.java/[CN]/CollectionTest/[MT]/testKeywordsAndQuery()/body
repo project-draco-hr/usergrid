@@ -1,0 +1,25 @@
+{
+  logger.info("testKeywordsOrQuery");
+  UUID applicationId=createApplication("testOrganization","testKeywordsAndQuery");
+  assertNotNull(applicationId);
+  EntityManager em=emf.getEntityManager(applicationId);
+  assertNotNull(em);
+  Map<String,Object> properties=new LinkedHashMap<String,Object>();
+  properties.put("title","Galactians 2");
+  properties.put("keywords","Hot, Space Invaders, Classic");
+  Entity firstGame=em.create("game",properties);
+  properties=new LinkedHashMap<String,Object>();
+  properties.put("title","Bunnies Extreme");
+  properties.put("keywords","Hot, New");
+  Entity secondGame=em.create("game",properties);
+  properties=new LinkedHashMap<String,Object>();
+  properties.put("title","Hot Shots Extreme");
+  properties.put("keywords","Action, New");
+  Entity thirdGame=em.create("game",properties);
+  Query query=Query.fromQL("select * where keywords contains 'new' and title contains 'extreme'");
+  Results r=em.searchCollection(em.getApplicationRef(),"games",query);
+  logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+  assertEquals(2,r.size());
+  assertEquals(secondGame.getUuid(),r.getEntities().get(0).getUuid());
+  assertEquals(thirdGame.getUuid(),r.getEntities().get(1).getUuid());
+}
