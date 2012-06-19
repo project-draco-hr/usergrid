@@ -1,0 +1,22 @@
+{
+  UUID appId=null;
+  try {
+    appId=managementService.createApplication(organizationInfo.getUuid(),"sandbox");
+  }
+ catch (  Exception ex) {
+    throw new ApplicationCreationException("'sandbox' could not be created for organization: " + organizationInfo.getUuid(),ex);
+  }
+  EntityManager em=entityManagerFactory.getEntityManager(appId);
+  try {
+    em.grantRolePermissions("guest",Arrays.asList("get,post:/**"));
+  }
+ catch (  Exception ex) {
+    throw new ApplicationCreationException("Could not grant permissions to guest for default collections in 'sandbox'",ex);
+  }
+  try {
+    return managementService.getApplicationInfo(appId);
+  }
+ catch (  Exception ex) {
+    throw new ApplicationCreationException("Could not load new Application.",ex);
+  }
+}
