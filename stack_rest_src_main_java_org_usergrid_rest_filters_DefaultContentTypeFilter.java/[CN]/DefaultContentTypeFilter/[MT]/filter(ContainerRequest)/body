@@ -1,7 +1,14 @@
 {
-  String value=request.getHeaderValue(HttpHeaders.ACCEPT);
-  if (value != null && !value.contains(MediaType.APPLICATION_JSON)) {
+  String accept_header=request.getHeaderValue(HttpHeaders.ACCEPT);
+  String content_type=request.getHeaderValue(HttpHeaders.CONTENT_TYPE);
+  logger.info("Accept: " + accept_header);
+  logger.info("Content-type: " + content_type);
+  if (accept_header == null || accept_header.contains("*/*")) {
     request.getRequestHeaders().putSingle(HttpHeaders.ACCEPT,MediaType.APPLICATION_JSON);
+    request.getRequestHeaders().putSingle(HttpHeaders.CONTENT_TYPE,JSON_TYPE);
+  }
+  if (content_type == null || content_type.contains("*/*") || content_type.contains("text/plain")) {
+    request.getRequestHeaders().putSingle(HttpHeaders.CONTENT_TYPE,JSON_TYPE);
   }
   return request;
 }
