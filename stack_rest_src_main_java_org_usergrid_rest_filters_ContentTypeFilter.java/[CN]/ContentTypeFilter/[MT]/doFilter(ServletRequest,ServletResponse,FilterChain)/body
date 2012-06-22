@@ -1,0 +1,17 @@
+{
+  if (!(request instanceof HttpServletRequest)) {
+    chain.doFilter(request,response);
+    return;
+  }
+  HttpServletRequest origRequest=(HttpServletRequest)request;
+  HeaderWrapperRequest newRequest=new HeaderWrapperRequest(origRequest);
+  String accept=origRequest.getHeader(HttpHeaders.ACCEPT);
+  String contentType=origRequest.getHeader(HttpHeaders.CONTENT_TYPE);
+  if (accept == null || accept.contains(WILDCARD)) {
+    newRequest.setHeader(HttpHeaders.ACCEPT,MediaType.APPLICATION_JSON);
+  }
+  if (contentType == null || contentType.contains(WILDCARD) || contentType.contains(MediaType.TEXT_PLAIN)) {
+    newRequest.setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON);
+  }
+  chain.doFilter(newRequest,response);
+}
