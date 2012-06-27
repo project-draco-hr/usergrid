@@ -71,6 +71,17 @@
  else     if (principal instanceof ApplicationUserPrincipal) {
       role(info,principal,ROLE_APPLICATION_USER);
       UUID applicationId=((ApplicationUserPrincipal)principal).getApplicationId();
+      AccessTokenCredentials tokenCredentials=((ApplicationUserPrincipal)principal).getAccessTokenCredentials();
+      TokenInfo token=null;
+      if (tokenCredentials != null) {
+        try {
+          token=tokens.getTokenInfo(tokenCredentials.getToken());
+        }
+ catch (        Exception e) {
+          logger.error("Unable to retrieve token info",e);
+        }
+        logger.info("Token: " + token);
+      }
       grant(info,principal,getPermissionFromPath(applicationId,"access"));
       EntityManager em=emf.getEntityManager(applicationId);
       try {
