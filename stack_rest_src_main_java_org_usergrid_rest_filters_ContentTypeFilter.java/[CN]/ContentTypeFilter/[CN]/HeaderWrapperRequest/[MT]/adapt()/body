@@ -1,8 +1,11 @@
 {
   int initial=inputStream.read();
+  String method=origRequest.getMethod();
   if (initial == -1) {
-    setHeader(HttpHeaders.ACCEPT,MediaType.APPLICATION_JSON);
-    setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON);
+    if (HttpMethod.POST.equals(method) || HttpMethod.PUT.equals(method)) {
+      setHeader(HttpHeaders.ACCEPT,MediaType.APPLICATION_JSON);
+      setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON);
+    }
     return;
   }
   char firstChar=(char)initial;
