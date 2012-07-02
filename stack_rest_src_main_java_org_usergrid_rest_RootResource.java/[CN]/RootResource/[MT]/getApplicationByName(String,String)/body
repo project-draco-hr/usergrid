@@ -2,9 +2,10 @@
   if ("options".equalsIgnoreCase(request.getMethod())) {
     throw new NoOpException();
   }
-  UUID applicationId=emf.lookupApplication(PathingUtils.assembleAppName(organizationName,applicationName));
+  String orgAppName=PathingUtils.assembleAppName(organizationName,applicationName);
+  UUID applicationId=emf.lookupApplication(orgAppName);
   if (applicationId == null) {
-    return null;
+    throw new OrganizationApplicationNotFoundException(orgAppName,uriInfo);
   }
   return appResourceFor(applicationId);
 }
