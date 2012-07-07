@@ -1,0 +1,31 @@
+{
+  UUID applicationId=createApplication("permissionsTest","testPermissionTimeout");
+  assertNotNull(applicationId);
+  EntityManager em=emf.getEntityManager(applicationId);
+  String name1="rolename1";
+  String title1="roletitle1";
+  long inactivity1=10000;
+  String name2="rolename2";
+  String title2="roletitle2";
+  long inactivity2=20000;
+  em.createRole(name1,title1,inactivity1);
+  em.createRole(name2,title2,inactivity2);
+  String fakeRole="fakerole";
+  Set<String> names=new HashSet<String>();
+  names.add(name1);
+  names.add(name2);
+  names.add(fakeRole);
+  Map<String,Role> results=em.getRolesWithTitles(names);
+  Role existing=results.get(name1);
+  assertNotNull(existing);
+  assertEquals(name1,existing.getName());
+  assertEquals(title1,existing.getTitle());
+  assertEquals(inactivity1,existing.getInactivity().longValue());
+  existing=results.get(name2);
+  assertNotNull(existing);
+  assertEquals(name2,existing.getName());
+  assertEquals(title2,existing.getTitle());
+  assertEquals(inactivity2,existing.getInactivity().longValue());
+  existing=results.get(fakeRole);
+  assertNull(existing);
+}
