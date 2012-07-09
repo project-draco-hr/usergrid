@@ -17,14 +17,27 @@
       AppScore appScore=new AppScore(orgScore,uuid,applications.get(uuid));
       EntityManager em=emf.getEntityManager(uuid);
       Map<String,Long> counters=em.getApplicationCounters();
-      appScore.setUserCount(counters.get("application.collection.users"));
+      System.out.println(counters);
+      appScore.setUserCount(counters.get("application.collection.users") != null ? counters.get("application.collection.users") : 0);
       orgScore.addToUserCount(appScore.getUserCount());
-      appScore.setRequestCount(counters.get("application.requests"));
+      appScore.setRequestCount(counters.get("application.requests") != null ? counters.get("application.requests") : 0);
       System.out.println(applications.get(uuid) + " has counters: " + em.getApplicationCounters());
       appScores.put(orgScore,appScore);
+      Query query=new Query();
+      query.addCounterFilter("application.requests:*:*:*");
+      query.setResolution(CounterResolution.MINUTE);
+      Results r=em.getAggregateCounters(query);
+      List<AggregateCounterSet> qc=r.getCounters();
+      for (      AggregateCounterSet acs : qc) {
+        System.out.println("name: " + acs.getName());
+        List<AggregateCounter> ac=acs.getValues();
+        for (        AggregateCounter a : ac) {
+          System.out.println("col: " + a.getTimestamp() + " val: "+ a.getValue());
+        }
+      }
     }
   }
-  JsonGenerator jg=getJsonGenerator(outputDir);
+  JsonGenerator jg=getJsonGenerator("metrics.json");
   jsonLineWriter(jg,MetricSort.APP_REQ_COUNT,appScores);
   jsonLineWriter(jg,MetricSort.APP_USER_COUNT,appScores);
   jsonLineWriter(jg,MetricSort.ORG_ADMIN_COUNT,appScores);
