@@ -1,13 +1,17 @@
 {
-  Map<String,String> rolesWithTitles=new HashMap<String,String>();
-  Map<String,Object> results=getDictionaryElementValues(getApplicationRef(),DICTIONARY_ROLENAMES,roleNames.toArray(new String[0]));
+  Map<String,Role> rolesWithTitles=new HashMap<String,Role>();
+  Map<String,Object> nameResults=getDictionaryElementValues(getApplicationRef(),DICTIONARY_ROLENAMES,roleNames.toArray(new String[0]));
+  Map<String,Object> timeResults=getDictionaryElementValues(getApplicationRef(),DICTIONARY_ROLETIMES,roleNames.toArray(new String[0]));
   for (  String roleName : roleNames) {
-    rolesWithTitles.put(roleName,roleName);
-  }
-  if (results != null) {
-    for (    Entry<String,Object> result : results.entrySet()) {
-      rolesWithTitles.put(result.getKey(),string(result.getValue()));
+    String savedTitle=string(nameResults.get(roleName));
+    if (savedTitle == null) {
+      continue;
     }
+    Role newRole=new Role();
+    newRole.setName(roleName);
+    newRole.setTitle(savedTitle);
+    newRole.setInactivity(getLong(timeResults.get(roleName)));
+    rolesWithTitles.put(roleName,newRole);
   }
   return rolesWithTitles;
 }
