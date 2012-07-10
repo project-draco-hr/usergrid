@@ -5,44 +5,19 @@
   outputDir=createOutputParentDir();
   logger.info("Export directory: {}",outputDir.getAbsolutePath());
   BiMap<UUID,String> organizations=managementService.getOrganizations();
-  ListMultimap<OrgScore,AppScore> appScores=ArrayListMultimap.create();
+  UUID orgId;
   for (  Map.Entry<UUID,String> organization : organizations.entrySet()) {
-    System.out.println("Org Name: " + organization.getValue());
-    OrgScore orgScore=new OrgScore(organization.getKey(),organization.getValue());
-    List<UserInfo> adminUsers=managementService.getAdminUsersForOrganization(orgScore.getId());
-    orgScore.setAdminCount(adminUsers.size());
+    logger.info("Org Name: {}",organization.getValue());
+    orgId=organization.getKey();
+    List<UserInfo> adminUsers=managementService.getAdminUsersForOrganization(orgId);
     BiMap<UUID,String> applications=managementService.getApplicationsForOrganization(organization.getKey());
-    orgScore.setAppCount(applications.size());
     for (    UUID uuid : applications.keySet()) {
-      AppScore appScore=new AppScore(orgScore,uuid,applications.get(uuid));
-      EntityManager em=emf.getEntityManager(uuid);
-      Map<String,Long> counters=em.getApplicationCounters();
-      System.out.println(counters);
-      appScore.setUserCount(counters.get("application.collection.users") != null ? counters.get("application.collection.users") : 0);
-      orgScore.addToUserCount(appScore.getUserCount());
-      appScore.setRequestCount(counters.get("application.requests") != null ? counters.get("application.requests") : 0);
-      System.out.println(applications.get(uuid) + " has counters: " + em.getApplicationCounters());
-      appScores.put(orgScore,appScore);
-      Query query=new Query();
-      query.addCounterFilter("application.requests:*:*:*");
-      query.setResolution(CounterResolution.MINUTE);
-      Results r=em.getAggregateCounters(query);
-      List<AggregateCounterSet> qc=r.getCounters();
-      for (      AggregateCounterSet acs : qc) {
-        System.out.println("name: " + acs.getName());
-        List<AggregateCounter> ac=acs.getValues();
-        for (        AggregateCounter a : ac) {
-          System.out.println("col: " + new Date(a.getTimestamp()) + " val: "+ a.getValue());
-        }
+      MetricQuery metricQuery=MetricQuery.getInstance(uuid,MetricSort.APP_REQ_COUNT);
+      logger.info("Checking app: {}",applications.get(uuid));
+      List<AggregateCounter> ac=metricQuery.resolution(CounterResolution.DAY).execute(emf.getEntityManager(uuid));
+      for (      AggregateCounter a : ac) {
+        logger.info("col: {} val: {}",new Date(a.getTimestamp()),a.getValue());
       }
     }
   }
-  JsonGenerator jg=getJsonGenerator("metrics.json");
-  jsonLineWriter(jg,MetricSort.APP_REQ_COUNT,appScores);
-  jsonLineWriter(jg,MetricSort.APP_USER_COUNT,appScores);
-  jsonLineWriter(jg,MetricSort.ORG_ADMIN_COUNT,appScores);
-  jsonLineWriter(jg,MetricSort.ORG_USER_COUNT,appScores);
-  jsonLineWriter(jg,MetricSort.ORG_APP_COUNT,appScores);
-  jsonLineWriter(jg,MetricSort.ORG_ADMIN_LOGIN_COUNT,appScores);
-  jg.close();
 }

@@ -1,0 +1,23 @@
+{
+  Query query=new Query();
+  query.addCounterFilter("application.requests:*:*:*");
+  if (startDate > 0)   query.setStartTime(startDate);
+  if (endDate > 0) {
+    Preconditions.checkArgument(endDate > startDate,"The endDate (%s) must be greater than the startDate (%s)",endDate,startDate);
+  }
+ else {
+    endDate=System.currentTimeMillis();
+  }
+  query.setFinishTime(endDate);
+  query.setResolution(counterResolution);
+  query.setPad(padding);
+  Results r=entityManager.getAggregateCounters(query);
+  List<AggregateCounterSet> qc=r.getCounters();
+  List<AggregateCounter> counters=new ArrayList();
+  if (qc != null && qc.size() > 0) {
+    if (qc.get(0) != null && qc.get(0).getValues() != null) {
+      counters.addAll(qc.get(0).getValues());
+    }
+  }
+  return counters;
+}
