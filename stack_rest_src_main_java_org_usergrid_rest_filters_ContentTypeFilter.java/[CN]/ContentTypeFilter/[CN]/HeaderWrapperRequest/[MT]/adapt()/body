@@ -1,15 +1,15 @@
 {
-  String contentType=origRequest.getContentType();
-  if (contentType != null) {
-    for (    String accepted : ACCEPTED_TYPES) {
-      if (contentType.contains(accepted)) {
-        return;
-      }
-    }
-  }
   int initial=inputStream.read();
   String method=origRequest.getMethod();
   if (initial == -1) {
+    String contentType=origRequest.getContentType();
+    if (contentType != null) {
+      for (      String immutable : IMMUTABLE_TYPES) {
+        if (contentType.contains(immutable)) {
+          return;
+        }
+      }
+    }
     if (HttpMethod.POST.equals(method) || HttpMethod.PUT.equals(method)) {
       setHeader(HttpHeaders.ACCEPT,MediaType.APPLICATION_JSON);
       setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON);
