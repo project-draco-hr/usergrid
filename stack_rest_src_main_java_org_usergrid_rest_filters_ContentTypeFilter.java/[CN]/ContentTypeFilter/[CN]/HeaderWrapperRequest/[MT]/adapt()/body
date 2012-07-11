@@ -1,8 +1,15 @@
 {
+  String path=origRequest.getRequestURI();
+  logger.debug("Content path is '{}'",path);
+  if (path != null && path.contains("management/orgs")) {
+    logger.debug("Short circuiting for path '{}'",path);
+    return;
+  }
   int initial=inputStream.read();
   String method=origRequest.getMethod();
   if (initial == -1) {
     if (HttpMethod.POST.equals(method) || HttpMethod.PUT.equals(method)) {
+      logger.debug("Setting content type to application/json for POST or PUT with no content at path '{}'",path);
       setHeader(HttpHeaders.ACCEPT,MediaType.APPLICATION_JSON);
       setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON);
     }
@@ -10,6 +17,7 @@
   }
   char firstChar=(char)initial;
   if (firstChar == '{' || firstChar == '[') {
+    logger.debug("Setting content type to application/json for POST or PUT with json content at path '{}'",path);
     setHeader(HttpHeaders.ACCEPT,MediaType.APPLICATION_JSON);
     setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON);
   }
