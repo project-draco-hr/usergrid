@@ -2,22 +2,21 @@
   startSpring();
   setVerbose(line);
   prepareBaseOutputFileName(line);
+  applyOrgId(line);
   outputDir=createOutputParentDir();
   logger.info("Export directory: {}",outputDir.getAbsolutePath());
-  BiMap<UUID,String> organizations=managementService.getOrganizations();
-  UUID orgId;
-  for (  Map.Entry<UUID,String> organization : organizations.entrySet()) {
-    logger.info("Org Name: {}",organization.getValue());
-    orgId=organization.getKey();
-    List<UserInfo> adminUsers=managementService.getAdminUsersForOrganization(orgId);
-    BiMap<UUID,String> applications=managementService.getApplicationsForOrganization(organization.getKey());
-    for (    UUID uuid : applications.keySet()) {
-      MetricQuery metricQuery=MetricQuery.getInstance(uuid,MetricSort.APP_REQ_COUNT);
-      logger.info("Checking app: {}",applications.get(uuid));
-      List<AggregateCounter> ac=metricQuery.resolution(CounterResolution.DAY).execute(emf.getEntityManager(uuid));
-      for (      AggregateCounter a : ac) {
-        logger.info("col: {} val: {}",new Date(a.getTimestamp()),a.getValue());
-      }
+  if (orgId == null) {
+    organizations=managementService.getOrganizations();
+    for (    Map.Entry<UUID,String> organization : organizations.entrySet()) {
+      logger.info("Org Name: {} key: {}",organization.getValue(),organization.getKey());
+      orgId=organization.getKey();
+      applicationsFor(orgId);
     }
+  }
+ else {
+    OrganizationInfo orgInfo=managementService.getOrganizationByUuid(orgId);
+    applicationsFor(orgInfo.getUuid());
+    organizations=HashBiMap.create(1);
+    organizations.put(orgInfo.getUuid(),orgInfo.getName());
   }
 }

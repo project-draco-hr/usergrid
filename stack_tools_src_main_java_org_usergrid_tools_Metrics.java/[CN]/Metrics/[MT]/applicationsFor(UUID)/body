@@ -1,0 +1,8 @@
+{
+  BiMap<UUID,String> applications=managementService.getApplicationsForOrganization(orgId);
+  for (  UUID uuid : applications.keySet()) {
+    logger.info("Checking app: {}",applications.get(uuid));
+    orgApps.put(orgId,uuid);
+    collect(MetricQuery.getInstance(uuid,MetricSort.APP_REQ_COUNT).resolution(CounterResolution.DAY).execute(emf.getEntityManager(uuid)));
+  }
+}

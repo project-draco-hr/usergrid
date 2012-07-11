@@ -1,6 +1,6 @@
 {
   Query query=new Query();
-  query.addCounterFilter("application.requests:*:*:*");
+  query.addCounterFilter(metricSort.queryFilter());
   if (startDate > 0)   query.setStartTime(startDate);
   if (endDate > 0) {
     Preconditions.checkArgument(endDate > startDate,"The endDate (%s) must be greater than the startDate (%s)",endDate,startDate);
@@ -19,5 +19,5 @@
       counters.addAll(qc.get(0).getValues());
     }
   }
-  return counters;
+  return new MetricLine(appId,metricSort,counters);
 }
