@@ -1,0 +1,39 @@
+{
+  startSpring();
+  Query query=null;
+  Results results=null;
+  for (  Entry<UUID,String> org : managementService.getOrganizations().entrySet()) {
+    for (    Entry<UUID,String> app : managementService.getApplicationsForOrganization(org.getKey()).entrySet()) {
+      UUID applicationId=app.getKey();
+      EntityManagerImpl em=(EntityManagerImpl)emf.getEntityManager(applicationId);
+      CassandraService cass=em.getCass();
+      IndexBucketLocator indexBucketLocator=em.getIndexBucketLocator();
+      for (      String collectionName : em.getCollections(new SimpleEntityRef(applicationId))) {
+        do {
+          query=new Query();
+          query.setLimit(100);
+          if (results != null) {
+            query.setCursor(results.getCursor());
+          }
+          List<UUID> ids=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(applicationId,DICTIONARY_COLLECTIONS,collectionName),query.getStartResult(),null,query.getLimit() + 1,false,indexBucketLocator,applicationId,collectionName);
+          CollectionInfo collection=getDefaultSchema().getCollection("application",collectionName);
+          Results tempResults=Results.fromIdList(ids,collection.getType());
+          if (tempResults != null) {
+            tempResults.setQuery(query);
+          }
+          results=em.loadEntities(tempResults,query.getResultsLevel(),query.getLimit());
+          if (ids.size() == results.size()) {
+            continue;
+          }
+          for (          Entity returned : results.getEntities()) {
+            ids.remove(returned.getUuid());
+          }
+          for (          UUID id : ids) {
+            em.deleteEntity(id);
+          }
+        }
+ while (results != null && results.size() > 0);
+      }
+    }
+  }
+}
