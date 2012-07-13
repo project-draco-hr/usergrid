@@ -1,17 +1,19 @@
 {
+  Preconditions.checkArgument(organizationInfo != null,"OrganizationInfo was null");
+  Preconditions.checkArgument(organizationInfo.getUuid() != null,"OrganizationInfo had no UUID");
   UUID appId=null;
   try {
-    appId=managementService.createApplication(organizationInfo.getUuid(),"sandbox");
+    appId=managementService.createApplication(organizationInfo.getUuid(),sampleAppName);
   }
  catch (  Exception ex) {
-    throw new ApplicationCreationException("'sandbox' could not be created for organization: " + organizationInfo.getUuid(),ex);
+    throw new ApplicationCreationException("'" + sampleAppName + "' could not be created for organization: "+ organizationInfo.getUuid(),ex);
   }
   EntityManager em=entityManagerFactory.getEntityManager(appId);
   try {
-    em.grantRolePermissions("guest",Arrays.asList("get,post:/**"));
+    em.grantRolePermissions("guest",Arrays.asList("get,post,put,delete:/**"));
   }
  catch (  Exception ex) {
-    throw new ApplicationCreationException("Could not grant permissions to guest for default collections in 'sandbox'",ex);
+    throw new ApplicationCreationException("Could not grant permissions to guest for default collections in '" + sampleAppName + "'",ex);
   }
   try {
     return managementService.getApplicationInfo(appId);
