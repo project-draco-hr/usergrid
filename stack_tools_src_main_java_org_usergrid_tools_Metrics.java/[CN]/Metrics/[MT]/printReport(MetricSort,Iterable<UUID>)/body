@@ -8,6 +8,11 @@
     jg.writeStartObject();
     jg.writeStringField("org_id",orgId.toString());
     jg.writeStringField("org_name",organizations.get(orgId));
+    jg.writeArrayFieldStart("admins");
+    for (    UserInfo userInfo : managementService.getAdminUsersForOrganization(orgId)) {
+      jg.writeString(userInfo.getEmail());
+    }
+    jg.writeEndArray();
     writeAppLines(jg,orgId);
     jg.writeEndObject();
   }
