@@ -1,38 +1,49 @@
 {
   startSpring();
-  Query query=null;
+  logger.info("Starting entity cleanup");
   Results results=null;
+  List<UUID> ids=null;
+  Query query=new Query();
+  query.setLimit(PAGE_SIZE);
+  String lastCursor=null;
   for (  Entry<UUID,String> org : managementService.getOrganizations().entrySet()) {
     for (    Entry<UUID,String> app : managementService.getApplicationsForOrganization(org.getKey()).entrySet()) {
+      logger.info("Starting cleanup for org {} and app {}",org.getValue(),app.getValue());
       UUID applicationId=app.getKey();
       EntityManagerImpl em=(EntityManagerImpl)emf.getEntityManager(applicationId);
       CassandraService cass=em.getCass();
       IndexBucketLocator indexBucketLocator=em.getIndexBucketLocator();
+      UUID timestampUuid=newTimeUUID();
+      long timestamp=getTimestampInMicros(timestampUuid);
       for (      String collectionName : em.getCollections(new SimpleEntityRef(applicationId))) {
+        lastCursor=null;
         do {
-          query=new Query();
-          query.setLimit(100);
-          if (results != null) {
-            query.setCursor(results.getCursor());
-          }
-          List<UUID> ids=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(applicationId,DICTIONARY_COLLECTIONS,collectionName),query.getStartResult(),null,query.getLimit() + 1,false,indexBucketLocator,applicationId,collectionName);
+          query.setCursor(lastCursor);
+          ids=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(applicationId,DICTIONARY_COLLECTIONS,collectionName),query.getStartResult(),null,query.getLimit() + 1,false,indexBucketLocator,applicationId,collectionName);
           CollectionInfo collection=getDefaultSchema().getCollection("application",collectionName);
           Results tempResults=Results.fromIdList(ids,collection.getType());
           if (tempResults != null) {
             tempResults.setQuery(query);
           }
           results=em.loadEntities(tempResults,query.getResultsLevel(),query.getLimit());
+          lastCursor=results.getCursor();
           if (ids.size() == results.size()) {
             continue;
           }
           for (          Entity returned : results.getEntities()) {
             ids.remove(returned.getUuid());
           }
+          logger.info("Cleaning up {} orphaned entities for org {} and app {}",new Object[]{ids.size(),org.getValue(),app.getValue()});
+          Keyspace ko=cass.getApplicationKeyspace(applicationId);
+          Mutator<ByteBuffer> m=createMutator(ko,be);
           for (          UUID id : ids) {
-            em.deleteEntity(id);
+            Object collections_key=key(applicationId,Schema.DICTIONARY_COLLECTIONS,collectionName,indexBucketLocator.getBucket(applicationId,IndexType.COLLECTION,id,collectionName));
+            addDeleteToMutator(m,ENTITY_ID_SETS,collections_key,id,timestamp);
+            logger.info("Deleting entity with id '{}' from collection '{}'",id,collectionName);
           }
+          m.execute();
         }
- while (results != null && results.size() > 0);
+ while (ids.size() == PAGE_SIZE);
       }
     }
   }
