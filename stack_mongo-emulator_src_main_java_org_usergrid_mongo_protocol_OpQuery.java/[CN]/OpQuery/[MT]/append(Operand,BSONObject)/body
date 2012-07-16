@@ -1,0 +1,18 @@
+{
+  for (  String field : exp.keySet()) {
+    if (field.startsWith("$")) {
+      if ("$or".equals(field)) {
+        OrOperand or=new OrOperand(new ClassicToken(0,"="));
+        op.addChild(or);
+        append(or,(BSONObject)exp.get(field));
+      }
+    }
+ else {
+      Equal equality=new Equal(new ClassicToken(0,"="));
+      equality.setProperty(field);
+      equality.setLiteral(exp.get(field));
+      op.addChild(equality);
+    }
+  }
+  return op;
+}
