@@ -3,5 +3,7 @@
     return;
   }
   EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
-  em.addToDictionary(new SimpleEntityRef(User.ENTITY_TYPE,userId),DICTIONARY_CREDENTIALS,"password",passwordCredentials(newPassword));
+  Entity user=em.get(userId);
+  em.addToDictionary(user,DICTIONARY_CREDENTIALS,"password",passwordCredentials(newPassword));
+  em.addToDictionary(user,DICTIONARY_CREDENTIALS,"mongo_pwd",mongoPasswordCredentials((String)user.getProperty("username"),newPassword));
 }
