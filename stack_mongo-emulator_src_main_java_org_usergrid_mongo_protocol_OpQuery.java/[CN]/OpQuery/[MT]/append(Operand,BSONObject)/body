@@ -1,30 +1,20 @@
 {
+  Operand current=null;
+  Object fieldValue=null;
   for (  String field : exp.keySet()) {
-    if (field.startsWith("$")) {
-      if ("$or".equals(field)) {
-        OrOperand or=new OrOperand(new ClassicToken(0,"="));
-        op.addChild(or);
-        append(or,(BSONObject)exp.get(field));
-      }
- else       if ("$not".equals(field)) {
-      }
- else       if ("$ne".equals(field)) {
-      }
- else       if ("$gt".equals(field)) {
-      }
- else       if ("$gte".equals(field)) {
-      }
- else       if ("$lt".equals(field)) {
-      }
- else       if ("$lte".equals(field)) {
-      }
+    fieldValue=exp.get(field);
+    if (fieldValue instanceof BSONObject) {
+      current=handleOperand(parent,field,(BSONObject)fieldValue);
     }
  else     if (!field.equals("_id")) {
       Equal equality=new Equal(new ClassicToken(0,"="));
       equality.setProperty(field);
       equality.setLiteral(exp.get(field));
-      op.addChild(equality);
+      if (parent != null) {
+        parent.addChild(equality);
+      }
+      current=equality;
     }
   }
-  return op;
+  return current;
 }

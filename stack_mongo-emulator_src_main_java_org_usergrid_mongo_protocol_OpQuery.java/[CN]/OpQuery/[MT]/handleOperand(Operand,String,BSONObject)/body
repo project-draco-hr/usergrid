@@ -1,0 +1,40 @@
+{
+  Operand current=null;
+  Object value=null;
+  for (  String field : exp.keySet()) {
+    if (field.startsWith("$")) {
+      if ("$gt".equals(field)) {
+        value=exp.get(field);
+        GreaterThan gt=new GreaterThan();
+        gt.setProperty(sourceField);
+        gt.setLiteral(value);
+        current=gt;
+      }
+ else       if ("$gte".equals(field)) {
+        value=exp.get(field);
+        GreaterThanEqual gte=new GreaterThanEqual();
+        gte.setProperty(sourceField);
+        gte.setLiteral(exp.get(field));
+        current=gte;
+      }
+ else       if ("$lt".equals(field)) {
+        value=exp.get(field);
+        LessThan lt=new LessThan();
+        lt.setProperty(sourceField);
+        lt.setLiteral(value);
+        current=lt;
+      }
+ else       if ("$lte".equals(field)) {
+        value=exp.get(field);
+        LessThanEqual lte=new LessThanEqual();
+        lte.setProperty(sourceField);
+        lte.setLiteral(value);
+        current=lte;
+      }
+    }
+  }
+  if (parent != null && current != null) {
+    parent.addChild(current);
+  }
+  return current;
+}

@@ -27,7 +27,7 @@
   if ((query_expression == null) && (sort_order == null)) {
     return null;
   }
-  if (query_expression.size() == 0) {
+  if (query_expression.size() == 0 && sort_order != null) {
     if (sort_order.size() == 0) {
       return null;
     }
@@ -40,9 +40,8 @@
     q.setLimit(getNumberToReturn());
   }
   if (query_expression != null) {
-    AndOperand and=new AndOperand();
-    append(and,query_expression);
-    q.setRootOperand(and);
+    Operand root=append(null,query_expression);
+    q.setRootOperand(root);
   }
   if (sort_order != null) {
     for (    String sort : sort_order.keySet()) {
