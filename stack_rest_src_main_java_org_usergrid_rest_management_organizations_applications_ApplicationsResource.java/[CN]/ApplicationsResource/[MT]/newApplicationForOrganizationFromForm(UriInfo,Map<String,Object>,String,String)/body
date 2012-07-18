@@ -5,8 +5,9 @@
   ApiResponse response=new ApiResponse(ui);
   response.setAction("new application for organization");
   UUID applicationId=management.createApplication(organization.getUuid(),applicationName);
-  LinkedHashMap<String,UUID> applications=new LinkedHashMap<String,UUID>();
-  applications.put(applicationName,applicationId);
-  response.setData(applications);
+  ServiceManager sm=smf.getServiceManager(applicationId);
+  ServiceRequest request=sm.newRequest(ServiceAction.GET,parameters());
+  ServiceResults results=request.execute();
+  response.setData(results.getData());
   return new JSONWithPadding(response,callback);
 }
