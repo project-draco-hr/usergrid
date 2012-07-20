@@ -13,14 +13,20 @@
   properties.put("title","Hearts");
   Entity game2=em.create("game",properties);
   assertNotNull(game2);
-  Query query=new Query("select * where keywords contains 'foo' AND keywords contains 'random'");
+  Query query=Query.fromQL("select * where keywords contains 'foo' AND keywords contains 'random'");
   Results r=em.searchCollection(em.getApplicationRef(),"games",query);
   assertEquals(0,r.size());
-  query=new Query("select * where keywords contains 'test' AND keywords contains 'test'");
+  query=Query.fromQL("select * where keywords contains 'test' AND keywords contains 'test'");
   r=em.searchCollection(em.getApplicationRef(),"games",query);
   assertEquals(2,r.size());
   Entity returned=r.getEntities().get(0);
   assertEquals(game1.getUuid(),returned.getUuid());
   returned=r.getEntities().get(1);
   assertEquals(game2.getUuid(),returned.getUuid());
+  query=Query.fromQL("select * where keywords contains 'test' AND keywords contains 'foobar'");
+  r=em.searchCollection(em.getApplicationRef(),"games",query);
+  assertEquals(0,r.size());
+  query=Query.fromQL("select * where keywords contains 'foobar' AND keywords contains 'test'");
+  r=em.searchCollection(em.getApplicationRef(),"games",query);
+  assertEquals(0,r.size());
 }
