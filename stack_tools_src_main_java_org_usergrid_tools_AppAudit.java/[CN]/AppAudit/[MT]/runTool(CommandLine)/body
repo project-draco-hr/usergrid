@@ -1,0 +1,29 @@
+{
+  startSpring();
+  logger.info("Starting app audit");
+  Map<String,UUID> apps=emf.getApplications();
+  OrgRepo repo=new OrgRepo();
+  Set<String> foundOrgs=new HashSet<String>();
+  for (  Entry<String,UUID> entry : apps.entrySet()) {
+    logger.info("Name: {}, Id: {}",entry.getKey(),entry.getValue());
+    String[] parts=entry.getKey().split("/");
+    foundOrgs.add(parts[0]);
+  }
+  EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+  EntityRef ref=new SimpleEntityRef("application",CassandraService.MANAGEMENT_APPLICATION_ID);
+  int limit=100;
+  Query query=new Query();
+  query.setLimit(limit);
+  Results r=null;
+  do {
+    r=em.searchCollection(ref,"groups",query);
+    for (    Entity entity : r.getEntities()) {
+      foundOrgs.remove(entity.getProperty("path"));
+    }
+    query.setCursor(r.getCursor());
+  }
+ while (r != null && r.size() == limit);
+  for (  String orgName : foundOrgs) {
+    logger.info("Cound not find org name: {}",orgName);
+  }
+}
