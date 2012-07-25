@@ -1,0 +1,22 @@
+{
+  logger.info("Reindexing collection: {} for app id: {}",collectionName,appId);
+  EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+  EntityRef appRef=new SimpleEntityRef("application",appId);
+  Query query=new Query();
+  query.setLimit(PAGE_SIZE);
+  Results r=null;
+  do {
+    r=em.searchCollection(appRef,collectionName,query);
+    for (    Entity entity : r.getEntities()) {
+      logger.info("Updating entity type: {} with id: {} for app id: {}",new Object[]{entity.getType(),entity.getUuid(),appId});
+      try {
+        em.update(entity);
+      }
+ catch (      DuplicateUniquePropertyExistsException dupee) {
+        logger.error("duplicate property for type: {} with id: {} for app id: {}.  Property name: {} , value: {}",new Object[]{entity.getType(),entity.getUuid(),appId,dupee.getPropertyName(),dupee.getPropertyValue()});
+      }
+    }
+    query.setCursor(r.getCursor());
+  }
+ while (r != null && r.size() == PAGE_SIZE);
+}
