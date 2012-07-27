@@ -1,0 +1,20 @@
+{
+  jg.writeArrayFieldStart("apps");
+  for (  ApplicationInfo appInfo : orgApps.get(orgId)) {
+    jg.writeStartObject();
+    jg.writeStringField("app_id",appInfo.getId().toString());
+    jg.writeStringField("app_name",appInfo.getName());
+    jg.writeArrayFieldStart("counts");
+    MetricLine line=collector.get(appInfo.getId());
+    if (line != null) {
+      jg.writeStartObject();
+      for (      AggregateCounter ag : line.getAggregateCounters()) {
+        jg.writeStringField(new Date(ag.getTimestamp()).toString(),Long.toString(ag.getValue()));
+      }
+      jg.writeEndObject();
+    }
+    jg.writeEndArray();
+    jg.writeEndObject();
+  }
+  jg.writeEndArray();
+}
