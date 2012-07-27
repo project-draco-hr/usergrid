@@ -71,6 +71,17 @@
  else     if (principal instanceof ApplicationUserPrincipal) {
       role(info,principal,ROLE_APPLICATION_USER);
       UUID applicationId=((ApplicationUserPrincipal)principal).getApplicationId();
+      AccessTokenCredentials tokenCredentials=((ApplicationUserPrincipal)principal).getAccessTokenCredentials();
+      TokenInfo token=null;
+      if (tokenCredentials != null) {
+        try {
+          token=tokens.getTokenInfo(tokenCredentials.getToken());
+        }
+ catch (        Exception e) {
+          logger.error("Unable to retrieve token info",e);
+        }
+        logger.info("Token: " + token);
+      }
       grant(info,principal,getPermissionFromPath(applicationId,"access"));
       EntityManager em=emf.getEntityManager(applicationId);
       try {
@@ -96,10 +107,18 @@
         logger.error("Unable to get user permissions",e);
       }
       try {
-        Set<String> roles=em.getUserRoles(user.getUuid());
-        for (        String role : roles) {
-          Set<String> permissions=em.getRolePermissions(role);
+        Set<String> rolenames=em.getUserRoles(user.getUuid());
+        Map<String,Role> app_roles=em.getRolesWithTitles(rolenames);
+        for (        String rolename : rolenames) {
+          if ((app_roles != null) && (token != null)) {
+            Role role=app_roles.get(rolename);
+            if ((role != null) && (role.getInactivity() > 0) && (token.getInactive() > role.getInactivity())) {
+              continue;
+            }
+          }
+          Set<String> permissions=em.getRolePermissions(rolename);
           grant(info,principal,applicationId,permissions);
+          role(info,principal,"application-role:".concat(applicationId.toString()).concat(":").concat(rolename));
         }
       }
  catch (      Exception e) {
