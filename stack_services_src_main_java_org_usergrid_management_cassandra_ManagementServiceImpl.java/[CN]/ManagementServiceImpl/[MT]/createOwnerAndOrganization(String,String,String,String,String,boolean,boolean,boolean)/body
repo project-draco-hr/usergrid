@@ -4,7 +4,12 @@
   UserInfo user=null;
   OrganizationInfo organization=null;
   try {
-    user=createAdminUser(username,name,email,password,activated,disabled,sendEmail);
+    if (areActivationChecksDisabled()) {
+      user=createAdminUser(username,name,email,password,true,false,false);
+    }
+ else {
+      user=createAdminUser(username,name,email,password,activated,disabled,sendEmail);
+    }
     organization=createOrganization(organizationName,user,true,false);
   }
   finally {
