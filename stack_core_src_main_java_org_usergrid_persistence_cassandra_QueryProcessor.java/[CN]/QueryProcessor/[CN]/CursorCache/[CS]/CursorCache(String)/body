@@ -5,9 +5,15 @@
   String[] cursorTokens=split(cursorString,'|');
   for (  String c : cursorTokens) {
     String[] parts=split(c,':');
-    if (parts.length == 2 && isNotBlank(parts[1])) {
+    if (parts.length >= 1) {
       int hashCode=parseInt(parts[0]);
-      ByteBuffer cursorBytes=ByteBuffer.wrap(decodeBase64(parts[1]));
+      ByteBuffer cursorBytes=null;
+      if (parts.length == 2) {
+        cursorBytes=ByteBuffer.wrap(decodeBase64(parts[1]));
+      }
+ else {
+        cursorBytes=ByteBuffer.allocate(0);
+      }
       cursors.put(hashCode,cursorBytes);
     }
   }
