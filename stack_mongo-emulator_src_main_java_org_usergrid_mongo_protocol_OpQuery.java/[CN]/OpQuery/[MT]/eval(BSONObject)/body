@@ -1,0 +1,49 @@
+{
+  Operand current=null;
+  Object fieldValue=null;
+  for (  String field : exp.keySet()) {
+    fieldValue=exp.get(field);
+    if (field.startsWith("$")) {
+      if ("$or".equals(field)) {
+        BasicBSONList values=(BasicBSONList)fieldValue;
+        int size=values.size();
+        Stack<Operand> expressions=new Stack<Operand>();
+        for (int i=0; i < size; i++) {
+          expressions.push(eval((BSONObject)values.get(i)));
+        }
+        while (expressions.size() > 1) {
+          OrOperand or=new OrOperand();
+          or.addChild(expressions.pop());
+          or.addChild(expressions.pop());
+          expressions.push(or);
+        }
+        current=expressions.pop();
+      }
+ else       if ("$and".equals(field)) {
+        BasicBSONList values=(BasicBSONList)fieldValue;
+        int size=values.size();
+        Stack<Operand> expressions=new Stack<Operand>();
+        for (int i=0; i < size; i++) {
+          expressions.push(eval((BSONObject)values.get(i)));
+        }
+        while (expressions.size() > 1) {
+          AndOperand and=new AndOperand();
+          and.addChild(expressions.pop());
+          and.addChild(expressions.pop());
+          expressions.push(and);
+        }
+        current=expressions.pop();
+      }
+    }
+ else     if (fieldValue instanceof BSONObject) {
+      current=handleOperand(field,(BSONObject)fieldValue);
+    }
+ else     if (!field.equals("_id")) {
+      Equal equality=new Equal(new ClassicToken(0,"="));
+      equality.setProperty(field);
+      equality.setLiteral(exp.get(field));
+      current=equality;
+    }
+  }
+  return current;
+}
