@@ -1,0 +1,33 @@
+{
+  Subject currentUser=SubjectUtils.getSubject();
+  String collectionName=getCollectionName();
+  if ("$cmd".equals(collectionName)) {
+    @SuppressWarnings("unchecked") String commandName=(String)MapUtils.getFirstKey(getQuery().toMap());
+    if ("authenticate".equals(commandName)) {
+      return handleAuthenticate(handler,getDatabaseName());
+    }
+    if ("getnonce".equals(commandName)) {
+      return handleGetnonce();
+    }
+    if (!currentUser.isAuthenticated()) {
+      return handleUnauthorizedCommand(messageEvent);
+    }
+    MongoCommand command=MongoCommand.getCommand(commandName);
+    if (command != null) {
+      return command.execute(handler,ctx,messageEvent,this);
+    }
+ else {
+      logger.info("No command for " + commandName);
+    }
+  }
+  if (!currentUser.isAuthenticated()) {
+    return handleUnauthorizedQuery(messageEvent);
+  }
+  if ("system.namespaces".equals(collectionName)) {
+    return handleListCollections(handler,getDatabaseName());
+  }
+  if ("system.users".equals(collectionName)) {
+    return handleListUsers();
+  }
+  return handleQuery(handler);
+}

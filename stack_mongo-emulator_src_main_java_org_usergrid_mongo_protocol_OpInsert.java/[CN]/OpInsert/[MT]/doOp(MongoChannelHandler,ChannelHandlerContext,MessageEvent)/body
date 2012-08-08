@@ -1,0 +1,19 @@
+{
+  ApplicationInfo application=SubjectUtils.getApplication(Identifier.fromName(getDatabaseName()));
+  if (application == null) {
+    OpReply reply=new OpReply(this);
+    return reply;
+  }
+  EntityManager em=handler.getEmf().getEntityManager(application.getId());
+  OpReply reply=new OpReply(this);
+  for (  BSONObject document : documents) {
+    try {
+      Entity newEntity=em.create(getCollectionName(),document.toMap());
+      reply.addDocument(newEntity.getProperties());
+    }
+ catch (    Exception e) {
+      logger.error("Unable to insert mongo document {}",document,e);
+    }
+  }
+  return reply;
+}
