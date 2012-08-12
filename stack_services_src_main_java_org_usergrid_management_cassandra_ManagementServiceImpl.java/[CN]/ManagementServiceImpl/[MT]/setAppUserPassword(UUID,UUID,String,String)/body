@@ -5,11 +5,9 @@
   if ((oldPassword == null) || (newPassword == null)) {
     throw new IllegalArgumentException("oldpassword and newpassword are both required");
   }
-  EntityManager em=emf.getEntityManager(applicationId);
-  Entity user=em.get(userId);
-  if (!checkPassword(oldPassword,(CredentialsInfo)em.getDictionaryElementValue(user,DICTIONARY_CREDENTIALS,"password"))) {
+  if (!checkPassword(oldPassword,getCredentials(applicationId,userId,USER_PASSWORD))) {
     logger.info("Old password doesn't match");
     throw new IncorrectPasswordException();
   }
-  em.addToDictionary(user,DICTIONARY_CREDENTIALS,"password",passwordCredentials(newPassword));
+  setAppUserPassword(applicationId,userId,newPassword);
 }

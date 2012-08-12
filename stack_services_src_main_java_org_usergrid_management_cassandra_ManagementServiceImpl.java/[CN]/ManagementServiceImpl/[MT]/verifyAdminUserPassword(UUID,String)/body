@@ -2,10 +2,7 @@
   if ((userId == null) || (password == null)) {
     return false;
   }
-  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
-  User user=em.get(userId,User.class);
-  CredentialsInfo credentialsInfo=(CredentialsInfo)em.getDictionaryElementValue(user,DICTIONARY_CREDENTIALS,"password");
-  if (checkPassword(password,credentialsInfo)) {
+  if (checkPassword(password,getCredentials(MANAGEMENT_APPLICATION_ID,userId,USER_PASSWORD))) {
     return true;
   }
   logger.info("password compare fail for uuid {}",userId);
