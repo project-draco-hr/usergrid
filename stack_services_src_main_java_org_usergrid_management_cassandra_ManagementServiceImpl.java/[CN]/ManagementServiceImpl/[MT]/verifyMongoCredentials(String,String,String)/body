@@ -1,26 +1,22 @@
 {
-  UserInfo userInfo=null;
   Entity user=findUserEntity(MANAGEMENT_APPLICATION_ID,name);
   if (user == null) {
     return null;
   }
-  String mongo_pwd=(String)user.getProperty("mongo_pwd");
+  String mongo_pwd=readUserMongoPassword(MANAGEMENT_APPLICATION_ID,user.getUuid()).getSecret();
   if (mongo_pwd == null) {
-    userInfo=new UserInfo(MANAGEMENT_APPLICATION_ID,user.getProperties());
+    throw new IncorrectPasswordException("Your mongo password has not be set");
   }
-  if (userInfo == null) {
-    String expected_key=DigestUtils.md5Hex(nonce + user.getProperty("username") + mongo_pwd);
-    if (expected_key.equalsIgnoreCase(key)) {
-      userInfo=new UserInfo(MANAGEMENT_APPLICATION_ID,user.getProperties());
-    }
+  String expected_key=DigestUtils.md5Hex(nonce + user.getProperty("username") + mongo_pwd);
+  if (!expected_key.equalsIgnoreCase(key)) {
+    throw new IncorrectPasswordException();
   }
-  if (userInfo != null) {
-    if (!userInfo.isActivated()) {
-      throw new UnactivatedAdminUserException();
-    }
-    if (userInfo.isDisabled()) {
-      throw new DisabledAdminUserException();
-    }
+  UserInfo userInfo=new UserInfo(MANAGEMENT_APPLICATION_ID,user.getProperties());
+  if (!userInfo.isActivated()) {
+    throw new UnactivatedAdminUserException();
+  }
+  if (userInfo.isDisabled()) {
+    throw new DisabledAdminUserException();
   }
   return userInfo;
 }

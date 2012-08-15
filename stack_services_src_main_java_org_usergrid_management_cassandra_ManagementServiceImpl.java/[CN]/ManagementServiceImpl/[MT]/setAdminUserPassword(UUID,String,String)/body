@@ -2,12 +2,9 @@
   if ((userId == null) || (oldPassword == null) || (newPassword == null)) {
     return;
   }
-  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
-  Entity user=em.get(userId);
-  if (!checkPassword(oldPassword,(CredentialsInfo)em.getDictionaryElementValue(user,DICTIONARY_CREDENTIALS,"password"))) {
+  if (!checkPassword(oldPassword,readUserPasswordCredentials(MANAGEMENT_APPLICATION_ID,userId))) {
     logger.info("Old password doesn't match");
     throw new IncorrectPasswordException();
   }
-  em.addToDictionary(user,DICTIONARY_CREDENTIALS,"password",passwordCredentials(newPassword));
-  em.addToDictionary(user,DICTIONARY_CREDENTIALS,"mongo_pwd",mongoPasswordCredentials((String)user.getProperty("username"),newPassword));
+  setAdminUserPassword(userId,newPassword);
 }

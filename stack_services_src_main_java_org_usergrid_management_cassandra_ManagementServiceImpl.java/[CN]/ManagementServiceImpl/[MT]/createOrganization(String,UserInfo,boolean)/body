@@ -10,9 +10,7 @@
   organizationEntity.setPath(organizationName);
   organizationEntity=em.create(organizationEntity);
   em.addToCollection(organizationEntity,"users",new SimpleEntityRef(User.ENTITY_TYPE,user.getUuid()));
-  Map<String,CredentialsInfo> credentials=new HashMap<String,CredentialsInfo>();
-  credentials.put("secret",plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.ORGANIZATION)));
-  em.addMapToDictionary(organizationEntity,DICTIONARY_CREDENTIALS,credentials);
+  writeUserToken(MANAGEMENT_APPLICATION_ID,organizationEntity,plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.ORGANIZATION)));
   OrganizationInfo organization=new OrganizationInfo(organizationEntity.getUuid(),organizationName);
   postOrganizationActivity(organization.getUuid(),user,"create",organizationEntity,"Organization",organization.getName(),"<a mailto=\"" + user.getEmail() + "\">"+ user.getName()+ " ("+ user.getEmail()+ ")</a> created a new organization account named "+ organizationName,null);
   startOrganizationActivationFlow(organization);
