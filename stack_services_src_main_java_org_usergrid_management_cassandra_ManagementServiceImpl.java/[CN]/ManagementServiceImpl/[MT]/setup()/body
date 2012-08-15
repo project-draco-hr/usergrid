@@ -12,7 +12,7 @@
     }
     UserInfo user=createAdminUser(test_admin_username,test_admin_name,test_admin_email,test_admin_password,true,false);
     OrganizationInfo organization=createOrganization(test_organization_name,user,true);
-    UUID appId=createApplication(organization.getUuid(),organization.getName() + "/" + test_app_name);
+    UUID appId=createApplication(organization.getUuid(),buildAppName(test_app_name,organization)).getId();
     postOrganizationActivity(organization.getUuid(),user,"create",new SimpleEntityRef(APPLICATION_INFO,appId),"Application",test_app_name,"<a mailto=\"" + user.getEmail() + "\">"+ user.getName()+ " ("+ user.getEmail()+ ")</a> created a new application named "+ test_app_name,null);
     boolean superuser_enabled=parseBoolean(properties.getProperty(PROPERTIES_SYSADMIN_LOGIN_ALLOWED));
     String superuser_username=properties.getProperty(PROPERTIES_SYSADMIN_LOGIN_NAME);

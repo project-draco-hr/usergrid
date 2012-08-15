@@ -1,12 +1,10 @@
 {
-  if (isEmpty(applicationName)) {
-    return null;
-  }
+  Preconditions.checkArgument(!isEmpty(applicationName),"The 'name' parameter is required and cannot be empty: " + applicationName);
   ApiResponse response=new ApiResponse(ui);
   response.setAction("new application for organization");
-  UUID applicationId=management.createApplication(organization.getUuid(),applicationName);
+  ApplicationInfo applicationInfo=management.createApplication(organization.getUuid(),applicationName);
   LinkedHashMap<String,UUID> applications=new LinkedHashMap<String,UUID>();
-  applications.put(applicationName,applicationId);
+  applications.put(applicationInfo.getName(),applicationInfo.getId());
   response.setData(applications);
   return new JSONWithPadding(response,callback);
 }
