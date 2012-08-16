@@ -4,9 +4,7 @@
   if (user == null) {
     return null;
   }
-  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
-  CredentialsInfo credentialsInfo=(CredentialsInfo)em.getDictionaryElementValue(user,DICTIONARY_CREDENTIALS,"password");
-  if (checkPassword(password,credentialsInfo)) {
+  if (checkPassword(password,readUserPasswordCredentials(MANAGEMENT_APPLICATION_ID,user.getUuid()))) {
     userInfo=getUserInfo(MANAGEMENT_APPLICATION_ID,user);
     if (!userInfo.isActivated()) {
       throw new UnactivatedAdminUserException();
