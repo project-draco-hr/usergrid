@@ -2,9 +2,9 @@
   if ((userId == null) || (oldPassword == null) || (newPassword == null)) {
     return;
   }
-  if (!checkPassword(oldPassword,readUserPasswordCredentials(MANAGEMENT_APPLICATION_ID,userId))) {
+  if (!maybeSaltPassword(oldPassword).compare(readUserPasswordCredentials(MANAGEMENT_APPLICATION_ID,userId))) {
     logger.info("Old password doesn't match");
-    throw new IncorrectPasswordException();
+    throw new IncorrectPasswordException("Old password does not match");
   }
   setAdminUserPassword(userId,newPassword);
 }
