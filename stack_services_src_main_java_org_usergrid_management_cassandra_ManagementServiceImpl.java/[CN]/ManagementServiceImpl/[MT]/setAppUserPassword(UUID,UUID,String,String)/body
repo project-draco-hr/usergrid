@@ -5,7 +5,8 @@
   if ((oldPassword == null) || (newPassword == null)) {
     throw new IllegalArgumentException("oldpassword and newpassword are both required");
   }
-  if (!maybeSaltPassword(oldPassword).compare(readUserPasswordCredentials(applicationId,userId))) {
+  User user=emf.getEntityManager(applicationId).get(userId,User.class);
+  if (!maybeSaltPassword(user,oldPassword).compare(readUserPasswordCredentials(applicationId,userId))) {
     throw new IncorrectPasswordException("Old password does not match");
   }
   setAppUserPassword(applicationId,userId,newPassword);
