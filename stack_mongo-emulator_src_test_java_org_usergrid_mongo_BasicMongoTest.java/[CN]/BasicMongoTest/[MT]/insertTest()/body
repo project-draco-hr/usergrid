@@ -8,11 +8,13 @@
   doc.put("color","tabby");
   WriteResult result=db.getCollection("inserttests").insert(doc);
   assertNull(result.getError());
-  Object field=result.getField("_id");
-  assertNotNull(field);
+  Object mongoId=result.getField("_id");
+  assertNotNull(mongoId);
+  assertEquals(doc.get("_id"),mongoId);
   Object uuid=result.getField("uuid");
   assertNotNull(uuid);
   UUID id=UUID.fromString(uuid.toString());
+  assertNotNull(id);
   Set<String> colls=db.getCollectionNames();
   assertTrue(colls.contains("inserttests"));
   DBCollection coll=db.getCollection("inserttests");
@@ -24,6 +26,8 @@
     object=cur.next();
     assertEquals("nico",object.get("name"));
     assertEquals("tabby",object.get("color"));
+    assertEquals(mongoId,object.get("_id"));
+    assertEquals(id,object.get("uuid"));
   }
   assertEquals(1,count);
 }
