@@ -2,9 +2,6 @@
   if ((userId == null) || (password == null)) {
     return false;
   }
-  if (checkPassword(password,readUserPasswordCredentials(MANAGEMENT_APPLICATION_ID,userId))) {
-    return true;
-  }
-  logger.info("password compare fail for uuid {}",userId);
-  return false;
+  User user=emf.getEntityManager(MANAGEMENT_APPLICATION_ID).get(userId,User.class);
+  return maybeSaltPassword(user,password).compare(readUserPasswordCredentials(MANAGEMENT_APPLICATION_ID,userId));
 }

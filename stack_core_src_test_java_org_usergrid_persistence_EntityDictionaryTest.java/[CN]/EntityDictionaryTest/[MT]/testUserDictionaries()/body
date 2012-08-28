@@ -22,12 +22,20 @@
   CredentialsInfo c=(CredentialsInfo)o;
   assertNotSame("test",c.getSecret());
   assertEquals("test",c.getUnencryptedSecret("salt"));
-  credentials=CredentialsInfo.hashedCredentials("salt","test");
+  credentials=CredentialsInfo.hashedCredentials("salt","test",null);
   em.addToDictionary(user,"credentials","hashed",credentials);
   o=em.getDictionaryElementValue(user,"credentials","hashed");
   logger.info(JsonUtils.mapToFormattedJsonString(o));
   assertEquals(CredentialsInfo.class,o.getClass());
   c=(CredentialsInfo)o;
   assertNotSame("test",c.getSecret());
-  assertTrue(credentials.compareSha1Secret("salt","test"));
+  assertTrue(credentials.compare(c));
+  credentials=CredentialsInfo.hashedCredentials("salt","test","md5");
+  em.addToDictionary(user,"credentials","hashed",credentials);
+  o=em.getDictionaryElementValue(user,"credentials","hashed");
+  logger.info(JsonUtils.mapToFormattedJsonString(o));
+  assertEquals(CredentialsInfo.class,o.getClass());
+  c=(CredentialsInfo)o;
+  assertNotSame("test",c.getSecret());
+  assertTrue(credentials.compare(CredentialsInfo.hashedCredentials("salt","test","md5")));
 }
