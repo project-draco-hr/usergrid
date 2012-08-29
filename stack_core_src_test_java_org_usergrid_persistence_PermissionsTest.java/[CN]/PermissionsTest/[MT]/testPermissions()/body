@@ -4,8 +4,8 @@
   assertNotNull(applicationId);
   EntityManager em=emf.getEntityManager(applicationId);
   assertNotNull(em);
-  em.createRole("manager",null);
-  em.createRole("member",null);
+  em.createRole("manager",null,0);
+  em.createRole("member",null,100000);
   Map<String,String> roles=em.getRoles();
   assertEquals("proper number of roles not set",5,roles.size());
   dump("roles",roles);
@@ -23,8 +23,8 @@
   Entity group=em.create("group",properties);
   assertNotNull(user);
   em.addToCollection(group,"users",user);
-  em.createGroupRole(group.getUuid(),"admin");
-  em.createGroupRole(group.getUuid(),"author");
+  em.createGroupRole(group.getUuid(),"admin",0);
+  em.createGroupRole(group.getUuid(),"author",100000);
   roles=em.getGroupRoles(group.getUuid());
   assertEquals("proper number of group roles not set",2,roles.size());
   dump("group roles",roles);

@@ -1,0 +1,38 @@
+{
+  startSpring();
+  logger.info("Starting app audit");
+  Map<String,UUID> apps=emf.getApplications();
+  Set<String> allOrgs=new HashSet<String>();
+  for (  Entry<String,UUID> entry : apps.entrySet()) {
+    logger.info("Name: {}, Id: {}",entry.getKey(),entry.getValue());
+    String[] parts=entry.getKey().split("/");
+    allOrgs.add(parts[0]);
+  }
+  Set<String> collectionOrgs=new HashSet<String>(allOrgs);
+  Set<String> aliasedOrgs=new HashSet<String>(allOrgs);
+  EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+  EntityRef rootAppRef=new SimpleEntityRef("application",CassandraService.MANAGEMENT_APPLICATION_ID);
+  Query query=new Query();
+  query.setLimit(PAGE_SIZE);
+  Results r=null;
+  do {
+    r=em.searchCollection(rootAppRef,"groups",query);
+    for (    Entity entity : r.getEntities()) {
+      collectionOrgs.remove(entity.getProperty("path"));
+    }
+    query.setCursor(r.getCursor());
+  }
+ while (r != null && r.size() == PAGE_SIZE);
+  for (  String orgName : allOrgs) {
+    EntityRef group=em.getAlias("group",orgName);
+    if (group != null) {
+      aliasedOrgs.remove(orgName);
+    }
+  }
+  for (  String orgName : collectionOrgs) {
+    logger.info("Cound not find in collection groups.  Org : {}",orgName);
+  }
+  for (  String orgName : aliasedOrgs) {
+    logger.info("Cound not find in alias.  Org : {}",orgName);
+  }
+}

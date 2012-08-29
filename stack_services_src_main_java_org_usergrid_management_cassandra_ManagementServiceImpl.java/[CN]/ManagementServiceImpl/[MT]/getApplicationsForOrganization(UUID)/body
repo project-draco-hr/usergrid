@@ -6,8 +6,13 @@
   EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
   Results results=em.getConnectedEntities(organizationId,"owns",APPLICATION_INFO,Level.ALL_PROPERTIES);
   if (!results.isEmpty()) {
+    String entityName=null;
     for (    Entity entity : results.getEntities()) {
-      applications.put(entity.getUuid(),entity.getName());
+      entityName=entity.getName();
+      if (entityName != null) {
+        entityName=entityName.toLowerCase();
+      }
+      applications.put(entity.getUuid(),entityName);
     }
   }
   return applications;

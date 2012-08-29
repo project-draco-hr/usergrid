@@ -6,14 +6,21 @@
   for (  QuerySlice slice : node.getAllSlices()) {
     Object indexKey=subKey == null ? key(headEntity.getUuid(),collection.getName()) : key(headEntity.getUuid(),collection.getName(),subKey);
     queryProcessor.applyCursorAndSort(slice);
-    List<HColumn<ByteBuffer,ByteBuffer>> columns=searchIndexBuckets(indexKey,slice,limit,collection.getName());
+    List<HColumn<ByteBuffer,ByteBuffer>> columns=null;
+    if (slice.isComplete()) {
+      columns=new ArrayList<HColumn<ByteBuffer,ByteBuffer>>();
+    }
+ else {
+      columns=searchIndexBuckets(indexKey,slice,limit,collection.getName());
+    }
     Results r=getIndexResults(columns,true,query.getConnectionType(),collection.getType(),resultsLevel);
     if (r.size() > query.getLimit()) {
       r.setCursorToLastResult();
     }
-    if (r.getCursor() != null) {
-      queryProcessor.updateCursor(slice,r.getCursor());
+ else {
+      r.setCursorMax();
     }
+    queryProcessor.updateCursor(slice,r.getCursor());
     if (results != null) {
       results.and(r);
     }

@@ -8,7 +8,21 @@
  catch (    Exception e) {
       e.printStackTrace();
     }
-    loginApplicationGuest(application);
+    EntityManager em=emf.getEntityManager(application.getId());
+    Map<String,String> roles=null;
+    try {
+      roles=em.getRoles();
+      logger.info("found roles {}",roles);
+    }
+ catch (    Exception e) {
+      logger.error("Unable retrieve roles",e);
+    }
+    if ((roles != null) && roles.containsKey("guest")) {
+      loginApplicationGuest(application);
+    }
+ else {
+      throw mappableSecurityException("unauthorized","No application guest access authorized");
+    }
   }
   if (!isPermittedAccessToApplication(getApplicationIdentifier())) {
     throw mappableSecurityException("unauthorized","No application access authorized");
