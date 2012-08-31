@@ -1,0 +1,22 @@
+{
+  Map<String,Object> properties=new LinkedHashMap<String,Object>();
+  properties.put("username","edanuff");
+  properties.put("email","ed@anuff.com");
+  EntityManager em=helper.getEntityManagerFactory().getEntityManager(applicationId);
+  Entity entity=em.create("user",properties);
+  assertNotNull(entity);
+  User user=em.get(entity.getUuid(),User.class);
+  assertFalse(user.activated());
+  assertNull(user.getDeactivated());
+  managementService.activateAppUser(applicationId,user.getUuid());
+  user=em.get(entity.getUuid(),User.class);
+  assertTrue(user.activated());
+  assertNull(user.getDeactivated());
+  long startTime=System.currentTimeMillis();
+  managementService.deactivateUser(applicationId,user.getUuid());
+  long endTime=System.currentTimeMillis();
+  user=em.get(entity.getUuid(),User.class);
+  assertFalse(user.activated());
+  assertNotNull(user.getDeactivated());
+  assertTrue(startTime <= user.getDeactivated() && user.getDeactivated() <= endTime);
+}
