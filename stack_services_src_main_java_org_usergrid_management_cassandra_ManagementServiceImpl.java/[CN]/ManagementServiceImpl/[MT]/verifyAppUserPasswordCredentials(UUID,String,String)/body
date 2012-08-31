@@ -3,7 +3,7 @@
   if (user == null) {
     return null;
   }
-  if (checkPassword(password,readUserPasswordCredentials(applicationId,user.getUuid()))) {
+  if (maybeSaltPassword(user,password).compare(readUserPasswordCredentials(applicationId,user.getUuid()))) {
     if (!user.activated()) {
       throw new UnactivatedAdminUserException();
     }
