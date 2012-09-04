@@ -1,0 +1,9 @@
+{
+  JsonNode response=resource().path("/test-organization/test-app/users").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  String uuid=getEntity(response,0).get("uuid").getTextValue();
+  Map<String,String> data=new HashMap<String,String>();
+  response=resource().path(String.format("/test-organization/test-app/users/%s/deactivate",uuid)).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,data);
+  JsonNode entity=getEntity(response,0);
+  assertFalse(entity.get("activated").asBoolean());
+  assertNotNull(entity.get("deactivated"));
+}
