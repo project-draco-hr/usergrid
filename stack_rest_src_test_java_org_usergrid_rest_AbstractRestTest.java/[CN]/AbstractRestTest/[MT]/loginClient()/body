@@ -1,6 +1,10 @@
 {
   for (int i=0; i < 10; i++) {
     try {
+      Map<String,String> data=new HashMap<String,String>();
+      data.put("newpassword","sesame");
+      JsonNode node=resource().path("/test-organization/test-app/users/edanuff/password").queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,data);
+      assertNull(getError(node));
       client=new Client("test-organization","test-app").withApiUrl(getBaseURI().toString());
       org.usergrid.java.client.response.ApiResponse response=client.authorizeAppUser("ed@anuff.com","sesame");
       assertTrue(response != null && response.getError() == null);

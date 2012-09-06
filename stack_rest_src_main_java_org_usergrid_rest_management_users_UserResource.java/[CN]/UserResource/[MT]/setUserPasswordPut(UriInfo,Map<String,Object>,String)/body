@@ -4,7 +4,12 @@
   }
   String oldPassword=string(json.get("oldpassword"));
   String newPassword=string(json.get("newpassword"));
-  management.setAdminUserPassword(user.getUuid(),oldPassword,newPassword);
+  if (isServiceAdmin()) {
+    management.setAdminUserPassword(user.getUuid(),newPassword);
+  }
+ else {
+    management.setAdminUserPassword(user.getUuid(),oldPassword,newPassword);
+  }
   ApiResponse response=new ApiResponse(ui);
   response.setAction("set user password");
   return new JSONWithPadding(response,callback);
