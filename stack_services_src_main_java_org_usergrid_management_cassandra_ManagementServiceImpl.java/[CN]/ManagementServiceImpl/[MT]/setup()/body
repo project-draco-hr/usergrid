@@ -12,19 +12,12 @@
     }
     OrganizationOwnerInfo created=createOwnerAndOrganization(test_organization_name,test_admin_username,test_admin_name,test_admin_email,test_admin_password,true,false);
     OrganizationInfo organization=created.getOrganization();
-    ApplicationInfo info=createApplication(organization.getUuid(),test_app_name);
-    boolean superuser_enabled=parseBoolean(properties.getProperty(PROPERTIES_SYSADMIN_LOGIN_ALLOWED));
-    String superuser_username=properties.getProperty(PROPERTIES_SYSADMIN_LOGIN_NAME);
-    String superuser_email=properties.getProperty(PROPERTIES_SYSADMIN_LOGIN_EMAIL);
-    String superuser_password=properties.getProperty(PROPERTIES_SYSADMIN_LOGIN_PASSWORD);
-    if (!anyNull(superuser_username,superuser_email,superuser_password)) {
-      createAdminUser(superuser_username,"Super User",superuser_email,superuser_password,superuser_enabled,!superuser_enabled);
-    }
- else {
-      logger.warn("Missing values for superuser account, check properties.  Skipping superuser account setup...");
-    }
+    createApplication(organization.getUuid(),test_app_name);
   }
  else {
     logger.warn("Test app creation disabled");
+  }
+  if (superuserEnabled()) {
+    provisionSuperuser();
   }
 }

@@ -3,7 +3,15 @@
   json.putAll(JsonUtils.toJsonMap(user));
   Map<String,Map<String,Object>> jsonOrganizations=new HashMap<String,Map<String,Object>>();
   json.put("organizations",jsonOrganizations);
-  Map<UUID,String> organizations=getOrganizationsForAdminUser(user.getUuid());
+  Map<UUID,String> organizations=null;
+  boolean superuser_enabled=parseBoolean(properties.getProperty(PROPERTIES_SYSADMIN_LOGIN_ALLOWED));
+  String superuser_username=properties.getProperty(PROPERTIES_SYSADMIN_LOGIN_NAME);
+  if (superuser_enabled && (superuser_username != null) && superuser_username.equals(user.getUsername())) {
+    organizations=getOrganizations();
+  }
+ else {
+    organizations=getOrganizationsForAdminUser(user.getUuid());
+  }
   for (  Entry<UUID,String> organization : organizations.entrySet()) {
     Map<String,Object> jsonOrganization=new HashMap<String,Object>();
     jsonOrganizations.put(organization.getValue(),jsonOrganization);
