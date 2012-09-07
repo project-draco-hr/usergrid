@@ -1,0 +1,29 @@
+{
+  String contentType=MediaType.APPLICATION_OCTET_STREAM;
+  if (asset.getProperty("content-type") != null) {
+    contentType=asset.getProperty("content-type").toString();
+  }
+ else {
+    Collection col;
+    if (t instanceof byte[]) {
+      col=mimeUtil.getMimeTypes((byte[])t);
+    }
+ else     if (t instanceof File) {
+      col=mimeUtil.getMimeTypes((File)t);
+    }
+ else {
+      return contentType;
+    }
+    if (!col.isEmpty()) {
+      try {
+        MimeType mime=((MimeType)col.iterator().next());
+        contentType=mime.toString();
+        asset.setProperty("content-type",contentType);
+      }
+ catch (      MimeException me) {
+        logger.error("could not sniff mime type for asset {}",asset.getUuid());
+      }
+    }
+  }
+  return contentType;
+}

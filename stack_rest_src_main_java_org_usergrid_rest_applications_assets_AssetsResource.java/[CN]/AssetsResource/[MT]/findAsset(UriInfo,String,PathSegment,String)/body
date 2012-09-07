@@ -1,0 +1,14 @@
+{
+  UUID assetId=UUID.fromString(entityId.getPath());
+  logger.info("In AssetsResource.findAsset with id: {} and range: {}",assetId,range);
+  EntityManager em=emf.getEntityManager(getApplicationId());
+  Asset asset=em.get(assetId,Asset.class);
+  InputStream is;
+  if (StringUtils.isBlank(range)) {
+    is=binaryStore.read(asset);
+  }
+ else {
+    is=binaryStore.read(asset);
+  }
+  return Response.ok(is).type(asset.getProperty("content-type").toString()).lastModified(new Date(asset.getModified())).build();
+}
