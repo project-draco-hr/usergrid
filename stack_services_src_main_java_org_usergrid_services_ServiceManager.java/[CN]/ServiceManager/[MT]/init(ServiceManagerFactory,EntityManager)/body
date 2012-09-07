@@ -2,7 +2,14 @@
   this.smf=smf;
   this.em=em;
   if (em != null) {
-    applicationId=em.getApplicationRef().getUuid();
+    try {
+      application=em.getApplication();
+      applicationId=em.getApplicationRef().getUuid();
+    }
+ catch (    Exception e) {
+      logger.error("This should never happen",e);
+      throw new RuntimeException(e);
+    }
   }
   return this;
 }

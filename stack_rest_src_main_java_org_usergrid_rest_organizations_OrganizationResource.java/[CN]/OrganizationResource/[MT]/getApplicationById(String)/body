@@ -1,0 +1,22 @@
+{
+  if ("options".equalsIgnoreCase(request.getMethod())) {
+    throw new NoOpException();
+  }
+  UUID applicationId=UUID.fromString(applicationIdStr);
+  if (applicationId == null) {
+    return null;
+  }
+  OrganizationInfo org_info=management.getOrganizationByName(organizationName);
+  UUID organizationId=null;
+  if (org_info != null) {
+    organizationId=org_info.getUuid();
+  }
+  if (applicationId == null || organizationId == null) {
+    return null;
+  }
+  BiMap<UUID,String> apps=management.getApplicationsForOrganization(organizationId);
+  if (apps.get(applicationId) == null) {
+    return null;
+  }
+  return appResourceFor(applicationId);
+}

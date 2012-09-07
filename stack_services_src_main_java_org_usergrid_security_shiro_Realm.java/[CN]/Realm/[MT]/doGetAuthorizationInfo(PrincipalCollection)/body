@@ -31,7 +31,7 @@
     }
  else     if (principal instanceof AdminUserPrincipal) {
       UserInfo user=((AdminUserPrincipal)principal).getUser();
-      if (user.getUsername().equals("superuser")) {
+      if (superUserEnabled && (superUser != null) && superUser.equals(user.getUsername())) {
         role(info,principal,ROLE_SERVICE_ADMIN);
         role(info,principal,ROLE_ORGANIZATION_ADMIN);
         role(info,principal,ROLE_APPLICATION_ADMIN);
@@ -42,6 +42,8 @@
         grant(info,principal,"organizations:admin,access,get,put,post,delete:*:/**");
         grant(info,principal,"applications:admin,access,get,put,post,delete:*:/**");
         grant(info,principal,"users:access:*");
+        grant(info,principal,getPermissionFromPath(MANAGEMENT_APPLICATION_ID,"access"));
+        grant(info,principal,getPermissionFromPath(MANAGEMENT_APPLICATION_ID,"get,put,post,delete","/**"));
       }
  else {
         grant(info,principal,getPermissionFromPath(MANAGEMENT_APPLICATION_ID,"access"));
