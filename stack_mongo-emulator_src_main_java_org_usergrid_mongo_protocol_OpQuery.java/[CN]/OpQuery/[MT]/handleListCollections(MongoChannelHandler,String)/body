@@ -1,20 +1,19 @@
 {
   logger.info("Handling list collections for database {} ... ",databaseName);
+  OpReply reply=new OpReply(this);
   ApplicationInfo application=SubjectUtils.getApplication(Identifier.fromName(databaseName));
   if (application == null) {
-    OpReply reply=new OpReply(this);
     return reply;
   }
   EntityManager em=handler.getEmf().getEntityManager(application.getId());
-  OpReply reply=new OpReply(this);
   try {
     Set<String> collections=em.getApplicationCollections();
     for (    String colName : collections) {
       if (Schema.isAssociatedEntityType(colName)) {
         continue;
       }
-      reply.addDocument(map("name",databaseName + "." + colName));
-      reply.addDocument(map("name",databaseName + "." + colName+ ".$_id_"));
+      reply.addDocument(map("name",String.format("%s.%s",databaseName,colName)));
+      reply.addDocument(map("name",String.format("%s.%s.$_id_",databaseName,colName)));
     }
   }
  catch (  Exception ex) {
