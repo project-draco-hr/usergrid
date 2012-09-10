@@ -1,0 +1,22 @@
+{
+  UUID assetId=UUID.fromString(entityId.getPath());
+  logger.info("In AssetsResource.findAsset with id: {}, range: {}, modifiedSince: {}",new Object[]{assetId,range,modifiedSince});
+  EntityManager em=emf.getEntityManager(getApplicationId());
+  Asset asset=em.get(assetId,Asset.class);
+  InputStream is;
+  if (StringUtils.isBlank(range)) {
+    is=binaryStore.read(getApplicationId(),asset);
+  }
+ else {
+    is=binaryStore.read(getApplicationId(),asset);
+  }
+  logger.info("AssetResource.findAsset read inputStream, composing response");
+  Response.ResponseBuilder responseBuilder=Response.ok(is).type(asset.getProperty("content-type").toString()).lastModified(new Date(asset.getModified()));
+  if (asset.getProperty(AssetUtils.E_TAG) != null) {
+    responseBuilder.tag((String)asset.getProperty(AssetUtils.E_TAG));
+  }
+  if (StringUtils.isNotBlank(range)) {
+    logger.info("Range header was not blank, sending back Content-Range");
+  }
+  return responseBuilder.build();
+}
