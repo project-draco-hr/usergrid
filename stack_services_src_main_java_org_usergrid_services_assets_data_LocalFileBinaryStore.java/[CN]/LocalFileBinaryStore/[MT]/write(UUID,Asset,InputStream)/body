@@ -1,0 +1,18 @@
+{
+  OutputStream out=null;
+  File file=path(appId,asset);
+  try {
+    out=new BufferedOutputStream(new FileOutputStream(file));
+    long size=IOUtils.copyLarge(inputStream,out);
+    asset.setProperty("content-length",size);
+  }
+ catch (  IOException e) {
+    e.printStackTrace();
+  }
+ finally {
+    IOUtils.closeQuietly(out);
+  }
+  if (file.exists()) {
+    AssetMimeHandler.get().getMimeType(asset,file);
+  }
+}

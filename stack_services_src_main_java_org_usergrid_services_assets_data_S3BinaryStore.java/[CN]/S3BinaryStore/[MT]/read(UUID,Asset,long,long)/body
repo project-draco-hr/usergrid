@@ -1,0 +1,18 @@
+{
+  AsyncBlobStore blobStore=context.getAsyncBlobStore();
+  ListenableFuture<Blob> blobFuture;
+  if (offset == 0 && length == FIVE_MB) {
+    blobFuture=blobStore.getBlob(bucketName,AssetUtils.buildAssetKey(appId,asset));
+  }
+ else {
+    GetOptions options=GetOptions.Builder.range(offset,length);
+    blobFuture=blobStore.getBlob(bucketName,AssetUtils.buildAssetKey(appId,asset),options);
+  }
+  try {
+    return blobFuture.get().getPayload().getInput();
+  }
+ catch (  Exception ex) {
+    ex.printStackTrace();
+  }
+  return null;
+}

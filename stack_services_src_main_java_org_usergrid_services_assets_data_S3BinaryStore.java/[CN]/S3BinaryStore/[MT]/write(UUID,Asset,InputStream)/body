@@ -1,0 +1,49 @@
+{
+  try {
+    AsyncBlobStore blobStore=context.getAsyncBlobStore();
+    blobStore.createContainerInLocation(null,bucketName);
+    ByteArrayOutputStream baos=new ByteArrayOutputStream();
+    long copied=IOUtils.copyLarge(inputStream,baos,0,FIVE_MB);
+    BlobBuilder.PayloadBlobBuilder bb=null;
+    if (copied == FIVE_MB) {
+      File f;
+      f=File.createTempFile(asset.getUuid().toString(),"tmp");
+      f.deleteOnExit();
+      OutputStream os=null;
+      try {
+        os=new BufferedOutputStream(new FileOutputStream(f.getAbsolutePath()));
+        copied=IOUtils.copyLarge(inputStream,os,0,(FileUtils.ONE_GB * 5));
+        bb=blobStore.blobBuilder(AssetUtils.buildAssetKey(appId,asset)).payload(f).calculateMD5().contentType(AssetMimeHandler.get().getMimeType(asset,f));
+      }
+ catch (      Exception ex) {
+        ex.printStackTrace();
+      }
+ finally {
+        IOUtils.closeQuietly(os);
+        if (f != null && f.exists()) {
+          f.delete();
+        }
+      }
+    }
+ else {
+      byte[] data=baos.toByteArray();
+      copied=data.length;
+      bb=blobStore.blobBuilder(AssetUtils.buildAssetKey(appId,asset)).payload(data).calculateMD5().contentType(AssetMimeHandler.get().getMimeType(asset,data));
+    }
+    asset.setProperty(AssetUtils.CONTENT_LENGTH,copied);
+    if (asset.getProperty(AssetUtils.CONTENT_DISPOSITION) != null) {
+      bb.contentDisposition(asset.getProperty(AssetUtils.CONTENT_DISPOSITION).toString());
+    }
+    Blob blob=bb.build();
+    String md5sum=Hex.encodeHexString(blob.getMetadata().getContentMetadata().getContentMD5());
+    asset.setProperty(AssetUtils.CHECKSUM,md5sum);
+    ListenableFuture<String> futureETag=blobStore.putBlob(bucketName,blob,PutOptions.Builder.multipart());
+    if (copied < FIVE_MB) {
+      String eTag=futureETag.get();
+      asset.setProperty(AssetUtils.E_TAG,eTag);
+    }
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+}
