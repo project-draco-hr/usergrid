@@ -1,7 +1,10 @@
 {
   try {
     AsyncBlobStore blobStore=context.getAsyncBlobStore();
-    blobStore.createContainerInLocation(null,bucketName);
+    if (!containerCreated.get()) {
+      ListenableFuture<Boolean> createContainer=blobStore.createContainerInLocation(null,bucketName);
+      containerCreated.set(true);
+    }
     ByteArrayOutputStream baos=new ByteArrayOutputStream();
     long copied=IOUtils.copyLarge(inputStream,baos,0,FIVE_MB);
     BlobBuilder.PayloadBlobBuilder bb=null;

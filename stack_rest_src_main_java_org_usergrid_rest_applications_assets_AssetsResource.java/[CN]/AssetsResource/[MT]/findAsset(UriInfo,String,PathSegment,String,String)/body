@@ -3,12 +3,21 @@
   logger.info("In AssetsResource.findAsset with id: {}, range: {}, modifiedSince: {}",new Object[]{assetId,range,modifiedSince});
   EntityManager em=emf.getEntityManager(getApplicationId());
   Asset asset=em.get(assetId,Asset.class);
+  Date moded=AssetUtils.fromIfModifiedSince(modifiedSince);
+  if (moded != null) {
+    if (asset.getModified() - moded.getTime() < 0) {
+      return Response.status(Response.Status.NOT_MODIFIED).build();
+    }
+  }
   InputStream is;
   if (StringUtils.isBlank(range)) {
     is=binaryStore.read(getApplicationId(),asset);
   }
  else {
     is=binaryStore.read(getApplicationId(),asset);
+  }
+  if (is == null) {
+    return Response.status(Response.Status.NOT_FOUND).build();
   }
   logger.info("AssetResource.findAsset read inputStream, composing response");
   Response.ResponseBuilder responseBuilder=Response.ok(is).type(asset.getProperty("content-type").toString()).lastModified(new Date(asset.getModified()));
