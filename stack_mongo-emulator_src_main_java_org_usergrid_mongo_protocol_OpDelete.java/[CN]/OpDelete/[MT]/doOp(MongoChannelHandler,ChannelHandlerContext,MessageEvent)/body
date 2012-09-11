@@ -1,3 +1,32 @@
 {
-  return new OpReply(this);
+  Query query=MongoQueryParser.toNativeQuery(selector,0);
+  if (query == null) {
+    return null;
+  }
+  query.setResultsLevel(Level.IDS);
+  query.setLimit(BATCH_SIZE);
+  ApplicationInfo application=SubjectUtils.getApplication(Identifier.fromName(getDatabaseName()));
+  if (application == null) {
+    ctx.setAttachment(new IllegalArgumentException(String.format("Could not find application with name '%s' ",getDatabaseName())));
+    return null;
+  }
+  EntityManager em=handler.getEmf().getEntityManager(application.getId());
+  Results results=null;
+  do {
+    try {
+      if (results != null) {
+        query.setCursor(results.getCursor());
+      }
+      results=em.searchCollection(em.getApplicationRef(),getCollectionName(),query);
+      for (      UUID id : results.getIds()) {
+        em.delete(new SimpleEntityRef(query.getEntityType(),id));
+      }
+    }
+ catch (    Exception ex) {
+      logger.error("Unable to delete object",ex);
+      ctx.setAttachment(ex);
+    }
+  }
+ while (results.getCursor() != null);
+  return null;
 }
