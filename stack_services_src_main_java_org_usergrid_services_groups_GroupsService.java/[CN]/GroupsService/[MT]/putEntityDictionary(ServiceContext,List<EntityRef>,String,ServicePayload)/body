@@ -1,0 +1,14 @@
+{
+  if ("rolenames".equalsIgnoreCase(dictionary)) {
+    EntityRef entityRef=refs.get(0);
+    checkPermissionsForEntitySubPath(context,entityRef,"rolenames");
+    if (context.parameterCount() == 0) {
+      String name=payload.getStringProperty("name");
+      if (isBlank(name)) {
+        return null;
+      }
+      return addGroupRole(entityRef.getUuid(),name);
+    }
+  }
+  return super.postEntityDictionary(context,refs,dictionary,payload);
+}
