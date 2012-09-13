@@ -1,0 +1,9 @@
+{
+  List<UUID> tokenIds=getTokenUUIDS(principal);
+  Mutator<ByteBuffer> batch=createMutator(cassandra.getSystemKeyspace(),BUFF_SER);
+  for (  UUID tokenId : tokenIds) {
+    batch.addDeletion(bytebuffer(tokenId),TOKENS_CF);
+  }
+  batch.addDeletion(principalKey(principal),PRINCIPAL_TOKEN_CF);
+  batch.execute();
+}
