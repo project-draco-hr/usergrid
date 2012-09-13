@@ -3,7 +3,11 @@
   if (nameProperty == null) {
     nameProperty="name";
   }
-  EntityRef entity=em.getAlias(getEntityType(),name);
+  EntityRef entity=null;
+  Identifier id=Identifier.from(name);
+  if (id != null) {
+    entity=em.getUserByIdentifier(id);
+  }
   if (entity == null) {
     logger.info("miss on entityType: {} with name: {}",getEntityType(),name);
     throw new ServiceResourceNotFoundException(context);
@@ -14,5 +18,5 @@
   }
   checkPermissionsForEntity(context,entity);
   List<ServiceRequest> nextRequests=context.getNextServiceRequests(entity);
-  return new ServiceResults(this,context,Type.COLLECTION,Results.fromRef(entity),null,nextRequests);
+  return new ServiceResults(this,context,ServiceResults.Type.COLLECTION,Results.fromRef(entity),null,nextRequests);
 }
