@@ -1,0 +1,28 @@
+{
+  AuthPrincipalInfo adminPrincipal=new AuthPrincipalInfo(AuthPrincipalType.APPLICATION_USER,UUIDUtils.newTimeUUID(),UUIDUtils.newTimeUUID());
+  String firstToken=tokenService.createToken(adminPrincipal);
+  String secondToken=tokenService.createToken(adminPrincipal);
+  assertNotNull(firstToken);
+  assertNotNull(secondToken);
+  TokenInfo firstInfo=tokenService.getTokenInfo(firstToken);
+  assertNotNull(firstInfo);
+  TokenInfo secondInfo=tokenService.getTokenInfo(secondToken);
+  assertNotNull(secondInfo);
+  tokenService.removeTokens(adminPrincipal);
+  boolean invalidTokenException=false;
+  try {
+    tokenService.getTokenInfo(firstToken);
+  }
+ catch (  InvalidTokenException ite) {
+    invalidTokenException=true;
+  }
+  assertTrue(invalidTokenException);
+  invalidTokenException=false;
+  try {
+    tokenService.getTokenInfo(secondToken);
+  }
+ catch (  InvalidTokenException ite) {
+    invalidTokenException=true;
+  }
+  assertTrue(invalidTokenException);
+}
