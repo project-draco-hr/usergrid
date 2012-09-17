@@ -6,11 +6,11 @@
     if (tokenInfo != null) {
       long now=currentTimeMillis();
       Mutator<UUID> batch=createMutator(cassandra.getSystemKeyspace(),UUIDSerializer.get());
-      HColumn<String,Long> col=createColumn(TOKEN_ACCESSED,now,(int)(maxPersistenceTokenAge / 1000),StringSerializer.get(),LongSerializer.get());
+      HColumn<String,Long> col=createColumn(TOKEN_ACCESSED,now,(int)(tokenInfo.getExpiration(maxPersistenceTokenAge) / 1000),StringSerializer.get(),LongSerializer.get());
       batch.addInsertion(uuid,TOKENS_CF,col);
       long inactive=now - tokenInfo.getAccessed();
       if (inactive > tokenInfo.getInactive()) {
-        col=createColumn(TOKEN_INACTIVE,inactive,(int)(maxPersistenceTokenAge / 1000),StringSerializer.get(),LongSerializer.get());
+        col=createColumn(TOKEN_INACTIVE,inactive,(int)(tokenInfo.getExpiration(maxPersistenceTokenAge) / 1000),StringSerializer.get(),LongSerializer.get());
         batch.addInsertion(uuid,TOKENS_CF,col);
         tokenInfo.setInactive(inactive);
       }
