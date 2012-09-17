@@ -1,0 +1,18 @@
+{
+  if (duration > maxPersistenceTokenAge) {
+    throw new IllegalArgumentException(String.format("Your token age cannot be more than the maxium age of %d milliseconds",maxPersistenceTokenAge));
+  }
+  if (principal != null) {
+    Assert.notNull(principal.getType());
+    Assert.notNull(principal.getApplicationId());
+    Assert.notNull(principal.getUuid());
+  }
+  UUID uuid=UUIDUtils.newTimeUUID();
+  long timestamp=getTimestampInMillis(uuid);
+  if (type == null) {
+    type=TOKEN_TYPE_ACCESS;
+  }
+  TokenInfo tokenInfo=new TokenInfo(uuid,type,timestamp,timestamp,0,duration,principal,state);
+  putTokenInfo(tokenInfo);
+  return getTokenForUUID(tokenCategory,uuid);
+}
