@@ -1,6 +1,10 @@
 {
-  if (duration > maxPersistenceTokenAge) {
-    throw new IllegalArgumentException(String.format("Your token age cannot be more than the maxium age of %d milliseconds",maxPersistenceTokenAge));
+  long maxTokenTtl=getMaxTtl(principal);
+  if (duration > maxTokenTtl) {
+    throw new IllegalArgumentException(String.format("Your token age cannot be more than the maxium age of %d milliseconds",maxTokenTtl));
+  }
+  if (duration == 0) {
+    duration=maxTokenTtl;
   }
   if (principal != null) {
     Assert.notNull(principal.getType());
