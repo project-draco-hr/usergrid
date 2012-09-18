@@ -1,0 +1,24 @@
+{
+  UUID userId=UUIDUtils.newTimeUUID();
+  String token1=managementService.getAccessTokenForAdminUser(userId);
+  String token2=managementService.getAccessTokenForAdminUser(userId);
+  assertNotNull(tokenService.getTokenInfo(token1));
+  assertNotNull(tokenService.getTokenInfo(token2));
+  managementService.revokeAccessTokensForAdminUser(userId);
+  boolean invalidTokenExcpetion=false;
+  try {
+    tokenService.getTokenInfo(token1);
+  }
+ catch (  InvalidTokenException ite) {
+    invalidTokenExcpetion=true;
+  }
+  assertTrue(invalidTokenExcpetion);
+  invalidTokenExcpetion=false;
+  try {
+    tokenService.getTokenInfo(token2);
+  }
+ catch (  InvalidTokenException ite) {
+    invalidTokenExcpetion=true;
+  }
+  assertTrue(invalidTokenExcpetion);
+}

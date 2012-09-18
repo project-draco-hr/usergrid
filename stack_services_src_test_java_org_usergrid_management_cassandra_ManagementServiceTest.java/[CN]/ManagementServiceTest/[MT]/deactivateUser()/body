@@ -13,6 +13,10 @@
   user=em.get(entity.getUuid(),User.class);
   assertTrue(user.activated());
   assertNull(user.getDeactivated());
+  String token1=managementService.getAccessTokenForAppUser(applicationId,user.getUuid());
+  String token2=managementService.getAccessTokenForAppUser(applicationId,user.getUuid());
+  assertNotNull(tokenService.getTokenInfo(token1));
+  assertNotNull(tokenService.getTokenInfo(token2));
   long startTime=System.currentTimeMillis();
   managementService.deactivateUser(applicationId,user.getUuid());
   long endTime=System.currentTimeMillis();
@@ -20,4 +24,20 @@
   assertFalse(user.activated());
   assertNotNull(user.getDeactivated());
   assertTrue(startTime <= user.getDeactivated() && user.getDeactivated() <= endTime);
+  boolean invalidTokenExcpetion=false;
+  try {
+    tokenService.getTokenInfo(token1);
+  }
+ catch (  InvalidTokenException ite) {
+    invalidTokenExcpetion=true;
+  }
+  assertTrue(invalidTokenExcpetion);
+  invalidTokenExcpetion=false;
+  try {
+    tokenService.getTokenInfo(token2);
+  }
+ catch (  InvalidTokenException ite) {
+    invalidTokenExcpetion=true;
+  }
+  assertTrue(invalidTokenExcpetion);
 }

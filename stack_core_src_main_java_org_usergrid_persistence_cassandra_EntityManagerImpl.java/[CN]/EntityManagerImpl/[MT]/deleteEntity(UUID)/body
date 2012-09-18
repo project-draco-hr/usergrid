@@ -28,6 +28,10 @@
     }
   }
   getRelationManager(entity).batchRemoveFromContainers(m,timestampUuid);
+  if (!TYPE_APPLICATION.equals(entity.getType())) {
+    String collection_name=Schema.defaultCollectionName(entity.getType());
+    decrementEntityCollection(collection_name);
+  }
   batchExecute(m,CassandraService.RETRY_COUNT);
   timestamp+=1;
   if (dictionaries != null) {

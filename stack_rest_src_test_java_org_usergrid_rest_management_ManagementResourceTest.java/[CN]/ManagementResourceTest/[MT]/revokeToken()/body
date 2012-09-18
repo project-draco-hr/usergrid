@@ -1,0 +1,25 @@
+{
+  String token1=super.adminToken();
+  String token2=super.adminToken();
+  JsonNode response=resource().path("/management/users/test").queryParam("access_token",token1).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  assertEquals("test@usergrid.com",response.get("data").get("email").asText());
+  response=resource().path("/management/users/test").queryParam("access_token",token2).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  assertEquals("test@usergrid.com",response.get("data").get("email").asText());
+  response=resource().path("/management/users/test/revoketokens").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class);
+  Status status=null;
+  try {
+    response=resource().path("/management/users/test").queryParam("access_token",token1).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  }
+ catch (  UniformInterfaceException uie) {
+    status=uie.getResponse().getClientResponseStatus();
+  }
+  assertEquals(Status.UNAUTHORIZED,status);
+  status=null;
+  try {
+    response=resource().path("/management/users/test").queryParam("access_token",token2).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  }
+ catch (  UniformInterfaceException uie) {
+    status=uie.getResponse().getClientResponseStatus();
+  }
+  assertEquals(Status.UNAUTHORIZED,status);
+}
