@@ -7,6 +7,10 @@
   EntityManager em=handler.getEmf().getEntityManager(application.getId());
   for (  BSONObject document : documents) {
     try {
+      Object id=document.get("_id");
+      if (id instanceof ObjectId) {
+        document.put("_id",((ObjectId)id).toStringMongod());
+      }
       em.create(getCollectionName(),document.toMap());
     }
  catch (    Exception e) {
