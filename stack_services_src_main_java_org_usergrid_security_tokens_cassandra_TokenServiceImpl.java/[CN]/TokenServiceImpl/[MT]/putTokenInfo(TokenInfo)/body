@@ -1,15 +1,24 @@
 {
-  Map<String,ByteBuffer> columns=new HashMap<String,ByteBuffer>();
-  columns.put(TOKEN_UUID,bytebuffer(tokenInfo.getUuid()));
-  columns.put(TOKEN_TYPE,bytebuffer(tokenInfo.getType()));
-  columns.put(TOKEN_CREATED,bytebuffer(tokenInfo.getCreated()));
-  columns.put(TOKEN_ACCESSED,bytebuffer(tokenInfo.getAccessed()));
-  columns.put(TOKEN_INACTIVE,bytebuffer(tokenInfo.getInactive()));
+  ByteBuffer tokenUUID=bytebuffer(tokenInfo.getUuid());
+  Keyspace ko=cassandra.getSystemKeyspace();
+  Mutator<ByteBuffer> m=createMutator(ko,BUFF_SER);
+  int ttl=(int)(tokenInfo.getDuration() / 1000);
+  m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_UUID,bytebuffer(tokenInfo.getUuid()),ttl,STR_SER,BUFF_SER));
+  m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_TYPE,bytebuffer(tokenInfo.getType()),ttl,STR_SER,BUFF_SER));
+  m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_CREATED,bytebuffer(tokenInfo.getCreated()),ttl,STR_SER,BUFF_SER));
+  m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_ACCESSED,bytebuffer(tokenInfo.getAccessed()),ttl,STR_SER,BUFF_SER));
+  m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_INACTIVE,bytebuffer(tokenInfo.getInactive()),ttl,STR_SER,BUFF_SER));
+  m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_DURATION,bytebuffer(tokenInfo.getDuration()),ttl,STR_SER,BUFF_SER));
   if (tokenInfo.getPrincipal() != null) {
-    columns.put(TOKEN_PRINCIPAL_TYPE,bytebuffer(tokenInfo.getPrincipal().getType().toString().toLowerCase()));
-    columns.put(TOKEN_ENTITY,bytebuffer(tokenInfo.getPrincipal().getUuid()));
-    columns.put(TOKEN_APPLICATION,bytebuffer(tokenInfo.getPrincipal().getApplicationId()));
+    AuthPrincipalInfo principalInfo=tokenInfo.getPrincipal();
+    m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_PRINCIPAL_TYPE,bytebuffer(principalInfo.getType().toString().toLowerCase()),ttl,STR_SER,BUFF_SER));
+    m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_ENTITY,bytebuffer(principalInfo.getUuid()),ttl,STR_SER,BUFF_SER));
+    m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_APPLICATION,bytebuffer(principalInfo.getApplicationId()),ttl,STR_SER,BUFF_SER));
+    ByteBuffer rowKey=principalKey(principalInfo);
+    m.addInsertion(rowKey,PRINCIPAL_TOKEN_CF,createColumn(tokenUUID,HOLDER,ttl,BUFF_SER,BUFF_SER));
   }
-  columns.put(TOKEN_STATE,JsonUtils.toByteBuffer(tokenInfo.getState()));
-  cassandra.setColumns(cassandra.getSystemKeyspace(),TOKENS_CF,bytes(tokenInfo.getUuid()),columns,(int)(maxPersistenceTokenAge / 1000));
+  if (tokenInfo.getState() != null) {
+    m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_STATE,JsonUtils.toByteBuffer(tokenInfo.getState()),ttl,STR_SER,BUFF_SER));
+  }
+  m.execute();
 }

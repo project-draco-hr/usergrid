@@ -1,0 +1,24 @@
+{
+  logger.info("AuthResource.authFB");
+  try {
+    if (StringUtils.isEmpty(fb_access_token)) {
+      logger.error("Missing FB Access token");
+      OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_REQUEST).setErrorDescription("missing access token").buildJSONMessage();
+      return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapJSONPResponse(callback,response.getBody())).build();
+    }
+    User user=management.getOrCreateUserForFacebookAccessToken(services.getEntityManager().getApplicationRef().getUuid(),fb_access_token);
+    if (user == null) {
+      logger.error("Unable to find or create user");
+      OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_REQUEST).setErrorDescription("invalid user").buildJSONMessage();
+      return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapJSONPResponse(callback,response.getBody())).build();
+    }
+    String token=management.getAccessTokenForAppUser(services.getApplicationId(),user.getUuid(),ttl);
+    AccessInfo access_info=new AccessInfo().withExpiresIn(tokens.getMaxTokenAge(token) / 1000).withAccessToken(token).withProperty("user",user);
+    return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
+  }
+ catch (  Exception e) {
+    logger.error("FB Auth Error",e);
+    OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_REQUEST).buildJSONMessage();
+    return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapJSONPResponse(callback,response.getBody())).build();
+  }
+}

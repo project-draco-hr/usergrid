@@ -1,0 +1,52 @@
+{
+  logger.info("ManagementResource.getAccessToken with username: {}",username);
+  UserInfo user=null;
+  try {
+    if (authorization != null) {
+      String type=stringOrSubstringBeforeFirst(authorization,' ').toUpperCase();
+      if ("BASIC".equals(type)) {
+        String token=stringOrSubstringAfterFirst(authorization,' ');
+        String[] values=Base64.decodeToString(token).split(":");
+        if (values.length >= 2) {
+          client_id=values[0].toLowerCase();
+          client_secret=values[1];
+        }
+      }
+    }
+    if (GrantType.PASSWORD.toString().equals(grant_type)) {
+      try {
+        user=management.verifyAdminUserPasswordCredentials(username,password);
+        if (user != null) {
+          logger.info("found user from verify: {}",user.getUuid());
+        }
+      }
+ catch (      Exception e1) {
+        logger.error("failed token check",e1);
+      }
+    }
+ else     if ("client_credentials".equals(grant_type)) {
+      try {
+        AccessInfo access_info=management.authorizeClient(client_id,client_secret,ttl);
+        if (access_info != null) {
+          return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
+        }
+      }
+ catch (      Exception e1) {
+        logger.error("failed authorizeClient",e1);
+      }
+    }
+    if (user == null) {
+      OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription("invalid username or password").buildJSONMessage();
+      return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
+    }
+    String token=management.getAccessTokenForAdminUser(user.getUuid(),ttl);
+    AccessInfo access_info=new AccessInfo().withExpiresIn(tokens.getMaxTokenAge(token) / 1000).withAccessToken(token).withProperty("user",management.getAdminUserOrganizationData(user.getUuid()));
+    management.countAdminUserAction(user,"login");
+    return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
+  }
+ catch (  OAuthProblemException e) {
+    logger.error("OAuth Error",e);
+    OAuthResponse res=OAuthResponse.errorResponse(SC_BAD_REQUEST).error(e).buildJSONMessage();
+    return Response.status(res.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(res.getBody(),callback)).build();
+  }
+}
