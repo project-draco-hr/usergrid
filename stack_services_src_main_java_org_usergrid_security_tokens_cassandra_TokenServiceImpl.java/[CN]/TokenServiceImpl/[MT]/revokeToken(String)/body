@@ -1,0 +1,17 @@
+{
+  TokenInfo info;
+  try {
+    info=getTokenInfo(token);
+  }
+ catch (  Exception e) {
+    logger.error("Unable to find token with the specified value ignoring request.  Value : {}",token);
+    return;
+  }
+  UUID tokenId=info.getUuid();
+  Mutator<ByteBuffer> batch=createMutator(cassandra.getSystemKeyspace(),BUFF_SER);
+  if (info.getPrincipal() != null) {
+    batch.addDeletion(principalKey(info.getPrincipal()),PRINCIPAL_TOKEN_CF,bytebuffer(tokenId),BUFF_SER);
+  }
+  batch.addDeletion(bytebuffer(tokenId),TOKENS_CF);
+  batch.execute();
+}
