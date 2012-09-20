@@ -19,14 +19,14 @@
       }
     }
     if (!useReCaptcha()) {
-      management.startAppUserPasswordResetFlow(getApplicationId(),user);
+      management.startAppUserPasswordResetFlow(getApplicationId(),getUser());
       return handleViewable("resetpw_email_success",this);
     }
     ReCaptchaImpl reCaptcha=new ReCaptchaImpl();
     reCaptcha.setPrivateKey(properties.getProperty("usergrid.recaptcha.private"));
     ReCaptchaResponse reCaptchaResponse=reCaptcha.checkAnswer(httpServletRequest.getRemoteAddr(),challenge,uresponse);
     if (reCaptchaResponse.isValid()) {
-      management.startAppUserPasswordResetFlow(getApplicationId(),user);
+      management.startAppUserPasswordResetFlow(getApplicationId(),getUser());
       return handleViewable("resetpw_email_success",this);
     }
  else {
