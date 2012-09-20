@@ -1,0 +1,19 @@
+{
+  AuthPrincipalInfo adminPrincipal=new AuthPrincipalInfo(AuthPrincipalType.APPLICATION_USER,UUIDUtils.newTimeUUID(),UUIDUtils.newTimeUUID());
+  long expirationTime=1000;
+  String token=tokenService.createToken(TokenCategory.ACCESS,null,adminPrincipal,null,expirationTime);
+  long start=System.currentTimeMillis();
+  assertNotNull(token);
+  TokenInfo tokenInfo=tokenService.getTokenInfo(token);
+  assertNotNull(tokenInfo);
+  assertEquals(expirationTime,tokenInfo.getDuration());
+  Thread.sleep(expirationTime - (System.currentTimeMillis() - start) + 1000);
+  boolean invalidTokenException=false;
+  try {
+    tokenService.getTokenInfo(token);
+  }
+ catch (  InvalidTokenException ite) {
+    invalidTokenException=true;
+  }
+  assertTrue(invalidTokenException);
+}
