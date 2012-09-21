@@ -3,5 +3,11 @@
   if (user.getProperty(User.PROPERTY_HASHTYPE) != null) {
     hashType=(String)user.getProperty(User.PROPERTY_HASHTYPE);
   }
+ else {
+    CredentialsInfo ci=readUserPasswordCredentials(applicationId,user.getUuid());
+    if (ci != null) {
+      hashType=ci.getHashType();
+    }
+  }
   return hashedCredentials(saltProvider.getSalt(applicationId,user.getUuid()),password,hashType);
 }
