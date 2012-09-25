@@ -1,0 +1,17 @@
+{
+  BiMap<UUID,String> organizations=HashBiMap.create();
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  Results results=em.getCollection(em.getApplicationRef(),"groups",startResult,count,Level.ALL_PROPERTIES,false);
+  List<OrganizationInfo> orgs=new ArrayList<OrganizationInfo>(results.size());
+  OrganizationInfo orgInfo;
+  for (  Entity entity : results.getEntities()) {
+    String path=(String)entity.getProperty("path");
+    if (organizations.containsValue(path)) {
+      path+="DUPLICATE";
+    }
+    orgInfo=new OrganizationInfo(entity.getUuid(),path);
+    orgs.add(orgInfo);
+    organizations.put(entity.getUuid(),path);
+  }
+  return orgs;
+}
