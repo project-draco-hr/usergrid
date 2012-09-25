@@ -1,4 +1,11 @@
 {
+  if ("me".equals(username)) {
+    UserInfo user=SubjectUtils.getAdminUser();
+    if ((user != null) && (user.getUuid() != null)) {
+      return addUserToOrganization(ui,user.getUuid().toString(),callback);
+    }
+    throw mappableSecurityException("unauthorized","No admin identity for access credentials provided");
+  }
   ApiResponse response=new ApiResponse(ui);
   response.setAction("add user to organization");
   UserInfo user=management.getAdminUserByUsername(username);
