@@ -4,16 +4,16 @@
   jg.writeStringField("report",metricSort.name());
   jg.writeStringField("date",new Date().toString());
   jg.writeArrayFieldStart("orgs");
-  for (  UUID orgId : workingOrgs) {
+  for (  OrganizationInfo org : workingOrgs) {
     jg.writeStartObject();
-    jg.writeStringField("org_id",orgId.toString());
-    jg.writeStringField("org_name",organizations.get(orgId));
+    jg.writeStringField("org_id",org.getUuid().toString());
+    jg.writeStringField("org_name",org.getName());
     jg.writeArrayFieldStart("admins");
-    for (    UserInfo userInfo : managementService.getAdminUsersForOrganization(orgId)) {
+    for (    UserInfo userInfo : managementService.getAdminUsersForOrganization(org.getUuid())) {
       jg.writeString(userInfo.getEmail());
     }
     jg.writeEndArray();
-    writeAppLines(jg,orgId);
+    writeAppLines(jg,org.getUuid());
     jg.writeEndObject();
   }
   jg.writeEndArray();
