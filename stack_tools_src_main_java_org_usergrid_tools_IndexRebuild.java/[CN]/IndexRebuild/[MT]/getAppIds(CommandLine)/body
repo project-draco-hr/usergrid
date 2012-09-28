@@ -1,7 +1,11 @@
 {
-  String appId=line.getOptionValue("appid");
+  String appId=line.getOptionValue(APPLICATION_ARG);
   if (appId != null) {
-    return Collections.singleton(UUID.fromString(appId));
+    UUID id=UUIDUtils.tryExtractUUID(appId);
+    if (id == null) {
+      id=emf.getApplications().get(appId);
+    }
+    return Collections.singleton(id);
   }
   return emf.getApplications().values();
 }
