@@ -1,41 +1,7 @@
 {
-  Subject currentUser=SubjectUtils.getSubject();
-  if (message instanceof OpQuery) {
-    OpQuery q=(OpQuery)message;
-    String collectionName=q.getCollectionName();
-    if ("$cmd".equals(collectionName)) {
-      @SuppressWarnings("unchecked") String commandName=(String)MapUtils.getFirstKey(q.getQuery().toMap());
-      if ("authenticate".equals(commandName)) {
-        return handleAuthenticate(ctx,e,(OpQuery)message,q.getDatabaseName());
-      }
- else       if ("getnonce".equals(commandName)) {
-        return handleGetnonce(ctx,e,(OpQuery)message);
-      }
-      if (!currentUser.isAuthenticated()) {
-        return handleUnauthorizedCommand(ctx,e,(OpQuery)message);
-      }
-      MongoCommand command=MongoCommand.getCommand(commandName);
-      if (command != null) {
-        return command.execute(this,ctx,e,(OpQuery)message);
-      }
- else {
-        logger.info("No command for " + commandName);
-      }
-    }
- else {
-      if (!currentUser.isAuthenticated()) {
-        return handleUnauthorizedQuery(ctx,e,(OpQuery)message);
-      }
-      if ("system.namespaces".equals(collectionName)) {
-        return handleListCollections(ctx,e,(OpQuery)message,q.getDatabaseName());
-      }
- else       if ("system.users".equals(collectionName)) {
-        return handleListUsers(ctx,e,(OpQuery)message,q.getDatabaseName());
-      }
- else {
-        return handleQuery(ctx,e,(OpQuery)message,q.getDatabaseName(),collectionName);
-      }
-    }
+  logger.debug("message type: {}",message.getClass().getCanonicalName());
+  if (message instanceof OpCrud) {
+    return ((OpCrud)message).doOp(this,ctx,e);
   }
   OpReply reply=new OpReply(message);
   return reply;

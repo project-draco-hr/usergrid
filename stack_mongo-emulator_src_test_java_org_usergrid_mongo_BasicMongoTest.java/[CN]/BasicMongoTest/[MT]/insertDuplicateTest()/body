@@ -1,0 +1,20 @@
+{
+  DB db=getDb();
+  BasicDBObject doc=new BasicDBObject();
+  doc.put("username","insertduplicate");
+  WriteResult result=db.getCollection("users").insert(doc);
+  assertNull(result.getError());
+  Set<String> colls=db.getCollectionNames();
+  assertTrue(colls.contains("users"));
+  doc=new BasicDBObject();
+  doc.put("username","insertduplicate");
+  String message=null;
+  try {
+    result=db.getCollection("users").insert(doc);
+  }
+ catch (  MongoException me) {
+    message=me.getMessage();
+  }
+  assertNotNull(message);
+  assertEquals("command failed [getlasterror]: { \"serverUsed\" : \"localhost/127.0.0.1:27017\" , \"n\" : 0 , \"connectionId\" : 20 , \"wtime\" : 0 , \"err\" : \"Entity users requires that property named username be unique, value of insertduplicate exists\" , \"ok\" : 0.0}",message);
+}
