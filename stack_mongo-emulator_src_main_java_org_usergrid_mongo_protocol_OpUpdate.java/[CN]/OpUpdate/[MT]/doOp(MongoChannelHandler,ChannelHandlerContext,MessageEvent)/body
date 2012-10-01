@@ -1,0 +1,31 @@
+{
+  ApplicationInfo application=SubjectUtils.getApplication(Identifier.from(getDatabaseName()));
+  if (application == null) {
+    ctx.setAttachment(new IllegalArgumentException(String.format("Could not find application with name '%s' ",getDatabaseName())));
+    return null;
+  }
+  EntityManager em=handler.getEmf().getEntityManager(application.getId());
+  Results results=null;
+  Query q=MongoQueryParser.toNativeQuery(selector,1000);
+  if (q == null) {
+    ctx.setAttachment(new IllegalArgumentException("Could not parse query"));
+    return null;
+  }
+  try {
+    do {
+      if (results != null) {
+        q.setCursor(results.getCursor());
+      }
+      results=em.searchCollection(em.getApplicationRef(),getCollectionName(),q);
+      for (      Entity entity : results.getEntities()) {
+        em.updateProperties(entity,update.toMap());
+      }
+    }
+ while (results != null && results.getCursor() != null);
+  }
+ catch (  Exception e) {
+    logger.error("Unable to perform update with query {} and update {}",new Object[]{selector,update,e});
+    ctx.setAttachment(e);
+  }
+  return null;
+}

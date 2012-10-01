@@ -1,0 +1,22 @@
+{
+  ApplicationInfo application=SubjectUtils.getApplication(Identifier.from(getDatabaseName()));
+  if (application == null) {
+    ctx.setAttachment(new IllegalArgumentException(String.format("Could not find application with name '%s' ",getDatabaseName())));
+    return null;
+  }
+  EntityManager em=handler.getEmf().getEntityManager(application.getId());
+  for (  BSONObject document : documents) {
+    try {
+      Object id=document.get("_id");
+      if (id instanceof ObjectId) {
+        document.put("_id",((ObjectId)id).toStringMongod());
+      }
+      em.create(getCollectionName(),document.toMap());
+    }
+ catch (    Exception e) {
+      logger.error("Unable to insert mongo document {}",document,e);
+      ctx.setAttachment(e);
+    }
+  }
+  return null;
+}
