@@ -1,0 +1,11 @@
+{
+  ServiceResults results=super.postItemById(context,id);
+  String permission=context.getStringProperty("permission");
+  if (!isBlank(permission)) {
+    Role role=em.get(id,Role.class);
+    if (role != null) {
+      grantApplicationRolePermission(role.getName(),permission,results);
+    }
+  }
+  return results;
+}
