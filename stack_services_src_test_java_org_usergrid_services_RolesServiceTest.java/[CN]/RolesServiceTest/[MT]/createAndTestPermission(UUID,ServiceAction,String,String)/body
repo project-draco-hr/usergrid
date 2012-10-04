@@ -1,0 +1,13 @@
+{
+  ServiceManager sm=smf.getServiceManager(applicationId);
+  assertNotNull(sm);
+  EntityManager em=sm.getEntityManager();
+  assertNotNull(em);
+  Map<String,Object> props=new HashMap<String,Object>();
+  props.put("permission",grant);
+  ServiceResults results=invokeService(sm,action,props,"roles",roleName,"permissions");
+  @SuppressWarnings("unchecked") Set<String> data=(Set<String>)results.getData();
+  assertTrue(data.contains(grant));
+  Set<String> permissions=em.getRolePermissions(roleName);
+  assertTrue(permissions.contains(grant));
+}
