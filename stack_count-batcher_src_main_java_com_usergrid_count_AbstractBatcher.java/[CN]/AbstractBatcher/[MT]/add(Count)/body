@@ -2,11 +2,10 @@
   invocationCounter.inc();
   final TimerContext context=addTimer.time();
   batch.add(count);
-synchronized (batch) {
-    boolean wasSubmitted=maybeSubmit(batch);
-    if (wasSubmitted) {
-      batch.clear();
-    }
+  if (shouldSubmit(batch)) {
+    Batch copy=batch;
+    batch=new Batch();
+    submit(copy);
   }
   context.stop();
 }
