@@ -4,11 +4,16 @@
     return type;
   }
   String className=cls.getName();
-  if (className.startsWith(ENTITIES_PACKAGE_PREFIX)) {
-    type=className.substring(ENTITIES_PACKAGE_PREFIX.length());
-    type=InflectionUtils.underscore(type);
+  boolean finded=false;
+  for (  String entityPackage : entitiesPackage) {
+    String entityPackagePrefix=entityPackage + ".";
+    if (className.startsWith(entityPackagePrefix)) {
+      type=className.substring(entityPackagePrefix.length());
+      type=InflectionUtils.underscore(type);
+      finded=true;
+    }
   }
- else {
+  if (!finded) {
     type=className;
   }
   typeToEntityClass.put(type,cls);
