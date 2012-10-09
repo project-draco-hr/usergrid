@@ -1,0 +1,14 @@
+{
+  int threadSize=getThreadSizeFromSystemProperties();
+  Collection<NetworkListener> listeners=httpServer.getListeners();
+  for (  NetworkListener listener : listeners) {
+    listener.getTransport().getKernelThreadPoolConfig();
+    TCPNIOTransportBuilder builder=TCPNIOTransportBuilder.newInstance();
+    ThreadPoolConfig config=builder.getWorkerThreadPoolConfig();
+    config.setCorePoolSize(threadSize);
+    config.setMaxPoolSize(threadSize);
+    TCPNIOTransport transport=builder.build();
+    listener.setTransport(transport);
+  }
+  logger.info("thread size set as {}",threadSize);
+}
