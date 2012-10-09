@@ -1,12 +1,15 @@
 {
   invocationCounter.inc();
   final TimerContext context=addTimer.time();
+  readLock.lock();
   batch.add(count);
-synchronized (batch) {
-    boolean wasSubmitted=maybeSubmit(batch);
-    if (wasSubmitted) {
-      batch.clear();
-    }
+  readLock.unlock();
+  if (shouldSubmit(batch)) {
+    writeLock.lock();
+    Batch copy=batch;
+    batch=new Batch();
+    writeLock.unlock();
+    submit(copy);
   }
   context.stop();
 }
