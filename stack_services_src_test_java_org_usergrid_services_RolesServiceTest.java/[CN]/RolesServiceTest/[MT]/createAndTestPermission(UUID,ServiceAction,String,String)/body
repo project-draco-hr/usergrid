@@ -6,8 +6,11 @@
   Map<String,Object> props=new HashMap<String,Object>();
   props.put("permission",grant);
   ServiceResults results=invokeService(sm,action,props,"roles",roleName,"permissions");
-  @SuppressWarnings("unchecked") Set<String> data=(Set<String>)results.getData();
+  Set<String> data=(Set<String>)results.getData();
   assertTrue(data.contains(grant));
   Set<String> permissions=em.getRolePermissions(roleName);
   assertTrue(permissions.contains(grant));
+  results=invokeService(sm,ServiceAction.GET,props,"roles",roleName,"permissions");
+  data=(Set<String>)results.getData();
+  assertTrue(data.contains(grant));
 }
