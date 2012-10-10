@@ -5,7 +5,7 @@
     if ("system".equals(name)) {
       continue;
     }
-    handleAggregateCounterRow(m,getAggregateCounterRow(name,null,null,null,null,resolution),resolution.round(counterTimestamp),value,applicationId);
+    handleAggregateCounterRow(m,AggregateCounterSelection.rowBuilder(name,null,null,null,null,resolution),resolution.round(counterTimestamp),value,applicationId);
     String currentRow=null;
     HashSet<String> rowSet=new HashSet<String>(16);
     for (int i=0; i < 16; i++) {
@@ -20,7 +20,7 @@
           non_null++;
         }
       }
-      currentRow=getAggregateCounterRow(name,(UUID)parameters[0],(UUID)parameters[1],(UUID)parameters[2],(String)parameters[3],resolution);
+      currentRow=AggregateCounterSelection.rowBuilder(name,(UUID)parameters[0],(UUID)parameters[1],(UUID)parameters[2],(String)parameters[3],resolution);
       if (non_null > 0 && !rowSet.contains(currentRow)) {
         rowSet.add(currentRow);
         handleAggregateCounterRow(m,currentRow,resolution.round(counterTimestamp),value,applicationId);
