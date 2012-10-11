@@ -1,0 +1,16 @@
+{
+  ServiceManager sm=smf.getServiceManager(applicationId);
+  assertNotNull(sm);
+  EntityManager em=sm.getEntityManager();
+  assertNotNull(em);
+  Map<String,Object> props=new HashMap<String,Object>();
+  props.put("permission",grant);
+  ServiceResults results=invokeService(sm,action,props,"roles",roleName,"permissions");
+  Set<String> data=(Set<String>)results.getData();
+  assertTrue(data.contains(grant));
+  Set<String> permissions=em.getRolePermissions(roleName);
+  assertTrue(permissions.contains(grant));
+  results=invokeService(sm,ServiceAction.GET,props,"roles",roleName,"permissions");
+  data=(Set<String>)results.getData();
+  assertTrue(data.contains(grant));
+}

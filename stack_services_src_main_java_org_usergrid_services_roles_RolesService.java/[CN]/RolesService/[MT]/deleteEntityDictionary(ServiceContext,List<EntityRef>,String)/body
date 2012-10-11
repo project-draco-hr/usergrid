@@ -1,0 +1,24 @@
+{
+  if ("permissions".equalsIgnoreCase(dictionary)) {
+    checkPermissionsForPath(context,"/permissions");
+    EntityRef ref=refs.get(0);
+    String roleName=(String)em.getProperty(ref,"name");
+    if (isBlank(roleName)) {
+      throw new IllegalArgumentException(String.format("Could not load role with id '%s'",ref.getUuid()));
+    }
+    Query q=context.getParameters().get(0).getQuery();
+    if (q == null) {
+      throw new IllegalArgumentException("You must supply a 'permission' query parameter");
+    }
+    List<String> permissions=q.getPermissions();
+    if (permissions == null) {
+      throw new IllegalArgumentException("You must supply a 'permission' query parameter");
+    }
+    ServiceResults results=null;
+    for (    String permission : permissions) {
+      results=revokeApplicationRolePermission(roleName,permission);
+    }
+    return results;
+  }
+  return super.deleteEntityDictionary(context,refs,dictionary);
+}
