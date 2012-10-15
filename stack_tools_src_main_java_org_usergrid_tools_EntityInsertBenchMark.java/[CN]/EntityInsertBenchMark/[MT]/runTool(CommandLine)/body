@@ -1,0 +1,19 @@
+{
+  startSpring();
+  logger.info("Starting entity cleanup");
+  ExecutorService executors=Executors.newFixedThreadPool(WORKER_SIZE);
+  int count=Integer.parseInt(line.getOptionValue("count"));
+  int size=count / WORKER_SIZE;
+  int orphanced=count % WORKER_SIZE;
+  UUID appId=UUID.fromString(line.getOptionValue("appId"));
+  Stack<Future<Void>> futures=new Stack<Future<Void>>();
+  for (int i=0; i < WORKER_SIZE - 1; i++) {
+    futures.push(executors.submit(new InsertWorker(i,size,appId)));
+  }
+  futures.push(executors.submit(new InsertWorker(WORKER_SIZE - 1,size + orphanced,appId)));
+  System.out.println("Waiting for workers to complete insertion");
+  while (!futures.isEmpty()) {
+    futures.pop().get();
+  }
+  System.out.println("All workers completed insertion");
+}
