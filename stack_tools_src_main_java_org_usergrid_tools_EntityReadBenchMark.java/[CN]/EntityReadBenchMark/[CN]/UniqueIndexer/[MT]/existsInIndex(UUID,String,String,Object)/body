@@ -1,20 +1,5 @@
 {
-  List<String> buckets=indexBucketLocator.getBuckets(applicationId,IndexType.UNIQUE,collectionName);
-  List<Object> cassKeys=new ArrayList<Object>(buckets.size());
-  Object keyPrefix=key(applicationId,collectionName,propName);
-  for (  String bucket : buckets) {
-    cassKeys.add(key(keyPrefix,bucket));
-  }
-  MultigetSliceQuery<ByteBuffer,DynamicComposite,ByteBuffer> multiget=HFactory.createMultigetSliceQuery(keyspace,be,DynamicCompositeSerializer.get(),ByteBufferSerializer.get());
-  multiget.setColumnFamily(ENTITY_UNIQUE.getColumnFamily());
-  multiget.setKeys(bytebuffers(cassKeys));
-  UniqueIndexEntry entry=new UniqueIndexEntry(propName,entityValue);
-  multiget.setColumnNames(entry.getIndexComposite());
-  QueryResult<Rows<ByteBuffer,DynamicComposite,ByteBuffer>> results=multiget.execute();
-  for (  Row<ByteBuffer,DynamicComposite,ByteBuffer> row : results.get()) {
-    if (row.getColumnSlice().getColumns().size() > 0) {
-      return true;
-    }
-  }
-  return false;
+  Object rowKey=key(applicationId,collectionName,propName,md5(bytes(entityValue)));
+  List<HColumn<ByteBuffer,ByteBuffer>> cols=cass.getColumns(keyspace,ENTITY_UNIQUE,rowKey,null,null,2,false);
+  return cols.size() > 0;
 }

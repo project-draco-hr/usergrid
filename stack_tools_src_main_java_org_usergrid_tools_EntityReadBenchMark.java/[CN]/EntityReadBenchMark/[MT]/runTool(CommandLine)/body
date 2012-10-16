@@ -7,15 +7,12 @@
   UUID appId=UUID.fromString(line.getOptionValue("appId"));
   System.out.println("Querying unique properties in the search index");
   final ConsoleReporter reporter=new ConsoleReporter(Metrics.defaultRegistry(),System.out,MetricPredicate.ALL);
+  reporter.start(30,TimeUnit.SECONDS);
   Stack<Future<Void>> futures=new Stack<Future<Void>>();
-  for (int i=0; i < WORKER_SIZE; i++) {
-    futures.push(executors.submit(new IndexReadWorker(i,size,appId)));
-  }
   System.out.println("Waiting for index read workers to complete");
   while (!futures.isEmpty()) {
     futures.pop().get();
   }
-  reporter.run();
   for (int i=0; i < WORKER_SIZE; i++) {
     futures.push(executors.submit(new DictReadWorker(i,size,appId)));
   }
