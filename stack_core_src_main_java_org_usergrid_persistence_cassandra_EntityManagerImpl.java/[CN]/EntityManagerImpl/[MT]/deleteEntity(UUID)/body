@@ -32,13 +32,14 @@
     String collection_name=Schema.defaultCollectionName(entity.getType());
     decrementEntityCollection(collection_name);
   }
-  batchExecute(m,CassandraService.RETRY_COUNT);
   timestamp+=1;
   if (dictionaries != null) {
     for (    String dictionary : dictionaries) {
-      cass.deleteRow(ko,getDefaultSchema().hasDictionary(entity.getType(),dictionary) ? ENTITY_DICTIONARIES : ENTITY_COMPOSITE_DICTIONARIES,key(entity.getUuid(),dictionary),timestamp);
+      ApplicationCF cf=getDefaultSchema().hasDictionary(entity.getType(),dictionary) ? ENTITY_DICTIONARIES : ENTITY_COMPOSITE_DICTIONARIES;
+      addDeleteToMutator(m,cf,key(entity.getUuid(),dictionary),timestamp);
     }
   }
-  cass.deleteRow(ko,ENTITY_PROPERTIES,key(entityId),timestamp);
-  deleteAliasesForEntity(entityId,timestamp);
+  addDeleteToMutator(m,ENTITY_PROPERTIES,key(entityId),timestamp);
+  deleteAliasesForEntity(m,entityId,timestamp);
+  batchExecute(m,CassandraService.RETRY_COUNT);
 }

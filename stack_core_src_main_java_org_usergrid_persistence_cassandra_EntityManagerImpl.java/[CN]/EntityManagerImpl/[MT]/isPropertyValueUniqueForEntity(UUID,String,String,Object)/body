@@ -5,23 +5,22 @@
   if (propertyValue == null) {
     return true;
   }
-  String propertyPath="/" + defaultCollectionName(entityType) + "/@"+ propertyName;
-  cass.getLockManager().lock(applicationId,propertyPath);
-  Query query=new Query();
-  query.setEntityType(entityType);
-  query.addEqualityFilter(propertyName,propertyValue);
-  query.setLimit(1000);
-  query.setResultsLevel(IDS);
-  Results r=getRelationManager(ref(applicationId)).searchCollection(pluralize(entityType),query);
-  cass.getLockManager().unlock(applicationId,propertyPath);
-  if (r == null) {
+  String collectionName=defaultCollectionName(entityType);
+  cass.getLockManager().lockProperty(applicationId,entityType,propertyName);
+  Object key=createUniqueIndexKey(collectionName,propertyName,propertyValue);
+  List<HColumn<ByteBuffer,ByteBuffer>> cols=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_UNIQUE,key,null,null,2,false);
+  cass.getLockManager().unlockProperty(applicationId,entityType,propertyName);
+  if (cols.size() == 0) {
     return true;
   }
-  if ((thisEntity != null) && (r.size() > 0) && r.getId().equals(thisEntity)) {
-    return true;
+  if (cols.size() > 1) {
+    logger.error("INDEX CORRUPTION: More than 1 unique value exists for entities in application {} of type {} on property {} with value {}",new Object[]{applicationId,entityType,propertyName,propertyValue});
   }
-  if (r.size() > 1) {
-    logger.info("Warning: Multiple instances with duplicate value of " + propertyValue + " for propertyName "+ propertyName+ " of entity type "+ entityType);
+  for (  HColumn<ByteBuffer,ByteBuffer> col : cols) {
+    UUID id=ue.fromByteBuffer(col.getName());
+    if (thisEntity.equals(id)) {
+      return true;
+    }
   }
-  return r.isEmpty();
+  return false;
 }

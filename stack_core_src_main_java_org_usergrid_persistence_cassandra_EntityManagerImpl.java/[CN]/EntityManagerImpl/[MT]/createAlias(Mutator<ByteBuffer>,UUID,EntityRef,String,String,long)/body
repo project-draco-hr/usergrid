@@ -1,0 +1,26 @@
+{
+  UUID entityId=ref.getUuid();
+  String entityType=ref.getType();
+  if (entityType == null) {
+    entityType=getEntityType(entityId);
+  }
+  if (entityType == null) {
+    return null;
+  }
+  if (aliasType == null) {
+    aliasType=entityType;
+  }
+  if (ownerId == null) {
+    ownerId=applicationId;
+  }
+  if (alias == null) {
+    return null;
+  }
+  alias=alias.toLowerCase().trim();
+  UUID keyId=CassandraPersistenceUtils.aliasID(ownerId,aliasType,alias);
+  addInsertToMutator(mutator,ENTITY_ALIASES,keyId,"entityId",entityId,timestamp);
+  addInsertToMutator(mutator,ENTITY_ALIASES,keyId,"entityType",entityType,timestamp);
+  addInsertToMutator(mutator,ENTITY_ALIASES,keyId,"aliasType",aliasType,timestamp);
+  addInsertToMutator(mutator,ENTITY_ALIASES,keyId,"alias",alias,timestamp);
+  return keyId;
+}
