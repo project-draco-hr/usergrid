@@ -1,5 +1,6 @@
 {
   String eType=Schema.normalizeEntityType(entityType);
+  Schema schema=getDefaultSchema();
   boolean is_application=TYPE_APPLICATION.equals(eType);
   if (((applicationId == null) || applicationId.equals(UUIDUtils.zeroUUID)) && !is_application) {
     return null;
@@ -26,12 +27,12 @@
   if (entityClass == null) {
     entityClass=(Class<A>)DynamicEntity.class;
   }
-  Set<String> required=getDefaultSchema().getRequiredProperties(entityType);
+  Set<String> required=schema.getRequiredProperties(entityType);
   if (required != null) {
     for (    String p : required) {
       if (!PROPERTY_UUID.equals(p) && !PROPERTY_TYPE.equals(p) && !PROPERTY_CREATED.equals(p)&& !PROPERTY_MODIFIED.equals(p)) {
         Object v=properties.get(p);
-        if (getDefaultSchema().isPropertyTimestamp(entityType,p)) {
+        if (schema.isPropertyTimestamp(entityType,p)) {
           if (v == null) {
             properties.put(p,timestamp / 1000);
           }
@@ -57,7 +58,7 @@
   Object collection_key=key(applicationId,Schema.DICTIONARY_COLLECTIONS,collection_name,bucketId);
   CollectionInfo collection=null;
   if (!is_application) {
-    collection=getDefaultSchema().getCollection(TYPE_APPLICATION,collection_name);
+    collection=schema.getCollection(TYPE_APPLICATION,collection_name);
     addInsertToMutator(m,ENTITY_ID_SETS,collection_key,itemId,null,timestamp);
     addInsertToMutator(m,ENTITY_DICTIONARIES,key(applicationId,Schema.DICTIONARY_COLLECTIONS),collection_name,null,timestamp);
     addInsertToMutator(m,ENTITY_COMPOSITE_DICTIONARIES,key(itemId,Schema.DICTIONARY_CONTAINER_ENTITIES),asList(TYPE_APPLICATION,collection_name,applicationId),null,timestamp);
@@ -114,7 +115,7 @@
     entity.setUuid(message.getUuid());
     return entity;
   }
-  String aliasName=getDefaultSchema().aliasProperty(entityType);
+  String aliasName=schema.aliasProperty(entityType);
   logger.info("Alias property is {}",aliasName);
   for (  String prop_name : properties.keySet()) {
     Object propertyValue=properties.get(prop_name);
@@ -130,7 +131,13 @@
     if (!Schema.isAssociatedEntityType(entityType) && prop_name.equals(aliasName)) {
       String aliasValue=propertyValue.toString().toLowerCase().trim();
       logger.info("Alias property value for {} is {}",aliasName,aliasValue);
-      createAlias(applicationId,ref(entityType,itemId),entityType,aliasValue);
+      createAlias(m,applicationId,ref(entityType,itemId),entityType,aliasValue,timestamp);
+    }
+    if (schema.getEntityInfo(entity.getType()).isPropertyUnique(prop_name)) {
+      cass.getLockManager().lockProperty(applicationId,entityType,prop_name);
+      String collectionName=Schema.defaultCollectionName(entityType);
+      uniquePropertyWrite(m,collectionName,prop_name,propertyValue,itemId,timestamp);
+      cass.getLockManager().unlockProperty(applicationId,entity.getType(),prop_name);
     }
     entity.setProperty(prop_name,propertyValue);
     batchSetProperty(m,entity,prop_name,propertyValue,true,true,timestampUuid);

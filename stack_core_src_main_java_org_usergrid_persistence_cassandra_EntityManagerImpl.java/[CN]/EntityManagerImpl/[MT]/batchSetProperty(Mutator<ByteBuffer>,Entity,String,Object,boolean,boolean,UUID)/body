@@ -2,6 +2,7 @@
   long timestamp=getTimestampInMicros(timestampUuid);
   boolean entitySchemaHasProperty=getDefaultSchema().hasProperty(entity.getType(),propertyName);
   propertyValue=getDefaultSchema().validateEntityPropertyValue(entity.getType(),propertyName,propertyValue);
+  Schema defaultSchema=Schema.getDefaultSchema();
   if (PROPERTY_TYPE.equalsIgnoreCase(propertyName) && (propertyValue != null)) {
     if ("entity".equalsIgnoreCase(propertyValue.toString()) || "dynamicentity".equalsIgnoreCase(propertyValue.toString())) {
       String errorMsg="Unable to dictionary entity type to " + propertyValue + " because that is not a valid type.";
@@ -11,20 +12,27 @@
   }
   if (entitySchemaHasProperty) {
     if (!force) {
-      if (!getDefaultSchema().isPropertyMutable(entity.getType(),propertyName)) {
+      if (!defaultSchema.isPropertyMutable(entity.getType(),propertyName)) {
         return batch;
       }
-      if ((propertyValue == null) && getDefaultSchema().isRequiredProperty(entity.getType(),propertyName)) {
+      if ((propertyValue == null) && defaultSchema.isRequiredProperty(entity.getType(),propertyName)) {
         return batch;
       }
     }
     if (!isPropertyValueUniqueForEntity(entity.getUuid(),entity.getType(),propertyName,propertyValue)) {
       throw new DuplicateUniquePropertyExistsException(entity.getType(),propertyName,propertyValue);
     }
-    if (propertyName.equals(Schema.getDefaultSchema().aliasProperty(entity.getType()))) {
+    if (propertyName.equals(defaultSchema.aliasProperty(entity.getType()))) {
       cass.getLockManager().lockProperty(applicationId,entity.getType(),propertyName);
-      deleteAliasesForEntity(entity.getUuid());
-      createAlias(applicationId,entity,entity.getType(),string(propertyValue));
+      deleteAliasesForEntity(batch,entity.getUuid(),timestamp - 1);
+      createAlias(batch,applicationId,entity,entity.getType(),string(propertyValue),timestamp);
+      cass.getLockManager().unlockProperty(applicationId,entity.getType(),propertyName);
+    }
+    if (defaultSchema.getEntityInfo(entity.getType()).isPropertyUnique(propertyName)) {
+      cass.getLockManager().lockProperty(applicationId,entity.getType(),propertyName);
+      String collectionName=Schema.defaultCollectionName(entity.getType());
+      uniquePropertyDelete(batch,collectionName,entity.getType(),propertyName,propertyValue,entity.getUuid(),timestamp - 1);
+      uniquePropertyWrite(batch,collectionName,propertyName,propertyValue,entity.getUuid(),timestamp);
       cass.getLockManager().unlockProperty(applicationId,entity.getType(),propertyName);
     }
   }
