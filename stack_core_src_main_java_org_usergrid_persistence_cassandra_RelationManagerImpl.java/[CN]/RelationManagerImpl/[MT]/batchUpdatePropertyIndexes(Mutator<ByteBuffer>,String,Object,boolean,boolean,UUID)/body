@@ -8,7 +8,9 @@
       associatedId=(UUID)item;
       associatedType=string(entity.getProperty(PROPERTY_ITEM_TYPE));
       String entryName=TYPE_MEMBER + "." + propertyName;
-      logger.info("Extended property " + entity.getType() + "("+ entity.getUuid()+ ")."+ propertyName+ " indexed as "+ associatedType+ "("+ associatedId+ ")."+ entryName);
+      if (logger.isDebugEnabled()) {
+        logger.debug("Extended property {} ( {} ).{} indexed as {} ({})." + entryName,new Object[]{entity.getType(),entity.getUuid(),propertyName,associatedType,associatedId});
+      }
       propertyName=entryName;
     }
   }
@@ -43,7 +45,7 @@
     }
     for (    EntityRef containerEntity : containerEntities.keySet()) {
       if (containerEntity.getType().equals(TYPE_APPLICATION) && Schema.isAssociatedEntityType(entity.getType())) {
-        logger.info("Extended properties for " + entity.getType() + " not indexed by application");
+        logger.debug("Extended properties for {} not indexed by application",entity.getType());
         continue;
       }
       Set<String> collectionNames=containerEntities.get(containerEntity);
