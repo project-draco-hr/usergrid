@@ -7,18 +7,18 @@
   QueryResult<OrderedRows<UUID,String,ByteBuffer>> r=q.execute();
   OrderedRows<UUID,String,ByteBuffer> rows=r.get();
   List<ConnectionRefImpl> connections=new ArrayList<ConnectionRefImpl>();
-  logger.info(rows.getCount() + " indexed connection row(s) retrieved");
+  logger.debug("{} indexed connection row(s) retrieved",rows.getCount());
   for (  Row<UUID,String,ByteBuffer> row : rows) {
     UUID entityId=row.getKey();
-    logger.info("Indexed connection " + entityId.toString() + " found");
+    logger.debug("Indexed connection {} found",entityId.toString());
     ConnectionRefImpl c=ConnectionRefImpl.loadFromColumns(row.getColumnSlice().getColumns());
     String entityType=c.getConnectedEntityType();
     if (!includeConnectionEntities && TYPE_CONNECTION.equalsIgnoreCase(entityType)) {
-      logger.info("Skipping loopback connection " + entityId.toString());
+      logger.debug("Skipping loopback connection {}",entityId.toString());
       continue;
     }
     connections.add(c);
   }
-  logger.info("Returing " + connections.size() + " connection(s)");
+  logger.debug("Returing {} connection(s)",connections.size());
   return connections;
 }
