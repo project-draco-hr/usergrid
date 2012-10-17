@@ -1,0 +1,12 @@
+{
+  if ("permissions".equalsIgnoreCase(dictionary)) {
+    checkPermissionsForPath(context,"/permissions");
+    EntityRef ref=refs.get(0);
+    String roleName=(String)em.getProperty(ref,"name");
+    if (isBlank(roleName)) {
+      throw new IllegalArgumentException("You must provide a role name");
+    }
+    return getApplicationRolePermissions(roleName);
+  }
+  return super.getEntityDictionary(context,refs,dictionary);
+}

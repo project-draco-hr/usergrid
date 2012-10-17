@@ -1,0 +1,20 @@
+{
+  UUID applicationId=createApplication("testOrganization","noPermissionsOnPost");
+  assertNotNull(applicationId);
+  ServiceManager sm=smf.getServiceManager(applicationId);
+  assertNotNull(sm);
+  EntityManager em=sm.getEntityManager();
+  assertNotNull(em);
+  Map<String,Object> props=new HashMap<String,Object>();
+  props.put("name","manager");
+  props.put("title","Manager Title");
+  props.put("inactivity",600000l);
+  ServiceResults results=testRequest(sm,ServiceAction.POST,1,props,"roles");
+  Entity roleEntity=results.getEntities().get(0);
+  assertEquals("manager",roleEntity.getProperty("name"));
+  assertEquals("Manager Title",roleEntity.getProperty("title"));
+  assertEquals(600000l,roleEntity.getProperty("inactivity"));
+  props=new HashMap<String,Object>();
+  props.put("misspelledpermission","access:/**");
+  results=invokeService(sm,ServiceAction.POST,props,"roles","manager","permissions");
+}

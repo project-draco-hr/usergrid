@@ -110,18 +110,7 @@
       }
       try {
         Set<String> rolenames=em.getUserRoles(user.getUuid());
-        Map<String,Role> app_roles=em.getRolesWithTitles(rolenames);
-        for (        String rolename : rolenames) {
-          if ((app_roles != null) && (token != null)) {
-            Role role=app_roles.get(rolename);
-            if ((role != null) && (role.getInactivity() > 0) && (token.getInactive() > role.getInactivity())) {
-              continue;
-            }
-          }
-          Set<String> permissions=em.getRolePermissions(rolename);
-          grant(info,principal,applicationId,permissions);
-          role(info,principal,"application-role:".concat(applicationId.toString()).concat(":").concat(rolename));
-        }
+        grantAppRoles(info,em,applicationId,token,principal,rolenames);
       }
  catch (      Exception e) {
         logger.error("Unable to get user role permissions",e);
@@ -129,13 +118,14 @@
       try {
         Results r=em.getCollection(new SimpleEntityRef(User.ENTITY_TYPE,user.getUuid()),"groups",null,1000,Level.IDS,false);
         if (r != null) {
+          Set<String> rolenames=new HashSet<String>();
           for (          UUID groupId : r.getIds()) {
-            Map<String,String> groupRoles=em.getUserGroupRoles(user.getUuid(),groupId);
-            for (            String roleName : groupRoles.keySet()) {
-              Set<String> permissions=em.getGroupRolePermissions(groupId,roleName);
-              grant(info,principal,applicationId,permissions);
+            Results roleResults=em.getCollection(new SimpleEntityRef(Role.ENTITY_TYPE,groupId),"roles",null,1000,Level.CORE_PROPERTIES,false);
+            for (            Entity entity : roleResults.getEntities()) {
+              rolenames.add(entity.getName());
             }
           }
+          grantAppRoles(info,em,applicationId,token,principal,rolenames);
         }
       }
  catch (      Exception e) {
