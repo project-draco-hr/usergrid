@@ -9,7 +9,9 @@
  else {
       entries=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_INDEX_ENTRIES,entity.getUuid(),new DynamicComposite(entryName),setGreaterThanEqualityFlag(new DynamicComposite(entryName)),INDEX_ENTRY_LIST_COUNT,false);
     }
-    logger.info("Found " + entries.size() + " previous index entries for "+ entryName+ " of entity "+ entity.getUuid());
+    if (logger.isDebugEnabled()) {
+      logger.debug("Found {} previous index entries for {} of entity {}",new Object[]{entries.size(),entryName,entity.getUuid()});
+    }
     for (    HColumn<ByteBuffer,ByteBuffer> entry : entries) {
       UUID prev_timestamp=null;
       Object prev_value=null;
