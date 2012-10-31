@@ -1,0 +1,17 @@
+{
+  logger.debug("UserResource.getAccessToken");
+  try {
+    if (isApplicationUser() && !getUserUuid().equals(getSubjectUserId())) {
+      OAuthResponse res=OAuthResponse.errorResponse(SC_FORBIDDEN).buildJSONMessage();
+      return Response.status(res.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(res.getBody(),callback)).build();
+    }
+    String token=management.getAccessTokenForAppUser(services.getApplicationId(),getUserUuid(),ttl);
+    AccessInfo access_info=new AccessInfo().withExpiresIn(tokens.getMaxTokenAge(token) / 1000).withAccessToken(token).withProperty("user",getUser());
+    return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
+  }
+ catch (  OAuthProblemException e) {
+    logger.error("OAuth Error",e);
+    OAuthResponse res=OAuthResponse.errorResponse(SC_BAD_REQUEST).error(e).buildJSONMessage();
+    return Response.status(res.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(res.getBody(),callback)).build();
+  }
+}
