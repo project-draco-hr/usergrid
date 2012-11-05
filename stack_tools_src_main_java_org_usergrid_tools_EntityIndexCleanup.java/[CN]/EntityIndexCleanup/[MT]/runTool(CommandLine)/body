@@ -9,6 +9,11 @@
     logger.info("Starting cleanup for app {}",app.getKey());
     UUID applicationId=app.getValue();
     EntityManagerImpl em=(EntityManagerImpl)emf.getEntityManager(applicationId);
+    Application appEntity=em.getApplication();
+    if (appEntity == null) {
+      logger.warn("Application does not exist in data. {}",app.getKey());
+      continue;
+    }
     CassandraService cass=em.getCass();
     IndexBucketLocator indexBucketLocator=em.getIndexBucketLocator();
     Keyspace ko=cass.getApplicationKeyspace(applicationId);
@@ -29,8 +34,9 @@
           boolean reIndex=false;
           Mutator<ByteBuffer> m=createMutator(ko,be);
           for (          String prop : indexed) {
-            Object key=key(applicationId,collection.getName(),prop);
-            List<HColumn<ByteBuffer,ByteBuffer>> indexCols=scanIndexForAllTypes(ko,indexBucketLocator,applicationId,key,id,prop);
+            String bucket=indexBucketLocator.getBucket(applicationId,IndexType.COLLECTION,id,prop);
+            Object rowKey=key(applicationId,collection.getName(),prop,bucket);
+            List<HColumn<ByteBuffer,ByteBuffer>> indexCols=scanIndexForAllTypes(ko,indexBucketLocator,applicationId,rowKey,id,prop);
             for (            HColumn<ByteBuffer,ByteBuffer> index : indexCols) {
               DynamicComposite secondaryIndexValue=DynamicComposite.fromByteBuffer(index.getName().duplicate());
               Object code=secondaryIndexValue.get(0);
@@ -41,8 +47,8 @@
               setEqualityFlag(existingEntryFinish,ComponentEquality.GREATER_THAN_EQUAL);
               List<HColumn<ByteBuffer,ByteBuffer>> entries=cass.getColumns(ko,ENTITY_INDEX_ENTRIES,id,existingEntryStart,existingEntryFinish,INDEX_ENTRY_LIST_COUNT,false);
               if (entries.size() == 0) {
-                logger.info("Could not find reference to value {} for property {} on entity {} in collection{}.  Forcing reindex",new Object[]{propValue,prop,id,collectionName});
-                addDeleteToMutator(m,ENTITY_INDEX,key,index.getName().duplicate(),timestamp);
+                logger.info("Could not find reference to value '{}' for property '{}' on entity {} in collection {}.  Forcing reindex",new Object[]{propValue,prop,id,collectionName});
+                addDeleteToMutator(m,ENTITY_INDEX,rowKey,index.getName().duplicate(),timestamp);
                 reIndex=true;
               }
               if (entries.size() > 1) {
@@ -52,6 +58,11 @@
           }
           if (reIndex) {
             Entity entity=em.get(id);
+            if (entity == null) {
+              logger.warn("Entity with id {} did not exist in app {}",id,applicationId);
+              m.execute();
+              continue;
+            }
             em.update(entity);
             m.execute();
           }
