@@ -1,10 +1,15 @@
 {
   if (isActive()) {
-    acquire().add(timedOpTag);
+    TraceTag tag=acquire();
+    if (tag.getOpCount() >= flushAtOpCount) {
+      traceTagReporter.report(tag);
+      tag.removeOps();
+    }
+    tag.add(timedOpTag);
   }
  else {
     if (reportUnattached) {
-      logger.info("Unattached TimedOpTag: {} ",timedOpTag);
+      traceTagReporter.reportUnattached(timedOpTag);
     }
   }
 }
