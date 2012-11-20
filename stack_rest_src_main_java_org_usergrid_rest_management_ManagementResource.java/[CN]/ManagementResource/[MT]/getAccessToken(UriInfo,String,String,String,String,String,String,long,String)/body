@@ -13,6 +13,7 @@
         }
       }
     }
+    String errorDescription="invalid username or password";
     if (GrantType.PASSWORD.toString().equals(grant_type)) {
       try {
         user=management.verifyAdminUserPasswordCredentials(username,password);
@@ -20,7 +21,15 @@
           logger.info("found user from verify: {}",user.getUuid());
         }
       }
- catch (      Exception e1) {
+ catch (      UnactivatedAdminUserException uaue) {
+        errorDescription="user not activated";
+        logger.error("failed token check",uaue);
+      }
+catch (      DisabledAdminUserException daue) {
+        errorDescription="user disabled";
+        logger.error("failed token check",daue);
+      }
+catch (      Exception e1) {
         logger.error("failed token check",e1);
       }
     }
@@ -36,7 +45,7 @@
       }
     }
     if (user == null) {
-      OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription("invalid username or password").buildJSONMessage();
+      OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription(errorDescription).buildJSONMessage();
       return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
     }
     String token=management.getAccessTokenForAdminUser(user.getUuid(),ttl);

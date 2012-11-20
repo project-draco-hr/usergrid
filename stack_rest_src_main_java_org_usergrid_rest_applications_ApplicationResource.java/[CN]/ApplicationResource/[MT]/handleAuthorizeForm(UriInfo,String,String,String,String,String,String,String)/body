@@ -6,10 +6,17 @@
     this.scope=scope;
     this.state=state;
     User user=null;
+    String errorDescription="Username or password do not match";
     try {
       user=management.verifyAppUserPasswordCredentials(services.getApplicationId(),username,password);
     }
- catch (    Exception e1) {
+ catch (    UnactivatedAdminUserException uaue) {
+      errorDescription="user not activated";
+    }
+catch (    DisabledAdminUserException daue) {
+      errorDescription="user disabled";
+    }
+catch (    Exception e1) {
     }
     if ((user != null) && isNotBlank(redirect_uri)) {
       if (!redirect_uri.contains("?")) {
@@ -25,7 +32,7 @@
       throw new RedirectionException(state);
     }
  else {
-      errorMsg="Username or password do not match";
+      errorMsg=errorDescription;
     }
     ApplicationInfo app=management.getApplicationInfo(applicationId);
     applicationName=app.getName();

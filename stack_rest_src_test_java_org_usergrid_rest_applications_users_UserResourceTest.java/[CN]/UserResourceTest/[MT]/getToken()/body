@@ -33,4 +33,14 @@
   assertNotNull(getEntity(response,0));
   response=resource().path("/test-organization/test-app/users/test_1").queryParam("access_token",user_token_from_java).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
   assertNotNull(getEntity(response,0));
+  managementService.deactivateUser(appInfo.getId(),userId);
+  try {
+    resource().path("/test-organization/test-app/token").queryParam("grant_type","password").queryParam("username","test_1").queryParam("password","test123").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+    fail("request for deactivated user should fail");
+  }
+ catch (  UniformInterfaceException uie) {
+    status=uie.getResponse().getClientResponseStatus();
+    JsonNode body=uie.getResponse().getEntity(JsonNode.class);
+    assertEquals("user not activated",body.findPath("error_description").getTextValue());
+  }
 }
