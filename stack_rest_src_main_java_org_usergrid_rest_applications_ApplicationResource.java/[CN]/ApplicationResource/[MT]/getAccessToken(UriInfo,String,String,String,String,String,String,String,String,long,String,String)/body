@@ -13,11 +13,18 @@
         }
       }
     }
+    String errorDescription="invalid username or password";
     if (GrantType.PASSWORD.toString().equals(grant_type)) {
       try {
         user=management.verifyAppUserPasswordCredentials(services.getApplicationId(),username,password);
       }
- catch (      Exception e1) {
+ catch (      UnactivatedAdminUserException uaue) {
+        errorDescription="user not activated";
+      }
+catch (      DisabledAdminUserException daue) {
+        errorDescription="user disabled";
+      }
+catch (      Exception e1) {
       }
     }
  else     if ("pin".equals(grant_type)) {
@@ -43,7 +50,7 @@
       return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
     }
     if (user == null) {
-      OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription("invalid username or password").buildJSONMessage();
+      OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription(errorDescription).buildJSONMessage();
       return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
     }
     String token=management.getAccessTokenForAppUser(services.getApplicationId(),user.getUuid(),ttl);
