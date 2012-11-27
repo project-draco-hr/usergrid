@@ -1,0 +1,15 @@
+{
+  checkPermissionsForCollection(context);
+  if (context.moreParameters()) {
+    return getItemsByQuery(context,query);
+  }
+  query=new Query(query);
+  query.setResultsLevel(Level.ALL_PROPERTIES);
+  query.setLimit(1000);
+  Results r=em.searchConnectedEntities(context.getOwner(),query);
+  if (r.isEmpty()) {
+    throw new ServiceResourceNotFoundException(context);
+  }
+  updateEntities(context,r);
+  return new ServiceResults(this,context,Type.CONNECTION,r,null,null);
+}
