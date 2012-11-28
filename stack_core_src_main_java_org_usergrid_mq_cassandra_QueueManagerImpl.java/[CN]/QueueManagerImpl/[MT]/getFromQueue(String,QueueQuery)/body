@@ -90,7 +90,7 @@
       }
     }
   }
-  if (skip_first) {
+  if (skip_first && query.isUpdate()) {
     uuid_set.remove(start_uuid);
   }
   List<UUID> uuid_list=new ArrayList<UUID>(uuid_set);
@@ -115,7 +115,7 @@
  else   if (start_uuid != null) {
     lastUUID=start_uuid;
   }
-  if (lastUUID != null) {
+  if (lastUUID != null && query.isUpdate()) {
     Mutator<UUID> batch=createMutator(ko,ue);
     if (query.getPosition() == QueuePosition.LAST) {
       batch.addInsertion(queueId,CONSUMERS.getColumnFamily(),createColumn(queueId,lastUUID,cass.createTimestamp(),ue,ue));
