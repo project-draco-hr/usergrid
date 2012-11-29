@@ -8,16 +8,9 @@
   OrganizationOwnerInfo orgs=managementService.createOwnerAndOrganization(orgname,username,"noname",email,password,true,false);
   ApplicationInfo appInfo=managementService.createApplication(orgs.getOrganization().getUuid(),applicationName);
   String adminToken=managementService.getAccessTokenForAdminUser(orgs.getOwner().getUuid(),0);
-  Map<String,String> data=hashMap("name","roleadmin");
-  JsonNode node=resource().path(String.format("/%s/%s/roles",orgname,applicationName)).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,data);
+  addPermission(orgname,applicationName,adminToken,"guest","get,put,post:/roles/**");
+  Map<String,String> data=hashMap("name","usercreatedrole");
+  JsonNode node=resource().path(String.format("/%s/%s/roles",orgname,applicationName)).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,data);
   assertNull(getError(node));
-  addPermission(orgname,applicationName,adminToken,"roleadmin","get,put,post:/roles/**");
-  UUID userId=createRoleUser(orgs.getOrganization().getUuid(),appInfo.getId(),adminToken,"roleadminuser","roleadminuser@usergrid.com");
-  node=resource().path(String.format("/%s/%s/users/roleadminuser/roles/roleadmin",orgname,applicationName)).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class);
-  assertNull(getError(node));
-  String reviewer1Token=managementService.getAccessTokenForAppUser(appInfo.getId(),userId,0);
-  data=hashMap("name","usercreatedrole");
-  node=resource().path(String.format("/%s/%s/roles",orgname,applicationName)).queryParam("access_token",reviewer1Token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,data);
-  assertNull(getError(node));
-  addPermission(orgname,applicationName,reviewer1Token,"usercreatedrole","get,put,post:/foo/**");
+  addPermission(orgname,applicationName,"usercreatedrole","get,put,post:/foo/**");
 }
