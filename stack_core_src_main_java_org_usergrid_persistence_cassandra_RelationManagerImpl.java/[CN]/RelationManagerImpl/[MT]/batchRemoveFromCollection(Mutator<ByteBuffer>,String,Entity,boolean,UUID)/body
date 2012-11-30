@@ -4,20 +4,20 @@
     return batch;
   }
   Object collections_key=key(headEntity.getUuid(),Schema.DICTIONARY_COLLECTIONS,collectionName,indexBucketLocator.getBucket(applicationId,IndexType.COLLECTION,entity.getUuid(),collectionName));
+  Schema schema=getDefaultSchema();
   for (  String propertyName : entity.getProperties().keySet()) {
-    boolean collection_indexes_property=getDefaultSchema().isPropertyIndexedInCollection(headEntity.getType(),collectionName,propertyName);
-    boolean item_schema_has_property=getDefaultSchema().hasProperty(entity.getType(),propertyName);
-    boolean collection_indexes_dynamic_properties=getDefaultSchema().hasProperty(entity.getType(),propertyName) && getDefaultSchema().isCollectionIndexingDynamicProperties(headEntity.getType(),collectionName);
-    boolean fulltext_indexed=getDefaultSchema().isPropertyFulltextIndexed(entity.getType(),propertyName);
-    if (collection_indexes_property || (!item_schema_has_property && collection_indexes_dynamic_properties)) {
+    boolean collection_indexes_property=schema.isPropertyIndexedInCollection(headEntity.getType(),collectionName,propertyName);
+    boolean item_schema_has_property=schema.hasProperty(entity.getType(),propertyName);
+    boolean fulltext_indexed=schema.isPropertyFulltextIndexed(entity.getType(),propertyName);
+    if (collection_indexes_property || !item_schema_has_property) {
       IndexUpdate indexUpdate=batchStartIndexUpdate(batch,entity,propertyName,null,timestampUuid,item_schema_has_property,false,false,fulltext_indexed);
       batchUpdateCollectionIndex(indexUpdate,headEntity,collectionName);
     }
   }
   Set<String> dictionaryNames=em.getDictionaryNames(entity);
   for (  String dictionaryName : dictionaryNames) {
-    boolean has_dictionary=getDefaultSchema().hasDictionary(entity.getType(),dictionaryName);
-    boolean dictionary_indexed=getDefaultSchema().isDictionaryIndexedInCollection(headEntity.getType(),collectionName,dictionaryName);
+    boolean has_dictionary=schema.hasDictionary(entity.getType(),dictionaryName);
+    boolean dictionary_indexed=schema.isDictionaryIndexedInCollection(headEntity.getType(),collectionName,dictionaryName);
     if (dictionary_indexed || !has_dictionary) {
       Set<Object> elementValues=em.getDictionaryAsSet(entity,dictionaryName);
       for (      Object elementValue : elementValues) {
@@ -27,7 +27,7 @@
     }
   }
   addDeleteToMutator(batch,ENTITY_ID_SETS,collections_key,entity.getUuid(),timestamp);
-  CollectionInfo collection=getDefaultSchema().getCollection(headEntity.getType(),collectionName);
+  CollectionInfo collection=schema.getCollection(headEntity.getType(),collectionName);
   if (collection != null) {
     if (collection.hasSubkeys()) {
       List<String[]> combos=collection.getSubkeyCombinations();
