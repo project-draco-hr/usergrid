@@ -6,8 +6,9 @@
   }
   UUID timestampUuid=newTimeUUID();
   Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
+  Schema schema=getDefaultSchema();
   for (  Entry<String,List<UUID>> entry : collectionsByType.entrySet()) {
-    CollectionInfo collection=getDefaultSchema().getCollection(entry.getKey(),collectionName);
+    CollectionInfo collection=schema.getCollection(entry.getKey(),collectionName);
     if ((collection != null) && !collection.getType().equals(headEntity.getType())) {
       continue;
     }

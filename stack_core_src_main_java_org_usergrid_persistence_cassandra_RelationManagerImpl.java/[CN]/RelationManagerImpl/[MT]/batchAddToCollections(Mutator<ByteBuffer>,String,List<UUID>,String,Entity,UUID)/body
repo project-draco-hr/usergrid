@@ -13,7 +13,8 @@
     addInsertToMutator(batch,ENTITY_ID_SETS,collections_key,entity.getUuid(),membershipRef.getUuid(),timestamp);
     addInsertToMutator(batch,ENTITY_COMPOSITE_DICTIONARIES,key(entity.getUuid(),Schema.DICTIONARY_CONTAINER_ENTITIES),asList(ownerType,collectionName,ownerId),membershipRef.getUuid(),timestamp);
   }
-  CollectionInfo collection=getDefaultSchema().getCollection(ownerType,collectionName);
+  Schema schema=getDefaultSchema();
+  CollectionInfo collection=schema.getCollection(ownerType,collectionName);
   if (collection != null) {
     if (collection.hasSubkeys()) {
       List<String[]> combos=collection.getSubkeyCombinations();
@@ -33,13 +34,12 @@
     }
   }
   for (  String propertyName : entity.getProperties().keySet()) {
-    boolean indexed_property=getDefaultSchema().isPropertyIndexed(entity.getType(),propertyName);
+    boolean indexed_property=schema.isPropertyIndexed(entity.getType(),propertyName);
     if (indexed_property) {
-      boolean collection_indexes_property=getDefaultSchema().isPropertyIndexedInCollection(ownerType,collectionName,propertyName);
-      boolean item_schema_has_property=getDefaultSchema().hasProperty(entity.getType(),propertyName);
-      boolean collection_indexes_dynamic_properties=getDefaultSchema().hasProperty(entity.getType(),propertyName) && getDefaultSchema().isCollectionIndexingDynamicProperties(ownerType,collectionName);
-      boolean fulltext_indexed=getDefaultSchema().isPropertyFulltextIndexed(entity.getType(),propertyName);
-      if (collection_indexes_property || (!item_schema_has_property && collection_indexes_dynamic_properties)) {
+      boolean collection_indexes_property=schema.isPropertyIndexedInCollection(ownerType,collectionName,propertyName);
+      boolean item_schema_has_property=schema.hasProperty(entity.getType(),propertyName);
+      boolean fulltext_indexed=schema.isPropertyFulltextIndexed(entity.getType(),propertyName);
+      if (collection_indexes_property || !item_schema_has_property) {
         Object propertyValue=entity.getProperty(propertyName);
         IndexUpdate indexUpdate=batchStartIndexUpdate(batch,entity,propertyName,propertyValue,timestampUuid,item_schema_has_property,false,false,fulltext_indexed,true);
         for (        UUID ownerId : ownerIds) {
@@ -51,8 +51,8 @@
   }
   Set<String> dictionaryNames=em.getDictionaryNames(entity);
   for (  String dictionaryName : dictionaryNames) {
-    boolean has_dictionary=getDefaultSchema().hasDictionary(entity.getType(),dictionaryName);
-    boolean dictionary_indexed=getDefaultSchema().isDictionaryIndexedInCollection(ownerType,collectionName,dictionaryName);
+    boolean has_dictionary=schema.hasDictionary(entity.getType(),dictionaryName);
+    boolean dictionary_indexed=schema.isDictionaryIndexedInCollection(ownerType,collectionName,dictionaryName);
     if (dictionary_indexed || !has_dictionary) {
       Set<Object> elementValues=em.getDictionaryAsSet(entity,dictionaryName);
       for (      Object elementValue : elementValues) {
