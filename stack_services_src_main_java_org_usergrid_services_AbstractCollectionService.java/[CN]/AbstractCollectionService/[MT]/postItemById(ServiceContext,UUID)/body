@@ -7,6 +7,9 @@
   if (entity == null) {
     throw new ServiceResourceNotFoundException(context);
   }
+  if (!getEntityType().equalsIgnoreCase(entity.getType())) {
+    throw new UnexpectedEntityTypeException("Entity " + id + " is not the expected type, expected "+ getEntityType()+ ", found "+ entity.getType());
+  }
   entity=importEntity(context,entity);
   em.addToCollection(context.getOwner(),context.getCollectionName(),entity);
   return new ServiceResults(null,context,Type.COLLECTION,Results.fromEntity(entity),null,null);
