@@ -13,8 +13,12 @@
   if (importId != null) {
     itemId=importId;
   }
+  boolean emptyPropertyMap=false;
   if (properties == null) {
     properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
+  }
+  if (properties.isEmpty()) {
+    emptyPropertyMap=true;
   }
   if (importId != null) {
     if (isTimeBased(importId)) {
@@ -59,7 +63,9 @@
   CollectionInfo collection=null;
   if (!is_application) {
     collection=schema.getCollection(TYPE_APPLICATION,collection_name);
-    addInsertToMutator(m,ENTITY_ID_SETS,collection_key,itemId,null,timestamp);
+    if (!emptyPropertyMap) {
+      addInsertToMutator(m,ENTITY_ID_SETS,collection_key,itemId,null,timestamp);
+    }
     addInsertToMutator(m,ENTITY_DICTIONARIES,key(applicationId,Schema.DICTIONARY_COLLECTIONS),collection_name,null,timestamp);
     addInsertToMutator(m,ENTITY_COMPOSITE_DICTIONARIES,key(itemId,Schema.DICTIONARY_CONTAINER_ENTITIES),asList(TYPE_APPLICATION,collection_name,applicationId),null,timestamp);
     if (collection != null) {
@@ -75,10 +81,15 @@
             subkey_props.add(subkey_value);
           }
           Object subkey_key=key(subkey_props.toArray());
-          addInsertToMutator(m,ENTITY_ID_SETS,key(collection_key,subkey_key),itemId,null,timestamp);
+          if (!emptyPropertyMap) {
+            addInsertToMutator(m,ENTITY_ID_SETS,key(collection_key,subkey_key),itemId,null,timestamp);
+          }
         }
       }
     }
+  }
+  if (emptyPropertyMap) {
+    return null;
   }
   properties.put(PROPERTY_UUID,itemId);
   properties.put(PROPERTY_TYPE,Schema.normalizeEntityType(entityType,false));
