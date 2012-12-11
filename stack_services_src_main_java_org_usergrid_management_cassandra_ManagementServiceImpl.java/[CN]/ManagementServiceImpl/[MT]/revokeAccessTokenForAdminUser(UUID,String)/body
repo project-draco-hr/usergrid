@@ -1,0 +1,10 @@
+{
+  if (anyNull(userId,token)) {
+    throw new IllegalArgumentException("token is required");
+  }
+  Entity user=getAdminUserEntityFromAccessToken(token);
+  if (!user.getUuid().equals(userId)) {
+    throw new TokenException("Could not match token : " + token);
+  }
+  tokens.revokeToken(token);
+}
