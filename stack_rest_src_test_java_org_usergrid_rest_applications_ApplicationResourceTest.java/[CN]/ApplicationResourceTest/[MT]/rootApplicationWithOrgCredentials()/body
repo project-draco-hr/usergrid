@@ -1,0 +1,8 @@
+{
+  OrganizationInfo orgInfo=managementService.getOrganizationByName("test-organization");
+  ApplicationInfo appInfo=managementService.getApplicationInfo("test-organization/test-app");
+  String clientId=managementService.getClientIdForOrganization(orgInfo.getUuid());
+  String clientSecret=managementService.getClientSecretForOrganization(orgInfo.getUuid());
+  JsonNode node=resource().path("/" + appInfo.getId()).queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  assertEquals(node.get("uri").getTextValue(),"http://sometestvalue/test-organization/test-app");
+}
