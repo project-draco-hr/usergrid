@@ -7,7 +7,7 @@
   bytes.put(bytes(uuid));
   long expires=Long.MAX_VALUE;
   if (tokenCategory.getExpires()) {
-    expires=UUIDUtils.getTimestampInMillis(uuid) + getExpirationForTokenType(tokenCategory);
+    expires=(tokenInfo.getDuration() > 0) ? UUIDUtils.getTimestampInMillis(uuid) + (tokenInfo.getDuration()) : UUIDUtils.getTimestampInMillis(uuid) + getExpirationForTokenType(tokenCategory);
     bytes.putLong(expires);
   }
   bytes.put(sha(tokenCategory.getPrefix() + uuid + tokenSecretSalt+ expires));
