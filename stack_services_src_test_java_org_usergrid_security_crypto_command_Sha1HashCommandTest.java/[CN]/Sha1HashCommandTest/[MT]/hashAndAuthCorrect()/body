@@ -1,12 +1,12 @@
 {
-  String test="I'm a test password";
-  byte[] hashed=Md5Hash.toBytes(test);
+  String test="I'm a  test password";
+  byte[] hashed=digest(test.getBytes("UTF-8"));
   Sha1HashCommand command=new Sha1HashCommand();
   CredentialsInfo info=new CredentialsInfo();
   User user=new User();
   UUID applicationId=UUID.randomUUID();
   byte[] results=command.hash(test.getBytes("UTF-8"),info,user,applicationId);
-  assertEquals(hashed,results);
+  assertArrayEquals(hashed,results);
   byte[] authed=command.auth(test.getBytes("UTF-8"),info,user,applicationId);
   assertArrayEquals(results,authed);
 }
