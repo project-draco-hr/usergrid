@@ -1,0 +1,17 @@
+{
+  if (inputCommands == null || inputCommands.size() == 0) {
+    throw new IllegalArgumentException(String.format("You must provide %s implementations for this service to function properly",EncryptionCommand.class));
+  }
+  commands=new HashMap<String,EncryptionCommand>();
+  for (  EncryptionCommand command : inputCommands) {
+    String name=command.getName();
+    Assert.notNull(name,"Encryption command name cannot be null");
+    EncryptionCommand existing=commands.get(name);
+    if (existing != null) {
+      throw new IllegalArgumentException(String.format("Both class %s and %s implement command '%s'.  This is a wiring bug, and not allowed.  Each instance must define it's own type",command.getClass().getName(),existing.getClass().getName(),name));
+    }
+    commands.put(name,command);
+  }
+  defaultCommand=commands.get(defaultCommandName);
+  Assert.notNull(defaultCommand,"Encryption command for type " + defaultCommandName + " must be present");
+}

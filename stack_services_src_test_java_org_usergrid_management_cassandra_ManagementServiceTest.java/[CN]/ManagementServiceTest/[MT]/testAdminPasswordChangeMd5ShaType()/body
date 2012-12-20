@@ -1,0 +1,27 @@
+{
+  String username="testAdminPasswordChangeMd5ShaType";
+  String password="test";
+  User user=new User();
+  user.setActivated(true);
+  user.setUsername(username);
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  User storedUser=em.create(user);
+  UUID userId=storedUser.getUuid();
+  CredentialsInfo info=new CredentialsInfo();
+  info.setRecoverable(false);
+  info.setEncrypted(true);
+  Md5HashCommand md5=new Md5HashCommand();
+  Sha1HashCommand sha1=new Sha1HashCommand();
+  byte[] hashed=md5.hash(password.getBytes("UTF-8"),info,userId,MANAGEMENT_APPLICATION_ID);
+  hashed=sha1.hash(hashed,info,userId,MANAGEMENT_APPLICATION_ID);
+  info.setSecret(encodeBase64URLSafeString(hashed));
+  info.setCipher(sha1.getName());
+  info.setHashType(md5.getName());
+  em.addToDictionary(storedUser,DICTIONARY_CREDENTIALS,"password",info);
+  User authedUser=managementService.verifyAppUserPasswordCredentials(MANAGEMENT_APPLICATION_ID,username,password);
+  assertEquals(userId,authedUser.getUuid());
+  String newPassword="test2";
+  managementService.setAppUserPassword(MANAGEMENT_APPLICATION_ID,userId,password,newPassword);
+  authedUser=managementService.verifyAppUserPasswordCredentials(MANAGEMENT_APPLICATION_ID,username,newPassword);
+  assertEquals(userId,authedUser.getUuid());
+}

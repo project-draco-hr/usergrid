@@ -4,7 +4,7 @@
   EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
   properties.setProperty("name",buildAppName(application.getName(),organization));
   Entity app=em.create(applicationId,APPLICATION_INFO,application.getProperties());
-  writeUserToken(MANAGEMENT_APPLICATION_ID,app,plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.APPLICATION)));
+  writeUserToken(MANAGEMENT_APPLICATION_ID,app,encryptionService.plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.APPLICATION),null,applicationId));
   addApplicationToOrganization(organizationId,applicationId);
   return applicationId;
 }
