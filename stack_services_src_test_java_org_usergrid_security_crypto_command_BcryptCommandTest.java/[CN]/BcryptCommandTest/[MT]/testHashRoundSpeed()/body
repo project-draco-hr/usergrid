@@ -1,0 +1,22 @@
+{
+  int cryptIterations=2 ^ 11;
+  int numberOfTests=10;
+  BcryptCommand command=new BcryptCommand();
+  command.setDefaultIterations(cryptIterations);
+  String baseString="I am a test password for hashing";
+  CredentialsInfo info=new CredentialsInfo();
+  UUID user=UUID.randomUUID();
+  UUID applicationId=UUID.randomUUID();
+  byte[] result=command.hash(baseString.getBytes("UTF-8"),info,user,applicationId);
+  String stringResults=encodeBase64URLSafeString(result);
+  info.setSecret(stringResults);
+  Timer timer=Metrics.newTimer(BcryptCommandTest.class,"hashtimer");
+  for (int i=0; i < numberOfTests; i++) {
+    TimerContext timerCtx=timer.time();
+    byte[] authed=command.auth(baseString.getBytes("UTF-8"),info,user,applicationId);
+    timerCtx.stop();
+    assertArrayEquals(result,authed);
+  }
+  ConsoleReporter reporter=new ConsoleReporter(Metrics.defaultRegistry(),System.out,MetricPredicate.ALL);
+  reporter.run();
+}

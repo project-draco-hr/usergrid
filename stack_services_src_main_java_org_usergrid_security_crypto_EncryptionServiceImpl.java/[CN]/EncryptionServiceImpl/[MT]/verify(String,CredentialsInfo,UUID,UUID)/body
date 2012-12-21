@@ -1,0 +1,19 @@
+{
+  String[] storedCommands=null;
+  if (creds.getCryptoChain() != null && creds.getCryptoChain().length > 0) {
+    storedCommands=creds.getCryptoChain();
+  }
+ else   if (creds.getHashType() != null) {
+    storedCommands=new String[]{creds.getHashType(),creds.getCipher()};
+  }
+ else {
+    storedCommands=new String[]{creds.getCipher()};
+  }
+  byte[] encrypted=inputSecret.getBytes(UTF8);
+  for (  String commandName : storedCommands) {
+    EncryptionCommand command=commands.get(commandName);
+    Assert.notNull(command,String.format("No command implementat for name %s exists, yet it is persisted on a user's credentials info.  This means their credentials either need removed, or this command needs supported",commandName));
+    encrypted=command.auth(encrypted,creds,userId,applicationId);
+  }
+  return encode(encrypted).equals(creds.getSecret());
+}

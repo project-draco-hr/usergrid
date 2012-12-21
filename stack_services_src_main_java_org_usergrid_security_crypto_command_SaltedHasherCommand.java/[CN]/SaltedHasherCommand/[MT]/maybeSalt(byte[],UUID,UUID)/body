@@ -1,0 +1,15 @@
+{
+  if (provider == null) {
+    return input;
+  }
+  String salt=provider.getSalt(applicationId,userId);
+  if (salt == null || salt.length() == 0) {
+    return input;
+  }
+  byte[] saltBytes=salt.getBytes(UTF8);
+  byte[] outputBytes=new byte[input.length + saltBytes.length];
+  ByteBuffer buff=ByteBuffer.wrap(outputBytes);
+  buff.put(saltBytes);
+  buff.put(input);
+  return outputBytes;
+}
