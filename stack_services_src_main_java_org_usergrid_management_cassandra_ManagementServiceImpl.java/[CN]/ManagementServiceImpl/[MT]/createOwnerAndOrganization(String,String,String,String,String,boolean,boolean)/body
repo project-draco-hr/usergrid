@@ -1,6 +1,10 @@
 {
-  lockManager.lockProperty(MANAGEMENT_APPLICATION_ID,"groups","path");
-  lockManager.lockProperty(MANAGEMENT_APPLICATION_ID,"users","username","email");
+  Lock groupLock=lockManager.createLock(MANAGEMENT_APPLICATION_ID,"groups","path");
+  groupLock.lock();
+  Lock userLock=lockManager.createLock(MANAGEMENT_APPLICATION_ID,"users","username");
+  userLock.lock();
+  Lock emailLock=lockManager.createLock(MANAGEMENT_APPLICATION_ID,"users","email");
+  emailLock.lock();
   UserInfo user=null;
   OrganizationInfo organization=null;
   try {
@@ -13,8 +17,9 @@
     organization=createOrganization(organizationName,user,true);
   }
   finally {
-    lockManager.unlockProperty(MANAGEMENT_APPLICATION_ID,"groups","path");
-    lockManager.unlockProperty(MANAGEMENT_APPLICATION_ID,"users","username","email");
+    emailLock.unlock();
+    userLock.unlock();
+    groupLock.unlock();
   }
   return new OrganizationOwnerInfo(user,organization);
 }

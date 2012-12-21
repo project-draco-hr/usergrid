@@ -23,17 +23,19 @@
       throw new DuplicateUniquePropertyExistsException(entity.getType(),propertyName,propertyValue);
     }
     if (propertyName.equals(defaultSchema.aliasProperty(entity.getType()))) {
-      cass.getLockManager().lockProperty(applicationId,entity.getType(),propertyName);
+      Lock lock=cass.getLockManager().createLock(applicationId,entity.getType(),propertyName);
+      lock.lock();
       deleteAliasesForEntity(batch,entity.getUuid(),timestamp - 1);
       createAlias(batch,applicationId,entity,entity.getType(),string(propertyValue),timestamp);
-      cass.getLockManager().unlockProperty(applicationId,entity.getType(),propertyName);
+      lock.unlock();
     }
     if (defaultSchema.getEntityInfo(entity.getType()).isPropertyUnique(propertyName)) {
-      cass.getLockManager().lockProperty(applicationId,entity.getType(),propertyName);
+      Lock lock=cass.getLockManager().createLock(applicationId,entity.getType(),propertyName);
+      lock.lock();
       String collectionName=Schema.defaultCollectionName(entity.getType());
       uniquePropertyDelete(batch,collectionName,entity.getType(),propertyName,propertyValue,entity.getUuid(),timestamp - 1);
       uniquePropertyWrite(batch,collectionName,propertyName,propertyValue,entity.getUuid(),timestamp);
-      cass.getLockManager().unlockProperty(applicationId,entity.getType(),propertyName);
+      lock.unlock();
     }
   }
   if (getDefaultSchema().isPropertyIndexed(entity.getType(),propertyName)) {

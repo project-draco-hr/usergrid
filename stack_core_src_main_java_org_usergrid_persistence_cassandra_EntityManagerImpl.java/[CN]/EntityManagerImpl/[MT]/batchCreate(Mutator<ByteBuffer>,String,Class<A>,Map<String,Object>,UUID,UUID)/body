@@ -145,10 +145,11 @@
       createAlias(m,applicationId,ref(entityType,itemId),entityType,aliasValue,timestamp);
     }
     if (schema.getEntityInfo(entity.getType()).isPropertyUnique(prop_name)) {
-      cass.getLockManager().lockProperty(applicationId,entityType,prop_name);
+      Lock lock=cass.getLockManager().createLock(applicationId,entityType,prop_name);
+      lock.lock();
       String collectionName=Schema.defaultCollectionName(entityType);
       uniquePropertyWrite(m,collectionName,prop_name,propertyValue,itemId,timestamp);
-      cass.getLockManager().unlockProperty(applicationId,entity.getType(),prop_name);
+      lock.unlock();
     }
     entity.setProperty(prop_name,propertyValue);
     batchSetProperty(m,entity,prop_name,propertyValue,true,true,timestampUuid);

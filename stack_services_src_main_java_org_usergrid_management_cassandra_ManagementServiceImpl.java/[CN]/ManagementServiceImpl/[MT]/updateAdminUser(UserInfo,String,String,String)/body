@@ -1,5 +1,8 @@
 {
-  lockManager.lockProperty(MANAGEMENT_APPLICATION_ID,"users","username","email");
+  Lock usernameLock=lockManager.createLock(MANAGEMENT_APPLICATION_ID,"users","username");
+  usernameLock.lock();
+  Lock emailLock=lockManager.createLock(MANAGEMENT_APPLICATION_ID,"users","email");
+  emailLock.lock();
   try {
     EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
     if (!isBlank(username)) {
@@ -14,7 +17,8 @@
     user=getAdminUserByUuid(user.getUuid());
   }
   finally {
-    lockManager.unlockProperty(MANAGEMENT_APPLICATION_ID,"users","username","email");
+    emailLock.unlock();
+    usernameLock.unlock();
   }
   return user;
 }
