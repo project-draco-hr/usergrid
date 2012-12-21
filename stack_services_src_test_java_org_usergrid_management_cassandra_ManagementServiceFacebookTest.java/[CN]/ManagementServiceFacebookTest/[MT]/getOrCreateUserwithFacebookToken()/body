@@ -1,0 +1,21 @@
+{
+  String fb_access_token="XXXYYYFBTOKENZZZ";
+  Object[] wrObjs=invokeFB(fb_access_token);
+  User user1=managementService.getOrCreateUserForFacebookAccessToken(applicationId,fb_access_token);
+  assertNotNull(user1);
+  verify(wrObjs,fb_access_token);
+  wrObjs=invokeFB(fb_access_token);
+  User user2=managementService.getOrCreateUserForFacebookAccessToken(applicationId,fb_access_token);
+  assertNotNull(user2);
+  verify(wrObjs,fb_access_token);
+  wrObjs=invokeFB(fb_access_token);
+  User user3=managementService.getOrCreateUserForFacebookAccessToken(applicationId,fb_access_token);
+  assertNotNull(user3);
+  verify(wrObjs,fb_access_token);
+  assertEquals(user1.getUsername(),user2.getUsername());
+  assertEquals(user2.getUsername(),user3.getUsername());
+  assertEquals(user1.getCreated(),user2.getCreated());
+  assertEquals(user2.getCreated(),user3.getCreated());
+  assertTrue(user2.getModified() > user1.getModified());
+  assertTrue(user3.getModified() > user2.getModified());
+}
