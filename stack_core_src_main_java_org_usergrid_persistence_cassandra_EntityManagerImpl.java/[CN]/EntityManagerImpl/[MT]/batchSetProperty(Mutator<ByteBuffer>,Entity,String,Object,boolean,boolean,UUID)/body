@@ -23,14 +23,14 @@
       throw new DuplicateUniquePropertyExistsException(entity.getType(),propertyName,propertyValue);
     }
     if (propertyName.equals(defaultSchema.aliasProperty(entity.getType()))) {
-      Lock lock=cass.getLockManager().createLock(applicationId,entity.getType(),propertyName);
+      Lock lock=getUnqiueUpdateLock(cass.getLockManager(),applicationId,propertyValue,entity.getType(),propertyName);
       lock.lock();
       deleteAliasesForEntity(batch,entity.getUuid(),timestamp - 1);
       createAlias(batch,applicationId,entity,entity.getType(),string(propertyValue),timestamp);
       lock.unlock();
     }
     if (defaultSchema.getEntityInfo(entity.getType()).isPropertyUnique(propertyName)) {
-      Lock lock=cass.getLockManager().createLock(applicationId,entity.getType(),propertyName);
+      Lock lock=getUnqiueUpdateLock(cass.getLockManager(),applicationId,propertyValue,entity.getType(),propertyName);
       lock.lock();
       String collectionName=Schema.defaultCollectionName(entity.getType());
       uniquePropertyDelete(batch,collectionName,entity.getType(),propertyName,propertyValue,entity.getUuid(),timestamp - 1);
