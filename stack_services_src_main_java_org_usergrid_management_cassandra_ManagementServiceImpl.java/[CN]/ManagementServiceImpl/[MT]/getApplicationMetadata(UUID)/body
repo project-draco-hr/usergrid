@@ -1,0 +1,13 @@
+{
+  if (applicationId == null) {
+    return ServiceResults.genericServiceResults();
+  }
+  EntityManager em=emf.getEntityManager(applicationId);
+  Entity entity=em.get(em.getApplicationRef());
+  Results r=Results.fromEntity(entity);
+  Map<String,Object> collections=em.getApplicationCollectionMetadata();
+  if (collections.size() > 0) {
+    r.setMetadata(em.getApplicationRef().getUuid(),"collections",collections);
+  }
+  return genericServiceResults(r);
+}
