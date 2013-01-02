@@ -1,10 +1,16 @@
 {
-  System.setProperty("cassandra.config","file:" + TMP + yamlFile);
-  System.setProperty("log4j.configuration","file:" + TMP + "/log4j.properties");
-  System.setProperty("cassandra-foreground","true");
-  log.info("Starting executor");
-  executor.execute(new CassandraRunner());
-  log.info("Started executor");
+  if (executor == null) {
+    executor=Executors.newSingleThreadExecutor();
+    System.setProperty("cassandra.config","file:" + TMP + yamlFile);
+    System.setProperty("log4j.configuration","file:" + TMP + "/log4j.properties");
+    System.setProperty("cassandra-foreground","true");
+    log.info("Starting executor");
+    executor.execute(new CassandraRunner());
+    log.info("Started executor");
+  }
+ else {
+    cassandraDaemon.startRPCServer();
+  }
   try {
     TimeUnit.SECONDS.sleep(3);
     log.info("Done sleeping");
