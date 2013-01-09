@@ -3,7 +3,7 @@
   properties.setProperty(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
   properties.setProperty(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"false");
   properties.setProperty(PROPERTIES_SYSADMIN_EMAIL,"sysadmin-1@mockserver.com");
-  Map<String,String> payload=hashMap("email","test-user-1@mockserver.com").map("username","test-user-1").map("name","Test User").map("password","password").map("organization","test-org-1");
+  Map<String,String> payload=hashMap("email","test-user-1@mockserver.com").map("username","test-user-1").map("name","Test User").map("password","password").map("organization","test-org-1").map("company","Apigee");
   JsonNode node=resource().path("/management/organizations").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
   assertNotNull(node);
   ApplicationInfo applicationInfo=managementService.getApplicationInfo("test-org-1/sandbox");
@@ -15,4 +15,6 @@
   UserInfo ui=managementService.getAdminUserByEmail("test-user-1@mockserver.com");
   EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
   User user=em.get(ui.getUuid(),User.class);
+  assertEquals("Test User",user.getName());
+  assertEquals("Apigee",(String)user.getProperty("company"));
 }
