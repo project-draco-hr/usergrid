@@ -1,6 +1,8 @@
 {
-  long count=locks.decrementAndGet();
-  if (count == 0 && this.zkLock.getState() == LockState.Acquired) {
-    this.zkLock.release();
+  try {
+    zkMutex.release();
+  }
+ catch (  Exception e) {
+    throw new UGLockException("Unable to obtain lock",e);
   }
 }

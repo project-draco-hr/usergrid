@@ -1,19 +1,8 @@
 {
-  long endTime=System.currentTimeMillis() + time.toMillis(timeout);
-  for (int attempt=0; System.currentTimeMillis() <= endTime; attempt++) {
-    try {
-      if (this.zkLock.tryAcquire()) {
-        locks.incrementAndGet();
-        return true;
-      }
-      Thread.sleep(NetworkAlgorithms.getBinaryBackoffDelay(attempt,MIN_RETRY_DELAY,MAX_RETRY_DELAY));
-    }
- catch (    ZkCagesException e) {
-      throw new UGLockException("Unable to obtain lock",e);
-    }
-catch (    InterruptedException e) {
-      throw new UGLockException("Unable to obtain lock",e);
-    }
+  try {
+    return zkMutex.acquire(timeout,time);
   }
-  return false;
+ catch (  Exception e) {
+    throw new UGLockException("Unable to obtain lock",e);
+  }
 }

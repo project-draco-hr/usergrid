@@ -1,16 +1,8 @@
 {
-  if (this.zkLock.getState() == LockState.Acquired) {
-    locks.incrementAndGet();
-    return;
-  }
   try {
-    this.zkLock.acquire();
-    locks.incrementAndGet();
+    zkMutex.acquire();
   }
- catch (  ZkCagesException e) {
-    throw new UGLockException("Unable to obtain lock",e);
-  }
-catch (  InterruptedException e) {
+ catch (  Exception e) {
     throw new UGLockException("Unable to obtain lock",e);
   }
 }
