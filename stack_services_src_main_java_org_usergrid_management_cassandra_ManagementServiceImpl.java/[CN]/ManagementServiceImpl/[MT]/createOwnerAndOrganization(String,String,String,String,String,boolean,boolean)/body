@@ -1,13 +1,13 @@
 {
   Lock groupLock=getUniqueUpdateLock(lockManager,MANAGEMENT_APPLICATION_ID,organizationName,"groups","path");
-  groupLock.lock();
   Lock userLock=getUniqueUpdateLock(lockManager,MANAGEMENT_APPLICATION_ID,username,"users","username");
-  userLock.lock();
   Lock emailLock=getUniqueUpdateLock(lockManager,MANAGEMENT_APPLICATION_ID,email,"users","email");
-  emailLock.lock();
   UserInfo user=null;
   OrganizationInfo organization=null;
   try {
+    groupLock.lock();
+    userLock.lock();
+    emailLock.lock();
     if (areActivationChecksDisabled()) {
       user=createAdminUser(username,name,email,password,true,false);
     }

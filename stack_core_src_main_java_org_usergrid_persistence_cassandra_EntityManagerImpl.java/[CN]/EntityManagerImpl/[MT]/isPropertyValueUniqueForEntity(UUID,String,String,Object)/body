@@ -7,10 +7,15 @@
   }
   String collectionName=defaultCollectionName(entityType);
   Lock lock=getUniqueUpdateLock(cass.getLockManager(),applicationId,propertyValue,entityType,propertyName);
-  lock.lock();
-  Object key=createUniqueIndexKey(collectionName,propertyName,propertyValue);
-  List<HColumn<ByteBuffer,ByteBuffer>> cols=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_UNIQUE,key,null,null,2,false);
-  lock.unlock();
+  List<HColumn<ByteBuffer,ByteBuffer>> cols=null;
+  try {
+    lock.lock();
+    Object key=createUniqueIndexKey(collectionName,propertyName,propertyValue);
+    cols=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_UNIQUE,key,null,null,2,false);
+  }
+  finally {
+    lock.unlock();
+  }
   if (cols.size() == 0) {
     return true;
   }
