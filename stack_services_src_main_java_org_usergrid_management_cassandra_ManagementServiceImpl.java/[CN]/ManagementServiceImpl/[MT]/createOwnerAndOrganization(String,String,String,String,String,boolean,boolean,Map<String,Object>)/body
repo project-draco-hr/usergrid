@@ -1,9 +1,13 @@
 {
-  lockManager.lockProperty(MANAGEMENT_APPLICATION_ID,"groups","path");
-  lockManager.lockProperty(MANAGEMENT_APPLICATION_ID,"users","username","email");
+  Lock groupLock=getUniqueUpdateLock(lockManager,MANAGEMENT_APPLICATION_ID,organizationName,"groups","path");
+  Lock userLock=getUniqueUpdateLock(lockManager,MANAGEMENT_APPLICATION_ID,username,"users","username");
+  Lock emailLock=getUniqueUpdateLock(lockManager,MANAGEMENT_APPLICATION_ID,email,"users","email");
   UserInfo user=null;
   OrganizationInfo organization=null;
   try {
+    groupLock.lock();
+    userLock.lock();
+    emailLock.lock();
     if (areActivationChecksDisabled()) {
       user=createAdminUser(username,name,email,password,true,false,userProperties);
     }
@@ -13,8 +17,9 @@
     organization=createOrganization(organizationName,user,true);
   }
   finally {
-    lockManager.unlockProperty(MANAGEMENT_APPLICATION_ID,"groups","path");
-    lockManager.unlockProperty(MANAGEMENT_APPLICATION_ID,"users","username","email");
+    emailLock.unlock();
+    userLock.unlock();
+    groupLock.unlock();
   }
   return new OrganizationOwnerInfo(user,organization);
 }

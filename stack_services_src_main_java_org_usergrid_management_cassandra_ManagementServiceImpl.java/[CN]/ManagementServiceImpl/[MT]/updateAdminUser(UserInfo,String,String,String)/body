@@ -1,6 +1,9 @@
 {
-  lockManager.lockProperty(MANAGEMENT_APPLICATION_ID,"users","username","email");
+  Lock usernameLock=getUniqueUpdateLock(lockManager,MANAGEMENT_APPLICATION_ID,username,"users","username");
+  Lock emailLock=getUniqueUpdateLock(lockManager,MANAGEMENT_APPLICATION_ID,email,"users","email");
   try {
+    usernameLock.lock();
+    emailLock.lock();
     EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
     if (!isBlank(username)) {
       em.setProperty(new SimpleEntityRef(User.ENTITY_TYPE,user.getUuid()),"username",username);
@@ -14,7 +17,8 @@
     user=getAdminUserByUuid(user.getUuid());
   }
   finally {
-    lockManager.unlockProperty(MANAGEMENT_APPLICATION_ID,"users","username","email");
+    emailLock.unlock();
+    usernameLock.unlock();
   }
   return user;
 }
