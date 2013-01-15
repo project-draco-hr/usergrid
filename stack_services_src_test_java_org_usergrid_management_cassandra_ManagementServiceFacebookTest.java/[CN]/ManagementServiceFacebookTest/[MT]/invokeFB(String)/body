@@ -1,0 +1,17 @@
+{
+  Object[] wrObjs=new Object[2];
+  Map<String,? extends Object> fb_user=MapUtils.hashMap("id","12345678").map("name","Facebook User").map("username","fb.user");
+  PowerMockito.mockStatic(Client.class);
+  Client client=mock(Client.class);
+  when(Client.create(any(ClientConfig.class))).thenReturn(client);
+  when(Client.create(any(ClientConfig.class))).thenReturn(client);
+  WebResource wr=mock(WebResource.class);
+  doReturn(wr).when(client).resource("https://graph.facebook.com/me");
+  doReturn(wr).when(wr).queryParam("access_token",fb_access_token);
+  Builder builder=mock(WebResource.Builder.class);
+  doReturn(builder).when(wr).accept(MediaType.APPLICATION_JSON);
+  doReturn(fb_user).when(builder).get(Map.class);
+  wrObjs[0]=wr;
+  wrObjs[1]=builder;
+  return wrObjs;
+}

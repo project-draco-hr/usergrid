@@ -6,10 +6,16 @@
     return true;
   }
   String collectionName=defaultCollectionName(entityType);
-  cass.getLockManager().lockProperty(applicationId,entityType,propertyName);
-  Object key=createUniqueIndexKey(collectionName,propertyName,propertyValue);
-  List<HColumn<ByteBuffer,ByteBuffer>> cols=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_UNIQUE,key,null,null,2,false);
-  cass.getLockManager().unlockProperty(applicationId,entityType,propertyName);
+  Lock lock=getUniqueUpdateLock(cass.getLockManager(),applicationId,propertyValue,entityType,propertyName);
+  List<HColumn<ByteBuffer,ByteBuffer>> cols=null;
+  try {
+    lock.lock();
+    Object key=createUniqueIndexKey(collectionName,propertyName,propertyValue);
+    cols=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_UNIQUE,key,null,null,2,false);
+  }
+  finally {
+    lock.unlock();
+  }
   if (cols.size() == 0) {
     return true;
   }

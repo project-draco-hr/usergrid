@@ -1,0 +1,34 @@
+{
+  if (email == null) {
+    return null;
+  }
+  if (username == null) {
+    username=email;
+  }
+  if (name == null) {
+    name=email;
+  }
+  if (isBlank(password)) {
+    password=encodeBase64URLSafeString(bytes(UUID.randomUUID()));
+  }
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  if (!em.isPropertyValueUniqueForEntity("user","username",username)) {
+    throw new DuplicateUniquePropertyExistsException("user","username",username);
+  }
+  if (!em.isPropertyValueUniqueForEntity("user","email",email)) {
+    throw new DuplicateUniquePropertyExistsException("user","email",email);
+  }
+  User user=new User();
+  user.setUsername(username);
+  user.setName(name);
+  user.setEmail(email);
+  user.setActivated(activated);
+  user.setConfirmed(!newAdminUsersRequireConfirmation());
+  user.setDisabled(disabled);
+  if (userProperties != null) {
+    userProperties.remove("password");
+    user.setProperties(userProperties);
+  }
+  user=em.create(user);
+  return createAdminFrom(user,password);
+}
