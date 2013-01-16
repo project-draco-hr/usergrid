@@ -43,12 +43,6 @@
  catch (  UnexpectedEntityTypeException uee) {
   }
   try {
-    testRequest(sm,ServiceAction.PUT,0,properties,"cats","Danny");
-    Assert.fail();
-  }
- catch (  ServiceResourceNotFoundException srnfe) {
-  }
-  try {
     testRequest(sm,ServiceAction.DELETE,0,null,"cats",dog.getUuid());
     Assert.fail();
   }
@@ -60,4 +54,19 @@
   }
  catch (  ServiceResourceNotFoundException srnfe) {
   }
+  ServiceResults results=testRequest(sm,ServiceAction.PUT,1,properties,"cats","99999990-600c-11e2-b414-14109fd49581");
+  Entity entity=results.getEntity();
+  Assert.assertEquals(entity.getUuid().toString(),"99999990-600c-11e2-b414-14109fd49581");
+  properties.remove("name");
+  results=testRequest(sm,ServiceAction.PUT,1,properties,"cats","Danny");
+  entity=results.getEntity();
+  Assert.assertEquals(entity.getName(),"danny");
+  properties.put("name","Danny2");
+  results=testRequest(sm,ServiceAction.PUT,1,properties,"cats","Danny2");
+  entity=results.getEntity();
+  Assert.assertEquals(entity.getName(),"Danny2");
+  properties.put("name","Jimmy");
+  results=testRequest(sm,ServiceAction.PUT,1,properties,"cats","Danny3");
+  entity=results.getEntity();
+  Assert.assertEquals(entity.getName(),"danny3");
 }
