@@ -1,0 +1,20 @@
+{
+  startSpring();
+  setVerbose(line);
+  prepareBaseOutputFileName(line);
+  outputDir=createOutputParentDir();
+  logger.info("Export directory: {}",outputDir.getAbsolutePath());
+  CSVWriter writer=new CSVWriter(new FileWriter(outputDir.getAbsolutePath() + "/admins.csv"),',');
+  writer.writeNext(new String[]{"Organization Name","Admin Name","Admin Email","Admin Created Date"});
+  List<OrganizationInfo> organizations=managementService.getOrganizations(null,1000000);
+  for (  OrganizationInfo organization : organizations) {
+    logger.info("Org Name: {} key: {}",organization.getName(),organization.getUuid());
+    for (    UserInfo user : managementService.getAdminUsersForOrganization(organization.getUuid())) {
+      Object createdDate=user.getProperties().get("created");
+      writer.writeNext(new String[]{organization.getName(),user.getName(),user.getEmail(),createdDate == null ? "Unknown" : createdDate.toString()});
+    }
+  }
+  logger.info("Completed export");
+  writer.flush();
+  writer.close();
+}
