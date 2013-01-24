@@ -7,7 +7,10 @@
   query.setEntityType(collection.getType());
   boolean reversed=query.isReversed();
   if (!query.hasQueryPredicates() && !query.hasSortPredicates()) {
-    List<UUID> ids=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(headEntity.getUuid(),DICTIONARY_COLLECTIONS,collectionName),query.getStartResult(),null,query.getLimit() + 1,reversed,indexBucketLocator,applicationId,collectionName);
+    List<UUID> ids=query.getUuidIdentifiers();
+    if (ids == null) {
+      ids=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(headEntity.getUuid(),DICTIONARY_COLLECTIONS,collectionName),query.getStartResult(),null,query.getLimit() + 1,reversed,indexBucketLocator,applicationId,collectionName);
+    }
     Results results=Results.fromIdList(ids,collection.getType());
     if (results != null) {
       results.setQuery(query);
