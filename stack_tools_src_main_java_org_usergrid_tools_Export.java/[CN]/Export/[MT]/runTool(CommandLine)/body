@@ -1,11 +1,12 @@
 {
   startSpring();
   setVerbose(line);
+  applyOrgId(line);
   prepareBaseOutputFileName(line);
   outputDir=createOutputParentDir();
   logger.info("Export directory: " + outputDir.getAbsolutePath());
   exportOrganizations();
-  BiMap<UUID,String> organizations=managementService.getOrganizations();
+  Map<UUID,String> organizations=getOrgs();
   for (  Entry<UUID,String> organization : organizations.entrySet()) {
     if (organization.equals(properties.getProperty("usergrid.test-account.organization"))) {
       continue;

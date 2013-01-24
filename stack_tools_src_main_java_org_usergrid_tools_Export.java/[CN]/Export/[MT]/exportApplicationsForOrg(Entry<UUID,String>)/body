@@ -29,19 +29,21 @@
     Map<String,Object> metadata=em.getApplicationCollectionMetadata();
     echo(JsonUtils.mapToFormattedJsonString(metadata));
     for (    String collectionName : metadata.keySet()) {
-      Results r=em.getCollection(em.getApplicationRef(),collectionName,null,100000,Results.Level.IDS,false);
-      echo(r.size() + " entity ids loaded");
-      int size=r.size();
-      for (int i=0; i < size; i+=MAX_ENTITY_FETCH) {
-        int finish=Math.min(i + MAX_ENTITY_FETCH,size);
-        List<UUID> entityIds=r.getIds().subList(i,finish);
-        logger.info("Retrieving entities " + i + " through "+ (finish - 1)+ " Found:"+ entityIds.size());
-        Results entities=em.get(entityIds,Results.Level.ALL_PROPERTIES);
+      Query query=new Query();
+      query.setLimit(MAX_ENTITY_FETCH);
+      query.setResultsLevel(Results.Level.ALL_PROPERTIES);
+      Results entities=em.searchCollection(em.getApplicationRef(),collectionName,query);
+      while (entities.size() > 0) {
         for (        Entity entity : entities) {
           jg.writeObject(entity);
           echo(entity);
           saveCollectionMembers(collectionsJg,em,application.getValue(),entity);
         }
+        if (entities.getCursor() == null) {
+          break;
+        }
+        query.setCursor(entities.getCursor());
+        entities=em.searchCollection(em.getApplicationRef(),collectionName,query);
       }
     }
     collectionsJg.writeEndObject();
