@@ -10,8 +10,9 @@
   for (  OrganizationInfo organization : organizations) {
     logger.info("Org Name: {} key: {}",organization.getName(),organization.getUuid());
     for (    UserInfo user : managementService.getAdminUsersForOrganization(organization.getUuid())) {
-      Object createdDate=user.getProperties().get("created");
-      writer.writeNext(new String[]{organization.getName(),user.getName(),user.getEmail(),createdDate == null ? "Unknown" : createdDate.toString()});
+      Entity admin=managementService.getAdminUserEntityByUuid(user.getUuid());
+      Long createdDate=(Long)admin.getProperties().get("created");
+      writer.writeNext(new String[]{organization.getName(),user.getName(),user.getEmail(),createdDate == null ? "Unknown" : sdf.format(new Date(createdDate))});
     }
   }
   logger.info("Completed export");
