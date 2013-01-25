@@ -1,0 +1,37 @@
+{
+  if (cassandraDaemon != null) {
+    return;
+  }
+  deleteRecursive(new File("tmp/cache"));
+  deleteRecursive(new File("tmp/data"));
+  deleteRecursive(new File("tmp/log"));
+  System.setProperty("cassandra-foreground","true");
+  System.setProperty("log4j.defaultInitOverride","true");
+  System.setProperty("log4j.configuration","log4j.properties");
+  System.setProperty("cassandra.ring_delay_ms","1000");
+  executor.execute(new Runnable(){
+    public void run(){
+      cassandraDaemon=new CassandraDaemon();
+      cassandraDaemon.activate();
+    }
+  }
+);
+  try {
+    TimeUnit.SECONDS.sleep(3);
+  }
+ catch (  InterruptedException e) {
+    throw new AssertionError(e);
+  }
+  Runtime.getRuntime().addShutdownHook(new Thread(){
+    @Override public void run(){
+      try {
+        logger.error("In shutdownHook");
+        stopCassandra();
+      }
+ catch (      Exception ex) {
+        ex.printStackTrace();
+      }
+    }
+  }
+);
+}
