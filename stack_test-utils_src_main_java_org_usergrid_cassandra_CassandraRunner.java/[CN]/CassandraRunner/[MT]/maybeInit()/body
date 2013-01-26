@@ -1,18 +1,20 @@
 {
-  if (cassandraDaemon != null) {
+  if (contextHolder != null) {
     return;
   }
-  deleteRecursive(new File("tmp/cache"));
+  contextHolder=new ContextHolder();
+  loadSpringContext();
+  deleteRecursive(new File("tmp/saved_caches"));
   deleteRecursive(new File("tmp/data"));
-  deleteRecursive(new File("tmp/log"));
+  deleteRecursive(new File("tmp/commitlog"));
   System.setProperty("cassandra-foreground","true");
   System.setProperty("log4j.defaultInitOverride","true");
   System.setProperty("log4j.configuration","log4j.properties");
-  System.setProperty("cassandra.ring_delay_ms","1000");
+  System.setProperty("cassandra.ring_delay_ms","100");
   executor.execute(new Runnable(){
     public void run(){
-      cassandraDaemon=new CassandraDaemon();
-      cassandraDaemon.activate();
+      contextHolder.cassandraDaemon=new CassandraDaemon();
+      contextHolder.cassandraDaemon.activate();
     }
   }
 );
