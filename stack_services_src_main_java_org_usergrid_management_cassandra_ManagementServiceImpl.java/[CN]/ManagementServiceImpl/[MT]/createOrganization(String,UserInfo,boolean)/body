@@ -6,13 +6,5 @@
   if (!em.isPropertyValueUniqueForEntity("group","path",organizationName)) {
     throw new DuplicateUniquePropertyExistsException("group","path",organizationName);
   }
-  Group organizationEntity=new Group();
-  organizationEntity.setPath(organizationName);
-  organizationEntity=em.create(organizationEntity);
-  em.addToCollection(organizationEntity,"users",new SimpleEntityRef(User.ENTITY_TYPE,user.getUuid()));
-  writeUserToken(MANAGEMENT_APPLICATION_ID,organizationEntity,encryptionService.plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.ORGANIZATION),user.getUuid(),MANAGEMENT_APPLICATION_ID));
-  OrganizationInfo organization=new OrganizationInfo(organizationEntity.getUuid(),organizationName);
-  postOrganizationActivity(organization.getUuid(),user,"create",organizationEntity,"Organization",organization.getName(),"<a href=\"mailto:" + user.getEmail() + "\">"+ user.getName()+ " ("+ user.getEmail()+ ")</a> created a new organization account named "+ organizationName,null);
-  startOrganizationActivationFlow(organization);
-  return organization;
+  return createOrganizationInternal(organizationName,user,activated);
 }
