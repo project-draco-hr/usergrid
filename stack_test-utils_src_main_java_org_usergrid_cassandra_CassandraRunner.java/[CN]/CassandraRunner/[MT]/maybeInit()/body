@@ -2,28 +2,18 @@
   if (contextHolder != null) {
     return;
   }
-  logger.info("Initing...");
-  contextHolder=new ContextHolder();
-  loadSpringContext();
-  deleteRecursive(new File("tmp/saved_caches"));
-  deleteRecursive(new File("tmp/data"));
-  deleteRecursive(new File("tmp/commitlog"));
+  logger.info("Initing CassandraRunner...");
   System.setProperty("cassandra-foreground","true");
   System.setProperty("log4j.defaultInitOverride","true");
   System.setProperty("log4j.configuration","log4j.properties");
-  System.setProperty("cassandra.ring_delay_ms","100");
-  executor.execute(new Runnable(){
-    public void run(){
-      contextHolder.cassandraDaemon=new CassandraDaemon();
-      contextHolder.cassandraDaemon.activate();
-    }
-  }
-);
+  System.setProperty("cassandra.join_ring","false");
+  FileUtils.deleteQuietly(new File(TMP));
+  contextHolder=new ContextHolder();
   try {
-    TimeUnit.SECONDS.sleep(3);
+    executor.schedule(contextHolder,3,TimeUnit.SECONDS).get();
   }
- catch (  InterruptedException e) {
-    throw new AssertionError(e);
+ catch (  Exception ex) {
+    logger.error("Could not schedule cassandra runner");
   }
   Runtime.getRuntime().addShutdownHook(new Thread(){
     @Override public void run(){
