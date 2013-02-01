@@ -8,13 +8,20 @@
     groupLock.lock();
     userLock.lock();
     emailLock.lock();
+    EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+    if (!em.isPropertyValueUniqueForEntity("group","path",organizationName)) {
+      throw new DuplicateUniquePropertyExistsException("group","path",organizationName);
+    }
+    if (!validateAdminInfo(username,name,email,password)) {
+      return null;
+    }
     if (areActivationChecksDisabled()) {
-      user=createAdminUser(username,name,email,password,true,false,userProperties);
+      user=createAdminUserInternal(username,name,email,password,true,false,userProperties);
     }
  else {
-      user=createAdminUser(username,name,email,password,activated,disabled,userProperties);
+      user=createAdminUserInternal(username,name,email,password,activated,disabled,userProperties);
     }
-    organization=createOrganization(organizationName,user,true);
+    organization=createOrganizationInternal(organizationName,user,true);
   }
   finally {
     emailLock.unlock();
