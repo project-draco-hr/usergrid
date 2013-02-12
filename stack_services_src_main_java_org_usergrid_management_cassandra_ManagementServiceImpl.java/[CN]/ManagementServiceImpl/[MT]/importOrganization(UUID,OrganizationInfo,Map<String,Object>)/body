@@ -1,4 +1,8 @@
 {
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  if (!em.isPropertyValueUniqueForEntity("group","path",organizationInfo.getName())) {
+    throw new DuplicateUniquePropertyExistsException("group","path",organizationInfo.getName());
+  }
   if (properties == null) {
     properties=new HashMap<String,Object>();
   }
@@ -26,7 +30,6 @@
   if (organizationId == null) {
     return null;
   }
-  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
   properties.put(PROPERTY_PATH,organizationName);
   properties.put(PROPERTY_SECRET,generateOAuthSecretKey(AuthPrincipalType.ORGANIZATION));
   Entity organization=em.create(organizationId,Group.ENTITY_TYPE,properties);
