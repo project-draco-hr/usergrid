@@ -2,5 +2,12 @@
   maybeInit();
   AutowireCapableBeanFactory acbf=contextHolder.applicationContext.getAutowireCapableBeanFactory();
   acbf.autowire(getTestClass().getJavaClass(),AutowireCapableBeanFactory.AUTOWIRE_BY_NAME,true);
+  DataControl control=null;
+  for (  Annotation ann : getTestClass().getAnnotations()) {
+    if (ann instanceof DataControl) {
+      control=(DataControl)ann;
+    }
+  }
+  loadDataControl(control);
   super.run(notifier);
 }
