@@ -1,0 +1,26 @@
+{
+  TestAdminUser testAdmin=new TestAdminUser("queueresourcetest.topic","queueresourcetest.topic@usergrid.com","queueresourcetest.topic@usergrid.com");
+  TestContext context=TestContext.create(this).withOrg("queueresourcetest.topic").withApp("topic").withUser(testAdmin).initAll();
+  Queue queue=context.application().queues().queue("test");
+  final int count=100;
+  for (int i=0; i < count; i++) {
+    queue.post(MapUtils.hashMap("id",i));
+  }
+  queue=queue.withClientId("client1");
+  for (int i=0; i < count; i++) {
+    JsonNode entries=queue.getNextEntry();
+    assertEquals(i,entries.get("id").asInt());
+  }
+  JsonNode node=queue.getNextEntry();
+  assertNull(node);
+  queue=queue.withClientId("client2");
+  for (int i=0; i < count; i++) {
+    JsonNode entries=queue.getNextEntry();
+    assertEquals(i,entries.get("id").asInt());
+  }
+  node=queue.getNextEntry();
+  assertNull(node);
+  queue=queue.withClientId("client1");
+  node=queue.getNextEntry();
+  assertNull(node);
+}
