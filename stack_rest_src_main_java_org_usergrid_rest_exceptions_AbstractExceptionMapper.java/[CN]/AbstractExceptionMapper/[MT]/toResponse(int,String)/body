@@ -1,0 +1,11 @@
+{
+  logger.error("Error in request (" + status + "):\n"+ jsonResponse);
+  String callback=httpServletRequest.getParameter("callback");
+  if (isJSONP() && isNotBlank(callback)) {
+    jsonResponse=wrapJSONPResponse(callback,jsonResponse);
+    return Response.status(OK).type("application/javascript").entity(jsonResponse).build();
+  }
+ else {
+    return Response.status(status).type(APPLICATION_JSON_TYPE).entity(jsonResponse).build();
+  }
+}

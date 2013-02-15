@@ -1,0 +1,26 @@
+{
+  TestAdminUser testAdmin=new TestAdminUser("queueresourcetest.unsubscribe","queueresourcetest.unsubscribe@usergrid.com","queueresourcetest.unsubscribe@usergrid.com");
+  TestContext context=TestContext.create(this).withOrg("queueresourcetest.unsubscribe").withApp("unsubscribe").withUser(testAdmin).initAll();
+  Queue queue=context.application().queues().queue("test");
+  queue.subscribers().subscribe("testsub1");
+  queue.subscribers().subscribe("testsub2");
+  final int count=30;
+  for (int i=0; i < count; i++) {
+    queue.post(MapUtils.hashMap("id",i));
+  }
+  testMessages(queue,count,null);
+  queue=context.application().queues().queue("testsub1");
+  testMessages(queue,count,null);
+  queue=context.application().queues().queue("testsub2");
+  testMessages(queue,count,null);
+  queue=context.application().queues().queue("test");
+  queue.subscribers().unsubscribe("testsub1");
+  for (int i=0; i < count; i++) {
+    queue.post(MapUtils.hashMap("id",i));
+  }
+  testMessages(queue,count,null);
+  queue=context.application().queues().queue("testsub1");
+  testMessages(queue,0,null);
+  queue=context.application().queues().queue("testsub2");
+  testMessages(queue,count,null);
+}

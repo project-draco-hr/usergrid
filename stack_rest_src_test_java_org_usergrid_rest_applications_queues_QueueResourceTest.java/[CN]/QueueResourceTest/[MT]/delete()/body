@@ -1,0 +1,13 @@
+{
+  TestAdminUser testAdmin=new TestAdminUser("queueresourcetest.delete","queueresourcetest.delete@usergrid.com","queueresourcetest.delete@usergrid.com");
+  TestContext context=TestContext.create(this).withOrg("queueresourcetest.delete").withApp("delete").withUser(testAdmin).initAll();
+  Queue queue=context.application().queues().queue("test");
+  try {
+    queue.delete();
+  }
+ catch (  UniformInterfaceException uie) {
+    assertEquals(501,uie.getResponse().getClientResponseStatus().getStatusCode());
+    return;
+  }
+  fail("I shouldn't get here");
+}
