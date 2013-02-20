@@ -1,0 +1,12 @@
+{
+  queue.withClientId(clientId);
+  for (int i=0; i < numPages; i++) {
+    List<JsonNode> entries=queue.getNextPage();
+    for (int j=0; j < pageSize; j++) {
+      JsonNode entry=entries.get(j);
+      assertEquals(i * pageSize + j,entry.get("id").asInt());
+    }
+  }
+  JsonNode node=queue.getNextEntry();
+  assertNull(node);
+}
