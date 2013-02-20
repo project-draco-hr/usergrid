@@ -1,0 +1,11 @@
+{
+  TestAdminUser testAdmin=new TestAdminUser("queueresourcetest.inorderpaging","queueresourcetest.inorderpaging@usergrid.com","queueresourcetest.inorderpaging@usergrid.com");
+  TestContext context=TestContext.create(this).withOrg("queueresourcetest.inorderpaging").withApp("inorderpaging").withUser(testAdmin).initAll();
+  Queue queue=context.application().queues().queue("test");
+  final int count=30;
+  for (int i=0; i < count; i++) {
+    queue.post(MapUtils.hashMap("id",i));
+  }
+  queue=queue.withNext(15);
+  testMessages(queue,15,2,new NoLastCommand());
+}
