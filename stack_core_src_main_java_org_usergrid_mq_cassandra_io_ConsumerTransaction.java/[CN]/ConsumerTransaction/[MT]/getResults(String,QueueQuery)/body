@@ -1,0 +1,26 @@
+{
+  UUID queueId=getQueueId(queuePath);
+  UUID consumerId=getConsumerId(queueId,query);
+  QueueBounds bounds=getQueueBounds(queueId);
+  SearchParam params=getParams(queueId,consumerId,query);
+  List<UUID> ids=getQueueRange(queueId,bounds,params);
+  List<TransactionPointer> pointers=getConsumerIds(queueId,consumerId,params);
+  TransactionPointer pointer=null;
+  int lastTransactionIndex=0;
+  for (lastTransactionIndex=0; lastTransactionIndex < pointers.size(); lastTransactionIndex++) {
+    pointer=pointers.get(lastTransactionIndex);
+    int insertIndex=Collections.binarySearch(ids,pointer.expiration);
+    if (insertIndex == params.limit * -1 - 1) {
+      break;
+    }
+    insertIndex=(insertIndex + 1) * -1;
+    ids.add(pointer.targetMessage);
+  }
+  ids=ids.subList(0,params.limit);
+  List<Message> messages=loadMessages(ids);
+  writeTransactions(ids,query.getTimeout(),queueId,consumerId);
+  deleteTransactionPointers(pointers,lastTransactionIndex,queueId,consumerId);
+  QueueResults results=createResults(messages,queuePath,queueId,consumerId);
+  writeClientPointer(queueId,consumerId,results.getLast());
+  return results;
+}

@@ -1,0 +1,12 @@
+{
+  Rows<UUID,String,ByteBuffer> messageResults=createMultigetSliceQuery(ko,ue,se,be).setColumnFamily(MESSAGE_PROPERTIES.getColumnFamily()).setKeys(messageIds).setRange(null,null,false,ALL_COUNT).execute().get();
+  List<Message> messages=new ArrayList<Message>();
+  for (  Row<UUID,String,ByteBuffer> row : messageResults) {
+    Message message=deserializeMessage(row.getColumnSlice().getColumns());
+    if (message != null) {
+      messages.add(message);
+    }
+  }
+  Message.sortReversed(messages);
+  return messages;
+}

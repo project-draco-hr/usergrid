@@ -1,0 +1,12 @@
+{
+  SliceQuery<ByteBuffer,UUID,UUID> q=createSliceQuery(ko,be,ue,ue);
+  q.setColumnFamily(CONSUMER_QUEUE_TIMEOUTS.getColumnFamily());
+  q.setKey(getQueueClientTransactionKey(queueId,consumerId));
+  q.setRange(params.startId,null,false,params.limit);
+  List<HColumn<UUID,UUID>> cassResults=q.execute().get().getColumns();
+  List<TransactionPointer> results=new ArrayList<TransactionPointer>(params.limit);
+  for (  HColumn<UUID,UUID> column : cassResults) {
+    results.add(new TransactionPointer(column.getName(),column.getValue()));
+  }
+  return results;
+}
