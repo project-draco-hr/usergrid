@@ -6,8 +6,12 @@
   for (int i=0; i < count; i++) {
     queue.post(MapUtils.hashMap("id",i));
   }
-  testMessages(queue,1,count,new ClientId("client1"),new NoLastCommand());
-  testMessages(queue,1,count,new ClientId("client2"),new NoLastCommand());
+  IncrementHandler handler=new IncrementHandler(count);
+  testMessages(queue,handler,new ClientId("client1"),new NoLastCommand());
+  handler.assertResults();
+  handler=new IncrementHandler(count);
+  testMessages(queue,handler,new ClientId("client2"),new NoLastCommand());
+  handler.assertResults();
   queue=queue.withClientId("client1");
   JsonNode node=queue.getNextEntry();
   assertNull(node);

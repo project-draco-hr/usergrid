@@ -1,0 +1,12 @@
+{
+  Mutator<ByteBuffer> mutator=createMutator(ko,be);
+  long futureSnapshot=System.currentTimeMillis() + futureTimeout;
+  ByteBuffer key=getQueueClientTransactionKey(queueId,consumerId);
+  for (  Message message : messages) {
+    UUID expirationId=UUIDUtils.newTimeUUID(futureSnapshot);
+    UUID messageId=message.getUuid();
+    mutator.addInsertion(key,CONSUMER_QUEUE_TIMEOUTS.getColumnFamily(),createColumn(expirationId,messageId));
+    message.setTransaction(expirationId);
+  }
+  mutator.execute();
+}

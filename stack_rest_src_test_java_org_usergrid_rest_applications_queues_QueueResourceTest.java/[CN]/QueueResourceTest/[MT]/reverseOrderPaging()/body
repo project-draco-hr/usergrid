@@ -7,7 +7,11 @@
     queue.post(MapUtils.hashMap("id",i));
   }
   queue=queue.withNext(15);
-  testMessages(queue,15,2);
+  IncrementHandler handler=new IncrementHandler(count);
+  testMessages(queue,handler);
+  handler.assertResults();
+  DecrementHandler decrement=new DecrementHandler(30);
   queue=queue.withPrevious(15).withPosition(QueuePosition.END.name()).withLast(null);
-  testMessagesReverse(queue,15,2);
+  testMessages(queue,decrement);
+  decrement.assertResults();
 }
