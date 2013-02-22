@@ -2,11 +2,15 @@
   if (json == null) {
     return null;
   }
-  setUserPasswordPut(ui,json,callback);
-  String email=string(json.get("email"));
-  String username=string(json.get("username"));
-  String name=string(json.get("name"));
-  management.updateAdminUser(user,username,name,email);
+  if (string(json.get("oldpassword")) != null) {
+    setUserPasswordPut(ui,json,callback);
+    json.remove("oldpassword");
+    json.remove("newpassword");
+  }
+  String email=string(json.remove("email"));
+  String username=string(json.remove("username"));
+  String name=string(json.remove("name"));
+  management.updateAdminUser(user,username,name,email,json);
   ApiResponse response=createApiResponse();
   response.setAction("update user info");
   return new JSONWithPadding(response,callback);
