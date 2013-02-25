@@ -15,7 +15,7 @@
       break;
     }
     insertIndex=(insertIndex + 1) * -1;
-    ids.add(pointer.targetMessage);
+    ids.add(insertIndex,pointer.targetMessage);
   }
   if (ids.size() > params.limit) {
     ids=ids.subList(0,params.limit);
@@ -24,6 +24,7 @@
   writeTransactions(messages,query.getTimeout() + startTime,queueId,consumerId);
   deleteTransactionPointers(pointers,lastTransactionIndex,queueId,consumerId);
   QueueResults results=createResults(messages,queuePath,queueId,consumerId);
-  writeClientPointer(queueId,consumerId,results.getLast());
+  UUID lastId=ids.size() > 0 ? ids.get(ids.size() - 1) : null;
+  writeClientPointer(queueId,consumerId,lastId);
   return results;
 }
