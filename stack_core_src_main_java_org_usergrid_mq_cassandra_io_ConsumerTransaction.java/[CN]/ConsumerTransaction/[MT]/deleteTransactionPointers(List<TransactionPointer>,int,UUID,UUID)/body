@@ -2,7 +2,11 @@
   Mutator<ByteBuffer> mutator=createMutator(ko,be);
   ByteBuffer key=getQueueClientTransactionKey(queueId,consumerId);
   for (int i=0; i < maxIndex && i < pointers.size(); i++) {
-    mutator.addDeletion(key,CONSUMER_QUEUE_TIMEOUTS.getColumnFamily(),pointers.get(i).expiration,ue);
+    UUID pointer=pointers.get(i).expiration;
+    if (logger.isDebugEnabled()) {
+      logger.debug("Removing transaction pointer '{}' for queue '{}' and consumer '{}'",new Object[]{pointer,queueId,consumerId});
+    }
+    mutator.addDeletion(key,CONSUMER_QUEUE_TIMEOUTS.getColumnFamily(),pointer,ue,cassTimestamp);
   }
   mutator.execute();
 }

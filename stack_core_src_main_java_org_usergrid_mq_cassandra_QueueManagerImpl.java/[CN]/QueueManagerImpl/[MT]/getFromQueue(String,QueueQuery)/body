@@ -7,7 +7,7 @@
   if (query.getPosition() == LAST || query.getPosition() == CONSUMER) {
     if (!query.hasFilterPredicates()) {
       if (query.getTimeout() > 0) {
-        search=new ConsumerTransaction(ko,cass.createTimestamp());
+        search=new ConsumerTransaction(applicationId,ko,lockManager,cass.createTimestamp());
       }
  else {
         search=new NoTransactionSearch(ko,cass.createTimestamp());
@@ -22,6 +22,9 @@
   }
  else   if (query.getPosition() == END) {
     search=new EndSearch(ko,cass.createTimestamp());
+  }
+ else {
+    throw new IllegalArgumentException("You must specify a valid position");
   }
   return search.getResults(queuePath,query);
 }
