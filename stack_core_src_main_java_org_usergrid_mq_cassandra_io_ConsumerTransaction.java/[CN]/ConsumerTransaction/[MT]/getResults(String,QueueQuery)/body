@@ -8,6 +8,9 @@
   Lock lock=lockManager.createLock(applicationId,queueId.toString(),consumerId.toString());
   try {
     lock.lock();
+    if (!testSemaphore.tryAcquire()) {
+      throw new RuntimeException("Semaphore was acquired twice in critial block!");
+    }
     long startTime=System.currentTimeMillis();
     UUID startTimeUUID=UUIDUtils.newTimeUUID(startTime,0);
     QueueBounds bounds=getQueueBounds(queueId);
@@ -44,6 +47,7 @@
   }
  finally {
     try {
+      testSemaphore.release();
       lock.unlock();
     }
  catch (    UGLockException e) {
