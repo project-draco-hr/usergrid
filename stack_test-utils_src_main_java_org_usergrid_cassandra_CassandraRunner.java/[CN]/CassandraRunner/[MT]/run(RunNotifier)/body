@@ -1,0 +1,19 @@
+{
+  maybeInit();
+  DataControl control=null;
+  for (  Annotation ann : getTestClass().getAnnotations()) {
+    logger.info("examinign annotation " + ann);
+    if (ann instanceof DataControl) {
+      logger.info("founda dataCOntrol annotation");
+      control=(DataControl)ann;
+    }
+  }
+  loadDataControl(control);
+  maybeCreateSchema();
+  super.run(notifier);
+  if (control == null || !control.skipTruncate()) {
+    schemaManager.destroy();
+  }
+  logger.info("shutting down context");
+  contextHolder.applicationContext.stop();
+}
