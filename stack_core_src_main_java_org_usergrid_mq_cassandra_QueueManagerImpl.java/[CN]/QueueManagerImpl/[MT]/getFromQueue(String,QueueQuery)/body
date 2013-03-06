@@ -4,17 +4,15 @@
   }
   Keyspace ko=cass.getApplicationKeyspace(applicationId);
   QueueSearch search=null;
-  if (query.getPosition() == LAST || query.getPosition() == CONSUMER) {
-    if (!query.hasFilterPredicates()) {
-      if (query.getTimeout() > 0) {
-        search=new ConsumerTransaction(applicationId,ko,lockManager,cass);
-      }
- else {
-        search=new NoTransactionSearch(ko,cass);
-      }
+  if (query.hasFilterPredicates()) {
+    search=new FilterSearch(ko,cass);
+  }
+ else   if (query.getPosition() == LAST || query.getPosition() == CONSUMER) {
+    if (query.getTimeout() > 0) {
+      search=new ConsumerTransaction(applicationId,ko,lockManager,cass);
     }
  else {
-      search=new BooleanSearch();
+      search=new NoTransactionSearch(ko,cass);
     }
   }
  else   if (query.getPosition() == START) {
@@ -24,7 +22,7 @@
     search=new EndSearch(ko,cass);
   }
  else {
-    throw new IllegalArgumentException("You must specify a valid position");
+    throw new IllegalArgumentException("You must specify a valid position or query");
   }
   return search.getResults(queuePath,query);
 }

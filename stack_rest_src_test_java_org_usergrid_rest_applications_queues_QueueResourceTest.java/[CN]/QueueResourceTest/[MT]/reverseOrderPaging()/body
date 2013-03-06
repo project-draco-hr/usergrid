@@ -4,12 +4,12 @@
   for (int i=0; i < count; i++) {
     queue.post(MapUtils.hashMap("id",i));
   }
-  queue=queue.withNext(15);
+  queue=queue.withLimit(15);
   IncrementHandler handler=new IncrementHandler(count);
   testMessages(queue,handler);
   handler.assertResults();
   DecrementHandler decrement=new DecrementHandler(30);
-  queue=queue.withPrevious(15).withPosition(QueuePosition.END.name()).withLast(null);
+  queue=queue.withLimit(15).withPosition(QueuePosition.END.name()).withLast(null);
   testMessages(queue,decrement);
   decrement.assertResults();
 }
