@@ -1,0 +1,11 @@
+{
+  UUID queueId=getQueueId(queuePath);
+  UUID consumerId=getConsumerId(queueId,query);
+  QueueBounds bounds=getQueueBounds(queueId);
+  SearchParam params=getParams(queueId,consumerId,query);
+  List<UUID> ids=getIds(queueId,consumerId,bounds,params);
+  List<Message> messages=loadMessages(ids,params.reversed);
+  QueueResults results=createResults(messages,queuePath,queueId,consumerId);
+  writeClientPointer(queueId,consumerId,results.getLast(),cass.createTimestamp());
+  return results;
+}

@@ -1,0 +1,17 @@
+{
+  if (cachedField != null) {
+    return cachedField;
+  }
+  Class<?> current=testClass;
+  do {
+    for (    Field field : current.getDeclaredFields()) {
+      if (field.getAnnotation(Context.class) != null) {
+        cachedField=field;
+        return cachedField;
+      }
+    }
+    current=current.getSuperclass();
+  }
+ while (current != null);
+  return null;
+}

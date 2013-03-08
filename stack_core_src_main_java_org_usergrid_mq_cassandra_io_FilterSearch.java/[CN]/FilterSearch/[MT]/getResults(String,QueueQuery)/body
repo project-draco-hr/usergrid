@@ -1,0 +1,30 @@
+{
+  QueryProcessor qp=new QueryProcessor(query);
+  List<QuerySlice> slices=qp.getSlices();
+  long limit=query.getLimit();
+  UUID queueId=getQueueId(queuePath);
+  UUID consumerId=getConsumerId(queueId,query);
+  QueueBounds bounds=getQueueBounds(queueId);
+  UUIDComparator comparator=query.isReversed() ? new ReverseUUIDComparator() : new UUIDComparator();
+  SortedSet<UUID> merged=null;
+  for (  QuerySlice slice : slices) {
+    SortedSet<UUID> results=searchQueueRange(ko,queueId,bounds,slice,query.getLastMessageId(),query.isReversed(),comparator);
+    if (merged == null) {
+      merged=results;
+    }
+ else {
+      merged.retainAll(results);
+    }
+  }
+  if (merged.size() > limit) {
+    Iterator<UUID> current=merged.iterator();
+    UUID max=null;
+    for (int i=0; i <= limit && current.hasNext(); i++) {
+      max=current.next();
+    }
+    merged=merged.headSet(max);
+  }
+  List<Message> messages=loadMessages(merged,query.isReversed());
+  QueueResults results=createResults(messages,queuePath,queueId,consumerId);
+  return results;
+}

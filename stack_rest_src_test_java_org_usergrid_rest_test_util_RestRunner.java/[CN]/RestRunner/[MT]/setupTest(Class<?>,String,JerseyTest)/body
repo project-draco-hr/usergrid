@@ -1,0 +1,18 @@
+{
+  Field target=findField(testClass);
+  if (target == null) {
+    throw new RuntimeException(String.format("You did not specify a %s field with the %s annotation",TestContext.class.getName(),Context.class));
+  }
+  String name=testClass.getName() + "." + methodName;
+  TestAdminUser testAdmin=new TestAdminUser(name,name + "@usergrid.com",name + "@usergrid.com");
+  TestContext context=TestContext.create(test).withOrg(name).withApp(methodName).withUser(testAdmin).initAll();
+  try {
+    boolean accessible=target.isAccessible();
+    target.setAccessible(true);
+    target.set(test,context);
+    target.setAccessible(accessible);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(e);
+  }
+}

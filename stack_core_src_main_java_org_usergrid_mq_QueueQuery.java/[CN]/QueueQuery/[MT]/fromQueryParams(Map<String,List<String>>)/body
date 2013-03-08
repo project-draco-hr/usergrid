@@ -21,14 +21,6 @@
       query.setLastTimestamp(t);
     }
   }
-  if (params.containsKey("prev")) {
-    query=newQueryIfNull(query);
-    query.setPreviousCount(getInt(first(params.get("prev"))));
-  }
-  if (params.containsKey("next")) {
-    query=newQueryIfNull(query);
-    query.setNextCount(getInt(first(params.get("next"))));
-  }
   if (params.containsKey("pos")) {
     query=newQueryIfNull(query);
     QueuePosition pos=QueuePosition.find(first(params.get("pos")));
@@ -43,6 +35,10 @@
   if (params.containsKey("synchronized")) {
     query=newQueryIfNull(query);
     query.setSynchronized(ConversionUtils.getBoolean(first(params.get("synchronized"))));
+  }
+  if (params.containsKey("timeout")) {
+    query=newQueryIfNull(query);
+    query.setTimeout(ConversionUtils.getLong(first(params.get("timeout"))));
   }
   if ((query != null) && (consumer != null)) {
     query.setPositionIfUnset(QueuePosition.CONSUMER);
