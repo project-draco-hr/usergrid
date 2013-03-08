@@ -1,0 +1,24 @@
+{
+  JobDescriptor jobDescriptor=JobDescriptor.instance("",BulkTestUtils.getBulkJobFactory(),UUID.randomUUID());
+  BulkJobExecution bje=BulkJobExecution.instance(jobDescriptor);
+  try {
+    bje.completed();
+    fail("Should have throw ISE on NOT_STARTED to IN_PROGRESS");
+  }
+ catch (  IllegalStateException ise) {
+  }
+  try {
+    bje.failed();
+    fail("Should have thrown ISE on NOT_STARTED to FAILED");
+  }
+ catch (  IllegalStateException ise) {
+  }
+  bje.start();
+  bje.completed();
+  try {
+    bje.failed();
+    fail("Should have failed failed after complete call");
+  }
+ catch (  IllegalStateException ise) {
+  }
+}

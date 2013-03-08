@@ -1,0 +1,18 @@
+{
+  JobDescriptor jobDescriptor=JobDescriptor.instance("",BulkTestUtils.getBulkJobFactory(),UUID.randomUUID());
+  BulkJobExecution bje=BulkJobExecution.instance(jobDescriptor);
+  bje.start();
+  try {
+    bje.start();
+    fail("Should have failed on double start() call");
+  }
+ catch (  IllegalStateException ise) {
+  }
+  bje.completed();
+  try {
+    bje.completed();
+    fail("Should have failed on double complete call");
+  }
+ catch (  IllegalStateException ise) {
+  }
+}

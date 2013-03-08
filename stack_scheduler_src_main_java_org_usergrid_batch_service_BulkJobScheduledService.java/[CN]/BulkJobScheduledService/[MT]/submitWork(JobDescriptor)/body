@@ -1,0 +1,24 @@
+{
+  List<BulkJob> jobs=BulkJobsBuilder.newBuilder(jobDescriptor).build();
+  for (  final BulkJob job : jobs) {
+    ListenableFuture<BulkJobExecution> bulkJobExecFuture=service.submit(new Callable<BulkJobExecution>(){
+      @Override public BulkJobExecution call() throws Exception {
+        return job.execute(jobDescriptor);
+      }
+    }
+);
+    Futures.addCallback(bulkJobExecFuture,new FutureCallback<BulkJobExecution>(){
+      @Override public void onSuccess(      BulkJobExecution bulkJobExecution){
+        logger.info("Successful completion of bulkJob {}",bulkJobExecution);
+        jobAccessor.save(bulkJobExecution);
+      }
+      @Override public void onFailure(      Throwable throwable){
+        logger.error("Failed execution for bulkJob {}",throwable);
+        if (throwable instanceof BulkJobExecutionException) {
+          jobAccessor.save(((BulkJobExecutionException)throwable).getBulkJobExecution());
+        }
+      }
+    }
+);
+  }
+}
