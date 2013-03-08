@@ -1,0 +1,23 @@
+{
+  if (cursors.size() == 0) {
+    return null;
+  }
+  StringBuffer buff=new StringBuffer();
+  int nullCount=0;
+  ByteBuffer value=null;
+  for (  Entry<Integer,ByteBuffer> entry : cursors.entrySet()) {
+    value=entry.getValue();
+    buff.append(entry.getKey());
+    buff.append(":");
+    buff.append(encodeBase64URLSafeString(bytes(value)));
+    buff.append("|");
+    if (value.remaining() == 0) {
+      nullCount++;
+    }
+  }
+  if (nullCount == cursors.size()) {
+    return null;
+  }
+  buff.setLength(buff.length() - 1);
+  return encodeBase64URLSafeString(buff.toString().getBytes());
+}
