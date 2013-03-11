@@ -1,0 +1,23 @@
+{
+  QueueQuery query=new QueueQuery();
+  query.setTimeout(timeout);
+  query.setLimit(size);
+  QueueResults jobs=qm.getFromQueue(QUEUE_NAME,query);
+  List<JobDescriptor> results=new ArrayList<JobDescriptor>(jobs.size());
+  for (  Message job : jobs.getMessages()) {
+    UUID jobUuid=(UUID)job.getProperties().get("jobId");
+    JobData data=null;
+    try {
+      data=em.get(jobUuid,JobData.class);
+    }
+ catch (    Exception e) {
+    }
+    if (data == null) {
+      logger.info("Received job with data id '{}' from the queue, but no data was found.  Dropping job",jobUuid);
+      qm.deleteTransaction(QUEUE_NAME,job.getTransaction(),null);
+      continue;
+    }
+    results.add(new JobDescriptor(job.getStringProperty("jobName"),job.getUuid(),job.getTransaction(),data,this));
+  }
+  return results;
+}

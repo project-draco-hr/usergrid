@@ -1,0 +1,15 @@
+{
+  JobData job=null;
+  try {
+    job=em.create(jobData);
+  }
+ catch (  Exception e) {
+    throw new JobRuntimeException(e);
+  }
+  Message message=new Message();
+  message.setTimestamp(fireTime);
+  message.setStringProperty("jobName",jobName);
+  message.setProperty("jobId",job.getUuid());
+  qm.postToQueue(QUEUE_NAME,message);
+  return job;
+}

@@ -1,0 +1,39 @@
+{
+  List<Job> jobs;
+  try {
+    jobs=jobFactory.jobsFrom(jobDescriptor);
+  }
+ catch (  JobNotFoundException e) {
+    logger.error("Could not create jobs",e);
+    return;
+  }
+  for (  final Job job : jobs) {
+    ListenableFuture<JobExecution> bulkJobExecFuture=service.submit(new Callable<JobExecution>(){
+      @Override public JobExecution call() throws Exception {
+        runningJobs.incrementAndGet();
+        JobExecution execution=new JobExecution(jobDescriptor);
+        job.execute(execution);
+        return execution;
+      }
+    }
+);
+    Futures.addCallback(bulkJobExecFuture,new FutureCallback<JobExecution>(){
+      @Override public void onSuccess(      JobExecution execution){
+        logger.info("Successful completion of bulkJob {}",execution);
+        execution.completed();
+        jobAccessor.save(execution);
+        runningJobs.decrementAndGet();
+      }
+      @Override public void onFailure(      Throwable throwable){
+        logger.error("Failed execution for bulkJob {}",throwable);
+        if (throwable instanceof JobExecutionException) {
+          JobExecution execution=((JobExecutionException)throwable).getExecution();
+          execution.failed();
+          jobAccessor.save(execution);
+        }
+        runningJobs.decrementAndGet();
+      }
+    }
+);
+  }
+}
