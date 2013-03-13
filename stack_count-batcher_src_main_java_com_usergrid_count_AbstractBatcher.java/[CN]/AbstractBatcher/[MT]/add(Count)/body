@@ -3,9 +3,14 @@
   final TimerContext context=addTimer.time();
   batch.add(count);
   if (shouldSubmit(batch)) {
-    Batch copy=batch;
-    batch=new Batch();
-    submit(copy);
+synchronized (batch) {
+      if (submit.compareAndSet(false,true)) {
+        Batch copy=batch;
+        batch=new Batch();
+        submit(copy);
+        submit.set(false);
+      }
+    }
   }
   context.stop();
 }
