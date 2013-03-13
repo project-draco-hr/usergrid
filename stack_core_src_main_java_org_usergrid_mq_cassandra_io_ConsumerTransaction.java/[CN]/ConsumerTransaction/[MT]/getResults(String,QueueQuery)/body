@@ -1,0 +1,56 @@
+{
+  UUID queueId=getQueueId(queuePath);
+  UUID consumerId=getConsumerId(queueId,query);
+  if (query.getLimit() > MAX_READ) {
+    throw new IllegalArgumentException(String.format("You specified a size of %d, you cannot specify a size larger than %d when using transations",query.getLimit(DEFAULT_READ),MAX_READ));
+  }
+  QueueResults results=null;
+  Lock lock=lockManager.createLock(applicationId,queueId.toString(),consumerId.toString());
+  try {
+    lock.lock();
+    long startTime=System.currentTimeMillis();
+    UUID startTimeUUID=UUIDUtils.newTimeUUID(startTime,0);
+    QueueBounds bounds=getQueueBounds(queueId);
+    bounds=new QueueBounds(bounds.getOldest(),startTimeUUID);
+    SearchParam params=getParams(queueId,consumerId,query);
+    List<UUID> ids=getQueueRange(queueId,bounds,params);
+    List<TransactionPointer> pointers=getConsumerIds(queueId,consumerId,params,startTimeUUID);
+    TransactionPointer pointer=null;
+    int lastTransactionIndex=-1;
+    for (int i=0; i < pointers.size(); i++) {
+      pointer=pointers.get(i);
+      int insertIndex=Collections.binarySearch(ids,pointer.expiration);
+      if (insertIndex <= params.limit * -1 - 1) {
+        break;
+      }
+      insertIndex=(insertIndex + 1) * -1;
+      ids.add(insertIndex,pointer.targetMessage);
+      lastTransactionIndex=i;
+    }
+    if (ids.size() > params.limit) {
+      ids=ids.subList(0,params.limit);
+    }
+    List<Message> messages=loadMessages(ids,params.reversed);
+    writeTransactions(messages,query.getTimeout() + startTime,queueId,consumerId);
+    deleteTransactionPointers(pointers,lastTransactionIndex + 1,queueId,consumerId);
+    results=createResults(messages,queuePath,queueId,consumerId);
+    UUID lastReadTransactionPointer=lastTransactionIndex == -1 ? null : pointers.get(lastTransactionIndex).expiration;
+    UUID lastId=messages.size() == 0 ? null : messages.get(messages.size() - 1).getUuid();
+    UUID lastReadId=UUIDUtils.max(lastReadTransactionPointer,lastId);
+    writeClientPointer(queueId,consumerId,lastReadId);
+  }
+ catch (  UGLockException e) {
+    logger.error("Unable to acquire lock",e);
+    throw new QueueException("Unable to acquire lock",e);
+  }
+ finally {
+    try {
+      lock.unlock();
+    }
+ catch (    UGLockException e) {
+      logger.error("Unable to release lock",e);
+      throw new QueueException("Unable to release lock",e);
+    }
+  }
+  return results;
+}

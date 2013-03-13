@@ -4,6 +4,7 @@
   message.sync();
   addMessageToMutator(batch,message,timestamp);
   long shard_ts=roundLong(message.getTimestamp(),QUEUE_SHARD_INTERVAL);
+  logger.debug("Adding message with id '{}' to queue '{}'",message.getUuid(),queueId);
   batch.addInsertion(getQueueShardRowKey(queueId,shard_ts),QUEUE_INBOX.getColumnFamily(),createColumn(message.getUuid(),ByteBuffer.allocate(0),timestamp,ue,be));
   long oldest_ts=Long.MAX_VALUE - getTimestampInMicros(message.getUuid());
   batch.addInsertion(bytebuffer(queueId),QUEUE_PROPERTIES.getColumnFamily(),createColumn(QUEUE_OLDEST,message.getUuid(),oldest_ts,se,ue));
