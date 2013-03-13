@@ -2,14 +2,14 @@
   invocationCounter.inc();
   final TimerContext context=addTimer.time();
   batch.add(count);
-  if (shouldSubmit(batch)) {
-synchronized (batch) {
-      if (submit.compareAndSet(false,true)) {
-        Batch copy=batch;
-        batch=new Batch();
-        submit(copy);
-        submit.set(false);
-      }
+  if (shouldSubmit(batch) && submitLock.tryLock()) {
+    try {
+      Batch copy=batch;
+      batch=new Batch();
+      submit(copy);
+    }
+  finally {
+      submitLock.unlock();
     }
   }
   context.stop();
