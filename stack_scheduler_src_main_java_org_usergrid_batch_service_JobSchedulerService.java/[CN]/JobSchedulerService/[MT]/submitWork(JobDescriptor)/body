@@ -8,7 +8,7 @@
     return;
   }
   for (  final Job job : jobs) {
-    ListenableFuture<JobExecution> bulkJobExecFuture=service.submit(new Callable<JobExecution>(){
+    ListenableFuture<JobExecution> future=service.submit(new Callable<JobExecution>(){
       @Override public JobExecution call() throws Exception {
         runningJobs.incrementAndGet();
         JobExecution execution=new JobExecution(jobDescriptor);
@@ -17,7 +17,7 @@
       }
     }
 );
-    Futures.addCallback(bulkJobExecFuture,new FutureCallback<JobExecution>(){
+    Futures.addCallback(future,new FutureCallback<JobExecution>(){
       @Override public void onSuccess(      JobExecution execution){
         logger.info("Successful completion of bulkJob {}",execution);
         execution.completed();

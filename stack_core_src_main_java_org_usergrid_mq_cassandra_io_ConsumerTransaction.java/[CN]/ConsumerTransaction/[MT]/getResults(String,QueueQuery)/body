@@ -11,6 +11,9 @@
     long startTime=System.currentTimeMillis();
     UUID startTimeUUID=UUIDUtils.newTimeUUID(startTime,0);
     QueueBounds bounds=getQueueBounds(queueId);
+    if (bounds == null) {
+      return createResults(new ArrayList<Message>(0),queuePath,queueId,consumerId);
+    }
     bounds=new QueueBounds(bounds.getOldest(),startTimeUUID);
     SearchParam params=getParams(queueId,consumerId,query);
     List<UUID> ids=getQueueRange(queueId,bounds,params);
