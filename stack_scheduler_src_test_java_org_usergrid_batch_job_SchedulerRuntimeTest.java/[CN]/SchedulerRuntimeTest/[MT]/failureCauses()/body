@@ -1,0 +1,9 @@
+{
+  long sleepTime=Long.parseLong(props.getProperty("usergrid.scheduler.job.timeout"));
+  int failCount=Integer.parseInt(props.getProperty("usergrid.scheduler.job.failure"));
+  FailureJobExceuction job=CassandraRunner.getBean("failureJobExceuction",FailureJobExceuction.class);
+  job.reset();
+  scheduler.createJob("failureJobExceuction",System.currentTimeMillis(),new JobData());
+  Thread.sleep(sleepTime * (failCount + 1));
+  assertEquals(failCount + 1,job.getCount());
+}

@@ -2,14 +2,13 @@
   logger.info("running iteration...");
   List<JobDescriptor> activeJobs=null;
   while (true) {
-    int capacity=getCapacity();
+    capacitySemaphore.acquire();
+    capacitySemaphore.release();
+    int capacity=capacitySemaphore.availablePermits();
     logger.debug("capacity = {}",capacity);
-    if (capacity == 0) {
-      break;
-    }
     activeJobs=jobAccessor.getJobs(capacity);
     if (activeJobs.size() == 0) {
-      break;
+      return;
     }
     for (    JobDescriptor jd : activeJobs) {
       logger.info("Submitting work for {}",jd);

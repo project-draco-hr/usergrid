@@ -8,30 +8,35 @@
     return;
   }
   for (  final Job job : jobs) {
-    ListenableFuture<JobExecution> future=service.submit(new Callable<JobExecution>(){
-      @Override public JobExecution call() throws Exception {
-        runningJobs.incrementAndGet();
-        JobExecution execution=new JobExecution(jobDescriptor);
+    final JobExecution execution=new JobExecution(jobDescriptor);
+    ListenableFuture<Void> future=service.submit(new Callable<Void>(){
+      @Override public Void call() throws Exception {
+        capacitySemaphore.acquire();
         job.execute(execution);
-        return execution;
+        return null;
       }
     }
 );
-    Futures.addCallback(future,new FutureCallback<JobExecution>(){
-      @Override public void onSuccess(      JobExecution execution){
+    Futures.addCallback(future,new FutureCallback<Void>(){
+      @Override public void onSuccess(      Void param){
         logger.info("Successful completion of bulkJob {}",execution);
         execution.completed();
         jobAccessor.save(execution);
-        runningJobs.decrementAndGet();
+        capacitySemaphore.release();
       }
       @Override public void onFailure(      Throwable throwable){
         logger.error("Failed execution for bulkJob {}",throwable);
+        execution.failed(maxFailCount);
         if (throwable instanceof JobExecutionException) {
-          JobExecution execution=((JobExecutionException)throwable).getExecution();
-          execution.failed();
-          jobAccessor.save(execution);
+          long retryDelay=((JobExecutionException)throwable).getRetryTimeout();
+          if (retryDelay > 0) {
+            jobAccessor.delayRetry(execution,retryDelay);
+            capacitySemaphore.release();
+            return;
+          }
         }
-        runningJobs.decrementAndGet();
+        jobAccessor.save(execution);
+        capacitySemaphore.release();
       }
     }
 );
