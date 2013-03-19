@@ -1,0 +1,20 @@
+{
+  JobData data=bulkJobExecution.getData();
+  Status jobStatus=bulkJobExecution.getStatus();
+  try {
+    if (jobStatus == Status.COMPLETED) {
+      qm.deleteTransaction(jobQueueName,bulkJobExecution.getTransactionId(),null);
+      em.delete(data);
+    }
+ else     if (jobStatus == Status.DEAD) {
+      qm.deleteTransaction(jobQueueName,bulkJobExecution.getTransactionId(),null);
+      em.update(data);
+    }
+ else {
+      em.update(data);
+    }
+  }
+ catch (  Exception e) {
+    throw new JobRuntimeException(String.format("Unable to delete job data with id %s",data.getUuid()),e);
+  }
+}

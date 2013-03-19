@@ -1,0 +1,16 @@
+{
+  JobData data=execution.getData();
+  try {
+    if (execution.getStatus() == Status.DEAD) {
+      qm.deleteTransaction(jobQueueName,execution.getTransactionId(),null);
+      em.update(data);
+      return;
+    }
+    scheduleJob(execution.getJobName(),System.currentTimeMillis() + delay,data.getUuid());
+    qm.deleteTransaction(jobQueueName,execution.getTransactionId(),null);
+    em.update(data);
+  }
+ catch (  Exception e) {
+    throw new JobRuntimeException(String.format("Unable to delete job data with id %s",data.getUuid()),e);
+  }
+}

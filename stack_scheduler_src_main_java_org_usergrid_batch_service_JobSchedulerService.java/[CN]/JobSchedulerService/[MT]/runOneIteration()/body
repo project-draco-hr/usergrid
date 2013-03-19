@@ -1,0 +1,19 @@
+{
+  logger.info("running iteration...");
+  List<JobDescriptor> activeJobs=null;
+  while (true) {
+    capacitySemaphore.acquire();
+    capacitySemaphore.release();
+    int capacity=capacitySemaphore.availablePermits();
+    logger.debug("capacity = {}",capacity);
+    activeJobs=jobAccessor.getJobs(capacity);
+    if (activeJobs.size() == 0) {
+      return;
+    }
+    for (    JobDescriptor jd : activeJobs) {
+      logger.info("Submitting work for {}",jd);
+      submitWork(jd);
+      logger.info("Work submitted for {}",jd);
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  JobDescriptor jobDescriptor=new JobDescriptor("",UUID.randomUUID(),UUID.randomUUID(),null,null);
+  JobExecution bje=new JobExecution(jobDescriptor);
+  try {
+    bje.completed();
+    fail("Should have throw ISE on NOT_STARTED to IN_PROGRESS");
+  }
+ catch (  IllegalStateException ise) {
+  }
+  try {
+    bje.failed(0);
+    fail("Should have thrown ISE on NOT_STARTED to FAILED");
+  }
+ catch (  IllegalStateException ise) {
+  }
+  bje.start();
+  bje.completed();
+  try {
+    bje.failed(0);
+    fail("Should have failed failed after complete call");
+  }
+ catch (  IllegalStateException ise) {
+  }
+}

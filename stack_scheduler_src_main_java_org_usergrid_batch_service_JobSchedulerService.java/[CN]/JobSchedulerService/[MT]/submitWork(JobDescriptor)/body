@@ -1,0 +1,44 @@
+{
+  List<Job> jobs;
+  try {
+    jobs=jobFactory.jobsFrom(jobDescriptor);
+  }
+ catch (  JobNotFoundException e) {
+    logger.error("Could not create jobs",e);
+    return;
+  }
+  for (  final Job job : jobs) {
+    final JobExecution execution=new JobExecution(jobDescriptor);
+    ListenableFuture<Void> future=service.submit(new Callable<Void>(){
+      @Override public Void call() throws Exception {
+        capacitySemaphore.acquire();
+        job.execute(execution);
+        return null;
+      }
+    }
+);
+    Futures.addCallback(future,new FutureCallback<Void>(){
+      @Override public void onSuccess(      Void param){
+        logger.info("Successful completion of bulkJob {}",execution);
+        execution.completed();
+        jobAccessor.save(execution);
+        capacitySemaphore.release();
+      }
+      @Override public void onFailure(      Throwable throwable){
+        logger.error("Failed execution for bulkJob {}",throwable);
+        execution.failed(maxFailCount);
+        if (throwable instanceof JobExecutionException) {
+          long retryDelay=((JobExecutionException)throwable).getRetryTimeout();
+          if (retryDelay > 0) {
+            jobAccessor.delayRetry(execution,retryDelay);
+            capacitySemaphore.release();
+            return;
+          }
+        }
+        jobAccessor.save(execution);
+        capacitySemaphore.release();
+      }
+    }
+);
+  }
+}

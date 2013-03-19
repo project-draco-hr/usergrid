@@ -1,0 +1,9 @@
+{
+  Preconditions.checkState(this.status.equals(Status.IN_PROGRESS),"Attempted to fail job not in progress");
+  status=Status.FAILED;
+  duration=System.currentTimeMillis() - startTime;
+  data.incrementFailures();
+  if (maxFailures != FOREVER && data.getFailCount() > maxFailures) {
+    status=Status.DEAD;
+  }
+}
