@@ -10,7 +10,15 @@
     throw new IllegalArgumentException(errorMsg);
   }
   Class<? extends Entity> expectedCls=Schema.getDefaultSchema().getEntityClass(type);
-  if ((expectedCls != null) && !DynamicEntity.class.isAssignableFrom(entityClass) && !expectedCls.isAssignableFrom(entityClass)) {
+  if (entityClass == null) {
+    if (expectedCls != null) {
+      entityClass=(Class<A>)expectedCls;
+    }
+ else {
+      entityClass=(Class<A>)DynamicEntity.class;
+    }
+  }
+  if ((expectedCls != null) && !Entity.class.isAssignableFrom(entityClass) && !expectedCls.isAssignableFrom(entityClass)) {
     String errorMsg="Unable to instantiate entity (" + type + ") because type and entityClass do not match, either use DynamicClass as entityClass or fix mismatch.";
     logger.error(errorMsg);
     throw new IllegalArgumentException(errorMsg);
