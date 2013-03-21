@@ -5,22 +5,29 @@
   QueueResults jobs=qm.getFromQueue(jobQueueName,query);
   List<JobDescriptor> results=new ArrayList<JobDescriptor>(jobs.size());
   for (  Message job : jobs.getMessages()) {
-    UUID jobUuid=UUID.fromString(job.getStringProperty("jobId"));
-    String jobName=job.getStringProperty("jobName");
-    JobData data=null;
+    UUID jobUuid=UUID.fromString(job.getStringProperty(JOB_ID));
+    UUID statsUuid=UUID.fromString(job.getStringProperty(STATS_ID));
+    String jobName=job.getStringProperty(JOB_NAME);
     try {
-      data=em.get(jobUuid,JobData.class);
+      JobData data=em.get(jobUuid,JobData.class);
+      JobStat stats=em.get(statsUuid,JobStat.class);
+      if (data == null || stats == null) {
+        logger.info("Received job with data id '{}' from the queue, but no data was found.  Dropping job",jobUuid);
+        qm.deleteTransaction(jobQueueName,job.getTransaction(),null);
+        if (data != null) {
+          em.delete(data);
+        }
+        if (stats != null) {
+          em.delete(stats);
+        }
+        continue;
+      }
+      results.add(new JobDescriptor(jobName,job.getUuid(),job.getTransaction(),data,stats,this));
     }
  catch (    Exception e) {
-      logger.error("Unable to retrieve job data for jobname {} and job id {}.  Skipping to avoid job loss",new Object[]{jobName,jobUuid,e});
+      logger.error("Unable to retrieve job data for jobname {}, job id {}, stats id {}.  Skipping to avoid job loss",new Object[]{jobName,jobUuid,statsUuid,e});
       continue;
     }
-    if (data == null) {
-      logger.info("Received job with data id '{}' from the queue, but no data was found.  Dropping job",jobUuid);
-      qm.deleteTransaction(jobQueueName,job.getTransaction(),null);
-      continue;
-    }
-    results.add(new JobDescriptor(jobName,job.getUuid(),job.getTransaction(),data,this));
   }
   return results;
 }

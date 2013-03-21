@@ -1,12 +1,13 @@
 {
-  JobData data=execution.getData();
+  JobData data=execution.getJobData();
+  JobStat stat=execution.getJobStats();
   try {
     if (execution.getStatus() == Status.DEAD) {
       qm.deleteTransaction(jobQueueName,execution.getTransactionId(),null);
       em.update(data);
       return;
     }
-    scheduleJob(execution.getJobName(),System.currentTimeMillis() + delay,data.getUuid());
+    scheduleJob(execution.getJobName(),System.currentTimeMillis() + delay,data.getUuid(),stat.getUuid());
     qm.deleteTransaction(jobQueueName,execution.getTransactionId(),null);
     em.update(data);
   }
