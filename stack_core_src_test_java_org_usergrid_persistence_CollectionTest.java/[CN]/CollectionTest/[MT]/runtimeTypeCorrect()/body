@@ -1,0 +1,23 @@
+{
+  UUID applicationId=createApplication("testOrganization","runtimeTypeCorrect");
+  assertNotNull(applicationId);
+  EntityManager em=emf.getEntityManager(applicationId);
+  assertNotNull(em);
+  int size=20;
+  List<User> createdEntities=new ArrayList<User>();
+  for (int i=0; i < size; i++) {
+    User user=new User();
+    user.setEmail(String.format("test%d@usergrid.com",i));
+    user.setUsername(String.format("test%d",i));
+    user.setName(String.format("test%d",i));
+    User created=em.create(user);
+    createdEntities.add(created);
+  }
+  Results r=em.getCollection(em.getApplicationRef(),"users",null,50,Level.ALL_PROPERTIES,false);
+  logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+  assertEquals(size,r.size());
+  for (int i=0; i < size; i++) {
+    assertEquals(createdEntities.get(i).getUuid(),r.getEntities().get(i).getUuid());
+    assertTrue(r.getEntities().get(i) instanceof User);
+  }
+}
