@@ -1,13 +1,14 @@
 {
   tsLock.lock();
   long ts=System.currentTimeMillis();
+  if (ts > timestampMillisNow) {
+    timestampMillisNow=ts;
+    currentMicrosPoint.set(0);
+  }
+  int pointer=currentMicrosPoint.getAndIncrement();
   try {
-    if (currentMicrosPoint.get() > 1000) {
+    if (pointer > 990) {
       TimeUnit.MILLISECONDS.sleep(1L);
-    }
-    if (ts > timestampMillisNow) {
-      timestampMillisNow=ts;
-      currentMicrosPoint.set(0);
     }
   }
  catch (  Exception ex) {
@@ -16,5 +17,5 @@
  finally {
     tsLock.unlock();
   }
-  return newTimeUUID(ts,MICROS[currentMicrosPoint.getAndIncrement()]);
+  return newTimeUUID(ts,MICROS[pointer]);
 }
