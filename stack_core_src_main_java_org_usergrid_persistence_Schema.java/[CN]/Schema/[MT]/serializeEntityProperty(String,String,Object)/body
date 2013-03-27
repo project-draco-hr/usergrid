@@ -8,6 +8,10 @@
   }
  else {
     bytes=Schema.serializePropertyValueToJsonBinary(toJsonNode(propertyValue));
+    if (Schema.getDefaultSchema().isPropertyEncrypted(entityType,propertyName)) {
+      bytes.rewind();
+      bytes=encrypt(bytes);
+    }
   }
   return bytes;
 }
