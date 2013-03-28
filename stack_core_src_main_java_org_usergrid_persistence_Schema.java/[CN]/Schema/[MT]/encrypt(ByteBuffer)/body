@@ -1,0 +1,15 @@
+{
+  if (clear == null || !clear.hasRemaining())   return clear;
+  try {
+    SecretKeySpec sKeySpec=new SecretKeySpec(getRawKey(encryptionSeed),"AES");
+    Cipher cipher=Cipher.getInstance("AES");
+    cipher.init(Cipher.ENCRYPT_MODE,sKeySpec);
+    ByteBuffer encrypted=ByteBuffer.allocate(cipher.getOutputSize(clear.remaining()));
+    cipher.doFinal(clear,encrypted);
+    encrypted.rewind();
+    return encrypted;
+  }
+ catch (  Exception e) {
+    throw new IllegalStateException(e);
+  }
+}
