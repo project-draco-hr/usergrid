@@ -7,6 +7,9 @@
     return;
   }
   logger.info(mapToFormattedJsonString(userInfo));
-  EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
-  User user=em.get(userInfo.getUuid(),User.class);
+  if (line.hasOption("p")) {
+    String password=line.getOptionValue("p");
+    managementService.setAdminUserPassword(userInfo.getUuid(),password);
+    logger.info("new password match?: " + managementService.verifyAdminUserPassword(userInfo.getUuid(),password));
+  }
 }
