@@ -10,9 +10,14 @@
       logger.warn("Missing values for test app, check properties.  Skipping test app setup...");
       return;
     }
-    OrganizationOwnerInfo created=createOwnerAndOrganization(test_organization_name,test_admin_username,test_admin_name,test_admin_email,test_admin_password,true,false);
-    OrganizationInfo organization=created.getOrganization();
-    createApplication(organization.getUuid(),test_app_name);
+    OrganizationInfo organization=getOrganizationByName(test_organization_name);
+    if (organization == null) {
+      OrganizationOwnerInfo created=createOwnerAndOrganization(test_organization_name,test_admin_username,test_admin_name,test_admin_email,test_admin_password,true,false);
+      organization=created.getOrganization();
+    }
+    if (!getApplicationsForOrganization(organization.getUuid()).containsValue(test_app_name)) {
+      createApplication(organization.getUuid(),test_app_name);
+    }
   }
  else {
     logger.warn("Test app creation disabled");

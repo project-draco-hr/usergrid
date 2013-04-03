@@ -1,19 +1,28 @@
 {
-  logger.info("running iteration...");
-  List<JobDescriptor> activeJobs=null;
-  while (true) {
-    capacitySemaphore.acquire();
-    capacitySemaphore.release();
-    int capacity=capacitySemaphore.availablePermits();
-    logger.debug("capacity = {}",capacity);
-    activeJobs=jobAccessor.getJobs(capacity);
-    if (activeJobs.size() == 0) {
-      return;
+  try {
+    logger.info("running iteration...");
+    List<JobDescriptor> activeJobs=null;
+    while (true) {
+      if (logger.isDebugEnabled()) {
+        logger.debug("About to acquire semaphore.  Capacity is {}",capacitySemaphore.availablePermits());
+      }
+      capacitySemaphore.acquire();
+      capacitySemaphore.release();
+      int capacity=capacitySemaphore.availablePermits();
+      logger.debug("Capacity is {}",capacity);
+      activeJobs=jobAccessor.getJobs(capacity);
+      if (activeJobs.size() == 0) {
+        logger.debug("No jobs returned. Exiting run loop");
+        return;
+      }
+      for (      JobDescriptor jd : activeJobs) {
+        logger.info("Submitting work for {}",jd);
+        submitWork(jd);
+        logger.info("Work submitted for {}",jd);
+      }
     }
-    for (    JobDescriptor jd : activeJobs) {
-      logger.info("Submitting work for {}",jd);
-      submitWork(jd);
-      logger.info("Work submitted for {}",jd);
-    }
+  }
+ catch (  Throwable t) {
+    logger.error("Something really bad happened!  Scheduler run failed",t);
   }
 }
