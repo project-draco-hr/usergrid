@@ -15,20 +15,18 @@
     String roleName=(String)properties.get(PROPERTY_NAME);
     return em.createGroupRole(groupId,roleName,(Long)properties.get(PROPERTY_INACTIVITY));
   }
-  Entity entity=getHeadEntity();
-  Entity itemEntity=null;
-  CollectionInfo collection=getDefaultSchema().getCollection(entity.getType(),collectionName);
+  CollectionInfo collection=getDefaultSchema().getCollection(headEntity.getType(),collectionName);
   if ((collection != null) && !collection.getType().equals(itemType)) {
     return null;
   }
   properties=getDefaultSchema().cleanUpdatedProperties(itemType,properties,true);
-  itemEntity=em.create(itemType,properties);
+  Entity itemEntity=em.create(itemType,properties);
   if (itemEntity != null) {
     UUID timestampUuid=newTimeUUID();
     Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
     batchAddToCollection(batch,collectionName,itemEntity,timestampUuid);
     if (collection.getLinkedCollection() != null) {
-      getRelationManager(itemEntity).batchAddToCollection(batch,collection.getLinkedCollection(),entity,timestampUuid);
+      getRelationManager(itemEntity).batchAddToCollection(batch,collection.getLinkedCollection(),getHeadEntity(),timestampUuid);
     }
     batchExecute(batch,CassandraService.RETRY_COUNT);
   }
