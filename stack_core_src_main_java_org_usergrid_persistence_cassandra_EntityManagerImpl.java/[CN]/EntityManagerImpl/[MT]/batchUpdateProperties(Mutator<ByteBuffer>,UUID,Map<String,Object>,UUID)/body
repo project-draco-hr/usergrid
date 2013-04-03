@@ -1,10 +1,11 @@
 {
-  DynamicEntity entity=loadPartialEntity(entityId);
+  EntityRef entity=getRef(entityId);
   if (entity == null) {
     return batch;
   }
-  for (  String propertyName : properties.keySet()) {
-    Object propertyValue=properties.get(propertyName);
+  for (  Map.Entry<String,Object> entry : properties.entrySet()) {
+    String propertyName=entry.getKey();
+    Object propertyValue=entry.getValue();
     batch=batchSetProperty(batch,entity,propertyName,propertyValue,timestampUuid);
   }
   return batch;

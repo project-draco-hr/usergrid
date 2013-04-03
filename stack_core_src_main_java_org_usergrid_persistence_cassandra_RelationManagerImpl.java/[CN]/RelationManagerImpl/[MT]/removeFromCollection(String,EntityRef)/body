@@ -13,7 +13,6 @@
     em.delete(itemRef);
     return;
   }
-  Entity entity=getHeadEntity();
   Entity itemEntity=em.get(itemRef);
   if (itemEntity == null) {
     return;
@@ -21,9 +20,9 @@
   UUID timestampUuid=newTimeUUID();
   Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
   batchRemoveFromCollection(batch,collectionName,itemEntity,timestampUuid);
-  CollectionInfo collection=getDefaultSchema().getCollection(entity.getType(),collectionName);
+  CollectionInfo collection=getDefaultSchema().getCollection(headEntity.getType(),collectionName);
   if ((collection != null) && (collection.getLinkedCollection() != null)) {
-    getRelationManager(itemEntity).batchRemoveFromCollection(batch,collection.getLinkedCollection(),entity,timestampUuid);
+    getRelationManager(itemEntity).batchRemoveFromCollection(batch,collection.getLinkedCollection(),getHeadEntity(),timestampUuid);
   }
   batchExecute(batch,CassandraService.RETRY_COUNT);
   if (headEntity.getType().equals(Group.ENTITY_TYPE)) {

@@ -1,10 +1,9 @@
 {
-  Entity entity=getHeadEntity();
   Entity itemEntity=em.get(itemRef);
   if (itemEntity == null) {
     return null;
   }
-  CollectionInfo collection=getDefaultSchema().getCollection(entity.getType(),collectionName);
+  CollectionInfo collection=getDefaultSchema().getCollection(headEntity.getType(),collectionName);
   if ((collection != null) && !collection.getType().equals(itemRef.getType())) {
     return null;
   }
@@ -12,7 +11,7 @@
   Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
   batchAddToCollection(batch,collectionName,itemEntity,timestampUuid);
   if (collection.getLinkedCollection() != null) {
-    getRelationManager(itemEntity).batchAddToCollection(batch,collection.getLinkedCollection(),entity,timestampUuid);
+    getRelationManager(itemEntity).batchAddToCollection(batch,collection.getLinkedCollection(),getHeadEntity(),timestampUuid);
   }
   batchExecute(batch,CassandraService.RETRY_COUNT);
   return itemEntity;
