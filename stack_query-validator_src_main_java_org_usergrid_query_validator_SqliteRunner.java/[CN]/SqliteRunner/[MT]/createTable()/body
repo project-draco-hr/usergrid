@@ -1,0 +1,21 @@
+{
+  Entity entity=entities.get(0);
+  StringBuilder builder=new StringBuilder();
+  builder.append("CREATE TABLE ");
+  builder.append(collection);
+  builder.append("(");
+  Map<String,Object> properties=Schema.getDefaultSchema().getEntityProperties(entity);
+  for (  String key : properties.keySet()) {
+    builder.append(key);
+    builder.append(" ");
+    Class type=entity.getProperty(key).getClass();
+    String sqlType=getSqlDatatype(type);
+    builder.append(sqlType);
+    builder.append(",");
+  }
+  builder.deleteCharAt(builder.length() - 1);
+  builder.append(")");
+  jdbcTemplate.execute("DROP TABLE IF EXISTS " + collection);
+  logger.info(builder.toString());
+  jdbcTemplate.execute(builder.toString());
+}
