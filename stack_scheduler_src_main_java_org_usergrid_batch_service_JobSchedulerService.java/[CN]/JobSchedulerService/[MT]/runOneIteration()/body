@@ -2,12 +2,16 @@
   logger.info("running iteration...");
   List<JobDescriptor> activeJobs=null;
   while (true) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("About to acquire semaphore.  Capacity is {}",capacitySemaphore.availablePermits());
+    }
     capacitySemaphore.acquire();
     capacitySemaphore.release();
     int capacity=capacitySemaphore.availablePermits();
-    logger.debug("capacity = {}",capacity);
+    logger.debug("Capacity is {}",capacity);
     activeJobs=jobAccessor.getJobs(capacity);
     if (activeJobs.size() == 0) {
+      logger.debug("No jobs returned. Exiting run loop");
       return;
     }
     for (    JobDescriptor jd : activeJobs) {
