@@ -1,0 +1,36 @@
+{
+  String outputDir=line.getOptionValue("output");
+  createDir(outputDir);
+  startSpring();
+  logger.info("Starting crawl of all admins");
+  EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+  Application app=em.getApplication();
+  Query query=new Query();
+  query.setLimit(PAGE_SIZE);
+  Results r=null;
+  Multimap<String,UUID> orgs=HashMultimap.create();
+  do {
+    r=em.searchCollection(app,"groups",query);
+    for (    Entity entity : r.getEntities()) {
+      orgs.put(entity.getProperty("path").toString().toLowerCase(),entity.getUuid());
+    }
+    query.setCursor(r.getCursor());
+    logger.info("Searching next page");
+  }
+ while (r != null && r.size() == PAGE_SIZE);
+  for (  String name : orgs.keySet()) {
+    Collection<UUID> ids=orgs.get(name);
+    if (ids.size() > 1) {
+      logger.warn("Found multiple orgs with the name {}",name);
+      FileWriter file=new FileWriter(String.format("%s/%s",outputDir,name));
+      for (      UUID id : ids) {
+        OrganizationInfo orgInfo=managementService.getOrganizationByUuid(id);
+        Map<String,Object> orgData=managementService.getOrganizationData(orgInfo);
+        file.write(JsonUtils.mapToFormattedJsonString(orgData));
+        file.write("\n\n");
+      }
+      file.flush();
+      file.close();
+    }
+  }
+}
