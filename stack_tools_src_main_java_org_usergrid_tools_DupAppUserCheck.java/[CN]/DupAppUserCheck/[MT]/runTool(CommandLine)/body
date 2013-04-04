@@ -1,0 +1,54 @@
+{
+  String outputDir=line.getOptionValue("output");
+  String emailsDir=String.format("%s/emails",outputDir);
+  String usernamesDir=String.format("%s/usernames",outputDir);
+  createDir(emailsDir);
+  createDir(usernamesDir);
+  startSpring();
+  logger.info("Starting crawl of all admins");
+  EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+  Application app=em.getApplication();
+  Query query=new Query();
+  query.setLimit(PAGE_SIZE);
+  Results r=null;
+  Multimap<String,UUID> emails=HashMultimap.create();
+  Multimap<String,UUID> usernames=HashMultimap.create();
+  do {
+    r=em.searchCollection(app,"users",query);
+    for (    Entity entity : r.getEntities()) {
+      emails.put(entity.getProperty("email").toString().toLowerCase(),entity.getUuid());
+      usernames.put(entity.getProperty("username").toString().toLowerCase(),entity.getUuid());
+    }
+    query.setCursor(r.getCursor());
+    logger.info("Searching next page");
+  }
+ while (r != null && r.size() == PAGE_SIZE);
+  for (  String email : emails.keySet()) {
+    Collection<UUID> ids=emails.get(email);
+    if (ids.size() > 1) {
+      logger.warn("Found multiple admins with the email {}",email);
+      FileWriter file=new FileWriter(String.format("%s/%s",emailsDir,email));
+      for (      UUID id : ids) {
+        Map<String,Object> userOrganizationData=managementService.getAdminUserOrganizationData(id);
+        file.write(JsonUtils.mapToFormattedJsonString(userOrganizationData));
+        file.write("\n\n");
+      }
+      file.flush();
+      file.close();
+    }
+  }
+  for (  String username : usernames.keySet()) {
+    Collection<UUID> ids=emails.get(username);
+    if (ids.size() > 1) {
+      logger.warn("Found multiple users with the username {}",username);
+      FileWriter file=new FileWriter(String.format("%s/%s",usernamesDir,username));
+      for (      UUID id : ids) {
+        Map<String,Object> userOrganizationData=managementService.getAdminUserOrganizationData(id);
+        file.write(JsonUtils.mapToFormattedJsonString(userOrganizationData));
+        file.write("\n\n");
+      }
+      file.flush();
+      file.close();
+    }
+  }
+}
