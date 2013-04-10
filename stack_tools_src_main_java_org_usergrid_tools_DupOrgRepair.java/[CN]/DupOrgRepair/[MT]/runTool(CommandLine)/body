@@ -12,7 +12,8 @@
   do {
     r=em.searchCollection(app,"groups",query);
     for (    Entity entity : r.getEntities()) {
-      orgs.put(entity.getProperty("path").toString().toLowerCase(),entity.getUuid());
+      String name=entity.getProperty("path").toString().toLowerCase();
+      orgs.put(name,entity.getUuid());
     }
     query.setCursor(r.getCursor());
     logger.info("Searching next page");
@@ -22,15 +23,13 @@
     Collection<UUID> ids=orgs.get(name);
     if (ids.size() > 1) {
       logger.warn("Found multiple orgs with the name {}",name);
-      FileWriter file=new FileWriter(String.format("%s/%s",outputDir,name));
-      for (      UUID id : ids) {
-        OrganizationInfo orgInfo=managementService.getOrganizationByUuid(id);
-        Map<String,Object> orgData=managementService.getOrganizationData(orgInfo);
-        file.write(JsonUtils.mapToFormattedJsonString(orgData));
-        file.write("\n\n");
+      OrganizationInfo orgInfo=managementService.getOrganizationByName(name);
+      UUID targetOrgId=orgInfo.getUuid();
+      ids.remove(targetOrgId);
+      for (      UUID sourceId : ids) {
+        mergeOrganizations(outputDir,sourceId,targetOrgId);
       }
-      file.flush();
-      file.close();
     }
   }
+  logger.info("Merge complete");
 }
