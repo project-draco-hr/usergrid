@@ -1,0 +1,34 @@
+{
+  Map<String,Object> params=new HashMap<String,Object>();
+  params.put("ql",query);
+  params.put("limit",limit);
+  ApiResponse response=client.apiRequest(HttpMethod.GET,params,null,getOrg(),getApp(),getCollection());
+  List<Entity> entities=new ArrayList<Entity>();
+  if (response.getEntities() == null)   return entities;
+  for (  org.usergrid.java.client.entities.Entity clientEntitity : response.getEntities()) {
+    Entity entity=new QueryEntity();
+    entity.setUuid(clientEntitity.getUuid());
+    entity.setType(clientEntitity.getType());
+    Map<String,JsonNode> values=clientEntitity.getProperties();
+    for (    String key : values.keySet()) {
+      JsonNode node=values.get(key);
+      if (node.isBoolean()) {
+        entity.setProperty(key,node.asBoolean());
+      }
+ else       if (node.isInt()) {
+        entity.setProperty(key,node.asInt());
+      }
+ else       if (node.isLong()) {
+        entity.setProperty(key,node.asLong());
+      }
+ else       if (node.isDouble()) {
+        entity.setProperty(key,node.asDouble());
+      }
+ else {
+        entity.setProperty(key,node.asText());
+      }
+    }
+    entities.add(entity);
+  }
+  return entities;
+}
