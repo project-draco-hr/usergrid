@@ -1,0 +1,18 @@
+{
+  List<org.usergrid.java.client.entities.Entity> clientEntities=new ArrayList<org.usergrid.java.client.entities.Entity>();
+  for (  Entity entity : entities) {
+    org.usergrid.java.client.entities.Entity clientEntity=new org.usergrid.java.client.entities.Entity();
+    clientEntity.setType(entity.getType());
+    Map<String,Object> properties=Schema.getDefaultSchema().getEntityProperties(entity);
+    for (    String key : properties.keySet()) {
+      Object value=entity.getProperty(key);
+      if (value instanceof String)       clientEntity.setProperty(key,(String)value);
+ else       if (value instanceof Long)       clientEntity.setProperty(key,(Long)value);
+ else       if (value instanceof Integer)       clientEntity.setProperty(key,(Integer)value);
+ else       if (value instanceof Float)       clientEntity.setProperty(key,(Float)value);
+ else       if (value instanceof Boolean)       clientEntity.setProperty(key,(Boolean)value);
+    }
+    clientEntities.add(clientEntity);
+  }
+  return clientEntities;
+}

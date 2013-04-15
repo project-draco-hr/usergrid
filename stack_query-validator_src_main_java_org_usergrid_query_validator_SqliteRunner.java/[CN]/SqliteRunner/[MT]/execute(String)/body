@@ -1,0 +1,14 @@
+{
+  List<Entity> entities=jdbcTemplate.query(query,new RowMapper<Entity>(){
+    @Override public Entity mapRow(    ResultSet rs,    int i) throws SQLException {
+      ResultSetMetaData rsmd=rs.getMetaData();
+      Entity entity=new QueryEntity();
+      for (int j=1; j <= rsmd.getColumnCount(); j++) {
+        entity.setProperty(rsmd.getColumnName(j),rs.getObject(j));
+      }
+      return entity;
+    }
+  }
+);
+  return entities;
+}
