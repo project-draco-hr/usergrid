@@ -1,4 +1,5 @@
 {
+  logger.info("create sample app {} in: {}",sampleAppName,organizationInfo.getName());
   Preconditions.checkArgument(organizationInfo != null,"OrganizationInfo was null");
   Preconditions.checkArgument(organizationInfo.getUuid() != null,"OrganizationInfo had no UUID");
   UUID appId=null;
@@ -8,6 +9,7 @@
  catch (  Exception ex) {
     throw new ApplicationCreationException("'" + sampleAppName + "' could not be created for organization: "+ organizationInfo.getUuid(),ex);
   }
+  logger.info("granting permissions for: {} in: {}",sampleAppName,organizationInfo.getName());
   EntityManager em=entityManagerFactory.getEntityManager(appId);
   try {
     em.grantRolePermissions("guest",Arrays.asList("get,post,put,delete:/**"));

@@ -5,10 +5,12 @@
   response.setAction("new organization");
   OrganizationOwnerInfo organizationOwner=management.createOwnerAndOrganization(organizationName,username,name,email,password,false,false,userProperties);
   if (organizationOwner == null) {
+    logger.info("organizationOwner is null, returning. organization: {}",organizationName);
     return null;
   }
   applicationCreator.createSampleFor(organizationOwner.getOrganization());
   response.setData(organizationOwner);
   response.setSuccess();
+  logger.info("New organization complete: {}",organizationName);
   return new JSONWithPadding(response,callback);
 }
