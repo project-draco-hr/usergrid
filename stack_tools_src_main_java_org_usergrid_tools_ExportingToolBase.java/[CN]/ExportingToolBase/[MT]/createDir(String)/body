@@ -1,3 +1,15 @@
 {
-  return createDir(null,dirName);
+  File file=new File(dirName);
+  if (file.exists()) {
+    if (file.isDirectory()) {
+      return file;
+    }
+ else {
+      throw new RuntimeException(String.format("Unable to create directory %s.  It already exists as a file",dirName));
+    }
+  }
+  if (!file.mkdirs()) {
+    throw new RuntimeException(String.format("Unable to create diretory %s",dirName));
+  }
+  return file;
 }
