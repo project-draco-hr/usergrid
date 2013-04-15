@@ -1,4 +1,5 @@
 {
+  logger.info("startOrganizationActivationFlow: {}",organization.getName());
   try {
     String token=getActivationTokenForOrganization(organization.getUuid(),0);
     String activation_url=String.format(properties.getProperty(PROPERTIES_ORGANIZATION_ACTIVATION_URL),organization.getUuid().toString()) + "?token=" + token;
@@ -8,14 +9,17 @@
       organization_owners=(organization_owners == null) ? user.getHTMLDisplayEmailAddress() : organization_owners + ", " + user.getHTMLDisplayEmailAddress();
     }
     if (newOrganizationsNeedSysAdminApproval()) {
+      logger.info("sending SysAdminApproval confirmation email: {}",organization.getName());
       sendHtmlMail(properties,properties.getProperty(PROPERTIES_SYSADMIN_EMAIL),properties.getProperty(PROPERTIES_MAILER_EMAIL),"Request For Organization Account Activation " + organization.getName(),appendEmailFooter(emailMsg(hashMap("organization_name",organization.getName()).map("activation_url",activation_url).map("organization_owners",organization_owners),PROPERTIES_EMAIL_SYSADMIN_ORGANIZATION_ACTIVATION)));
       sendOrganizationEmail(organization,"Organization Account Confirmed",emailMsg(hashMap("organization_name",organization.getName()),PROPERTIES_EMAIL_ORGANIZATION_CONFIRMED_AWAITING_ACTIVATION));
     }
  else     if (properties.newOrganizationsRequireConfirmation()) {
+      logger.info("sending account confirmation email: {}",organization.getName());
       sendOrganizationEmail(organization,"Organization Account Confirmation",emailMsg(hashMap("organization_name",organization.getName()).map("confirmation_url",activation_url),PROPERTIES_EMAIL_ORGANIZATION_CONFIRMATION));
       sendSysAdminNewOrganizationActivatedNotificationEmail(organization);
     }
  else {
+      logger.info("activating organization (no confirmation): {}",organization.getName());
       activateOrganization(organization,false);
       sendSysAdminNewOrganizationActivatedNotificationEmail(organization);
     }
