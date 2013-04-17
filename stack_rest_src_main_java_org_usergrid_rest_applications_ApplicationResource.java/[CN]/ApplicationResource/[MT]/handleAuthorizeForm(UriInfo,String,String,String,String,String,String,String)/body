@@ -19,17 +19,9 @@ catch (    DisabledAdminUserException daue) {
 catch (    Exception e1) {
     }
     if ((user != null) && isNotBlank(redirect_uri)) {
-      if (!redirect_uri.contains("?")) {
-        redirect_uri+="?";
-      }
- else {
-        redirect_uri+="&";
-      }
-      redirect_uri+="code=" + management.getAccessTokenForAppUser(services.getApplicationId(),user.getUuid(),0);
-      if (isNotBlank(state)) {
-        redirect_uri+="&state=" + URLEncoder.encode(state,"UTF-8");
-      }
-      throw new RedirectionException(state);
+      String authorizationCode=management.getAccessTokenForAppUser(services.getApplicationId(),user.getUuid(),0);
+      redirect_uri=buildRedirectUriWithAuthCode(redirect_uri,state,authorizationCode);
+      throw new RedirectionException(redirect_uri);
     }
  else {
       errorMsg=errorDescription;
