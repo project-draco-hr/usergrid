@@ -4,8 +4,8 @@
   Level resultsLevel=query.getResultsLevel();
   for (  QuerySlice slice : node.getAllSlices()) {
     queryProcessor.applyCursorAndSort(slice);
-    List<HColumn<ByteBuffer,ByteBuffer>> columns=searchIndex(key(connection.getIndexId(),INDEX_CONNECTIONS),slice,limit);
-    Results r=getIndexResults(columns,true,connection.getConnectionType(),connection.getConnectedEntityType(),resultsLevel);
+    IndexScanner columns=searchIndex(key(connection.getIndexId(),INDEX_CONNECTIONS),slice,limit);
+    Results r=getIndexResults(columns,true,connection.getConnectionType(),connection.getConnectedEntityType(),resultsLevel,query.getLimit());
     if (r.size() > query.getLimit()) {
       r.setCursorToLastResult();
     }
