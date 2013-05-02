@@ -7,7 +7,7 @@
   for (  String bucket : keys) {
     cassKeys.add(key(keyPrefix,bucket));
   }
-  Map<ByteBuffer,List<HColumn<ByteBuffer,ByteBuffer>>> results=cass.multiGetColumns(cass.getApplicationKeyspace(applicationId),columnFamily,cassKeys,start,finish,max + 1,reversed);
+  Map<ByteBuffer,List<HColumn<ByteBuffer,ByteBuffer>>> results=cass.multiGetColumns(cass.getApplicationKeyspace(applicationId),columnFamily,cassKeys,start,finish,pageSize + 1,reversed);
   final Comparator<ByteBuffer> comparator=reversed ? new DynamicCompositeReverseComparator(columnFamily) : new DynamicCompositeForwardComparator(columnFamily);
   TreeSet<HColumn<ByteBuffer,ByteBuffer>> resultsTree=new TreeSet<HColumn<ByteBuffer,ByteBuffer>>(new Comparator<HColumn<ByteBuffer,ByteBuffer>>(){
     @Override public int compare(    HColumn<ByteBuffer,ByteBuffer> first,    HColumn<ByteBuffer,ByteBuffer> second){
@@ -18,12 +18,12 @@
   for (  List<HColumn<ByteBuffer,ByteBuffer>> cols : results.values()) {
     for (    HColumn<ByteBuffer,ByteBuffer> col : cols) {
       resultsTree.add(col);
-      if (resultsTree.size() > max) {
+      if (resultsTree.size() > pageSize) {
         resultsTree.remove(resultsTree.last());
       }
     }
   }
-  if (resultsTree.size() == max) {
+  if (resultsTree.size() == pageSize) {
     hasMore=true;
     start=resultsTree.last().getName();
   }
