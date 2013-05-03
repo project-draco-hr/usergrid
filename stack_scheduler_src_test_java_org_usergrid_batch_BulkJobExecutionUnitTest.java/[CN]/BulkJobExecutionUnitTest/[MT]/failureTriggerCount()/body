@@ -3,13 +3,14 @@
   JobStat stat=new JobStat();
   JobDescriptor jobDescriptor=new JobDescriptor("",UUID.randomUUID(),UUID.randomUUID(),data,stat,null);
   JobExecution bje=new JobExecutionImpl(jobDescriptor);
-  bje.start();
-  bje.failed(1);
+  bje.start(1);
+  assertEquals(Status.IN_PROGRESS,bje.getStatus());
+  assertEquals(1,stat.getRunCount());
+  bje.failed();
   assertEquals(Status.FAILED,bje.getStatus());
-  assertEquals(1,stat.getFailCount());
+  assertEquals(1,stat.getRunCount());
   bje=new JobExecutionImpl(jobDescriptor);
-  bje.start();
-  bje.failed(1);
+  bje.start(1);
   assertEquals(Status.DEAD,bje.getStatus());
-  assertEquals(2,stat.getFailCount());
+  assertEquals(2,stat.getRunCount());
 }
