@@ -4,9 +4,7 @@
   batch.add(count);
   if (shouldSubmit(batch) && submitLock.tryLock()) {
     try {
-      Batch copy=batch;
-      batch=new Batch();
-      submit(copy);
+      submit(copyAndClear(batch));
     }
   finally {
       submitLock.unlock();
