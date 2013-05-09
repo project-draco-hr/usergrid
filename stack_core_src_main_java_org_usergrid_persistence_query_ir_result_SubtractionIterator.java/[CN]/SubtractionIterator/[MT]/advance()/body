@@ -1,0 +1,28 @@
+{
+  if (!keepIterator.hasNext()) {
+    return null;
+  }
+  lastKeep=keepIterator.next();
+  if (lastSubtract == null && subtractIterator.hasNext()) {
+    lastSubtract=subtractIterator.next();
+  }
+  int compare=UUIDUtils.compare(lastSubtract,lastKeep);
+  while (compare < 0) {
+    lastSubtract=advance(subtractIterator);
+    compare=UUIDUtils.compare(lastSubtract,lastKeep);
+  }
+  while (compare == 0) {
+    if (!keepIterator.hasNext()) {
+      return null;
+    }
+    lastKeep=keepIterator.next();
+    lastSubtract=advance(subtractIterator);
+    compare=UUIDUtils.compare(lastSubtract,lastKeep);
+  }
+  UUID next=null;
+  if (compare > 0) {
+    next=lastKeep;
+    lastKeep=advance(keepIterator);
+  }
+  return next;
+}

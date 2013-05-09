@@ -19,30 +19,13 @@
   }
   QueryProcessor qp=new QueryProcessor(query,collection);
   SearchCollectionVisitor visitor=new SearchCollectionVisitor(query,qp,collection);
-  qp.getFirstNode().visit(visitor);
-  Results results=visitor.getResults();
+  List<Entity> searchEntities=qp.getEntities(em,visitor);
+  Results results=Results.fromEntities(searchEntities);
   if (results == null) {
     return null;
   }
-  Map<UUID,UUID> ids=null;
-  if (query.getResultsLevel() == Results.Level.LINKED_PROPERTIES) {
-    ids=new LinkedHashMap<UUID,UUID>();
-    List<UUID> resultIds=results.getIds();
-    for (    UUID id : resultIds) {
-      ids.put(id,new SimpleCollectionRef(headEntity,collectionName,ref(id)).getUuid());
-    }
-  }
-  results=em.loadEntities(results,query.getResultsLevel(),ids,query.getLimit());
-  if (results != null) {
-    results.setQuery(query);
-  }
-  if (results.getLevel().ordinal() >= Results.Level.CORE_PROPERTIES.ordinal()) {
-    List<Entity> entities=results.getEntities();
-    if (entities != null) {
-      qp.sort(entities);
-    }
-  }
   results.setCursor(qp.getCursor());
+  results.setQuery(query);
   logger.debug("Query cursor: {}",results.getCursor());
   return results;
 }

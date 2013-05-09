@@ -11,18 +11,15 @@
     results=em.loadEntities(results,query.getResultsLevel(),query.getLimit());
     return results;
   }
-  Results results=null;
   ConnectionRefImpl connectionRef=new ConnectionRefImpl(headEntity,new ConnectedEntityRefImpl(connectionType,connectedEntityType,null));
   QueryProcessor qp=new QueryProcessor(query,null);
   SearchConnectionVisitor visitor=new SearchConnectionVisitor(query,qp,connectionRef);
-  qp.getFirstNode().visit(visitor);
-  results=visitor.getResults();
+  List<Entity> searchEntities=qp.getEntities(em,visitor);
+  Results results=Results.fromEntities(searchEntities);
   if (results == null) {
     return null;
   }
-  results=em.loadEntities(results,query.getResultsLevel(),query.getLimit());
-  if (results != null) {
-    results.setQuery(query);
-  }
+  results.setQuery(query);
+  results.setCursor(qp.getCursor());
   return results;
 }
