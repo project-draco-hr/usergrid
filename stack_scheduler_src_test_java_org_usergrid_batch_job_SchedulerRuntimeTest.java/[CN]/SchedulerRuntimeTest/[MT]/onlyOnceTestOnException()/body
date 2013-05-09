@@ -1,0 +1,24 @@
+{
+  long sleepTime=Long.parseLong(props.getProperty(TIMEOUT_PROP));
+  long customRetry=sleepTime * 2;
+  int numberOfRuns=2;
+  OnlyOnceUnlockOnFailExceution job=CassandraRunner.getBean("onlyOnceUnlockOnFailExceution",OnlyOnceUnlockOnFailExceution.class);
+  job.setTimeout(customRetry);
+  job.setLatch(numberOfRuns);
+  job.setDelay(sleepTime);
+  JobData returned=scheduler.createJob("onlyOnceUnlockOnFailExceution",System.currentTimeMillis(),new JobData());
+  boolean waited=job.waitForException(customRetry * numberOfRuns * 2,TimeUnit.MILLISECONDS);
+  assertTrue("Job threw exception",waited);
+  Thread.sleep(3000);
+  JobStat stat=scheduler.getStatsForJob(returned.getJobName(),returned.getUuid());
+  assertNotNull(stat);
+  assertEquals(1,stat.getTotalAttempts());
+  assertEquals(1,stat.getRunCount());
+  assertEquals(0,stat.getDelayCount());
+  waited=job.waitForCount(customRetry * numberOfRuns * 2,TimeUnit.MILLISECONDS);
+  assertTrue("Job ran twice",waited);
+  stat=scheduler.getStatsForJob(returned.getJobName(),returned.getUuid());
+  assertEquals(numberOfRuns,stat.getTotalAttempts());
+  assertEquals(numberOfRuns,stat.getRunCount());
+  assertEquals(0,stat.getDelayCount());
+}
