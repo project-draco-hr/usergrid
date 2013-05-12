@@ -6,7 +6,8 @@
       OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_REQUEST).setErrorDescription("missing access token").buildJSONMessage();
       return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapJSONPResponse(callback,response.getBody())).build();
     }
-    User user=foursquareProvider.createOrAuthenticate(services.getEntityManager().getApplicationRef().getUuid(),fq_access_token);
+    SignInAsProvider foursquareProvider=signInProviderFactory.foursquare(services.getApplication());
+    User user=foursquareProvider.createOrAuthenticate(fq_access_token);
     if (user == null) {
       logger.error("Unable to find or create user");
       OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_REQUEST).setErrorDescription("invalid user").buildJSONMessage();

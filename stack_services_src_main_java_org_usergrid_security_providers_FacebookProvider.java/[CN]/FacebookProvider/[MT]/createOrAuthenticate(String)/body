@@ -1,5 +1,5 @@
 {
-  Map<String,Object> fb_user=userFromResource("https://graph.facebook.com/me",MapUtils.hashMap("access_token",externalToken));
+  Map<String,Object> fb_user=userFromResource(apiUrl,MapUtils.hashMap("access_token",externalToken));
   String fb_user_id=(String)fb_user.get("id");
   String fb_user_name=(String)fb_user.get("name");
   String fb_user_username=(String)fb_user.get("username");
@@ -7,15 +7,11 @@
   if (logger.isDebugEnabled()) {
     logger.debug(JsonUtils.mapToFormattedJsonString(fb_user));
   }
-  if (applicationId == null) {
-    return null;
-  }
   User user=null;
   if ((fb_user != null) && !anyNull(fb_user_id,fb_user_name)) {
-    EntityManager em=emf.getEntityManager(applicationId);
     Results r=null;
     try {
-      r=em.searchCollection(em.getApplicationRef(),"users",Query.findForProperty("facebook.id",fb_user_id));
+      r=entityManager.searchCollection(entityManager.getApplicationRef(),"users",Query.findForProperty("facebook.id",fb_user_id));
     }
  catch (    Exception ex) {
       throw new BadTokenException("Could not lookup user for that Facebook ID",ex);
@@ -29,10 +25,10 @@
       properties.put("facebook",fb_user);
       properties.put("username","fb_" + fb_user_id);
       properties.put("name",fb_user_name);
-      properties.put("picture","http://graph.facebook.com/" + fb_user_id + "/picture");
+      properties.put("picture",String.format(pictureUrl,fb_user_id));
       if (fb_user_email != null) {
         try {
-          user=managementService.getAppUserByIdentifier(applicationId,Identifier.fromEmail(fb_user_email));
+          user=managementService.getAppUserByIdentifier(entityManager.getApplication().getUuid(),Identifier.fromEmail(fb_user_email));
         }
  catch (        Exception ex) {
           throw new BadTokenException("Could not find existing user for this applicaiton for email: " + fb_user_email,ex);
@@ -41,7 +37,7 @@
           properties.remove("username");
           properties.remove("name");
           try {
-            em.updateProperties(user,properties);
+            entityManager.updateProperties(user,properties);
           }
  catch (          Exception ex) {
             throw new BadTokenException("Could not update user with new credentials",ex);
@@ -55,7 +51,7 @@
       if (user == null) {
         properties.put("activated",true);
         try {
-          user=em.create("user",User.class,properties);
+          user=entityManager.create("user",User.class,properties);
         }
  catch (        Exception ex) {
           throw new BadTokenException("Could not create user for that token",ex);
@@ -66,12 +62,12 @@
       user=(User)r.getEntity().toTypedEntity();
       Map<String,Object> properties=new LinkedHashMap<String,Object>();
       properties.put("facebook",fb_user);
-      properties.put("picture","http://graph.facebook.com/" + fb_user_id + "/picture");
+      properties.put("picture",String.format(pictureUrl,fb_user_id));
       try {
-        em.updateProperties(user,properties);
+        entityManager.updateProperties(user,properties);
         user.setProperty(PROPERTY_MODIFIED,properties.get(PROPERTY_MODIFIED));
         user.setProperty("facebook",fb_user);
-        user.setProperty("picture","http://graph.facebook.com/" + fb_user_id + "/picture");
+        user.setProperty("picture",String.format(pictureUrl,fb_user_id));
       }
  catch (      Exception ex) {
         throw new BadTokenException("Could not update user properties",ex);
