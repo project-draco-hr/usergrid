@@ -12,7 +12,8 @@
     ListenableFuture<Void> future=service.submit(new Callable<Void>(){
       @Override public Void call() throws Exception {
         capacitySemaphore.acquire();
-        execution.start();
+        execution.start(maxFailCount);
+        jobAccessor.save(execution);
         job.execute(execution);
         return null;
       }
@@ -20,8 +21,8 @@
 );
     Futures.addCallback(future,new FutureCallback<Void>(){
       @Override public void onSuccess(      Void param){
-        logger.info("Successful completion of bulkJob {}",execution);
         if (execution.getStatus() == Status.IN_PROGRESS) {
+          logger.info("Successful completion of bulkJob {}",execution);
           execution.completed();
         }
         jobAccessor.save(execution);
@@ -30,15 +31,7 @@
       @Override public void onFailure(      Throwable throwable){
         logger.error("Failed execution for bulkJob {}",throwable);
         if (execution.getStatus() == Status.IN_PROGRESS) {
-          execution.failed(maxFailCount);
-        }
-        if (throwable instanceof JobExecutionException) {
-          long retryDelay=((JobExecutionException)throwable).getRetryTimeout();
-          if (retryDelay > 0) {
-            jobAccessor.delayRetry(execution,retryDelay);
-            capacitySemaphore.release();
-            return;
-          }
+          execution.failed();
         }
         jobAccessor.save(execution);
         capacitySemaphore.release();
