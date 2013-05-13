@@ -1,3 +1,31 @@
 {
-  return null;
+  Map<String,Object> pingUser=userFromResource(externalToken);
+  User user=null;
+  try {
+    user=managementService.getAppUserByIdentifier(entityManager.getApplication().getUuid(),Identifier.fromEmail(pingUser.get("username").toString()));
+  }
+ catch (  Exception ex) {
+    ex.printStackTrace();
+  }
+  if (user == null) {
+    Map<String,Object> properties=new LinkedHashMap<String,Object>();
+    properties.putAll(pingUser);
+    properties.put("activated",true);
+    try {
+      user=entityManager.create("user",User.class,properties);
+    }
+ catch (    Exception ex) {
+      throw new BadTokenException("Could not create user for that token",ex);
+    }
+  }
+ else {
+    user.setProperty("expiration",pingUser.get("expiration"));
+    try {
+      entityManager.update(user);
+    }
+ catch (    Exception ex) {
+      ex.printStackTrace();
+    }
+  }
+  return user;
 }
