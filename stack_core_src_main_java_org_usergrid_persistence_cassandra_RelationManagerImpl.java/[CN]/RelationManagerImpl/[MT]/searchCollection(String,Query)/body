@@ -9,7 +9,8 @@
   if (!query.hasQueryPredicates() && !query.hasSortPredicates()) {
     List<UUID> ids=query.getUuidIdentifiers();
     if (ids == null) {
-      ids=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(headEntity.getUuid(),DICTIONARY_COLLECTIONS,collectionName),query.getStartResult(),null,query.getLimit() + 1,reversed,indexBucketLocator,applicationId,collectionName);
+      IndexScanner scanner=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(headEntity.getUuid(),DICTIONARY_COLLECTIONS,collectionName),query.getStartResult(),null,query.getLimit() + 1,reversed,indexBucketLocator,applicationId,collectionName);
+      ids=getUUIDListFromIdIndex(scanner,query.getLimit());
     }
     Results results=Results.fromIdList(ids,collection.getType());
     if (results != null) {

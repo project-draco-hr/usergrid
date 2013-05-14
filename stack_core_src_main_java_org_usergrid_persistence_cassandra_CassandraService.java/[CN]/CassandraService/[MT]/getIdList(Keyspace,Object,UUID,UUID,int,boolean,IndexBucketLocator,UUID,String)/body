@@ -2,14 +2,9 @@
   if (count <= 0) {
     count=DEFAULT_COUNT;
   }
-  List<UUID> ids=new ArrayList<UUID>();
   if (NULL_ID.equals(start)) {
     start=null;
   }
   IndexScanner scanner=new IndexBucketScanner(this,locator,ENTITY_ID_SETS,applicationId,IndexType.COLLECTION,key,start,finish,reversed,count,count * 10,collectionName);
-  for (  HColumn<ByteBuffer,ByteBuffer> result : scanner) {
-    ByteBuffer bytes=result.getName();
-    ids.add(uuid(bytes));
-  }
-  return ids;
+  return scanner;
 }

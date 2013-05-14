@@ -1,0 +1,12 @@
+{
+  if (!scanner.hasNext()) {
+    return false;
+  }
+  NavigableSet<HColumn<ByteBuffer,ByteBuffer>> results=scanner.next();
+  LinkedHashSet<UUID> ids=new LinkedHashSet<UUID>();
+  for (  HColumn<ByteBuffer,ByteBuffer> col : results) {
+    ids.add(parser.getUUID(parser.parse(col.getName())));
+  }
+  lastResult=ids;
+  return lastResult != null && lastResult.size() > 0;
+}
