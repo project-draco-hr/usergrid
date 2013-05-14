@@ -1,14 +1,15 @@
 {
-  logger.info("AuthResource.authFB");
+  logger.info("AuthResource.pingIdent");
   try {
-    if (StringUtils.isEmpty(fb_access_token)) {
-      return missingTokenFail(callback);
+    if (StringUtils.isEmpty(pingToken)) {
+      missingTokenFail(callback);
     }
-    SignInAsProvider facebookProvider=signInProviderFactory.facebook(services.getApplication());
-    User user=facebookProvider.createOrAuthenticate(fb_access_token);
+    SignInAsProvider pingProvider=signInProviderFactory.pingident(services.getApplication());
+    User user=pingProvider.createOrAuthenticate(pingToken);
     if (user == null) {
       return findAndCreateFail(callback);
     }
+    long ttl=PingIdentityProvider.extractExpiration(user);
     String token=management.getAccessTokenForAppUser(services.getApplicationId(),user.getUuid(),ttl);
     AccessInfo access_info=new AccessInfo().withExpiresIn(tokens.getMaxTokenAge(token) / 1000).withAccessToken(token).withProperty("user",user);
     return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
