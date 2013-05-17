@@ -14,6 +14,9 @@
         capacitySemaphore.acquire();
         execution.start(maxFailCount);
         jobAccessor.save(execution);
+        if (execution.getStatus() == Status.DEAD) {
+          return null;
+        }
         job.execute(execution);
         return null;
       }
@@ -29,7 +32,7 @@
         capacitySemaphore.release();
       }
       @Override public void onFailure(      Throwable throwable){
-        logger.error("Failed execution for bulkJob {}",throwable);
+        logger.error("Failed execution for bulkJob",throwable);
         if (execution.getStatus() == Status.IN_PROGRESS) {
           execution.failed();
         }
