@@ -1,3 +1,11 @@
 {
-  return jsonMedia(withToken(resource())).get(JsonNode.class);
+  try {
+    return getInternal();
+  }
+ catch (  UniformInterfaceException uie) {
+    if (uie.getResponse().getClientResponseStatus() == Status.NOT_FOUND) {
+      return null;
+    }
+    throw uie;
+  }
 }

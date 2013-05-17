@@ -1,0 +1,29 @@
+{
+  UUID applicationId=createApplication("testOrganization","ownershipScopeCorrect");
+  EntityManager em=emf.getEntityManager(applicationId);
+  Map<String,Object> userProps=new LinkedHashMap<String,Object>();
+  userProps.put("name","testuser");
+  userProps.put("username","testuser");
+  userProps.put("email","test@foo.bar");
+  Entity createdUser=em.create("user",userProps);
+  Entity returnedUser=em.get(createdUser.getUuid());
+  assertNotNull(createdUser);
+  assertNotNull(returnedUser);
+  Map<String,Object> userProps2=new LinkedHashMap<String,Object>();
+  userProps2.put("name","testuser2");
+  userProps2.put("username","testuser2");
+  userProps2.put("email","test2@foo.bar");
+  Entity createdUser2=em.create("user",userProps2);
+  Entity returnedUser2=em.get(createdUser2.getUuid());
+  assertNotNull(createdUser2);
+  assertNotNull(returnedUser2);
+  Map<String,Object> device=new LinkedHashMap<String,Object>();
+  device.put("name","device1");
+  Entity createdDevice=em.createItemInCollection(createdUser,"devices","device",device);
+  Entity returnedDevice=em.get(createdDevice.getUuid());
+  assertNotNull(createdDevice);
+  assertNotNull(returnedDevice);
+  assertEquals("device1",returnedDevice.getName());
+  assertTrue(em.isCollectionMember(createdUser,"devices",createdDevice));
+  assertFalse(em.isCollectionMember(createdUser2,"devices",createdDevice));
+}
