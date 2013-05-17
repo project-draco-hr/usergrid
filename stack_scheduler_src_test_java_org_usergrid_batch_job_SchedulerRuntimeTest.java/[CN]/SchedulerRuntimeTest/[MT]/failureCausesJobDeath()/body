@@ -1,10 +1,12 @@
 {
   int failCount=Integer.parseInt(props.getProperty(FAIL_PROP));
+  long sleepTime=Long.parseLong(props.getProperty(TIMEOUT_PROP));
   FailureJobExceuction job=CassandraRunner.getBean("failureJobExceuction",FailureJobExceuction.class);
   job.setLatch(failCount + 1);
   JobData returned=scheduler.createJob("failureJobExceuction",System.currentTimeMillis(),new JobData());
-  boolean waited=job.waitForCount(60,TimeUnit.SECONDS);
-  assertTrue("Job ran to failure",waited);
+  boolean waited=job.waitForCount((failCount + 2) * sleepTime,TimeUnit.MILLISECONDS);
+  assertFalse("Job ran to failure",waited);
+  assertEquals(1,job.getLatchCount());
   JobStat stat=scheduler.getStatsForJob(returned.getJobName(),returned.getUuid());
   assertEquals(failCount + 1,stat.getTotalAttempts());
   assertEquals(failCount + 1,stat.getRunCount());
