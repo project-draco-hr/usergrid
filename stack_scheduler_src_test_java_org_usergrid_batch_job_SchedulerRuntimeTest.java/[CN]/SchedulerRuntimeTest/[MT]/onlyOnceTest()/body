@@ -15,6 +15,8 @@
   assertEquals(numberOfRuns,stat.getTotalAttempts());
   assertEquals(numberOfRuns,stat.getRunCount());
   assertEquals(0,stat.getDelayCount());
+  boolean slept=job.waitForSleep(customRetry * numberOfRuns * 2,TimeUnit.MILLISECONDS);
+  assertTrue("Job slept",slept);
   waited=job.waitForCount(customRetry * numberOfRuns * 2,TimeUnit.MILLISECONDS);
   assertFalse("Job ran twice",waited);
   stat=scheduler.getStatsForJob(returned.getJobName(),returned.getUuid());
