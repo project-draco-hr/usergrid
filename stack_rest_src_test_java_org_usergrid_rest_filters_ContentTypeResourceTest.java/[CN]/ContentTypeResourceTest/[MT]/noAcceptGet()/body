@@ -1,5 +1,5 @@
 {
-  Map<String,String> data=hashMap("name","Solitaire1");
+  Map<String,String> data=hashMap("name","bar");
   String json=JsonUtils.mapToFormattedJsonString(data);
   DefaultHttpClient client=new DefaultHttpClient();
   HttpHost host=new HttpHost(super.getBaseURI().getHost(),super.getBaseURI().getPort());
@@ -12,6 +12,14 @@
   printResponse(rsp);
   assertEquals(200,rsp.getStatusLine().getStatusCode());
   Header[] headers=rsp.getHeaders(HttpHeaders.CONTENT_TYPE);
+  assertEquals(1,headers.length);
+  assertEquals(MediaType.APPLICATION_JSON,headers[0].getValue());
+  HttpGet get=new HttpGet(String.format("/%s/%s/games",context.getOrgUuid(),context.getAppUuid()));
+  get.setHeader(HttpHeaders.AUTHORIZATION,"Bearer " + context.getActiveUser().getToken());
+  rsp=client.execute(host,get);
+  printResponse(rsp);
+  assertEquals(200,rsp.getStatusLine().getStatusCode());
+  headers=rsp.getHeaders(HttpHeaders.CONTENT_TYPE);
   assertEquals(1,headers.length);
   assertEquals(MediaType.APPLICATION_JSON,headers[0].getValue());
 }
