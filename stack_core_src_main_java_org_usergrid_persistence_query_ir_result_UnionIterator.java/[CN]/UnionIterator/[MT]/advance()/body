@@ -1,14 +1,36 @@
 {
-  if (!initialized) {
-    for (int i=0; i < iterators.size(); i++) {
-      addNext(iterators.get(i));
-    }
-  }
-  Entry<UUID,ResultIterator> entry=minMax.firstEntry();
-  if (entry == null) {
+  if (iterators.size() == 0) {
     return null;
   }
-  minMax.remove(entry.getKey());
-  addNext(entry.getValue());
-  return entry.getKey();
+  Set<UUID> resultSet=null;
+  if (remainderResults != null) {
+    resultSet=remainderResults;
+    remainderResults=null;
+  }
+ else {
+    resultSet=new LinkedHashSet<UUID>();
+  }
+  boolean unioned=true;
+  while (resultSet.size() < pageSize && unioned) {
+    unioned=false;
+    ResultIterator itr=iterators.get(currentIndex);
+    if (itr.hasNext()) {
+      resultSet=Sets.union(resultSet,itr.next());
+      unioned=true;
+    }
+    currentIndex=(currentIndex + 1) % iterators.size();
+  }
+  if (resultSet.size() > pageSize) {
+    Set<UUID> returnSet=new LinkedHashSet<UUID>(pageSize);
+    Iterator<UUID> itr=resultSet.iterator();
+    for (int i=0; i < pageSize && itr.hasNext(); i++) {
+      returnSet.add(itr.next());
+    }
+    remainderResults=new LinkedHashSet<UUID>(pageSize);
+    while (itr.hasNext()) {
+      remainderResults.add(itr.next());
+    }
+    resultSet=returnSet;
+  }
+  return resultSet;
 }
