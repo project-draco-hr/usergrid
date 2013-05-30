@@ -3,9 +3,15 @@
     TreeEvaluator visitor=new TreeEvaluator();
     rootOperand.visit(visitor);
     rootNode=visitor.getRootNode();
-    return;
   }
   if (sorts.size() > 0) {
-    rootNode=generateSorts();
+    SliceNode sorts=generateSorts();
+    if (rootNode != null) {
+      AndNode and=new AndNode(sorts,rootNode);
+      rootNode=and;
+    }
+ else {
+      rootNode=sorts;
+    }
   }
 }

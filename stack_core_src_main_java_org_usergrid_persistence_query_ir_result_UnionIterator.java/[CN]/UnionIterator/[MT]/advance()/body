@@ -1,5 +1,6 @@
 {
-  if (iterators.size() == 0) {
+  int size=iterators.size();
+  if (size == 0) {
     return null;
   }
   Set<UUID> resultSet=null;
@@ -10,15 +11,15 @@
  else {
     resultSet=new LinkedHashSet<UUID>();
   }
-  boolean unioned=true;
-  while (resultSet.size() < pageSize && unioned) {
-    unioned=false;
-    ResultIterator itr=iterators.get(currentIndex);
-    if (itr.hasNext()) {
-      resultSet=Sets.union(resultSet,itr.next());
-      unioned=true;
-    }
+  int complete=0;
+  while (resultSet.size() < pageSize && complete < size) {
     currentIndex=(currentIndex + 1) % iterators.size();
+    ResultIterator itr=iterators.get(currentIndex);
+    if (!itr.hasNext()) {
+      complete++;
+      continue;
+    }
+    resultSet=Sets.union(resultSet,itr.next());
   }
   if (resultSet.size() > pageSize) {
     Set<UUID> returnSet=new LinkedHashSet<UUID>(pageSize);
