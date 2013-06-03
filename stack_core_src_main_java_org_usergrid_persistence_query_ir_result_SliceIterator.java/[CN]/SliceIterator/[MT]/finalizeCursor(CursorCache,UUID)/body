@@ -1,3 +1,20 @@
 {
-  int cursorId=slice.hashCode();
+  int sliceHash=slice.hashCode();
+  Integer loadedIndex=idOrder.get(lastLoaded);
+  if (loadedIndex == null) {
+    return;
+  }
+  ByteBuffer bytes=null;
+  if (loadedIndex == pageSize - 1) {
+    load();
+    finalizeCursor(cache,lastLoaded);
+    return;
+  }
+ else   if (loadedIndex == idOrder.size() - 1) {
+    bytes=ByteBuffer.allocate(0);
+  }
+ else {
+    bytes=cols.get(loadedIndex + 1);
+  }
+  cache.setNextCursor(sliceHash,bytes);
 }

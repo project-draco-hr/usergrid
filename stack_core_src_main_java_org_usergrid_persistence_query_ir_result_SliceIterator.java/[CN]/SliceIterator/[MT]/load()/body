@@ -2,11 +2,15 @@
   if (!scanner.hasNext()) {
     return false;
   }
-  NavigableSet<HColumn<ByteBuffer,ByteBuffer>> results=scanner.next();
-  LinkedHashSet<UUID> ids=new LinkedHashSet<UUID>();
-  for (  HColumn<ByteBuffer,ByteBuffer> col : results) {
-    ids.add(parser.getUUID(parser.parse(col.getName())));
+  Iterator<HColumn<ByteBuffer,ByteBuffer>> results=scanner.next().iterator();
+  idOrder.clear();
+  cols.clear();
+  for (int i=0; results.hasNext(); i++) {
+    ByteBuffer colName=results.next().getName().duplicate();
+    UUID id=parser.getUUID(parser.parse(colName));
+    idOrder.put(id,i);
+    cols.add(i,colName);
   }
-  lastResult=ids;
+  lastResult=idOrder.keySet();
   return lastResult != null && lastResult.size() > 0;
 }

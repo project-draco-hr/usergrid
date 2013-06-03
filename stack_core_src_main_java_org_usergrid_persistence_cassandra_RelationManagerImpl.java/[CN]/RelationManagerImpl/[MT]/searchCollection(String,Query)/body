@@ -20,13 +20,5 @@
   }
   QueryProcessor qp=new QueryProcessor(query,collection);
   SearchCollectionVisitor visitor=new SearchCollectionVisitor(query,qp,collection);
-  List<Entity> searchEntities=qp.getEntities(em,visitor);
-  Results results=Results.fromEntities(searchEntities);
-  if (results == null) {
-    return null;
-  }
-  results.setCursor(qp.getCursor());
-  results.setQuery(query);
-  logger.debug("Query cursor: {}",results.getCursor());
-  return results;
+  return qp.getResults(em,visitor,new EntityResultsLoader(em));
 }

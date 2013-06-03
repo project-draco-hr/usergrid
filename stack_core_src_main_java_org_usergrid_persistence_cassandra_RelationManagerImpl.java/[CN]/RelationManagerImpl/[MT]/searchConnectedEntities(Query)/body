@@ -14,12 +14,5 @@
   ConnectionRefImpl connectionRef=new ConnectionRefImpl(headEntity,new ConnectedEntityRefImpl(connectionType,connectedEntityType,null));
   QueryProcessor qp=new QueryProcessor(query,null);
   SearchConnectionVisitor visitor=new SearchConnectionVisitor(query,qp,connectionRef);
-  List<Entity> searchEntities=qp.getEntities(em,visitor);
-  Results results=Results.fromEntities(searchEntities);
-  if (results == null) {
-    return null;
-  }
-  results.setQuery(query);
-  results.setCursor(qp.getCursor());
-  return results;
+  return qp.getResults(em,visitor,new EntityResultsLoader(em));
 }
