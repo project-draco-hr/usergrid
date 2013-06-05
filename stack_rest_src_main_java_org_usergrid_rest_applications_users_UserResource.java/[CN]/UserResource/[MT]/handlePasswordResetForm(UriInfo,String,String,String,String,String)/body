@@ -6,6 +6,7 @@
       if (management.checkPasswordResetTokenForAppUser(getApplicationId(),getUserUuid(),token)) {
         if ((password1 != null) && password1.equals(password2)) {
           management.setAppUserPassword(getApplicationId(),getUser().getUuid(),password1);
+          management.revokeAccessTokenForAppUser(token);
           return handleViewable("resetpw_set_success",this);
         }
  else {
@@ -14,7 +15,7 @@
         }
       }
  else {
-        errorMsg="Something odd happened, let's try again...";
+        errorMsg="Sorry, you have an invalid token. Let's try again...";
         return handleViewable("resetpw_email_form",this);
       }
     }
