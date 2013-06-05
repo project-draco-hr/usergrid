@@ -5,19 +5,6 @@
   headEntity=em.validate(headEntity);
   CollectionInfo collection=getDefaultSchema().getCollection(headEntity.getType(),collectionName);
   query.setEntityType(collection.getType());
-  boolean reversed=query.isReversed();
-  if (!query.hasQueryPredicates() && !query.hasSortPredicates()) {
-    List<UUID> ids=query.getUuidIdentifiers();
-    if (ids == null) {
-      IndexScanner scanner=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(headEntity.getUuid(),DICTIONARY_COLLECTIONS,collectionName),query.getStartResult(),null,query.getLimit() + 1,reversed,indexBucketLocator,applicationId,collectionName);
-      ids=getUUIDListFromIdIndex(scanner,query.getLimit());
-    }
-    Results results=Results.fromIdList(ids,collection.getType());
-    if (results != null) {
-      results.setQuery(query);
-    }
-    return em.loadEntities(results,query.getResultsLevel(),query.getLimit());
-  }
   QueryProcessor qp=new QueryProcessor(query,collection);
   SearchCollectionVisitor visitor=new SearchCollectionVisitor(query,qp,collection);
   return qp.getResults(em,visitor,new EntityResultsLoader(em));
