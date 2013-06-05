@@ -15,10 +15,16 @@
         principal=tokenInfo.getPrincipal();
       }
  catch (      BadTokenException e1) {
-        logger.error("bad token",e1);
+        throw mappableSecurityException(BAD_ACCESS_TOKEN_ERROR);
+      }
+catch (      ExpiredTokenException ete) {
+        throw mappableSecurityException(EXPIRED_ACCESS_TOKEN_ERROR);
+      }
+catch (      InvalidTokenException ite) {
+        throw mappableSecurityException(INVALID_AUTH_ERROR);
       }
 catch (      Exception e) {
-        logger.error("excpetion",e);
+        throw mappableSecurityException(UNVERIFIED_OAUTH_ERROR);
       }
       if (principal == null) {
         return request;
