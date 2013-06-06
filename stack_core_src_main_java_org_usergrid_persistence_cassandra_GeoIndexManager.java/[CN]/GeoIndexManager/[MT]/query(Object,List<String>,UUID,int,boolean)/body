@@ -1,5 +1,5 @@
 {
-  List<EntityLocationRef> list=new ArrayList<EntityLocationRef>();
+  Set<EntityLocationRef> locations=new LinkedHashSet<EntityLocationRef>();
   List<Object> keys=new ArrayList<Object>();
   IndexBucketLocator locator=em.getIndexBucketLocator();
   UUID appId=em.getApplicationId();
@@ -8,15 +8,9 @@
       keys.add(key(key,DICTIONARY_GEOCELL,geoCell,indexBucket));
     }
   }
-  try {
-    Map<ByteBuffer,List<HColumn<ByteBuffer,ByteBuffer>>> rows=cass.multiGetColumns(cass.getApplicationKeyspace(em.getApplicationId()),ENTITY_INDEX,keys,startResult,null,count,reversed);
-    for (    List<HColumn<ByteBuffer,ByteBuffer>> columns : rows.values()) {
-      List<EntityLocationRef> entries=getLocationIndexEntries(columns);
-      list=mergeLocationEntries(list,entries);
-    }
+  Map<ByteBuffer,List<HColumn<ByteBuffer,ByteBuffer>>> rows=cass.multiGetColumns(cass.getApplicationKeyspace(em.getApplicationId()),ENTITY_INDEX,keys,startResult,null,count,reversed);
+  for (  List<HColumn<ByteBuffer,ByteBuffer>> columns : rows.values()) {
+    addLocationIndexEntries(columns,locations);
   }
- catch (  Exception e) {
-    e.printStackTrace();
-  }
-  return list;
+  return new ArrayList<EntityLocationRef>(locations);
 }
