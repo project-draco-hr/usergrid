@@ -1,9 +1,11 @@
 {
-  int endIndex=Math.min(locations.size(),lastIndex + pageSize);
-  Set<UUID> returnSet=new LinkedHashSet<UUID>(endIndex - lastIndex);
-  for (  EntityLocationRef loc : locations.subList(lastIndex,endIndex)) {
-    returnSet.add(loc.getUuid());
+  advance();
+  if (locations == null) {
+    throw new NoSuchElementException();
   }
-  lastIndex=endIndex;
-  return returnSet;
+  Set<UUID> results=new LinkedHashSet<UUID>(locations.size());
+  for (  EntityLocationRef location : locations) {
+    results.add(location.getUuid());
+  }
+  return results;
 }

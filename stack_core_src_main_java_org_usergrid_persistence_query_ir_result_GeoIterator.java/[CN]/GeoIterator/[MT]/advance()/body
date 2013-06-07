@@ -1,0 +1,19 @@
+{
+  if (locations != null) {
+    return;
+  }
+  SearchResults<EntityLocationRef> results;
+  try {
+    results=searcher.doSearch(nextUUID,nextStartTile,resultSize + 1);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(e);
+  }
+  locations=results.getResults();
+  nextStartTile=results.getLastSearchedTile();
+  nextUUID=null;
+  if (locations.size() == resultSize + 1) {
+    nextUUID=locations.get(resultSize).getUuid();
+    locations.remove(resultSize);
+  }
+}
