@@ -1,4 +1,6 @@
 {
-  GeoIterator itr=new GeoIterator(new GeoIterator.CollectionGeoSearch(em.getGeoIndexManager(),headEntity,collection.getName(),new Point(node.getLattitude(),node.getLongitude()),node.getPropertyName(),node.getDistance()),query.getLimit());
+  QuerySlice slice=node.getSlice();
+  queryProcessor.applyCursorAndSort(slice);
+  GeoIterator itr=new GeoIterator(new GeoIterator.CollectionGeoSearch(em.getGeoIndexManager(),headEntity,collection.getName(),new Point(node.getLattitude(),node.getLongitude()),node.getPropertyName(),node.getDistance()),query.getLimit(),slice);
   results.push(itr);
 }

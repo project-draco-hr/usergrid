@@ -23,13 +23,15 @@
   query.addFilter("location within 50000000 of -90, -180");
   query.setLimit(100);
   int count=0;
+  Results results;
   do {
-    Results results=em.searchCollection(em.getApplicationRef(),"stores",query);
+    results=em.searchCollection(em.getApplicationRef(),"stores",query);
     for (    Entity entity : results.getEntities()) {
       assertEquals(String.valueOf(count),entity.getName());
       count++;
     }
+    query.setCursor(results.getCursor());
   }
- while (query.getCursor() != null);
+ while (results.getCursor() != null);
   assertEquals(numEntities,count);
 }

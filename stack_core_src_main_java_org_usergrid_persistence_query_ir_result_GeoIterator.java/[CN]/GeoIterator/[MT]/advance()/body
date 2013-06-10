@@ -1,19 +1,31 @@
 {
-  if (locations != null) {
+  if (done || toReturn != null) {
     return;
+  }
+  double nextDistance=0;
+  if (distances != null && distances.size() > 0) {
+    nextDistance=distances.get(distances.size() - 1);
   }
   SearchResults<EntityLocationRef> results;
   try {
-    results=searcher.doSearch(nextUUID,nextStartTile,resultSize + 1);
+    results=searcher.doSearch(nextDistance,nextResolution,resultSize);
   }
  catch (  Exception e) {
     throw new RuntimeException(e);
   }
-  locations=results.getResults();
-  nextStartTile=results.getLastSearchedTile();
-  nextUUID=null;
-  if (locations.size() == resultSize + 1) {
-    nextUUID=locations.get(resultSize).getUuid();
-    locations.remove(resultSize);
+  idOrder.clear();
+  while (!done && idOrder.size() < resultSize) {
+    List<EntityLocationRef> locations=results.getResults();
+    for (int i=0; i < locations.size(); i++) {
+      idOrder.put(locations.get(i).getUuid(),i);
+    }
+    if (idOrder.size() > 0) {
+      toReturn=idOrder.keySet();
+    }
+    distances=results.getDistances();
+    nextResolution=results.getLastResolution();
+    if (idOrder.size() < resultSize) {
+      done=true;
+    }
   }
 }
