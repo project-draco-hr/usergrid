@@ -8,7 +8,8 @@
       keys.add(key(key,DICTIONARY_GEOCELL,geoCell,indexBucket));
     }
   }
-  Map<ByteBuffer,List<HColumn<ByteBuffer,ByteBuffer>>> rows=cass.multiGetColumns(cass.getApplicationKeyspace(em.getApplicationId()),ENTITY_INDEX,keys,null,null,count,false);
+  DynamicComposite composite=startId == null ? null : new DynamicComposite(startId);
+  Map<ByteBuffer,List<HColumn<ByteBuffer,ByteBuffer>>> rows=cass.multiGetColumns(cass.getApplicationKeyspace(em.getApplicationId()),ENTITY_INDEX,keys,composite,null,count,false);
   for (  List<HColumn<ByteBuffer,ByteBuffer>> columns : rows.values()) {
     addLocationIndexEntries(columns,locations);
   }
