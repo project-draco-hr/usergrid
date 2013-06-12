@@ -1,10 +1,11 @@
 {
-  String[] passwords=new String[]{"password1","password2","password3"};
+  String[] passwords=new String[]{"password1","password2","password3","password4"};
   UserInfo user=management.createAdminUser("edanuff","Ed Anuff","ed@anuff.com",passwords[0],true,false);
   assertNotNull(user);
   OrganizationInfo organization=management.createOrganization("ed-organization",user,true);
   assertNotNull(organization);
   management.setAdminUserPassword(user.getUuid(),passwords[1]);
+  management.setAdminUserPassword(user.getUuid(),passwords[0]);
   management.setAdminUserPassword(user.getUuid(),passwords[0]);
   Map<String,Object> props=new HashMap<String,Object>();
   props.put(OrganizationInfo.PASSWORD_HISTORY_SIZE_KEY,2);
@@ -24,8 +25,52 @@
   }
  catch (  RecentlyUsedPasswordException e) {
   }
-  management.setAdminUserPassword(user.getUuid(),passwords[2]);
+  try {
+    management.setAdminUserPassword(user.getUuid(),passwords[2]);
+    fail("No!");
+  }
+ catch (  RecentlyUsedPasswordException e) {
+  }
+  management.setAdminUserPassword(user.getUuid(),passwords[3]);
   management.setAdminUserPassword(user.getUuid(),passwords[0]);
+  props=new HashMap<String,Object>();
+  props.put(OrganizationInfo.PASSWORD_HISTORY_SIZE_KEY,1);
+  organization.setProperties(props);
+  management.updateOrganization(organization);
+  management.setAdminUserPassword(user.getUuid(),passwords[1]);
+  try {
+    management.setAdminUserPassword(user.getUuid(),passwords[0]);
+    fail("No!");
+  }
+ catch (  RecentlyUsedPasswordException e) {
+  }
+  OrganizationInfo organization2=management.createOrganization("ed-organization2",user,false);
+  assertNotNull(organization);
+  Map<UUID,String> userOrganizations=management.getOrganizationsForAdminUser(user.getUuid());
+  assertEquals("wrong number of organizations",2,userOrganizations.size());
+  props=new HashMap<String,Object>();
+  props.put(OrganizationInfo.PASSWORD_HISTORY_SIZE_KEY,2);
+  organization2.setProperties(props);
+  management.updateOrganization(organization2);
+  try {
+    management.setAdminUserPassword(user.getUuid(),passwords[1]);
+    fail("No!");
+  }
+ catch (  RecentlyUsedPasswordException e) {
+  }
+  try {
+    management.setAdminUserPassword(user.getUuid(),passwords[0]);
+    fail("No!");
+  }
+ catch (  RecentlyUsedPasswordException e) {
+  }
+  management.setAdminUserPassword(user.getUuid(),passwords[2]);
+  try {
+    management.setAdminUserPassword(user.getUuid(),passwords[0]);
+    fail("No!");
+  }
+ catch (  RecentlyUsedPasswordException e) {
+  }
   try {
     management.setAdminUserPassword(user.getUuid(),passwords[1]);
     fail("No!");

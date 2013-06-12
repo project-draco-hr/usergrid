@@ -2,7 +2,38 @@
   if ((userId == null) || (newPassword == null)) {
     return;
   }
-  User user=emf.getEntityManager(MANAGEMENT_APPLICATION_ID).get(userId,User.class);
-  writeUserPassword(MANAGEMENT_APPLICATION_ID,user,encryptionService.defaultEncryptedCredentials(newPassword,user.getUuid(),MANAGEMENT_APPLICATION_ID));
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  User user=em.get(userId,User.class);
+  CredentialsInfo newCredentials=encryptionService.defaultEncryptedCredentials(newPassword,user.getUuid(),MANAGEMENT_APPLICATION_ID);
+  int passwordHistorySize=calculatePasswordHistorySizeForUser(user.getUuid());
+  Map<String,CredentialsInfo> credsMap=cast(em.getDictionaryAsMap(user,CREDENTIALS_HISTORY));
+  CredentialsInfo currentCredentials=null;
+  if (passwordHistorySize > 0) {
+    ArrayList<CredentialsInfo> oldCreds=new ArrayList<CredentialsInfo>(credsMap.values());
+    Collections.sort(oldCreds);
+    currentCredentials=readUserPasswordCredentials(MANAGEMENT_APPLICATION_ID,user.getUuid());
+    if (encryptionService.verify(newPassword,currentCredentials,userId,MANAGEMENT_APPLICATION_ID)) {
+      throw new RecentlyUsedPasswordException();
+    }
+    for (int i=0; i < oldCreds.size() && i < passwordHistorySize; i++) {
+      CredentialsInfo ci=oldCreds.get(i);
+      if (encryptionService.verify(newPassword,ci,userId,MANAGEMENT_APPLICATION_ID)) {
+        throw new RecentlyUsedPasswordException();
+      }
+    }
+  }
+  ArrayList<UUID> oldUUIDs=new ArrayList<UUID>(credsMap.size());
+  for (  String uuid : credsMap.keySet()) {
+    oldUUIDs.add(UUID.fromString(uuid));
+  }
+  Collections.sort(oldUUIDs);
+  for (int i=passwordHistorySize; i < oldUUIDs.size(); i++) {
+    em.removeFromDictionary(user,CREDENTIALS_HISTORY,oldUUIDs.get(i).toString());
+  }
+  if (passwordHistorySize > 0) {
+    UUID uuid=UUIDUtils.generator.generate();
+    em.addToDictionary(user,CREDENTIALS_HISTORY,uuid.toString(),currentCredentials);
+  }
+  writeUserPassword(MANAGEMENT_APPLICATION_ID,user,newCredentials);
   writeUserMongoPassword(MANAGEMENT_APPLICATION_ID,user,encryptionService.plainTextCredentials(mongoPassword((String)user.getProperty("username"),newPassword),user.getUuid(),MANAGEMENT_APPLICATION_ID));
 }
