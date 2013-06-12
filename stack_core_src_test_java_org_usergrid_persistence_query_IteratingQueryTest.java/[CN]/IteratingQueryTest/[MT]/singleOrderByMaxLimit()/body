@@ -1,0 +1,28 @@
+{
+  UUID applicationId=createApplication("IteratingQueryTest","singleOrderByMaxLimit");
+  assertNotNull(applicationId);
+  EntityManager em=emf.getEntityManager(applicationId);
+  assertNotNull(em);
+  int size=500;
+  int queryLimit=Query.MAX_LIMIT;
+  for (int i=0; i < size; i++) {
+    Map<String,Object> entity=new HashMap<String,Object>();
+    entity.put("name",String.valueOf(i));
+    em.create("test",entity);
+  }
+  Query query=new Query();
+  query.addSort("created");
+  query.setLimit(queryLimit);
+  int count=0;
+  Results results;
+  do {
+    results=em.searchCollection(em.getApplicationRef(),"tests",query);
+    for (int i=0; i < results.size(); i++) {
+      assertEquals(String.valueOf(count),results.getEntities().get(i).getName());
+      count++;
+    }
+    query.setCursor(results.getCursor());
+  }
+ while (results.getCursor() != null);
+  assertEquals(size,count);
+}

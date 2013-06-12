@@ -6,9 +6,12 @@
   }
   ByteBuffer bytes=null;
   if (loadedIndex == pageSize - 1) {
-    load();
-    finalizeCursor(cache,lastLoaded);
-    return;
+    if (!load()) {
+      bytes=ByteBuffer.allocate(0);
+    }
+ else {
+      bytes=cols.get(0);
+    }
   }
  else   if (loadedIndex == idOrder.size() - 1) {
     bytes=ByteBuffer.allocate(0);
