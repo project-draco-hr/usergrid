@@ -1,16 +1,17 @@
 {
-  UUID applicationId=createApplication("IteratingQueryTest","singleOrderByIntersection");
+  UUID applicationId=createApplication("IteratingQueryTest","singleOrderByNoIntersection");
   assertNotNull(applicationId);
   EntityManager em=emf.getEntityManager(applicationId);
   assertNotNull(em);
-  int size=700;
+  int size=2000;
   int queryLimit=Query.MAX_LIMIT;
-  int intersectIncrement=5;
+  int secondIncrement=9;
   long start=System.currentTimeMillis();
   for (int i=0; i < size; i++) {
     Map<String,Object> entity=new HashMap<String,Object>();
     entity.put("name",String.valueOf(i));
-    entity.put("intersect",i % intersectIncrement == 0);
+    entity.put("intersect",false);
+    entity.put("intersect2",i % secondIncrement == 0);
     em.create("test",entity);
   }
   long stop=System.currentTimeMillis();
@@ -18,23 +19,11 @@
   Query query=new Query();
   query.addSort("created");
   query.addEqualityFilter("intersect",true);
+  query.addEqualityFilter("intersect2",true);
   query.setLimit(queryLimit);
-  int count=0;
-  int name=0;
-  int maxPossibleResults=size / intersectIncrement;
-  Results results;
   start=System.currentTimeMillis();
-  do {
-    results=em.searchCollection(em.getApplicationRef(),"tests",query);
-    for (int i=0; i < results.size(); i++) {
-      assertEquals(String.valueOf(name),results.getEntities().get(i).getName());
-      count++;
-      name+=intersectIncrement;
-    }
-    query.setCursor(results.getCursor());
-  }
- while (results.getCursor() != null);
+  Results results=em.searchCollection(em.getApplicationRef(),"tests",query);
   stop=System.currentTimeMillis();
   logger.info("Query took {} ms",stop - start);
-  assertEquals(maxPossibleResults,count);
+  assertEquals(0,results.size());
 }

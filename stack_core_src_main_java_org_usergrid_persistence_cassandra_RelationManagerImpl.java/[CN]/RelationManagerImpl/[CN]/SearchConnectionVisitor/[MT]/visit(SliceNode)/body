@@ -1,8 +1,8 @@
 {
-  IntersectionIterator intersection=new IntersectionIterator(PAGE_SIZE);
+  IntersectionIterator intersection=new IntersectionIterator(queryProcessor.getPageSizeHint(node));
   for (  QuerySlice slice : node.getAllSlices()) {
     queryProcessor.applyCursorAndSort(slice);
-    IndexScanner columns=searchIndex(key(connection.getIndexId(),INDEX_CONNECTIONS),slice);
+    IndexScanner columns=searchIndex(key(connection.getIndexId(),INDEX_CONNECTIONS),slice,queryProcessor.getPageSizeHint(node));
     intersection.addIterator(new SliceIterator<DynamicComposite>(columns,slice,COLLECTION_PARSER));
   }
   this.results.push(intersection);

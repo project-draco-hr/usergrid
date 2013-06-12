@@ -5,16 +5,20 @@
   assertNotNull(em);
   int size=500;
   int queryLimit=Query.MAX_LIMIT;
+  long start=System.currentTimeMillis();
   for (int i=0; i < size; i++) {
     Map<String,Object> entity=new HashMap<String,Object>();
     entity.put("name",String.valueOf(i));
     em.create("test",entity);
   }
+  long stop=System.currentTimeMillis();
+  logger.info("Writes took {} ms",stop - start);
   Query query=new Query();
   query.addSort("created");
   query.setLimit(queryLimit);
   int count=0;
   Results results;
+  start=System.currentTimeMillis();
   do {
     results=em.searchCollection(em.getApplicationRef(),"tests",query);
     for (int i=0; i < results.size(); i++) {
@@ -24,5 +28,7 @@
     query.setCursor(results.getCursor());
   }
  while (results.getCursor() != null);
+  stop=System.currentTimeMillis();
+  logger.info("Query took {} ms",stop - start);
   assertEquals(size,count);
 }

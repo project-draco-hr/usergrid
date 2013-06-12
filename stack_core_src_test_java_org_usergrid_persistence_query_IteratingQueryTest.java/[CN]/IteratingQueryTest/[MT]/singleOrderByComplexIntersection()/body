@@ -6,32 +6,43 @@
   int size=2000;
   int queryLimit=Query.MAX_LIMIT;
   int intersectIncrement=5;
-  int secondIncrement=10;
+  int secondIncrement=9;
+  long start=System.currentTimeMillis();
+  int maxPossibleResults=size / secondIncrement;
+  List<String> expectedResults=new ArrayList<String>(maxPossibleResults);
   for (int i=0; i < size; i++) {
     Map<String,Object> entity=new HashMap<String,Object>();
-    entity.put("name",String.valueOf(i));
-    entity.put("intersect",i % intersectIncrement == 0);
-    entity.put("intersect2",i % secondIncrement == 0);
+    String name=String.valueOf(i);
+    boolean intersect1=i % intersectIncrement == 0;
+    boolean intersect2=i % secondIncrement == 0;
+    entity.put("name",name);
+    entity.put("intersect",intersect1);
+    entity.put("intersect2",intersect2);
     em.create("test",entity);
+    if (intersect1 && intersect2) {
+      expectedResults.add(name);
+    }
   }
+  long stop=System.currentTimeMillis();
+  logger.info("Writes took {} ms",stop - start);
   Query query=new Query();
   query.addSort("created");
   query.addEqualityFilter("intersect",true);
   query.addEqualityFilter("intersect2",true);
   query.setLimit(queryLimit);
   int count=0;
-  int name=0;
-  int maxPossibleResults=size / secondIncrement;
   Results results;
+  start=System.currentTimeMillis();
   do {
     results=em.searchCollection(em.getApplicationRef(),"tests",query);
     for (int i=0; i < results.size(); i++) {
-      assertEquals(String.valueOf(name),results.getEntities().get(i).getName());
+      assertEquals(expectedResults.get(count),results.getEntities().get(i).getName());
       count++;
-      name+=secondIncrement;
     }
     query.setCursor(results.getCursor());
   }
  while (results.getCursor() != null);
+  stop=System.currentTimeMillis();
+  logger.info("Query took {} ms",stop - start);
   assertEquals(maxPossibleResults,count);
 }
