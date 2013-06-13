@@ -1,0 +1,12 @@
+{
+  int size=0;
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  Results orgResults=em.getCollection(new SimpleEntityRef(User.ENTITY_TYPE,userId),"groups",null,10000,Level.REFS,false);
+  for (  EntityRef orgRef : orgResults.getRefs()) {
+    Map properties=em.getDictionaryAsMap(orgRef,ORGANIZATION_PROPERTIES_DICTIONARY);
+    if (properties != null) {
+      size=Math.max(new OrganizationInfo(null,null,properties).getPasswordHistorySize(),size);
+    }
+  }
+  return size;
+}

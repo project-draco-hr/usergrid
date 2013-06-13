@@ -54,12 +54,13 @@ catch (        Exception e1) {
       return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
     }
     String token=management.getAccessTokenForAdminUser(user.getUuid(),ttl);
+    Long passwordChanged=management.getLastAdminPasswordChange(user.getUuid());
     AccessInfo access_info;
     if (loadAdminData) {
-      access_info=new AccessInfo().withExpiresIn(tokens.getMaxTokenAge(token) / 1000).withAccessToken(token).withProperty("user",management.getAdminUserOrganizationData(user.getUuid()));
+      access_info=new AccessInfo().withExpiresIn(tokens.getMaxTokenAge(token) / 1000).withAccessToken(token).withProperty("user",management.getAdminUserOrganizationData(user.getUuid())).withPasswordChanged(passwordChanged);
     }
  else {
-      access_info=new AccessInfo().withExpiresIn(tokens.getMaxTokenAge(token) / 1000).withAccessToken(token);
+      access_info=new AccessInfo().withExpiresIn(tokens.getMaxTokenAge(token) / 1000).withAccessToken(token).withPasswordChanged(passwordChanged);
     }
     management.countAdminUserAction(user,"login");
     return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
