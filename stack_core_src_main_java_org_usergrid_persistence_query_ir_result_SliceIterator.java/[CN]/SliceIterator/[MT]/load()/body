@@ -3,15 +3,17 @@
     return false;
   }
   Iterator<HColumn<ByteBuffer,ByteBuffer>> results=scanner.next().iterator();
-  idOrder.clear();
   cols.clear();
-  for (int i=0; results.hasNext(); i++) {
+  if (skipFirst && pagesLoaded == 0 && results.hasNext()) {
+    results.next();
+  }
+  while (results.hasNext()) {
     ByteBuffer colName=results.next().getName().duplicate();
     UUID id=parser.getUUID(parser.parse(colName));
-    idOrder.put(id,i);
-    cols.add(i,colName);
+    cols.put(id,colName);
+    lastId=id;
   }
-  lastResult=idOrder.keySet();
+  lastResult=cols.keySet();
   pagesLoaded++;
   return lastResult != null && lastResult.size() > 0;
 }

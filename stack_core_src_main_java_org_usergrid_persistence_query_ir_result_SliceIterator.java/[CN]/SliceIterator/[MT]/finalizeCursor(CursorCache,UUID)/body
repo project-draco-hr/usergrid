@@ -1,23 +1,8 @@
 {
   int sliceHash=slice.hashCode();
-  Integer loadedIndex=idOrder.get(lastLoaded);
-  if (loadedIndex == null) {
+  ByteBuffer bytes=cols.get(lastLoaded);
+  if (bytes == null) {
     return;
-  }
-  ByteBuffer bytes=null;
-  if (loadedIndex == pageSize - 1) {
-    if (!load()) {
-      bytes=ByteBuffer.allocate(0);
-    }
- else {
-      bytes=cols.get(0);
-    }
-  }
- else   if (loadedIndex == idOrder.size() - 1) {
-    bytes=ByteBuffer.allocate(0);
-  }
- else {
-    bytes=cols.get(loadedIndex + 1);
   }
   cache.setNextCursor(sliceHash,bytes);
 }
