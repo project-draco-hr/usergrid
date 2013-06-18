@@ -1,0 +1,20 @@
+{
+  logger.info("AuthResource.pingIdent");
+  try {
+    if (StringUtils.isEmpty(pingToken)) {
+      missingTokenFail(callback);
+    }
+    SignInAsProvider pingProvider=signInProviderFactory.pingident(services.getApplication());
+    User user=pingProvider.createOrAuthenticate(pingToken);
+    if (user == null) {
+      return findAndCreateFail(callback);
+    }
+    long ttl=PingIdentityProvider.extractExpiration(user);
+    String token=management.getAccessTokenForAppUser(services.getApplicationId(),user.getUuid(),ttl);
+    AccessInfo access_info=new AccessInfo().withExpiresIn(tokens.getMaxTokenAge(token) / 1000).withAccessToken(token).withProperty("user",user);
+    return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
+  }
+ catch (  Exception e) {
+    return generalAuthError(callback,e);
+  }
+}

@@ -1,0 +1,10 @@
+{
+  try {
+    UUID newId=qm.renewTransaction(jobQueueName,execution.getTransactionId(),new QueueQuery().withTimeout(delay));
+    execution.setTransactionId(newId);
+  }
+ catch (  TransactionNotFoundException e) {
+    logger.error("Could not renew transaction",e);
+    throw new JobRuntimeException("Could not renew transaction during heartbeat",e);
+  }
+}
