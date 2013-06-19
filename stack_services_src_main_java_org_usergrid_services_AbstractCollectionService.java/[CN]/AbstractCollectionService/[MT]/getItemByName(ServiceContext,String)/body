@@ -13,6 +13,10 @@
     entity=importEntity(context,(Entity)entity);
   }
   checkPermissionsForEntity(context,entity);
+  if (!em.isCollectionMember(context.getOwner(),context.getCollectionName(),entity)) {
+    logger.info("Someone tried to GET entity {} they don't own. Entity name {} with owner {}",new Object[]{getEntityType(),name,context.getOwner()});
+    throw new ServiceResourceNotFoundException(context);
+  }
   List<ServiceRequest> nextRequests=context.getNextServiceRequests(entity);
   return new ServiceResults(this,context,Type.COLLECTION,Results.fromRef(entity),null,nextRequests);
 }
