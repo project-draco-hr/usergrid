@@ -1,2 +1,14 @@
 {
+  QuerySlice slice=node.getSlice();
+  queryProcessor.applyCursorAndSort(slice);
+  int size=queryProcessor.getPageSizeHint(node);
+  UUID startId=null;
+  if (slice.hasCursor()) {
+    startId=CONNECTION_PARSER.getUUID(CONNECTION_PARSER.parse(slice.getCursor()));
+  }
+  if (startId != null) {
+    size++;
+  }
+  IndexScanner connectionScanner=new ConnectedIndexScanner(cass,DICTIONARY_CONNECTED_ENTITIES,applicationId,connection,startId,slice.isReversed(),size);
+  this.results.push(new SliceIterator<DynamicComposite>(connectionScanner,slice,CONNECTION_PARSER));
 }
