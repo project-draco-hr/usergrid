@@ -1,8 +1,5 @@
 {
-  UUID applicationId=createApplication("IteratingQueryTest","singleOrderByNot");
-  assertNotNull(applicationId);
-  EntityManager em=emf.getEntityManager(applicationId);
-  assertNotNull(em);
+  io.doSetup();
   int size=2000;
   int queryLimit=Query.MAX_LIMIT;
   int intersectIncrement=5;
@@ -18,7 +15,7 @@
     entity.put("name",name);
     entity.put("intersect",intersect1);
     entity.put("intersect2",intersect2);
-    em.create("test",entity);
+    io.writeEntity(entity);
     if (!(intersect1 && intersect2)) {
       expectedResults.add(name);
     }
@@ -31,7 +28,7 @@
   Results results;
   start=System.currentTimeMillis();
   do {
-    results=em.searchCollection(em.getApplicationRef(),"tests",query);
+    results=io.getResults(query);
     for (int i=0; i < results.size(); i++) {
       assertEquals(expectedResults.get(count),results.getEntities().get(i).getName());
       count++;

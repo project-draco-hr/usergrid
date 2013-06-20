@@ -1,15 +1,15 @@
 {
-  ByteBuffer startBytes=null;
-  if (start != null) {
-    startBytes=new DynamicComposite(start).serialize();
+  String connectedType=connection.getConnectedEntityType();
+  if (start == null) {
+    start=UUIDUtils.MIN_TIME_UUID;
   }
-  this.last=new DynamicComposite(UUIDUtils.MAX_TIME_UUID,connection.getConnectedEntityType()).serialize();
+  this.scanStart=new DynamicComposite(start,connectedType).serialize();
+  this.last=new DynamicComposite(UUIDUtils.MAX_TIME_UUID,connectedType).serialize();
   this.cass=cass;
   this.applicationId=applicationId;
-  this.start=startBytes;
+  this.start=scanStart;
   this.reversed=reversed;
   this.pageSize=pageSize;
-  this.scanStart=startBytes;
   this.connection=connection;
   this.dictionaryType=dictionaryType;
 }
