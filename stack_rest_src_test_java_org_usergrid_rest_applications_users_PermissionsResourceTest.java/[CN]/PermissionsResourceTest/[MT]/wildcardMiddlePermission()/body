@@ -20,12 +20,12 @@
   Map<String,String> book=hashMap("title","Ready Player One").map("author","Earnest Cline");
   node=resource().path(String.format("/%s/%s/books",params.get("orgName"),params.get("appName"))).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,book);
   logNode(node);
-  assertEquals("Ready Player One",getEntity(node,0).get("title").getTextValue());
-  String bookId=getEntity(node,0).get("uuid").getTextValue();
+  assertEquals("Ready Player One",getEntity(node,0).get("title").textValue());
+  String bookId=getEntity(node,0).get("uuid").textValue();
   String userOneToken=managementService.getAccessTokenForAppUser(appInfo.getId(),userOneId,0);
   Map<String,String> review=hashMap("heading","Loved It").map("body","80s Awesomeness set in the future");
   node=resource().path(String.format("/%s/%s/reviews",params.get("orgName"),params.get("appName"))).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,review);
-  String reviewId=getEntity(node,0).get("uuid").getTextValue();
+  String reviewId=getEntity(node,0).get("uuid").textValue();
   node=resource().path(String.format("/%s/%s/users/me/wrote/review/%s",params.get("orgName"),params.get("appName"),reviewId)).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class);
   node=resource().path(String.format("/%s/%s/users/me/reviewed/books/%s",params.get("orgName"),params.get("appName"),bookId)).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class);
   logNode(node);
