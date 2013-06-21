@@ -1,0 +1,26 @@
+{
+  CustomCollection activities=collection("activities");
+  long created=0;
+  Map actor=hashMap("displayName","Erin");
+  Map props=new HashMap();
+  int checkResultsNum=0;
+  props.put("actor",actor);
+  props.put("verb","go");
+  props.put("content","bragh");
+  for (int i=0; i < 20; i++) {
+    props.put("ordinal",i);
+    JsonNode activity=activities.create(props);
+    if (i == 0) {
+      created=activity.findValue("created").getLongValue();
+    }
+  }
+  String query="select * where created > " + created + " order by desc";
+  String errorQuery=query;
+  JsonNode node=activities.query(query);
+  JsonNode incorrectNode=activities.query(errorQuery,"limit",5);
+  assertEquals(5,incorrectNode.get("entities").size());
+  while (checkResultsNum < 5) {
+    assertEquals(incorrectNode.get("entities").get(checkResultsNum),node.get("entities").get(checkResultsNum));
+    checkResultsNum++;
+  }
+}
