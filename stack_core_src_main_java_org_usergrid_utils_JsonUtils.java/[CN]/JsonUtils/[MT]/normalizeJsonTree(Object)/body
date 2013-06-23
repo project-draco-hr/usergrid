@@ -28,7 +28,7 @@
         l.set(i,uuid);
       }
  else       if ((o instanceof Map) || (o instanceof List)) {
-        normalizeJsonTree(o);
+        l.set(i,normalizeJsonTree(o));
       }
  else       if (o instanceof Integer) {
         l.set(i,((Integer)o).longValue());
@@ -51,7 +51,9 @@
     return ((BigInteger)obj).longValue();
   }
  else   if (obj instanceof JsonNode) {
-    return mapper.convertValue(obj,Object.class);
+    Object o=mapper.convertValue(obj,Object.class);
+    o=normalizeJsonTree(o);
+    obj=mapper.convertValue(obj,JsonNode.class);
   }
   return obj;
 }
