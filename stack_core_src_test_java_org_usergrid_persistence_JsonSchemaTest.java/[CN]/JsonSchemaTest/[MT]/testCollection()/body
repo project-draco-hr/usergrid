@@ -7,14 +7,14 @@
   properties.put("name","nico");
   Entity cat=em.create("cat",properties);
   assertNotNull(cat);
-  JsonNode bad_schema=readSchema("bad-schema.json");
+  JsonNode bad_schema=loadJsonFromResourceFile(JsonSchemaTest.class,JsonNode.class,"bad-schema.json");
   try {
     em.setSchemaForEntityType("cat",bad_schema);
     fail("Schema should have failed");
   }
  catch (  InvalidEntitySchemaSyntaxException e) {
   }
-  JsonNode cat_schema=readSchema("cat-schema.json");
+  JsonNode cat_schema=loadJsonFromResourceFile(JsonSchemaTest.class,JsonNode.class,"cat-schema.json");
   em.setSchemaForEntityType("cat",cat_schema);
   properties=new LinkedHashMap<String,Object>();
   properties.put("name","dylan");
