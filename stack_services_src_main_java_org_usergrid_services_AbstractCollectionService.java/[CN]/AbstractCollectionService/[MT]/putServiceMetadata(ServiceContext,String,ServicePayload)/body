@@ -1,0 +1,10 @@
+{
+  if ("schema".equals(metadataType)) {
+    JsonNode schema=JsonUtils.toJsonNode(payload.getProperties());
+    if (schema != null) {
+      em.setSchemaForEntityType(context.getCollectionName(),schema);
+      return new ServiceResults(this,context.getRequest().withPath(context.getRequest().getPath() + "/schema"),context.getPreviousResults(),context.getChildPath(),Type.GENERIC,Results.fromData(schema),null,null);
+    }
+  }
+  return super.putServiceMetadata(context,metadataType,payload);
+}
