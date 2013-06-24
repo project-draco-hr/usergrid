@@ -3,7 +3,7 @@
     Set<String> indexes=cast(em.getCollectionIndexes(context.getOwner(),context.getCollectionName()));
     return new ServiceResults(this,context.getRequest().withPath(context.getRequest().getPath() + "/indexes"),context.getPreviousResults(),context.getChildPath(),Type.GENERIC,Results.fromData(indexes),null,null);
   }
- else   if ("schema".equals(metadataType)) {
+ else   if (this.isRootService() && "schema".equals(metadataType)) {
     JsonNode schema=em.getSchemaForEntityType(getEntityType());
     if (schema == null)     schema=JacksonUtils.nodeFactory().objectNode();
     return new ServiceResults(this,context.getRequest().withPath(context.getRequest().getPath() + "/schema"),context.getPreviousResults(),context.getChildPath(),Type.GENERIC,Results.fromData(schema),null,null);
