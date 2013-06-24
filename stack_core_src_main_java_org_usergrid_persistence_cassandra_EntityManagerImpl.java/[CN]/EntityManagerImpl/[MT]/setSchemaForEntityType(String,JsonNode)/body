@@ -1,5 +1,9 @@
 {
   entityType=Schema.normalizeEntityType(entityType);
+  ProcessingReport report=jsonSchemaSyntaxValidator.validateSchema(schema);
+  if (!report.isSuccess()) {
+    throw new InvalidEntitySchemaSyntaxException(entityType,report);
+  }
   if (entityType != null) {
     addToDictionary(getApplicationRef(),DICTIONARY_SCHEMAS,entityType,schema);
   }
