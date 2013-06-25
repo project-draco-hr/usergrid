@@ -9,7 +9,11 @@
   }
   while (results.hasNext()) {
     ByteBuffer colName=results.next().getName().duplicate();
-    UUID id=parser.getUUID(parser.parse(colName));
+    T parsed=parser.parse(colName);
+    if (parsed == null) {
+      continue;
+    }
+    UUID id=parser.getUUID(parsed);
     cols.put(id,colName);
   }
   lastResult=cols.keySet();

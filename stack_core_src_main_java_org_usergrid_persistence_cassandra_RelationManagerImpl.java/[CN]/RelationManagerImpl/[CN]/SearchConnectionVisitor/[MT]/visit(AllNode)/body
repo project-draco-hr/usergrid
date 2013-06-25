@@ -2,13 +2,19 @@
   QuerySlice slice=node.getSlice();
   queryProcessor.applyCursorAndSort(slice);
   int size=queryProcessor.getPageSizeHint(node);
-  UUID startId=null;
+  ByteBuffer start=null;
   if (slice.hasCursor()) {
-    startId=CONNECTION_PARSER.getUUID(CONNECTION_PARSER.parse(slice.getCursor()));
+    start=slice.getCursor();
   }
-  if (startId != null) {
+  if (start != null) {
     size++;
   }
-  IndexScanner connectionScanner=new ConnectedIndexScanner(cass,DICTIONARY_CONNECTED_ENTITIES,applicationId,connection,startId,slice.isReversed(),size);
-  this.results.push(new SliceIterator<DynamicComposite>(connectionScanner,slice,CONNECTION_PARSER));
+  if (connection.getConnectionType() != null) {
+    ConnectionIndexSliceParser connectionParser=new ConnectionIndexSliceParser(connection.getConnectedEntityType());
+    IndexScanner connectionScanner=new ConnectedIndexScanner(cass,DICTIONARY_CONNECTED_ENTITIES,applicationId,connection,start,slice.isReversed(),size);
+    this.results.push(new SliceIterator<DynamicComposite>(connectionScanner,slice,connectionParser));
+  }
+ else {
+    this.results.push(new ConnectionIterator(headEntity,slice,RelationManagerImpl.this));
+  }
 }
