@@ -2,6 +2,7 @@
   if (this.isRootService() && "schema".equals(metadataType)) {
     JsonNode schema=JsonUtils.toJsonNode(payload.getProperties());
     if (schema != null) {
+      checkPermissionsForSubPath(context,"schema");
       em.setSchemaForEntityType(getEntityType(),schema);
       return new ServiceResults(this,context.getRequest().withPath(context.getRequest().getPath() + "/schema"),context.getPreviousResults(),context.getChildPath(),Type.GENERIC,Results.fromData(schema),null,null);
     }
