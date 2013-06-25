@@ -8,6 +8,7 @@
   Entity cat=em.create("cat",properties);
   assertNotNull(cat);
   JsonNode bad_schema=loadJsonFromResourceFile(JsonSchemaTest.class,JsonNode.class,"bad-schema.json");
+  assertNotNull(bad_schema);
   try {
     em.setSchemaForEntityType("cat",bad_schema);
     fail("Schema should have failed");
@@ -15,6 +16,7 @@
  catch (  InvalidEntitySchemaSyntaxException e) {
   }
   JsonNode cat_schema=loadJsonFromResourceFile(JsonSchemaTest.class,JsonNode.class,"cat-schema.json");
+  assertNotNull(cat_schema);
   em.setSchemaForEntityType("cat",cat_schema);
   properties=new LinkedHashMap<String,Object>();
   properties.put("name","dylan");
@@ -27,4 +29,17 @@
   properties.put("color","black");
   cat=em.create("cat",properties);
   assertNotNull(cat);
+  try {
+    em.setProperty(cat,"color","purple");
+    fail("Setting property color to purple should have failed");
+  }
+ catch (  EntityValidationException e) {
+  }
+  em.setProperty(cat,"color","orange");
+  try {
+    em.setProperty(cat,"foo","bar");
+    fail("Setting property foo to bar should have failed");
+  }
+ catch (  EntityValidationException e) {
+  }
 }
