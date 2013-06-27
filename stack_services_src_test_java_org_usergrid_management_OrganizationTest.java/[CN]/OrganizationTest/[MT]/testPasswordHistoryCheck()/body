@@ -1,5 +1,5 @@
 {
-  String[] passwords=new String[]{"password1","password2","password3","password4"};
+  String[] passwords=new String[]{"password1","password2","password3","password4","password5"};
   UserInfo user=management.createAdminUser("edanuff2","Ed Anuff","ed2@anuff.com",passwords[0],true,false);
   assertNotNull(user);
   OrganizationInfo organization=management.createOrganization("ed-organization2",user,true);
@@ -8,6 +8,21 @@
   management.setAdminUserPassword(user.getUuid(),passwords[0]);
   management.setAdminUserPassword(user.getUuid(),passwords[0]);
   Map<String,Object> props=new HashMap<String,Object>();
+  props.put(OrganizationInfo.PASSWORD_HISTORY_SIZE_KEY,3);
+  organization.setProperties(props);
+  management.updateOrganization(organization);
+  management.setAdminUserPassword(user.getUuid(),passwords[1]);
+  management.setAdminUserPassword(user.getUuid(),passwords[2]);
+  management.setAdminUserPassword(user.getUuid(),passwords[3]);
+  management.setAdminUserPassword(user.getUuid(),passwords[4]);
+  management.setAdminUserPassword(user.getUuid(),passwords[0]);
+  try {
+    management.setAdminUserPassword(user.getUuid(),passwords[2]);
+    fail("password change should fail");
+  }
+ catch (  RecentlyUsedPasswordException e) {
+  }
+  props=new HashMap<String,Object>();
   props.put(OrganizationInfo.PASSWORD_HISTORY_SIZE_KEY,2);
   organization.setProperties(props);
   management.updateOrganization(organization);
