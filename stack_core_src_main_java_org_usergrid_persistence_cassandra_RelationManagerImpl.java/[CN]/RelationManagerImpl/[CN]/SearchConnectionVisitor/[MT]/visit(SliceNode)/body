@@ -1,23 +1,12 @@
 {
-  Results results=null;
-  int limit=query.getLimit() + 1;
-  Level resultsLevel=query.getResultsLevel();
+  int size=queryProcessor.getPageSizeHint(node);
+  IntersectionIterator intersection=new IntersectionIterator(size);
   for (  QuerySlice slice : node.getAllSlices()) {
+    UUID id=ConnectionRefImpl.getIndexId(ConnectionRefImpl.BY_CONNECTION_AND_ENTITY_TYPE,headEntity,connection.getConnectionType(),connection.getConnectedEntityType(),new ConnectedEntityRef[0]);
+    Object key=key(id,INDEX_CONNECTIONS);
     queryProcessor.applyCursorAndSort(slice);
-    List<HColumn<ByteBuffer,ByteBuffer>> columns=searchIndex(key(connection.getIndexId(),INDEX_CONNECTIONS),slice,limit);
-    Results r=getIndexResults(columns,true,connection.getConnectionType(),connection.getConnectedEntityType(),resultsLevel);
-    if (r.size() > query.getLimit()) {
-      r.setCursorToLastResult();
-    }
-    if (r.getCursor() != null) {
-    }
-    r=r.excludeCursorMetadataAttribute();
-    if (results != null) {
-      results.and(r);
-    }
- else {
-      results=r;
-    }
+    IndexScanner columns=searchIndex(key,slice,size);
+    intersection.addIterator(new SliceIterator<DynamicComposite>(columns,slice,COLLECTION_PARSER));
   }
-  this.results.push(results);
+  this.results.push(intersection);
 }

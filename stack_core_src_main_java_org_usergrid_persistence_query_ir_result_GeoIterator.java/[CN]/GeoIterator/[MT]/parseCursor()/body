@@ -1,0 +1,17 @@
+{
+  if (!slice.hasCursor()) {
+    return;
+  }
+  String string=STR_SER.fromByteBuffer(slice.getCursor().duplicate());
+  if (string.length() == 0) {
+    done=true;
+    return;
+  }
+  String[] parts=string.split("\\" + DELIM);
+  if (parts.length != 3) {
+    throw new RuntimeException("Geo cursors must contain 3 parts.  Incorrect cursor, please execute the query again");
+  }
+  startId=UUID.fromString(parts[0]);
+  cursorDistance=Double.parseDouble(parts[1]);
+  nextResolution=Integer.parseInt(parts[2]);
+}

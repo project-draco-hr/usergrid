@@ -18,12 +18,6 @@
   Results r=null;
   for (int i=0; i < size / pageSize; i++) {
     r=em.searchCollection(em.getApplicationRef(),"pages",query);
-    for (    Entry<UUID,Map<String,Object>> entry : r.metadata.entrySet()) {
-      Map<String,Object> map=entry.getValue();
-      if (map != null) {
-        assertFalse(map.containsKey(Schema.PROPERTY_CURSOR));
-      }
-    }
     logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
     assertEquals(pageSize,r.size());
     for (int j=0; j < pageSize; j++) {
@@ -31,5 +25,7 @@
     }
     query.setCursor(r.getCursor());
   }
+  r=em.searchCollection(em.getApplicationRef(),"pages",query);
+  assertEquals(0,r.size());
   assertNull(r.getCursor());
 }

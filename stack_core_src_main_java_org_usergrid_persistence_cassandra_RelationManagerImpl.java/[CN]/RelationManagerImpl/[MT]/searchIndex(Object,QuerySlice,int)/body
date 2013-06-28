@@ -1,12 +1,12 @@
 {
-  Object start=getStart(slice);
-  Object finish=getFinish(slice);
+  DynamicComposite start=getStart(slice);
+  DynamicComposite finish=getFinish(slice);
   if (slice.isReversed() && (start != null) && (finish != null)) {
-    Object temp=start;
+    DynamicComposite temp=start;
     start=finish;
     finish=temp;
   }
   Object keyPrefix=key(indexKey,slice.getPropertyName());
-  IndexBucketScanner scanner=new IndexBucketScanner(cass,indexBucketLocator,ENTITY_INDEX,applicationId,IndexType.CONNECTION,keyPrefix,start,finish,slice.isReversed(),count,slice.getPropertyName());
-  return scanner.load();
+  IndexScanner scanner=new IndexBucketScanner(cass,indexBucketLocator,ENTITY_INDEX,applicationId,IndexType.CONNECTION,keyPrefix,start,finish,slice.isReversed(),pageSize,slice.getPropertyName());
+  return scanner;
 }

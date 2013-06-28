@@ -1,2 +1,20 @@
 {
+  QuerySlice slice=node.getSlice();
+  queryProcessor.applyCursorAndSort(slice);
+  int size=queryProcessor.getPageSizeHint(node);
+  ByteBuffer start=null;
+  if (slice.hasCursor()) {
+    start=slice.getCursor();
+  }
+  if (start != null) {
+    size++;
+  }
+  if (connection.getConnectionType() != null) {
+    ConnectionIndexSliceParser connectionParser=new ConnectionIndexSliceParser(connection.getConnectedEntityType());
+    IndexScanner connectionScanner=new ConnectedIndexScanner(cass,DICTIONARY_CONNECTED_ENTITIES,applicationId,connection,start,slice.isReversed(),size);
+    this.results.push(new SliceIterator<DynamicComposite>(connectionScanner,slice,connectionParser));
+  }
+ else {
+    this.results.push(new ConnectionIterator(headEntity,slice,RelationManagerImpl.this));
+  }
 }
