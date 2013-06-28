@@ -6,7 +6,7 @@
       return Response.status(res.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(res.getBody(),callback)).build();
     }
     String token=management.getAccessTokenForAppUser(services.getApplicationId(),getUserUuid(),ttl);
-    AccessInfo access_info=new AccessInfo().withExpiresIn(tokens.getMaxTokenAge(token) / 1000).withAccessToken(token).withProperty("user",getUser());
+    AccessInfo access_info=new AccessInfo().withExpiresIn(tokens.getMaxTokenAgeInSeconds(token)).withAccessToken(token).withProperty("user",getUser());
     return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
   }
  catch (  OAuthProblemException e) {
