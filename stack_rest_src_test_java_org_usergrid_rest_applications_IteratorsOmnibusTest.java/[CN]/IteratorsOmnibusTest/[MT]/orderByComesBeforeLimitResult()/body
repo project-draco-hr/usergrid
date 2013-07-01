@@ -17,10 +17,10 @@
   String query="select * where created > " + created + " order by desc";
   String errorQuery=query;
   JsonNode node=activities.query(query);
-  JsonNode incorrectNode=activities.query(errorQuery,"limit",5);
+  JsonNode incorrectNode=activities.query(errorQuery,"limit",Integer.toString(5));
   assertEquals(5,incorrectNode.get("entities").size());
   while (checkResultsNum < 5) {
-    assertEquals(incorrectNode.get("entities").get(checkResultsNum),node.get("entities").get(checkResultsNum));
+    assertEquals(node.get("entities").get(checkResultsNum),incorrectNode.get("entities").get(checkResultsNum));
     checkResultsNum++;
   }
 }
