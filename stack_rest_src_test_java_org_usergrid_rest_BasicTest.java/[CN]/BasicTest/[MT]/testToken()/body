@@ -12,7 +12,7 @@
   String mgmtToken=adminToken();
   node=resource().path("/management/users/test@usergrid.com").queryParam("access_token",mgmtToken).accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
   logNode(node);
-  assertEquals("Test User",node.get("data").get("organizations").get("test-organization").get("users").get("test").get("name").textValue());
+  assertEquals("Test User",node.get("data").get("organizations").get("test-organization").get("users").get("test").get("name").getTextValue());
   err_thrown=false;
   try {
     node=resource().path("/test-app/token").queryParam("grant_type","password").queryParam("username","ed@anuff.com").queryParam("password","blahblah").accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
@@ -33,7 +33,7 @@
   assertTrue("Error should have been thrown",err_thrown);
   node=resource().path("/test-organization/test-app/token").queryParam("grant_type","password").queryParam("username","ed@anuff.com").queryParam("password","sesame").accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
   logNode(node);
-  String user_access_token=node.get("access_token").textValue();
+  String user_access_token=node.get("access_token").getTextValue();
   assertTrue(isNotBlank(user_access_token));
   err_thrown=false;
   try {
@@ -70,21 +70,21 @@
   assertTrue("Error should have been thrown",err_thrown);
   node=resource().path("/test-organization/test-app/token").queryParam("grant_type","pin").queryParam("username","ed@anuff.com").queryParam("pin","1234").accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
   logNode(node);
-  user_access_token=node.get("access_token").textValue();
+  user_access_token=node.get("access_token").getTextValue();
   assertTrue(isNotBlank(user_access_token));
   MultivaluedMap<String,String> formData=new MultivaluedMapImpl();
   formData.add("pin","5678");
   node=resource().path("/test-organization/test-app/users/ed@anuff.com/setpin").queryParam("access_token",user_access_token).type("application/x-www-form-urlencoded").post(JsonNode.class,formData);
   node=resource().path("/test-organization/test-app/token").queryParam("grant_type","pin").queryParam("username","ed@anuff.com").queryParam("pin","5678").accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
   logNode(node);
-  user_access_token=node.get("access_token").textValue();
+  user_access_token=node.get("access_token").getTextValue();
   assertTrue(isNotBlank(user_access_token));
   node=resource().path("/test-organization/test-app/users/ed@anuff.com/test").get(JsonNode.class);
   logNode(node);
   Map<String,String> payload=hashMap("email","ed.anuff@gmail.com").map("username","ed.anuff").map("name","Ed Anuff").map("password","sesame").map("pin","1234");
   node=resource().path("/test-organization/test-app/users").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
   logNode(node);
-  assertEquals("ed.anuff",node.get("entities").get(0).get("username").textValue());
+  assertEquals("ed.anuff",node.get("entities").get(0).get("username").getTextValue());
   payload=hashMap("foo","bar");
   node=resource().path("/test-organization/test-app/devices/" + UUID.randomUUID()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(JsonNode.class,payload);
   logNode(node);

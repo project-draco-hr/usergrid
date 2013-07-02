@@ -2,9 +2,9 @@
   long ttl=2000;
   JsonNode node=resource().path("/test-organization/test-app/token").queryParam("grant_type","password").queryParam("username","ed@anuff.com").queryParam("password","sesame").queryParam("ttl",String.valueOf(ttl)).accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
   long startTime=System.currentTimeMillis();
-  String token=node.get("access_token").textValue();
+  String token=node.get("access_token").getTextValue();
   assertNotNull(token);
-  long expires_in=node.get("expires_in").longValue();
+  long expires_in=node.get("expires_in").getLongValue();
   assertEquals(ttl,expires_in * 1000);
   JsonNode userdata=resource().path("/test-organization/test-app/users/ed@anuff.com").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
   assertEquals("ed@anuff.com",getEntity(userdata,0).get("email").asText());
