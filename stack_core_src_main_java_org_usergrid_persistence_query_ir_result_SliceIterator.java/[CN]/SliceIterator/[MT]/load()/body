@@ -1,0 +1,22 @@
+{
+  if (!scanner.hasNext()) {
+    return false;
+  }
+  Iterator<HColumn<ByteBuffer,ByteBuffer>> results=scanner.next().iterator();
+  cols.clear();
+  if (skipFirst && pagesLoaded == 0 && results.hasNext()) {
+    results.next();
+  }
+  while (results.hasNext()) {
+    ByteBuffer colName=results.next().getName().duplicate();
+    T parsed=parser.parse(colName);
+    if (parsed == null) {
+      continue;
+    }
+    UUID id=parser.getUUID(parsed);
+    cols.put(id,colName);
+  }
+  lastResult=cols.keySet();
+  pagesLoaded++;
+  return lastResult != null && lastResult.size() > 0;
+}

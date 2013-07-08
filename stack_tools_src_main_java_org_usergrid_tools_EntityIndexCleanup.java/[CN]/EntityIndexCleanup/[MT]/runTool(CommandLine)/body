@@ -1,10 +1,6 @@
 {
   startSpring();
   logger.info("Starting entity cleanup");
-  List<UUID> ids=null;
-  Query query=new Query();
-  query.setLimit(PAGE_SIZE);
-  String lastCursor=null;
   for (  Entry<String,UUID> app : emf.getApplications().entrySet()) {
     logger.info("Starting cleanup for app {}",app.getKey());
     UUID applicationId=app.getValue();
@@ -21,13 +17,11 @@
     long timestamp=getTimestampInMicros(timestampUuid);
     Set<String> collectionNames=em.getApplicationCollections();
     for (    String collectionName : collectionNames) {
-      do {
-        query.setCursor(lastCursor);
-        ids=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(applicationId,DICTIONARY_COLLECTIONS,collectionName),query.getStartResult(),null,query.getLimit() + 1,false,indexBucketLocator,applicationId,collectionName);
+      IndexScanner scanner=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(applicationId,DICTIONARY_COLLECTIONS,collectionName),null,null,PAGE_SIZE,false,indexBucketLocator,applicationId,collectionName);
+      SliceIterator<UUID> itr=new SliceIterator<UUID>(scanner,null,new UUIDIndexSliceParser());
+      while (itr.hasNext()) {
+        Set<UUID> ids=itr.next();
         CollectionInfo collection=getDefaultSchema().getCollection("application",collectionName);
-        Results tempResults=Results.fromIdList(ids);
-        tempResults.trim(query.getLimit());
-        lastCursor=tempResults.getCursor();
         Set<String> indexed=collection.getPropertiesIndexed();
         logger.info("Auditing {} entities for collection {} in app {}",new Object[]{ids.size(),collectionName,app.getValue()});
         for (        UUID id : ids) {
@@ -68,7 +62,6 @@
           }
         }
       }
- while (ids.size() == PAGE_SIZE);
     }
   }
   logger.info("Completed audit of apps");

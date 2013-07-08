@@ -1,0 +1,15 @@
+{
+  DynamicComposite start=getStart(slice);
+  DynamicComposite finish=getFinish(slice);
+  if (slice.isReversed() && (start != null) && (finish != null)) {
+    DynamicComposite temp=start;
+    start=finish;
+    finish=temp;
+  }
+  Object keyPrefix=key(indexKey,slice.getPropertyName());
+  if (slice.hasCursor()) {
+    pageSize++;
+  }
+  IndexScanner scanner=new IndexBucketScanner(cass,indexBucketLocator,ENTITY_INDEX,applicationId,IndexType.COLLECTION,keyPrefix,start,finish,slice.isReversed(),pageSize,collectionName);
+  return scanner;
+}

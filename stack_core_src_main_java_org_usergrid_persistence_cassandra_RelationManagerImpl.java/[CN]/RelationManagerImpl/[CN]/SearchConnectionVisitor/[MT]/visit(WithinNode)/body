@@ -1,5 +1,6 @@
 {
-  int limit=queryProcessor.getFirstNode() == node ? query.getLimit() : GEO_MAX;
-  Results r=em.getGeoIndexManager().proximitySearchConnections(connection.getIndexId(),node.getPropertyName(),new Point(node.getLattitude(),node.getLongitude()),node.getDistance(),null,limit,false,query.getResultsLevel());
-  results.push(r);
+  QuerySlice slice=node.getSlice();
+  queryProcessor.applyCursorAndSort(slice);
+  GeoIterator itr=new GeoIterator(new GeoIterator.ConnectionGeoSearch(em.getGeoIndexManager(),connection.getIndexId(),new Point(node.getLattitude(),node.getLongitude()),node.getPropertyName(),node.getDistance()),query.getLimit(),slice);
+  results.push(itr);
 }

@@ -1,15 +1,14 @@
 {
   node.getLeft().visit(this);
   node.getRight().visit(this);
-  Results right=results.pop();
-  Results left=results.pop();
+  ResultIterator right=results.pop();
+  ResultIterator left=results.pop();
+  UnionIterator union=new UnionIterator(queryProcessor.getPageSizeHint(node));
   if (left != null) {
-    if (right != null) {
-      left.merge(right);
-    }
-    results.push(left);
+    union.addIterator(left);
   }
- else {
-    results.push(right);
+  if (right != null) {
+    union.addIterator(right);
   }
+  results.push(union);
 }

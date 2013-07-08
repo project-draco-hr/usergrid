@@ -1,8 +1,10 @@
 {
-  node.getChild().visit(this);
-  Results not=results.pop();
-  node.getAllNode().visit(this);
-  Results parent=results.pop();
-  parent.subtract(not);
-  results.push(parent);
+  node.getSubtractNode().visit(this);
+  ResultIterator not=results.pop();
+  node.getKeepNode().visit(this);
+  ResultIterator keep=results.pop();
+  SubtractionIterator subtraction=new SubtractionIterator(queryProcessor.getPageSizeHint(node));
+  subtraction.setSubtractIterator(not);
+  subtraction.setKeepIterator(keep);
+  results.push(subtraction);
 }

@@ -1,0 +1,19 @@
+{
+  if (!hasMore) {
+    return false;
+  }
+  int selectSize=pageSize + 1;
+  Object key=null;
+  key=key(connection.getConnectingEntityId(),dictionaryType,connection.getConnectionType());
+  List<HColumn<ByteBuffer,ByteBuffer>> results=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_COMPOSITE_DICTIONARIES,key,start,null,selectSize,reversed);
+  if (results.size() == selectSize) {
+    hasMore=true;
+    start=results.get(results.size() - 1).getName();
+    results.remove(results.size() - 1);
+  }
+ else {
+    hasMore=false;
+  }
+  lastResults=new LinkedHashSet<HColumn<ByteBuffer,ByteBuffer>>(results);
+  return lastResults != null && lastResults.size() > 0;
+}
