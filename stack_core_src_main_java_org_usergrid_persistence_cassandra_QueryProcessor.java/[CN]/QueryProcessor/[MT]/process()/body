@@ -18,7 +18,13 @@
     }
   }
   if (rootNode == null) {
-    rootNode=new AllNode(0);
+    UUID startResult=query.getStartResult();
+    boolean startResultSet=startResult != null;
+    AllNode allNode=new AllNode(0,startResultSet);
+    if (startResultSet) {
+      cursorCache.setNextCursor(allNode.getSlice().hashCode(),UUIDSerializer.get().toByteBuffer(startResult));
+    }
+    rootNode=allNode;
   }
   if (opCount > 1) {
     pageSizeHint=PAGE_SIZE;
