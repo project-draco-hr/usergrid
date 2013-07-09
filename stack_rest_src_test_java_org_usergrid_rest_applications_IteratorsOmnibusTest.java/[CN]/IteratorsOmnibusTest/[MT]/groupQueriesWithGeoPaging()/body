@@ -1,0 +1,25 @@
+{
+  CustomCollection groups=context.application().collection("groups");
+  int maxRangeLimit=2000;
+  int minRangeLimit=5;
+  long[] index=new long[maxRangeLimit];
+  Map actor=hashMap("displayName","Erin");
+  Map props=new HashMap();
+  props.put("actor",actor);
+  Map location=hashMap("latitude",37);
+  location.put("longitude",-75);
+  props.put("location",location);
+  props.put("verb","go");
+  props.put("content","bragh");
+  for (int i=0; i < 1500; i++) {
+    String newPath=String.format("/kero" + i);
+    props.put("path",newPath);
+    props.put("ordinal",i);
+    JsonNode activity=groups.create(props);
+    index[i]=activity.findValue("created").getLongValue();
+  }
+  String query="select * where location within 20000 of 37,-75 and created > " + index[1301] + " and "+ "created < "+ index[1303]+ "";
+  JsonNode node=groups.query(query);
+  assertEquals(1,node.get("entities").size());
+  assertEquals(index[1302],node.get("entities").get(0).get("created").getLongValue());
+}
