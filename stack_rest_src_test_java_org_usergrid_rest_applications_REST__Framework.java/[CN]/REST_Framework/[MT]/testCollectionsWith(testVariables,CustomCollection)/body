@@ -1,0 +1,28 @@
+{
+  if (input.requestType.toLowerCase().equals("get") || input.requestType.toLowerCase().equals("post")) {
+    for (int i=0; i < input.howMany; i++) {
+      testCollection.create(input.valuesForRequestType[i]);
+    }
+    JsonNode node=testCollection.query(input.sql);
+    entitySize=node.get("entities").size();
+    assertEquals(input.numValuesExpected,node.get("entities").size());
+  }
+  if (input.requestType.toLowerCase().equals("delete")) {
+    for (int i=0; i < input.howMany; i++) {
+      testCollection.create(input.valuesForRequestType[i]);
+    }
+    for (int i=0; i < input.howMany; i++) {
+      testCollection.delete(input.valuesForRequestType[i]);
+    }
+    JsonNode node=testCollection.query(input.sql);
+    assertEquals(input.numValuesExpected,node.get("entities").size());
+  }
+  if (input.requestType.toLowerCase().equals("put")) {
+    for (int i=0; i < input.howMany; i++) {
+      testCollection.put(input.valuesForRequestType[i]);
+    }
+    JsonNode node=testCollection.query(input.sql);
+    assertEquals(input.numValuesExpected,node.get("entities").size());
+  }
+  return "passed";
+}
