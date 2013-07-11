@@ -9,11 +9,6 @@
   }
   String inquisitiveQuery="select * where Ordinal gte 0 and Ordinal lte 2000 or WhoHelpedYou eq 'Ruff'";
   JsonNode incorrectNode=madeupStuff.query(inquisitiveQuery);
-  int totalEntitiesContained=0;
-  while (incorrectNode.get("entities") != null) {
-    totalEntitiesContained+=incorrectNode.get("entities").size();
-    if (incorrectNode.get("cursor") != null)     incorrectNode=madeupStuff.query(inquisitiveQuery,"cursor",incorrectNode.get("cursor").toString());
- else     break;
-  }
+  int totalEntitiesContained=totalNumOfEntities(incorrectNode,inquisitiveQuery,madeupStuff,"");
   assertEquals(1001,totalEntitiesContained);
 }

@@ -19,12 +19,9 @@
   }
   ArrayUtils.reverse(verifyCreated);
   String query="select * where created >= " + created + "or verb = 'stop'";
-  JsonNode node=activities.query(query,"limit",Integer.toString(10));
-  int totalEntitiesContained=0;
-  while (node.get("entities") != null) {
-    totalEntitiesContained+=node.get("entities").size();
-    if (node.get("cursor") != null)     node=activities.query(query,"cursor",node.get("cursor").toString());
- else     break;
-  }
+  JsonNode incorrectNode=activities.query(query,"limit",Integer.toString(10));
+  String correctQuery="select * where verb = 'stop'";
+  JsonNode node=activities.query(query);
+  int totalEntitiesContained=totalNumOfEntities(node,correctQuery,activities,query,incorrectNode);
   assertEquals(maxSize,totalEntitiesContained);
 }
