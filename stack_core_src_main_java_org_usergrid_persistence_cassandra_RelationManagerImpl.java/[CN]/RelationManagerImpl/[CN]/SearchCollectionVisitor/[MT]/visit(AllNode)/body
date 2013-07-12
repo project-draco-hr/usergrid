@@ -6,6 +6,7 @@
   if (slice.hasCursor()) {
     startId=UUID_PARSER.parse(slice.getCursor());
   }
+  boolean skipFirst=node.isForceKeepFirst() ? false : slice.hasCursor();
   IndexScanner results=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(headEntity.getUuid(),DICTIONARY_COLLECTIONS,collectionName),startId,null,queryProcessor.getPageSizeHint(node),query.isReversed(),indexBucketLocator,applicationId,collectionName);
-  this.results.push(new SliceIterator<UUID>(results,slice,UUID_PARSER));
+  this.results.push(new SliceIterator<UUID>(results,slice,UUID_PARSER,skipFirst));
 }
