@@ -1,8 +1,5 @@
 {
-  Application app=services.getApplication();
-  String apmJSon=(String)app.getProperty(APIGEE_MOBILE_APM_CONFIG_JSON_KEY);
-  logger.debug("Get Apigee APM config " + apmJSon);
-  return new JSONWithPadding(new GenericEntity<String>(apmJSon){
-  }
-,callback);
+  EntityManager em=(EntityManager)emf.getEntityManager(applicationId);
+  Object value=em.getProperty(new SimpleEntityRef(Application.ENTITY_TYPE,applicationId),APIGEE_MOBILE_APM_CONFIG_JSON_KEY);
+  return new JSONWithPadding(value,callback);
 }
