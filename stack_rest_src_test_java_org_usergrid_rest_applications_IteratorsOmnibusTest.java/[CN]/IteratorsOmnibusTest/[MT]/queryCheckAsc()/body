@@ -1,13 +1,9 @@
 {
   CustomCollection madeupStuff=collection("imagination");
   Map character=hashMap("WhoHelpedYou","Ruff");
-  for (int i=0; i < 1000; i++) {
-    character.put("Ordinal",i);
-    madeupStuff.create(character);
-  }
+  madeupStuff.createEntitiesWithOrdinal(character,1000);
   String inquisitiveQuery="select * where Ordinal gte 0 and Ordinal lte 2000 or WhoHelpedYou eq 'Ruff' ORDER BY " + "Ordinal asc";
-  JsonNode incorrectNode=madeupStuff.query(inquisitiveQuery);
-  JsonNode node=madeupStuff.query("select *");
-  int totalEntitiesContained=totalNumOfEntities(node,"select *",madeupStuff,inquisitiveQuery,incorrectNode);
+  String query="select *";
+  int totalEntitiesContained=madeupStuff.verificationOfQueryResults(query,inquisitiveQuery);
   assertEquals(1000,totalEntitiesContained);
 }
