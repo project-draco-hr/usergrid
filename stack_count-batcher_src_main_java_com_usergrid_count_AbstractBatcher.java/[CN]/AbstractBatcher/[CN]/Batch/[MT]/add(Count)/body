@@ -1,9 +1,11 @@
 {
+  if (!counts.offer(count)) {
+    ArrayList<Count> flushed=new ArrayList<Count>(batchSize);
+    counts.drainTo(flushed);
+    batchSubmitter.submit(flushed);
+    batchSubmissionCount.incrementAndGet();
+    counts.offer(count);
+  }
   opCount.incrementAndGet();
   localCallCounter.incrementAndGet();
-  Count found=counts.putIfAbsent(count.getCounterName(),count);
-  if (found != null) {
-    existingCounterHit.inc();
-    counts.put(found.getCounterName(),found.apply(count));
-  }
 }
