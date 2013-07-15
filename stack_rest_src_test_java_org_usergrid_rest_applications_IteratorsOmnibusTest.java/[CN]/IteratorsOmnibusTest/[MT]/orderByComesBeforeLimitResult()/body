@@ -14,10 +14,10 @@
       created=activity.findValue("created").getLongValue();
     }
   }
-  String query="select * where created > " + created + " order by desc";
+  String query="select * where created > " + 1 + " order by created desc";
   String errorQuery=query;
-  JsonNode node=activities.query(query);
-  JsonNode incorrectNode=activities.query(errorQuery,"limit",Integer.toString(5));
+  JsonNode node=activities.withQuery(query).get();
+  JsonNode incorrectNode=activities.withQuery(errorQuery).withLimit("5").get();
   assertEquals(5,incorrectNode.get("entities").size());
   while (checkResultsNum < 5) {
     assertEquals(entityIndex(node,checkResultsNum),entityIndex(incorrectNode,checkResultsNum));

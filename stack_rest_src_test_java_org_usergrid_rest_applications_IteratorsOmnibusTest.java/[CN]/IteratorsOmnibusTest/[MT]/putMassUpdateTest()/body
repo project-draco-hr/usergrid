@@ -12,12 +12,12 @@
     JsonNode activity=activities.create(props);
   }
   String query="select * ";
-  JsonNode node=activities.query(query);
+  JsonNode node=activities.withQuery(query).get();
   String uuid=node.get("entities").get(0).get("uuid").getTextValue();
   StringBuilder buf=new StringBuilder(uuid);
   activities.addToUrlEnd(buf);
   props.put("actor",newActor);
   node=activities.put(props);
-  node=activities.query(query);
+  node=activities.withQuery(query).get();
   assertEquals(6,node.get("entities").size());
 }
