@@ -1,9 +1,11 @@
 {
   int totalEntitiesContained=0;
-  JsonNode correctNode=this.query(query);
+  JsonNode correctNode=this.withQuery(query).withLimit("1000").get();
+  JsonNode checkedNodes=this.withQuery(query).withLimit("1000").get();
   while (correctNode.get("entities") != null) {
     totalEntitiesContained+=correctNode.get("entities").size();
-    if (correctNode.get("cursor") != null)     correctNode=this.query(query,"cursor",correctNode.get("cursor").toString());
+    if (correctNode.get("cursor") != null)     correctNode=this.withQuery(query).withCursor(correctNode.get("cursor").toString()).get();
+ else     break;
   }
   return totalEntitiesContained;
 }
