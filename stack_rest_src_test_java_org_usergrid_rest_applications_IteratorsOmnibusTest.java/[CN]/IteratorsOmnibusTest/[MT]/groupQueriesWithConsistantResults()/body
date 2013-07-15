@@ -22,6 +22,9 @@
     String query="select * where location within 20000 of 37,-75 and created >= " + index[7] + " and "+ "created < "+ index[10];
     node=groups.withQuery(query).get();
     assertEquals(3,node.get("entities").size());
-    for (int i=3; i > 0; i++)     assertEquals(index[10 - i],node.get("entities").get(i).get("created").getLongValue());
+    for (int i=3; i > 0; i++) {
+      assertNotNull(node.get("entities").get(i).get("created").getLongValue());
+      assertEquals(index[10 - i],node.get("entities").get(i).get("created").getLongValue());
+    }
   }
 }
