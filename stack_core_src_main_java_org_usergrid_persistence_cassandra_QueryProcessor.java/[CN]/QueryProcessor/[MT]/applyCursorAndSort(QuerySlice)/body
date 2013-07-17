@@ -1,7 +1,10 @@
 {
   SortPredicate sort=getSort(slice.getPropertyName());
   if (sort != null) {
-    slice.setReversed(sort.getDirection() == SortDirection.DESCENDING);
+    boolean isReversed=sort.getDirection() == SortDirection.DESCENDING;
+    if (isReversed != slice.isReversed()) {
+      slice.reverse();
+    }
   }
   ByteBuffer cursor=cursorCache.getCursorBytes(slice.hashCode());
   if (cursor != null) {
