@@ -1,0 +1,22 @@
+{
+  Set<EntityLocationRef> locations=new TreeSet<EntityLocationRef>();
+  List<Object> keys=new ArrayList<Object>();
+  IndexBucketLocator locator=em.getIndexBucketLocator();
+  UUID appId=em.getApplicationId();
+  for (  String geoCell : curGeocellsUnique) {
+    for (    String indexBucket : locator.getBuckets(appId,IndexType.GEO,geoCell)) {
+      keys.add(key(key,DICTIONARY_GEOCELL,geoCell,indexBucket));
+    }
+  }
+  CassandraService cass=em.getCass();
+  DynamicComposite composite=null;
+  if (startId != null) {
+    composite=new DynamicComposite(startId);
+    setEqualityFlag(composite,ComponentEquality.GREATER_THAN_EQUAL);
+  }
+  Map<ByteBuffer,List<HColumn<ByteBuffer,ByteBuffer>>> rows=cass.multiGetColumns(cass.getApplicationKeyspace(em.getApplicationId()),ENTITY_INDEX,keys,composite,null,count,false);
+  for (  List<HColumn<ByteBuffer,ByteBuffer>> columns : rows.values()) {
+    addLocationIndexEntries(columns,locations,searchPoint);
+  }
+  return locations;
+}

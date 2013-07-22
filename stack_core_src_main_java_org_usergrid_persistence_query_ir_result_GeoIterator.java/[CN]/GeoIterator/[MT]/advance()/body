@@ -3,40 +3,23 @@
     return;
   }
   idOrder.clear();
-  distances=new ArrayList<Double>(resultSize);
-  int count=0;
-  while (!done && idOrder.size() < resultSize) {
-    SearchResults<EntityLocationRef> results;
-    int queriedSize=resultSize - idOrder.size();
-    if (startId != null) {
-      queriedSize++;
-    }
-    try {
-      results=searcher.doSearch(cursorDistance,startId,nextResolution,queriedSize);
-    }
- catch (    Exception e) {
-      throw new RuntimeException(e);
-    }
-    List<EntityLocationRef> locations=results.getResults();
-    List<Double> resultDistances=results.getDistances();
-    nextResolution=results.getLastResolution();
-    if (startId != null && locations.size() > 0 && startId.equals(locations.get(0).getUuid())) {
-      locations.remove(0);
-      resultDistances.remove(0);
-    }
-    for (int i=0; i < locations.size(); i++) {
-      EntityLocationRef location=locations.get(i);
-      double distance=resultDistances.get(i);
-      UUID id=location.getUuid();
-      idOrder.put(id,count);
-      distances.add(distance);
-      startId=id;
-      cursorDistance=distance;
-      count++;
-    }
-    if (locations.size() < queriedSize) {
-      done=true;
-    }
+  SearchResults results;
+  try {
+    results=searcher.proximitySearch(last,lastCellsSearched,resultSize);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Unable to search geo locations",e);
+  }
+  List<EntityLocationRef> locations=results.entityLocations;
+  lastCellsSearched=results.lastSearchedGeoCells;
+  for (int i=0; i < locations.size(); i++) {
+    EntityLocationRef location=locations.get(i);
+    UUID id=location.getUuid();
+    idOrder.put(id,location);
+    last=location;
+  }
+  if (locations.size() < resultSize) {
+    done=true;
   }
   if (idOrder.size() > 0) {
     toReturn=idOrder.keySet();

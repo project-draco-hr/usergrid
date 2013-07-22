@@ -1,14 +1,23 @@
 {
-  Integer index=idOrder.get(lastValue);
-  if (index == null) {
+  EntityLocationRef location=idOrder.get(uuid);
+  if (location == null) {
     return;
   }
   int sliceHash=slice.hashCode();
-  double distance=distances.get(index);
+  double lattitude=location.getLatitude();
+  double longitude=location.getLongitude();
   StringBuilder builder=new StringBuilder();
-  builder.append(lastValue).append(DELIM);
-  builder.append(distance).append(DELIM);
-  builder.append(nextResolution);
+  builder.append(uuid).append(DELIM);
+  builder.append(lattitude).append(DELIM);
+  builder.append(longitude);
+  if (lastCellsSearched != null) {
+    builder.append(DELIM);
+    for (    String geoCell : lastCellsSearched) {
+      builder.append(geoCell).append(TILE_DELIM);
+    }
+    int length=builder.length();
+    builder.delete(length - TILE_DELIM.length() - 1,length);
+  }
   ByteBuffer buff=STR_SER.toByteBuffer(builder.toString());
   cache.setNextCursor(sliceHash,buff);
 }
