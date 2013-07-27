@@ -2,11 +2,12 @@
   if (principal == null) {
     return maxPersistenceTokenAge;
   }
+  long defaultMaxTtlForTokenType=getExpirationForTokenType(tokenCategory);
   Application application=emf.getEntityManager(principal.getApplicationId()).get(principal.getApplicationId(),Application.class);
   if (application == null) {
-    return maxPersistenceTokenAge;
+    return defaultMaxTtlForTokenType;
   }
-  long maxTokenTtl=maxPersistenceTokenAge;
+  long maxTokenTtl=defaultMaxTtlForTokenType;
   if (application.getAccesstokenttl() != null) {
     maxTokenTtl=application.getAccesstokenttl();
     if (maxTokenTtl == 0) {
