@@ -9,13 +9,6 @@
   if (context.getRequest().isReturnsTree()) {
     level=Results.Level.ALL_PROPERTIES;
   }
-  if (context.getAction() == ServiceAction.POST) {
-    List<ServiceParameter> parameters=context.getRequest().getParameters();
-    String lastParam=parameters.get(parameters.size() - 1).getName();
-    if (lastParam.equalsIgnoreCase("notification") || lastParam.equalsIgnoreCase("notifications")) {
-      count=10000;
-    }
-  }
   query=new Query(query);
   query.setResultsLevel(level);
   query.setLimit(query.getLimit(count));
@@ -24,6 +17,13 @@
   }
   if (!query.isSortSet()) {
     query.addSort(getCollectionSort(context));
+  }
+  if (context.getAction() == ServiceAction.POST) {
+    List<ServiceParameter> parameters=context.getRequest().getParameters();
+    String lastParam=parameters.get(parameters.size() - 1).getName();
+    if (lastParam.equalsIgnoreCase("notification") || lastParam.equalsIgnoreCase("notifications")) {
+      query.setLimitNoCheck(MAX_NOTIFICATION_MATRIX_QUERY_SIZE);
+    }
   }
   Results r=em.searchCollection(context.getOwner(),context.getCollectionName(),query);
   List<ServiceRequest> nextRequests=null;
