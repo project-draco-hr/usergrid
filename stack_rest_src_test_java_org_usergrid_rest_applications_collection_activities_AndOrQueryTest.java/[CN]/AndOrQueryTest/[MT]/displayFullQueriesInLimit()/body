@@ -14,5 +14,8 @@
   JsonNode node=activities.withQuery("select * where ordinal > 9").get();
   JsonNode incorrectNode=activities.query(query,"limit",Integer.toString(10));
   assertEquals(10,incorrectNode.get("entities").size());
-  for (int i=0; i < 10; i++)   assertEquals(node.get("entities").get(i),incorrectNode.get("entities").get(i));
+  for (int i=0; i < 10; i++) {
+    assertEquals(19 - i,incorrectNode.get("entities").get(i).get("ordinal").getIntValue());
+    assertEquals("stop",incorrectNode.get("entities").get(i).get("verb").getTextValue());
+  }
 }
