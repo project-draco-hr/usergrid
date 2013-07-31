@@ -1,7 +1,6 @@
 {
   CustomCollection activities=collection("activities");
   long created=0;
-  long newlyCreated=0;
   Map actor=hashMap("displayName","Erin");
   Map props=new HashMap();
   props.put("actor",actor);
@@ -15,13 +14,8 @@
     if (i == 0) {
       created=activity.findValue("created").getLongValue();
     }
-    if (i == 1000) {
-      newlyCreated=activity.findValue("created").getLongValue();
-    }
   }
-  String query="select * where created >= " + newlyCreated;
   String errorQuery="select * where created >= " + created + "AND madeup = true";
-  JsonNode node=activities.withQuery(query).get();
   JsonNode incorrectNode=activities.withQuery(errorQuery).get();
   assertEquals(10,incorrectNode.get("entities").size());
 }
