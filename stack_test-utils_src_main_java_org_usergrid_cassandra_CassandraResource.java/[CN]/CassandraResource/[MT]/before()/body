@@ -1,14 +1,21 @@
 {
-  super.before();
-  logger.info("Initializing Cassandra...");
-  System.setProperty("cassandra-foreground","true");
-  System.setProperty("log4j.defaultInitOverride","true");
-  System.setProperty("log4j.configuration","log4j.properties");
-  System.setProperty("cassandra.ring_delay_ms","100");
-  FileUtils.deleteQuietly(new File(TMP));
-  cassandraDaemon=new CassandraDaemon();
-  cassandraDaemon.activate();
-  String[] locations={"usergrid-test-context.xml"};
-  applicationContext=new ClassPathXmlApplicationContext(locations);
-  loadSchemaManager(schemaManagerName);
+synchronized (lock) {
+    super.before();
+    if (isReady()) {
+      return;
+    }
+    LOG.info("Initializing Cassandra...");
+    System.setProperty("cassandra-foreground","true");
+    System.setProperty("log4j.defaultInitOverride","true");
+    System.setProperty("log4j.configuration","log4j.properties");
+    System.setProperty("cassandra.ring_delay_ms","100");
+    FileUtils.deleteQuietly(new File(TMP));
+    cassandraDaemon=new CassandraDaemon();
+    cassandraDaemon.activate();
+    String[] locations={"usergrid-test-context.xml"};
+    applicationContext=new ClassPathXmlApplicationContext(locations);
+    loadSchemaManager(schemaManagerName);
+    initialized=true;
+    lock.notifyAll();
+  }
 }
