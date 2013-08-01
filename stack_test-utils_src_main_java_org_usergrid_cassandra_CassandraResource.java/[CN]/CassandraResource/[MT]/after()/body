@@ -1,0 +1,18 @@
+{
+  super.after();
+  logger.info("Shutting down Cassandra");
+  if (schemaManager != null) {
+    schemaManager.destroy();
+  }
+  applicationContext.stop();
+  try {
+    if (cassandraDaemon != null) {
+      cassandraDaemon.deactivate();
+    }
+    executor.shutdown();
+    executor.shutdownNow();
+  }
+ catch (  Exception ex) {
+    ex.printStackTrace();
+  }
+}

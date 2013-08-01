@@ -1,0 +1,16 @@
+{
+  if (!applicationContext.isActive()) {
+    logger.info("Restarting context...");
+    applicationContext.refresh();
+  }
+  if (schemaManager != null) {
+    logger.info("dataControl found - looking upma SchemaManager impl");
+    this.schemaManager=getBean(schemaManagerName,SchemaManager.class);
+  }
+ else {
+    logger.info("SchemaManager is null - using the default SchemaManager impl");
+    this.schemaManager=getBean(SchemaManager.class);
+  }
+  schemaManager.create();
+  schemaManager.populateBaseData();
+}
