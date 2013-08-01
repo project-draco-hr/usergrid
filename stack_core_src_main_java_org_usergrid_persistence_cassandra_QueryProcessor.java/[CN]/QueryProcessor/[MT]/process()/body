@@ -7,14 +7,14 @@
     opCount=visitor.getSliceCount();
   }
   if (sorts.size() > 0) {
-    SliceNode sorts=generateSorts(opCount);
-    opCount+=sorts.getAllSlices().size();
+    OrderByNode order=generateSorts(opCount);
+    opCount+=order.getFirstPredicate().getAllSlices().size();
     if (rootNode != null) {
-      AndNode and=new AndNode(sorts,rootNode);
+      AndNode and=new AndNode(order,rootNode);
       rootNode=and;
     }
  else {
-      rootNode=sorts;
+      rootNode=order;
     }
   }
   if (rootNode == null) {
