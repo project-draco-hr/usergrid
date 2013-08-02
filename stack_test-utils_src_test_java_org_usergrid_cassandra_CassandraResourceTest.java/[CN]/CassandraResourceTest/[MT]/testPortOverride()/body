@@ -1,0 +1,18 @@
+{
+  int rpcPort;
+  int storagePort;
+  do {
+    rpcPort=AvailablePortFinder.getNextAvailable(CassandraResource.DEFAULT_RPC_PORT + 1);
+  }
+ while (rpcPort == CassandraResource.DEFAULT_RPC_PORT);
+  LOG.info("Setting rpc_port to {}",rpcPort);
+  do {
+    storagePort=AvailablePortFinder.getNextAvailable(CassandraResource.DEFAULT_STORAGE_PORT + 1);
+  }
+ while (storagePort == CassandraResource.DEFAULT_STORAGE_PORT);
+  LOG.info("Setting storage_port to {}",storagePort);
+  final CassandraResource cassandraResource=new CassandraResource(rpcPort,storagePort);
+  cassandraResource.before();
+  cassandraResource.after();
+  LOG.info("Got the test bean: ");
+}

@@ -9,6 +9,14 @@ synchronized (lock) {
     System.setProperty("log4j.defaultInitOverride","true");
     System.setProperty("log4j.configuration","log4j.properties");
     System.setProperty("cassandra.ring_delay_ms","100");
+    if (getRpcPort() != DEFAULT_RPC_PORT || getStoragePort() != DEFAULT_STORAGE_PORT) {
+      Yaml yaml=new Yaml();
+      URL url=ClassLoader.getSystemResource("cassandra.yaml");
+      Map<String,Object> map=(Map<String,Object>)yaml.load(new FileInputStream(url.getFile()));
+      map.put(RPC_PORT_KEY,getRpcPort());
+      map.put(STORAGE_PORT_KEY,getStoragePort());
+      yaml.dump(map,new FileWriter(url.getFile()));
+    }
     FileUtils.deleteQuietly(new File(TMP));
     cassandraDaemon=new CassandraDaemon();
     cassandraDaemon.activate();
