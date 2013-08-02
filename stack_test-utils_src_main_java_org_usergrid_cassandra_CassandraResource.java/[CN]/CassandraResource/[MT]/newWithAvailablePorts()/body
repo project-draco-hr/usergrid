@@ -1,13 +1,20 @@
 {
-  int rpcPort;
-  int storagePort;
-  do {
-    rpcPort=AvailablePortFinder.getNextAvailable(CassandraResource.DEFAULT_RPC_PORT);
+  int rpcPort=AvailablePortFinder.getNextAvailable(CassandraResource.DEFAULT_RPC_PORT);
+  int storagePort=AvailablePortFinder.getNextAvailable(CassandraResource.DEFAULT_STORAGE_PORT);
+  int sslStoragePort=AvailablePortFinder.getNextAvailable(CassandraResource.DEFAULT_SSL_STORAGE_PORT);
+  if (rpcPort == storagePort) {
+    storagePort++;
+    storagePort=AvailablePortFinder.getNextAvailable(storagePort);
   }
- while (rpcPort == CassandraResource.DEFAULT_RPC_PORT);
-  do {
-    storagePort=AvailablePortFinder.getNextAvailable(CassandraResource.DEFAULT_RPC_PORT);
+  if (sslStoragePort == storagePort) {
+    sslStoragePort++;
+    sslStoragePort=AvailablePortFinder.getNextAvailable(sslStoragePort);
   }
- while (storagePort == CassandraResource.DEFAULT_RPC_PORT);
-  return new CassandraResource(rpcPort,storagePort);
+  try {
+    return new CassandraResource(rpcPort,storagePort,sslStoragePort);
+  }
+ catch (  IOException e) {
+    LOG.error("Failed to initialized CassandraResource",e);
+    throw new RuntimeException(e);
+  }
 }

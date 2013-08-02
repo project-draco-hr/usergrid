@@ -4,20 +4,34 @@ synchronized (lock) {
     if (isReady()) {
       return;
     }
+    URL oriYamlUrl=ClassLoader.getSystemResource("cassandra.yaml");
+    File oriYamlFile=new File(oriYamlUrl.getFile());
+    File newYamlFile=new File(tempDir,"cassandra.yaml");
+    URL newYamlUrl=FileUtils.toURLs(new File[]{newYamlFile})[0];
+    Yaml yaml=new Yaml();
+    @SuppressWarnings("unchecked") Map<String,Object> map=(Map<String,Object>)yaml.load(new FileInputStream(oriYamlFile));
+    map.put(RPC_PORT_KEY,getRpcPort());
+    map.put(STORAGE_PORT_KEY,getStoragePort());
+    map.put(SSL_STORAGE_PORT_KEY,getSslStoragePort());
+    map.put(COMMIT_FILE_DIR_KEY,new File(tempDir,"commitlog").toString());
+    map.put(DATA_FILE_DIR_KEY,new String[]{new File(tempDir,"data").toString()});
+    map.put(SAVED_CACHES_DIR_KEY,new File(tempDir,"saved_caches").toString());
+    FileWriter writer=new FileWriter(newYamlFile);
+    yaml.dump(map,writer);
+    writer.flush();
+    writer.close();
     LOG.info("Initializing Cassandra...");
     System.setProperty("cassandra-foreground","true");
     System.setProperty("log4j.defaultInitOverride","true");
     System.setProperty("log4j.configuration","log4j.properties");
     System.setProperty("cassandra.ring_delay_ms","100");
-    if (getRpcPort() != DEFAULT_RPC_PORT || getStoragePort() != DEFAULT_STORAGE_PORT) {
-      Yaml yaml=new Yaml();
-      URL url=ClassLoader.getSystemResource("cassandra.yaml");
-      Map<String,Object> map=(Map<String,Object>)yaml.load(new FileInputStream(url.getFile()));
-      map.put(RPC_PORT_KEY,getRpcPort());
-      map.put(STORAGE_PORT_KEY,getStoragePort());
-      yaml.dump(map,new FileWriter(url.getFile()));
+    System.setProperty("cassandra.config",newYamlUrl.toString());
+    System.setProperty("cassandra." + RPC_PORT_KEY,Integer.toString(rpcPort));
+    System.setProperty("cassandra." + STORAGE_PORT_KEY,Integer.toString(storagePort));
+    System.setProperty("cassandra." + SSL_STORAGE_PORT_KEY,Integer.toString(sslStoragePort));
+    if (!newYamlFile.exists()) {
+      throw new RuntimeException("Cannot find new Yaml file: " + newYamlFile);
     }
-    FileUtils.deleteQuietly(new File(TMP));
     cassandraDaemon=new CassandraDaemon();
     cassandraDaemon.activate();
     String[] locations={"usergrid-test-context.xml"};
