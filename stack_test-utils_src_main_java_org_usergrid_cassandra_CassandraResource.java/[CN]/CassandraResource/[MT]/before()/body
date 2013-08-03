@@ -4,6 +4,7 @@ synchronized (lock) {
     if (isReady()) {
       return;
     }
+    LOG.info("Initializing Cassandra at {} ...",tempDir.toString());
     URL oriYamlUrl=ClassLoader.getSystemResource("cassandra.yaml");
     File oriYamlFile=new File(oriYamlUrl.getFile());
     File newYamlFile=new File(tempDir,"cassandra.yaml");
@@ -20,7 +21,6 @@ synchronized (lock) {
     yaml.dump(map,writer);
     writer.flush();
     writer.close();
-    LOG.info("Initializing Cassandra...");
     System.setProperty("cassandra-foreground","true");
     System.setProperty("log4j.defaultInitOverride","true");
     System.setProperty("log4j.configuration","log4j.properties");
@@ -38,6 +38,7 @@ synchronized (lock) {
     applicationContext=new ClassPathXmlApplicationContext(locations);
     loadSchemaManager(schemaManagerName);
     initialized=true;
+    LOG.info("External Cassandra resource at {} is ready!",tempDir.toString());
     lock.notifyAll();
   }
 }
