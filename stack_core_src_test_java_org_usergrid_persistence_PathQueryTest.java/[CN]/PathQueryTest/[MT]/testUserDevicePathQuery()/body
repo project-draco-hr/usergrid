@@ -23,27 +23,30 @@
   assertEquals(5,devices.size());
   int pageSize=10;
   Query userQuery=new Query();
+  userQuery.setCollection("users");
   userQuery.setLimit(pageSize);
   userQuery.addFilter("index >= 2");
   userQuery.addFilter("index <= 13");
   int expectedUserQuerySize=12;
   Results results=em.searchCollection(em.getApplicationRef(),"users",userQuery);
   PagingResultsIterator pri=new PagingResultsIterator(results);
-  int i=2;
+  int count=2;
   while (pri.hasNext()) {
     Entity e=(Entity)pri.next();
-    assertEquals(i++,((Long)e.getProperty("index")).intValue());
+    assertEquals(count++,((Long)e.getProperty("index")).intValue());
   }
-  assertEquals(i,expectedUserQuerySize + 2);
+  assertEquals(count,expectedUserQuerySize + 2);
   Query deviceQuery=new Query();
+  deviceQuery.setCollection("devices");
   deviceQuery.setLimit(pageSize);
   deviceQuery.addFilter("index >= 2");
   int expectedDeviceQuerySize=3;
-  PathQuery<UUID> usersPQ=new PathQuery<UUID>(results);
-  PathQuery<Entity> devicesPQ=usersPQ.chainCollectionQuery("devices",deviceQuery);
+  PathQuery<UUID> usersPQ=new PathQuery<UUID>(em.getApplicationRef(),userQuery);
+  PathQuery<Entity> devicesPQ=usersPQ.chain(deviceQuery);
   HashSet set=new HashSet(expectedUserQuerySize * expectedDeviceQuerySize);
-  for (  Entity e : devicesPQ) {
-    set.add(e);
+  Iterator<Entity> i=devicesPQ.iterator(em);
+  while (i.hasNext()) {
+    set.add(i.next());
   }
   assertEquals(expectedUserQuerySize * expectedDeviceQuerySize,set.size());
 }
