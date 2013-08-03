@@ -1,0 +1,35 @@
+{
+  long twoWeeks=TimeUnit.DAYS.toMillis(14);
+  long createdTime=System.currentTimeMillis() - twoWeeks;
+  TokenServiceImpl tokenServiceImpl=CassandraRunner.getBean(TokenServiceImpl.class);
+  OrganizationOwnerInfo orgInfo=managementService.createOwnerAndOrganization("appExpirationInfiniteNotDenied","appExpirationInfiniteNotDenied","foobar","appExpirationInfiniteNotDenied@bar.com","foobar");
+  ApplicationInfo appInfo=managementService.createApplication(orgInfo.getOrganization().getUuid(),"bar");
+  EntityManager em=entityManagerFactory.getEntityManager(appInfo.getId());
+  Application app=em.getApplication();
+  long appTokenAge=0;
+  app.setAccesstokenttl(appTokenAge);
+  em.updateApplication(app);
+  AuthPrincipalInfo userPrincipal=new AuthPrincipalInfo(AuthPrincipalType.APPLICATION_USER,UUIDUtils.newTimeUUID(),app.getUuid());
+  String token=tokenServiceImpl.createToken(TokenCategory.ACCESS,null,userPrincipal,null,0,createdTime);
+  assertNotNull(token);
+  TokenInfo tokenInfo=tokenServiceImpl.getTokenInfo(token);
+  assertNotNull(tokenInfo);
+  assertEquals(Long.MAX_VALUE,tokenInfo.getDuration());
+  boolean invalidTokenException=false;
+  try {
+    tokenService.getTokenInfo(token);
+  }
+ catch (  InvalidTokenException ite) {
+    invalidTokenException=true;
+  }
+  assertFalse(invalidTokenException);
+  tokenService.revokeToken(token);
+  invalidTokenException=false;
+  try {
+    tokenService.getTokenInfo(token);
+  }
+ catch (  InvalidTokenException ite) {
+    invalidTokenException=true;
+  }
+  assertTrue(invalidTokenException);
+}
