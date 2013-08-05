@@ -5,12 +5,10 @@ synchronized (lock) {
       return;
     }
     LOG.info("Initializing Cassandra at {} ...",tempDir.toString());
-    URL oriYamlUrl=ClassLoader.getSystemResource("cassandra.yaml");
-    File oriYamlFile=new File(oriYamlUrl.getFile());
     File newYamlFile=new File(tempDir,"cassandra.yaml");
     URL newYamlUrl=FileUtils.toURLs(new File[]{newYamlFile})[0];
     Yaml yaml=new Yaml();
-    @SuppressWarnings("unchecked") Map<String,Object> map=(Map<String,Object>)yaml.load(new FileInputStream(oriYamlFile));
+    @SuppressWarnings("unchecked") Map<String,Object> map=(Map<String,Object>)yaml.load(ClassLoader.getSystemResourceAsStream("cassandra.yaml"));
     map.put(RPC_PORT_KEY,getRpcPort());
     map.put(STORAGE_PORT_KEY,getStoragePort());
     map.put(SSL_STORAGE_PORT_KEY,getSslStoragePort());
@@ -21,6 +19,7 @@ synchronized (lock) {
     yaml.dump(map,writer);
     writer.flush();
     writer.close();
+    System.setProperty("cassandra.url","localhost:" + Integer.toString(rpcPort));
     System.setProperty("cassandra-foreground","true");
     System.setProperty("log4j.defaultInitOverride","true");
     System.setProperty("log4j.configuration","log4j.properties");
@@ -34,6 +33,12 @@ synchronized (lock) {
     }
     cassandraDaemon=new CassandraDaemon();
     cassandraDaemon.activate();
+    Runtime.getRuntime().addShutdownHook(new Thread(){
+      @Override public void run(){
+        after();
+      }
+    }
+);
     String[] locations={"usergrid-test-context.xml"};
     applicationContext=new ClassPathXmlApplicationContext(locations);
     loadSchemaManager(schemaManagerName);
