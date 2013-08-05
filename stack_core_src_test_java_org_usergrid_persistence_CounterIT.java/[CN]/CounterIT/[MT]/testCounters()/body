@@ -1,0 +1,53 @@
+{
+  logger.info("CounterIT.testCounters");
+  UUID applicationId=createApplication("testOrganization","testCounters");
+  assertNotNull(applicationId);
+  EntityManager em=emf.getEntityManager(applicationId);
+  assertNotNull(em);
+  UUID user1=UUID.randomUUID();
+  UUID user2=UUID.randomUUID();
+  Event event=null;
+  for (int i=0; i < 100; i++) {
+    event=new Event();
+    event.setTimestamp(ts + (i * 60 * 1000));
+    event.addCounter("visits",1);
+    event.setUser(user1);
+    em.create(event);
+    event=new Event();
+    event.setTimestamp(ts + (i * 60 * 1000));
+    event.addCounter("visits",1);
+    event.setUser(user2);
+    em.create(event);
+  }
+  Results r=em.getAggregateCounters(null,null,null,"visits",CounterResolution.SIX_HOUR,ts,System.currentTimeMillis(),false);
+  logger.info(JsonUtils.mapToJsonString(r.getCounters()));
+  r=em.getAggregateCounters(user1,null,null,"visits",CounterResolution.SIX_HOUR,ts,System.currentTimeMillis(),false);
+  logger.info(JsonUtils.mapToJsonString(r.getCounters()));
+  r=em.getAggregateCounters(user1,null,null,"visits",CounterResolution.SIX_HOUR,ts,System.currentTimeMillis(),true);
+  logger.info(JsonUtils.mapToJsonString(r.getCounters()));
+  r=em.getAggregateCounters(user1,null,null,"visits",CounterResolution.ALL,ts,System.currentTimeMillis(),false);
+  logger.info(JsonUtils.mapToJsonString(r.getCounters()));
+  for (int i=0; i < 10; i++) {
+    event=new Event();
+    event.setTimestamp(ts + (i * 60 * 60* 1000));
+    event.addCounter("clicks",1);
+    em.create(event);
+  }
+  r=em.getAggregateCounters(null,null,null,"clicks",CounterResolution.HALF_HOUR,ts,System.currentTimeMillis(),true);
+  logger.info(JsonUtils.mapToJsonString(r.getCounters()));
+  Query query=new Query();
+  query.addCounterFilter("clicks:*:*:*");
+  query.addCounterFilter("visits:*:*:*");
+  query.setStartTime(ts);
+  query.setFinishTime(System.currentTimeMillis());
+  query.setResolution(CounterResolution.SIX_HOUR);
+  query.setPad(true);
+  r=em.getAggregateCounters(query);
+  logger.info(JsonUtils.mapToJsonString(r.getCounters()));
+  logger.info(JsonUtils.mapToJsonString(em.getCounterNames()));
+  Map<String,Long> counts=em.getApplicationCounters();
+  logger.info(JsonUtils.mapToJsonString(counts));
+  assertEquals(new Long(10),counts.get("clicks"));
+  assertEquals(new Long(200),counts.get("visits"));
+  assertEquals(new Long(210),counts.get("application.collection.events"));
+}
