@@ -1,6 +1,14 @@
 {
   Batch active=batch;
-  if (active.getCapacity() == 0) {
+  if (active == null) {
+synchronized (this) {
+      active=batch;
+      if (active == null) {
+        batch=active=new Batch();
+      }
+    }
+  }
+  if (batchSize > 1 && active.getCapacity() == 0) {
 synchronized (this) {
       if (active.getCapacity() == 0) {
         active.flush();
