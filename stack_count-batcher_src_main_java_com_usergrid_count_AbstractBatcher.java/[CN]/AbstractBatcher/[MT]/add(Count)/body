@@ -1,14 +1,11 @@
 {
   invocationCounter.inc();
   final TimerContext context=addTimer.time();
-  batch.add(count);
-  if (shouldSubmit(batch) && submitLock.tryLock()) {
-    try {
-      submit(copyAndClear(batch));
-    }
-  finally {
-      submitLock.unlock();
-    }
+  if (batchSize == 1) {
+    getBatch().addSerial(count);
+  }
+ else {
+    getBatch().add(count);
   }
   context.stop();
 }

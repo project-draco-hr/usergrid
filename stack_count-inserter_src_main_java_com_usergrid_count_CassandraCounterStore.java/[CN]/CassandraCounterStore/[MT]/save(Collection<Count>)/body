@@ -1,6 +1,16 @@
 {
-  Mutator<ByteBuffer> mutator=HFactory.createMutator(keyspace,ByteBufferSerializer.get());
+  Map<String,Count> countHolder=new HashMap<String,Count>();
   for (  Count count : counts) {
+    Count c=countHolder.get(count.getCounterName());
+    if (c != null) {
+      c.apply(count);
+    }
+ else {
+      countHolder.put(count.getCounterName(),count);
+    }
+  }
+  Mutator<ByteBuffer> mutator=HFactory.createMutator(keyspace,ByteBufferSerializer.get());
+  for (  Count count : countHolder.values()) {
     mutator.addCounter(count.getKeyNameBytes(),count.getTableName(),new HCounterColumnImpl(count.getColumnName(),count.getValue(),count.getColumnNameSerializer()));
   }
   try {
