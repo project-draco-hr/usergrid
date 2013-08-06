@@ -1,0 +1,33 @@
+{
+  UUID applicationId=createApplication("testOrganization","testGeoWithIntersection");
+  assertNotNull(applicationId);
+  EntityManager em=emf.getEntityManager(applicationId);
+  assertNotNull(em);
+  int size=100;
+  int min=50;
+  int max=90;
+  List<Entity> created=new ArrayList<Entity>(size);
+  for (int i=0; i < size; i++) {
+    Map<String,Object> data=new HashMap<String,Object>(2);
+    data.put("name",String.valueOf(i));
+    data.put("index",i);
+    setPos(data,0,0);
+    Entity e=em.create("store",data);
+    created.add(e);
+  }
+  int startDelta=size - min;
+  String queryString=String.format("select * where index >= %d and index < %d order by index",min,max);
+  Query query=Query.fromQL(queryString);
+  Results r=null;
+  int count=0;
+  do {
+    r=em.searchCollection(em.getApplicationRef(),"stores",query);
+    for (    Entity e : r.getEntities()) {
+      assertEquals(created.get(startDelta + count),e);
+      count++;
+    }
+    query.setCursor(r.getCursor());
+  }
+ while (r.hasCursor());
+  assertEquals(startDelta - (size - max),count);
+}

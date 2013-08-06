@@ -2,6 +2,7 @@
   if (ql == null) {
     return null;
   }
+  String originalQl=ql;
   ql=ql.trim();
   String qlt=ql.toLowerCase();
   if (!qlt.startsWith("select") && !qlt.startsWith("insert") && !qlt.startsWith("update")&& !qlt.startsWith("delete")) {
@@ -17,14 +18,16 @@
   CommonTokenStream tokens=new CommonTokenStream(lexer);
   QueryFilterParser parser=new QueryFilterParser(tokens);
   try {
-    return parser.ql().query;
+    Query q=parser.ql().query;
+    q.setQl(originalQl);
+    return q;
   }
  catch (  RecognitionException e) {
     logger.error("Unable to parse \"{}\"",ql,e);
     int index=e.index;
     int lineNumber=e.line;
     Token token=e.token;
-    String message=String.format("The query cannot be parsed.  The token '%s' at column %d on line %d cannot be parsed",token.getText(),index,lineNumber);
+    String message=String.format("The query cannot be parsed. The token '%s' at column %d on line %d cannot be " + "parsed",token.getText(),index,lineNumber);
     throw new QueryParseException(message,e);
   }
 }
