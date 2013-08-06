@@ -1,11 +1,8 @@
 {
-  if (!counts.offer(count)) {
-    ArrayList<Count> flushed=new ArrayList<Count>(batchSize);
-    counts.drainTo(flushed);
-    batchSubmitter.submit(flushed);
-    batchSubmissionCount.incrementAndGet();
-    counts.offer(count);
+  try {
+    counts.offer(count,500,TimeUnit.MILLISECONDS);
   }
-  opCount.incrementAndGet();
-  localCallCounter.incrementAndGet();
+ catch (  Exception ex) {
+    ex.printStackTrace();
+  }
 }
