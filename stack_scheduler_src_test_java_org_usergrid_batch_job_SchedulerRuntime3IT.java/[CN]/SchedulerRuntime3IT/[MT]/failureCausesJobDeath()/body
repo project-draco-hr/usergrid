@@ -1,0 +1,15 @@
+{
+  int failCount=Integer.parseInt(props.getProperty(FAIL_PROP));
+  long sleepTime=Long.parseLong(props.getProperty(RUNNLOOP_PROP));
+  FailureJobExceuction job=cassandraResource.getBean("failureJobExceuction",FailureJobExceuction.class);
+  int latchValue=failCount + 1;
+  job.setLatch(latchValue);
+  JobData returned=scheduler.createJob("failureJobExceuction",System.currentTimeMillis(),new JobData());
+  boolean waited=job.waitForCount((failCount + 2) * sleepTime,TimeUnit.MILLISECONDS);
+  assertFalse("Job ran to failure",waited);
+  assertEquals(1,job.getLatchCount());
+  JobStat stat=scheduler.getStatsForJob(returned.getJobName(),returned.getUuid());
+  assertEquals(latchValue,stat.getTotalAttempts());
+  assertEquals(latchValue,stat.getRunCount());
+  assertEquals(0,stat.getDelayCount());
+}
