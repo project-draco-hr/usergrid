@@ -14,25 +14,6 @@
     addInsertToMutator(batch,ENTITY_COMPOSITE_DICTIONARIES,key(entity.getUuid(),Schema.DICTIONARY_CONTAINER_ENTITIES),asList(ownerType,collectionName,ownerId),membershipRef.getUuid(),timestamp);
   }
   Schema schema=getDefaultSchema();
-  CollectionInfo collection=schema.getCollection(ownerType,collectionName);
-  if (collection != null) {
-    if (collection.hasSubkeys()) {
-      List<String[]> combos=collection.getSubkeyCombinations();
-      for (      String[] combo : combos) {
-        List<Object> subkey_props=new ArrayList<Object>();
-        for (        String subkey_name : combo) {
-          Object subkey_value=null;
-          if (subkey_name != null) {
-            subkey_value=entity.getProperty(subkey_name);
-          }
-          subkey_props.add(subkey_value);
-        }
-        for (        UUID ownerId : ownerIds) {
-          addInsertToMutator(batch,ENTITY_ID_SETS,key(ownerId,Schema.DICTIONARY_COLLECTIONS,collectionName,subkey_props.toArray()),entity.getUuid(),membershipRefs.get(ownerId).getUuid(),timestamp);
-        }
-      }
-    }
-  }
   for (  String propertyName : entity.getProperties().keySet()) {
     boolean indexed_property=schema.isPropertyIndexed(entity.getType(),propertyName);
     if (indexed_property) {

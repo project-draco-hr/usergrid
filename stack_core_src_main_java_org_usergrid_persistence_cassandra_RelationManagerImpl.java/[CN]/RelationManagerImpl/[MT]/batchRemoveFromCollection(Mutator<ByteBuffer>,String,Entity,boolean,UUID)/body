@@ -27,23 +27,6 @@
     }
   }
   addDeleteToMutator(batch,ENTITY_ID_SETS,collections_key,entity.getUuid(),timestamp);
-  CollectionInfo collection=schema.getCollection(headEntity.getType(),collectionName);
-  if (collection != null) {
-    if (collection.hasSubkeys()) {
-      List<String[]> combos=collection.getSubkeyCombinations();
-      for (      String[] combo : combos) {
-        List<Object> subkey_props=new ArrayList<Object>();
-        for (        String subkey_name : combo) {
-          Object subkey_value=null;
-          if (subkey_name != null) {
-            subkey_value=entity.getProperty(subkey_name);
-          }
-          subkey_props.add(subkey_value);
-        }
-        addDeleteToMutator(batch,ENTITY_ID_SETS,key(collections_key,subkey_props.toArray()),entity.getUuid(),timestamp);
-      }
-    }
-  }
   addDeleteToMutator(batch,ENTITY_COMPOSITE_DICTIONARIES,key(entity.getUuid(),Schema.DICTIONARY_CONTAINER_ENTITIES),asList(headEntity.getType(),collectionName,headEntity.getUuid()),timestamp);
   if (!headEntity.getType().equalsIgnoreCase(TYPE_APPLICATION) && !Schema.isAssociatedEntityType(entity.getType())) {
     em.deleteEntity(new SimpleCollectionRef(headEntity,collectionName,entity).getUuid());
