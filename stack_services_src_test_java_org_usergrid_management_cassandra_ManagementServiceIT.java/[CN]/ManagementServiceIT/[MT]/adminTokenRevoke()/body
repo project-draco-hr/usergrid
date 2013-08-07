@@ -1,0 +1,24 @@
+{
+  UUID userId=adminUser.getUuid();
+  String token1=setup.getMgmtSvc().getAccessTokenForAdminUser(userId,0);
+  String token2=setup.getMgmtSvc().getAccessTokenForAdminUser(userId,0);
+  assertNotNull(setup.getTokenSvc().getTokenInfo(token1));
+  assertNotNull(setup.getTokenSvc().getTokenInfo(token2));
+  setup.getMgmtSvc().revokeAccessTokenForAdminUser(userId,token1);
+  boolean invalidToken1Excpetion=false;
+  try {
+    setup.getTokenSvc().getTokenInfo(token1);
+  }
+ catch (  InvalidTokenException ite) {
+    invalidToken1Excpetion=true;
+  }
+  assertTrue(invalidToken1Excpetion);
+  boolean invalidToken2Excpetion=true;
+  try {
+    setup.getTokenSvc().getTokenInfo(token2);
+  }
+ catch (  InvalidTokenException ite) {
+    invalidToken2Excpetion=false;
+  }
+  assertTrue(invalidToken2Excpetion);
+}

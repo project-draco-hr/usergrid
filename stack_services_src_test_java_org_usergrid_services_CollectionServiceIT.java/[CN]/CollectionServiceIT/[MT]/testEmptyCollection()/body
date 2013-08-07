@@ -1,0 +1,35 @@
+{
+  UUID applicationId=createApplication("testOrganization","testEmptyCollections");
+  ServiceManager sm=setup.getSmf().getServiceManager(applicationId);
+  Map<String,Object> properties=new LinkedHashMap<String,Object>();
+  Entity cat=testRequest(sm,ServiceAction.POST,0,properties,"cats").getEntity();
+  assertNull(cat);
+  CollectionInfo info=Schema.getDefaultSchema().getCollection(TYPE_APPLICATION,"cats");
+  assertNotNull(info);
+  assertEquals("cats",info.getName());
+  cat=testRequest(sm,ServiceAction.POST,0,properties,"cats").getEntity();
+  assertNull(cat);
+  try {
+    testRequest(sm,ServiceAction.POST,0,properties,"users");
+    Assert.fail();
+  }
+ catch (  RequiredPropertyNotFoundException rpnfe) {
+  }
+  try {
+    testRequest(sm,ServiceAction.POST,0,properties,"groups");
+    Assert.fail();
+  }
+ catch (  IllegalArgumentException iae) {
+  }
+  try {
+    testRequest(sm,ServiceAction.POST,0,properties,"roles");
+    Assert.fail();
+  }
+ catch (  IllegalArgumentException iae) {
+  }
+  try {
+    testRequest(sm,ServiceAction.POST,0,properties,"events");
+  }
+ catch (  RequiredPropertyNotFoundException rpnfe) {
+  }
+}

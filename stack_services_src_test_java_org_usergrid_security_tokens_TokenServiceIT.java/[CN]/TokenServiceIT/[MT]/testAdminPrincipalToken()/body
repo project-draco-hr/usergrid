@@ -1,0 +1,10 @@
+{
+  String tokenStr=setup.getTokenSvc().createToken(new AuthPrincipalInfo(AuthPrincipalType.ADMIN_USER,adminUser.getUuid(),UUIDUtils.newTimeUUID()),null);
+  log.info("token: " + tokenStr);
+  TokenInfo tokenInfo=setup.getTokenSvc().getTokenInfo(tokenStr);
+  long last_access=tokenInfo.getAccessed();
+  assertEquals("access",tokenInfo.getType());
+  assertEquals(adminUser.getUuid(),tokenInfo.getPrincipal().getUuid());
+  tokenInfo=setup.getTokenSvc().getTokenInfo(tokenStr);
+  assertTrue(last_access < tokenInfo.getAccessed());
+}

@@ -1,0 +1,21 @@
+{
+  ApplicationInfo appInfo=setup.getMgmtSvc().getApplicationInfo("test-organization/test-app");
+  assertNotNull(appInfo);
+  User user=setupAppUser(appInfo.getId(),"registration_requires_email_confirmation",Boolean.TRUE,"testAppUserConfMail","testAppUserConfMail@test.com",true);
+  String subject="User Account Confirmation: testAppUserConfMail@test.com";
+  String confirmation_url=String.format(setup.getProps().getProperty(PROPERTIES_USER_CONFIRMATION_URL),"test-organization","test-app",user.getUuid().toString());
+  setup.getMgmtSvc().startAppUserActivationFlow(appInfo.getId(),user);
+  List<Message> inbox=org.jvnet.mock_javamail.Mailbox.get("testAppUserConfMail@test.com");
+  assertFalse(inbox.isEmpty());
+  MockImapClient client=new MockImapClient("test.com","testAppUserConfMail","somepassword");
+  client.processMail();
+  Message account_confirmation_message=inbox.get(0);
+  assertEquals(subject,account_confirmation_message.getSubject());
+  String mailContent=(String)((MimeMultipart)account_confirmation_message.getContent()).getBodyPart(1).getContent();
+  logger.info(mailContent);
+  assertTrue(StringUtils.contains(mailContent,confirmation_url));
+  String token=getTokenFromMessage(account_confirmation_message);
+  logger.info(token);
+  ActivationState activeState=setup.getMgmtSvc().handleConfirmationTokenForAppUser(appInfo.getId(),user.getUuid(),token);
+  assertEquals(ActivationState.CONFIRMED_AWAITING_ACTIVATION,activeState);
+}
