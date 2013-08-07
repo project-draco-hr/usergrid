@@ -1,6 +1,13 @@
 {
-  orderByNode.getFirstPredicate().visit(this);
-  ResultIterator firstOrder=results.pop();
-  OrderByIterator orderBy=new OrderByIterator(queryProcessor.getPageSizeHint(orderByNode),firstOrder,orderByNode.getSecondarySorts());
-  results.push(orderBy);
+  QuerySlice slice=orderByNode.getFirstPredicate().getAllSlices().iterator().next();
+  IndexScanner scanner=secondaryIndexScan(orderByNode,slice);
+  List<Query.SortPredicate> secondarySorts=orderByNode.getSecondarySorts();
+  ResultIterator orderIterator;
+  if (secondarySorts == null || secondarySorts.size() == 0) {
+    orderIterator=new SliceIterator<DynamicComposite>(slice,scanner,COLLECTION_PARSER,slice.hasCursor());
+  }
+ else {
+    orderIterator=new OrderByIterator(slice,scanner,COLLECTION_PARSER,secondarySorts,queryProcessor.getPageSizeHint(orderByNode));
+  }
+  results.push(orderIterator);
 }
