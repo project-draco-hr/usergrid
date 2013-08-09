@@ -1,15 +1,15 @@
 {
   String email="test@usergrid.com";
-  UserInfo userInfo=setup.getMgmtSvc().getAdminUserByEmail(email);
-  String resetToken=setup.getMgmtSvc().getPasswordResetTokenForAdminUser(userInfo.getUuid(),15000);
-  assertTrue(setup.getMgmtSvc().checkPasswordResetTokenForAdminUser(userInfo.getUuid(),resetToken));
+  UserInfo userInfo=managementService.getAdminUserByEmail(email);
+  String resetToken=managementService.getPasswordResetTokenForAdminUser(userInfo.getUuid(),15000);
+  assertTrue(managementService.checkPasswordResetTokenForAdminUser(userInfo.getUuid(),resetToken));
   Form formData=new Form();
   formData.add("token",resetToken);
   formData.add("password1","sesame");
   formData.add("password2","sesame");
   String html=resource().path("/management/users/" + userInfo.getUsername() + "/resetpw").type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).post(String.class,formData);
   assertTrue(html.contains("password set"));
-  assertFalse(setup.getMgmtSvc().checkPasswordResetTokenForAdminUser(userInfo.getUuid(),resetToken));
+  assertFalse(managementService.checkPasswordResetTokenForAdminUser(userInfo.getUuid(),resetToken));
   html=resource().path("/management/users/" + userInfo.getUsername() + "/resetpw").type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).post(String.class,formData);
   assertTrue(html.contains("invalid token"));
 }
