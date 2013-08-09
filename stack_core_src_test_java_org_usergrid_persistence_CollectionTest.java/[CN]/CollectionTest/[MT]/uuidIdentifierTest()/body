@@ -1,0 +1,19 @@
+{
+  UUID applicationId=createApplication("testOrganization","uuidIdentifierTest");
+  assertNotNull(applicationId);
+  EntityManager em=emf.getEntityManager(applicationId);
+  assertNotNull(em);
+  Map<String,Object> properties=new LinkedHashMap<String,Object>();
+  properties.put("keywords","blah,test,game");
+  properties.put("title","Solitaire");
+  Entity game1=em.create("game",properties);
+  assertNotNull(game1);
+  Entity game2=em.create("game",properties);
+  assertNotNull(game2);
+  Query query=new Query();
+  query.addIdentifier(Identifier.fromUUID(game1.getUuid()));
+  Results r=em.searchCollection(em.getApplicationRef(),"games",query);
+  assertEquals("We should only get 1 result",1,r.size());
+  assertNull("No cursor should be present",r.getCursor());
+  assertEquals("Saved entity returned",game1,r.getEntity());
+}
