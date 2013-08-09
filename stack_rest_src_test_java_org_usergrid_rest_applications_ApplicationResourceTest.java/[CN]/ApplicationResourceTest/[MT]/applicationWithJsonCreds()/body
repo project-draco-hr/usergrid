@@ -1,7 +1,7 @@
 {
-  ApplicationInfo appInfo=managementService.getApplicationInfo("test-organization/test-app");
-  String clientId=managementService.getClientIdForApplication(appInfo.getId());
-  String clientSecret=managementService.getClientSecretForApplication(appInfo.getId());
+  ApplicationInfo appInfo=setup.getMgmtSvc().getApplicationInfo("test-organization/test-app");
+  String clientId=setup.getMgmtSvc().getClientIdForApplication(appInfo.getId());
+  String clientSecret=setup.getMgmtSvc().getClientSecretForApplication(appInfo.getId());
   Map<String,String> payload=hashMap("email","applicationWithJsonCreds@usergrid.org").map("username","applicationWithJsonCreds").map("name","applicationWithJsonCreds").map("password","applicationWithJsonCreds").map("pin","1234");
   JsonNode node=resource().path("/test-organization/test-app/users").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
   assertNotNull(getEntity(node,0));

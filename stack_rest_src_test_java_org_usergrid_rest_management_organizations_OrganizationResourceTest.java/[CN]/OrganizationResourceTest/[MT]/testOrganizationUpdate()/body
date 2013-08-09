@@ -5,14 +5,14 @@
   payload.put(OrganizationsResource.ORGANIZATION_PROPERTIES,properties);
   JsonNode node=resource().path("/management/organizations").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
   assertNotNull(node);
-  OrganizationInfo orgInfo=managementService.getOrganizationByName("test-org-1");
+  OrganizationInfo orgInfo=setup.getMgmtSvc().getOrganizationByName("test-org-1");
   assertEquals(5L,orgInfo.getProperties().get("securityLevel"));
   payload=new HashMap();
   properties.put("securityLevel",6);
   payload.put(OrganizationsResource.ORGANIZATION_PROPERTIES,properties);
   node=resource().path("/management/organizations/test-org-1").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(JsonNode.class,payload);
-  logNode(node);
+  logNode(node,LOG);
   node=resource().path("/management/organizations/test-org-1").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
-  logNode(node);
-  Assert.assertEquals(6,node.get("organization").get(OrganizationsResource.ORGANIZATION_PROPERTIES).get("securityLevel").asInt());
+  logNode(node,LOG);
+  assertEquals(6,node.get("organization").get(OrganizationsResource.ORGANIZATION_PROPERTIES).get("securityLevel").asInt());
 }

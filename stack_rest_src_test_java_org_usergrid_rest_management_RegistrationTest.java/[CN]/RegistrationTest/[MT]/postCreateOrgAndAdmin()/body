@@ -10,8 +10,8 @@
   Message account_confirmation_message=inbox.get(0);
   assertEquals("User Account Confirmation: test-user-1@mockserver.com",account_confirmation_message.getSubject());
   String token=getTokenFromMessage(account_confirmation_message);
-  logger.info(token);
-  managementService.disableAdminUser(owner_uuid);
+  LOG.info(token);
+  setup.getMgmtSvc().disableAdminUser(owner_uuid);
   try {
     resource().path("/management/token").queryParam("grant_type","password").queryParam("username","test-user-1").queryParam("password","testpassword").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
     fail("request for disabled user should fail");
@@ -21,7 +21,7 @@
     JsonNode body=uie.getResponse().getEntity(JsonNode.class);
     assertEquals("user disabled",body.findPath("error_description").getTextValue());
   }
-  managementService.deactivateUser(CassandraService.MANAGEMENT_APPLICATION_ID,owner_uuid);
+  setup.getMgmtSvc().deactivateUser(CassandraService.MANAGEMENT_APPLICATION_ID,owner_uuid);
   try {
     resource().path("/management/token").queryParam("grant_type","password").queryParam("username","test-user-1").queryParam("password","testpassword").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
     fail("request for deactivated user should fail");
@@ -32,7 +32,7 @@
     assertEquals("user not activated",body.findPath("error_description").getTextValue());
   }
   String response=resource().path("/management/users/" + owner_uuid + "/confirm").get(String.class);
-  logger.info(response);
+  LOG.info(response);
   Message account_activation_message=inbox.get(1);
   assertEquals("User Account Activated",account_activation_message.getSubject());
 }

@@ -5,10 +5,10 @@
   String username="permissionadmin" + id;
   String password="password";
   String email=String.format("email%s@usergrid.com",id);
-  OrganizationOwnerInfo orgs=managementService.createOwnerAndOrganization(orgname,username,"noname",email,password,true,false);
-  ApplicationInfo appInfo=managementService.createApplication(orgs.getOrganization().getUuid(),applicationName);
+  OrganizationOwnerInfo orgs=setup.getMgmtSvc().createOwnerAndOrganization(orgname,username,"noname",email,password,true,false);
+  ApplicationInfo appInfo=setup.getMgmtSvc().createApplication(orgs.getOrganization().getUuid(),applicationName);
   assertNotNull(appInfo);
-  String adminToken=managementService.getAccessTokenForAdminUser(orgs.getOwner().getUuid(),0);
+  String adminToken=setup.getMgmtSvc().getAccessTokenForAdminUser(orgs.getOwner().getUuid(),0);
   JsonNode node=resource().path(String.format("/%s/%s/roles/default",orgname,applicationName)).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).delete(JsonNode.class);
   Map<String,String> data=hashMap("name","patient");
   node=resource().path(String.format("/%s/%s/roles",orgname,applicationName)).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,data);
@@ -20,7 +20,7 @@
   UUID doctorId=createRoleUser(orgs.getOrganization().getUuid(),appInfo.getId(),adminToken,"exampledoctor","exampledoctor@apigee.com");
   assertNotNull(doctorId);
   node=resource().path(String.format("/%s/%s/users/%s/roles/patient",orgname,applicationName,patientId.toString())).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class);
-  String patientToken=managementService.getAccessTokenForAppUser(appInfo.getId(),patientId,0);
+  String patientToken=setup.getMgmtSvc().getAccessTokenForAppUser(appInfo.getId(),patientId,0);
   node=resource().path(String.format("/%s/%s/users/%s/following/users/%s",orgname,applicationName,"exampledoctor","examplepatient")).queryParam("access_token",patientToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class);
-  logNode(node);
+  logNode(node,LOG);
 }

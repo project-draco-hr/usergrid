@@ -1,7 +1,7 @@
 {
-  OrganizationInfo orgInfo=managementService.getOrganizationByName("test-organization");
-  String clientId=managementService.getClientIdForOrganization(orgInfo.getUuid());
-  String clientSecret=managementService.getClientSecretForOrganization(orgInfo.getUuid());
+  OrganizationInfo orgInfo=setup.getMgmtSvc().getOrganizationByName("test-organization");
+  String clientId=setup.getMgmtSvc().getClientIdForOrganization(orgInfo.getUuid());
+  String clientSecret=setup.getMgmtSvc().getClientSecretForOrganization(orgInfo.getUuid());
   JsonNode node=resource().path("/test-organization/test-app/token").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).queryParam("grant_type","client_credentials").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
   assertNotNull(node.get("access_token"));
   String accessToken=node.get("access_token").asText();
