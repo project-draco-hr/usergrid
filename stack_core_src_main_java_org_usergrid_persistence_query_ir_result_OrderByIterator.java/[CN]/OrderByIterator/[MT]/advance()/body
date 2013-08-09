@@ -1,3 +1,42 @@
 {
-  return null;
+  entries=new SortedEntitySet(subSortCompare,pageSize);
+  Object lastValueInPreviousPage=null;
+  boolean stopped=false;
+  while (!stopped) {
+    if (loadedPage == null) {
+      if (!firstOrder.hasNext()) {
+        break;
+      }
+      loadedPage=new PeekingIterator<HColumn<ByteBuffer,ByteBuffer>>(firstOrder.next().iterator());
+    }
+ else     if (!loadedPage.hasNext() && firstOrder.hasNext()) {
+      loadedPage=new PeekingIterator<HColumn<ByteBuffer,ByteBuffer>>(firstOrder.next().iterator());
+    }
+    if (!loadedPage.hasNext()) {
+      return entries.toIds();
+    }
+    DynamicComposite composite=null;
+    UUID id;
+    Object currentValue=null;
+    while (loadedPage.hasNext()) {
+      HColumn<ByteBuffer,ByteBuffer> col=loadedPage.peek();
+      composite=parser.parse(col.getName().duplicate());
+      currentValue=parser.getValue(composite);
+      if (lastValueInPreviousPage != null && entries.size() == pageSize && compareIndexedValues(lastValueInPreviousPage,currentValue) > 0) {
+        stopped=true;
+        break;
+      }
+      id=parser.getUUID(composite);
+      entries.add(id,col.getName().duplicate());
+      loadedPage.next();
+    }
+    lastValueInPreviousPage=currentValue;
+    try {
+      entries.load(em,secondaryFields);
+    }
+ catch (    Exception e) {
+      throw new RuntimeException("Unable to retrieve values for secondary sort",e);
+    }
+  }
+  return entries.toIds();
 }

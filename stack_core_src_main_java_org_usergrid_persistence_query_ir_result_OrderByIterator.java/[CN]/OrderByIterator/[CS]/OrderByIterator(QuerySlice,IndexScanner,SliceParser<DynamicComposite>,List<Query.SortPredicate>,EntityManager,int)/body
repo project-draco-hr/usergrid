@@ -1,0 +1,14 @@
+{
+  super(pageSize);
+  this.slice=slice;
+  this.firstOrder=firstOrder;
+  this.parser=parser;
+  this.em=em;
+  this.subSortCompare=new ComparatorChain();
+  this.secondaryFields=new ArrayList<String>(1 + secondary.size());
+  this.secondaryFields.add(slice.getPropertyName());
+  for (  SortPredicate sort : secondary) {
+    this.subSortCompare.addComparator(new EntityPropertyComparator(sort.getPropertyName(),sort.getDirection() == Query.SortDirection.DESCENDING));
+    this.secondaryFields.add(sort.getPropertyName());
+  }
+}

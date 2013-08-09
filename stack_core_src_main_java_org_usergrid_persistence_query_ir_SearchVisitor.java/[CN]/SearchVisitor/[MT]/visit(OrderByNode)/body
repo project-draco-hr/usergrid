@@ -1,13 +1,20 @@
 {
   QuerySlice slice=orderByNode.getFirstPredicate().getAllSlices().iterator().next();
-  IndexScanner scanner=secondaryIndexScan(orderByNode,slice);
+  queryProcessor.applyCursorAndSort(slice);
+  IndexScanner scanner;
+  if (slice.isComplete()) {
+    scanner=new NoOpIndexScanner();
+  }
+ else {
+    scanner=secondaryIndexScan(orderByNode,slice);
+  }
   List<Query.SortPredicate> secondarySorts=orderByNode.getSecondarySorts();
   ResultIterator orderIterator;
   if (secondarySorts == null || secondarySorts.size() == 0) {
     orderIterator=new SliceIterator<DynamicComposite>(slice,scanner,COLLECTION_PARSER,slice.hasCursor());
   }
  else {
-    orderIterator=new OrderByIterator(slice,scanner,COLLECTION_PARSER,secondarySorts,queryProcessor.getPageSizeHint(orderByNode));
+    orderIterator=new OrderByIterator(slice,scanner,COLLECTION_PARSER,secondarySorts,em,queryProcessor.getPageSizeHint(orderByNode));
   }
   results.push(orderIterator);
 }
