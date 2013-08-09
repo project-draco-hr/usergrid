@@ -18,14 +18,17 @@
     }
   }
   if (rootNode == null) {
-    if (query.containsNameIdentifiersOnly()) {
-      rootNode=new NameIdentifierNode(query.getSingleNameIdentifier());
+    if (query.containsSingleNameOrEmailIdentifier()) {
+      Identifier ident=query.getSingleIdentifier();
+      if (query.getEntityType().equals(User.ENTITY_TYPE) && ident.isEmail()) {
+        rootNode=new EmailIdentifierNode(ident);
+      }
+ else {
+        rootNode=new NameIdentifierNode(ident.getName());
+      }
     }
  else     if (query.containsSingleUuidIdentifier()) {
       rootNode=new UuidIdentifierNode(query.getSingleUuidIdentifier());
-    }
- else     if (query.containsEmailIdentifiersOnly() && query.getEntityType().equals(User.ENTITY_TYPE)) {
-      rootNode=new EmailIdentifierNode(query.getSingleEmailIdentifier());
     }
  else {
       UUID startResult=query.getStartResult();
