@@ -1,15 +1,15 @@
 {
   Mailbox.clearAll();
-  properties.setProperty(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"false");
-  properties.setProperty(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
-  properties.setProperty(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"false");
-  properties.setProperty(PROPERTIES_SYSADMIN_EMAIL,"sysadmin-1@mockserver.com");
+  setup.getProps().setProperty(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"false");
+  setup.getProps().setProperty(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
+  setup.getProps().setProperty(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"false");
+  setup.getProps().setProperty(PROPERTIES_SYSADMIN_EMAIL,"sysadmin-1@mockserver.com");
   String adminToken=adminToken();
   JsonNode node=postAddAdminToOrg("test-organization","test-admin-nopwd@mockserver.com","",adminToken);
   String uuid=node.get("data").get("user").get("uuid").getTextValue();
   UUID userId=UUID.fromString(uuid);
   String subject="Password Reset";
-  String reset_url=String.format(properties.getProperty(PROPERTIES_ADMIN_RESETPW_URL),uuid);
+  String reset_url=String.format(setup.getProps().getProperty(PROPERTIES_ADMIN_RESETPW_URL),uuid);
   String invited="User Invited To Organization";
   Message[] msgs=getMessages("mockserver.com","test-admin-nopwd","password");
   assertTrue(msgs.length == 2);
@@ -19,5 +19,5 @@
   logger.info(mailContent);
   assertTrue(StringUtils.contains(mailContent,reset_url));
   String token=getTokenFromMessage(msgs[0]);
-  assertTrue(managementService.checkPasswordResetTokenForAdminUser(userId,token));
+  assertTrue(setup.getMgmtSvc().checkPasswordResetTokenForAdminUser(userId,token));
 }

@@ -11,5 +11,19 @@
   providerFactory=cassandraResource.getBean(SignInProviderFactory.class);
   properties=cassandraResource.getBean("properties",Properties.class);
   smf=cassandraResource.getBean(ServiceManagerFactory.class);
+  if (jetty == null) {
+    if (AvailablePortFinder.available(DEFAULT_JETTY_PORT)) {
+      LOG.info("Starting the Jetty Server on the DEFAULT port {}",DEFAULT_JETTY_PORT);
+      jettyPort=DEFAULT_JETTY_PORT;
+    }
+ else {
+      LOG.info("Starting the Jetty Server on port {}",jettyPort);
+      jettyPort=AvailablePortFinder.getNextAvailable(DEFAULT_JETTY_PORT + RandomUtils.nextInt(1000));
+    }
+    jetty=new Server(jettyPort);
+    jetty.setHandler(new WebAppContext("src/main/webapp","/"));
+    jetty.start();
+  }
+  ready=true;
   LOG.info("Test setup complete...");
 }
