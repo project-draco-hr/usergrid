@@ -11,12 +11,12 @@
   assertNotNull(node);
   ApplicationInfo applicationInfo=managementService.getApplicationInfo("test-org-1/sandbox");
   assertNotNull(applicationInfo);
-  Set<String> rolePerms=emf.getEntityManager(applicationInfo.getId()).getRolePermissions("guest");
+  Set<String> rolePerms=setup.getEmf().getEntityManager(applicationInfo.getId()).getRolePermissions("guest");
   assertNotNull(rolePerms);
   assertTrue(rolePerms.contains("get,post,put,delete:/**"));
   logNode(node);
   UserInfo ui=managementService.getAdminUserByEmail("test-user-1@mockserver.com");
-  EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+  EntityManager em=setup.getEmf().getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
   User user=em.get(ui.getUuid(),User.class);
   assertEquals("Test User",user.getName());
   assertEquals("Apigee",(String)user.getProperty("company"));
