@@ -1,29 +1,22 @@
 {
-  super.before();
-  managementService=cassandraResource.getBean(ManagementService.class);
-  if (!setupCalled) {
-    managementService.setup();
-    setupCalled=true;
-  }
-  applicationCreator=cassandraResource.getBean(ApplicationCreator.class);
-  emf=cassandraResource.getBean(EntityManagerFactory.class);
-  tokenService=cassandraResource.getBean(TokenService.class);
-  providerFactory=cassandraResource.getBean(SignInProviderFactory.class);
-  properties=cassandraResource.getBean("properties",Properties.class);
-  smf=cassandraResource.getBean(ServiceManagerFactory.class);
-  if (jetty == null) {
-    if (AvailablePortFinder.available(DEFAULT_JETTY_PORT)) {
-      LOG.info("Starting the Jetty Server on the DEFAULT port {}",DEFAULT_JETTY_PORT);
-      jettyPort=DEFAULT_JETTY_PORT;
+synchronized (cassandraResource) {
+    super.before();
+    managementService=cassandraResource.getBean(ManagementService.class);
+    if (!setupCalled) {
+      managementService.setup();
+      setupCalled=true;
     }
- else {
-      LOG.info("Starting the Jetty Server on port {}",jettyPort);
-      jettyPort=AvailablePortFinder.getNextAvailable(DEFAULT_JETTY_PORT + RandomUtils.nextInt(1000));
+    applicationCreator=cassandraResource.getBean(ApplicationCreator.class);
+    emf=cassandraResource.getBean(EntityManagerFactory.class);
+    tokenService=cassandraResource.getBean(TokenService.class);
+    providerFactory=cassandraResource.getBean(SignInProviderFactory.class);
+    properties=cassandraResource.getBean("properties",Properties.class);
+    smf=cassandraResource.getBean(ServiceManagerFactory.class);
+    while (jetty == null) {
+      startJetty();
     }
-    jetty=new Server(jettyPort);
-    jetty.setHandler(new WebAppContext("src/main/webapp","/"));
-    jetty.start();
+    uri=UriBuilder.fromUri("http://localhost/").port(jettyPort).build();
+    ready=true;
+    LOG.info("Test setup complete...");
   }
-  ready=true;
-  LOG.info("Test setup complete...");
 }
