@@ -2,10 +2,6 @@
   TokenCategory tokenCategory=TokenCategory.getFromBase64String(token);
   byte[] bytes=decodeBase64(token.substring(TokenCategory.BASE64_PREFIX_LENGTH));
   UUID uuid=uuid(bytes);
-  long timestamp=getTimestampInMillis(uuid);
-  if ((getExpirationForTokenType(tokenCategory) > 0) && (currentTimeMillis() > (timestamp + getExpirationForTokenType(tokenCategory)))) {
-    throw new ExpiredTokenException("Token expired " + (currentTimeMillis() - (timestamp + getExpirationForTokenType(tokenCategory))) + " millisecons ago.");
-  }
   int i=16;
   long expires=Long.MAX_VALUE;
   if (tokenCategory.getExpires()) {
@@ -18,6 +14,10 @@
   ByteBuffer signature=ByteBuffer.wrap(bytes,i,20);
   if (!signature.equals(expected)) {
     throw new BadTokenException("Invalid token signature");
+  }
+  long expirationDelta=System.currentTimeMillis() - expires;
+  if (expires != Long.MAX_VALUE && expirationDelta > 0) {
+    throw new ExpiredTokenException(String.format("Token expired %d millisecons ago.",expirationDelta));
   }
   return uuid;
 }

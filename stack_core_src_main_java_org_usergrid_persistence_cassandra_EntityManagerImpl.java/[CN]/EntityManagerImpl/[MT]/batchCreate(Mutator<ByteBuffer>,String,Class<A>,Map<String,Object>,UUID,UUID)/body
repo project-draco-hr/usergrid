@@ -68,25 +68,6 @@
     }
     addInsertToMutator(m,ENTITY_DICTIONARIES,key(applicationId,Schema.DICTIONARY_COLLECTIONS),collection_name,null,timestamp);
     addInsertToMutator(m,ENTITY_COMPOSITE_DICTIONARIES,key(itemId,Schema.DICTIONARY_CONTAINER_ENTITIES),asList(TYPE_APPLICATION,collection_name,applicationId),null,timestamp);
-    if (collection != null) {
-      if (collection.hasSubkeys()) {
-        List<String[]> combos=collection.getSubkeyCombinations();
-        for (        String[] combo : combos) {
-          List<Object> subkey_props=new ArrayList<Object>();
-          for (          String subkey_name : combo) {
-            Object subkey_value=null;
-            if (subkey_name != null) {
-              subkey_value=properties.get(subkey_name);
-            }
-            subkey_props.add(subkey_value);
-          }
-          Object subkey_key=key(subkey_props.toArray());
-          if (!emptyPropertyMap) {
-            addInsertToMutator(m,ENTITY_ID_SETS,key(collection_key,subkey_key),itemId,null,timestamp);
-          }
-        }
-      }
-    }
   }
   if (emptyPropertyMap) {
     return null;

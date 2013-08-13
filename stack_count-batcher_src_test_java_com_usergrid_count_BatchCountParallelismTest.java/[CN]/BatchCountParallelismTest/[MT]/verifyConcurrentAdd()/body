@@ -1,0 +1,25 @@
+{
+  List<Future<Boolean>> calls=new ArrayList<Future<Boolean>>();
+  final CountDownLatch cdl=new CountDownLatch(10);
+  for (int x=0; x < 10; x++) {
+    final int c=x;
+    calls.add(exec.submit(new Callable<Boolean>(){
+      @Override public Boolean call() throws Exception {
+        for (int y=0; y < 10; y++) {
+          Count count=new Count("Counter","k1","counter1",1);
+          batcher.add(count);
+        }
+        System.out.println("c: " + c);
+        cdl.countDown();
+        return new Boolean(true);
+      }
+    }
+));
+  }
+  batcher.add(new Count("Counter","k1","counter1",1));
+  System.out.println("size: " + calls.size());
+  cdl.await();
+  exec.awaitTermination(2,TimeUnit.SECONDS);
+  assertEquals(101,batcher.invocationCounter.count());
+  assertEquals(10,batcher.getBatchSubmissionCount());
+}
