@@ -1,6 +1,12 @@
 {
-  entries=new SortedEntitySet(subSortCompare,pageSize);
+  ByteBuffer cursor=slice.getCursor();
   Object lastValueInPreviousPage=null;
+  UUID minEntryId=null;
+  if (cursor != null) {
+    DynamicComposite minCol=parser.parse(cursor);
+    minEntryId=parser.getUUID(minCol);
+  }
+  entries=new SortedEntitySet(subSortCompare,em,secondaryFields,pageSize,minEntryId);
   boolean stopped=false;
   while (!stopped) {
     if (loadedPage == null) {
@@ -13,7 +19,7 @@
       loadedPage=new PeekingIterator<HColumn<ByteBuffer,ByteBuffer>>(firstOrder.next().iterator());
     }
     if (!loadedPage.hasNext()) {
-      load();
+      entries.load();
       break;
     }
     DynamicComposite composite=null;
@@ -21,7 +27,7 @@
     Object currentValue=null;
     while (loadedPage.hasNext()) {
       HColumn<ByteBuffer,ByteBuffer> col=loadedPage.peek();
-      composite=parser.parse(col.getName().duplicate());
+      composite=parser.parse(col.getName());
       currentValue=parser.getValue(composite);
       if (lastValueInPreviousPage != null && entries.size() >= pageSize && compareIndexedValues(lastValueInPreviousPage,currentValue) > 0) {
         stopped=true;
@@ -32,7 +38,7 @@
       loadedPage.next();
     }
     lastValueInPreviousPage=currentValue;
-    load();
+    entries.load();
   }
   return entries.toIds();
 }
