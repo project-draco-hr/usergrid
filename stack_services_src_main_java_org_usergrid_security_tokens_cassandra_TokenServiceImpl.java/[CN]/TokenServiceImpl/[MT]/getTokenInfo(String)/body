@@ -5,7 +5,7 @@
     tokenInfo=getTokenInfo(uuid);
     if (tokenInfo != null) {
       long now=currentTimeMillis();
-      long maxTokenTtl=getMaxTtl(tokenInfo.getPrincipal());
+      long maxTokenTtl=getMaxTtl(TokenCategory.getFromBase64String(token),tokenInfo.getPrincipal());
       Mutator<UUID> batch=createMutator(cassandra.getSystemKeyspace(),UUIDSerializer.get());
       HColumn<String,Long> col=createColumn(TOKEN_ACCESSED,now,calcTokenTime(tokenInfo.getExpiration(maxTokenTtl)),StringSerializer.get(),LongSerializer.get());
       batch.addInsertion(uuid,TOKENS_CF,col);
