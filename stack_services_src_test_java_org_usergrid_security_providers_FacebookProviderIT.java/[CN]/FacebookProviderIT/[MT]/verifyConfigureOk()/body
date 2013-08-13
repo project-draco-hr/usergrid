@@ -1,0 +1,10 @@
+{
+  Application application=setup.getEmf().getEntityManager(applicationId).getApplication();
+  Map fbProps=MapUtils.hashMap("api_url","localhost");
+  FacebookProvider fp=(FacebookProvider)providerFactory.facebook(application);
+  assertNotNull(fp);
+  fp.saveToConfiguration("facebookProvider",fbProps);
+  fp.configure();
+  Map map=fp.loadConfigurationFor("facebookProvider");
+  assertEquals("localhost",map.get("api_url"));
+}

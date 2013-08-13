@@ -1,0 +1,13 @@
+{
+  logger.info("PermissionsIT.testPermissions");
+  UUID applicationId=createApplication("testOrganization","testPermissions");
+  assertNotNull(applicationId);
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  assertNotNull(em);
+  em.createRole("manager",null,0);
+  em.createRole("member",null,0);
+  em.grantRolePermission("admin","users:access:*");
+  em.grantRolePermission("admin","groups:access:*");
+  ServiceManager sm=setup.getSmf().getServiceManager(applicationId);
+  testDataRequest(sm,ServiceAction.GET,null,"roles","admin","permissions");
+}

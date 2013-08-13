@@ -1,0 +1,11 @@
+{
+  String tokenStr=setup.getTokenSvc().createToken(TokenCategory.EMAIL,"email_confirm",(Map<String,Object>)cast(hashMap("email","ed@anuff34.com").map("username","edanuff34")));
+  log.info("token: " + tokenStr);
+  TokenInfo tokenInfo=setup.getTokenSvc().getTokenInfo(tokenStr);
+  long last_access=tokenInfo.getAccessed();
+  assertEquals("email_confirm",tokenInfo.getType());
+  assertEquals("ed@anuff34.com",tokenInfo.getState().get("email"));
+  assertEquals("edanuff34",tokenInfo.getState().get("username"));
+  tokenInfo=setup.getTokenSvc().getTokenInfo(tokenStr);
+  assertTrue(last_access < tokenInfo.getAccessed());
+}
