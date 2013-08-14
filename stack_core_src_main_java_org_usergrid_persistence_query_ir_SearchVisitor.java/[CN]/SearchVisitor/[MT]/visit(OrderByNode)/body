@@ -1,23 +1,35 @@
 {
   QuerySlice slice=orderByNode.getFirstPredicate().getAllSlices().iterator().next();
-  QuerySlice primarySlice=slice;
   queryProcessor.applyCursorAndSort(slice);
-  if (orderByNode.hasSecondarySorts()) {
-    primarySlice=new QuerySlice(slice.getPropertyName(),Integer.MIN_VALUE);
-  }
-  IndexScanner scanner;
-  if (slice.isComplete()) {
-    scanner=new NoOpIndexScanner();
-  }
- else {
-    scanner=secondaryIndexScan(orderByNode,primarySlice);
+  QueryNode subOperations=orderByNode.getQueryOperations();
+  ResultIterator subResults=null;
+  if (subOperations != null) {
+    subOperations.visit(this);
+    subResults=results.pop();
   }
   ResultIterator orderIterator;
-  if (!orderByNode.hasSecondarySorts()) {
-    orderIterator=new SliceIterator<DynamicComposite>(slice,scanner,COLLECTION_PARSER,slice.hasCursor());
+  if (orderByNode.hasSecondarySorts()) {
+    if (subResults == null) {
+      QuerySlice firstFieldSlice=new QuerySlice(slice.getPropertyName(),-1);
+      subResults=new SliceIterator<DynamicComposite>(slice,secondaryIndexScan(orderByNode,firstFieldSlice),COLLECTION_PARSER,slice.hasCursor());
+    }
+    orderIterator=new OrderByIterator(slice,orderByNode.getSecondarySorts(),subResults,em,queryProcessor.getPageSizeHint(orderByNode));
   }
  else {
-    orderIterator=new OrderByIterator(slice,scanner,COLLECTION_PARSER,orderByNode.getSecondarySorts(),em,queryProcessor.getPageSizeHint(orderByNode));
+    IndexScanner scanner;
+    if (slice.isComplete()) {
+      scanner=new NoOpIndexScanner();
+    }
+ else {
+      scanner=secondaryIndexScan(orderByNode,slice);
+    }
+    SliceIterator<DynamicComposite> joinSlice=new SliceIterator<DynamicComposite>(slice,scanner,COLLECTION_PARSER,slice.hasCursor());
+    IntersectionIterator union=new IntersectionIterator(queryProcessor.getPageSizeHint(orderByNode));
+    union.addIterator(joinSlice);
+    if (subResults != null) {
+      union.addIterator(subResults);
+    }
+    orderIterator=union;
   }
   results.push(orderIterator);
 }
