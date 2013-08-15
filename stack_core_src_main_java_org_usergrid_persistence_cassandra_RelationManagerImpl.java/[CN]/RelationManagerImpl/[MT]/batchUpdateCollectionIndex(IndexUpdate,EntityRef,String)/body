@@ -10,24 +10,6 @@
       index_name=key(owner.getUuid(),collectionName,entry.getPath());
       index_key=key(index_name,bucketId);
       addDeleteToMutator(indexUpdate.getBatch(),ENTITY_INDEX,index_key,entry.getIndexComposite(),indexUpdate.getTimestamp());
-      if (collection != null) {
-        if (collection.hasSubkeys()) {
-          List<String[]> combos=collection.getSubkeyCombinations();
-          for (          String[] combo : combos) {
-            List<Object> subkey_props=new ArrayList<Object>();
-            for (            String subkey_name : combo) {
-              Object subkey_value=null;
-              if (subkey_name != null) {
-                subkey_value=indexUpdate.getEntity().getProperty(subkey_name);
-              }
-              subkey_props.add(subkey_value);
-            }
-            Object subkey_key=key(subkey_props.toArray());
-            Object index_subkey_key=key(owner.getUuid(),collectionName,subkey_key,entry.getPath());
-            addDeleteToMutator(indexUpdate.getBatch(),ENTITY_INDEX,index_subkey_key,entry.getIndexComposite(),indexUpdate.getTimestamp());
-          }
-        }
-      }
       if ("location.coordinates".equals(entry.getPath())) {
         EntityLocationRef loc=new EntityLocationRef(indexUpdate.getEntity(),entry.getTimestampUuid(),entry.getValue().toString());
         batchRemoveLocationFromCollectionIndex(indexUpdate.getBatch(),indexBucketLocator,applicationId,index_name,loc);
@@ -42,24 +24,6 @@
       index_name=key(owner.getUuid(),collectionName,indexEntry.getPath());
       index_key=key(index_name,bucketId);
       addInsertToMutator(indexUpdate.getBatch(),ENTITY_INDEX,index_key,indexEntry.getIndexComposite(),null,indexUpdate.getTimestamp());
-      if (collection != null) {
-        if (collection.hasSubkeys()) {
-          List<String[]> combos=collection.getSubkeyCombinations();
-          for (          String[] combo : combos) {
-            List<Object> subkey_props=new ArrayList<Object>();
-            for (            String subkey_name : combo) {
-              Object subkey_value=null;
-              if (subkey_name != null) {
-                subkey_value=indexUpdate.getEntity().getProperty(subkey_name);
-              }
-              subkey_props.add(subkey_value);
-            }
-            Object subkey_key=key(subkey_props.toArray());
-            Object index_subkey_key=key(owner.getUuid(),collectionName,subkey_key,indexEntry.getPath(),bucketId);
-            addInsertToMutator(indexUpdate.getBatch(),ENTITY_INDEX,index_subkey_key,indexEntry.getIndexComposite(),null,indexUpdate.getTimestamp());
-          }
-        }
-      }
       if ("location.coordinates".equals(indexEntry.getPath())) {
         EntityLocationRef loc=new EntityLocationRef(indexUpdate.getEntity(),indexEntry.getTimestampUuid(),indexEntry.getValue().toString());
         batchStoreLocationInCollectionIndex(indexUpdate.getBatch(),indexBucketLocator,applicationId,index_name,indexedEntity.getUuid(),loc);

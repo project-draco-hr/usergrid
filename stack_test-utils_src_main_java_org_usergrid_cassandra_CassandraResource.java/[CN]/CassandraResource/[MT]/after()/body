@@ -1,0 +1,25 @@
+{
+  super.after();
+  LOG.info("Shutting down Cassandra instance in {}",tempDir.toString());
+  if (schemaManager != null) {
+    LOG.info("Destroying schemaManager...");
+    try {
+      schemaManager.destroy();
+    }
+ catch (    Exception e) {
+      LOG.error("Ignoring failures while dropping keyspaces: {}",e.getMessage());
+    }
+    LOG.info("SchemaManager destroyed...");
+  }
+  applicationContext.stop();
+  LOG.info("ApplicationContext stopped...");
+  try {
+    if (cassandraDaemon != null) {
+      LOG.info("Deactivating CassandraDaemon...");
+      cassandraDaemon.deactivate();
+    }
+  }
+ catch (  Exception ex) {
+    ex.printStackTrace();
+  }
+}

@@ -1,0 +1,25 @@
+{
+  OrganizationOwnerInfo orgInfo=setup.getMgmtSvc().createOwnerAndOrganization("foo2","foobar2","foobar","foo2@bar.com","foobar");
+  ApplicationInfo appInfo=setup.getMgmtSvc().createApplication(orgInfo.getOrganization().getUuid(),"bar");
+  EntityManager em=setup.getEmf().getEntityManager(appInfo.getId());
+  Application app=em.getApplication();
+  long appTokenAge=1000;
+  app.setAccesstokenttl(appTokenAge);
+  em.updateApplication(app);
+  AuthPrincipalInfo userPrincipal=new AuthPrincipalInfo(AuthPrincipalType.APPLICATION_USER,UUIDUtils.newTimeUUID(),app.getUuid());
+  String token=setup.getTokenSvc().createToken(TokenCategory.ACCESS,null,userPrincipal,null,0);
+  long start=System.currentTimeMillis();
+  assertNotNull(token);
+  TokenInfo tokenInfo=setup.getTokenSvc().getTokenInfo(token);
+  assertNotNull(tokenInfo);
+  assertEquals(appTokenAge,tokenInfo.getDuration());
+  Thread.sleep(appTokenAge - (System.currentTimeMillis() - start) + 1000);
+  boolean invalidTokenException=false;
+  try {
+    setup.getTokenSvc().getTokenInfo(token);
+  }
+ catch (  ExpiredTokenException ite) {
+    invalidTokenException=true;
+  }
+  assertTrue(invalidTokenException);
+}
