@@ -1,0 +1,26 @@
+{
+  UUID applicationId=createApplication("testOrganization","testTransactions");
+  assertNotNull(applicationId);
+  EntityManager em=getEntityManagerFactory().getEntityManager(applicationId);
+  assertNotNull(em);
+  LOG.info("Creating messages");
+  QueueManager qm=geQueueManagerFactory().getQueueManager(applicationId);
+  String queuePath="/foo/bar";
+  Message message=new Message();
+  message.setStringProperty("foo","bar");
+  LOG.info("Posting message # to queue /foo/bar: " + message.getUuid());
+  assertFalse(qm.hasMessagesInQueue(queuePath,null));
+  qm.postToQueue(queuePath,message);
+  assertTrue(qm.hasMessagesInQueue(queuePath,null));
+  QueueQuery qq=new QueueQuery();
+  qq.setTimeout(100);
+  qq.setLimit(1);
+  QueueResults qr=qm.getFromQueue(queuePath,qq);
+  assertFalse(qm.hasMessagesInQueue(queuePath,null));
+  assertTrue(qm.hasOutstandingTransactions(queuePath,null));
+  assertTrue(qm.hasPendingReads(queuePath,null));
+  qm.deleteTransaction(queuePath,qr.getMessages().get(0).getTransaction(),qq);
+  assertFalse(qm.hasMessagesInQueue(queuePath,null));
+  assertFalse(qm.hasOutstandingTransactions(queuePath,null));
+  assertFalse(qm.hasPendingReads(queuePath,null));
+}
