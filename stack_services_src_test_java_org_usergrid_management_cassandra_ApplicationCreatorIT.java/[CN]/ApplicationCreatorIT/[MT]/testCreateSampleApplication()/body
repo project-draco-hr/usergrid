@@ -1,0 +1,9 @@
+{
+  OrganizationOwnerInfo orgOwner=setup.getMgmtSvc().createOwnerAndOrganization("appcreatortest","nate-appcreatortest","Nate","nate+appcreatortest@apigee.com","password",true,false);
+  ApplicationInfo appInfo=setup.getAppCreator().createSampleFor(orgOwner.getOrganization());
+  assertNotNull(appInfo);
+  assertEquals("appcreatortest/sandbox",appInfo.getName());
+  Set<String> rolePerms=setup.getEmf().getEntityManager(appInfo.getId()).getRolePermissions("guest");
+  assertNotNull(rolePerms);
+  assertTrue(rolePerms.contains("get,post,put,delete:/**"));
+}

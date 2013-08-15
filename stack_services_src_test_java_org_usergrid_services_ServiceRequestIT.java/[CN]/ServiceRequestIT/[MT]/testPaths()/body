@@ -1,0 +1,17 @@
+{
+  UUID applicationId=DEFAULT_APPLICATION_ID;
+  ServiceManager services=setup.getSmf().getServiceManager(applicationId);
+  ServiceRequest path=services.newRequest(ServiceAction.GET,parameters("users","bob"),null);
+  logger.info("" + path.getParameters());
+  Map<List<String>,List<String>> replaceParameters=new LinkedHashMap<List<String>,List<String>>();
+  replaceParameters.put(Arrays.asList("users"),Arrays.asList("connecting","users"));
+  List<ServiceParameter> p=filter(path.getParameters(),replaceParameters);
+  logger.info("" + p);
+  path=services.newRequest(ServiceAction.GET,parameters("users",UUID.randomUUID(),"messages"),null);
+  logger.info("" + path.getParameters());
+  logger.info("\\1");
+  replaceParameters=new LinkedHashMap<List<String>,List<String>>();
+  replaceParameters.put(Arrays.asList("users","$id"),Arrays.asList("connecting","\\1","users"));
+  p=filter(path.getParameters(),replaceParameters);
+  logger.info("" + p);
+}

@@ -1,0 +1,37 @@
+{
+  UUID applicationId=createApplication("testOrganization","testConsumer");
+  assertNotNull(applicationId);
+  EntityManager em=getEntityManagerFactory().getEntityManager(applicationId);
+  assertNotNull(em);
+  logger.info("Creating messages");
+  QueueManager qm=geQueueManagerFactory().getQueueManager(applicationId);
+  Message message;
+  for (int i=0; i < 10; i++) {
+    message=new Message();
+    message.setStringProperty("foo","bar" + i);
+    logger.info("Posting message #" + i + " to queue /foo/bar: "+ message.getUuid());
+    qm.postToQueue("/foo/bar",message);
+  }
+  for (int i=0; i < 11; i++) {
+    QueueResults messages=qm.getFromQueue("/foo/bar",new QueueQuery().withConsumer("consumer1"));
+    logger.info(JsonUtils.mapToFormattedJsonString(messages));
+    if (i < 10) {
+      assertEquals(1,messages.size());
+      assertEquals("bar" + i,messages.getMessages().get(0).getStringProperty("foo"));
+    }
+ else {
+      assertEquals(0,messages.size());
+    }
+  }
+  for (int i=0; i < 11; i++) {
+    QueueResults messages=qm.getFromQueue("/foo/bar",new QueueQuery().withConsumer("consumer2"));
+    logger.info(JsonUtils.mapToFormattedJsonString(messages));
+    if (i < 10) {
+      assertEquals(1,messages.size());
+      assertEquals("bar" + i,messages.getMessages().get(0).getStringProperty("foo"));
+    }
+ else {
+      assertEquals(0,messages.size());
+    }
+  }
+}

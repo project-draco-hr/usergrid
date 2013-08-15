@@ -1,0 +1,12 @@
+{
+  setup.getProps().setProperty(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
+  setup.getProps().setProperty(PROPERTIES_ORGANIZATIONS_REQUIRE_CONFIRMATION,"false");
+  setup.getProps().setProperty(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"false");
+  setup.getProps().setProperty(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"false");
+  OrganizationOwnerInfo ooi=setup.getMgmtSvc().createOwnerAndOrganization("org-skipallemailtest","user-skipallemailtest","name-skipallemailtest","nate+skipallemailtest@apigee.com","password");
+  EntityManager em=setup.getEmf().getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+  User user=em.get(ooi.getOwner().getUuid(),User.class);
+  assertTrue(user.activated());
+  assertFalse(user.disabled());
+  assertTrue(user.confirmed());
+}
