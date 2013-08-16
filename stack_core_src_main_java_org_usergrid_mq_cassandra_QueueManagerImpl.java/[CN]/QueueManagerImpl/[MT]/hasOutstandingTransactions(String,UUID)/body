@@ -1,0 +1,8 @@
+{
+  UUID queueId=CassandraMQUtils.getQueueId(queuePath);
+  if (consumerId == null) {
+    consumerId=queueId;
+  }
+  Keyspace ko=cass.getApplicationKeyspace(applicationId);
+  return new ConsumerTransaction(applicationId,ko,lockManager,cass).hasOutstandingTransactions(queueId,consumerId);
+}
