@@ -1,8 +1,8 @@
 {
-  logger.info("GeoIT.testGeo");
-  UUID applicationId=createApplication("testOrganization","testGeo");
+  LOG.info("GeoIT.testGeo");
+  UUID applicationId=setup.createApplication("testOrganization","testGeo");
   assertNotNull(applicationId);
-  EntityManager em=emf.getEntityManager(applicationId);
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
   assertNotNull(em);
   Map<String,Object> properties=new LinkedHashMap<String,Object>();
   properties.put("username","edanuff");
@@ -13,7 +13,7 @@
   GeoIndexManager geo=em.getGeoIndexManager();
   geo.storeLocationInCollectionIndex(em.getApplicationRef(),"users",user.getUuid(),"location.coordinates",loc);
   Point center=new Point(37.774277,-122.404744);
-  CollectionGeoSearch connSearch=new CollectionGeoSearch(em,indexBucketLocator,cassandraService,em.getApplicationRef(),"users");
+  CollectionGeoSearch connSearch=new CollectionGeoSearch(em,setup.getIbl(),setup.getCassSvc(),em.getApplicationRef(),"users");
   List<EntityLocationRef> listResults=connSearch.proximitySearch(null,null,center,"location.coordinates",0,200,100).entityLocations;
   assertEquals(0,listResults.size());
   listResults=connSearch.proximitySearch(null,null,center,"location.coordinates",0,400,100).entityLocations;

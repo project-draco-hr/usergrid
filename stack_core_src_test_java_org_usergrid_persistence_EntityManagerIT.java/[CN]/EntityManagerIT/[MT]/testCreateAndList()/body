@@ -1,21 +1,21 @@
 {
-  logger.info("EntityDaoTest.testCreateAndDelete");
-  UUID applicationId=createApplication("testOrganization","testCreateAndList");
-  EntityManager em=emf.getEntityManager(applicationId);
+  LOG.info("EntityDaoTest.testCreateAndDelete");
+  UUID applicationId=setup.createApplication("testOrganization","testCreateAndList");
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
   String name="test.thing" + UUIDUtils.newTimeUUID() + 1;
   Map<String,Object> properties=new LinkedHashMap<String,Object>();
   properties.put("name",name);
   properties.put("foo","bar");
-  logger.info("Starting entity create");
+  LOG.info("Starting entity create");
   Entity thing1=em.create("thing",properties);
-  logger.info("Entity created");
+  LOG.info("Entity created");
   String name2="test.thing" + UUIDUtils.newTimeUUID() + 2;
   properties=new LinkedHashMap<String,Object>();
   properties.put("name",name2);
   properties.put("foo","bar");
-  logger.info("Starting entity create");
+  LOG.info("Starting entity create");
   Entity thing2=em.create("thing",properties);
-  logger.info("Entity created");
+  LOG.info("Entity created");
   EntityRef appRef=em.getRef(applicationId);
   Results r=em.getCollection(appRef,"things",null,10,Level.ALL_PROPERTIES,false);
   assertEquals(2,r.size());

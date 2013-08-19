@@ -1,7 +1,7 @@
 {
-  UUID applicationId=createApplication("testOrganization","testGeoWithIntersection");
+  UUID applicationId=setup.createApplication("testOrganization","testGeoWithIntersection");
   assertNotNull(applicationId);
-  EntityManager em=emf.getEntityManager(applicationId);
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
   assertNotNull(em);
   int size=100;
   int min=50;
@@ -18,7 +18,7 @@
   int startDelta=size - min;
   String queryString=String.format("select * where index >= %d and index < %d order by index",min,max);
   Query query=Query.fromQL(queryString);
-  Results r=null;
+  Results r;
   int count=0;
   do {
     r=em.searchCollection(em.getApplicationRef(),"stores",query);

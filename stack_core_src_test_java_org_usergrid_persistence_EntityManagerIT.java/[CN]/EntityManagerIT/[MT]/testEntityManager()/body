@@ -1,8 +1,8 @@
 {
-  logger.info("EntityManagerIT.testEntityManagerTest");
-  UUID applicationId=createApplication("testOrganization","testEntityManagerTest");
+  LOG.info("EntityManagerIT.testEntityManagerTest");
+  UUID applicationId=setup.createApplication("testOrganization","testEntityManagerTest");
   assertNotNull(applicationId);
-  EntityManager em=emf.getEntityManager(applicationId);
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
   assertNotNull(em);
   Map<String,Object> properties=new LinkedHashMap<String,Object>();
   properties.put("username","edanuff");
@@ -17,8 +17,8 @@
   assertNotNull(userRef);
   assertEquals("userRef.id not expected value",user.getUuid(),userRef.getUuid());
   assertEquals("userRef.type not expected value","user",userRef.getType());
-  logger.info("user.username: " + user.getProperty("username"));
-  logger.info("user.email: " + user.getProperty("email"));
+  LOG.info("user.username: " + user.getProperty("username"));
+  LOG.info("user.email: " + user.getProperty("email"));
   Results results=em.searchCollection(em.getApplicationRef(),"users",new Query().addEqualityFilter("username","edanuff"));
   assertNotNull(results);
   assertEquals(1,results.size());
@@ -26,8 +26,8 @@
   assertNotNull(user);
   assertEquals("user.username not expected value","edanuff",user.getProperty("username"));
   assertEquals("user.email not expected value","ed@anuff.com",user.getProperty("email"));
-  logger.info("user.username: " + user.getProperty("username"));
-  logger.info("user.email: " + user.getProperty("email"));
+  LOG.info("user.username: " + user.getProperty("username"));
+  LOG.info("user.email: " + user.getProperty("email"));
   results=em.searchCollection(em.getApplicationRef(),"users",new Query().addEqualityFilter("email","ed@anuff.com"));
   assertNotNull(results);
   assertEquals(1,results.size());
@@ -35,6 +35,6 @@
   assertNotNull(user);
   assertEquals("user.username not expected value","edanuff",user.getProperty("username"));
   assertEquals("user.email not expected value","ed@anuff.com",user.getProperty("email"));
-  logger.info("user.username: " + user.getProperty("username"));
-  logger.info("user.email: " + user.getProperty("email"));
+  LOG.info("user.username: " + user.getProperty("username"));
+  LOG.info("user.email: " + user.getProperty("email"));
 }

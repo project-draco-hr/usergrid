@@ -1,7 +1,7 @@
 {
-  UUID applicationId=createApplication("testOrganization","pagingWithBoundsCriteria2");
+  UUID applicationId=setup.createApplication("testOrganization","pagingWithBoundsCriteria2");
   assertNotNull(applicationId);
-  EntityManager em=emf.getEntityManager(applicationId);
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
   assertNotNull(em);
   int size=40;
   List<UUID> entityIds=new ArrayList<UUID>();
@@ -18,7 +18,7 @@
   query.addFilter("index <= 29");
   Results r=em.searchCollection(em.getApplicationRef(),"pages",query);
   for (int i=1; i < 3; i++) {
-    logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+    LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
     assertEquals(pageSize,r.size());
     for (int j=0; j < pageSize; j++) {
       assertEquals(entityIds.get(i * pageSize + j),r.getEntities().get(j).getUuid());

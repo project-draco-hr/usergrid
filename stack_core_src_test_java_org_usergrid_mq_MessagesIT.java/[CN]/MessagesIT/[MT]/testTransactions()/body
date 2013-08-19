@@ -1,14 +1,14 @@
 {
-  UUID applicationId=createApplication("testOrganization","testTransactions");
+  UUID applicationId=setup.createApplication("testOrganization","testTransactions");
   assertNotNull(applicationId);
   EntityManager em=getEntityManagerFactory().getEntityManager(applicationId);
   assertNotNull(em);
-  logger.info("Creating messages");
-  QueueManager qm=geQueueManagerFactory().getQueueManager(applicationId);
+  LOG.info("Creating messages");
+  QueueManager qm=getQueueManagerFactory().getQueueManager(applicationId);
   String queuePath="/foo/bar";
   Message message=new Message();
   message.setStringProperty("foo","bar");
-  logger.info("Posting message # to queue /foo/bar: " + message.getUuid());
+  LOG.info("Posting message # to queue /foo/bar: " + message.getUuid());
   assertFalse(qm.hasMessagesInQueue(queuePath,null));
   qm.postToQueue(queuePath,message);
   assertTrue(qm.hasMessagesInQueue(queuePath,null));
