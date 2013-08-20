@@ -1,10 +1,12 @@
 {
-  SliceNode node=new SliceNode(opCount);
-  for (  SortPredicate predicate : sorts) {
-    String name=predicate.getPropertyName();
-    checkIndexed(name);
-    node.setStart(name,null,true);
-    node.setFinish(name,null,true);
+  SliceNode slice=new SliceNode(opCount);
+  SortPredicate first=sorts.get(0);
+  String propertyName=first.getPropertyName();
+  checkIndexed(propertyName);
+  slice.setStart(propertyName,null,true);
+  slice.setFinish(propertyName,null,true);
+  for (int i=1; i < sorts.size(); i++) {
+    checkIndexed(sorts.get(i).getPropertyName());
   }
-  return node;
+  return new OrderByNode(slice,sorts.subList(1,sorts.size()),rootNode);
 }

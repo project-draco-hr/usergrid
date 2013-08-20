@@ -7,15 +7,9 @@
     opCount=visitor.getSliceCount();
   }
   if (sorts.size() > 0) {
-    SliceNode sorts=generateSorts(opCount);
-    opCount+=sorts.getAllSlices().size();
-    if (rootNode != null) {
-      AndNode and=new AndNode(sorts,rootNode);
-      rootNode=and;
-    }
- else {
-      rootNode=sorts;
-    }
+    OrderByNode order=generateSorts(opCount);
+    opCount+=order.getFirstPredicate().getAllSlices().size();
+    rootNode=order;
   }
   if (rootNode == null) {
     if (query.containsSingleNameOrEmailIdentifier()) {
