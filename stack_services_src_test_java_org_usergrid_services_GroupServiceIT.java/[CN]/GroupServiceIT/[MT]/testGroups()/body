@@ -1,23 +1,19 @@
 {
-  UUID applicationId=createApplication("testOrganization","testGroups");
-  ServiceManager sm=setup.getSmf().getServiceManager(applicationId);
-  Map<String,Object> properties=new LinkedHashMap<String,Object>();
-  properties.put("path","test/test");
-  properties.put("title","Test group");
-  Entity group=testRequest(sm,ServiceAction.POST,1,properties,"groups").getEntity();
+  app.add("path","test/test");
+  app.add("title","Test group");
+  Entity group=app.testRequest(ServiceAction.POST,1,"groups").getEntity();
   assertNotNull(group);
-  testRequest(sm,ServiceAction.GET,1,null,"groups","test","test");
-  testRequest(sm,ServiceAction.GET,0,null,"groups","test","test","messages");
-  testRequest(sm,ServiceAction.GET,1,null,"groups");
-  properties=new LinkedHashMap<String,Object>();
-  properties.put("username","edanuff");
-  properties.put("email","ed@anuff.com");
-  Entity user=testRequest(sm,ServiceAction.POST,1,properties,"users").getEntity();
+  app.testRequest(ServiceAction.GET,1,"groups","test","test");
+  app.testRequest(ServiceAction.GET,0,"groups","test","test","messages");
+  app.testRequest(ServiceAction.GET,1,"groups");
+  app.add("username","edanuff");
+  app.add("email","ed@anuff.com");
+  Entity user=app.testRequest(ServiceAction.POST,1,"users").getEntity();
   assertNotNull(user);
-  testRequest(sm,ServiceAction.GET,0,null,"groups","test","test","users");
-  testRequest(sm,ServiceAction.POST,1,null,"groups","test","test","users",user.getUuid());
-  testRequest(sm,ServiceAction.GET,1,null,"groups","test","test","users");
-  testRequest(sm,ServiceAction.GET,1,null,"users",user.getUuid(),"groups");
-  testRequest(sm,ServiceAction.GET,0,null,"users",user.getUuid(),"activities");
-  testRequest(sm,ServiceAction.GET,0,null,"groups",group.getUuid(),"users",user.getUuid(),"activities");
+  app.testRequest(ServiceAction.GET,0,"groups","test","test","users");
+  app.testRequest(ServiceAction.POST,1,"groups","test","test","users",user.getUuid());
+  app.testRequest(ServiceAction.GET,1,"groups","test","test","users");
+  app.testRequest(ServiceAction.GET,1,"users",user.getUuid(),"groups");
+  app.testRequest(ServiceAction.GET,0,"users",user.getUuid(),"activities");
+  app.testRequest(ServiceAction.GET,0,"groups",group.getUuid(),"users",user.getUuid(),"activities");
 }
