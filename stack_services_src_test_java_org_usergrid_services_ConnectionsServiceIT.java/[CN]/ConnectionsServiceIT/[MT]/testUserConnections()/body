@@ -1,11 +1,11 @@
 {
-  app.add("username","conn-user1");
-  app.add("email","conn-user1@apigee.com");
+  app.put("username","conn-user1");
+  app.put("email","conn-user1@apigee.com");
   Entity user1=app.testRequest(ServiceAction.POST,1,"users").getEntity();
   assertNotNull(user1);
   app.testRequest(ServiceAction.GET,1,"users","conn-user1");
-  app.add("username","conn-user2");
-  app.add("email","conn-user2@apigee.com");
+  app.put("username","conn-user2");
+  app.put("email","conn-user2@apigee.com");
   Entity user2=app.testRequest(ServiceAction.POST,1,"users").getEntity();
   assertNotNull(user2);
   app.testRequest(ServiceAction.POST,1,"users","conn-user1","manages","users","conn-user2");
@@ -22,7 +22,7 @@
   assertTrue(((Map)user1.getMetadata("connections")).containsKey("reports"));
   user2=app.testRequest(ServiceAction.GET,1,"users","conn-user2").getEntities().get(0);
   assertTrue(((Map)user2.getMetadata("connecting")).containsKey("reports"));
-  app.add("username","conn-user3");
-  app.add("email","conn-user3@apigee.com");
+  app.put("username","conn-user3");
+  app.put("email","conn-user3@apigee.com");
   app.testRequest(ServiceAction.POST,1,"users","conn-user1","manages","user");
 }

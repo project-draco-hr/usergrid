@@ -1,15 +1,15 @@
 {
   LOG.info("testServices");
-  app.add("username","edanuff");
-  app.add("email","ed@anuff.com");
+  app.put("username","edanuff");
+  app.put("email","ed@anuff.com");
   Entity user=app.testRequest(ServiceAction.POST,1,"users").getEntity();
   assertNotNull(user);
   app.testRequest(ServiceAction.GET,1,"users");
   app.testRequest(ServiceAction.GET,1,"users",user.getUuid());
   app.testRequest(ServiceAction.GET,1,"users",Query.fromQL("select * where username='edanuff'"));
-  app.add("foo","bar");
+  app.put("foo","bar");
   app.testRequest(ServiceAction.PUT,1,"users",user.getUuid());
-  app.add("name","nico");
+  app.put("name","nico");
   app.testRequest(ServiceAction.POST,1,"cats");
   app.testRequest(ServiceAction.GET,0,"users",user.getUuid(),"messages");
   app.testRequest(ServiceAction.GET,0,"users",Query.fromQL("select * where username='edanuff'"),"messages");
@@ -28,16 +28,16 @@
   app.testRequest(ServiceAction.GET,1,"users","edanuff","likes","restaurants",Query.fromQL("select * where name='Brickhouse'"));
   app.testRequest(ServiceAction.GET,1,"users","edanuff","likes",Query.fromQL("select * where name='axis*'"));
   app.testRequest(ServiceAction.GET,3,null,"users","edanuff","connections");
-  app.add("color","blacknwhite");
+  app.put("color","blacknwhite");
   app.testRequest(ServiceAction.PUT,1,"users","edanuff","likes",cat.getUuid());
-  app.add("eats","petfood");
+  app.put("eats","petfood");
   app.testRequest(ServiceAction.PUT,1,"users","edanuff","likes","cats","dylan");
-  app.add("Todays special","Coffee");
+  app.put("Todays special","Coffee");
   app.testRequest(ServiceAction.PUT,1,"users","edanuff","likes","restaurants",Query.fromQL("select * where name='Brickhouse'"));
   app.testRequest(ServiceAction.DELETE,1,null,"users",user.getUuid(),"connections","likes",restaurant.getUuid());
   app.testRequest(ServiceAction.GET,2,null,"users","edanuff","connections");
   app.testRequest(ServiceAction.GET,1,null,"users","edanuff","likes","restaurants");
   UUID uuid=UUID.randomUUID();
-  app.add("visits",5);
+  app.put("visits",5);
   app.testRequest(ServiceAction.PUT,1,"devices",uuid);
 }
