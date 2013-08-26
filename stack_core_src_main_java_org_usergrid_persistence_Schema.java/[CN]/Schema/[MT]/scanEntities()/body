@@ -1,19 +1,21 @@
 {
-  for (  String path : entitiesScanPath) {
-    ClassPathScanningCandidateComponentProvider provider=new ClassPathScanningCandidateComponentProvider(true);
-    provider.addIncludeFilter(new AssignableTypeFilter(TypedEntity.class));
-    Set<BeanDefinition> components=provider.findCandidateComponents(path);
-    for (    BeanDefinition component : components) {
-      try {
-        Class<?> cls=Class.forName(component.getBeanClassName());
-        if (Entity.class.isAssignableFrom(cls)) {
-          registerEntity((Class<? extends Entity>)cls);
+synchronized (entitiesScanPath) {
+    for (    String path : entitiesScanPath) {
+      ClassPathScanningCandidateComponentProvider provider=new ClassPathScanningCandidateComponentProvider(true);
+      provider.addIncludeFilter(new AssignableTypeFilter(TypedEntity.class));
+      Set<BeanDefinition> components=provider.findCandidateComponents(path);
+      for (      BeanDefinition component : components) {
+        try {
+          Class<?> cls=Class.forName(component.getBeanClassName());
+          if (Entity.class.isAssignableFrom(cls)) {
+            registerEntity((Class<? extends Entity>)cls);
+          }
+        }
+ catch (        ClassNotFoundException e) {
+          logger.error("Unable to get entity class ",e);
         }
       }
- catch (      ClassNotFoundException e) {
-        logger.error("Unable to get entity class ",e);
-      }
+      registerEntity(DynamicEntity.class);
     }
-    registerEntity(DynamicEntity.class);
   }
 }
