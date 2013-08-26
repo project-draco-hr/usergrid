@@ -1,34 +1,31 @@
 {
-  UUID applicationId=createApplication("testOrganization","testEmptyCollections");
-  ServiceManager sm=setup.getSmf().getServiceManager(applicationId);
-  Map<String,Object> properties=new LinkedHashMap<String,Object>();
-  Entity cat=testRequest(sm,ServiceAction.POST,0,properties,"cats").getEntity();
+  Entity cat=app.testRequest(ServiceAction.POST,0,"cats").getEntity();
   assertNull(cat);
   CollectionInfo info=Schema.getDefaultSchema().getCollection(TYPE_APPLICATION,"cats");
   assertNotNull(info);
   assertEquals("cats",info.getName());
-  cat=testRequest(sm,ServiceAction.POST,0,properties,"cats").getEntity();
+  cat=app.testRequest(ServiceAction.POST,0,"cats").getEntity();
   assertNull(cat);
   try {
-    testRequest(sm,ServiceAction.POST,0,properties,"users");
+    app.testRequest(ServiceAction.POST,0,"users");
     Assert.fail();
   }
  catch (  RequiredPropertyNotFoundException rpnfe) {
   }
   try {
-    testRequest(sm,ServiceAction.POST,0,properties,"groups");
+    app.testRequest(ServiceAction.POST,0,"groups");
     Assert.fail();
   }
  catch (  IllegalArgumentException iae) {
   }
   try {
-    testRequest(sm,ServiceAction.POST,0,properties,"roles");
+    app.testRequest(ServiceAction.POST,0,"roles");
     Assert.fail();
   }
  catch (  IllegalArgumentException iae) {
   }
   try {
-    testRequest(sm,ServiceAction.POST,0,properties,"events");
+    app.testRequest(ServiceAction.POST,0,"events");
   }
  catch (  RequiredPropertyNotFoundException rpnfe) {
   }

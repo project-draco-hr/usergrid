@@ -1,65 +1,59 @@
 {
-  LOG.info("Please make use of the logger folks :-)");
-  UUID applicationId=createApplication(TEST_ORGANIZATION,TEST_APPLICATION);
-  ServiceManager sm=setup.getSmf().getServiceManager(applicationId);
-  Map<String,Object> properties=new LinkedHashMap<String,Object>();
-  properties.put("path","cst-test-group/cst-test-group");
-  properties.put("title","Collection Test group");
-  Entity group=testRequest(sm,ServiceAction.POST,1,properties,"groups").getEntity();
+  app.put("path","cst-test-group/cst-test-group");
+  app.put("title","Collection Test group");
+  Entity group=app.testRequest(ServiceAction.POST,1,"groups").getEntity();
   assertNotNull(group);
-  testRequest(sm,ServiceAction.GET,1,null,"groups",CST_TEST_GROUP,CST_TEST_GROUP);
-  testRequest(sm,ServiceAction.GET,1,null,"groups");
-  properties=new LinkedHashMap<String,Object>();
-  properties.put("username","edanuff");
-  properties.put("email","ed@anuff.com");
-  Entity user=testRequest(sm,ServiceAction.POST,1,properties,"users").getEntity();
+  app.testRequest(ServiceAction.GET,1,"groups",CST_TEST_GROUP,CST_TEST_GROUP);
+  app.testRequest(ServiceAction.GET,1,"groups");
+  app.put("username","edanuff");
+  app.put("email","ed@anuff.com");
+  Entity user=app.testRequest(ServiceAction.POST,1,"users").getEntity();
   assertNotNull(user);
   try {
-    testRequest(sm,ServiceAction.GET,0,null,"users",group.getUuid());
+    app.testRequest(ServiceAction.GET,0,"users",group.getUuid());
     Assert.fail();
   }
  catch (  UnexpectedEntityTypeException uee) {
   }
   try {
-    testRequest(sm,ServiceAction.GET,0,null,"users",CST_TEST_GROUP);
+    app.testRequest(ServiceAction.GET,0,"users",CST_TEST_GROUP);
     Assert.fail();
   }
  catch (  ServiceResourceNotFoundException srnfe) {
   }
-  properties=new LinkedHashMap<String,Object>();
-  properties.put("group-size","10");
+  app.put("group-size","10");
   try {
-    testRequest(sm,ServiceAction.POST,0,properties,"users",group.getUuid());
+    app.testRequest(ServiceAction.POST,0,"users",group.getUuid());
     Assert.fail();
   }
  catch (  UnexpectedEntityTypeException uee) {
   }
   try {
-    testRequest(sm,ServiceAction.POST,0,properties,"users",CST_TEST_GROUP);
+    app.testRequest(ServiceAction.POST,0,"users",CST_TEST_GROUP);
     Assert.fail();
   }
  catch (  ServiceResourceNotFoundException srnfe) {
   }
   try {
-    testRequest(sm,ServiceAction.PUT,0,properties,"users",group.getUuid());
+    app.testRequest(ServiceAction.PUT,0,"users",group.getUuid());
     Assert.fail();
   }
  catch (  UnexpectedEntityTypeException uee) {
   }
   try {
-    testRequest(sm,ServiceAction.PUT,0,properties,"users",CST_TEST_GROUP);
+    app.testRequest(ServiceAction.PUT,0,"users",CST_TEST_GROUP);
     Assert.fail();
   }
  catch (  RequiredPropertyNotFoundException srnfe) {
   }
   try {
-    testRequest(sm,ServiceAction.DELETE,0,null,"users",group.getUuid());
+    app.testRequest(ServiceAction.DELETE,0,"users",group.getUuid());
     Assert.fail();
   }
  catch (  UnexpectedEntityTypeException uee) {
   }
   try {
-    testRequest(sm,ServiceAction.DELETE,0,null,"users",CST_TEST_GROUP);
+    app.testRequest(ServiceAction.DELETE,0,"users",CST_TEST_GROUP);
     Assert.fail();
   }
  catch (  ServiceResourceNotFoundException srnfe) {

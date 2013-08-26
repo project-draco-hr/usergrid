@@ -1,18 +1,12 @@
 {
-  UUID applicationId=createApplication("testOrganization","deleteRoles");
-  assertNotNull(applicationId);
-  createAndTestRoles(applicationId,ServiceAction.PUT,"manager","Manager Title",600000l);
-  createAndTestPermission(applicationId,ServiceAction.PUT,"manager","access:/**");
-  createAndTestPermission(applicationId,ServiceAction.PUT,"manager","access:/places/**");
-  createAndTestPermission(applicationId,ServiceAction.PUT,"manager","access:/faces/names/**");
-  ServiceManager sm=setup.getSmf().getServiceManager(applicationId);
-  assertNotNull(sm);
-  EntityManager em=sm.getEntityManager();
-  assertNotNull(em);
-  ServiceResults results=invokeService(sm,ServiceAction.DELETE,null,"roles","manager");
+  createAndTestRoles(ServiceAction.PUT,"manager","Manager Title",600000l);
+  createAndTestPermission(ServiceAction.PUT,"manager","access:/**");
+  createAndTestPermission(ServiceAction.PUT,"manager","access:/places/**");
+  createAndTestPermission(ServiceAction.PUT,"manager","access:/faces/names/**");
+  ServiceResults results=app.invokeService(ServiceAction.DELETE,"roles","manager");
   assertEquals(1,results.size());
-  Role role=em.get(em.getAlias("role","manager"),Role.class);
+  Role role=app.get(app.getAlias("role","manager"),Role.class);
   assertNull(role);
-  Set<String> permissions=em.getRolePermissions("manager");
+  Set<String> permissions=app.getRolePermissions("manager");
   assertEquals(0,permissions.size());
 }
