@@ -1,14 +1,20 @@
 {
-  int rpcPort=AvailablePortFinder.getNextAvailable(CassandraResource.DEFAULT_RPC_PORT + RandomUtils.nextInt(1000));
-  int storagePort=AvailablePortFinder.getNextAvailable(CassandraResource.DEFAULT_STORAGE_PORT + RandomUtils.nextInt(1000));
-  int sslStoragePort=AvailablePortFinder.getNextAvailable(CassandraResource.DEFAULT_SSL_STORAGE_PORT + RandomUtils.nextInt(1000));
-  if (rpcPort == storagePort) {
-    storagePort++;
-    storagePort=AvailablePortFinder.getNextAvailable(storagePort);
+synchronized (lock) {
+    if (instance != null) {
+      return instance;
+    }
+    int rpcPort=AvailablePortFinder.getNextAvailable(CassandraResource.DEFAULT_RPC_PORT + RandomUtils.nextInt(1000));
+    int storagePort=AvailablePortFinder.getNextAvailable(CassandraResource.DEFAULT_STORAGE_PORT + RandomUtils.nextInt(1000));
+    int sslStoragePort=AvailablePortFinder.getNextAvailable(CassandraResource.DEFAULT_SSL_STORAGE_PORT + RandomUtils.nextInt(1000));
+    if (rpcPort == storagePort) {
+      storagePort++;
+      storagePort=AvailablePortFinder.getNextAvailable(storagePort);
+    }
+    if (sslStoragePort == storagePort) {
+      sslStoragePort++;
+      sslStoragePort=AvailablePortFinder.getNextAvailable(sslStoragePort);
+    }
+    instance=new CassandraResource(schemaManagerName,rpcPort,storagePort,sslStoragePort);
+    return instance;
   }
-  if (sslStoragePort == storagePort) {
-    sslStoragePort++;
-    sslStoragePort=AvailablePortFinder.getNextAvailable(sslStoragePort);
-  }
-  return new CassandraResource(schemaManagerName,rpcPort,storagePort,sslStoragePort);
 }
