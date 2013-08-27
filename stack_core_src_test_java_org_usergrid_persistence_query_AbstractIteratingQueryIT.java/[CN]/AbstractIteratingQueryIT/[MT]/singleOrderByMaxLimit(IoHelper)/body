@@ -3,14 +3,14 @@
   int size=500;
   int queryLimit=Query.MAX_LIMIT;
   long start=System.currentTimeMillis();
-  logger.info("Writing {} entities.",size);
+  LOG.info("Writing {} entities.",size);
   for (int i=0; i < size; i++) {
     Map<String,Object> entity=new HashMap<String,Object>();
     entity.put("name",String.valueOf(i));
     io.writeEntity(entity);
   }
   long stop=System.currentTimeMillis();
-  logger.info("Writes took {} ms",stop - start);
+  LOG.info("Writes took {} ms",stop - start);
   Query query=new Query();
   query.addSort("created");
   query.setLimit(queryLimit);
@@ -27,6 +27,6 @@
   }
  while (results.getCursor() != null);
   stop=System.currentTimeMillis();
-  logger.info("Query took {} ms to return {} entities",stop - start,count);
+  LOG.info("Query took {} ms to return {} entities",stop - start,count);
   assertEquals(size,count);
 }
