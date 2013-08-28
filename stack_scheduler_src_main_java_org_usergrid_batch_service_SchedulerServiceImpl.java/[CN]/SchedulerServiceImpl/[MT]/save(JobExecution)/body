@@ -4,8 +4,9 @@
   Status jobStatus=bulkJobExecution.getStatus();
   try {
     if (jobStatus == Status.COMPLETED) {
-      logger.info("Job {} is complete",data.getJobName());
+      logger.info("Job {} is complete id: {}",data.getJobName(),bulkJobExecution.getTransactionId());
       qm.deleteTransaction(jobQueueName,bulkJobExecution.getTransactionId(),null);
+      logger.debug("delete job data {}",data.getUuid());
       em.delete(data);
     }
  else     if (jobStatus == Status.DEAD) {
