@@ -3,16 +3,7 @@
   UserInfo mixcaseUser=setup.getMgmtSvc().createAdminUser("AKarasulu","Alex Karasulu","AKarasulu@Apache.org","test",true,false);
   AuthPrincipalInfo adminPrincipal=new AuthPrincipalInfo(AuthPrincipalType.ADMIN_USER,mixcaseUser.getUuid(),UUIDUtils.newTimeUUID());
   OrganizationInfo organizationInfo=setup.getMgmtSvc().createOrganization("MixedCaseOrg",mixcaseUser,true);
-  String tokenStr=mgmtToken("AKarasulu@Apache.org","test");
-  LOG.info("User creation successful: token = {}",tokenStr);
-  JsonNode exactCaseNode=resource().path("/management/users/AKarasulu@Apache.org").queryParam("access_token",tokenStr).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
-  logNode(exactCaseNode);
-  LOG.info("When using the exact case for the user the operation passes.");
-  try {
-    JsonNode node=resource().path("/management/users/akarasulu@apache.org").queryParam("access_token",tokenStr).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
-    logNode(node);
-  }
- catch (  Exception e) {
-    LOG.error("When using all lower case we have a failure",e);
-  }
+  String tokenStr=mgmtToken("akarasulu@apache.org","test");
+  JsonNode node=resource().path("/management/users/akarasulu@apache.org").queryParam("access_token",tokenStr).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  logNode(node);
 }
