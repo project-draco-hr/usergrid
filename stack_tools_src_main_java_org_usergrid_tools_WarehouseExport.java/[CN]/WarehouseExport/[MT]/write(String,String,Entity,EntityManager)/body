@@ -1,0 +1,32 @@
+{
+  Map<String,String[]> cfm=getCollectionFieldMap();
+  String uuid=entity.getUuid().toString();
+  String created=DATE_FORMAT.format(entity.getCreated());
+  String modified=DATE_FORMAT.format(entity.getModified());
+  String type=entity.getType();
+  List<String> values=new ArrayList<String>(30);
+  values.add(uuid);
+  values.add(orgName);
+  values.add(appName);
+  values.add(entity.getType());
+  values.add(created);
+  values.add(modified);
+  for (  Map.Entry<String,String[]> entry : cfm.entrySet()) {
+    String collection=entry.getKey();
+    String[] attributes=entry.getValue();
+    if (collection.equals(type)) {
+      for (      String attribute : attributes) {
+        Object prop=entity.getProperty(attribute);
+        values.add(prop != null ? prop.toString() : null);
+      }
+    }
+ else {
+      for (      String attribute : attributes) {
+        values.add(null);
+      }
+    }
+  }
+  String[] stringValues=new String[values.size()];
+  values.toArray(stringValues);
+  writer.writeNext(stringValues);
+}
