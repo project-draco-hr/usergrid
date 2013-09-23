@@ -1,28 +1,31 @@
 {
   setup.set(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"true");
+  setup.set(PROPERTIES_NOTIFY_ADMIN_OF_ACTIVATION,"true");
   setup.set(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
   setup.set(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"true");
   setup.set(PROPERTIES_SYSADMIN_EMAIL,"sysadmin-2@mockserver.com");
-  OrganizationOwnerInfo org_owner=setup.getMgmtSvc().createOwnerAndOrganization(ORGANIZATION_NAME_2,"test-user-2","Test User","test-user-2@mockserver.com","testpassword",false,false);
+  OrganizationOwnerInfo org_owner=createOwnerAndOrganization(ORGANIZATION_NAME_2,"test-user-2","Test User","test-user-2@mockserver.com","testpassword",false,false);
   assertNotNull(org_owner);
-  List<Message> user_inbox=org.jvnet.mock_javamail.Mailbox.get("test-user-2@mockserver.com");
+  List<Message> user_inbox=Mailbox.get("test-user-2@mockserver.com");
   assertFalse(user_inbox.isEmpty());
   Message confirmation=user_inbox.get(0);
   assertEquals("User Account Confirmation: test-user-2@mockserver.com",confirmation.getSubject());
   String token=getTokenFromMessage(confirmation);
   LOG.info(token);
-  assertEquals(ActivationState.CONFIRMED_AWAITING_ACTIVATION,setup.getMgmtSvc().handleConfirmationTokenForAdminUser(org_owner.owner.getUuid(),token));
+  ActivationState state=setup.getMgmtSvc().handleConfirmationTokenForAdminUser(org_owner.owner.getUuid(),token);
+  assertEquals(ActivationState.CONFIRMED_AWAITING_ACTIVATION,state);
   confirmation=user_inbox.get(1);
   assertEquals("User Account Confirmed",confirmation.getSubject());
-  List<Message> sysadmin_inbox=org.jvnet.mock_javamail.Mailbox.get("sysadmin-2@mockserver.com");
+  List<Message> sysadmin_inbox=Mailbox.get("sysadmin-2@mockserver.com");
   assertFalse(sysadmin_inbox.isEmpty());
   Message activation=sysadmin_inbox.get(0);
   assertEquals("Request For Admin User Account Activation test-user-2@mockserver.com",activation.getSubject());
   token=getTokenFromMessage(activation);
   LOG.info(token);
-  assertEquals(ActivationState.ACTIVATED,setup.getMgmtSvc().handleActivationTokenForAdminUser(org_owner.owner.getUuid(),token));
-  Message account_activated_message=user_inbox.get(2);
-  assertEquals("User Account Activated",activation.getSubject());
+  state=setup.getMgmtSvc().handleActivationTokenForAdminUser(org_owner.owner.getUuid(),token);
+  assertEquals(ActivationState.ACTIVATED,state);
+  Message activated=user_inbox.get(2);
+  assertEquals("User Account Activated",activated.getSubject());
   MockImapClient client=new MockImapClient("mockserver.com","test-user-2","somepassword");
   client.processMail();
 }
