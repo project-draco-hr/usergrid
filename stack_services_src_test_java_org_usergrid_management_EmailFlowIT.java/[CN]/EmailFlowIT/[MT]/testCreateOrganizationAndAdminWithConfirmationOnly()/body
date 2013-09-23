@@ -1,22 +1,22 @@
 {
-  setup.getProps().setProperty(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"false");
-  setup.getProps().setProperty(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
-  setup.getProps().setProperty(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"true");
-  setup.getProps().setProperty(PROPERTIES_SYSADMIN_EMAIL,"sysadmin-1@mockserver.com");
-  setup.getProps().setProperty(PROPERTIES_NOTIFY_ADMIN_OF_ACTIVATION,"true");
-  OrganizationOwnerInfo org_owner=setup.getMgmtSvc().createOwnerAndOrganization(ORGANIZATION_NAME,"test-user-1","Test User","test-user-1@mockserver.com","testpassword",false,false);
+  setup.set(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"false");
+  setup.set(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
+  setup.set(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"true");
+  setup.set(PROPERTIES_SYSADMIN_EMAIL,"sysadmin-1@mockserver.com");
+  setup.set(PROPERTIES_NOTIFY_ADMIN_OF_ACTIVATION,"true");
+  OrganizationOwnerInfo org_owner=createOwnerAndOrganization(ORGANIZATION_NAME,"test-user-1","Test User","test-user-1@mockserver.com","testpassword",false,false);
   assertNotNull(org_owner);
   List<Message> inbox=org.jvnet.mock_javamail.Mailbox.get("test-user-1@mockserver.com");
   assertFalse(inbox.isEmpty());
   MockImapClient client=new MockImapClient("mockserver.com","test-user-1","somepassword");
   client.processMail();
-  Message account_confirmation_message=inbox.get(0);
-  assertEquals("User Account Confirmation: test-user-1@mockserver.com",account_confirmation_message.getSubject());
-  String token=getTokenFromMessage(account_confirmation_message);
-  logger.info(token);
+  Message confirmation=inbox.get(0);
+  assertEquals("User Account Confirmation: test-user-1@mockserver.com",confirmation.getSubject());
+  String token=getTokenFromMessage(confirmation);
+  LOG.info(token);
   assertEquals(ActivationState.ACTIVATED,setup.getMgmtSvc().handleConfirmationTokenForAdminUser(org_owner.owner.getUuid(),token));
-  Message account_activation_message=inbox.get(1);
-  assertEquals("User Account Activated",account_activation_message.getSubject());
+  Message activation=inbox.get(1);
+  assertEquals("User Account Activated",activation.getSubject());
   client=new MockImapClient("mockserver.com","test-user-1","somepassword");
   client.processMail();
 }

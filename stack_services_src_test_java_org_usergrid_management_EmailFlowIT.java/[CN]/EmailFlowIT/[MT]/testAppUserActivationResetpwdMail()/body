@@ -11,10 +11,10 @@
   Message account_activation_message=inbox.get(0);
   assertEquals(subject,account_activation_message.getSubject());
   String mailContent=(String)((MimeMultipart)account_activation_message.getContent()).getBodyPart(1).getContent();
-  logger.info(mailContent);
+  LOG.info(mailContent);
   assertTrue(StringUtils.contains(mailContent,activation_url));
   String token=getTokenFromMessage(account_activation_message);
-  logger.info(token);
+  LOG.info(token);
   ActivationState activeState=setup.getMgmtSvc().handleActivationTokenForAppUser(appInfo.getId(),user.getUuid(),token);
   assertEquals(ActivationState.ACTIVATED,activeState);
   subject="Password Reset";
@@ -27,10 +27,10 @@
   Message password_reset_message=inbox.get(1);
   assertEquals(subject,password_reset_message.getSubject());
   mailContent=(String)((MimeMultipart)password_reset_message.getContent()).getBodyPart(1).getContent();
-  logger.info(mailContent);
+  LOG.info(mailContent);
   assertTrue(StringUtils.contains(mailContent,reset_url));
   token=getTokenFromMessage(password_reset_message);
-  logger.info(token);
+  LOG.info(token);
   assertTrue(setup.getMgmtSvc().checkPasswordResetTokenForAppUser(appInfo.getId(),user.getUuid(),token));
   setup.getMgmtSvc().revokeAccessTokenForAppUser(token);
   assertFalse(setup.getMgmtSvc().checkPasswordResetTokenForAppUser(appInfo.getId(),user.getUuid(),token));

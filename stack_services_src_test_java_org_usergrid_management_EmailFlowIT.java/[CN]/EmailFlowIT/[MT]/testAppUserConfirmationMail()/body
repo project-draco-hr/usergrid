@@ -12,10 +12,10 @@
   Message account_confirmation_message=inbox.get(0);
   assertEquals(subject,account_confirmation_message.getSubject());
   String mailContent=(String)((MimeMultipart)account_confirmation_message.getContent()).getBodyPart(1).getContent();
-  logger.info(mailContent);
+  LOG.info(mailContent);
   assertTrue(StringUtils.contains(mailContent,confirmation_url));
   String token=getTokenFromMessage(account_confirmation_message);
-  logger.info(token);
+  LOG.info(token);
   ActivationState activeState=setup.getMgmtSvc().handleConfirmationTokenForAppUser(appInfo.getId(),user.getUuid(),token);
   assertEquals(ActivationState.CONFIRMED_AWAITING_ACTIVATION,activeState);
 }
