@@ -1,0 +1,15 @@
+{
+{
+    final JsonNode response=resource().path("/test-organization/test-app/users/").queryParam("ql","select *").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+    assertNotNull("Entities must exist",response.get("entities"));
+    assertEquals("Must match default entity count",1,response.get("entities").size());
+    assertEquals("Must be a user","user",response.get("entities").get(0).get("type").asText());
+    assertNull("List must not exist",response.get("list"));
+  }
+{
+    final JsonNode response=resource().path("/test-organization/test-app/users/").queryParam("ql","select uuid").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+    assertNotNull("List must exist",response.get("list"));
+    assertEquals("Default list count",1,response.get("list"));
+    assertNull("Entities must not exist",response.get("entries"));
+  }
+}
