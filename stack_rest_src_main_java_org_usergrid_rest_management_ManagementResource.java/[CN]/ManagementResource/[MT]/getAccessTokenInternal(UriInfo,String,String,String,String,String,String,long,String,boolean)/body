@@ -27,14 +27,20 @@
         }
  catch (        UnactivatedAdminUserException uaue) {
           errorDescription="user not activated";
-          logger.error("failed token check",uaue);
+          logger.error(errorDescription,uaue);
         }
 catch (        DisabledAdminUserException daue) {
           errorDescription="user disabled";
-          logger.error("failed token check",daue);
+          logger.error(errorDescription,daue);
+        }
+catch (        UnconfirmedAdminUserException uaue) {
+          errorDescription="User must be confirmed to authenticate";
+          logger.warn("Responding with HTTP 403 forbidden response for unconfirmed user {}");
+          OAuthResponse response=OAuthResponse.errorResponse(SC_FORBIDDEN).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription(errorDescription).buildJSONMessage();
+          return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
         }
 catch (        Exception e1) {
-          logger.error("failed token check",e1);
+          logger.error(errorDescription,e1);
         }
       }
  else       if ("client_credentials".equals(grant_type)) {
