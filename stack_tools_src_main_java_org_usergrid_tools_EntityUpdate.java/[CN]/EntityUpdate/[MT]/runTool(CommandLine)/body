@@ -1,0 +1,39 @@
+{
+  startSpring();
+  setVerbose(line);
+  String collectionName=line.getOptionValue(COLLECTION_ARG);
+  String queryString=line.getOptionValue(QUERY_ARG);
+  String updateFile=line.getOptionValue(UPDATE_ARG);
+  Query query=Query.fromQL(queryString);
+  logger.info("Parsing the file at {}",updateFile);
+  File file=new File(updateFile);
+  if (!file.exists()) {
+    logger.error("The file {} does not exist.  Please make sure you have read access so this file.  Exiting.",updateFile);
+    System.exit(1);
+  }
+  DynamicEntity update=MAPPER.readValue(file,DynamicEntity.class);
+  if (update.getProperties().size() == 0) {
+    logger.error("The update in file {} has no properties.  Exiting",updateFile);
+    System.exit(2);
+  }
+  String appName=line.getOptionValue(APPLICATION_ARG);
+  ApplicationInfo app=managementService.getApplicationInfo(Identifier.from(appName));
+  if (app == null) {
+    logger.error("Could not find application with id or name {}",appName);
+    System.exit(3);
+  }
+  EntityManager entityManager=emf.getEntityManager(app.getId());
+  Results results=entityManager.searchCollection(entityManager.getApplicationRef(),collectionName,query);
+  PagingResultsIterator itr=new PagingResultsIterator(results,Results.Level.ALL_PROPERTIES);
+  long count=0;
+  for (  Object next : itr) {
+    Entity entity=(Entity)next;
+    for (    Map.Entry<String,Object> entry : update.getProperties().entrySet()) {
+      entity.setProperty(entry.getKey(),entry.getValue());
+    }
+    entityManager.update(entity);
+    logger.info("Updated entity in application {} with id {} of type {}",new Object[]{app.getId(),entity.getUuid(),entity.getType()});
+    count++;
+  }
+  logger.info("Process complete.  Updated {} entities",count);
+}
