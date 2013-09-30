@@ -6,13 +6,13 @@
   }
   if (verify(MANAGEMENT_APPLICATION_ID,user.getUuid(),password)) {
     userInfo=getUserInfo(MANAGEMENT_APPLICATION_ID,user);
-    if (!userInfo.isActivated()) {
+    if (!userInfo.isActivated() && parseBoolean(properties.getProperty(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION))) {
       throw new UnactivatedAdminUserException();
     }
     if (userInfo.isDisabled()) {
       throw new DisabledAdminUserException();
     }
-    if (!user.confirmed()) {
+    if (!user.confirmed() && parseBoolean(properties.getProperty(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS))) {
       throw new UnconfirmedAdminUserException();
     }
     return userInfo;
