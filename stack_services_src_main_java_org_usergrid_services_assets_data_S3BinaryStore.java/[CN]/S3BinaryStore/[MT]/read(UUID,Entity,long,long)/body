@@ -1,0 +1,12 @@
+{
+  BlobStore blobStore=context.getBlobStore();
+  Blob blob;
+  if (offset == 0 && length == FIVE_MB) {
+    blob=blobStore.getBlob(bucketName,AssetUtils.buildAssetKey(appId,entity));
+  }
+ else {
+    GetOptions options=GetOptions.Builder.range(offset,length);
+    blob=blobStore.getBlob(bucketName,AssetUtils.buildAssetKey(appId,entity),options);
+  }
+  return blob.getPayload().getInput();
+}

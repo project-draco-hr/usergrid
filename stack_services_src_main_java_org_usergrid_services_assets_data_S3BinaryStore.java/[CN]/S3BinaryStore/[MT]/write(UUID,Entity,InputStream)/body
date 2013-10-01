@@ -1,0 +1,55 @@
+{
+  final BlobStore blobStore=context.getBlobStore();
+  ByteArrayOutputStream baos=new ByteArrayOutputStream();
+  long copied=IOUtils.copyLarge(inputStream,baos,0,FIVE_MB);
+  BlobBuilder.PayloadBlobBuilder bb=null;
+  if (copied == FIVE_MB) {
+    File f=File.createTempFile(entity.getUuid().toString(),"tmp");
+    f.deleteOnExit();
+    OutputStream os=null;
+    try {
+      os=new BufferedOutputStream(new FileOutputStream(f.getAbsolutePath()));
+      copied=IOUtils.copyLarge(inputStream,os,0,(FileUtils.ONE_GB * 5));
+      bb=blobStore.blobBuilder(AssetUtils.buildAssetKey(appId,entity)).payload(f).calculateMD5().contentType(AssetMimeHandler.get().getMimeType(entity,f));
+    }
+  finally {
+      IOUtils.closeQuietly(os);
+      if (f.exists()) {
+        f.delete();
+      }
+    }
+  }
+ else {
+    byte[] data=baos.toByteArray();
+    copied=data.length;
+    bb=blobStore.blobBuilder(AssetUtils.buildAssetKey(appId,entity)).payload(data).calculateMD5().contentType(AssetMimeHandler.get().getMimeType(entity,data));
+  }
+  final Map<String,Object> fileMetadata=AssetUtils.getFileMetadata(entity);
+  fileMetadata.put(AssetUtils.CONTENT_LENGTH,copied);
+  if (fileMetadata.get(AssetUtils.CONTENT_DISPOSITION) != null) {
+    bb.contentDisposition(fileMetadata.get(AssetUtils.CONTENT_DISPOSITION).toString());
+  }
+  final Blob blob=bb.build();
+  String md5sum=Hex.encodeHexString(blob.getMetadata().getContentMetadata().getContentMD5());
+  fileMetadata.put(AssetUtils.CHECKSUM,md5sum);
+  if (copied < FIVE_MB) {
+    String eTag=blobStore.putBlob(bucketName,blob,PutOptions.Builder.multipart());
+    fileMetadata.put(AssetUtils.E_TAG,eTag);
+  }
+ else {
+    executor.execute(new Runnable(){
+      @Override public void run(){
+        String eTag=blobStore.putBlob(bucketName,blob,PutOptions.Builder.multipart());
+        fileMetadata.put(AssetUtils.E_TAG,eTag);
+        EntityManager em=emf.getEntityManager(appId);
+        try {
+          em.update(entity);
+        }
+ catch (        Exception e) {
+          LOG.error("error updating entity",e);
+        }
+      }
+    }
+);
+  }
+}
