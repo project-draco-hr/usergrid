@@ -3,7 +3,9 @@
   em.setProperty(new SimpleEntityRef(Group.ENTITY_TYPE,organization.getUuid()),"activated",true);
   List<UserInfo> users=getAdminUsersForOrganization(organization.getUuid());
   for (  UserInfo user : users) {
-    if (!user.isActivated()) {
+    boolean confirmed=user.isConfirmed() || !newAdminUsersRequireConfirmation();
+    boolean shouldActivate=confirmed && !newAdminUsersRequireConfirmation();
+    if (shouldActivate) {
       activateAdminUser(user.getUuid());
     }
   }
