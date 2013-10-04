@@ -6,14 +6,14 @@
   }
   if (verify(MANAGEMENT_APPLICATION_ID,user.getUuid(),password)) {
     userInfo=getUserInfo(MANAGEMENT_APPLICATION_ID,user);
+    if (!userInfo.isConfirmed() && newAdminUsersRequireConfirmation()) {
+      throw new UnconfirmedAdminUserException();
+    }
     if (!userInfo.isActivated()) {
       throw new UnactivatedAdminUserException();
     }
     if (userInfo.isDisabled()) {
       throw new DisabledAdminUserException();
-    }
-    if (!user.confirmed()) {
-      throw new UnconfirmedAdminUserException();
     }
     return userInfo;
   }
