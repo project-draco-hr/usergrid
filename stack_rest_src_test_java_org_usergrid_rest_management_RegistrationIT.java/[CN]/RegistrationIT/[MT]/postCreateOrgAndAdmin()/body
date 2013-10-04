@@ -3,7 +3,7 @@
   try {
     setTestProperty(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"false");
     setTestProperty(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
-    setTestProperty(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"true");
+    setTestProperty(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"false");
     setTestProperty(PROPERTIES_SYSADMIN_EMAIL,"sysadmin-1@mockserver.com");
     JsonNode node=postCreateOrgAndAdmin("test-org-1","test-user-1","Test User","test-user-1@mockserver.com","testpassword");
     UUID owner_uuid=UUID.fromString(node.findPath("data").findPath("owner").findPath("uuid").getTextValue());
@@ -33,10 +33,6 @@
       JsonNode body=uie.getResponse().getEntity(JsonNode.class);
       assertEquals("user not activated",body.findPath("error_description").getTextValue());
     }
-    String response=resource().path("/management/users/" + owner_uuid + "/confirm").get(String.class);
-    logger.info(response);
-    Message account_activation_message=inbox.get(1);
-    assertEquals("User Account Activated",account_activation_message.getSubject());
   }
   finally {
     setTestProperties(originalProperties);
