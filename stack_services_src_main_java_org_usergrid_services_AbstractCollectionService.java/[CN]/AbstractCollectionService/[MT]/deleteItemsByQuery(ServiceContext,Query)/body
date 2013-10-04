@@ -5,7 +5,7 @@
   }
   query=new Query(query);
   query.setResultsLevel(Level.ALL_PROPERTIES);
-  query.setLimit(1000);
+  query.setLimit(query.getLimit());
   if (!query.isReversedSet()) {
     query.setReversed(isCollectionReversed(context));
   }
@@ -13,9 +13,6 @@
     query.addSort(getCollectionSort(context));
   }
   Results r=em.searchCollection(context.getOwner(),context.getCollectionName(),query);
-  if (r.isEmpty()) {
-    throw new ServiceResourceNotFoundException(context);
-  }
   importEntities(context,r);
   for (  Entity entity : r) {
     prepareToDelete(context,entity);
