@@ -1,0 +1,15 @@
+{
+  Properties props=management.getProperties();
+  String testProp=(String)props.get("usergrid.test");
+  if (testProp == null || !Boolean.parseBoolean(testProp)) {
+    throw new UnsupportedOperationException();
+  }
+  ObjectMapper mapper=new ObjectMapper();
+  Map<String,String> map=mapper.readValue(body,new TypeReference<Map<String,String>>(){
+  }
+);
+  for (  String key : map.keySet()) {
+    management.getProperties().setProperty(key,map.get(key));
+  }
+  return Response.created(null).build();
+}
