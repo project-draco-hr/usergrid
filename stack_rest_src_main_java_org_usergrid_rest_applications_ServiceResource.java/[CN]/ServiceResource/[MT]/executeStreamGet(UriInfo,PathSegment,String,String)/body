@@ -10,7 +10,8 @@
   Map<String,Object> fileMetadata=AssetUtils.getFileMetadata(entity);
   Date modified=AssetUtils.fromIfModifiedSince(modifiedSince);
   if (modified != null) {
-    if (entity.getModified() - modified.getTime() < 0) {
+    Long lastModified=(Long)fileMetadata.get(AssetUtils.LAST_MODIFIED);
+    if (lastModified - modified.getTime() < 0) {
       return Response.status(Response.Status.NOT_MODIFIED).build();
     }
   }
@@ -45,7 +46,8 @@
   if (inputStream == null) {
     return Response.status(Response.Status.NOT_FOUND).build();
   }
-  Response.ResponseBuilder responseBuilder=Response.ok(inputStream).type((String)fileMetadata.get(AssetUtils.CONTENT_TYPE)).lastModified(new Date(entity.getModified()));
+  Long lastModified=(Long)fileMetadata.get(AssetUtils.LAST_MODIFIED);
+  Response.ResponseBuilder responseBuilder=Response.ok(inputStream).type((String)fileMetadata.get(AssetUtils.CONTENT_TYPE)).lastModified(new Date(lastModified));
   if (fileMetadata.get(AssetUtils.E_TAG) != null) {
     responseBuilder.tag((String)fileMetadata.get(AssetUtils.E_TAG));
   }

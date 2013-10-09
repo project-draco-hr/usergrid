@@ -4,6 +4,11 @@
   response.setAction("delete");
   response.setApplication(services.getApplication());
   response.setParams(ui.getQueryParameters());
-  executeServiceRequest(ui,response,ServiceAction.DELETE,null);
+  ServiceResults sr=executeServiceRequest(ui,response,ServiceAction.DELETE,null);
+  for (  Entity entity : sr.getEntities()) {
+    if (entity.getProperty(AssetUtils.FILE_METADATA) != null) {
+      binaryStore.delete(services.getApplicationId(),entity);
+    }
+  }
   return new JSONWithPadding(response,callback);
 }
