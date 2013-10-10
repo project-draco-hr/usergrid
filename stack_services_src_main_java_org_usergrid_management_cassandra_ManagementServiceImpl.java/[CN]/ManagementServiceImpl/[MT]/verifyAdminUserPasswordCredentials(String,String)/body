@@ -6,14 +6,16 @@
   }
   if (verify(MANAGEMENT_APPLICATION_ID,user.getUuid(),password)) {
     userInfo=getUserInfo(MANAGEMENT_APPLICATION_ID,user);
-    if (!userInfo.isConfirmed() && newAdminUsersRequireConfirmation()) {
-      throw new UnconfirmedAdminUserException();
-    }
-    if (!userInfo.isActivated()) {
-      throw new UnactivatedAdminUserException();
-    }
-    if (userInfo.isDisabled()) {
-      throw new DisabledAdminUserException();
+    if (!properties.getProperty(PROPERTIES_SYSADMIN_LOGIN_EMAIL).equals(userInfo.getEmail())) {
+      if (!userInfo.isConfirmed() && newAdminUsersRequireConfirmation()) {
+        throw new UnconfirmedAdminUserException();
+      }
+      if (!userInfo.isActivated()) {
+        throw new UnactivatedAdminUserException();
+      }
+      if (userInfo.isDisabled()) {
+        throw new DisabledAdminUserException();
+      }
     }
     return userInfo;
   }
