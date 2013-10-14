@@ -1,7 +1,8 @@
 {
   startSpring();
   logger.info("Starting entity cleanup");
-  for (  Entry<String,UUID> app : emf.getApplications().entrySet()) {
+  Map<String,UUID> apps=getApplications(emf,line);
+  for (  Entry<String,UUID> app : apps.entrySet()) {
     logger.info("Starting cleanup for app {}",app.getKey());
     UUID applicationId=app.getValue();
     EntityManagerImpl em=(EntityManagerImpl)emf.getEntityManager(applicationId);
@@ -15,8 +16,7 @@
     Keyspace ko=cass.getApplicationKeyspace(applicationId);
     UUID timestampUuid=newTimeUUID();
     long timestamp=getTimestampInMicros(timestampUuid);
-    Set<String> collectionNames=em.getApplicationCollections();
-    for (    String collectionName : collectionNames) {
+    for (    String collectionName : getCollectionNames(em,line)) {
       IndexScanner scanner=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(applicationId,DICTIONARY_COLLECTIONS,collectionName),null,null,PAGE_SIZE,false,indexBucketLocator,applicationId,collectionName);
       SliceIterator<UUID> itr=new SliceIterator<UUID>(null,scanner,new UUIDIndexSliceParser(),false);
       while (itr.hasNext()) {
@@ -46,6 +46,7 @@
                 reIndex=true;
               }
               if (entries.size() > 1) {
+                logger.info("Found more than 1 entity referencing unique index for property '{}' with value '{}'",prop,propValue);
                 reIndex=true;
               }
             }
@@ -57,6 +58,7 @@
               m.execute();
               continue;
             }
+            logger.info("Reindex complete for entity with id '{} ",id);
             em.update(entity);
             m.execute();
           }
