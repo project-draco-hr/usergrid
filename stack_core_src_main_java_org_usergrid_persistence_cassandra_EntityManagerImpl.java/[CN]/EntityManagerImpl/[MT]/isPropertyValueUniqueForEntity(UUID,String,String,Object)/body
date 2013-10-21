@@ -5,28 +5,6 @@
   if (propertyValue == null) {
     return true;
   }
-  String collectionName=defaultCollectionName(entityType);
-  Lock lock=getUniqueUpdateLock(cass.getLockManager(),applicationId,propertyValue,entityType,propertyName);
-  List<HColumn<ByteBuffer,ByteBuffer>> cols=null;
-  try {
-    lock.lock();
-    Object key=createUniqueIndexKey(collectionName,propertyName,propertyValue);
-    cols=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_UNIQUE,key,null,null,2,false);
-  }
-  finally {
-    lock.unlock();
-  }
-  if (cols.size() == 0) {
-    return true;
-  }
-  if (cols.size() > 1) {
-    logger.error("INDEX CORRUPTION: More than 1 unique value exists for entities in application {} of type {} on property {} with value {}",new Object[]{applicationId,entityType,propertyName,propertyValue});
-  }
-  for (  HColumn<ByteBuffer,ByteBuffer> col : cols) {
-    UUID id=ue.fromByteBuffer(col.getName());
-    if (thisEntity.equals(id)) {
-      return true;
-    }
-  }
-  return false;
+  Set<UUID> ownerEntityIds=getUUIDsForUniqueProperty(applicationId,entityType,propertyName,propertyValue);
+  return ownerEntityIds.size() == 0 || ownerEntityIds.contains(ownerEntityId);
 }

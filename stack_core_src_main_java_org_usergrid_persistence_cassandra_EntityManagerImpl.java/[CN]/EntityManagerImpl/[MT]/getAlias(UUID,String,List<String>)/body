@@ -1,45 +1,13 @@
 {
-  if (ownerId == null) {
-    ownerId=applicationId;
-  }
-  if (aliasType == null) {
-    return null;
-  }
-  if (aliases == null) {
-    return null;
-  }
-  List<UUID> keyIds=new ArrayList<UUID>();
+  Assert.notNull(ownerId,"ownerId is required");
+  Assert.notNull(collectionName,"collectionName is required");
+  Assert.notEmpty(aliases,"aliases are required");
+  String propertyName=Schema.getDefaultSchema().aliasProperty(collectionName);
+  Map<String,EntityRef> results=new HashMap<String,EntityRef>();
   for (  String alias : aliases) {
-    if (alias != null) {
-      alias=alias.toLowerCase().trim();
-      UUID keyId=CassandraPersistenceUtils.aliasID(ownerId,aliasType,alias);
-      keyIds.add(keyId);
+    for (    UUID id : getUUIDsForUniqueProperty(ownerId,collectionName,propertyName,alias)) {
+      results.put(alias,new SimpleEntityRef(collectionName,id));
     }
   }
-  if (keyIds.size() == 0) {
-    return null;
-  }
-  Set<String> columnNames=new LinkedHashSet<String>();
-  columnNames.add("entityId");
-  columnNames.add("entityType");
-  columnNames.add("alias");
-  Rows<UUID,String,ByteBuffer> rows=cass.getRows(cass.getApplicationKeyspace(applicationId),ENTITY_ALIASES,keyIds,columnNames,ue,se,be);
-  Map<String,EntityRef> aliasedEntities=new HashMap<String,EntityRef>();
-  for (  Row<UUID,String,ByteBuffer> row : rows) {
-    ColumnSlice<String,ByteBuffer> slice=row.getColumnSlice();
-    if (slice == null) {
-      continue;
-    }
-    List<HColumn<String,ByteBuffer>> columns=slice.getColumns();
-    if (columns != null) {
-      Map<String,ByteBuffer> cols=CassandraPersistenceUtils.getColumnMap(columns);
-      String entityType=string(cols.get("entityType"));
-      UUID entityId=uuid(cols.get("entityId"),null);
-      String alias=string(cols.get("alias"));
-      if ((entityId != null) && (entityType != null) && (alias != null)) {
-        aliasedEntities.put(alias,ref(entityType,entityId));
-      }
-    }
-  }
-  return aliasedEntities;
+  return results;
 }
