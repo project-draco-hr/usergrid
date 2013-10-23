@@ -1,10 +1,4 @@
 {
-  Set<String> connection_types=new TreeSet<String>(CASE_INSENSITIVE_ORDER);
-  List<ConnectionRefImpl> connections=getConnections(new ConnectionRefImpl(headEntity,new ConnectedEntityRefImpl(NULL_ID),new ConnectedEntityRefImpl(connectedEntityId)),false);
-  for (  ConnectionRefImpl connection : connections) {
-    if ((connection.getConnectionType() != null) && (connection.getFirstPairedConnectedEntityId() == null)) {
-      connection_types.add(connection.getConnectionType());
-    }
-  }
-  return connection_types;
+  Set<String> connections=cast(em.getDictionaryAsSet(new SimpleEntityRef(connectedEntityId),Schema.DICTIONARY_CONNECTED_TYPES));
+  return connections;
 }

@@ -4,9 +4,9 @@
   if (!entityHasDictionary) {
     return indexUpdate;
   }
-  List<ConnectionRefImpl> connections=getConnections(ConnectionRefImpl.toConnectedEntity(indexUpdate.getEntity()),true);
-  for (  ConnectionRefImpl connection : connections) {
-    batchUpdateConnectionIndex(indexUpdate,connection);
+  PagingResultsIterator itr=getReversedConnectionsIterator(indexUpdate.getEntity().getUuid());
+  for (  Object connection : itr) {
+    batchUpdateConnectionIndex(indexUpdate,(ConnectionRefImpl)connection);
   }
   return indexUpdate;
 }

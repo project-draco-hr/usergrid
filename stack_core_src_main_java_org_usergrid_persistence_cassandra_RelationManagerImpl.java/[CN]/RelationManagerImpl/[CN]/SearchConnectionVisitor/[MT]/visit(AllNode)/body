@@ -10,12 +10,10 @@
     size++;
   }
   boolean skipFirst=node.isForceKeepFirst() ? false : slice.hasCursor();
-  if (connection.getConnectionType() != null) {
-    ConnectionIndexSliceParser connectionParser=new ConnectionIndexSliceParser(connection.getConnectedEntityType());
-    IndexScanner connectionScanner=new ConnectedIndexScanner(cass,DICTIONARY_CONNECTED_ENTITIES,applicationId,connection,start,slice.isReversed(),size);
-    this.results.push(new SliceIterator<DynamicComposite>(slice,connectionScanner,connectionParser,skipFirst));
-  }
- else {
-    this.results.push(new ConnectionIterator(headEntity,slice,RelationManagerImpl.this));
-  }
+  UUID entityIdToUse=connection.getConnectedEntityId();
+  String dictionaryType=connection.isSource() ? DICTIONARY_CONNECTED_ENTITIES : DICTIONARY_CONNECTING_ENTITIES;
+  String connectionType=connection.getConnectionType();
+  ConnectionIndexSliceParser connectionParser=new ConnectionIndexSliceParser(connection.getConnectedEntityType());
+  IndexScanner connectionScanner=new ConnectedIndexScanner(cass,dictionaryType,applicationId,entityIdToUse,connectionType,start,slice.isReversed(),size);
+  this.results.push(new SliceIterator<DynamicComposite>(slice,connectionScanner,connectionParser,skipFirst));
 }
