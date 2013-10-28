@@ -1,9 +1,10 @@
 {
   Query query=new Query();
   query.setResultsLevel(Level.REFS);
-  ConnectionRefImpl connectionRef=new ConnectionRefImpl(headEntity,new ConnectedEntityRefImpl(null,null,entityId,false));
-  QueryProcessor qp=new QueryProcessor(new Query(),null,em);
-  SearchConnectionVisitor visitor=new SearchConnectionVisitor(qp,connectionRef);
+  ConnectionRefImpl connectionRef=new ConnectionRefImpl(headEntity,null,new SimpleEntityRef(entityId));
+  final ConnectionResultsLoaderFactory factory=new ConnectionResultsLoaderFactory(connectionRef);
+  QueryProcessor qp=new QueryProcessor(new Query(),null,em,factory);
+  SearchConnectionVisitor visitor=new SearchConnectionVisitor(qp,connectionRef,false);
   PagingResultsIterator itr=new PagingResultsIterator(qp.getResults(visitor));
   return itr;
 }

@@ -1,9 +1,10 @@
 {
-  Results r=new Results();
-  List<EntityRef> refs=new ArrayList<EntityRef>(entityIds.size());
+  final EntityRef sourceRef=new SimpleEntityRef(sourceType,sourceEntityId);
+  List<ConnectionRef> refs=new ArrayList<ConnectionRef>(entityIds.size());
   for (  UUID id : entityIds) {
-    refs.add(new SimpleEntityRef(type,id));
+    final EntityRef targetRef=new SimpleEntityRef(targetEntityType,id);
+    final ConnectionRef ref=new ConnectionRefImpl(sourceRef,connectionType,targetRef);
+    refs.add(ref);
   }
-  r.setRefs(refs);
-  return r;
+  return Results.fromConnections(refs);
 }
