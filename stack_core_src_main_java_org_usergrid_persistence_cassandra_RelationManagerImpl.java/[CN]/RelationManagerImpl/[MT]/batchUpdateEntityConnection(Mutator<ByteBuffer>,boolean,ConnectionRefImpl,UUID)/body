@@ -8,11 +8,11 @@
     addDeleteToMutator(batch,ENTITY_COMPOSITE_DICTIONARIES,key(connection.getConnectingEntityId(),DICTIONARY_CONNECTED_ENTITIES,connection.getConnectionType()),asList(connection.getConnectedEntityId(),connection.getConnectedEntityType()),timestamp);
     addDeleteToMutator(batch,ENTITY_COMPOSITE_DICTIONARIES,key(connection.getConnectedEntityId(),DICTIONARY_CONNECTING_ENTITIES,connection.getConnectionType()),asList(connection.getConnectingEntityId(),connection.getConnectingEntityType()),timestamp);
     boolean delete=true;
-    PagingResultsIterator itr=new PagingResultsIterator(getConnectedEntities(connection.getConnectedEntity(),null,null,Level.REFS));
-    ConnectionRefImpl c;
+    PagingResultsIterator itr=new PagingResultsIterator(getConnectedEntities(connection.getConnectingEntity(),connection.getConnectionType(),null,Level.REFS));
+    ConnectedEntityRef c;
     while (itr.hasNext()) {
-      c=(ConnectionRefImpl)itr.next();
-      if (c.getConnectedEntity().getConnectionType().equals(connection.getConnectedEntity().getConnectionType()) && !c.getConnectedEntity().getUuid().equals(connection.getConnectedEntity().getUuid())) {
+      c=(ConnectedEntityRef)itr.next();
+      if (!connection.getConnectedEntityId().equals(c.getUuid())) {
         delete=false;
         break;
       }
@@ -21,10 +21,10 @@
       addDeleteToMutator(batch,ENTITY_DICTIONARIES,key(connection.getConnectingEntityId(),DICTIONARY_CONNECTED_TYPES),connection.getConnectionType(),timestamp);
     }
     delete=true;
-    itr=new PagingResultsIterator(getConnectingEntities(connection.getConnectedEntity(),null,null,Level.REFS));
+    itr=new PagingResultsIterator(getConnectingEntities(connection.getConnectingEntity(),connection.getConnectionType(),null,Level.REFS));
     while (itr.hasNext()) {
-      c=(ConnectionRefImpl)itr.next();
-      if (c.getConnectedEntity().getConnectionType().equals(connection.getConnectedEntity().getConnectionType()) && !c.getConnectingEntity().getUuid().equals(connection.getConnectingEntity().getUuid())) {
+      c=(ConnectedEntityRef)itr.next();
+      if (!connection.getConnectedEntityId().equals(c.getUuid())) {
         delete=false;
         break;
       }
