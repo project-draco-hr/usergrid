@@ -4,9 +4,9 @@
   queryProcessor.applyCursorAndSort(slice);
   UUID startId=null;
   if (slice.hasCursor()) {
-    startId=UUID_PARSER.parse(slice.getCursor());
+    startId=UUID_PARSER.parse(slice.getCursor()).getUUID();
   }
   boolean skipFirst=node.isForceKeepFirst() ? false : slice.hasCursor();
   IndexScanner indexScanner=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(headEntity.getUuid(),DICTIONARY_COLLECTIONS,collectionName),startId,null,queryProcessor.getPageSizeHint(node),query.isReversed(),indexBucketLocator,applicationId,collectionName);
-  this.results.push(new SliceIterator<UUID>(slice,indexScanner,UUID_PARSER,skipFirst));
+  this.results.push(new SliceIterator(slice,indexScanner,UUID_PARSER,skipFirst));
 }

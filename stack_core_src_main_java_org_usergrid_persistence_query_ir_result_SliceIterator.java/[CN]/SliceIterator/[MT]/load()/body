@@ -7,16 +7,17 @@
   if (skipFirst && pagesLoaded == 0 && results.hasNext()) {
     results.next();
   }
+  parsedCols.clear();
   while (results.hasNext()) {
     ByteBuffer colName=results.next().getName().duplicate();
-    T parsed=parser.parse(colName);
+    ScanColumn parsed=parser.parse(colName);
     if (parsed == null) {
       continue;
     }
-    UUID id=parser.getUUID(parsed);
-    cols.put(id,colName);
+    cols.put(parsed.getUUID(),parsed);
+    parsedCols.add(parsed);
   }
-  lastResult=cols.keySet();
   pagesLoaded++;
+  lastResult=parsedCols;
   return lastResult != null && lastResult.size() > 0;
 }
