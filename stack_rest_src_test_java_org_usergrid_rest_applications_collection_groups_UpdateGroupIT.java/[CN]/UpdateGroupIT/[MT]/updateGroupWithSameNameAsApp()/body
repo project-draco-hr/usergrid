@@ -5,7 +5,8 @@
     Map<String,Object> groupMap=new HashMap<String,Object>();
     groupMap.put("title","Old Title");
     groupMap.put("path",groupPath);
-    JsonNode groupJson=resource().path(context.getOrgName() + "/" + context.getAppName()+ "/groups").queryParam("access_token",context.getActiveUser().getToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,groupMap);
+    String path=context.getOrgName() + "/" + context.getAppName()+ "/groups";
+    JsonNode groupJson=webResourceBuilder(path).post(JsonNode.class,groupMap);
     groupId=groupJson.get("entities").get(0).get("uuid").getTextValue();
   }
  catch (  UniformInterfaceException e) {
@@ -15,7 +16,8 @@
   try {
     Map<String,Object> group=new HashMap<String,Object>();
     group.put("title","New Title");
-    resource().path(context.getOrgName() + "/" + context.getAppName()+ "/groups/"+ groupPath).queryParam("access_token",context.getActiveUser().getToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(JsonNode.class,group);
+    String path=context.getOrgName() + "/" + context.getAppName()+ "/groups/"+ groupPath;
+    webResourceBuilder(path).put(JsonNode.class,group);
   }
  catch (  UniformInterfaceException e) {
     fail("Error updating group: " + IOUtils.toString(e.getResponse().getEntityInputStream()));
@@ -24,7 +26,8 @@
   try {
     Map<String,Object> group=new HashMap<String,Object>();
     group.put("title","Even Newer Title");
-    resource().path(context.getOrgName() + "/" + context.getAppName()+ "/groups/"+ groupId).queryParam("access_token",context.getActiveUser().getToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(JsonNode.class,group);
+    String path=context.getOrgName() + "/" + context.getAppName()+ "/groups/"+ groupId;
+    webResourceBuilder(path).put(JsonNode.class,group);
   }
  catch (  UniformInterfaceException e) {
     fail("Error updating group: " + IOUtils.toString(e.getResponse().getEntityInputStream()));
