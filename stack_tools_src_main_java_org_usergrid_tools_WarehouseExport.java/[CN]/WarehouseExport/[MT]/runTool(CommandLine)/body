@@ -18,7 +18,8 @@
   builder.append("modified <= ").append(endTime.getTime());
   String queryString=builder.toString();
   String dateString=DATE_FORMAT.format(new Date());
-  FileWriter fw=new FileWriter(outputDir.getAbsolutePath() + "/" + dateString+ ".csv");
+  String fileName=outputDir.getAbsolutePath() + "/" + dateString+ ".csv";
+  FileWriter fw=new FileWriter(fileName);
   writer=new CSVWriter(fw,SEPARATOR,CSVWriter.NO_QUOTE_CHARACTER,'\'');
   try {
     writeMetadata();
@@ -30,5 +31,9 @@
   }
   finally {
     writer.close();
+  }
+  if (line.hasOption("upload")) {
+    LOG.info("Copy to S3");
+    copyToS3(fileName);
   }
 }
