@@ -13,10 +13,10 @@
     Set<String> collectionNames=em.getApplicationCollections();
     for (    String collectionName : collectionNames) {
       IndexScanner scanner=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(applicationId,DICTIONARY_COLLECTIONS,collectionName),null,null,PAGE_SIZE,false,indexBucketLocator,applicationId,collectionName);
-      SliceIterator<UUID> itr=new SliceIterator<UUID>(null,scanner,new UUIDIndexSliceParser(),false);
+      SliceIterator itr=new SliceIterator(null,scanner,new UUIDIndexSliceParser(),false);
       while (itr.hasNext()) {
-        Set<UUID> copy=new LinkedHashSet<UUID>(itr.next());
-        results=em.get(copy);
+        Set<ScanColumn> copy=new LinkedHashSet<ScanColumn>(itr.next());
+        results=em.get(ScanColumnTransformer.getIds(copy));
         if (copy.size() == results.size()) {
           continue;
         }
@@ -26,7 +26,8 @@
         logger.info("Cleaning up {} orphaned entities for app {}",copy.size(),app.getValue());
         Keyspace ko=cass.getApplicationKeyspace(applicationId);
         Mutator<ByteBuffer> m=createMutator(ko,be);
-        for (        UUID id : copy) {
+        for (        ScanColumn col : copy) {
+          final UUID id=col.getUUID();
           Object collections_key=key(applicationId,Schema.DICTIONARY_COLLECTIONS,collectionName,indexBucketLocator.getBucket(applicationId,IndexType.COLLECTION,id,collectionName));
           addDeleteToMutator(m,ENTITY_ID_SETS,collections_key,id,timestamp);
           logger.info("Deleting entity with id '{}' from collection '{}'",id,collectionName);

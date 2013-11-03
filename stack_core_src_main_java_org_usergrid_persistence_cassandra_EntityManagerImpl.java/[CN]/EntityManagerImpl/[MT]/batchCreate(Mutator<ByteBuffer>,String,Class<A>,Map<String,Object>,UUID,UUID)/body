@@ -62,7 +62,6 @@
   Object collection_key=key(applicationId,Schema.DICTIONARY_COLLECTIONS,collection_name,bucketId);
   CollectionInfo collection=null;
   if (!is_application) {
-    collection=schema.getCollection(TYPE_APPLICATION,collection_name);
     if (!emptyPropertyMap) {
       addInsertToMutator(m,ENTITY_ID_SETS,collection_key,itemId,null,timestamp);
     }
@@ -107,34 +106,13 @@
     entity.setUuid(message.getUuid());
     return entity;
   }
-  String aliasName=schema.aliasProperty(entityType);
-  logger.info("Alias property is {}",aliasName);
   for (  String prop_name : properties.keySet()) {
     Object propertyValue=properties.get(prop_name);
     if (propertyValue == null) {
       continue;
     }
-    if (!is_application && !isPropertyValueUniqueForEntity(applicationId,entityType,prop_name,propertyValue)) {
-      throw new DuplicateUniquePropertyExistsException(entityType,prop_name,propertyValue);
-    }
     if (User.ENTITY_TYPE.equals(entityType) && "me".equals(prop_name)) {
       throw new DuplicateUniquePropertyExistsException(entityType,prop_name,propertyValue);
-    }
-    if (!Schema.isAssociatedEntityType(entityType) && prop_name.equals(aliasName)) {
-      String aliasValue=propertyValue.toString().toLowerCase().trim();
-      logger.info("Alias property value for {} is {}",aliasName,aliasValue);
-      createAlias(m,applicationId,ref(entityType,itemId),entityType,aliasValue,timestamp);
-    }
-    if (schema.getEntityInfo(entity.getType()).isPropertyUnique(prop_name)) {
-      Lock lock=getUniqueUpdateLock(cass.getLockManager(),applicationId,propertyValue,entityType,prop_name);
-      try {
-        lock.lock();
-        String collectionName=Schema.defaultCollectionName(entityType);
-        uniquePropertyWrite(m,collectionName,prop_name,propertyValue,itemId,timestamp);
-      }
-  finally {
-        lock.unlock();
-      }
     }
     entity.setProperty(prop_name,propertyValue);
     batchSetProperty(m,entity,prop_name,propertyValue,true,true,timestampUuid);
