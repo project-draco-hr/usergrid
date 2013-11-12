@@ -1,26 +1,13 @@
 {
-  if (ownerId == null) {
-    ownerId=applicationId;
-  }
-  if (aliasType == null) {
+  Assert.notNull(ownerId,"ownerId is required");
+  Assert.notNull(collectionType,"collectionType is required");
+  Assert.notNull(aliasValue,"aliasValue is required");
+  Map<String,EntityRef> results=getAlias(ownerId,collectionType,Collections.singletonList(aliasValue));
+  if (results == null || results.size() == 0) {
     return null;
   }
-  if (alias == null) {
-    return null;
+  if (results.size() > 1) {
+    logger.warn("More than 1 entity with Owner id '{}' of type '{}' and alias '{}' exists.  This is a duplicate alias, and needs audited",new Object[]{ownerId,collectionType,aliasValue});
   }
-  alias=alias.toLowerCase().trim();
-  UUID keyId=CassandraPersistenceUtils.aliasID(ownerId,aliasType,alias);
-  Set<String> columnNames=new LinkedHashSet<String>();
-  columnNames.add("entityId");
-  columnNames.add("entityType");
-  List<HColumn<String,ByteBuffer>> columns=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_ALIASES,keyId,columnNames,se,be);
-  if (columns != null && columns.size() > 0) {
-    Map<String,ByteBuffer> cols=CassandraPersistenceUtils.getColumnMap(columns);
-    String entityType=string(cols.get("entityType"));
-    UUID entityId=uuid(cols.get("entityId"),null);
-    if ((entityId != null) && (entityType != null)) {
-      return ref(entityType,entityId);
-    }
-  }
-  return null;
+  return results.get(aliasValue);
 }

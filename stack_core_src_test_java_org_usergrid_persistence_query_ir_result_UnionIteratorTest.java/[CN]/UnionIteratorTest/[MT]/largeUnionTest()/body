@@ -3,7 +3,6 @@
   int firstIntersection=100;
   int secondIntersection=200;
   int pageSize=100;
-  int pageCount=size / pageSize;
   UUID[] firstSet=new UUID[size];
   UUID[] secondSet=new UUID[size];
   UUID[] thirdSet=new UUID[size];
@@ -38,8 +37,10 @@
   union.addIterator(second);
   union.addIterator(third);
   while (union.hasNext()) {
-    Set<UUID> resultSet=union.next();
-    results.removeAll(resultSet);
+    Set<ScanColumn> resultSet=union.next();
+    for (    ScanColumn col : resultSet) {
+      results.remove(col.getUUID());
+    }
   }
   assertTrue(results.isEmpty());
   assertFalse(union.hasNext());

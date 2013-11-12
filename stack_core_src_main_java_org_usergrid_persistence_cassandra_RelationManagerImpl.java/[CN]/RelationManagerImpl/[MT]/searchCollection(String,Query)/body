@@ -5,7 +5,8 @@
   headEntity=em.validate(headEntity);
   CollectionInfo collection=getDefaultSchema().getCollection(headEntity.getType(),collectionName);
   query.setEntityType(collection.getType());
-  QueryProcessor qp=new QueryProcessor(query,collection,em);
+  final CollectionResultsLoaderFactory factory=new CollectionResultsLoaderFactory();
+  QueryProcessor qp=new QueryProcessor(query,collection,em,factory);
   SearchCollectionVisitor visitor=new SearchCollectionVisitor(qp);
   return qp.getResults(visitor);
 }

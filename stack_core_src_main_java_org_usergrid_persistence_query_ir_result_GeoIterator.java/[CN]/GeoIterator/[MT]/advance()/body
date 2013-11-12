@@ -3,6 +3,7 @@
     return;
   }
   idOrder.clear();
+  lastLoaded.clear();
   SearchResults results;
   try {
     results=searcher.proximitySearch(last,lastCellsSearched,center,propertyName,0,distance,resultSize);
@@ -13,15 +14,17 @@
   List<EntityLocationRef> locations=results.entityLocations;
   lastCellsSearched=results.lastSearchedGeoCells;
   for (int i=0; i < locations.size(); i++) {
-    EntityLocationRef location=locations.get(i);
-    UUID id=location.getUuid();
-    idOrder.put(id,location);
+    final EntityLocationRef location=locations.get(i);
+    final UUID id=location.getUuid();
+    final LocationScanColumn locationScan=new LocationScanColumn(location);
+    idOrder.put(id,locationScan);
+    lastLoaded.add(locationScan);
     last=location;
   }
   if (locations.size() < resultSize) {
     done=true;
   }
-  if (idOrder.size() > 0) {
-    toReturn=idOrder.keySet();
+  if (lastLoaded.size() > 0) {
+    toReturn=lastLoaded;
   }
 }
