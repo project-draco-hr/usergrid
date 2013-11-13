@@ -4,14 +4,18 @@
       List<RunnerBuilder> builders=Arrays.asList(new RunnerBuilder(){
         @Override public Runner runnerForClass(        Class<?> testClass) throws Throwable {
           Concurrent annotation=testClass.getAnnotation(Concurrent.class);
-          if (annotation != null)           return new ConcurrentJunitRunner(testClass);
+          if (annotation != null) {
+            return new ConcurrentJunitRunner(testClass);
+          }
           return null;
         }
       }
 ,ignoredBuilder(),annotatedBuilder(),suiteMethodBuilder(),junit3Builder(),junit4Builder());
       for (      RunnerBuilder each : builders) {
         Runner runner=each.safeRunnerForClass(testClass);
-        if (runner != null)         return runner;
+        if (runner != null) {
+          return runner;
+        }
       }
       return null;
     }
@@ -26,13 +30,17 @@
     }
     @Override public void finished(){
       try {
-        while (!tasks.isEmpty())         tasks.remove(completionService.take());
+        while (!tasks.isEmpty()) {
+          tasks.remove(completionService.take());
+        }
       }
  catch (      InterruptedException e) {
         Thread.currentThread().interrupt();
       }
  finally {
-        while (!tasks.isEmpty())         tasks.poll().cancel(true);
+        while (!tasks.isEmpty()) {
+          tasks.poll().cancel(true);
+        }
         executorService.shutdownNow();
       }
     }
