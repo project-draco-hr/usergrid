@@ -2,17 +2,4 @@
   this.accessId=accessId;
   this.secretKey=secretKey;
   this.bucketName=bucketName;
-  overrides=new Properties();
-  overrides.setProperty(S3_PROVIDER + ".identity",accessId);
-  overrides.setProperty(S3_PROVIDER + ".credential",secretKey);
-  context=new BlobStoreContextFactory().createContext("s3",MODULES,overrides);
-  try {
-    AsyncBlobStore blobStore=context.getAsyncBlobStore();
-    ListenableFuture<Boolean> createContainer=blobStore.createContainerInLocation(null,bucketName);
-    createContainer.get();
-  }
- catch (  Exception ex) {
-    logger.error("Could not start binary service: {}",ex.getMessage());
-    throw new RuntimeException(ex);
-  }
 }

@@ -1,0 +1,34 @@
+{
+  List<BodyPart> bodyParts=multiPart.getBodyParts();
+  HashMap<String,Object> data=new HashMap<String,Object>();
+  for (  BodyPart bp : bodyParts) {
+    FormDataBodyPart bodyPart=(FormDataBodyPart)bp;
+    if (bodyPart.getMediaType().equals(MediaType.TEXT_PLAIN_TYPE)) {
+      data.put(bodyPart.getName(),bodyPart.getValue());
+    }
+ else {
+      LOG.info("skipping bodyPart {} of media type {}",bodyPart.getName(),bodyPart.getMediaType());
+    }
+  }
+  FormDataBodyPart fileBodyPart=multiPart.getField(FILE_FIELD_NAME);
+  if (data.isEmpty() && fileBodyPart != null) {
+    data.put(AssetUtils.FILE_METADATA,new HashMap());
+  }
+  ApiResponse response=createApiResponse();
+  response.setAction(serviceAction.name().toLowerCase());
+  response.setApplication(services.getApplication());
+  response.setParams(ui.getQueryParameters());
+  ServicePayload payload=getPayload(data);
+  ServiceResults serviceResults=executeServiceRequest(ui,response,serviceAction,payload);
+  if (fileBodyPart != null) {
+    InputStream fileInput=((BodyPartEntity)fileBodyPart.getEntity()).getInputStream();
+    if (fileInput != null) {
+      Entity entity=serviceResults.getEntity();
+      EntityManager em=emf.getEntityManager(getApplicationId());
+      binaryStore.write(getApplicationId(),entity,fileInput);
+      em.update(entity);
+      serviceResults.setEntity(entity);
+    }
+  }
+  return new JSONWithPadding(response,callback);
+}

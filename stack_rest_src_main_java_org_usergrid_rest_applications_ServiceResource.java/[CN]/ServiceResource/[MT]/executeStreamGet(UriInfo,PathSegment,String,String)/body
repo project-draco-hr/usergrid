@@ -1,0 +1,58 @@
+{
+  LOG.debug("ServiceResource.executeStreamGet");
+  ApiResponse response=createApiResponse();
+  response.setAction("get");
+  response.setApplication(services.getApplication());
+  response.setParams(ui.getQueryParameters());
+  ServiceResults serviceResults=executeServiceRequest(ui,response,ServiceAction.GET,null);
+  Entity entity=serviceResults.getEntity();
+  LOG.info("In AssetsResource.findAsset with id: {}, range: {}, modifiedSince: {}",new Object[]{entityId,rangeHeader,modifiedSince});
+  Map<String,Object> fileMetadata=AssetUtils.getFileMetadata(entity);
+  Date modified=AssetUtils.fromIfModifiedSince(modifiedSince);
+  if (modified != null) {
+    Long lastModified=(Long)fileMetadata.get(AssetUtils.LAST_MODIFIED);
+    if (lastModified - modified.getTime() < 0) {
+      return Response.status(Response.Status.NOT_MODIFIED).build();
+    }
+  }
+  boolean range=StringUtils.isNotBlank(rangeHeader);
+  long start=0, end=0, contentLength=0;
+  InputStream inputStream;
+  if (range) {
+    String rangeValue=rangeHeader.trim().substring("bytes=".length());
+    contentLength=(Long)fileMetadata.get(AssetUtils.CONTENT_LENGTH);
+    end=contentLength - 1;
+    if (rangeValue.startsWith("-")) {
+      start=contentLength - 1 - Long.parseLong(rangeValue.substring("-".length()));
+    }
+ else {
+      String[] startEnd=rangeValue.split("-");
+      long parsedStart=Long.parseLong(startEnd[0]);
+      if (parsedStart > start && parsedStart < end) {
+        start=parsedStart;
+      }
+      if (startEnd.length > 1) {
+        long parsedEnd=Long.parseLong(startEnd[1]);
+        if (parsedEnd > start && parsedEnd < end) {
+          end=parsedEnd;
+        }
+      }
+    }
+    inputStream=binaryStore.read(getApplicationId(),entity,start,end - start);
+  }
+ else {
+    inputStream=binaryStore.read(getApplicationId(),entity);
+  }
+  if (inputStream == null) {
+    return Response.status(Response.Status.NOT_FOUND).build();
+  }
+  Long lastModified=(Long)fileMetadata.get(AssetUtils.LAST_MODIFIED);
+  Response.ResponseBuilder responseBuilder=Response.ok(inputStream).type((String)fileMetadata.get(AssetUtils.CONTENT_TYPE)).lastModified(new Date(lastModified));
+  if (fileMetadata.get(AssetUtils.E_TAG) != null) {
+    responseBuilder.tag((String)fileMetadata.get(AssetUtils.E_TAG));
+  }
+  if (range) {
+    responseBuilder.header("Content-Range","bytes " + start + "-"+ end+ "/"+ contentLength);
+  }
+  return responseBuilder.build();
+}
