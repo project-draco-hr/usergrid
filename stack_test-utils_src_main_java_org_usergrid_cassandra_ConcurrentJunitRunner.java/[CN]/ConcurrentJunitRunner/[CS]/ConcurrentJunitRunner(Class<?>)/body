@@ -9,13 +9,17 @@
     }
     @Override public void finished(){
       try {
-        while (!tasks.isEmpty())         tasks.remove(completionService.take());
+        while (!tasks.isEmpty()) {
+          tasks.remove(completionService.take());
+        }
       }
  catch (      InterruptedException e) {
         Thread.currentThread().interrupt();
       }
  finally {
-        while (!tasks.isEmpty())         tasks.poll().cancel(true);
+        while (!tasks.isEmpty()) {
+          tasks.poll().cancel(true);
+        }
         executorService.shutdownNow();
       }
     }
