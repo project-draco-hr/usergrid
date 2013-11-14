@@ -4,20 +4,20 @@
   Status jobStatus=bulkJobExecution.getStatus();
   try {
     if (jobStatus == Status.COMPLETED) {
-      logger.info("Job {} is complete id: {}",data.getJobName(),bulkJobExecution.getTransactionId());
+      LOG.info("Job {} is complete id: {}",data.getJobName(),bulkJobExecution.getTransactionId());
       qm.deleteTransaction(jobQueueName,bulkJobExecution.getTransactionId(),null);
-      logger.debug("delete job data {}",data.getUuid());
+      LOG.debug("delete job data {}",data.getUuid());
       em.delete(data);
     }
  else     if (jobStatus == Status.DEAD) {
-      logger.warn("Job {} is dead.  Removing",data.getJobName());
+      LOG.warn("Job {} is dead.  Removing",data.getJobName());
       qm.deleteTransaction(jobQueueName,bulkJobExecution.getTransactionId(),null);
       em.update(data);
     }
  else {
       em.update(data);
     }
-    logger.info("Updating stats for job {}",data.getJobName());
+    LOG.info("Updating stats for job {}",data.getJobName());
     em.update(stat);
   }
  catch (  Exception e) {

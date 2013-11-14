@@ -7,7 +7,7 @@
   job.setLatch(numberOfRuns);
   job.setDelay(sleepTime);
   JobData returned=scheduler.createJob("onlyOnceExceution",System.currentTimeMillis(),new JobData());
-  boolean waited=job.waitForCount(customRetry * numberOfRuns * 2,TimeUnit.MILLISECONDS);
+  boolean waited=getJobListener().blockTilDone(1,customRetry * numberOfRuns * 2 + 5000L);
   assertTrue("Job ran twice",waited);
   job.setLatch(numberOfRuns);
   JobStat stat=scheduler.getStatsForJob(returned.getJobName(),returned.getUuid());
@@ -17,7 +17,7 @@
   assertEquals(0,stat.getDelayCount());
   boolean slept=job.waitForSleep(customRetry * numberOfRuns * 2,TimeUnit.MILLISECONDS);
   assertTrue("Job slept",slept);
-  waited=job.waitForCount(customRetry * numberOfRuns * 2,TimeUnit.MILLISECONDS);
+  waited=getJobListener().blockTilDone(2,customRetry * numberOfRuns * 2);
   assertFalse("Job ran twice",waited);
   stat=scheduler.getStatsForJob(returned.getJobName(),returned.getUuid());
   assertEquals(numberOfRuns,stat.getTotalAttempts());
