@@ -1,0 +1,22 @@
+{
+  java.util.Collection<org.glassfish.grizzly.http.server.NetworkListener> listeners=httpServer.getListeners();
+  for (  org.glassfish.grizzly.http.server.NetworkListener listener : listeners) {
+    try {
+      listener.stop();
+    }
+ catch (    java.io.IOException e) {
+      e.printStackTrace();
+    }
+  }
+  if (httpServer != null) {
+    httpServer.stop();
+    httpServer=null;
+  }
+  if (embeddedCassandra != null) {
+    stopCassandra();
+    embeddedCassandra=null;
+  }
+  if (ctx instanceof org.springframework.web.context.support.XmlWebApplicationContext) {
+    ((org.springframework.web.context.support.XmlWebApplicationContext)ctx).close();
+  }
+}

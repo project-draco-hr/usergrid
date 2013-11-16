@@ -1,0 +1,14 @@
+{
+  int threadSize=getThreadSizeFromSystemProperties();
+  java.util.Collection<org.glassfish.grizzly.http.server.NetworkListener> listeners=httpServer.getListeners();
+  for (  org.glassfish.grizzly.http.server.NetworkListener listener : listeners) {
+    listener.getTransport().getKernelThreadPoolConfig();
+    org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder builder=org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder.newInstance();
+    org.glassfish.grizzly.threadpool.ThreadPoolConfig config=builder.getWorkerThreadPoolConfig();
+    config.setCorePoolSize(threadSize);
+    config.setMaxPoolSize(threadSize);
+    org.glassfish.grizzly.nio.transport.TCPNIOTransport transport=builder.build();
+    listener.setTransport(transport);
+  }
+  logger.info("thread size set as {}",threadSize);
+}

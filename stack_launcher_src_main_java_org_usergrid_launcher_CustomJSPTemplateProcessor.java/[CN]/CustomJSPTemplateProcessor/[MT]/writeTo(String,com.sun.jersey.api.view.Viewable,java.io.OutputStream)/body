@@ -1,0 +1,17 @@
+{
+  if (hc.isTracingEnabled()) {
+    hc.trace(String.format("forwarding view to JSP page: \"%s\", it = %s",resolvedPath,com.sun.jersey.core.reflection.ReflectionHelper.objectToString(viewable.getModel())));
+  }
+  out.flush();
+  javax.servlet.RequestDispatcher d=servletContext.getRequestDispatcher(resolvedPath);
+  if (d == null) {
+    throw new com.sun.jersey.api.container.ContainerException("No request dispatcher for: " + resolvedPath);
+  }
+  d=new com.sun.jersey.server.impl.container.servlet.RequestDispatcherWrapper(d,basePath,hc,viewable);
+  try {
+    d.forward(requestInvoker.get(),responseInvoker.get());
+  }
+ catch (  Exception e) {
+    throw new com.sun.jersey.api.container.ContainerException(e);
+  }
+}
