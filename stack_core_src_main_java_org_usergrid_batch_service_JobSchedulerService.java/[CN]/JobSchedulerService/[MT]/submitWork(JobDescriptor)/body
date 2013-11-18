@@ -1,0 +1,55 @@
+{
+  List<Job> jobs;
+  try {
+    jobs=jobFactory.jobsFrom(jobDescriptor);
+  }
+ catch (  JobNotFoundException e) {
+    LOG.error("Could not create jobs",e);
+    return;
+  }
+  for (  final Job job : jobs) {
+    final JobExecution execution=new JobExecutionImpl(jobDescriptor);
+    final JobListener currentListener=this.jobListener;
+    ListenableFuture<Void> future=service.submit(new Callable<Void>(){
+      @Override public Void call() throws Exception {
+        capacitySemaphore.acquire();
+        execution.start(maxFailCount);
+        jobAccessor.save(execution);
+        if (execution.getStatus() == Status.DEAD) {
+          return null;
+        }
+        job.execute(execution);
+        if (currentListener != null) {
+          currentListener.onSubmit(execution);
+        }
+        return null;
+      }
+    }
+);
+    Futures.addCallback(future,new FutureCallback<Void>(){
+      @Override public void onSuccess(      Void param){
+        if (execution.getStatus() == Status.IN_PROGRESS) {
+          LOG.info("Successful completion of bulkJob {}",execution);
+          execution.completed();
+        }
+        jobAccessor.save(execution);
+        capacitySemaphore.release();
+        if (currentListener != null) {
+          currentListener.onSuccess(execution);
+        }
+      }
+      @Override public void onFailure(      Throwable throwable){
+        LOG.error("Failed execution for bulkJob",throwable);
+        if (execution.getStatus() == Status.IN_PROGRESS) {
+          execution.failed();
+        }
+        jobAccessor.save(execution);
+        capacitySemaphore.release();
+        if (currentListener != null) {
+          currentListener.onFailure(execution);
+        }
+      }
+    }
+);
+  }
+}

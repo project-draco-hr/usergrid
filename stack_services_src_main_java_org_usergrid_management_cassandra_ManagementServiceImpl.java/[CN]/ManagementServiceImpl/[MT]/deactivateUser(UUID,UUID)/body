@@ -1,0 +1,12 @@
+{
+  EntityManager em=emf.getEntityManager(applicationId);
+  User user=em.get(userId,User.class);
+  if (user == null) {
+    throw new ManagementException(String.format("User with id %s does not exist in app %s",userId,applicationId));
+  }
+  user.setActivated(false);
+  user.setDeactivated(System.currentTimeMillis());
+  em.update(user);
+  revokeAccessTokensForAppUser(applicationId,userId);
+  return user;
+}

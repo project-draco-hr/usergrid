@@ -1,0 +1,19 @@
+{
+  long sleepTime=Long.parseLong(props.getProperty(TIMEOUT_PROP));
+  long runLoop=Long.parseLong(props.getProperty(RUNLOOP_PROP));
+  long customRetry=sleepTime * 2;
+  int numberOfRuns=2;
+  OnlyOnceUnlockOnFailExceution job=cassandraResource.getBean("onlyOnceUnlockOnFailExceution",OnlyOnceUnlockOnFailExceution.class);
+  job.setTimeout(customRetry);
+  job.setLatch(numberOfRuns);
+  job.setDelay(sleepTime);
+  JobData returned=scheduler.createJob("onlyOnceUnlockOnFailExceution",System.currentTimeMillis(),new JobData());
+  boolean waited=getJobListener().blockTilDone(1,runLoop * numberOfRuns * 2 + 5000L);
+  assertTrue("Job threw exception",waited);
+  assertTrue("Job failed",getJobListener().getFailureCount() == 1);
+  assertTrue("No Job succeeded",getJobListener().getSuccessCount() == 0);
+  JobStat stat=scheduler.getStatsForJob(returned.getJobName(),returned.getUuid());
+  assertEquals(numberOfRuns,stat.getTotalAttempts());
+  assertEquals(numberOfRuns,stat.getRunCount());
+  assertEquals(0,stat.getDelayCount());
+}

@@ -1,0 +1,47 @@
+{
+  int size=10000;
+  int firstIntersection=100;
+  int secondIntersection=200;
+  int pageSize=100;
+  UUID[] firstSet=new UUID[size];
+  UUID[] secondSet=new UUID[size];
+  UUID[] thirdSet=new UUID[size];
+  InOrderIterator first=new InOrderIterator(60);
+  InOrderIterator second=new InOrderIterator(60);
+  InOrderIterator third=new InOrderIterator(60);
+  Set<UUID> results=new LinkedHashSet<UUID>(size / secondIntersection);
+  for (int i=0; i < size; i++) {
+    firstSet[i]=UUIDUtils.newTimeUUID();
+    results.add(firstSet[i]);
+    if (i % firstIntersection == 0) {
+      secondSet[i]=firstSet[i];
+    }
+ else {
+      secondSet[i]=UUIDUtils.newTimeUUID();
+      results.add(secondSet[i]);
+    }
+    if (i % secondIntersection == 0) {
+      thirdSet[i]=firstSet[i];
+    }
+ else {
+      thirdSet[i]=UUIDUtils.newTimeUUID();
+      results.add(thirdSet[i]);
+    }
+  }
+  first.add(firstSet);
+  reverse(secondSet);
+  second.add(secondSet);
+  third.add(thirdSet);
+  UnionIterator union=new UnionIterator(pageSize);
+  union.addIterator(first);
+  union.addIterator(second);
+  union.addIterator(third);
+  while (union.hasNext()) {
+    Set<ScanColumn> resultSet=union.next();
+    for (    ScanColumn col : resultSet) {
+      results.remove(col.getUUID());
+    }
+  }
+  assertTrue(results.isEmpty());
+  assertFalse(union.hasNext());
+}

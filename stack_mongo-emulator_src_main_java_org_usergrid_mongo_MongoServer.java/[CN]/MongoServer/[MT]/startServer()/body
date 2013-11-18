@@ -1,0 +1,16 @@
+{
+  if ((properties != null) && (Boolean.parseBoolean(properties.getProperty("usergrid.mongo.disable","false")))) {
+    logger.info("Usergrid Mongo Emulation Server Disabled");
+    return;
+  }
+  logger.info("Starting Usergrid Mongo Emulation Server");
+  if (realm != null) {
+    securityManager=new DefaultSecurityManager(realm);
+  }
+  ServerBootstrap bootstrap=new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),Executors.newCachedThreadPool()));
+  bootstrap.setOption("child.bufferFactory",HeapChannelBufferFactory.getInstance(ByteOrder.LITTLE_ENDIAN));
+  ExecutionHandler executionHandler=new ExecutionHandler(new OrderedMemoryAwareThreadPoolExecutor(16,1048576,1048576));
+  bootstrap.setPipelineFactory(new MongoServerPipelineFactory(emf,smf,management,securityManager,executionHandler));
+  channel=bootstrap.bind(new InetSocketAddress(27017));
+  logger.info("Usergrid Mongo API Emulation Server accepting connections...");
+}

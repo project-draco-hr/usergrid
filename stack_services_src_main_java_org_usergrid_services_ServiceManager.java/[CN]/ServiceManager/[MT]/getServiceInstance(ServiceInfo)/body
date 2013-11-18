@@ -1,0 +1,24 @@
+{
+  Class<Service> cls=findServiceClass(info);
+  if (cls != null) {
+    Service s=null;
+    try {
+      s=cls.newInstance();
+    }
+ catch (    Exception e) {
+      logger.error("cannot instantiate " + cls.getName(),e);
+    }
+    if (s instanceof AbstractService) {
+      AbstractService as=((AbstractService)s);
+      as.setServiceManager(this);
+      as.init(info);
+    }
+    if (s != null) {
+      if (s.getEntityType() == null) {
+        throw new UndefinedServiceEntityTypeException();
+      }
+    }
+    return s;
+  }
+  return null;
+}

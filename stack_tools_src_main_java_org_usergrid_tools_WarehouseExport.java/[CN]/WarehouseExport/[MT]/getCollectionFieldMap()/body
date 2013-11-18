@@ -1,0 +1,32 @@
+{
+  if (collectionFieldMap != null) {
+    return collectionFieldMap;
+  }
+  String[] collectionTypes=getCollectionTypes();
+  collectionFieldMap=new TreeMap<String,String[]>();
+  for (  String type : collectionTypes) {
+    Set<String> propertyNames=Schema.getDefaultSchema().getPropertyNames(type);
+    for (    String attr : BASE_ATTRIBUTES) {
+      propertyNames.remove(attr);
+    }
+    Iterator<String> i=propertyNames.iterator();
+    while (i.hasNext()) {
+      String property=i.next();
+      Class cls=Schema.getDefaultSchema().getPropertyType(type,property);
+      if (!cls.isPrimitive() && cls != String.class && cls != Date.class) {
+        i.remove();
+      }
+    }
+    String[] props=new String[propertyNames.size()];
+    propertyNames.toArray(props);
+    Arrays.sort(props);
+    collectionFieldMap.put(type,props);
+  }
+  for (  Map.Entry<String,String[]> entry : URAP_ATTRIBUTES.entrySet()) {
+    String type=entry.getKey();
+    String[] attributes=entry.getValue();
+    Arrays.sort(attributes);
+    collectionFieldMap.put(type,attributes);
+  }
+  return collectionFieldMap;
+}

@@ -1,0 +1,16 @@
+{
+  int count=500;
+  long ts=System.currentTimeMillis();
+  List<UUID> uuids=new ArrayList<UUID>(count);
+  HashSet times=new HashSet();
+  UUID lastSeen;
+  for (int i=0; i < count; i++) {
+    lastSeen=newTimeUUID(ts);
+    uuids.add(lastSeen);
+    times.add(UUIDUtils.getTimestampInMicros(lastSeen));
+  }
+  assertEquals(500,times.size());
+  for (int i=0; i < count - 1; i++) {
+    assertEquals(-1,uuids.get(i).compareTo(uuids.get(i + 1)));
+  }
+}

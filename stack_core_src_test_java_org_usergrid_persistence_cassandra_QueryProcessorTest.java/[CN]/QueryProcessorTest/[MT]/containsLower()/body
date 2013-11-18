@@ -1,0 +1,17 @@
+{
+  String queryString="select * where a contains 'FOO'";
+  ANTLRStringStream in=new ANTLRStringStream(queryString);
+  QueryFilterLexer lexer=new QueryFilterLexer(in);
+  TokenRewriteStream tokens=new TokenRewriteStream(lexer);
+  QueryFilterParser parser=new QueryFilterParser(tokens);
+  Query query=parser.ql().query;
+  QueryProcessor processor=new QueryProcessor(query,null,null,null);
+  SliceNode node=(SliceNode)processor.getFirstNode();
+  Iterator<QuerySlice> slices=node.getAllSlices().iterator();
+  QuerySlice slice=slices.next();
+  assertEquals("a.keywords",slice.getPropertyName());
+  assertEquals("foo",slice.getStart().getValue());
+  assertTrue(slice.getStart().isInclusive());
+  assertEquals("foo",slice.getFinish().getValue());
+  assertTrue(slice.getFinish().isInclusive());
+}

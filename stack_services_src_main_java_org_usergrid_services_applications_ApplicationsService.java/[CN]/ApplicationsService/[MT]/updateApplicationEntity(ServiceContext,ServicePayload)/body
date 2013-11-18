@@ -1,0 +1,28 @@
+{
+  checkPermissionsForPath(context,"/");
+  Map<String,Object> properties=payload.getProperties();
+  Object m=properties.get("metadata");
+  if (m instanceof Map) {
+    @SuppressWarnings("unchecked") Map<String,Object> metadata=(Map<String,Object>)m;
+    Object c=metadata.get("collections");
+    if (c instanceof Map) {
+      @SuppressWarnings("unchecked") Map<String,Object> collections=(Map<String,Object>)c;
+      for (      String collection : collections.keySet()) {
+        if (isReservedCollection(collection)) {
+          continue;
+        }
+        em.createApplicationCollection(collection);
+        logger.info("Created collection " + collection + " for application "+ sm.getApplicationId());
+      }
+    }
+  }
+  Entity entity=em.get(em.getApplicationRef());
+  em.updateProperties(entity,properties);
+  entity.addProperties(properties);
+  Results r=Results.fromEntity(entity);
+  Set<String> collections=em.getApplicationCollections();
+  if (collections.size() > 0) {
+    r.setMetadata(em.getApplicationRef().getUuid(),"collections",collections);
+  }
+  return genericServiceResults(r);
+}

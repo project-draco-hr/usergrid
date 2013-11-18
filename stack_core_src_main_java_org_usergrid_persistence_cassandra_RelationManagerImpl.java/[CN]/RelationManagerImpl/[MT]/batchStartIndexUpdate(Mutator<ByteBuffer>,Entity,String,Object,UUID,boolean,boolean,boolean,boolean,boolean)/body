@@ -1,0 +1,70 @@
+{
+  long timestamp=getTimestampInMicros(timestampUuid);
+  IndexUpdate indexUpdate=new IndexUpdate(batch,entity,entryName,entryValue,schemaHasProperty,isMultiValue,removeListEntry,timestampUuid);
+  if (!skipRead) {
+    List<HColumn<ByteBuffer,ByteBuffer>> entries=null;
+    if (isMultiValue && validIndexableValue(entryValue)) {
+      entries=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_INDEX_ENTRIES,entity.getUuid(),new DynamicComposite(entryName,indexValueCode(entryValue),toIndexableValue(entryValue)),setGreaterThanEqualityFlag(new DynamicComposite(entryName,indexValueCode(entryValue),toIndexableValue(entryValue))),INDEX_ENTRY_LIST_COUNT,false);
+    }
+ else {
+      entries=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_INDEX_ENTRIES,entity.getUuid(),new DynamicComposite(entryName),setGreaterThanEqualityFlag(new DynamicComposite(entryName)),INDEX_ENTRY_LIST_COUNT,false);
+    }
+    if (logger.isDebugEnabled()) {
+      logger.debug("Found {} previous index entries for {} of entity {}",new Object[]{entries.size(),entryName,entity.getUuid()});
+    }
+    for (    HColumn<ByteBuffer,ByteBuffer> entry : entries) {
+      UUID prev_timestamp=null;
+      Object prev_value=null;
+      String prev_obj_path=null;
+      DynamicComposite composite=DynamicComposite.fromByteBuffer(entry.getName().duplicate());
+      prev_value=composite.get(2);
+      prev_timestamp=(UUID)composite.get(3);
+      if (composite.size() > 4) {
+        prev_obj_path=(String)composite.get(4);
+      }
+      if (prev_value != null) {
+        String entryPath=entryName;
+        if ((prev_obj_path != null) && (prev_obj_path.length() > 0)) {
+          entryPath=entryName + "." + prev_obj_path;
+        }
+        indexUpdate.addPrevEntry(entryPath,prev_value,prev_timestamp,entry.getName().duplicate());
+      }
+ else {
+        logger.error("Unexpected condition - deserialized property value is null");
+      }
+    }
+  }
+  if (!isMultiValue || (isMultiValue && !removeListEntry)) {
+    List<Map.Entry<String,Object>> list=IndexUtils.getKeyValueList(entryName,entryValue,fulltextIndexed);
+    if (entryName.equalsIgnoreCase("location") && (entryValue instanceof Map)) {
+      @SuppressWarnings("rawtypes") double latitude=MapUtils.getDoubleValue((Map)entryValue,"latitude");
+      @SuppressWarnings("rawtypes") double longitude=MapUtils.getDoubleValue((Map)entryValue,"longitude");
+      list.add(new AbstractMap.SimpleEntry<String,Object>("location.coordinates",latitude + "," + longitude));
+    }
+    for (    Map.Entry<String,Object> indexEntry : list) {
+      if (validIndexableValue(indexEntry.getValue())) {
+        indexUpdate.addNewEntry(indexEntry.getKey(),toIndexableValue(indexEntry.getValue()));
+      }
+    }
+    if (isMultiValue) {
+      addInsertToMutator(batch,ENTITY_INDEX_ENTRIES,entity.getUuid(),asList(entryName,indexValueCode(entryValue),toIndexableValue(entryValue),indexUpdate.getTimestampUuid()),null,timestamp);
+    }
+ else {
+      for (      Map.Entry<String,Object> indexEntry : list) {
+        String name=indexEntry.getKey();
+        if (name.startsWith(entryName + ".")) {
+          name=name.substring(entryName.length() + 1);
+        }
+ else         if (name.startsWith(entryName)) {
+          name=name.substring(entryName.length());
+        }
+        byte code=indexValueCode(indexEntry.getValue());
+        Object val=toIndexableValue(indexEntry.getValue());
+        addInsertToMutator(batch,ENTITY_INDEX_ENTRIES,entity.getUuid(),asList(entryName,code,val,indexUpdate.getTimestampUuid(),name),null,timestamp);
+        indexUpdate.addIndex(indexEntry.getKey());
+      }
+    }
+    indexUpdate.addIndex(entryName);
+  }
+  return indexUpdate;
+}

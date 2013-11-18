@@ -1,0 +1,31 @@
+{
+  if (uuid == null) {
+    throw new InvalidTokenException("No token specified");
+  }
+  Map<String,ByteBuffer> columns=getColumnMap(cassandra.getColumns(cassandra.getSystemKeyspace(),TOKENS_CF,uuid,TOKEN_PROPERTIES,StringSerializer.get(),ByteBufferSerializer.get()));
+  if (!hasKeys(columns,REQUIRED_TOKEN_PROPERTIES)) {
+    throw new InvalidTokenException("Token not found in database");
+  }
+  String type=string(columns.get(TOKEN_TYPE));
+  long created=getLong(columns.get(TOKEN_CREATED));
+  long accessed=getLong(columns.get(TOKEN_ACCESSED));
+  long inactive=getLong(columns.get(TOKEN_INACTIVE));
+  long duration=getLong(columns.get(TOKEN_DURATION));
+  String principalTypeStr=string(columns.get(TOKEN_PRINCIPAL_TYPE));
+  AuthPrincipalType principalType=null;
+  if (principalTypeStr != null) {
+    try {
+      principalType=AuthPrincipalType.valueOf(principalTypeStr.toUpperCase());
+    }
+ catch (    IllegalArgumentException e) {
+    }
+  }
+  AuthPrincipalInfo principal=null;
+  if (principalType != null) {
+    UUID entityId=uuid(columns.get(TOKEN_ENTITY));
+    UUID appId=uuid(columns.get(TOKEN_APPLICATION));
+    principal=new AuthPrincipalInfo(principalType,entityId,appId);
+  }
+  @SuppressWarnings("unchecked") Map<String,Object> state=(Map<String,Object>)JsonUtils.fromByteBuffer(columns.get(TOKEN_STATE));
+  return new TokenInfo(uuid,type,created,accessed,inactive,duration,principal,state);
+}

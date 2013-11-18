@@ -1,0 +1,13 @@
+{
+  String type=null;
+  String message=e.getMessage();
+  ApiResponse response=new ApiResponse();
+  if (e instanceof ExpiredTokenException) {
+    type=EXPIRED_ACCESS_TOKEN_ERROR.getType();
+  }
+ else   if (e instanceof BadTokenException) {
+    type=BAD_ACCESS_TOKEN_ERROR.getType();
+  }
+  response.withError(type,message,e);
+  return Response.status(Status.UNAUTHORIZED).type("application/json").entity(response).build();
+}

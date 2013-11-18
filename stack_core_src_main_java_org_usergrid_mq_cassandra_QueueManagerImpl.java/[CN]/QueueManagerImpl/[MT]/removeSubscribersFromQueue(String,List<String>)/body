@@ -1,0 +1,23 @@
+{
+  publisherQueuePath=normalizeQueuePath(publisherQueuePath);
+  UUID publisherQueueId=getQueueId(publisherQueuePath);
+  UUID timestampUuid=newTimeUUID();
+  long timestamp=getTimestampInMicros(timestampUuid);
+  Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
+  QueueSet queues=new QueueSet();
+  for (  String subscriberQueuePath : subscriberQueuePaths) {
+    subscriberQueuePath=normalizeQueuePath(subscriberQueuePath);
+    UUID subscriberQueueId=getQueueId(subscriberQueuePath);
+    batchUnsubscribeFromQueue(batch,publisherQueuePath,publisherQueueId,subscriberQueuePath,subscriberQueueId,timestamp);
+    try {
+      Queue queue=getQueue(subscriberQueuePath,subscriberQueueId);
+      batchUpdateQueuePropertiesIndexes(batch,publisherQueueId,subscriberQueuePath,subscriberQueueId,emptyMapWithKeys(queue.getProperties()),timestampUuid);
+    }
+ catch (    Exception e) {
+      logger.error("Unable to update index",e);
+    }
+    queues.addQueue(subscriberQueuePath,subscriberQueueId);
+  }
+  batchExecute(batch,RETRY_COUNT);
+  return queues;
+}

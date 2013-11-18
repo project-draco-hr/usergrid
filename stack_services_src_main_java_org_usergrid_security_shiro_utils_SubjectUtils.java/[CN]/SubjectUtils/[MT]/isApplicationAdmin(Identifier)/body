@@ -1,0 +1,14 @@
+{
+  if (isServiceAdmin()) {
+    return true;
+  }
+  ApplicationInfo application=getApplication(identifier);
+  if (application == null) {
+    return false;
+  }
+  Subject currentUser=getSubject();
+  if (currentUser == null) {
+    return false;
+  }
+  return currentUser.isPermitted("applications:admin:" + application.getId());
+}

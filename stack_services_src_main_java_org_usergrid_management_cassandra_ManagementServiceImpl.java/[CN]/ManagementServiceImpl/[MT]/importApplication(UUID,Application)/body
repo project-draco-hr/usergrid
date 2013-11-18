@@ -1,0 +1,10 @@
+{
+  OrganizationInfo organization=getOrganizationByUuid(organizationId);
+  UUID applicationId=emf.importApplication(organization.getName(),application.getUuid(),application.getName(),application.getProperties());
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  properties.setProperty("name",buildAppName(application.getName(),organization));
+  Entity app=em.create(applicationId,APPLICATION_INFO,application.getProperties());
+  writeUserToken(MANAGEMENT_APPLICATION_ID,app,encryptionService.plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.APPLICATION),null,applicationId));
+  addApplicationToOrganization(organizationId,applicationId);
+  return applicationId;
+}

@@ -1,0 +1,13 @@
+{
+  if (propertyEntryList != null) {
+    for (    Entry<String,List<Entry<String,Object>>> property : propertyEntryList.entrySet()) {
+      for (      Map.Entry<String,Object> indexEntry : property.getValue()) {
+        if (validIndexableValue(indexEntry.getValue())) {
+          batch.addInsertion(bytebuffer(key(queueId,shard_ts,indexEntry.getKey())),PROPERTY_INDEX.getColumnFamily(),createColumn(new DynamicComposite(indexValueCode(indexEntry.getValue()),indexEntry.getValue(),message.getUuid()),ByteBuffer.allocate(0),timestamp,dce,be));
+          batch.addInsertion(bytebuffer(key(queueId,DICTIONARY_MESSAGE_INDEXES)),QUEUE_DICTIONARIES.getColumnFamily(),createColumn(indexEntry.getKey(),ByteBuffer.allocate(0),timestamp,se,be));
+        }
+      }
+      batch.addInsertion(bytebuffer(key(queueId,DICTIONARY_MESSAGE_INDEXES)),QUEUE_DICTIONARIES.getColumnFamily(),createColumn(property.getKey(),ByteBuffer.allocate(0),timestamp,se,be));
+    }
+  }
+}

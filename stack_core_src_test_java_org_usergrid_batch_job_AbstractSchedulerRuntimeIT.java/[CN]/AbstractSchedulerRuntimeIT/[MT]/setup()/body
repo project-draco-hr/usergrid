@@ -1,0 +1,12 @@
+{
+  scheduler=cassandraResource.getBean(SchedulerService.class);
+  props=cassandraResource.getBean("properties",Properties.class);
+  if (System.getProperties().containsKey(COUNT_PROP)) {
+    count=Integer.getInteger(System.getProperty(COUNT_PROP));
+  }
+  JobSchedulerService jobScheduler=cassandraResource.getBean(JobSchedulerService.class);
+  jobScheduler.setJobListener(listener);
+  if (jobScheduler.state() != State.RUNNING) {
+    jobScheduler.startAndWait();
+  }
+}

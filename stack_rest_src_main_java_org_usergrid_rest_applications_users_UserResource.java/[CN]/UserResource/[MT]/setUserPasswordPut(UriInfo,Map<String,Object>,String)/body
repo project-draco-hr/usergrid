@@ -1,0 +1,26 @@
+{
+  logger.info("UserResource.setUserPassword");
+  if (json == null) {
+    return null;
+  }
+  ApiResponse response=createApiResponse();
+  response.setAction("set user password");
+  String oldPassword=string(json.get("oldpassword"));
+  String newPassword=string(json.get("newpassword"));
+  if (newPassword == null) {
+    throw new IllegalArgumentException("newpassword is required");
+  }
+  UUID applicationId=getApplicationId();
+  UUID targetUserId=getUserUuid();
+  if (targetUserId == null) {
+    response.setError("User not found");
+    return new JSONWithPadding(response,callback);
+  }
+  if (isApplicationAdmin()) {
+    management.setAppUserPassword(applicationId,targetUserId,newPassword);
+  }
+ else {
+    management.setAppUserPassword(getApplicationId(),targetUserId,oldPassword,newPassword);
+  }
+  return new JSONWithPadding(response,callback);
+}

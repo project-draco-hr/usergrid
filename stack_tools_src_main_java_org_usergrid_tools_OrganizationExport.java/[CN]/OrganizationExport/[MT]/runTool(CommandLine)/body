@@ -1,0 +1,29 @@
+{
+  startSpring();
+  setVerbose(line);
+  prepareBaseOutputFileName(line);
+  outputDir=createOutputParentDir();
+  String queryString=line.getOptionValue(QUERY_ARG);
+  Query query=Query.fromQL(queryString);
+  logger.info("Export directory: {}",outputDir.getAbsolutePath());
+  CSVWriter writer=new CSVWriter(new FileWriter(outputDir.getAbsolutePath() + "/admins.csv"),',');
+  writer.writeNext(new String[]{"Organization Name","Admin Name","Admin Email","Admin Created Date"});
+  Results organizations=null;
+  do {
+    organizations=getOrganizations(query);
+    for (    Entity organization : organizations.getEntities()) {
+      String orgName=organization.getProperty("path").toString();
+      logger.info("Org Name: {} key: {}",orgName,organization.getUuid());
+      for (      UserInfo user : managementService.getAdminUsersForOrganization(organization.getUuid())) {
+        Entity admin=managementService.getAdminUserEntityByUuid(user.getUuid());
+        Long createdDate=(Long)admin.getProperties().get("created");
+        writer.writeNext(new String[]{orgName,user.getName(),user.getEmail(),createdDate == null ? "Unknown" : sdf.format(new Date(createdDate))});
+      }
+    }
+    query.setCursor(organizations.getCursor());
+  }
+ while (organizations != null && organizations.hasCursor());
+  logger.info("Completed export");
+  writer.flush();
+  writer.close();
+}

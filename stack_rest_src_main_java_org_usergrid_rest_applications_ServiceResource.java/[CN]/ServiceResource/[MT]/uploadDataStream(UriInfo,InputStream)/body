@@ -1,0 +1,12 @@
+{
+  ApiResponse response=createApiResponse();
+  response.setAction("get");
+  response.setApplication(services.getApplication());
+  response.setParams(ui.getQueryParameters());
+  ServiceResults serviceResults=executeServiceRequest(ui,response,ServiceAction.GET,null);
+  Entity entity=serviceResults.getEntity();
+  binaryStore.write(getApplicationId(),entity,uploadedInputStream);
+  EntityManager em=emf.getEntityManager(getApplicationId());
+  em.update(entity);
+  return Response.status(200).build();
+}

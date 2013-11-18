@@ -1,0 +1,14 @@
+{
+  ServiceResults results=null;
+  Service s=services.getService(serviceName);
+  if (s != null) {
+    results=s.invoke(action,this,previousResults,payload);
+    if ((results != null) && results.hasMoreRequests()) {
+      results=invokeMultiple(results,payload);
+    }
+  }
+  if (results == null) {
+    results=new ServiceResults(null,this,previousResults,null,Type.GENERIC,null,null,null);
+  }
+  return results;
+}

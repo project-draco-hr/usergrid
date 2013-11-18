@@ -1,0 +1,8 @@
+{
+  String appName=applicationName.contains("/") ? applicationName : organization.getName() + "/" + applicationName;
+  ApplicationInfo application=management.getApplicationInfo(appName);
+  if (application == null) {
+    throw new EntityNotFoundException(String.format("Application %s does not exist for organization %s",applicationName,organization.getName()));
+  }
+  return getSubResource(ApplicationResource.class).init(organization,application);
+}

@@ -1,0 +1,45 @@
+{
+  if (replaceParameters == null) {
+    return parameters;
+  }
+  if ((parameters == null) || (parameters.size() == 0)) {
+    return parameters;
+  }
+  for (  Entry<List<String>,List<String>> replaceSet : replaceParameters.entrySet()) {
+    if (parameters.size() < replaceSet.getKey().size()) {
+      continue;
+    }
+    boolean found=true;
+    for (int i=0; i < replaceSet.getKey().size(); i++) {
+      String matchStr=replaceSet.getKey().get(i);
+      ServiceParameter param=parameters.get(i);
+      if (matchStr.equals("$id") && ((param instanceof IdParameter) || (param instanceof NameParameter))) {
+        continue;
+      }
+ else       if (matchStr.equals("$query") && (param instanceof QueryParameter)) {
+        continue;
+      }
+ else       if (matchStr.equalsIgnoreCase(param.getName())) {
+        continue;
+      }
+      found=false;
+      break;
+    }
+    if (!found) {
+      continue;
+    }
+    ArrayList<ServiceParameter> p=new ArrayList<ServiceParameter>();
+    for (    String name : replaceSet.getValue()) {
+      if (name.startsWith("\\")) {
+        int i=Integer.parseInt(name.substring(1));
+        p.add(parameters.get(i));
+      }
+ else {
+        p.add(new NameParameter(name));
+      }
+    }
+    p.addAll(parameters.subList(replaceSet.getKey().size(),parameters.size()));
+    return p;
+  }
+  return parameters;
+}

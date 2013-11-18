@@ -1,0 +1,14 @@
+{
+  Map<String,Object> props=new HashMap<String,Object>();
+  props.put("myString","My simple string");
+  UUID applicationId=setup.createApplication("testOrganization","stringWithSpaces");
+  assertNotNull(applicationId);
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  assertNotNull(em);
+  Entity saved=em.create("test",props);
+  Query query=new Query();
+  query.addEqualityFilter("myString","My simple string");
+  Results results=em.searchCollection(em.getApplicationRef(),"tests",query);
+  Entity entity=results.getEntitiesMap().get(saved.getUuid());
+  assertNotNull(entity);
+}

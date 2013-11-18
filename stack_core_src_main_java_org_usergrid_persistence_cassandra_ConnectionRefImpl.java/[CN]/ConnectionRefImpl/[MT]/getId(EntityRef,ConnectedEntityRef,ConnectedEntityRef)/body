@@ -1,0 +1,29 @@
+{
+  UUID uuid=null;
+  try {
+    if (connectionsNull(pairedConnections) && connectionsNull(connectedEntity)) {
+      return connectingEntity.getUuid();
+    }
+    ByteArrayOutputStream byteStream=new ByteArrayOutputStream(16 + (32 * pairedConnections.length));
+    byteStream.write(uuidToBytesNullOk(connectingEntity.getUuid()));
+    for (    ConnectedEntityRef connection : pairedConnections) {
+      String connectionType=connection.getConnectionType();
+      UUID connectedEntityID=connection.getUuid();
+      byteStream.write(ascii(StringUtils.lowerCase(connectionType)));
+      byteStream.write(uuidToBytesNullOk(connectedEntityID));
+    }
+    String connectionType=connectedEntity.getConnectionType();
+    if (connectionType == null) {
+      connectionType=NULL_ENTITY_TYPE;
+    }
+    UUID connectedEntityID=connectedEntity.getUuid();
+    byteStream.write(ascii(StringUtils.lowerCase(connectionType)));
+    byteStream.write(uuidToBytesNullOk(connectedEntityID));
+    byte[] raw_id=byteStream.toByteArray();
+    uuid=UUID.nameUUIDFromBytes(raw_id);
+  }
+ catch (  IOException e) {
+    logger.error("Unable to create connection UUID",e);
+  }
+  return uuid;
+}

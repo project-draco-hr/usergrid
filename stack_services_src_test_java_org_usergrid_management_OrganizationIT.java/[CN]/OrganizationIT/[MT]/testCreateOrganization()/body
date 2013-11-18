@@ -1,0 +1,30 @@
+{
+  UserInfo user=setup.getMgmtSvc().createAdminUser("edanuff2","Ed Anuff","ed@anuff.com2","test",false,false);
+  assertNotNull(user);
+  OrganizationInfo organization=setup.getMgmtSvc().createOrganization("OrganizationIT",user,false);
+  assertNotNull(organization);
+  Map<UUID,String> userOrganizations=setup.getMgmtSvc().getOrganizationsForAdminUser(user.getUuid());
+  assertEquals("wrong number of organizations",1,userOrganizations.size());
+  List<UserInfo> users=setup.getMgmtSvc().getAdminUsersForOrganization(organization.getUuid());
+  assertEquals("wrong number of users",1,users.size());
+  UUID applicationId=setup.getMgmtSvc().createApplication(organization.getUuid(),"ed-application").getId();
+  assertNotNull(applicationId);
+  Map<UUID,String> applications=setup.getMgmtSvc().getApplicationsForOrganization(organization.getUuid());
+  assertEquals("wrong number of applications",1,applications.size());
+  OrganizationInfo organization2=setup.getMgmtSvc().getOrganizationForApplication(applicationId);
+  assertNotNull(organization2);
+  assertEquals("wrong organization name","OrganizationIT",organization2.getName());
+  boolean verified=setup.getMgmtSvc().verifyAdminUserPassword(user.getUuid(),"test");
+  assertTrue(verified);
+  setup.getMgmtSvc().activateOrganization(organization2);
+  UserInfo u=setup.getMgmtSvc().verifyAdminUserPasswordCredentials(user.getUuid().toString(),"test");
+  assertNotNull(u);
+  String token=setup.getMgmtSvc().getAccessTokenForAdminUser(user.getUuid(),0);
+  assertNotNull(token);
+  AuthPrincipalInfo principal=((ManagementServiceImpl)setup.getMgmtSvc()).getPrincipalFromAccessToken(token,null,null);
+  assertNotNull(principal);
+  assertEquals(user.getUuid(),principal.getUuid());
+  UserInfo new_user=setup.getMgmtSvc().createAdminUser("test-user-133","Test User","test-user-133@mockserver.com","testpassword",true,true);
+  assertNotNull(new_user);
+  setup.getMgmtSvc().addAdminUserToOrganization(new_user,organization2,false);
+}

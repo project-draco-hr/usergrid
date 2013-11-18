@@ -1,0 +1,15 @@
+{
+  int l=20;
+  ByteBuffer fullCollectionNameBytes=getCString(fullCollectionName);
+  l+=fullCollectionNameBytes.capacity();
+  List<ByteBuffer> encodedDocuments=encodeDocuments(documents);
+  l+=buffersSize(encodedDocuments);
+  messageLength=l;
+  buffer=super.encode(buffer);
+  buffer.writeInt(flags);
+  buffer.writeBytes(fullCollectionNameBytes);
+  for (  ByteBuffer d : encodedDocuments) {
+    buffer.writeBytes(d);
+  }
+  return buffer;
+}

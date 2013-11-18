@@ -1,0 +1,10 @@
+{
+  checkPermissionsForCollection(context);
+  if (getCollectionSort(context) != null) {
+    return getItemsByQuery(context,new Query());
+  }
+  int count=10;
+  Results r=em.getCollection(context.getOwner(),context.getCollectionName(),null,count,Level.ALL_PROPERTIES,isCollectionReversed(context));
+  importEntities(context,r);
+  return new ServiceResults(this,context,Type.COLLECTION,r,null,null);
+}

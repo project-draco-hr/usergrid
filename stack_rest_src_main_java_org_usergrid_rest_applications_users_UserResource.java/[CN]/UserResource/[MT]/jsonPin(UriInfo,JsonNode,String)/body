@@ -1,0 +1,13 @@
+{
+  logger.info("UserResource.jsonPin");
+  ApiResponse response=createApiResponse();
+  response.setAction("set user pin");
+  if (getUser() != null) {
+    String pin=json.path("pin").getTextValue();
+    management.setAppUserPin(getApplicationId(),getUserUuid(),pin);
+  }
+ else {
+    response.setError("User not found");
+  }
+  return new JSONWithPadding(response,callback);
+}

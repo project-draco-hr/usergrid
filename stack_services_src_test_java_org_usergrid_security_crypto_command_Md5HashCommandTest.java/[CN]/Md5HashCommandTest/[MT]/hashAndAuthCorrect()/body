@@ -1,0 +1,10 @@
+{
+  String test="I'm a  test password";
+  byte[] hashed=DigestUtils.md5Hex(test.getBytes("UTF-8")).getBytes("UTF-8");
+  Md5HashCommand command=new Md5HashCommand();
+  CredentialsInfo info=new CredentialsInfo();
+  byte[] results=command.hash(test.getBytes("UTF-8"),info,null,null);
+  assertArrayEquals(hashed,results);
+  byte[] authed=command.auth(test.getBytes("UTF-8"),info,null,null);
+  assertArrayEquals(results,authed);
+}

@@ -1,0 +1,21 @@
+{
+  LOG.info("CounterIT.testIncrementAndDecrement");
+  UUID applicationId=setup.createApplication("testOrganization","testCountersIandD");
+  assertNotNull(applicationId);
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  assertNotNull(em);
+  Map<String,Long> counters=em.getEntityCounters(applicationId);
+  assertEquals(null,counters.get("application.collection.users"));
+  UUID uuid=UUID.randomUUID();
+  Map<String,Object> userProperties=new HashMap<String,Object>();
+  userProperties.put("name","test-name");
+  userProperties.put("username","test-username");
+  userProperties.put("email","test-email");
+  User user=(User)em.create(uuid,"user",userProperties).toTypedEntity();
+  LOG.debug("user={}",user);
+  counters=em.getEntityCounters(applicationId);
+  assertEquals(new Long(1),counters.get("application.collection.users"));
+  em.delete(user);
+  counters=em.getEntityCounters(applicationId);
+  assertEquals(new Long(0),counters.get("application.collection.users"));
+}

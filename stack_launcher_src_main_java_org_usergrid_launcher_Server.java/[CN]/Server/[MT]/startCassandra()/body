@@ -1,0 +1,23 @@
+{
+  if (embeddedCassandra == null) {
+    embeddedCassandra=new EmbeddedServerHelper();
+    if (initializeDatabaseOnStart) {
+      logger.info("Initializing Cassandra");
+      try {
+        embeddedCassandra.setup();
+      }
+ catch (      Exception e) {
+        logger.error("Unable to initialize Cassandra",e);
+        System.exit(0);
+      }
+    }
+  }
+  logger.info("Starting Cassandra");
+  try {
+    embeddedCassandra.start();
+  }
+ catch (  Exception e) {
+    logger.error("Unable to start Cassandra",e);
+    System.exit(0);
+  }
+}

@@ -1,0 +1,15 @@
+{
+  ByteBuffer cursor=slice.getCursor();
+  UUID minEntryId=null;
+  if (cursor != null) {
+    minEntryId=UUID_SER.fromByteBuffer(cursor);
+  }
+  entries=new SortedEntitySet(subSortCompare,em,secondaryFields,pageSize,minEntryId);
+  while (candidates.hasNext()) {
+    for (    ScanColumn id : candidates.next()) {
+      entries.add(id);
+    }
+    entries.load();
+  }
+  return entries.toIds();
+}

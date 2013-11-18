@@ -1,0 +1,21 @@
+{
+  checkPermissionsForEntity(context,id);
+  EntityRef entity=null;
+  if (!context.moreParameters()) {
+    entity=em.get(id);
+    entity=importEntity(context,(Entity)entity);
+  }
+ else {
+    entity=em.getRef(id);
+  }
+  if (entity == null) {
+    throw new ServiceResourceNotFoundException(context);
+  }
+  checkPermissionsForEntity(context,entity);
+  if (!em.isConnectionMember(context.getOwner(),context.getCollectionName(),entity)) {
+    logger.info("Someone tried to GET entity {} they don't own. Entity id {} with owner {}",new Object[]{getEntityType(),id,context.getOwner()});
+    throw new ServiceResourceNotFoundException(context);
+  }
+  List<ServiceRequest> nextRequests=context.getNextServiceRequests(entity);
+  return new ServiceResults(this,context,Type.CONNECTION,Results.fromRef(entity),null,nextRequests);
+}

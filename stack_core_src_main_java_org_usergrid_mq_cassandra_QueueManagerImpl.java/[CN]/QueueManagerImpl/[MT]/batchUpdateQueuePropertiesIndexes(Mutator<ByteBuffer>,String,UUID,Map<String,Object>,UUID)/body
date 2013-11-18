@@ -1,0 +1,13 @@
+{
+  QueueSet subscriptions=getSubscriptions(subscriberQueuePath,null,ALL_COUNT);
+  if (subscriptions != null) {
+    for (    Map.Entry<String,Object> property : properties.entrySet()) {
+      if (!Queue.QUEUE_PROPERTIES.containsKey(property.getKey())) {
+        QueueIndexUpdate indexUpdate=batchStartQueueIndexUpdate(batch,subscriberQueuePath,subscriberQueueId,property.getKey(),property.getValue(),timestampUuid);
+        for (        QueueInfo subscription : subscriptions.getQueues()) {
+          batchUpdateQueueIndex(indexUpdate,subscription.getUuid());
+        }
+      }
+    }
+  }
+}

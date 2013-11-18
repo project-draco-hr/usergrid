@@ -1,0 +1,18 @@
+{
+  if (context.moreParameters()) {
+    return getItemByName(context,name);
+  }
+  EntityRef ref=em.getAlias(getEntityType(),name);
+  if (ref == null) {
+    throw new ServiceResourceNotFoundException(context);
+  }
+  Entity entity=em.get(ref);
+  if (entity == null) {
+    throw new ServiceResourceNotFoundException(context);
+  }
+  entity=importEntity(context,entity);
+  checkPermissionsForEntity(context,entity);
+  prepareToDelete(context,entity);
+  em.removeFromCollection(context.getOwner(),context.getCollectionName(),entity);
+  return new ServiceResults(this,context,Type.COLLECTION,Results.fromEntity(entity),null,null);
+}

@@ -1,0 +1,15 @@
+{
+  if (!keepIterator.hasNext()) {
+    return null;
+  }
+  Set<ScanColumn> results=new LinkedHashSet<ScanColumn>(pageSize);
+  while (keepIterator.hasNext() && results.size() < pageSize) {
+    Set<ScanColumn> keepPage=keepIterator.next();
+    while (subtractIterator.hasNext() && keepPage.size() > 0) {
+      keepPage=Sets.difference(keepPage,subtractIterator.next());
+    }
+    subtractIterator.reset();
+    results.addAll(keepPage);
+  }
+  return results;
+}

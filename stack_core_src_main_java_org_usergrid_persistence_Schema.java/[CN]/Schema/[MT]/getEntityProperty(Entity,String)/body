@@ -1,0 +1,17 @@
+{
+  PropertyDescriptor descriptor=getDescriptorForEntityProperty(entity.getClass(),property);
+  if (descriptor != null) {
+    try {
+      return descriptor.getReadMethod().invoke(entity);
+    }
+ catch (    Exception e) {
+      logger.error("Unable to get entity property " + property,e);
+    }
+    return null;
+  }
+  Map<String,Object> properties=entity.getDynamicProperties();
+  if (properties != null) {
+    return properties.get(property);
+  }
+  return null;
+}

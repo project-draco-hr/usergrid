@@ -1,0 +1,67 @@
+{
+  app.put("name","Tom");
+  Entity cat=app.testRequest(ServiceAction.POST,1,"cats").getEntity();
+  assertNotNull(cat);
+  app.testRequest(ServiceAction.GET,1,"cats","Tom");
+  app.put("name","Danny");
+  Entity dog=app.testRequest(ServiceAction.POST,1,"dogs").getEntity();
+  assertNotNull(dog);
+  try {
+    app.testRequest(ServiceAction.GET,0,"cats",dog.getUuid());
+    Assert.fail();
+  }
+ catch (  UnexpectedEntityTypeException uee) {
+  }
+  try {
+    app.testRequest(ServiceAction.GET,0,"cats","Danny");
+    Assert.fail();
+  }
+ catch (  ServiceResourceNotFoundException srnfe) {
+  }
+  app.put("color","black");
+  try {
+    app.testRequest(ServiceAction.POST,0,"cats",dog.getUuid());
+    Assert.fail();
+  }
+ catch (  UnexpectedEntityTypeException uee) {
+  }
+  try {
+    app.testRequest(ServiceAction.POST,0,"cats","Danny");
+    Assert.fail();
+  }
+ catch (  ServiceResourceNotFoundException srnfe) {
+  }
+  try {
+    app.testRequest(ServiceAction.PUT,0,"cats",dog.getUuid());
+    Assert.fail();
+  }
+ catch (  UnexpectedEntityTypeException uee) {
+  }
+  try {
+    app.testRequest(ServiceAction.DELETE,0,"cats",dog.getUuid());
+    Assert.fail();
+  }
+ catch (  UnexpectedEntityTypeException uee) {
+  }
+  try {
+    app.testRequest(ServiceAction.DELETE,0,"cats","Danny");
+    Assert.fail();
+  }
+ catch (  ServiceResourceNotFoundException srnfe) {
+  }
+  final String catsUuid="99999990-600c-11e2-b414-14109fd49581";
+  ServiceResults results=app.testRequest(ServiceAction.PUT,1,"cats",catsUuid);
+  Entity entity=results.getEntity();
+  Assert.assertEquals(entity.getUuid().toString(),catsUuid);
+  results=app.testRequest(ServiceAction.PUT,1,"cats","Danny");
+  entity=results.getEntity();
+  Assert.assertEquals(entity.getName(),"danny");
+  app.put("name","Danny2");
+  results=app.testRequest(ServiceAction.PUT,1,"cats","Danny2");
+  entity=results.getEntity();
+  Assert.assertEquals(entity.getName(),"Danny2");
+  app.put("name","Jimmy");
+  results=app.testRequest(ServiceAction.PUT,1,"cats","Danny3");
+  entity=results.getEntity();
+  Assert.assertEquals(entity.getName(),"danny3");
+}

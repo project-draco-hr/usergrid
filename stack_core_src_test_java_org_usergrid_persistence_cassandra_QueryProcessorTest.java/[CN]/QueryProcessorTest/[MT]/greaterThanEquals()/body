@@ -1,0 +1,15 @@
+{
+  String queryString="select * where a >= 5";
+  ANTLRStringStream in=new ANTLRStringStream(queryString);
+  QueryFilterLexer lexer=new QueryFilterLexer(in);
+  TokenRewriteStream tokens=new TokenRewriteStream(lexer);
+  QueryFilterParser parser=new QueryFilterParser(tokens);
+  Query query=parser.ql().query;
+  QueryProcessor processor=new QueryProcessor(query,null,null,null);
+  SliceNode node=(SliceNode)processor.getFirstNode();
+  Iterator<QuerySlice> slices=node.getAllSlices().iterator();
+  QuerySlice slice=slices.next();
+  assertEquals(BigInteger.valueOf(5),slice.getStart().getValue());
+  assertTrue(slice.getStart().isInclusive());
+  assertNull(slice.getFinish());
+}

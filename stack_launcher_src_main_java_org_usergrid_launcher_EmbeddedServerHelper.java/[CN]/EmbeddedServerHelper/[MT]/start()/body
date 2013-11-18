@@ -1,0 +1,21 @@
+{
+  if (executor == null) {
+    executor=java.util.concurrent.Executors.newSingleThreadExecutor();
+    System.setProperty("cassandra.config","file:" + TMP + yamlFile);
+    System.setProperty("log4j.configuration","file:" + TMP + "/log4j.properties");
+    System.setProperty("cassandra-foreground","true");
+    log.info("Starting executor");
+    executor.execute(new CassandraRunner());
+    log.info("Started executor");
+  }
+ else {
+    cassandraDaemon.start();
+  }
+  try {
+    java.util.concurrent.TimeUnit.SECONDS.sleep(3);
+    log.info("Done sleeping");
+  }
+ catch (  InterruptedException e) {
+    throw new AssertionError(e);
+  }
+}

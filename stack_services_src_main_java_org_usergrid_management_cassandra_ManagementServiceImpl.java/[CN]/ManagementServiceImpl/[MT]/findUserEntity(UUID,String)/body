@@ -1,0 +1,31 @@
+{
+  User user=null;
+  if (UUIDUtils.isUUID(identifier)) {
+    try {
+      Entity entity=getUserEntityByIdentifier(applicationId,Identifier.fromUUID(UUID.fromString(identifier)));
+      if (entity != null) {
+        user=(User)entity.toTypedEntity();
+        logger.info("Found user {} as a UUID",identifier);
+      }
+    }
+ catch (    Exception e) {
+      logger.warn("Unable to get user " + identifier + " as a UUID, trying username...");
+    }
+    return user;
+  }
+  Identifier id=Identifier.from(identifier);
+  try {
+    Entity entity=getUserEntityByIdentifier(applicationId,id);
+    if (entity != null) {
+      user=(User)entity.toTypedEntity();
+      logger.info("Found user {} as an {}",identifier,id.getType());
+    }
+  }
+ catch (  Exception e) {
+    logger.warn("Unable to get user {} as a {}",identifier,id.getType());
+  }
+  if (user != null) {
+    return user;
+  }
+  return null;
+}

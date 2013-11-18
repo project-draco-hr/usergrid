@@ -1,0 +1,29 @@
+{
+  if (objects.length == 1) {
+    Object obj=objects[0];
+    if ((obj instanceof UUID) || (obj instanceof ByteBuffer)) {
+      return obj;
+    }
+  }
+  StringBuilder s=new StringBuilder();
+  for (  Object obj : objects) {
+    if (obj instanceof String) {
+      s.append(((String)obj).toLowerCase());
+    }
+ else     if (obj instanceof List<?>) {
+      s.append(key(((List<?>)obj).toArray()));
+    }
+ else     if (obj instanceof Object[]) {
+      s.append(key((Object[])obj));
+    }
+ else     if (obj != null) {
+      s.append(obj);
+    }
+ else {
+      s.append("*");
+    }
+    s.append(KEY_DELIM);
+  }
+  s.deleteCharAt(s.length() - 1);
+  return s.toString();
+}

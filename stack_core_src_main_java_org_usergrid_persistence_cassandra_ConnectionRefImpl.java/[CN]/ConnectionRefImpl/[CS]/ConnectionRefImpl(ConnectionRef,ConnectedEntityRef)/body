@@ -1,0 +1,19 @@
+{
+  if (connection == null) {
+    throw new NullPointerException("ConnectionImpl constructor \'connection\' cannot be null");
+  }
+  connectingEntity=connection.getConnectingEntity();
+  if (connections.length > 0) {
+    pairedConnections=new ArrayList<ConnectedEntityRef>();
+    pairedConnections.addAll(connection.getPairedConnections());
+    pairedConnections.add(connection.getConnectedEntity());
+    connectedEntity=connections[connections.length - 1];
+    if (connections.length > 1) {
+      pairedConnections.addAll(Arrays.asList(Arrays.copyOfRange(connections,0,connections.length - 2)));
+    }
+  }
+ else {
+    pairedConnections=new ArrayList<ConnectedEntityRef>();
+    connectedEntity=new ConnectedEntityRefImpl();
+  }
+}

@@ -1,0 +1,52 @@
+{
+  long timestamp=getTimestampInMicros(timestampUuid);
+  QueueIndexUpdate indexUpdate=new QueueIndexUpdate(batch,queuePath,queueId,entryName,entryValue,timestampUuid);
+  List<HColumn<ByteBuffer,ByteBuffer>> entries=null;
+  entries=createSliceQuery(cass.getApplicationKeyspace(applicationId),ue,be,be).setColumnFamily(PROPERTY_INDEX_ENTRIES.getColumnFamily()).setKey(queueId).setRange(DynamicComposite.toByteBuffer(entryName),setGreaterThanEqualityFlag(new DynamicComposite(entryName)).serialize(),false,INDEX_ENTRY_LIST_COUNT).execute().get().getColumns();
+  if (logger.isInfoEnabled()) {
+    logger.info("Found {} previous index entries for {} of entity {}",new Object[]{entries.size(),entryName,queueId});
+  }
+  for (  HColumn<ByteBuffer,ByteBuffer> entry : entries) {
+    UUID prev_timestamp=null;
+    Object prev_value=null;
+    String prev_obj_path=null;
+    DynamicComposite composite=DynamicComposite.fromByteBuffer(entry.getName().duplicate());
+    prev_value=composite.get(2);
+    prev_timestamp=(UUID)composite.get(3);
+    if (composite.size() > 4) {
+      prev_obj_path=(String)composite.get(4);
+    }
+    if (prev_value != null) {
+      String entryPath=entryName;
+      if ((prev_obj_path != null) && (prev_obj_path.length() > 0)) {
+        entryPath=entryName + "." + prev_obj_path;
+      }
+      indexUpdate.addPrevEntry(entryPath,prev_value,prev_timestamp);
+      batch.addDeletion(bytebuffer(queueId),PROPERTY_INDEX_ENTRIES.getColumnFamily(),entry.getName().duplicate(),be,timestamp);
+    }
+ else {
+      logger.error("Unexpected condition - deserialized property value is null");
+    }
+  }
+  if (validIndexableValueOrJson(entryValue)) {
+    List<Map.Entry<String,Object>> list=getKeyValueList(entryName,entryValue,false);
+    for (    Map.Entry<String,Object> indexEntry : list) {
+      if (validIndexableValue(indexEntry.getValue())) {
+        indexUpdate.addNewEntry(indexEntry.getKey(),toIndexableValue(indexEntry.getValue()));
+      }
+    }
+    for (    Map.Entry<String,Object> indexEntry : list) {
+      String name=indexEntry.getKey();
+      if (name.startsWith(entryName + ".")) {
+        name=name.substring(entryName.length() + 1);
+      }
+ else       if (name.startsWith(entryName)) {
+        name=name.substring(entryName.length());
+      }
+      batch.addInsertion(bytebuffer(queueId),PROPERTY_INDEX_ENTRIES.getColumnFamily(),createColumn(DynamicComposite.toByteBuffer(entryName,indexValueCode(entryValue),toIndexableValue(entryValue),indexUpdate.getTimestampUuid(),name),ByteBuffer.allocate(0),timestamp,be,be));
+      indexUpdate.addIndex(indexEntry.getKey());
+    }
+    indexUpdate.addIndex(entryName);
+  }
+  return indexUpdate;
+}

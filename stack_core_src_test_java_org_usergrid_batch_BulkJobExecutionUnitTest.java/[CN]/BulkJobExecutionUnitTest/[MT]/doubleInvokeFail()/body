@@ -1,0 +1,20 @@
+{
+  JobData data=new JobData();
+  JobStat stat=new JobStat();
+  JobDescriptor jobDescriptor=new JobDescriptor("",UUID.randomUUID(),UUID.randomUUID(),data,stat,null);
+  JobExecution bje=new JobExecutionImpl(jobDescriptor);
+  bje.start(1);
+  try {
+    bje.start(1);
+    fail("Should have failed on double start() call");
+  }
+ catch (  IllegalStateException ise) {
+  }
+  bje.completed();
+  try {
+    bje.completed();
+    fail("Should have failed on double complete call");
+  }
+ catch (  IllegalStateException ise) {
+  }
+}

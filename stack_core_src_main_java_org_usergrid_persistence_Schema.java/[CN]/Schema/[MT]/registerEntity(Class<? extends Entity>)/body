@@ -1,0 +1,61 @@
+{
+  logger.info("Registering {}",entityClass);
+  EntityInfo e=registeredEntityClasses.get(entityClass);
+  if (e != null) {
+    return;
+  }
+  Map<String,PropertyDescriptor> propertyDescriptors=entityClassPropertyToDescriptor.get(entityClass);
+  if (propertyDescriptors == null) {
+    EntityInfo entity=new EntityInfo();
+    String type=getEntityType(entityClass);
+    propertyDescriptors=new LinkedHashMap<String,PropertyDescriptor>();
+    Map<String,PropertyInfo> properties=new TreeMap<String,PropertyInfo>(String.CASE_INSENSITIVE_ORDER);
+    Map<String,CollectionInfo> collections=new TreeMap<String,CollectionInfo>(String.CASE_INSENSITIVE_ORDER);
+    Map<String,DictionaryInfo> sets=new TreeMap<String,DictionaryInfo>(String.CASE_INSENSITIVE_ORDER);
+    PropertyDescriptor[] descriptors=PropertyUtils.getPropertyDescriptors(entityClass);
+    for (    PropertyDescriptor descriptor : descriptors) {
+      String name=descriptor.getName();
+      EntityProperty propertyAnnotation=getAnnotation(entityClass,descriptor,EntityProperty.class);
+      if (propertyAnnotation != null) {
+        if (isNotBlank(propertyAnnotation.name())) {
+          name=propertyAnnotation.name();
+        }
+        propertyDescriptors.put(name,descriptor);
+        PropertyInfo propertyInfo=new PropertyInfo(propertyAnnotation);
+        propertyInfo.setName(name);
+        propertyInfo.setType(descriptor.getPropertyType());
+        properties.put(name,propertyInfo);
+      }
+      EntityCollection collectionAnnotation=getAnnotation(entityClass,descriptor,EntityCollection.class);
+      if (collectionAnnotation != null) {
+        CollectionInfo collectionInfo=new CollectionInfo(collectionAnnotation);
+        collectionInfo.setName(name);
+        collectionInfo.setContainer(entity);
+        collections.put(name,collectionInfo);
+      }
+      EntityDictionary setAnnotation=getAnnotation(entityClass,descriptor,EntityDictionary.class);
+      if (setAnnotation != null) {
+        DictionaryInfo setInfo=new DictionaryInfo(setAnnotation);
+        setInfo.setName(name);
+        sets.put(name,setInfo);
+      }
+    }
+    if (!DynamicEntity.class.isAssignableFrom(entityClass)) {
+      entity.setProperties(properties);
+      entity.setCollections(collections);
+      entity.setDictionaries(sets);
+      entity.mapCollectors(this,type);
+      entityMap.put(type,entity);
+      allProperties.putAll(entity.getProperties());
+      Set<String> propertyNames=entity.getIndexedProperties();
+      for (      String propertyName : propertyNames) {
+        PropertyInfo property=entity.getProperty(propertyName);
+        if ((property != null) && !allIndexedProperties.containsKey(propertyName)) {
+          allIndexedProperties.put(propertyName,property);
+        }
+      }
+    }
+    entityClassPropertyToDescriptor.put(entityClass,propertyDescriptors);
+    registeredEntityClasses.put(entityClass,entity);
+  }
+}

@@ -1,0 +1,21 @@
+{
+  if ("me".equals(username)) {
+    UserInfo user=SubjectUtils.getAdminUser();
+    if ((user != null) && (user.getUuid() != null)) {
+      return removeUserFromOrganizationByUserId(ui,user.getUuid().toString(),callback);
+    }
+    throw mappableSecurityException("unauthorized","No admin identity for access credentials provided");
+  }
+  ApiResponse response=createApiResponse();
+  response.setAction("remove user from organization");
+  UserInfo user=management.getAdminUserByUsername(username);
+  if (user == null) {
+    return null;
+  }
+  management.removeAdminUserFromOrganization(user.getUuid(),organization.getUuid());
+  Map<String,Object> result=new LinkedHashMap<String,Object>();
+  result.put("user",user);
+  response.setData(result);
+  response.setSuccess();
+  return new JSONWithPadding(response,callback);
+}

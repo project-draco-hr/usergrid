@@ -1,0 +1,28 @@
+{
+  Map<String,Object> properties=new LinkedHashMap<String,Object>();
+  Map<String,PropertyDescriptor> propertyDescriptors=entityClassPropertyToDescriptor.get(entity.getClass());
+  if (propertyDescriptors == null) {
+    registerEntity(entity.getClass());
+    propertyDescriptors=entityClassPropertyToDescriptor.get(entity.getClass());
+  }
+  for (  Entry<String,PropertyDescriptor> propertyEntry : propertyDescriptors.entrySet()) {
+    String property=propertyEntry.getKey();
+    PropertyDescriptor descriptor=propertyEntry.getValue();
+    if (descriptor != null) {
+      try {
+        Object value=descriptor.getReadMethod().invoke(entity);
+        if (value != null) {
+          properties.put(property,value);
+        }
+      }
+ catch (      Exception e) {
+        logger.error("Unable to get entity property " + property,e);
+      }
+    }
+  }
+  Map<String,Object> dynamicProperties=entity.getDynamicProperties();
+  if (dynamicProperties != null) {
+    properties.putAll(dynamicProperties);
+  }
+  return properties;
+}

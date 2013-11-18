@@ -1,0 +1,41 @@
+{
+  PrincipalCredentialsToken pcToken=(PrincipalCredentialsToken)token;
+  if (pcToken.getCredentials() == null) {
+    throw new CredentialsException("Missing credentials");
+  }
+  boolean authenticated=false;
+  PrincipalIdentifier principal=pcToken.getPrincipal();
+  PrincipalCredentials credentials=pcToken.getCredentials();
+  if (credentials instanceof ClientCredentials) {
+    authenticated=true;
+  }
+ else   if ((principal instanceof AdminUserPrincipal) && (credentials instanceof AdminUserPassword)) {
+    authenticated=true;
+  }
+ else   if ((principal instanceof AdminUserPrincipal) && (credentials instanceof AdminUserAccessToken)) {
+    authenticated=true;
+  }
+ else   if ((principal instanceof ApplicationUserPrincipal) && (credentials instanceof ApplicationUserAccessToken)) {
+    authenticated=true;
+  }
+ else   if ((principal instanceof ApplicationPrincipal) && (credentials instanceof ApplicationAccessToken)) {
+    authenticated=true;
+  }
+ else   if ((principal instanceof OrganizationPrincipal) && (credentials instanceof OrganizationAccessToken)) {
+    authenticated=true;
+  }
+  if (principal != null) {
+    if (!principal.isActivated()) {
+      throw new AuthenticationException("Unactivated identity");
+    }
+    if (principal.isDisabled()) {
+      throw new AuthenticationException("Disabled identity");
+    }
+  }
+  if (!authenticated) {
+    throw new AuthenticationException("Unable to authenticate");
+  }
+  logger.debug("Authenticated: {}",principal);
+  SimpleAuthenticationInfo info=new SimpleAuthenticationInfo(pcToken.getPrincipal(),pcToken.getCredentials(),getName());
+  return info;
+}

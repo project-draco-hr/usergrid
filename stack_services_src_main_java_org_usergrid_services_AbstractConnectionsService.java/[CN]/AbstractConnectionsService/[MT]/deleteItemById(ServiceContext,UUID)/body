@@ -1,0 +1,13 @@
+{
+  checkPermissionsForEntity(context,id);
+  if (context.moreParameters()) {
+    return getItemById(context,id);
+  }
+  Entity entity=em.get(id);
+  if (entity == null) {
+    throw new ServiceResourceNotFoundException(context);
+  }
+  entity=importEntity(context,entity);
+  deleteConnection(em.connectionRef(context.getOwner(),context.getCollectionName(),entity));
+  return new ServiceResults(null,context,Type.CONNECTION,Results.fromEntity(entity),null,null);
+}

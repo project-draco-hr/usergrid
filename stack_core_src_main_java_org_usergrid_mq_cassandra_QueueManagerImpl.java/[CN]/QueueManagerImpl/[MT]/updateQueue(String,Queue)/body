@@ -1,0 +1,17 @@
+{
+  queue.setPath(queuePath);
+  UUID timestampUuid=newTimeUUID();
+  long timestamp=getTimestampInMicros(timestampUuid);
+  Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
+  addQueueToMutator(batch,queue,timestamp);
+  try {
+    batchUpdateQueuePropertiesIndexes(batch,queuePath,queue.getUuid(),queue.getProperties(),timestampUuid);
+  }
+ catch (  Exception e) {
+    logger.error("Unable to update queue",e);
+  }
+  batch.addInsertion(bytebuffer(queue.getUuid()),QUEUE_PROPERTIES.getColumnFamily(),createColumn(QUEUE_CREATED,timestamp / 1000,Long.MAX_VALUE - timestamp,se,le));
+  batch.addInsertion(bytebuffer(queue.getUuid()),QUEUE_PROPERTIES.getColumnFamily(),createColumn(QUEUE_MODIFIED,timestamp / 1000,timestamp,se,le));
+  batchExecute(batch,RETRY_COUNT);
+  return queue;
+}

@@ -1,0 +1,33 @@
+{
+  Lock usernameLock=getUniqueUpdateLock(lockManager,MANAGEMENT_APPLICATION_ID,username,"users","username");
+  Lock emailLock=getUniqueUpdateLock(lockManager,MANAGEMENT_APPLICATION_ID,email,"users","email");
+  try {
+    usernameLock.lock();
+    emailLock.lock();
+    EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+    SimpleEntityRef entityRef=new SimpleEntityRef(User.ENTITY_TYPE,user.getUuid());
+    if (!isBlank(username)) {
+      em.setProperty(entityRef,"username",username);
+    }
+    if (!isBlank(name)) {
+      em.setProperty(entityRef,"name",name);
+    }
+    if (!isBlank(email)) {
+      em.setProperty(entityRef,"email",email);
+    }
+    if (json != null) {
+      json.remove("password");
+      json.remove("oldpassword");
+      json.remove("newpassword");
+      Map<String,Object> userProperties=user.getProperties();
+      userProperties.putAll(json);
+      em.updateProperties(entityRef,userProperties);
+    }
+    user=getAdminUserByUuid(user.getUuid());
+  }
+  finally {
+    emailLock.unlock();
+    usernameLock.unlock();
+  }
+  return user;
+}

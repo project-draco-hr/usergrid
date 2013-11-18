@@ -1,0 +1,16 @@
+{
+  Queue queue=null;
+  Map<String,Object> properties=new HashMap<String,Object>();
+  for (  HColumn<String,ByteBuffer> column : columns) {
+    if (QUEUE_PROPERTIES.containsKey(column.getName())) {
+      properties.put(column.getName(),object(QUEUE_PROPERTIES.get(column.getName()),column.getValue()));
+    }
+ else {
+      properties.put(column.getName(),JsonUtils.fromByteBuffer(column.getValue()));
+    }
+  }
+  if (!properties.isEmpty()) {
+    queue=new Queue(properties);
+  }
+  return queue;
+}

@@ -1,0 +1,31 @@
+{
+  if (servicePattern == null) {
+    return null;
+  }
+  servicePattern=normalizeServicePattern(servicePattern);
+  ServiceInfo info=serviceInfoCache.get(servicePattern);
+  if (info != null) {
+    return info;
+  }
+  String[] collections=split(servicePattern,"/*/");
+  if (collections.length == 0) {
+    return null;
+  }
+  String collectionName=stringOrSubstringBeforeFirst(collections[collections.length - 1],':');
+  if (collectionName == null) {
+    throw new NullPointerException("Collection name is null");
+  }
+  String ownerType="entity";
+  String rootType=determineType(collections,0,0);
+  if (collections.length == 1) {
+    ownerType="application";
+  }
+  if (collections.length > 1) {
+    ownerType=determineType(collections,0,collections.length - 2);
+  }
+  String itemType=determineType(collections,0,collections.length - 1);
+  List<String> patterns=getPatterns(servicePattern,collections);
+  info=new ServiceInfo(servicePattern,collections.length == 1,rootType,ownerType,collectionName,itemType,patterns,Arrays.asList(collections));
+  serviceInfoCache.put(servicePattern,info);
+  return info;
+}

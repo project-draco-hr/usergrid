@@ -1,0 +1,14 @@
+{
+  if (buf.readableBytes() < 4) {
+    return null;
+  }
+  int length=buf.getInt(buf.readerIndex());
+  if (length < 0) {
+    return null;
+  }
+  if (buf.readableBytes() < length) {
+    return null;
+  }
+  ChannelBuffer frame=buf.readSlice(length);
+  return frame;
+}

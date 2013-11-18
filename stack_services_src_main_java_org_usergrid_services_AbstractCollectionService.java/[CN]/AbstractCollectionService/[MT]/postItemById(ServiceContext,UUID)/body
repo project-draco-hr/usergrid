@@ -1,0 +1,14 @@
+{
+  if (context.moreParameters()) {
+    return getItemById(context,id,true);
+  }
+  checkPermissionsForEntity(context,id);
+  Entity entity=em.get(id);
+  if (entity == null) {
+    throw new ServiceResourceNotFoundException(context);
+  }
+  validateEntityType(entity,id);
+  entity=importEntity(context,entity);
+  em.addToCollection(context.getOwner(),context.getCollectionName(),entity);
+  return new ServiceResults(null,context,Type.COLLECTION,Results.fromEntity(entity),null,null);
+}

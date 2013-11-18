@@ -1,0 +1,22 @@
+{
+  JsonGenerator jg=getJsonGenerator(createOutputFile("metrics",metricSort.name().toLowerCase()));
+  jg.writeStartObject();
+  jg.writeStringField("report",metricSort.name());
+  jg.writeStringField("date",new Date().toString());
+  jg.writeArrayFieldStart("orgs");
+  for (  OrganizationInfo org : workingOrgs) {
+    jg.writeStartObject();
+    jg.writeStringField("org_id",org.getUuid().toString());
+    jg.writeStringField("org_name",org.getName());
+    jg.writeArrayFieldStart("admins");
+    for (    UserInfo userInfo : managementService.getAdminUsersForOrganization(org.getUuid())) {
+      jg.writeString(userInfo.getEmail());
+    }
+    jg.writeEndArray();
+    writeAppLines(jg,org.getUuid());
+    jg.writeEndObject();
+  }
+  jg.writeEndArray();
+  jg.writeEndObject();
+  jg.close();
+}

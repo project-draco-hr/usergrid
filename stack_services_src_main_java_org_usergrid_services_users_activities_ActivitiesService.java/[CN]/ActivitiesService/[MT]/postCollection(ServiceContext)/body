@@ -1,0 +1,17 @@
+{
+  ServicePayload payload=context.getPayload();
+  Entity user=em.get(context.getOwner());
+  Object actor=payload.getProperty(Activity.PROPERTY_ACTOR);
+  if (actor instanceof Map) {
+    handleDynamicPayload((Map<String,String>)actor,user,payload);
+  }
+ else   if (actor instanceof ActivityObject) {
+    handleDynamicPayload((ActivityObject)actor,user,payload);
+  }
+ else   if (actor == null) {
+    handleDynamicPayload((ActivityObject)actor,user,payload);
+  }
+  ServiceResults results=super.postCollection(context);
+  distribute(context.getOwner(),results.getEntity());
+  return results;
+}

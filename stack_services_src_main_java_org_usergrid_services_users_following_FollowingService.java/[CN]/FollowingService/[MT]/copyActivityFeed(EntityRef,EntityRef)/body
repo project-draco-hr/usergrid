@@ -1,0 +1,15 @@
+{
+  logger.info("Copying activities to feed...");
+  TaskExecutor taskExecutor=(TaskExecutor)getApplicationContext().getBean("taskExecutor");
+  taskExecutor.execute(new Runnable(){
+    @Override public void run(){
+      try {
+        em.copyRelationships(connectedEntityRef,"activities",connectingEntity,"feed");
+      }
+ catch (      Exception e) {
+        logger.error("Error while copying activities into feed",e);
+      }
+    }
+  }
+);
+}

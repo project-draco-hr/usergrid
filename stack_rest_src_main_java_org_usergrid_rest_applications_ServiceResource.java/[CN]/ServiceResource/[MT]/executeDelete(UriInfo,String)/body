@@ -1,0 +1,14 @@
+{
+  LOG.debug("ServiceResource.executeDelete");
+  ApiResponse response=createApiResponse();
+  response.setAction("delete");
+  response.setApplication(services.getApplication());
+  response.setParams(ui.getQueryParameters());
+  ServiceResults sr=executeServiceRequest(ui,response,ServiceAction.DELETE,null);
+  for (  Entity entity : sr.getEntities()) {
+    if (entity.getProperty(AssetUtils.FILE_METADATA) != null) {
+      binaryStore.delete(services.getApplicationId(),entity);
+    }
+  }
+  return new JSONWithPadding(response,callback);
+}

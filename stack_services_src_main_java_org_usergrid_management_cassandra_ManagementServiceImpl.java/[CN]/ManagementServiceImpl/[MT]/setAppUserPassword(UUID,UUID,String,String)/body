@@ -1,0 +1,13 @@
+{
+  if ((userId == null)) {
+    throw new IllegalArgumentException("userId is required");
+  }
+  if ((oldPassword == null) || (newPassword == null)) {
+    throw new IllegalArgumentException("oldpassword and newpassword are both required");
+  }
+  User user=emf.getEntityManager(applicationId).get(userId,User.class);
+  if (!verify(applicationId,user.getUuid(),oldPassword)) {
+    throw new IncorrectPasswordException("Old password does not match");
+  }
+  setAppUserPassword(applicationId,userId,newPassword);
+}

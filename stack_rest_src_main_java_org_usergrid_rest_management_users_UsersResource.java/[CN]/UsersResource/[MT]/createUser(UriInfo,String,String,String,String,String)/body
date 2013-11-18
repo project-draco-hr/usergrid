@@ -1,0 +1,16 @@
+{
+  logger.info("Create user: " + username);
+  ApiResponse response=createApiResponse();
+  response.setAction("create user");
+  UserInfo user=management.createAdminUser(username,name,email,password,false,false);
+  Map<String,Object> result=new LinkedHashMap<String,Object>();
+  if (user != null) {
+    result.put("user",user);
+    response.setData(result);
+    response.setSuccess();
+  }
+ else {
+    throw mappableSecurityException(AuthErrorInfo.BAD_CREDENTIALS_SYNTAX_ERROR);
+  }
+  return new JSONWithPadding(response,callback);
+}

@@ -1,0 +1,13 @@
+{
+  if (!isRootService()) {
+    return sm.updateEntity(request,ref,payload);
+  }
+  if (ref instanceof Entity) {
+    Entity entity=(Entity)ref;
+    em.updateProperties(entity,payload.getProperties());
+    entity.addProperties(payload.getProperties());
+    return entity;
+  }
+  logger.error("Attempted update of entity reference rather than full entity, currently unsupport - MUSTFIX");
+  throw new NotImplementedException();
+}

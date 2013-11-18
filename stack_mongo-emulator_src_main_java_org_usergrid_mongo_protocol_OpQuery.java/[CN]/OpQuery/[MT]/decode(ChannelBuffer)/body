@@ -1,0 +1,12 @@
+{
+  super.decode(buffer);
+  flags=buffer.readInt();
+  fullCollectionName=readCString(buffer);
+  numberToSkip=buffer.readInt();
+  numberToReturn=buffer.readInt();
+  query=BSONUtils.decoder().readObject(new ChannelBufferInputStream(buffer));
+  if (buffer.readable()) {
+    returnFieldSelector=BSONUtils.decoder().readObject(new ChannelBufferInputStream(buffer));
+    logger.info("found fieldSeclector: {}",returnFieldSelector);
+  }
+}

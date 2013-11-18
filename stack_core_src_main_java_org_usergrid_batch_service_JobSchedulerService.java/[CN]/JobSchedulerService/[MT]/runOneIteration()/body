@@ -1,0 +1,28 @@
+{
+  try {
+    LOG.info("running iteration...");
+    List<JobDescriptor> activeJobs;
+    while (true) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("About to acquire semaphore.  Capacity is {}",capacitySemaphore.availablePermits());
+      }
+      capacitySemaphore.acquire();
+      capacitySemaphore.release();
+      int capacity=capacitySemaphore.availablePermits();
+      LOG.debug("Capacity is {}",capacity);
+      activeJobs=jobAccessor.getJobs(capacity);
+      if (activeJobs.size() == 0) {
+        LOG.debug("No jobs returned. Exiting run loop");
+        return;
+      }
+      for (      JobDescriptor jd : activeJobs) {
+        LOG.info("Submitting work for {}",jd);
+        submitWork(jd);
+        LOG.info("Work submitted for {}",jd);
+      }
+    }
+  }
+ catch (  Throwable t) {
+    LOG.error("Something really bad happened!  Scheduler run failed",t);
+  }
+}

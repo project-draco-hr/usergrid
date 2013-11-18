@@ -1,0 +1,46 @@
+{
+  getEntitiesMap();
+  results.getEntitiesMap();
+  if ((entitiesMap != null) && (results.entitiesMap != null)) {
+    Map<UUID,Entity> newMap=new LinkedHashMap<UUID,Entity>();
+    for (    Map.Entry<UUID,Entity> e : entitiesMap.entrySet()) {
+      if (results.entitiesMap.containsKey(e.getKey())) {
+        newMap.put(e.getKey(),e.getValue());
+      }
+    }
+    entitiesMap=newMap;
+    entities=new ArrayList<Entity>(entitiesMap.values());
+    level=Level.ALL_PROPERTIES;
+    return;
+  }
+  getRefsMap();
+  results.getRefsMap();
+  if ((refsMap != null) && (results.refsMap != null)) {
+    Map<UUID,EntityRef> newMap=new LinkedHashMap<UUID,EntityRef>();
+    for (    Map.Entry<UUID,EntityRef> e : refsMap.entrySet()) {
+      if (results.refsMap.containsKey(e.getKey())) {
+        newMap.put(e.getKey(),e.getValue());
+      }
+    }
+    refsMap=newMap;
+    refs=new ArrayList<EntityRef>(refsMap.values());
+    level=Level.REFS;
+    ids=null;
+    return;
+  }
+  getIdSet();
+  results.getIdSet();
+  if ((idSet != null) && (results.idSet != null)) {
+    Set<UUID> newSet=new LinkedHashSet<UUID>();
+    for (    UUID uuid : idSet) {
+      if (results.idSet.contains(uuid)) {
+        newSet.add(uuid);
+      }
+    }
+    idSet=newSet;
+    ids=new ArrayList<UUID>(idSet);
+    level=Level.IDS;
+    return;
+  }
+  init();
+}

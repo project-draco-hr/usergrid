@@ -1,0 +1,22 @@
+{
+  Entity user=findUserEntity(MANAGEMENT_APPLICATION_ID,name);
+  if (user == null) {
+    return null;
+  }
+  String mongo_pwd=readUserMongoPassword(MANAGEMENT_APPLICATION_ID,user.getUuid()).getSecret();
+  if (mongo_pwd == null) {
+    throw new IncorrectPasswordException("Your mongo password has not be set");
+  }
+  String expected_key=DigestUtils.md5Hex(nonce + user.getProperty("username") + mongo_pwd);
+  if (!expected_key.equalsIgnoreCase(key)) {
+    throw new IncorrectPasswordException();
+  }
+  UserInfo userInfo=new UserInfo(MANAGEMENT_APPLICATION_ID,user.getProperties());
+  if (!userInfo.isActivated()) {
+    throw new UnactivatedAdminUserException();
+  }
+  if (userInfo.isDisabled()) {
+    throw new DisabledAdminUserException();
+  }
+  return userInfo;
+}

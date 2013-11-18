@@ -1,0 +1,19 @@
+{
+  EncryptionServiceImpl impl=new EncryptionServiceImpl();
+  Md5HashCommand md5=new Md5HashCommand();
+  Sha1HashCommand sha1=new Sha1HashCommand();
+  List<EncryptionCommand> commands=new ArrayList<EncryptionCommand>(2);
+  commands.add(md5);
+  commands.add(sha1);
+  impl.setCommands(commands);
+  impl.setDefaultCommandName(sha1.getName());
+  impl.init();
+  String password="secret";
+  CredentialsInfo creds=new CredentialsInfo();
+  creds.setHashType("md5");
+  creds.setEncrypted(true);
+  creds.setCipher("sha-1");
+  creds.setSecret("8rpwQiXFx-5nbzIB6iVr9XeeaHc");
+  boolean result=impl.verify(password,creds,null,null);
+  assertTrue("Legacy password verified",result);
+}

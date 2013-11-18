@@ -1,0 +1,26 @@
+{
+  type=getAssociatedEntityType(type);
+  Class<? extends Entity> cls=typeToEntityClass.get(type);
+  if (cls != null) {
+    return cls;
+  }
+  for (  String entityPackage : entitiesPackage) {
+    String entityPackagePrefix=entityPackage + ".";
+    cls=entityClassForName(entityPackagePrefix + InflectionUtils.camelCase(type,true));
+    if (cls == null) {
+      cls=entityClassForName(entityPackagePrefix + type);
+    }
+    if (cls == null) {
+      cls=entityClassForName(type);
+    }
+    if (cls != null) {
+      break;
+    }
+  }
+  if (cls == null) {
+    cls=DynamicEntity.class;
+  }
+  typeToEntityClass.put(type,cls);
+  entityClassToType.put(cls,type);
+  return cls;
+}

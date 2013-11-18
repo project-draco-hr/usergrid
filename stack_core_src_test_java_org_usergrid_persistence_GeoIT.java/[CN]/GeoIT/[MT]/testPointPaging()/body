@@ -1,0 +1,37 @@
+{
+  UUID applicationId=setup.createApplication("testOrganization","testPointPaging");
+  assertNotNull(applicationId);
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  assertNotNull(em);
+  int numEntities=500;
+  float minLattitude=-90;
+  float maxLattitude=90;
+  float minLongitude=-180;
+  float maxLongitude=180;
+  float lattitudeDelta=(maxLattitude - minLattitude) / numEntities;
+  float longitudeDelta=(maxLongitude - minLongitude) / numEntities;
+  for (int i=0; i < numEntities; i++) {
+    float lattitude=minLattitude + lattitudeDelta * i;
+    float longitude=minLongitude + longitudeDelta * i;
+    Map<String,Float> location=MapUtils.hashMap("latitude",lattitude).map("longitude",longitude);
+    Map<String,Object> data=new HashMap<String,Object>(2);
+    data.put("name",String.valueOf(i));
+    data.put("location",location);
+    em.create("store",data);
+  }
+  Query query=new Query();
+  query.addFilter("location within 50000000 of -90, -180");
+  query.setLimit(100);
+  int count=0;
+  Results results;
+  do {
+    results=em.searchCollection(em.getApplicationRef(),"stores",query);
+    for (    Entity entity : results.getEntities()) {
+      assertEquals(String.valueOf(count),entity.getName());
+      count++;
+    }
+    query.setCursor(results.getCursor());
+  }
+ while (results.getCursor() != null);
+  assertEquals(numEntities,count);
+}

@@ -1,0 +1,16 @@
+{
+  Map<ByteBuffer,ByteBuffer> columns=serializeMessage(message);
+  if (columns == null) {
+    return m;
+  }
+  for (  Map.Entry<ByteBuffer,ByteBuffer> column_entry : columns.entrySet()) {
+    if ((column_entry.getValue() != null) && column_entry.getValue().hasRemaining()) {
+      HColumn<ByteBuffer,ByteBuffer> column=createColumn(column_entry.getKey(),column_entry.getValue(),timestamp,be,be);
+      m.addInsertion(bytebuffer(message.getUuid()),QueuesCF.MESSAGE_PROPERTIES.toString(),column);
+    }
+ else {
+      m.addDeletion(bytebuffer(message.getUuid()),QueuesCF.MESSAGE_PROPERTIES.toString(),column_entry.getKey(),be,timestamp);
+    }
+  }
+  return m;
+}

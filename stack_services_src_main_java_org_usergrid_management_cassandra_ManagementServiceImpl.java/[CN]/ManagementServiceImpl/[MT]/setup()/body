@@ -1,0 +1,28 @@
+{
+  if (parseBoolean(properties.getProperty(PROPERTIES_SETUP_TEST_ACCOUNT))) {
+    String test_app_name=properties.getProperty(PROPERTIES_TEST_ACCOUNT_APP);
+    String test_organization_name=properties.getProperty(PROPERTIES_TEST_ACCOUNT_ORGANIZATION);
+    String test_admin_username=properties.getProperty(PROPERTIES_TEST_ACCOUNT_ADMIN_USER_USERNAME);
+    String test_admin_name=properties.getProperty(PROPERTIES_TEST_ACCOUNT_ADMIN_USER_NAME);
+    String test_admin_email=properties.getProperty(PROPERTIES_TEST_ACCOUNT_ADMIN_USER_EMAIL);
+    String test_admin_password=properties.getProperty(PROPERTIES_TEST_ACCOUNT_ADMIN_USER_PASSWORD);
+    if (anyNull(test_app_name,test_organization_name,test_admin_username,test_admin_name,test_admin_email,test_admin_password)) {
+      logger.warn("Missing values for test app, check properties.  Skipping test app setup...");
+      return;
+    }
+    OrganizationInfo organization=getOrganizationByName(test_organization_name);
+    if (organization == null) {
+      OrganizationOwnerInfo created=createOwnerAndOrganization(test_organization_name,test_admin_username,test_admin_name,test_admin_email,test_admin_password,true,false);
+      organization=created.getOrganization();
+    }
+    if (!getApplicationsForOrganization(organization.getUuid()).containsValue(test_app_name)) {
+      createApplication(organization.getUuid(),test_app_name);
+    }
+  }
+ else {
+    logger.warn("Test app creation disabled");
+  }
+  if (superuserEnabled()) {
+    provisionSuperuser();
+  }
+}

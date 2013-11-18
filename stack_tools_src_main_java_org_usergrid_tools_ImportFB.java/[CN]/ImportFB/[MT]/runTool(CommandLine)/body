@@ -1,0 +1,33 @@
+{
+  String input=line.getOptionValue("i");
+  String output=line.getOptionValue("o");
+  logger.info("Importing fbusers.json");
+  Object json=JsonUtils.loadFromFilesystem(input);
+  Map<String,Object> map=(Map<String,Object>)json;
+  List<Map<String,Object>> fbusers=(List<Map<String,Object>>)map.get("data");
+  List<Map<String,Object>> users=new ArrayList<Map<String,Object>>();
+  for (  Map<String,Object> fbuser : fbusers) {
+    Map<String,Object> user=new LinkedHashMap<String,Object>();
+    String name=(String)fbuser.get("name");
+    String username=(String)fbuser.get("username");
+    String picture=(String)fbuser.get("picture");
+    user.put("name",name);
+    if (username == null) {
+      username=name.replace(' ','.');
+    }
+    username=username.toLowerCase();
+    user.put("username",username);
+    user.put("picture",picture);
+    user.put("facebook",fbuser);
+    users.add(user);
+  }
+  logger.info("Imported " + users.size() + " users");
+  try {
+    PrintWriter out=new PrintWriter(new File(output),"UTF-8");
+    out.print(JsonUtils.mapToFormattedJsonString(users));
+    out.close();
+  }
+ catch (  IOException e) {
+    e.printStackTrace();
+  }
+}

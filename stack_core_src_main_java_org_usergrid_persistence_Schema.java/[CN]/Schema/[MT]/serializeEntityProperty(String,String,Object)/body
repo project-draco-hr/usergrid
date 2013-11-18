@@ -1,0 +1,17 @@
+{
+  ByteBuffer bytes=null;
+  if (PROPERTY_UUID.equals(propertyName)) {
+    bytes=bytebuffer(uuid(propertyValue));
+  }
+ else   if (PROPERTY_TYPE.equals(propertyName)) {
+    bytes=bytebuffer(string(propertyValue));
+  }
+ else {
+    bytes=Schema.serializePropertyValueToJsonBinary(toJsonNode(propertyValue));
+    if (Schema.getDefaultSchema().isPropertyEncrypted(entityType,propertyName)) {
+      bytes.rewind();
+      bytes=encrypt(bytes);
+    }
+  }
+  return bytes;
+}

@@ -1,0 +1,12 @@
+{
+  if (organizationId == null) {
+    return null;
+  }
+  List<UserInfo> users=new ArrayList<UserInfo>();
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  Results results=em.getCollection(new SimpleEntityRef(Group.ENTITY_TYPE,organizationId),"users",null,10000,Level.ALL_PROPERTIES,false);
+  for (  Entity entity : results.getEntities()) {
+    users.add(getUserInfo(MANAGEMENT_APPLICATION_ID,entity));
+  }
+  return users;
+}
