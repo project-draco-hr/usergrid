@@ -1,0 +1,18 @@
+{
+  ApiResponse response=null;
+  try {
+    response=httpRequest(method,ApiResponse.class,params,data,segments);
+    log.info("Client.apiRequest(): Response: " + response);
+  }
+ catch (  HttpClientErrorException e) {
+    log.error("Client.apiRequest(): HTTP error: " + e.getLocalizedMessage());
+    response=parse(e.getResponseBodyAsString(),ApiResponse.class);
+    if ((response != null) && !isEmpty(response.getError())) {
+      log.error("Client.apiRequest(): Response error: " + response.getError());
+      if (!isEmpty(response.getException())) {
+        log.error("Client.apiRequest(): Response exception: " + response.getException());
+      }
+    }
+  }
+  return response;
+}
