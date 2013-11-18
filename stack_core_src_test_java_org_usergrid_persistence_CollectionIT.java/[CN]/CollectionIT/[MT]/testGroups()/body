@@ -1,0 +1,29 @@
+{
+  UUID applicationId=setup.createApplication("testOrganization","testGroups");
+  assertNotNull(applicationId);
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  assertNotNull(em);
+  Map<String,Object> properties=new LinkedHashMap<String,Object>();
+  properties.put("username","edanuff");
+  properties.put("email","ed@anuff.com");
+  Entity user1=em.create("user",properties);
+  assertNotNull(user1);
+  properties=new LinkedHashMap<String,Object>();
+  properties.put("username","djacobs");
+  properties.put("email","djacobs@gmail.com");
+  Entity user2=em.create("user",properties);
+  assertNotNull(user2);
+  properties=new LinkedHashMap<String,Object>();
+  properties.put("path","group1");
+  Entity group=em.create("group",properties);
+  assertNotNull(group);
+  em.addToCollection(group,"users",user1);
+  em.addToCollection(group,"users",user2);
+  properties=new LinkedHashMap<String,Object>();
+  properties.put("nickname","ed");
+  em.updateProperties(new SimpleCollectionRef(group,"users",user1),properties);
+  Results r=em.searchCollection(group,"users",new Query().addEqualityFilter("member.nickname","ed").withResultsLevel(Results.Level.LINKED_PROPERTIES));
+  LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+  assertEquals(1,r.size());
+  em.removeFromCollection(user1,"groups",group);
+}

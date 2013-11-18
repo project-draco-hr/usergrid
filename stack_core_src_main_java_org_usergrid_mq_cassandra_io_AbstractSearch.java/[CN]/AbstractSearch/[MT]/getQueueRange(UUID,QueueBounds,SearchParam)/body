@@ -1,0 +1,60 @@
+{
+  if (bounds == null) {
+    logger.error("Necessary queue bounds not found");
+    throw new QueueException("Neccessary queue bounds not found");
+  }
+  UUID finish_uuid=params.reversed ? bounds.getOldest() : bounds.getNewest();
+  List<UUID> results=new ArrayList<UUID>(params.limit);
+  UUID start=params.startId;
+  if (start == null) {
+    start=params.reversed ? bounds.getNewest() : bounds.getOldest();
+  }
+  if (start == null) {
+    logger.error("No first message in queue");
+    return results;
+  }
+  if (finish_uuid == null) {
+    logger.error("No last message in queue");
+    return results;
+  }
+  long start_ts_shard=roundLong(getTimestampInMillis(start),QUEUE_SHARD_INTERVAL);
+  long finish_ts_shard=roundLong(getTimestampInMillis(finish_uuid),QUEUE_SHARD_INTERVAL);
+  long current_ts_shard=start_ts_shard;
+  if (params.reversed) {
+    current_ts_shard=finish_ts_shard;
+  }
+  while ((current_ts_shard >= start_ts_shard) && (current_ts_shard <= finish_ts_shard)) {
+    UUID slice_start=MIN_TIME_UUID;
+    UUID slice_end=MAX_TIME_UUID;
+    if (current_ts_shard == start_ts_shard) {
+      slice_start=start;
+    }
+    if (current_ts_shard == finish_ts_shard) {
+      slice_end=finish_uuid;
+    }
+    SliceQuery<ByteBuffer,UUID,ByteBuffer> q=createSliceQuery(ko,be,ue,be);
+    q.setColumnFamily(QUEUE_INBOX.getColumnFamily());
+    q.setKey(getQueueShardRowKey(queueId,current_ts_shard));
+    q.setRange(slice_start,slice_end,params.reversed,params.limit + 1);
+    List<HColumn<UUID,ByteBuffer>> cassResults=q.execute().get().getColumns();
+    for (int i=0; i < cassResults.size(); i++) {
+      HColumn<UUID,ByteBuffer> column=cassResults.get(i);
+      if (i == 0 && params.skipFirst && params.startId.equals(column.getName())) {
+        continue;
+      }
+      UUID id=column.getName();
+      results.add(id);
+      logger.debug("Added id '{}' to result set for queue id '{}'",id,queueId);
+      if (results.size() >= params.limit) {
+        return results;
+      }
+    }
+    if (params.reversed) {
+      current_ts_shard-=QUEUE_SHARD_INTERVAL;
+    }
+ else {
+      current_ts_shard+=QUEUE_SHARD_INTERVAL;
+    }
+  }
+  return results;
+}

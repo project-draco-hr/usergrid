@@ -1,0 +1,35 @@
+{
+  if (count == 0) {
+    return this;
+  }
+  int size=size();
+  if (size <= count) {
+    return this;
+  }
+  List<UUID> ids=getIds();
+  UUID nextResult=null;
+  String cursor=null;
+  if (ids.size() > count) {
+    nextResult=ids.get(count);
+    ids=ids.subList(0,count);
+    if (metadata != null) {
+      cursor=StringUtils.toString(MapUtils.getMapMap(metadata,nextResult,"cursor"));
+    }
+    if (cursor == null) {
+      cursor=encodeBase64URLSafeString(bytes(nextResult));
+    }
+  }
+  Results r=new Results(this);
+  if (r.entities != null) {
+    r.entities=r.entities.subList(0,count);
+  }
+  if (r.refs != null) {
+    r.refs=r.refs.subList(0,count);
+  }
+  if (r.ids != null) {
+    r.ids=r.ids.subList(0,count);
+  }
+  r.setNextResult(nextResult);
+  r.setCursor(cursor);
+  return r;
+}

@@ -1,0 +1,25 @@
+{
+  PropertyDescriptor descriptor=getDescriptorForEntityProperty(entity.getClass(),property);
+  if (descriptor != null) {
+    Class<?> cls=descriptor.getPropertyType();
+    if (cls != null) {
+      if ((value == null) || (cls.isAssignableFrom(value.getClass()))) {
+        try {
+          descriptor.getWriteMethod().invoke(entity,value);
+          return;
+        }
+ catch (        Exception e) {
+          logger.error("Unable to set entity property " + property,e);
+        }
+      }
+      try {
+        descriptor.getWriteMethod().invoke(entity,mapper.convertValue(value,cls));
+        return;
+      }
+ catch (      Exception e) {
+        logger.error("Unable to set entity property " + property,e);
+      }
+    }
+  }
+  entity.setDynamicProperty(property,value);
+}

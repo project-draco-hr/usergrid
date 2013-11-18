@@ -1,0 +1,10 @@
+{
+  name=name.toLowerCase();
+  HColumn<String,ByteBuffer> column=cass.getColumn(cass.getSystemKeyspace(),APPLICATIONS_CF,name,PROPERTY_UUID);
+  if (column == null) {
+    return null;
+  }
+  UUID applicationId=uuid(column.getValue());
+  EntityManager em=getEntityManager(applicationId);
+  return ((EntityManagerImpl)em).getEntity(applicationId,Application.class);
+}

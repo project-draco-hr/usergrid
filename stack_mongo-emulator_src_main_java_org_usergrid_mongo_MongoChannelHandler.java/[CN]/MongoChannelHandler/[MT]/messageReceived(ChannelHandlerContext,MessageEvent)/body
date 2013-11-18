@@ -1,0 +1,29 @@
+{
+  ThreadState threadState=null;
+  if (subject != null) {
+    threadState=new SubjectThreadState(subject);
+    threadState.bind();
+  }
+  try {
+    Message message=null;
+    if (e.getMessage() instanceof Message) {
+      message=(Message)e.getMessage();
+    }
+    if (message != null) {
+      logger.info(">>> {}\n",message);
+      OpReply reply=handleMessage(ctx,e,message);
+      logger.info("<<< {}\n",reply);
+      if (reply != null) {
+        e.getChannel().write(reply);
+      }
+    }
+  }
+ catch (  Exception ex) {
+    ctx.setAttachment(ex);
+  }
+ finally {
+    if (threadState != null) {
+      threadState.clear();
+    }
+  }
+}

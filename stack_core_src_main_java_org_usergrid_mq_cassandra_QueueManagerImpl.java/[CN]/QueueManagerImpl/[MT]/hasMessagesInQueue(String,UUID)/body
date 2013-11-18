@@ -1,0 +1,17 @@
+{
+  Keyspace ko=cass.getApplicationKeyspace(applicationId);
+  UUID queueId=CassandraMQUtils.getQueueId(queuePath);
+  if (consumerId == null) {
+    consumerId=queueId;
+  }
+  NoTransactionSearch search=new NoTransactionSearch(ko);
+  QueueBounds bounds=search.getQueueBounds(queueId);
+  if (bounds == null) {
+    return false;
+  }
+  UUID consumerPosition=search.getConsumerQueuePosition(queueId,consumerId);
+  if (consumerPosition == null) {
+    return true;
+  }
+  return UUIDUtils.compare(consumerPosition,bounds.getNewest()) < 0;
+}

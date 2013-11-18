@@ -1,0 +1,18 @@
+{
+  ApiResponse response=createApiResponse();
+  response.setAction("post signin provider configuration");
+  Preconditions.checkArgument(siaProvider != null,"Sign in provider required");
+  SignInAsProvider signInAsProvider=null;
+  if (StringUtils.equalsIgnoreCase(siaProvider,"facebook")) {
+    signInAsProvider=signInProviderFactory.facebook(smf.getServiceManager(applicationId).getApplication());
+  }
+ else   if (StringUtils.equalsIgnoreCase(siaProvider,"pingident")) {
+    signInAsProvider=signInProviderFactory.pingident(smf.getServiceManager(applicationId).getApplication());
+  }
+ else   if (StringUtils.equalsIgnoreCase(siaProvider,"foursquare")) {
+    signInAsProvider=signInProviderFactory.foursquare(smf.getServiceManager(applicationId).getApplication());
+  }
+  Preconditions.checkArgument(signInAsProvider != null,"No signin provider found by that name: " + siaProvider);
+  signInAsProvider.saveToConfiguration(json);
+  return new JSONWithPadding(response,callback);
+}

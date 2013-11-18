@@ -1,0 +1,30 @@
+{
+  DocumentBuilderFactory dbfac=DocumentBuilderFactory.newInstance();
+  DocumentBuilder docBuilder=null;
+  try {
+    docBuilder=dbfac.newDocumentBuilder();
+  }
+ catch (  ParserConfigurationException e) {
+  }
+  DOMImplementation domImpl=docBuilder.getDOMImplementation();
+  Document doc=domImpl.createDocument("http://wadl.dev.java.net/2009/02","application",null);
+  Element application=doc.getDocumentElement();
+  application.setAttributeNS("http://www.w3.org/2000/xmlns/","xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance");
+  application.setAttributeNS("http://www.w3.org/2000/xmlns/","xmlns:xsd","http://www.w3.org/2001/XMLSchema");
+  application.setAttributeNS("http://www.w3.org/2000/xmlns/","xmlns:apigee","http://api.apigee.com/wadl/2010/07/");
+  application.setAttributeNS("http://www.w3.org/2001/XMLSchema-instance","xsi:schemaLocation","http://wadl.dev.java.net/2009/02 http://apigee.com/schemas/wadl-schema.xsd http://api.apigee" + ".com/wadl/2010/07/ http://apigee.com/schemas/apigee-wadl-extensions.xsd");
+  if (apis != null) {
+    Element resources=doc.createElement("resources");
+    if (basePath != null) {
+      resources.setAttribute("base",basePath);
+    }
+ else {
+      resources.setAttribute("base","http://api.usergrid.com");
+    }
+    application.appendChild(resources);
+    for (    Api api : apis) {
+      resources.appendChild(api.createWADLResource(doc,this));
+    }
+  }
+  return doc;
+}

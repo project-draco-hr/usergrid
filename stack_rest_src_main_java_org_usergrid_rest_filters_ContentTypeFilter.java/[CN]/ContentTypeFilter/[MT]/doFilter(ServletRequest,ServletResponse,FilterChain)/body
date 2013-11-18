@@ -1,0 +1,10 @@
+{
+  if (!(request instanceof HttpServletRequest)) {
+    chain.doFilter(request,response);
+    return;
+  }
+  HttpServletRequest origRequest=(HttpServletRequest)request;
+  HeaderWrapperRequest newRequest=new HeaderWrapperRequest(origRequest);
+  newRequest.adapt();
+  chain.doFilter(newRequest,response);
+}

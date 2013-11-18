@@ -1,0 +1,10 @@
+{
+  SliceQuery<UUID,String,ByteBuffer> q=createSliceQuery(cass.getApplicationKeyspace(applicationId),ue,se,be);
+  q.setColumnFamily(MESSAGE_PROPERTIES.getColumnFamily());
+  q.setKey(messageId);
+  q.setRange(null,null,false,ALL_COUNT);
+  QueryResult<ColumnSlice<String,ByteBuffer>> r=q.execute();
+  ColumnSlice<String,ByteBuffer> slice=r.get();
+  List<HColumn<String,ByteBuffer>> results=slice.getColumns();
+  return deserializeMessage(results);
+}

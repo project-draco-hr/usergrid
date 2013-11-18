@@ -1,0 +1,22 @@
+{
+  String nameProperty=Schema.getDefaultSchema().aliasProperty(getEntityType());
+  if (nameProperty == null) {
+    nameProperty="name";
+  }
+  EntityRef entity=em.getAlias(getEntityType(),name);
+  if (entity == null) {
+    logger.info("miss on entityType: {} with name: {}",getEntityType(),name);
+    throw new ServiceResourceNotFoundException(context);
+  }
+  if (!em.isCollectionMember(context.getOwner(),context.getCollectionName(),entity)) {
+    logger.info("Someone tried to GET entity {} they don't own. Entity name {} with owner {}",new Object[]{getEntityType(),name,context.getOwner()});
+    throw new ServiceResourceNotFoundException(context);
+  }
+  if (!context.moreParameters()) {
+    entity=em.get(entity);
+    entity=importEntity(context,(Entity)entity);
+  }
+  checkPermissionsForEntity(context,entity);
+  List<ServiceRequest> nextRequests=context.getNextServiceRequests(entity);
+  return new ServiceResults(this,context,Type.COLLECTION,Results.fromRef(entity),null,nextRequests);
+}

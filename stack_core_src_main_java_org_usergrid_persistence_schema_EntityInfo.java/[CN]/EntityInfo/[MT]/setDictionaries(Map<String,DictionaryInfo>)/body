@@ -1,0 +1,18 @@
+{
+  this.dictionaries=new TreeMap<String,DictionaryInfo>(String.CASE_INSENSITIVE_ORDER);
+  this.dictionaries.putAll(dictionaries);
+  for (  String key : dictionaries.keySet()) {
+    DictionaryInfo dictionary=dictionaries.get(key);
+    dictionary.setName(key);
+  }
+  for (  @SuppressWarnings("rawtypes") Entry<String,Class> dictionaryEntry : Schema.DEFAULT_DICTIONARIES.entrySet()) {
+    String dictionaryName=dictionaryEntry.getKey();
+    if (!this.dictionaries.containsKey(dictionaryName)) {
+      DictionaryInfo dictionary=new DictionaryInfo();
+      dictionary.setName(dictionaryName);
+      dictionary.setKeyType(String.class);
+      dictionary.setValueType(dictionaryEntry.getValue());
+      this.dictionaries.put(dictionaryName,dictionary);
+    }
+  }
+}

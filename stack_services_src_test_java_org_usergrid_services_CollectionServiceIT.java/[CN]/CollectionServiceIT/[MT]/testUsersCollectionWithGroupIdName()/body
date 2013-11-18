@@ -1,0 +1,61 @@
+{
+  app.put("path","cst-test-group/cst-test-group");
+  app.put("title","Collection Test group");
+  Entity group=app.testRequest(ServiceAction.POST,1,"groups").getEntity();
+  assertNotNull(group);
+  app.testRequest(ServiceAction.GET,1,"groups",CST_TEST_GROUP,CST_TEST_GROUP);
+  app.testRequest(ServiceAction.GET,1,"groups");
+  app.put("username","edanuff");
+  app.put("email","ed@anuff.com");
+  Entity user=app.testRequest(ServiceAction.POST,1,"users").getEntity();
+  assertNotNull(user);
+  try {
+    app.testRequest(ServiceAction.GET,0,"users",group.getUuid());
+    Assert.fail();
+  }
+ catch (  UnexpectedEntityTypeException uee) {
+  }
+  try {
+    app.testRequest(ServiceAction.GET,0,"users",CST_TEST_GROUP);
+    Assert.fail();
+  }
+ catch (  ServiceResourceNotFoundException srnfe) {
+  }
+  app.put("group-size","10");
+  try {
+    app.testRequest(ServiceAction.POST,0,"users",group.getUuid());
+    Assert.fail();
+  }
+ catch (  UnexpectedEntityTypeException uee) {
+  }
+  try {
+    app.testRequest(ServiceAction.POST,0,"users",CST_TEST_GROUP);
+    Assert.fail();
+  }
+ catch (  ServiceResourceNotFoundException srnfe) {
+  }
+  try {
+    app.testRequest(ServiceAction.PUT,0,"users",group.getUuid());
+    Assert.fail();
+  }
+ catch (  UnexpectedEntityTypeException uee) {
+  }
+  try {
+    app.testRequest(ServiceAction.PUT,0,"users",CST_TEST_GROUP);
+    Assert.fail();
+  }
+ catch (  RequiredPropertyNotFoundException srnfe) {
+  }
+  try {
+    app.testRequest(ServiceAction.DELETE,0,"users",group.getUuid());
+    Assert.fail();
+  }
+ catch (  UnexpectedEntityTypeException uee) {
+  }
+  try {
+    app.testRequest(ServiceAction.DELETE,0,"users",CST_TEST_GROUP);
+    Assert.fail();
+  }
+ catch (  ServiceResourceNotFoundException srnfe) {
+  }
+}

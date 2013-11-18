@@ -1,0 +1,15 @@
+{
+  Mutator<ByteBuffer> mutator=createMutator(ko,be);
+  ByteBuffer key=getQueueClientTransactionKey(queueId,consumerId);
+  int counter=0;
+  long time=cass.createTimestamp();
+  for (  Message message : messages) {
+    UUID expirationId=UUIDUtils.newTimeUUID(futureTimeout,counter);
+    UUID messageId=message.getUuid();
+    logger.debug("Writing new timeout at '{}' for message '{}'",expirationId,messageId);
+    mutator.addInsertion(key,CONSUMER_QUEUE_TIMEOUTS.getColumnFamily(),createColumn(expirationId,messageId,time,ue,ue));
+    message.setTransaction(expirationId);
+    counter++;
+  }
+  mutator.execute();
+}

@@ -1,0 +1,23 @@
+{
+  if (obj == null) {
+    return null;
+  }
+  if (obj instanceof UUID) {
+    return new Identifier(Type.UUID,obj);
+  }
+  if (obj instanceof String) {
+    UUID uuid=UUIDUtils.tryGetUUID((String)obj);
+    if (uuid != null) {
+      return new Identifier(Type.UUID,uuid);
+    }
+    Matcher m=emailRegEx.matcher((String)obj);
+    if (m.matches()) {
+      return new Identifier(Type.EMAIL,((String)obj).toLowerCase());
+    }
+    m=nameRegEx.matcher((String)obj);
+    if (m.matches()) {
+      return new Identifier(Type.NAME,((String)obj).toLowerCase());
+    }
+  }
+  return null;
+}

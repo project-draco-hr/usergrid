@@ -1,0 +1,16 @@
+{
+  int l=36;
+  List<ByteBuffer> encodedDocuments=encodeDocuments(documents);
+  l+=buffersSize(encodedDocuments);
+  numberReturned=encodedDocuments.size();
+  messageLength=l;
+  buffer=super.encode(buffer);
+  buffer.writeInt(responseFlags);
+  buffer.writeLong(cursorID);
+  buffer.writeInt(startingFrom);
+  buffer.writeInt(numberReturned);
+  for (  ByteBuffer d : encodedDocuments) {
+    buffer.writeBytes(d);
+  }
+  return buffer;
+}

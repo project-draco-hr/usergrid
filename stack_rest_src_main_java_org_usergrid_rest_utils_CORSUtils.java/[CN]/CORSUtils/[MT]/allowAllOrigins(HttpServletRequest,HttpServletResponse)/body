@@ -1,0 +1,40 @@
+{
+  if (request.getHeader(ACCESS_CONTROL_REQUEST_METHOD) != null) {
+    @SuppressWarnings("unchecked") Enumeration<String> e=request.getHeaders(ACCESS_CONTROL_REQUEST_METHOD);
+    while (e.hasMoreElements()) {
+      String value=e.nextElement();
+      response.addHeader(ACCESS_CONTROL_ALLOW_METHODS,value);
+    }
+  }
+  if (request.getHeader(ACCESS_CONTROL_REQUEST_HEADERS) != null) {
+    @SuppressWarnings("unchecked") Enumeration<String> e=request.getHeaders(ACCESS_CONTROL_REQUEST_HEADERS);
+    while (e.hasMoreElements()) {
+      String value=e.nextElement();
+      response.addHeader(ACCESS_CONTROL_ALLOW_HEADERS,value);
+    }
+  }
+  boolean origin_sent=false;
+  if (request.getHeader(ORIGIN_HEADER) != null) {
+    @SuppressWarnings("unchecked") Enumeration<String> e=request.getHeaders(ORIGIN_HEADER);
+    while (e.hasMoreElements()) {
+      String value=e.nextElement();
+      if (value != null) {
+        origin_sent=true;
+        response.addHeader(ACCESS_CONTROL_ALLOW_ORIGIN,value);
+      }
+    }
+  }
+  if (!origin_sent) {
+    String origin=getOrigin(request);
+    if (origin != null) {
+      response.addHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS,"true");
+      response.addHeader(ACCESS_CONTROL_ALLOW_ORIGIN,origin);
+    }
+ else {
+      response.addHeader(ACCESS_CONTROL_ALLOW_ORIGIN,"*");
+    }
+  }
+ else {
+    response.addHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS,"true");
+  }
+}

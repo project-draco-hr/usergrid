@@ -1,0 +1,33 @@
+{
+  ByteBuffer start=null;
+  if (slice.getCursor() != null) {
+    start=slice.getCursor();
+  }
+ else   if (slice.getStart() != null) {
+    DynamicComposite s=new DynamicComposite(slice.getStart().getCode(),slice.getStart().getValue());
+    if (!slice.getStart().isInclusive()) {
+      setEqualityFlag(s,ComponentEquality.GREATER_THAN_EQUAL);
+    }
+    start=s.serialize();
+  }
+  ByteBuffer finish=null;
+  if (slice.getFinish() != null) {
+    DynamicComposite f=new DynamicComposite(slice.getFinish().getCode(),slice.getFinish().getValue());
+    if (slice.getFinish().isInclusive()) {
+      setEqualityFlag(f,ComponentEquality.GREATER_THAN_EQUAL);
+    }
+    finish=f.serialize();
+  }
+  if (slice.isReversed() && (start != null) && (finish != null)) {
+    ByteBuffer temp=start;
+    start=finish;
+    finish=temp;
+  }
+  List<HColumn<ByteBuffer,ByteBuffer>> results=createSliceQuery(cass.getApplicationKeyspace(applicationId),be,be,be).setColumnFamily(PROPERTY_INDEX.getColumnFamily()).setKey(bytebuffer(key(publisherQueueId,slice.getPropertyName()))).setRange(start,finish,slice.isReversed(),count).execute().get().getColumns();
+  QueueSet queues=new QueueSet();
+  for (  HColumn<ByteBuffer,ByteBuffer> column : results) {
+    DynamicComposite c=DynamicComposite.fromByteBuffer(column.getName());
+    queues.addQueue(c.get(3,se),c.get(2,ue));
+  }
+  return queues;
+}

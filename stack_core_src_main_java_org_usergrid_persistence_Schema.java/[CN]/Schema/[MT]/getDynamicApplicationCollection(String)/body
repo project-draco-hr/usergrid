@@ -1,0 +1,20 @@
+{
+  EntityInfo entity=getEntityInfo(Application.ENTITY_TYPE);
+  if (entity == null) {
+    return null;
+  }
+  CollectionInfo collection=entity.getCollection(collectionName);
+  if (collection != null) {
+    return collection;
+  }
+  collection=new CollectionInfo();
+  collection.setName(collectionName);
+  collection.setContainer(entity);
+  collection.setType(normalizeEntityType(collectionName));
+  Set<String> properties=new LinkedHashSet<String>();
+  properties.add(PROPERTY_NAME);
+  properties.add(PROPERTY_CREATED);
+  properties.add(PROPERTY_MODIFIED);
+  collection.setPropertiesIndexed(properties);
+  return collection;
+}

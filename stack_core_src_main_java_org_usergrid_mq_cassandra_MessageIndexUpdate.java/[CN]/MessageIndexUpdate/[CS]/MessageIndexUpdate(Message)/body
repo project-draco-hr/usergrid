@@ -1,0 +1,15 @@
+{
+  this.message=message;
+  if (message.isIndexed()) {
+    propertyEntryList=new HashMap<String,List<Map.Entry<String,Object>>>();
+    for (    Map.Entry<String,Object> property : message.getProperties().entrySet()) {
+      if (!MESSAGE_PROPERTIES.containsKey(property.getKey()) && validIndexableValueOrJson(property.getValue())) {
+        List<Map.Entry<String,Object>> list=getKeyValueList(property.getKey(),property.getValue(),FULLTEXT);
+        propertyEntryList.put(property.getKey(),list);
+      }
+    }
+  }
+ else {
+    propertyEntryList=null;
+  }
+}

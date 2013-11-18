@@ -1,0 +1,23 @@
+{
+  Matcher m=STD_VERSION_PATT.matcher(toParse);
+  if (!m.find()) {
+    throw new Exception(String.format("Error parsing version from '%s'",toParse));
+  }
+  Version v=new Version();
+  v.rawVersion=toParse;
+  v.prefix=m.group(1);
+  if (StringUtils.isNotEmpty(m.group(2))) {
+    v.setMajor(m.group(2));
+  }
+  if (StringUtils.isNotEmpty(m.group(3))) {
+    v.setMinor(m.group(3));
+  }
+  if (StringUtils.isNotEmpty(m.group(4))) {
+    v.setBuild(m.group(4));
+  }
+  if (StringUtils.isNotEmpty(m.group(5))) {
+    v.setRevision(m.group(5));
+  }
+  v.suffix=m.group(6);
+  return v;
+}

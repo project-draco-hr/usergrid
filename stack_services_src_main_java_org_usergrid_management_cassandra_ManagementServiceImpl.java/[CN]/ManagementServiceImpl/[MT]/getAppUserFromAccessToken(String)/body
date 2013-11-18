@@ -1,0 +1,14 @@
+{
+  AuthPrincipalInfo auth_principal=getPrincipalFromAccessToken(token,null,APPLICATION_USER);
+  if (auth_principal == null) {
+    return null;
+  }
+  UUID appId=auth_principal.getApplicationId();
+  if (appId != null) {
+    Entity user=getAppUserByIdentifier(appId,Identifier.fromUUID(auth_principal.getUuid()));
+    if (user != null) {
+      return new UserInfo(appId,user.getProperties());
+    }
+  }
+  return null;
+}

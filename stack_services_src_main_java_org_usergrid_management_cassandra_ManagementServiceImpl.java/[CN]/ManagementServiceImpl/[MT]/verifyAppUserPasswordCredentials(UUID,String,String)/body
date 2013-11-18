@@ -1,0 +1,16 @@
+{
+  User user=findUserEntity(applicationId,name);
+  if (user == null) {
+    return null;
+  }
+  if (verify(applicationId,user.getUuid(),password)) {
+    if (!user.activated()) {
+      throw new UnactivatedAppUserException();
+    }
+    if (user.disabled()) {
+      throw new DisabledAppUserException();
+    }
+    return user;
+  }
+  return null;
+}

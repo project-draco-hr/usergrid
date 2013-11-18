@@ -1,0 +1,14 @@
+{
+  String queryString="select * where a within .5 of 157.00, 0.00";
+  ANTLRStringStream in=new ANTLRStringStream(queryString);
+  QueryFilterLexer lexer=new QueryFilterLexer(in);
+  TokenRewriteStream tokens=new TokenRewriteStream(lexer);
+  QueryFilterParser parser=new QueryFilterParser(tokens);
+  Query query=parser.ql().query;
+  QueryProcessor processor=new QueryProcessor(query,null,null,null);
+  WithinNode node=(WithinNode)processor.getFirstNode();
+  assertEquals("a.coordinates",node.getPropertyName());
+  assertEquals(.5f,node.getDistance(),0);
+  assertEquals(157f,node.getLattitude(),0);
+  assertEquals(0f,node.getLongitude(),0);
+}

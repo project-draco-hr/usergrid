@@ -1,0 +1,22 @@
+{
+  try {
+    UUID uuid=getUUIDFromClientId(client_id);
+    if (uuid == null) {
+      throw mappableSecurityException(AuthErrorInfo.OAUTH2_INVALID_CLIENT,"Unable to authenticate (OAuth). Invalid client_id");
+    }
+    responseType=response_type;
+    clientId=client_id;
+    redirectUri=redirect_uri;
+    this.scope=scope;
+    this.state=state;
+    ApplicationInfo app=management.getApplicationInfo(applicationId);
+    applicationName=app.getName();
+    return handleViewable("authorize_form",this);
+  }
+ catch (  RedirectionException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    return handleViewable("error",e);
+  }
+}

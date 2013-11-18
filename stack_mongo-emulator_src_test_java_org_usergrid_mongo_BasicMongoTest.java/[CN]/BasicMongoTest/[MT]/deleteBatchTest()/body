@@ -1,0 +1,26 @@
+{
+  DB db=getDb();
+  int count=(int)(OpDelete.BATCH_SIZE * 1.5);
+  List<DBObject> docs=new ArrayList<DBObject>(count);
+  for (int i=0; i < count; i++) {
+    BasicDBObject doc=new BasicDBObject();
+    doc.put("index",i);
+    docs.add(doc);
+  }
+  WriteResult result=db.getCollection("deletebatchtests").insert(docs);
+  assertNull(result.getLastError().getErrorMessage());
+  DBCursor cursor=db.getCollection("deletebatchtests").find();
+  for (int i=0; i < count && cursor.hasNext(); i++) {
+    int index=new BasicDBObject(cursor.next().toMap()).getInt("index");
+    assertEquals(i,index);
+  }
+  BasicDBObject query=new BasicDBObject();
+  query.put("index",new BasicDBObject("$lte",count));
+  db.getCollection("deletebatchtests").remove(query,WriteConcern.SAFE);
+  cursor=db.getCollection("deletebatchtests").find();
+  assertFalse(cursor.hasNext());
+  UUID appId=emf.lookupApplication("test-organization/test-app");
+  EntityManager em=emf.getEntityManager(appId);
+  Results results=em.searchCollection(new SimpleEntityRef("application",appId),"deletebatchtests",new Query());
+  assertEquals(0,results.size());
+}

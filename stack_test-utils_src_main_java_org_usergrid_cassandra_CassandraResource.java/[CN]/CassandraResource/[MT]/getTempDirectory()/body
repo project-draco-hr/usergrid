@@ -1,0 +1,17 @@
+{
+  File tmpdir;
+  Properties props=new Properties();
+  props.load(ClassLoader.getSystemResourceAsStream(PROPERTIES_FILE));
+  File basedir=new File((String)props.get(TARGET_DIRECTORY_KEY));
+  String comp=RandomStringUtils.randomAlphanumeric(7);
+  tmpdir=new File(basedir,comp);
+  if (tmpdir.exists()) {
+    LOG.info("Deleting directory: {}",tmpdir);
+    FileUtils.forceDelete(tmpdir);
+  }
+ else {
+    LOG.info("Creating temporary directory: {}",tmpdir);
+    FileUtils.forceMkdir(tmpdir);
+  }
+  return tmpdir;
+}

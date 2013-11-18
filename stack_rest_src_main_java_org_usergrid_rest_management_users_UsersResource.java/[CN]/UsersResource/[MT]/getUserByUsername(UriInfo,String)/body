@@ -1,0 +1,10 @@
+{
+  if ("me".equals(username)) {
+    UserInfo user=SubjectUtils.getAdminUser();
+    if ((user != null) && (user.getUuid() != null)) {
+      return getSubResource(UserResource.class).init(management.getAdminUserByUuid(user.getUuid()));
+    }
+    throw mappableSecurityException("unauthorized","No admin identity for access credentials provided");
+  }
+  return getSubResource(UserResource.class).init(management.getAdminUserByUsername(username));
+}

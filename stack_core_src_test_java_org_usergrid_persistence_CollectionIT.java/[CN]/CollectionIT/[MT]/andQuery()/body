@@ -1,0 +1,35 @@
+{
+  UUID applicationId=setup.createApplication("testOrganization","andQuery");
+  assertNotNull(applicationId);
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  assertNotNull(em);
+  Map<String,Object> properties=new LinkedHashMap<String,Object>();
+  properties.put("keywords","blah,test,game");
+  properties.put("title","Solitaire");
+  Entity game1=em.create("game",properties);
+  assertNotNull(game1);
+  properties=new LinkedHashMap<String,Object>();
+  properties.put("keywords","random,test");
+  properties.put("title","Hearts");
+  Entity game2=em.create("game",properties);
+  assertNotNull(game2);
+  Query query=Query.fromQL("select * where keywords contains 'test' AND keywords contains 'random'");
+  Results r=em.searchCollection(em.getApplicationRef(),"games",query);
+  assertEquals(1,r.size());
+  query=Query.fromQL("select * where keywords contains 'random' AND keywords contains 'blah'");
+  r=em.searchCollection(em.getApplicationRef(),"games",query);
+  assertEquals(0,r.size());
+  query=Query.fromQL("select * where keywords contains 'test' AND keywords contains 'test'");
+  r=em.searchCollection(em.getApplicationRef(),"games",query);
+  assertEquals(2,r.size());
+  Entity returned=r.getEntities().get(0);
+  assertEquals(game1.getUuid(),returned.getUuid());
+  returned=r.getEntities().get(1);
+  assertEquals(game2.getUuid(),returned.getUuid());
+  query=Query.fromQL("select * where keywords contains 'test' AND keywords contains 'foobar'");
+  r=em.searchCollection(em.getApplicationRef(),"games",query);
+  assertEquals(0,r.size());
+  query=Query.fromQL("select * where keywords contains 'foobar' AND keywords contains 'test'");
+  r=em.searchCollection(em.getApplicationRef(),"games",query);
+  assertEquals(0,r.size());
+}

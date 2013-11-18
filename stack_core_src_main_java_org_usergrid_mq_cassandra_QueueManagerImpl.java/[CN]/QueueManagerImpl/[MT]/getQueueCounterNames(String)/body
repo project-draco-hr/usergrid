@@ -1,0 +1,13 @@
+{
+  Set<String> names=new HashSet<String>();
+  Keyspace ko=cass.getApplicationKeyspace(applicationId);
+  SliceQuery<String,String,ByteBuffer> q=createSliceQuery(ko,se,se,be);
+  q.setColumnFamily(QueuesCF.QUEUE_DICTIONARIES.toString());
+  q.setKey(CassandraPersistenceUtils.key(getQueueId(queuePath),DICTIONARY_COUNTERS).toString());
+  q.setRange(null,null,false,ALL_COUNT);
+  List<HColumn<String,ByteBuffer>> columns=q.execute().get().getColumns();
+  for (  HColumn<String,ByteBuffer> column : columns) {
+    names.add(column.getName());
+  }
+  return names;
+}

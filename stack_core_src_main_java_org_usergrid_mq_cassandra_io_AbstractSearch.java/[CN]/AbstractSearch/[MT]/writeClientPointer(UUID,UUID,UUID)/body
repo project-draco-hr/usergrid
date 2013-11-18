@@ -1,0 +1,12 @@
+{
+  if (lastReturnedId == null) {
+    return;
+  }
+  long colTimestamp=UUIDUtils.getTimestampInMicros(lastReturnedId);
+  Mutator<UUID> mutator=createMutator(ko,ue);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Writing last client id pointer of '{}' for queue '{}' and consumer '{}' with timestamp '{}",new Object[]{lastReturnedId,queueId,consumerId,colTimestamp});
+  }
+  mutator.addInsertion(consumerId,CONSUMERS.getColumnFamily(),createColumn(queueId,lastReturnedId,colTimestamp,ue,ue));
+  mutator.execute();
+}

@@ -1,0 +1,18 @@
+{
+  if (message == null) {
+    return null;
+  }
+  Map<ByteBuffer,ByteBuffer> columns=new HashMap<ByteBuffer,ByteBuffer>();
+  for (  Entry<String,Object> property : message.getProperties().entrySet()) {
+    if (property.getValue() == null) {
+      columns.put(bytebuffer(property.getKey()),null);
+    }
+ else     if (MESSAGE_TYPE.equals(property.getKey()) || MESSAGE_ID.equals(property.getKey())) {
+      columns.put(bytebuffer(property.getKey()),bytebuffer(property.getValue()));
+    }
+ else {
+      columns.put(bytebuffer(property.getKey()),JsonUtils.toByteBuffer(property.getValue()));
+    }
+  }
+  return columns;
+}

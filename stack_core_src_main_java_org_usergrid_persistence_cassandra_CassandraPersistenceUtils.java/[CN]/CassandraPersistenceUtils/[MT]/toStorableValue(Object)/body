@@ -1,0 +1,31 @@
+{
+  if (obj == null) {
+    return null;
+  }
+  if (isBasicType(obj.getClass())) {
+    return obj;
+  }
+  if (obj instanceof ByteBuffer) {
+    return obj;
+  }
+  JsonNode json=toJsonNode(obj);
+  if ((json != null) && json.isValueNode()) {
+    if (json.isBigInteger()) {
+      return json.getBigIntegerValue();
+    }
+ else     if (json.isNumber() || json.isBoolean()) {
+      return BigInteger.valueOf(json.getValueAsLong());
+    }
+ else     if (json.isTextual()) {
+      return json.getTextValue();
+    }
+ else     if (json.isBinary()) {
+      try {
+        return wrap(json.getBinaryValue());
+      }
+ catch (      IOException e) {
+      }
+    }
+  }
+  return json;
+}

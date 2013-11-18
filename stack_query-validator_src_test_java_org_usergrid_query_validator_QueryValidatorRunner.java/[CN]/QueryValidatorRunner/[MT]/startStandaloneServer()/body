@@ -1,0 +1,48 @@
+{
+  standaloneServer=new StandaloneServer();
+  try {
+    Thread thread=new Thread(standaloneServer);
+    thread.start();
+  }
+ catch (  Exception ex) {
+    logger.error("Could not schedule standalone server runner",ex);
+  }
+  Runtime.getRuntime().addShutdownHook(new Thread(){
+    @Override public void run(){
+      try {
+        logger.error("In shutdownHook");
+        stopServer();
+      }
+ catch (      Exception ex) {
+        ex.printStackTrace();
+      }
+    }
+  }
+);
+  boolean loaded=false;
+  while (!loaded) {
+    if (standaloneServer.server.isRunning()) {
+      if (standaloneServer.server.getManagementService() != null) {
+        loaded=true;
+        continue;
+      }
+    }
+    try {
+      logger.info("Loding application context...");
+      Thread.sleep(2 * 1000);
+    }
+ catch (    InterruptedException e) {
+      continue;
+    }
+  }
+  if (loaded) {
+    ManagementService managementService=standaloneServer.server.getManagementService();
+    try {
+      managementService.setup();
+    }
+ catch (    Exception e) {
+      e.printStackTrace();
+    }
+  }
+  logger.info("Finish start standalone server.");
+}

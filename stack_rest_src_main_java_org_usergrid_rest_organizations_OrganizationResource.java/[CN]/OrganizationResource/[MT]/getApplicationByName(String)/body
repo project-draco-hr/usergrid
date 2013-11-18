@@ -1,0 +1,11 @@
+{
+  if ("options".equalsIgnoreCase(request.getMethod())) {
+    throw new NoOpException();
+  }
+  String orgAppName=PathingUtils.assembleAppName(organizationName,applicationName);
+  UUID applicationId=emf.lookupApplication(orgAppName);
+  if (applicationId == null) {
+    throw new OrganizationApplicationNotFoundException(orgAppName,uriInfo,properties);
+  }
+  return appResourceFor(applicationId);
+}

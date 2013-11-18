@@ -1,0 +1,39 @@
+{
+  if (last < first) {
+    return null;
+  }
+  if ((last - first) == 1) {
+    if (!collections[first].startsWith("entities")) {
+      return "/entities:" + singularize(collections[first]) + "/*/"+ collections[first + 1];
+    }
+    return null;
+  }
+  if ((last - first) == 0) {
+    if (!collections[first].startsWith("entities")) {
+      return "/entities:" + singularize(collections[first]);
+    }
+    return null;
+  }
+  int i=last - 1;
+  while (i >= first) {
+    if (collections[i].indexOf(':') > -1) {
+      break;
+    }
+    i--;
+  }
+  if (i >= first) {
+    String type=stringOrSubstringAfterLast(collections[i],':');
+    String fallback="/" + pluralize(type);
+    i++;
+    while (i <= last) {
+      fallback+="/*/" + collections[i];
+      i++;
+    }
+    return fallback;
+  }
+  String eType=determineType(collections,first,last - 1);
+  if (eType != "entity") {
+    return "/entities:" + eType + "/*/"+ collections[last];
+  }
+  return "/entities/*/" + collections[last];
+}

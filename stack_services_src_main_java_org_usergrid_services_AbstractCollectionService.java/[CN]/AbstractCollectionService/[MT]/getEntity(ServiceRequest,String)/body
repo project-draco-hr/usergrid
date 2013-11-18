@@ -1,0 +1,18 @@
+{
+  if (!isRootService()) {
+    return null;
+  }
+  String nameProperty=Schema.getDefaultSchema().aliasProperty(getEntityType());
+  if (nameProperty == null) {
+    nameProperty="name";
+  }
+  EntityRef entityRef=em.getAlias(getEntityType(),name);
+  if (entityRef == null) {
+    return null;
+  }
+  Entity entity=em.get(entityRef);
+  if (entity != null) {
+    entity=importEntity(request,entity);
+  }
+  return entity;
+}

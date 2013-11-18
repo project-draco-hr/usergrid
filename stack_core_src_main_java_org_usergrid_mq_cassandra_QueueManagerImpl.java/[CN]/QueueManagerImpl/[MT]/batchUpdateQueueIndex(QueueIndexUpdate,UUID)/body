@@ -1,0 +1,24 @@
+{
+  logger.info("batchUpdateQueueIndex");
+  Mutator<ByteBuffer> batch=indexUpdate.getBatch();
+  Object index_key=key(subcriptionQueueId,indexUpdate.getEntryName());
+  for (  QueueIndexEntry entry : indexUpdate.getPrevEntries()) {
+    if (entry.getValue() != null) {
+      index_key=key(subcriptionQueueId,entry.getPath());
+      batch.addDeletion(bytebuffer(index_key),PROPERTY_INDEX.getColumnFamily(),entry.getIndexComposite(),dce,indexUpdate.getTimestamp());
+    }
+ else {
+      logger.error("Unexpected condition - deserialized property value is null");
+    }
+  }
+  if (indexUpdate.getNewEntries().size() > 0) {
+    for (    QueueIndexEntry indexEntry : indexUpdate.getNewEntries()) {
+      index_key=key(subcriptionQueueId,indexEntry.getPath());
+      batch.addInsertion(bytebuffer(index_key),PROPERTY_INDEX.getColumnFamily(),createColumn(indexEntry.getIndexComposite(),ByteBuffer.allocate(0),indexUpdate.getTimestamp(),dce,be));
+    }
+  }
+  for (  String index : indexUpdate.getIndexesSet()) {
+    batch.addInsertion(bytebuffer(key(subcriptionQueueId,DICTIONARY_SUBSCRIBER_INDEXES)),QUEUE_DICTIONARIES.getColumnFamily(),createColumn(index,ByteBuffer.allocate(0),indexUpdate.getTimestamp(),se,be));
+  }
+  return indexUpdate;
+}

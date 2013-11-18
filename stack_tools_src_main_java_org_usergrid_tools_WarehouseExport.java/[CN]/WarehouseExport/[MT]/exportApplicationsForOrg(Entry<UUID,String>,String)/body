@@ -1,0 +1,37 @@
+{
+  LOG.info("organization: {} / {}",orgIdAndName.getValue(),orgIdAndName.getKey());
+  String orgName=orgIdAndName.getValue();
+  BiMap<UUID,String> applications=managementService.getApplicationsForOrganization(orgIdAndName.getKey());
+  for (  Entry<UUID,String> appIdAndName : applications.entrySet()) {
+    String appName=appIdAndName.getValue();
+    appName=appName.substring(appName.indexOf('/') + 1);
+    LOG.info("application {} / {}",appName,appIdAndName.getKey());
+    EntityManager em=emf.getEntityManager(appIdAndName.getKey());
+    Map<String,String[]> cfm=getCollectionFieldMap();
+    Set<String> collections=em.getApplicationCollections();
+    for (    String collectionName : collections) {
+      String entityType=InflectionUtils.singularize(collectionName);
+      String[] props=cfm.get(entityType);
+      Collection<String> properties=new ArrayList<String>(BASE_ATTRIBUTES.length + (props != null ? props.length : 0));
+      properties.addAll(Arrays.asList(BASE_ATTRIBUTES));
+      if (props != null) {
+        properties.addAll(Arrays.asList(props));
+      }
+      Query query=Query.fromQL(queryString);
+      query.setLimit(MAX_ENTITY_FETCH);
+      query.setResultsLevel(Level.REFS);
+      Results results=em.searchCollection(em.getApplicationRef(),collectionName,query);
+      while (results.size() > 0) {
+        List<Entity> entities=em.getPartialEntities(results.getIds(),properties);
+        for (        Entity entity : entities) {
+          write(orgName,appName,entity,em);
+        }
+        if (results.getCursor() == null) {
+          break;
+        }
+        query.setCursor(results.getCursor());
+        results=em.searchCollection(em.getApplicationRef(),collectionName,query);
+      }
+    }
+  }
+}

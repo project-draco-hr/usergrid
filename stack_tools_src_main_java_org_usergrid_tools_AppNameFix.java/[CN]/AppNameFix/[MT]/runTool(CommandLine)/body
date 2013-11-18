@@ -1,0 +1,29 @@
+{
+  startSpring();
+  EntityManager rootEm=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+  for (  Entry<UUID,String> org : managementService.getOrganizations().entrySet()) {
+    for (    Entry<UUID,String> app : managementService.getApplicationsForOrganization(org.getKey()).entrySet()) {
+      Application application=rootEm.get(app.getKey(),Application.class);
+      if (application == null) {
+        logger.error("Could not load app with id {}",app.getKey());
+        continue;
+      }
+      String appName=application.getName();
+      if (appName.contains("/")) {
+        logger.info("Application name is correct: {}",appName);
+        continue;
+      }
+      String correctAppName=org.getValue() + "/" + app.getValue();
+      correctAppName=correctAppName.toLowerCase();
+      application.setName(correctAppName);
+      rootEm.setProperty(application,"name",correctAppName,true);
+      Application changedApp=rootEm.get(app.getKey(),Application.class);
+      if (correctAppName.equals(changedApp.getName())) {
+        logger.info("Application name corrected.  {} : {}",appName,correctAppName);
+      }
+ else {
+        logger.error("Could not correct Application with id {} to {}",app.getKey(),correctAppName);
+      }
+    }
+  }
+}

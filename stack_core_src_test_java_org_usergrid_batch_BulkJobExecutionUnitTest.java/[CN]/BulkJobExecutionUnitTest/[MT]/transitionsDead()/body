@@ -1,0 +1,11 @@
+{
+  JobData data=new JobData();
+  JobStat stat=new JobStat();
+  JobDescriptor jobDescriptor=new JobDescriptor("",UUID.randomUUID(),UUID.randomUUID(),data,stat,null);
+  JobExecution bje=new JobExecutionImpl(jobDescriptor);
+  assertEquals(JobExecution.Status.NOT_STARTED,bje.getStatus());
+  bje.start(1);
+  assertEquals(JobExecution.Status.IN_PROGRESS,bje.getStatus());
+  bje.killed();
+  assertEquals(JobExecution.Status.DEAD,bje.getStatus());
+}

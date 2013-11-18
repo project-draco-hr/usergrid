@@ -1,0 +1,10 @@
+{
+  logger.info("Starting Usergrid Mongo Proxy Server");
+  Executor executor=Executors.newCachedThreadPool();
+  ServerBootstrap bootstrap=new ServerBootstrap(new NioServerSocketChannelFactory(executor,executor));
+  bootstrap.setOption("child.bufferFactory",HeapChannelBufferFactory.getInstance(ByteOrder.LITTLE_ENDIAN));
+  ClientSocketChannelFactory cf=new NioClientSocketChannelFactory(executor,executor);
+  bootstrap.setPipelineFactory(new MongoProxyPipelineFactory(cf,"localhost",12345));
+  bootstrap.bind(new InetSocketAddress(27017));
+  logger.info("Usergrid Mongo Proxy Server accepting connections...");
+}

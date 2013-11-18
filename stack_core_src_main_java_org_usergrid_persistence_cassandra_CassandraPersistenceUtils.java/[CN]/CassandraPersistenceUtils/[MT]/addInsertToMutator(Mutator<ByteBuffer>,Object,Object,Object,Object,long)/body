@@ -1,0 +1,11 @@
+{
+  logBatchOperation("Insert",columnFamily,key,columnName,columnValue,timestamp);
+  if (columnName instanceof List<?>) {
+    columnName=DynamicComposite.toByteBuffer((List<?>)columnName);
+  }
+  if (columnValue instanceof List<?>) {
+    columnValue=DynamicComposite.toByteBuffer((List<?>)columnValue);
+  }
+  HColumn<ByteBuffer,ByteBuffer> column=createColumn(bytebuffer(columnName),bytebuffer(columnValue),timestamp,be,be);
+  m.addInsertion(bytebuffer(key),columnFamily.toString(),column);
+}

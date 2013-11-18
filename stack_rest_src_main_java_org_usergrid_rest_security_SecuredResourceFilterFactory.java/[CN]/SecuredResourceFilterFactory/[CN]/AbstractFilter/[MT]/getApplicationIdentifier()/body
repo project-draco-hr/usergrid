@@ -1,0 +1,16 @@
+{
+  Identifier application=null;
+  MultivaluedMap<java.lang.String,java.lang.String> pathParams=uriInfo.getPathParameters();
+  String applicationIdStr=pathParams.getFirst("applicationId");
+  if (isNotEmpty(applicationIdStr)) {
+    application=Identifier.from(applicationIdStr);
+  }
+ else {
+    String applicationName=PathingUtils.assembleAppName(uriInfo.getPathParameters());
+    if (logger.isDebugEnabled()) {
+      logger.debug("Pulled applicationName {}",applicationName);
+    }
+    application=Identifier.fromName(applicationName);
+  }
+  return application;
+}

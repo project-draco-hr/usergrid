@@ -1,0 +1,72 @@
+{
+  EntityRef owner=request.getOwner();
+  String collectionName="application".equals(owner.getType()) ? pluralize(getServiceInfo().getItemType()) : getServiceInfo().getCollectionName();
+  List<ServiceParameter> parameters=initCopy(request.getParameters());
+  parameters=filter(parameters,replaceParameters);
+  String cType=collectionName;
+  if ("connecting".equals(collectionName) || "connections".equals(collectionName) || "connected".equals(collectionName)) {
+    cType=null;
+  }
+  if ((cType == null) && firstParameterIsName(parameters)) {
+    cType=dequeue(parameters).getName();
+  }
+  if (cType != null) {
+    collectionName=cType;
+  }
+  String eType=null;
+  UUID id=null;
+  String name=null;
+  Query query=null;
+  ServiceParameter first_parameter=dequeue(parameters);
+  if (first_parameter instanceof QueryParameter) {
+    query=first_parameter.getQuery();
+  }
+ else   if (first_parameter instanceof IdParameter) {
+    id=first_parameter.getId();
+  }
+ else   if (first_parameter instanceof NameParameter) {
+    String s=first_parameter.getName();
+    if (hasServiceMetadata(s)) {
+      return new ServiceContext(this,action,request,previousResults,owner,collectionName,parameters,payload).withServiceMetadata(s);
+    }
+ else     if (hasServiceCommand(s)) {
+      return new ServiceContext(this,action,request,previousResults,owner,collectionName,parameters,payload).withServiceCommand(s);
+    }
+ else     if ("any".equals(s)) {
+    }
+ else {
+      eType=Schema.normalizeEntityType(s);
+      first_parameter=dequeue(parameters);
+      if (first_parameter instanceof QueryParameter) {
+        query=first_parameter.getQuery();
+      }
+ else       if (first_parameter instanceof IdParameter) {
+        id=first_parameter.getId();
+      }
+ else       if (first_parameter instanceof NameParameter) {
+        s=first_parameter.getName();
+        if (hasServiceMetadata(s)) {
+          return new ServiceContext(this,action,request,previousResults,owner,collectionName,parameters,payload).withServiceMetadata(s);
+        }
+ else         if (hasServiceCommand(s)) {
+          return new ServiceContext(this,action,request,previousResults,owner,collectionName,parameters,payload).withServiceCommand(s);
+        }
+ else {
+          name=s;
+        }
+      }
+    }
+  }
+  if (query == null) {
+    query=new Query();
+  }
+  query.setConnectionType(cType);
+  query.setEntityType(eType);
+  if (id != null) {
+    query.addIdentifier(Identifier.fromUUID(id));
+  }
+  if (name != null) {
+    query.addIdentifier(Identifier.from(name));
+  }
+  return new ServiceContext(this,action,request,previousResults,owner,collectionName,query,parameters,payload);
+}

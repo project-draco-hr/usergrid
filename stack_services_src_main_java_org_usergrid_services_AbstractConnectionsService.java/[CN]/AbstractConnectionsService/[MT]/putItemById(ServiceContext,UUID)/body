@@ -1,0 +1,16 @@
+{
+  if (context.moreParameters()) {
+    return getItemById(context,id);
+  }
+  checkPermissionsForEntity(context,id);
+  Entity item=em.get(id);
+  if (item != null) {
+    updateEntity(context,item,context.getPayload());
+    item=importEntity(context,item);
+  }
+ else {
+    String entityType=getEntityType();
+    item=em.create(id,entityType,context.getPayload().getProperties());
+  }
+  return new ServiceResults(this,context,Type.CONNECTION,Results.fromEntity(item),null,null);
+}

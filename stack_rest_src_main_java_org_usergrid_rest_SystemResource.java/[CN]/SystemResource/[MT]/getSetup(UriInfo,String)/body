@@ -1,0 +1,19 @@
+{
+  ApiResponse response=createApiResponse();
+  response.setAction("cassandra setup");
+  logger.info("Setting up Cassandra");
+  try {
+    emf.setup();
+  }
+ catch (  Exception e) {
+    logger.error("Unable to complete core database setup, possibly due to it being setup already",e);
+  }
+  try {
+    management.setup();
+  }
+ catch (  Exception e) {
+    logger.error("Unable to complete management database setup, possibly due to it being setup already",e);
+  }
+  response.setSuccess();
+  return new JSONWithPadding(response,callback);
+}

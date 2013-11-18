@@ -1,0 +1,32 @@
+{
+  Entity cat=app.testRequest(ServiceAction.POST,0,"cats").getEntity();
+  assertNull(cat);
+  CollectionInfo info=Schema.getDefaultSchema().getCollection(TYPE_APPLICATION,"cats");
+  assertNotNull(info);
+  assertEquals("cats",info.getName());
+  cat=app.testRequest(ServiceAction.POST,0,"cats").getEntity();
+  assertNull(cat);
+  try {
+    app.testRequest(ServiceAction.POST,0,"users");
+    Assert.fail();
+  }
+ catch (  RequiredPropertyNotFoundException rpnfe) {
+  }
+  try {
+    app.testRequest(ServiceAction.POST,0,"groups");
+    Assert.fail();
+  }
+ catch (  IllegalArgumentException iae) {
+  }
+  try {
+    app.testRequest(ServiceAction.POST,0,"roles");
+    Assert.fail();
+  }
+ catch (  IllegalArgumentException iae) {
+  }
+  try {
+    app.testRequest(ServiceAction.POST,0,"events");
+  }
+ catch (  RequiredPropertyNotFoundException rpnfe) {
+  }
+}

@@ -1,0 +1,10 @@
+{
+  if ("indexes".equals(metadataType)) {
+    String cType=context.getQuery().getConnectionType();
+    if (cType != null) {
+      Set<String> indexes=cast(em.getConnectionIndexes(context.getOwner(),cType));
+      return new ServiceResults(this,context.getRequest().withPath(context.getRequest().getPath() + "/indexes"),context.getPreviousResults(),context.getChildPath(),Type.GENERIC,Results.fromData(indexes),null,null);
+    }
+  }
+  return null;
+}

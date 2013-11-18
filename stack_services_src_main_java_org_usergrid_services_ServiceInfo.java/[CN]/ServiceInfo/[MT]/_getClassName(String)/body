@@ -1,0 +1,37 @@
+{
+  servicePattern=normalizeServicePattern(servicePattern);
+  String[] collections=split(servicePattern,"/*/");
+  if (collections[0].startsWith("entities")) {
+    if (collections.length == 1) {
+      return "generic.RootCollectionService";
+    }
+    if (collections[0].indexOf(':') < 0) {
+      return "generic.GenericConnectionsService";
+    }
+    String container=stringOrSubstringAfterLast(collections[0],':');
+    String collectionName=stringOrSubstringBeforeFirst(collections[1],':');
+    if (Schema.getDefaultSchema().hasCollection(container,collectionName)) {
+      return "generic.GenericCollectionService";
+    }
+    return "generic.GenericConnectionsService";
+  }
+  String packages="";
+  String types="";
+  if (collections.length == 1) {
+    packages=stringOrSubstringBeforeLast(stringOrSubstringBeforeFirst(collections[0],':'),'.') + ".";
+  }
+ else {
+    for (int i=0; i < collections.length; i++) {
+      if (i == 0) {
+        packages=stringOrSubstringBeforeFirst(collections[i],':') + ".";
+      }
+ else {
+        packages+=stringOrSubstringBeforeLast(stringOrSubstringBeforeFirst(collections[i],':'),'.') + ".";
+      }
+      if ((i < (collections.length - 1)) && (collections[i].indexOf(':') >= 0)) {
+        types+=capitalize(stringOrSubstringAfterLast(stringOrSubstringAfterLast(collections[i],':'),'.'));
+      }
+    }
+  }
+  return packages + types + capitalize(stringOrSubstringAfterLast(stringOrSubstringBeforeFirst(collections[collections.length - 1],':'),'.'))+ "Service";
+}

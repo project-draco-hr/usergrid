@@ -1,0 +1,37 @@
+{
+  try {
+    if (Long.class.isAssignableFrom(type)) {
+      return bytes.slice().getLong();
+    }
+ else     if (UUID.class.isAssignableFrom(type)) {
+      return uuid(bytes);
+    }
+ else     if (String.class.isAssignableFrom(type)) {
+      return string(bytes);
+    }
+ else     if (Boolean.class.isAssignableFrom(type)) {
+      return bytes.slice().get() != 0;
+    }
+ else     if (Integer.class.isAssignableFrom(type)) {
+      return bytes.slice().getInt();
+    }
+ else     if (Double.class.isAssignableFrom(type)) {
+      return bytes.slice().getDouble();
+    }
+ else     if (Float.class.isAssignableFrom(type)) {
+      return bytes.slice().getFloat();
+    }
+ else     if (ByteBuffer.class.isAssignableFrom(type)) {
+      return bytes.duplicate();
+    }
+ else     if (byte[].class.isAssignableFrom(type)) {
+      byte[] b=new byte[bytes.remaining()];
+      bytes.slice().get(b);
+      return b;
+    }
+  }
+ catch (  Exception e) {
+    logger.error("Unable to get object from bytes for type " + type.getName(),e);
+  }
+  return null;
+}

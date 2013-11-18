@@ -1,0 +1,25 @@
+{
+  startSpring();
+  setVerbose(line);
+  prepareBaseOutputFileName(line);
+  parseDuration(line);
+  applyOrgId(line);
+  parseDateRange(line);
+  outputDir=createOutputParentDir();
+  logger.info("Export directory: {}",outputDir.getAbsolutePath());
+  if (orgId == null) {
+    organizations=managementService.getOrganizations(null,20000);
+    for (    OrganizationInfo organization : organizations) {
+      logger.info("Org Name: {} key: {}",organization.getName(),organization.getUuid());
+      applicationsFor(organization.getUuid());
+    }
+  }
+ else {
+    OrganizationInfo orgInfo=managementService.getOrganizationByUuid(orgId);
+    applicationsFor(orgInfo.getUuid());
+    organizations=new ArrayList<OrganizationInfo>();
+    organizations.add(orgInfo);
+  }
+  Iterable<OrganizationInfo> workingOrgs=applyThreshold();
+  printReport(MetricSort.APP_REQ_COUNT,workingOrgs);
+}

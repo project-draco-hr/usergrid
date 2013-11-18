@@ -1,0 +1,19 @@
+{
+  JobData data=new JobData();
+  JobStat stat=new JobStat();
+  JobDescriptor jobDescriptor=new JobDescriptor("",UUID.randomUUID(),UUID.randomUUID(),data,stat,null);
+  JobExecution bje=new JobExecutionImpl(jobDescriptor);
+  bje.start(JobExecution.FOREVER);
+  assertEquals(Status.IN_PROGRESS,bje.getStatus());
+  assertEquals(1,stat.getRunCount());
+  bje.failed();
+  assertEquals(Status.FAILED,bje.getStatus());
+  assertEquals(1,stat.getRunCount());
+  bje=new JobExecutionImpl(jobDescriptor);
+  bje.start(JobExecution.FOREVER);
+  assertEquals(Status.IN_PROGRESS,bje.getStatus());
+  assertEquals(2,stat.getRunCount());
+  bje.failed();
+  assertEquals(Status.FAILED,bje.getStatus());
+  assertEquals(2,stat.getRunCount());
+}

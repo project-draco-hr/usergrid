@@ -1,0 +1,12 @@
+{
+  AuthPrincipalInfo principal=getPrincipalFromAccessToken(token,TOKEN_TYPE_ACTIVATION,APPLICATION_USER);
+  if ((principal != null) && userId.equals(principal.getUuid())) {
+    activateAppUser(applicationId,principal.getUuid());
+    EntityManager em=emf.getEntityManager(applicationId);
+    User user=em.get(userId,User.class);
+    sendAppUserActivatedEmail(applicationId,user);
+    sendAdminNewAppUserActivatedNotificationEmail(applicationId,user);
+    return ActivationState.ACTIVATED;
+  }
+  return ActivationState.UNKNOWN;
+}

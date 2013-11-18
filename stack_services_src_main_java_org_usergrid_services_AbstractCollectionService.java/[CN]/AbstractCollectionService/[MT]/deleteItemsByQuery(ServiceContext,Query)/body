@@ -1,0 +1,24 @@
+{
+  checkPermissionsForCollection(context);
+  if (context.moreParameters()) {
+    return getItemsByQuery(context,query);
+  }
+  query=new Query(query);
+  query.setResultsLevel(Level.ALL_PROPERTIES);
+  query.setLimit(query.getLimit());
+  if (!query.isReversedSet()) {
+    query.setReversed(isCollectionReversed(context));
+  }
+  if (!query.isSortSet()) {
+    query.addSort(getCollectionSort(context));
+  }
+  Results r=em.searchCollection(context.getOwner(),context.getCollectionName(),query);
+  importEntities(context,r);
+  for (  Entity entity : r) {
+    prepareToDelete(context,entity);
+  }
+  for (  Entity entity : r) {
+    em.removeFromCollection(context.getOwner(),context.getCollectionName(),entity);
+  }
+  return new ServiceResults(this,context,Type.COLLECTION,r,null,null);
+}

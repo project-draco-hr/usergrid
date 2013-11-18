@@ -1,0 +1,18 @@
+{
+  UUID value=UUID.fromString("c6ee8a1c-3ef4-11e2-8861-02e81adcf3d0");
+  String queryString="select * where uuid = c6ee8a1c-3ef4-11e2-8861-02e81adcf3d0";
+  ANTLRStringStream in=new ANTLRStringStream(queryString);
+  QueryFilterLexer lexer=new QueryFilterLexer(in);
+  TokenRewriteStream tokens=new TokenRewriteStream(lexer);
+  QueryFilterParser parser=new QueryFilterParser(tokens);
+  Query query=parser.ql().query;
+  QueryProcessor processor=new QueryProcessor(query,null,null,null);
+  SliceNode node=(SliceNode)processor.getFirstNode();
+  Iterator<QuerySlice> slices=node.getAllSlices().iterator();
+  QuerySlice slice=slices.next();
+  assertEquals("uuid",slice.getPropertyName());
+  assertEquals(value,slice.getStart().getValue());
+  assertTrue(slice.getStart().isInclusive());
+  assertEquals(value,slice.getFinish().getValue());
+  assertTrue(slice.getFinish().isInclusive());
+}

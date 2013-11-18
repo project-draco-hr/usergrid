@@ -1,0 +1,23 @@
+{
+  if (identifier == null) {
+    return null;
+  }
+  UUID organizationId=null;
+  String organizationName=null;
+  BiMap<UUID,String> organizations=getOrganizations();
+  if (organizations == null) {
+    return null;
+  }
+  if (identifier.isName()) {
+    organizationName=identifier.getName().toLowerCase();
+    organizationId=organizations.inverse().get(organizationName);
+  }
+ else   if (identifier.isUUID()) {
+    organizationId=identifier.getUUID();
+    organizationName=organizations.get(organizationId);
+  }
+  if ((organizationId != null) && (organizationName != null)) {
+    return new OrganizationInfo(organizationId,organizationName);
+  }
+  return null;
+}

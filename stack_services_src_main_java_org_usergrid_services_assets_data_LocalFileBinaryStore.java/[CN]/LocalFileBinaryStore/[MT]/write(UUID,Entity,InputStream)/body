@@ -1,0 +1,11 @@
+{
+  File file=path(appId,entity);
+  FileUtils.copyInputStreamToFile(inputStream,file);
+  long size=FileUtils.sizeOf(file);
+  Map<String,Object> fileMetadata=AssetUtils.getFileMetadata(entity);
+  fileMetadata.put(AssetUtils.CONTENT_LENGTH,size);
+  fileMetadata.put(AssetUtils.LAST_MODIFIED,System.currentTimeMillis());
+  if (file.exists()) {
+    AssetMimeHandler.get().getMimeType(entity,file);
+  }
+}

@@ -1,0 +1,17 @@
+{
+  String[] directoryNames={org.apache.cassandra.config.DatabaseDescriptor.getCommitLogLocation()};
+  for (  String dirName : directoryNames) {
+    java.io.File dir=new java.io.File(dirName);
+    if (!dir.exists()) {
+      throw new RuntimeException("No such directory: " + dir.getAbsolutePath());
+    }
+    org.apache.cassandra.io.util.FileUtils.deleteRecursive(dir);
+  }
+  for (  String dirName : org.apache.cassandra.config.DatabaseDescriptor.getAllDataFileLocations()) {
+    java.io.File dir=new java.io.File(dirName);
+    if (!dir.exists()) {
+      throw new RuntimeException("No such directory: " + dir.getAbsolutePath());
+    }
+    org.apache.cassandra.io.util.FileUtils.deleteRecursive(dir);
+  }
+}

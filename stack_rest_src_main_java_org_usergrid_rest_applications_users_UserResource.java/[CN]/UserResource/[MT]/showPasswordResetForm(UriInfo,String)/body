@@ -1,0 +1,18 @@
+{
+  logger.info("UserResource.showPasswordResetForm");
+  this.token=token;
+  try {
+    if (management.checkPasswordResetTokenForAppUser(getApplicationId(),getUserUuid(),token)) {
+      return handleViewable("resetpw_set_form",this);
+    }
+ else {
+      return handleViewable("resetpw_email_form",this);
+    }
+  }
+ catch (  RedirectionException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    return handleViewable("error",e);
+  }
+}

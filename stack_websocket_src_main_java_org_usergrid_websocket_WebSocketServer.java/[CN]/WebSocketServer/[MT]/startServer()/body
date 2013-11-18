@@ -1,0 +1,15 @@
+{
+  if ((properties != null) && (Boolean.parseBoolean(properties.getProperty("usergrid.websocket.disable","false")))) {
+    logger.info("Usergrid WebSocket Server Disabled");
+    return;
+  }
+  logger.info("Starting Usergrid WebSocket Server");
+  if (realm != null) {
+    securityManager=new DefaultSecurityManager(realm);
+  }
+  ServerBootstrap bootstrap=new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),Executors.newCachedThreadPool()));
+  ExecutionHandler executionHandler=new ExecutionHandler(new OrderedMemoryAwareThreadPoolExecutor(16,1048576,1048576));
+  bootstrap.setPipelineFactory(new WebSocketServerPipelineFactory(emf,smf,management,securityManager,executionHandler,ssl));
+  channel=bootstrap.bind(new InetSocketAddress(8088));
+  logger.info("Usergrid WebSocket Server started...");
+}
