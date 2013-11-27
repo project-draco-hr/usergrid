@@ -1,0 +1,38 @@
+{
+synchronized (lock) {
+    this.threads.clear();
+    this.stopSignal=false;
+    this.running=false;
+    this.startTime=0;
+    this.stopTime=0;
+    this.stats=injector.getInstance(CallStats.class);
+    final Perftest test=loader.getChildInjector().getInstance(Perftest.class);
+    final long delay=test.getDelayBetweenCalls();
+    threads=new ArrayList<Thread>(test.getThreadCount());
+    for (int ii=0; ii < test.getThreadCount(); ii++) {
+      threads.add(new Thread(new Runnable(){
+        @Override public void run(){
+          while ((!stopSignal) && (stats.getCallCount() < test.getCallCount())) {
+            long startTime=System.nanoTime();
+            test.call();
+            long endTime=System.nanoTime();
+            stats.callOccurred(test,startTime,endTime,TimeUnit.NANOSECONDS);
+            if (delay > 0) {
+              try {
+                Thread.sleep(delay);
+              }
+ catch (              InterruptedException e) {
+                log.error("Thread was interrupted.",e);
+              }
+            }
+synchronized (lock) {
+              lock.notifyAll();
+            }
+          }
+        }
+      }
+));
+    }
+    this.needsReset=false;
+  }
+}

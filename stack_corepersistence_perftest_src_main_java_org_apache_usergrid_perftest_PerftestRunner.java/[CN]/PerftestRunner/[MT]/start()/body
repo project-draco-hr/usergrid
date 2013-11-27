@@ -1,0 +1,31 @@
+{
+synchronized (lock) {
+    stopSignal=false;
+    startTime=System.nanoTime();
+    running=true;
+    for (    Thread t : threads) {
+      t.start();
+    }
+  }
+  new Thread(new Runnable(){
+    @Override public void run(){
+      while (threadsRunning()) {
+synchronized (lock) {
+          try {
+            lock.wait(sleepToStop.get());
+            log.info("woke up running = {}",PerftestRunner.this.running);
+            lock.notifyAll();
+          }
+ catch (          InterruptedException e) {
+            log.error("Thread interrupted while sleeping",e);
+          }
+        }
+      }
+      log.info("COORDINATOR THREAD: all threads have died.");
+      PerftestRunner.this.running=false;
+      PerftestRunner.this.needsReset=true;
+      stopTime=System.nanoTime();
+    }
+  }
+).start();
+}

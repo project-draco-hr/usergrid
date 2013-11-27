@@ -1,0 +1,18 @@
+{
+  Preconditions.checkNotNull(context,"context is required");
+  Preconditions.checkNotNull(entityId,"entity id is required");
+  Preconditions.checkNotNull(version,"version is required");
+  final UUID start=null;
+  final UUID end=null;
+  Column<UUID> column;
+  try {
+    column=keyspace.prepareQuery(CF_ENTITY_DATA).getKey(entityId).getColumn(version).execute().getResult();
+  }
+ catch (  NotFoundException e) {
+    return null;
+  }
+  if (column == null) {
+    return null;
+  }
+  return new MvccEntityImpl(context,entityId,version,column.getValue(SER));
+}

@@ -1,0 +1,12 @@
+{
+  this.injector=injector;
+  testModuleFqcn=DynamicPropertyFactory.getInstance().getStringProperty("test.module.fqcn",MOCK_TEST_MODULE);
+  if (testModuleFqcn.get().equals(MOCK_TEST_MODULE)) {
+    testModule=new NoopPerftestModule();
+  }
+ else {
+    testModule=loadTestModule();
+  }
+  childInjector=injector.createChildInjector(testModule);
+  testModuleFqcn.addCallback(this);
+}

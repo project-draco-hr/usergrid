@@ -1,0 +1,7 @@
+{
+  AstyanaxConfiguration config=new AstyanaxConfigurationImpl().setDiscoveryType(NodeDiscoveryType.TOKEN_AWARE).setTargetCassandraVersion(cassandraVersion);
+  ConnectionPoolConfiguration connectionPoolConfiguration=new ConnectionPoolConfigurationImpl("UsergridConnectionPool").setPort(cassandraPort).setMaxConnsPerHost(cassandraConnections).setSeeds(cassandraHosts);
+  AstyanaxContext<Keyspace> context=new AstyanaxContext.Builder().forCluster(clusterName).forKeyspace(keyspaceName).withAstyanaxConfiguration(config).withConnectionPoolConfiguration(connectionPoolConfiguration).withConnectionPoolMonitor(new Slf4jConnectionPoolMonitorImpl()).buildKeyspace(ThriftFamilyFactory.getInstance());
+  context.start();
+  return context.getClient();
+}

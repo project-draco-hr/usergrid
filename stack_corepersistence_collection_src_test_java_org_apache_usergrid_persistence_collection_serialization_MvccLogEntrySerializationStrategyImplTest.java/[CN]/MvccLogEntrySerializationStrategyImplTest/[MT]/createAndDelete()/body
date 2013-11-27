@@ -1,0 +1,14 @@
+{
+  final UUID applicationId=UUIDGenerator.newTimeUUID();
+  final String name="test";
+  CollectionContext context=new CollectionContextImpl(applicationId,applicationId,name);
+  final UUID uuid=UUIDGenerator.newTimeUUID();
+  final UUID version=UUIDGenerator.newTimeUUID();
+  for (  Stage stage : Stage.values()) {
+    MvccLogEntry saved=new MvccLogEntryImpl(context,uuid,version,stage);
+    logEntryStrategy.write(saved).execute();
+    MvccLogEntry returned=logEntryStrategy.load(context,uuid,version);
+    assertNotNull("Returned value should not be null",returned);
+    assertEquals("Returned should equal the saved",saved,returned);
+  }
+}
