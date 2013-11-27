@@ -2,19 +2,13 @@
   Preconditions.checkNotNull(context,"context is required");
   Preconditions.checkNotNull(entityId,"entity id is required");
   Preconditions.checkNotNull(version,"version is required");
-  Column<UUID> result=null;
+  Column<UUID> result;
   try {
-    OperationResult<Column<UUID>> foo=keyspace.prepareQuery(CF_ENTITY_LOG).getKey(entityId).getColumn(version).execute();
-    result=foo.getResult();
+    result=keyspace.prepareQuery(CF_ENTITY_LOG).getKey(entityId).getColumn(version).execute().getResult();
   }
  catch (  NotFoundException nfe) {
     return null;
   }
-  if (result == null) {
-    return null;
-  }
-  final byte stored=result.getByteValue();
-  final Stage stage=CACHE.getStage(stored);
-  Preconditions.checkNotNull("No stage was found for byte value " + stored + ".  This is a migration data bug");
+  final Stage stage=result.getValue(SER);
   return new MvccLogEntryImpl(context,entityId,version,stage);
 }
