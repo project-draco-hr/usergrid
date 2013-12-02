@@ -1,0 +1,12 @@
+{
+  PerftestRunner runner=Guice.createInjector(new PerftestModule()).getInstance(PerftestRunner.class);
+  assertFalse(runner.isRunning());
+  runner.start();
+  assertTrue(runner.isRunning());
+  while (runner.isRunning()) {
+    Thread.sleep(100);
+  }
+  runner.stop();
+  assertFalse(runner.isRunning());
+  assertEquals(1000,runner.getCallStatsSnapshot().getCallCount());
+}

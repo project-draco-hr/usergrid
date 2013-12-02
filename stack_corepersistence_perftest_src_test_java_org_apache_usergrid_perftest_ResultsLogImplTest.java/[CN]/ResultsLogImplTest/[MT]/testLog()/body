@@ -1,0 +1,16 @@
+{
+  for (int ii=0; ii < 100; ii++) {
+    executorService.execute(runnable);
+  }
+  executorService.awaitTermination(1000,TimeUnit.MILLISECONDS);
+  resultsLog.close();
+  File file=new File(resultsLog.getPath());
+  assertTrue(file.exists());
+  assertTrue(file.length() > 100);
+  assertEquals(resultCount.get(),resultsLog.getResultCount());
+  LOG.info("The length of the result file is {} bytes.",file.length());
+  resultsLog.truncate();
+  file=new File(resultsLog.getPath());
+  LOG.info("The length of the result file after truncating is {} bytes.",file.length());
+  assertTrue(file.length() == 0);
+}
