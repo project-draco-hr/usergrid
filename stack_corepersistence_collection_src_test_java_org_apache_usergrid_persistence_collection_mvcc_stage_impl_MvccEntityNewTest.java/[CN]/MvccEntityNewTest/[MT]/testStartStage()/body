@@ -1,0 +1,38 @@
+{
+  final MvccLogEntrySerializationStrategy logStrategy=mock(MvccLogEntrySerializationStrategy.class);
+  final ArgumentCaptor<MvccLogEntry> logEntry=ArgumentCaptor.forClass(MvccLogEntry.class);
+  final WriteContext writeContext=mock(WriteContext.class);
+  final CollectionContext context=mock(CollectionContext.class);
+  when(writeContext.getCollectionContext()).thenReturn(context);
+  final MutationBatch mutation=mock(MutationBatch.class);
+  when(logStrategy.write(same(context),logEntry.capture())).thenReturn(mutation);
+  final ListenableFuture<OperationResult<Void>> future=mock(ListenableFuture.class);
+  final OperationResult<Void> result=mock(OperationResult.class);
+  when(mutation.executeAsync()).thenReturn(future);
+  when(future.get()).thenReturn(result);
+  final Entity entity=new Entity();
+  when(writeContext.getMessage(Entity.class)).thenReturn(entity);
+  final TimeService timeService=mock(TimeService.class);
+  final long time=System.currentTimeMillis();
+  when(timeService.getTime()).thenReturn(time);
+  final UUIDService uuidService=mock(UUIDService.class);
+  final UUID newEntityId=UUIDGenerator.newTimeUUID();
+  final UUID newVersion=newEntityId;
+  when(uuidService.newTimeUUID()).thenReturn(newEntityId);
+  MvccEntityNew newStage=new MvccEntityNew(logStrategy,timeService,uuidService);
+  newStage.performStage(writeContext);
+  ArgumentCaptor<MvccEntity> mvccEntity=ArgumentCaptor.forClass(MvccEntity.class);
+  verify(writeContext).setMessage(mvccEntity.capture());
+  MvccEntity created=mvccEntity.getValue();
+  assertEquals("entity id did not match generator",newEntityId,created.getUuid());
+  assertEquals("entity id did not match generator",newEntityId,created.getEntity().get().getUuid());
+  assertEquals("version did not not match entityId",newVersion,created.getVersion());
+  assertEquals("version did not not match entityId",newVersion,created.getEntity().get().getVersion());
+  assertEquals("created time matches generator",time,created.getEntity().get().getCreated());
+  assertEquals("updated time matches generator",time,created.getEntity().get().getUpdated());
+  MvccLogEntry entry=logEntry.getValue();
+  assertEquals("Log entry has correct uuid",newEntityId,entry.getEntityId());
+  assertEquals("Log entry has correct version",newVersion,entry.getEntityId());
+  assertEquals("Stage was correct",Stage.ACTIVE,entry.getStage());
+  verify(writeContext).proceed();
+}
