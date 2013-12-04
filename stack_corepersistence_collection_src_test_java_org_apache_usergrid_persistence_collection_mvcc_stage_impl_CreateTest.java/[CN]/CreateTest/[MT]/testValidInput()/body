@@ -1,7 +1,7 @@
 {
-  final WriteContext writeContext=mock(WriteContext.class);
+  final ExecutionContext executionContext=mock(ExecutionContext.class);
   final Entity entity=new Entity();
-  when(writeContext.getMessage(Entity.class)).thenReturn(entity);
+  when(executionContext.getMessage(Entity.class)).thenReturn(entity);
   final TimeService timeService=mock(TimeService.class);
   final long time=System.currentTimeMillis();
   when(timeService.getTime()).thenReturn(time);
@@ -10,14 +10,14 @@
   final UUID newVersion=newEntityId;
   when(uuidService.newTimeUUID()).thenReturn(newEntityId);
   final Create create=new Create(timeService,uuidService);
-  create.performStage(writeContext);
+  create.performStage(executionContext);
   ArgumentCaptor<Entity> mvccEntity=ArgumentCaptor.forClass(Entity.class);
-  verify(writeContext).setMessage(mvccEntity.capture());
+  verify(executionContext).setMessage(mvccEntity.capture());
   Entity created=mvccEntity.getValue();
   assertEquals("Entity re-set into context",entity,created);
   assertEquals("entity id did not match generator",newEntityId,created.getUuid());
   assertEquals("version did not not match entityId",newVersion,created.getVersion());
   assertEquals("created time matches generator",time,created.getCreated());
   assertEquals("updated time matches generator",time,created.getUpdated());
-  verify(writeContext).proceed();
+  verify(executionContext).proceed();
 }

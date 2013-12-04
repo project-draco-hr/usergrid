@@ -1,0 +1,16 @@
+{
+  CollectionContext context=new CollectionContextImpl(UUIDGenerator.newTimeUUID(),UUIDGenerator.newTimeUUID(),"test");
+  Entity newEntity=new Entity("test");
+  newEntity.setField(new IntegerField("counter",1));
+  CollectionManager manager=factory.createCollectionManager(context);
+  Entity createReturned=manager.create(newEntity);
+  assertNotNull("Id was assigned",createReturned.getUuid());
+  Entity loadReturned=manager.load(createReturned.getUuid());
+  assertEquals("Same value",createReturned,loadReturned);
+  assertEquals("Field value correct",createReturned.getField("counter"),loadReturned.getField("counter"));
+  createReturned.setField(new IntegerField("counter",2));
+  manager.update(createReturned);
+  loadReturned=manager.load(createReturned.getUuid());
+  assertEquals("Same value",createReturned,loadReturned);
+  assertEquals("Field value correct",createReturned.getField("counter"),loadReturned.getField("counter"));
+}

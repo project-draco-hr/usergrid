@@ -1,5 +1,6 @@
 {
-  WriteContext writeContext=new WriteContextImpl(createPipeline,context);
-  writeContext.performWrite(entity);
-  return writeContext.getMessage(Entity.class);
+  ExecutionContext executionContext=new ExecutionContextImpl(createPipeline,context);
+  executionContext.execute(entity);
+  MvccEntity result=executionContext.getMessage(MvccEntity.class);
+  return result.getEntity().get();
 }

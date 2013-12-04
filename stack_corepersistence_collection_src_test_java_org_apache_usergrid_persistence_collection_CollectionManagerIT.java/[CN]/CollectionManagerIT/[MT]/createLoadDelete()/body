@@ -1,0 +1,12 @@
+{
+  CollectionContext context=new CollectionContextImpl(UUIDGenerator.newTimeUUID(),UUIDGenerator.newTimeUUID(),"test");
+  Entity newEntity=new Entity("test");
+  CollectionManager manager=factory.createCollectionManager(context);
+  Entity createReturned=manager.create(newEntity);
+  assertNotNull("Id was assigned",createReturned.getUuid());
+  Entity loadReturned=manager.load(createReturned.getUuid());
+  assertEquals("Same value",createReturned,loadReturned);
+  manager.delete(createReturned.getUuid());
+  loadReturned=manager.load(createReturned.getUuid());
+  assertNull("Entity was deleted",loadReturned);
+}

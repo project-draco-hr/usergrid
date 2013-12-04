@@ -1,0 +1,13 @@
+{
+  CollectionContext collectionContext=mock(CollectionContext.class);
+  StagePipeline pipeline=mock(StagePipeline.class);
+  Stage firstStage=mock(Stage.class);
+  Stage secondStage=mock(Stage.class);
+  when(pipeline.first()).thenReturn(firstStage);
+  when(pipeline.nextStage(same(firstStage))).thenReturn(secondStage);
+  ExecutionContext executionContext=new ExecutionContextImpl(pipeline,collectionContext);
+  Object test=new Object();
+  executionContext.execute(test);
+  executionContext.proceed();
+  verify(secondStage).performStage(same(executionContext));
+}

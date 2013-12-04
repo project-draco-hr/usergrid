@@ -1,0 +1,21 @@
+{
+  final MvccEntity entity=executionContext.getMessage(MvccEntity.class);
+  Preconditions.checkNotNull(entity,"Entity is required in the new stage of the mvcc write");
+  final UUID entityId=entity.getUuid();
+  final UUID version=entity.getVersion();
+  Preconditions.checkNotNull(entityId,"Entity id is required in this stage");
+  Preconditions.checkNotNull(version,"Entity version is required in this stage");
+  final CollectionContext collectionContext=executionContext.getCollectionContext();
+  final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,org.apache.usergrid.persistence.collection.mvcc.entity.Stage.COMMITTED);
+  MutationBatch logMutation=logEntrySerializationStrategy.write(collectionContext,startEntry);
+  MutationBatch entityMutation=entitySerializationStrategy.write(collectionContext,entity);
+  logMutation.mergeShallow(entityMutation);
+  try {
+    logMutation.execute();
+  }
+ catch (  ConnectionException e) {
+    LOG.error("Failed to execute write asynchronously ",e);
+    throw new CollectionRuntimeException("Failed to execute write asynchronously ",e);
+  }
+  executionContext.proceed();
+}
