@@ -1,0 +1,21 @@
+{
+  final Entity entity=writeContext.getMessage(Entity.class);
+  Preconditions.checkNotNull(entity,"Entity is required in the new stage of the mvcc write");
+  final UUID entityId=entity.getUuid();
+  final UUID version=entity.getVersion();
+  Preconditions.checkNotNull(entityId,"Entity id is required in this stage");
+  Preconditions.checkNotNull(version,"Entity version is required in this stage");
+  final CollectionContext collectionContext=writeContext.getCollectionContext();
+  final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,Stage.ACTIVE);
+  MutationBatch write=logStrategy.write(collectionContext,startEntry);
+  try {
+    write.execute();
+  }
+ catch (  ConnectionException e) {
+    LOG.error("Failed to execute write asynchronously ",e);
+    throw new CollectionRuntimeException("Failed to execute write asynchronously ",e);
+  }
+  final MvccEntityImpl nextStage=new MvccEntityImpl(entityId,version,entity);
+  writeContext.setMessage(nextStage);
+  writeContext.proceed();
+}

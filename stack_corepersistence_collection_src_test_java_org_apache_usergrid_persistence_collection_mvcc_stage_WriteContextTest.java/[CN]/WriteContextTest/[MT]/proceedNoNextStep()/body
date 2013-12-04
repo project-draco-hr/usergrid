@@ -1,0 +1,11 @@
+{
+  CollectionContext collectionContext=mock(CollectionContext.class);
+  StagePipeline pipeline=mock(StagePipeline.class);
+  WriteStage firstStage=mock(WriteStage.class);
+  when(pipeline.first()).thenReturn(firstStage);
+  when(pipeline.nextStage(same(firstStage))).thenReturn(null);
+  WriteContext writeContext=new WriteContextImpl(pipeline,collectionContext);
+  Object test=new Object();
+  writeContext.performWrite(test);
+  writeContext.proceed();
+}

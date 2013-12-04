@@ -1,6 +1,5 @@
 {
   install(new GuiceBerryModule());
-  bind(GuiceBerryEnvMain.class).to(CassAppMain.class);
   install(new CollectionModule());
   Map<String,String> configProperties=new HashMap<String,String>();
   configProperties.put(AstynaxKeyspaceProvider.CASSANDRA_HOSTS,"localhost");
@@ -13,9 +12,8 @@
   configProperties.put(MigrationManagerImpl.REPLICATION_FACTOR,"1");
   configProperties.put(MigrationManagerImpl.STRATEGY_CLASS,SimpleStrategy.class.getName());
   configProperties.put(MvccLogEntrySerializationStrategyImpl.TIMEOUT_PROP,60 + "");
-  Map<String,String> props=getOverrides();
-  if (props != null) {
-    configProperties.putAll(props);
+  if (override != null) {
+    configProperties.putAll(override);
   }
   Names.bindProperties(binder(),configProperties);
 }

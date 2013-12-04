@@ -1,0 +1,20 @@
+{
+  final Entity entity=writeContext.getMessage(Entity.class);
+  Preconditions.checkNotNull(entity,"Entity is required in the new stage of the mvcc write");
+  Verify.isNull(entity.getUuid(),"A new entity should not have an id set.  This is an update operation");
+  final UUID entityId=uuidService.newTimeUUID();
+  final UUID version=entityId;
+  final long created=timeService.getTime();
+  try {
+    FieldUtils.writeDeclaredField(entity,"uuid",entityId,true);
+  }
+ catch (  Throwable t) {
+    LOG.error("Unable to set uuid.  See nested exception",t);
+    throw new CollectionRuntimeException("Unable to set uuid.  See nested exception",t);
+  }
+  entity.setVersion(version);
+  entity.setCreated(created);
+  entity.setUpdated(created);
+  writeContext.setMessage(entity);
+  writeContext.proceed();
+}

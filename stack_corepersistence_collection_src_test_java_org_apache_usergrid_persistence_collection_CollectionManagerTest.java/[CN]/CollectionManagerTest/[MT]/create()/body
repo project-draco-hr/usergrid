@@ -1,0 +1,15 @@
+{
+  WriteStage mockStage=mock(WriteStage.class);
+  StagePipeline createPipeline=mock(StagePipeline.class);
+  StagePipeline updatePipeline=mock(StagePipeline.class);
+  StagePipeline deletePipeline=mock(StagePipeline.class);
+  when(createPipeline.first()).thenReturn(mockStage);
+  CollectionContext context=new CollectionContextImpl(UUIDGenerator.newTimeUUID(),UUIDGenerator.newTimeUUID(),"test");
+  CollectionManager collectionManager=new CollectionManagerImpl(createPipeline,updatePipeline,deletePipeline,context);
+  Entity create=new Entity();
+  Entity returned=collectionManager.create(create);
+  verify(createPipeline).first();
+  ArgumentCaptor<WriteContext> contextArg=ArgumentCaptor.forClass(WriteContext.class);
+  verify(mockStage).performStage(contextArg.capture());
+  assertEquals("Entity should be present in the write context",create,contextArg.getValue().getMessage(Entity.class));
+}

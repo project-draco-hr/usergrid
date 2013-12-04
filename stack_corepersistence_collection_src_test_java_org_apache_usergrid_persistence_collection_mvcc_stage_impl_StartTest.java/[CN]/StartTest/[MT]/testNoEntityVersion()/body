@@ -1,0 +1,10 @@
+{
+  final WriteContext writeContext=mock(WriteContext.class);
+  final Entity entity=new Entity();
+  final UUID entityId=UUIDGenerator.newTimeUUID();
+  FieldUtils.writeDeclaredField(entity,"uuid",entityId,true);
+  when(writeContext.getMessage(Entity.class)).thenReturn(entity);
+  final MvccLogEntrySerializationStrategy logStrategy=mock(MvccLogEntrySerializationStrategy.class);
+  Start newStage=new Start(logStrategy);
+  newStage.performStage(writeContext);
+}
