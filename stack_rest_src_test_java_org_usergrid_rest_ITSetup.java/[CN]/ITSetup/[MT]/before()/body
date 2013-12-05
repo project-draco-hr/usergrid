@@ -12,10 +12,8 @@ synchronized (cassandraResource) {
     providerFactory=cassandraResource.getBean(SignInProviderFactory.class);
     properties=cassandraResource.getBean("properties",Properties.class);
     smf=cassandraResource.getBean(ServiceManagerFactory.class);
-    while (jetty == null) {
-      startJetty();
-    }
-    uri=UriBuilder.fromUri("http://localhost/").port(jettyPort).build();
+    tomcatResource.before();
+    uri=UriBuilder.fromUri("http://localhost/").port(tomcatResource.getPort()).build();
     ready=true;
     LOG.info("Test setup complete...");
   }
