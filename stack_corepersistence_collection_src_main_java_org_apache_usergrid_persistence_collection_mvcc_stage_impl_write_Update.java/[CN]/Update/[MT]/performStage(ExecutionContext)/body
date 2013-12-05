@@ -1,0 +1,12 @@
+{
+  final Entity entity=executionContext.getMessage(Entity.class);
+  Preconditions.checkNotNull(entity,"Entity is required in the new stage of the mvcc write");
+  final UUID entityId=entity.getUuid();
+  Preconditions.checkNotNull(entityId,"The entity id is required to be set for an update operation");
+  final UUID version=uuidService.newTimeUUID();
+  final long updated=timeService.getTime();
+  entity.setVersion(version);
+  entity.setUpdated(updated);
+  executionContext.setMessage(entity);
+  executionContext.proceed();
+}
