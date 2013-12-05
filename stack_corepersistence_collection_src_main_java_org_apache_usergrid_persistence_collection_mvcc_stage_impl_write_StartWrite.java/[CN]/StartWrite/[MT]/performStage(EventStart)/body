@@ -5,9 +5,9 @@
   final UUID version=entity.getVersion();
   Preconditions.checkNotNull(entityId,"Entity id is required in this stage");
   Preconditions.checkNotNull(version,"Entity version is required in this stage");
-  final CollectionContext collectionContext=event.getCollectionContext();
+  final EntityCollection entityCollection=event.getCollectionContext();
   final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,org.apache.usergrid.persistence.collection.mvcc.entity.Stage.ACTIVE);
-  MutationBatch write=logStrategy.write(collectionContext,startEntry);
+  MutationBatch write=logStrategy.write(entityCollection,startEntry);
   try {
     write.execute();
   }
@@ -16,5 +16,5 @@
     throw new CollectionRuntimeException("Failed to execute write asynchronously ",e);
   }
   final MvccEntityImpl nextStage=new MvccEntityImpl(entityId,version,entity);
-  eventBus.post(new EventVerify(collectionContext,nextStage,event.getResult()));
+  eventBus.post(new EventVerify(entityCollection,nextStage,event.getResult()));
 }

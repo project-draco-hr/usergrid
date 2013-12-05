@@ -1,9 +1,9 @@
 {
   final UUID entityId=event.getData();
   Preconditions.checkNotNull(entityId,"Entity id required in the read stage");
-  final CollectionContext collectionContext=event.getCollectionContext();
+  final EntityCollection entityCollection=event.getCollectionContext();
   final UUID versionMax=uuidService.newTimeUUID();
-  List<MvccEntity> results=entitySerializationStrategy.load(collectionContext,entityId,versionMax,1);
+  List<MvccEntity> results=entitySerializationStrategy.load(entityCollection,entityId,versionMax,1);
   if (results.size() != 1) {
     return;
   }

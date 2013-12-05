@@ -5,10 +5,10 @@
   final UUID version=entity.getVersion();
   Preconditions.checkNotNull(entityId,"Entity id is required in this stage");
   Preconditions.checkNotNull(version,"Entity version is required in this stage");
-  final CollectionContext collectionContext=event.getCollectionContext();
+  final EntityCollection entityCollection=event.getCollectionContext();
   final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,org.apache.usergrid.persistence.collection.mvcc.entity.Stage.COMMITTED);
-  MutationBatch logMutation=logEntrySerializationStrategy.write(collectionContext,startEntry);
-  MutationBatch entityMutation=entitySerializationStrategy.write(collectionContext,entity);
+  MutationBatch logMutation=logEntrySerializationStrategy.write(entityCollection,startEntry);
+  MutationBatch entityMutation=entitySerializationStrategy.write(entityCollection,entity);
   logMutation.mergeShallow(entityMutation);
   try {
     logMutation.execute();
