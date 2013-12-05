@@ -1,10 +1,10 @@
 {
-  final ExecutionContext executionContext=mock(ExecutionContext.class);
   final Entity entity=new Entity();
   final UUID version=UUIDGenerator.newTimeUUID();
   entity.setVersion(version);
-  when(executionContext.getMessage(Entity.class)).thenReturn(entity);
+  final CollectionContext context=mock(CollectionContext.class);
+  final CollectionEventBus eventBus=mock(CollectionEventBus.class);
   final MvccLogEntrySerializationStrategy logStrategy=mock(MvccLogEntrySerializationStrategy.class);
-  StartWrite newStage=new StartWrite(logStrategy);
-  newStage.performStage(executionContext);
+  StartWrite newStage=new StartWrite(eventBus,logStrategy);
+  newStage.performStage(new EventStart(context,entity,new Result()));
 }

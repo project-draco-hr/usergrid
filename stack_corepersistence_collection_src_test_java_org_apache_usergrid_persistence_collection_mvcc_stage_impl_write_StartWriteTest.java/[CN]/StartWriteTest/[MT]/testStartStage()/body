@@ -1,24 +1,23 @@
 {
-  final ExecutionContext executionContext=mock(ExecutionContext.class);
   final CollectionContext context=mock(CollectionContext.class);
-  when(executionContext.getCollectionContext()).thenReturn(context);
-  final Entity entity=generateEntity();
-  when(executionContext.getMessage(Entity.class)).thenReturn(entity);
+  final CollectionEventBus bus=mock(CollectionEventBus.class);
   final MvccLogEntrySerializationStrategy logStrategy=mock(MvccLogEntrySerializationStrategy.class);
   final ArgumentCaptor<MvccLogEntry> logEntry=ArgumentCaptor.forClass(MvccLogEntry.class);
   final MutationBatch mutation=mock(MutationBatch.class);
   when(logStrategy.write(same(context),logEntry.capture())).thenReturn(mutation);
-  StartWrite newStage=new StartWrite(logStrategy);
-  newStage.performStage(executionContext);
-  ArgumentCaptor<MvccEntity> mvccEntity=ArgumentCaptor.forClass(MvccEntity.class);
+  Result result=new Result();
+  final Entity entity=generateEntity();
+  EventStart start=new EventStart(context,entity,result);
+  StartWrite newStage=new StartWrite(bus,logStrategy);
+  newStage.performStage(start);
+  ArgumentCaptor<EventVerify> eventVerify=ArgumentCaptor.forClass(EventVerify.class);
   MvccLogEntry entry=logEntry.getValue();
   assertEquals("entity id did not match ",entity.getUuid(),entry.getEntityId());
   assertEquals("version did not not match entityId",entity.getVersion(),entry.getVersion());
-  assertEquals("ExecutionStage is correct",Stage.ACTIVE,entry.getStage());
-  verify(executionContext).setMessage(mvccEntity.capture());
-  MvccEntity created=mvccEntity.getValue();
+  assertEquals("EventStage is correct",Stage.ACTIVE,entry.getStage());
+  verify(bus).post(eventVerify.capture());
+  MvccEntity created=eventVerify.getValue().getData();
   assertEquals("entity id did not match generator",entity.getUuid(),created.getUuid());
   assertEquals("version did not not match entityId",entity.getVersion(),created.getVersion());
   assertSame("Entity correct",entity,created.getEntity().get());
-  verify(executionContext).proceed();
 }
