@@ -1,13 +1,13 @@
 {
-  final UUID applicationId=UUIDGenerator.newTimeUUID();
+  final Id applicationId=new SimpleId("application");
   final String name="test";
   EntityCollection context=new EntityCollectionImpl(applicationId,name);
-  final UUID uuid=UUIDGenerator.newTimeUUID();
+  final SimpleId id=new SimpleId("test");
   final UUID version=UUIDGenerator.newTimeUUID();
   for (  Stage stage : Stage.values()) {
-    MvccLogEntry saved=new MvccLogEntryImpl(uuid,version,stage);
+    MvccLogEntry saved=new MvccLogEntryImpl(id,version,stage);
     logEntryStrategy.write(context,saved).execute();
-    MvccLogEntry returned=logEntryStrategy.load(context,uuid,version);
+    MvccLogEntry returned=logEntryStrategy.load(context,id,version);
     assertNotNull("Returned value should not be null",returned);
     assertEquals("Returned should equal the saved",saved,returned);
   }

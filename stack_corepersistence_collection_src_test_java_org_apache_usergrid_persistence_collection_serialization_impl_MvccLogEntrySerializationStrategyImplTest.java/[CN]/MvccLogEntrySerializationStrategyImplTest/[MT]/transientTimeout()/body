@@ -1,14 +1,14 @@
 {
-  final UUID applicationId=UUIDGenerator.newTimeUUID();
+  final Id applicationId=new SimpleId("application");
   final String name="test";
   EntityCollection context=new EntityCollectionImpl(applicationId,name);
-  final UUID uuid=UUIDGenerator.newTimeUUID();
+  final SimpleId id=new SimpleId("test");
   final UUID version=UUIDGenerator.newTimeUUID();
   for (  Stage stage : Stage.values()) {
-    MvccLogEntry saved=new MvccLogEntryImpl(uuid,version,stage);
+    MvccLogEntry saved=new MvccLogEntryImpl(id,version,stage);
     logEntryStrategy.write(context,saved).execute();
     Thread.sleep(TIMEOUT * 1000);
-    MvccLogEntry returned=logEntryStrategy.load(context,uuid,version);
+    MvccLogEntry returned=logEntryStrategy.load(context,id,version);
     if (stage.isTransient()) {
       assertNull("Active is transient and should time out",returned);
     }

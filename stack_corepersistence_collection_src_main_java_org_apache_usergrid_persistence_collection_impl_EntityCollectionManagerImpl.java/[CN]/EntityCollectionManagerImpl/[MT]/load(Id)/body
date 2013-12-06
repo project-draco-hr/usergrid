@@ -1,0 +1,8 @@
+{
+  Preconditions.checkNotNull(entityId,"Entity id required in the load stage");
+  Preconditions.checkNotNull(entityId.getUuid(),"Entity id uuid required in the load stage");
+  Preconditions.checkNotNull(entityId.getType(),"Entity id type required in the load stage");
+  Result result=new Result();
+  eventBus.post(new EventLoad(context,entityId,result));
+  return result.getLast(Entity.class);
+}

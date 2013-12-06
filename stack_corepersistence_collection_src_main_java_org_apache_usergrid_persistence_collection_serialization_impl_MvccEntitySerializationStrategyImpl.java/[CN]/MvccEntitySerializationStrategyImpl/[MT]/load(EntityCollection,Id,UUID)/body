@@ -1,0 +1,20 @@
+{
+  Preconditions.checkNotNull(context,"context is required");
+  Preconditions.checkNotNull(entityId,"entity id is required");
+  Preconditions.checkNotNull(version,"version is required");
+  Column<UUID> column;
+  try {
+    column=keyspace.prepareQuery(CF_ENTITY_DATA).getKey(entityId).getColumn(version).execute().getResult();
+  }
+ catch (  NotFoundException e) {
+    return null;
+  }
+catch (  ConnectionException e) {
+    throw new CollectionRuntimeException("An error occurred connecting to cassandra",e);
+  }
+  final Optional<Entity> deSerialized=column.getValue(SER);
+  if (deSerialized.isPresent()) {
+    EntityUtils.setId(deSerialized.get(),entityId);
+  }
+  return new MvccEntityImpl(entityId,version,deSerialized);
+}

@@ -1,0 +1,19 @@
+{
+  final UUIDService uuidService=mock(UUIDService.class);
+  final UUID newVersion=UUIDGenerator.newTimeUUID();
+  when(uuidService.newTimeUUID()).thenReturn(newVersion);
+  final CollectionEventBus eventBus=mock(CollectionEventBus.class);
+  final EntityCollection collection=mock(EntityCollection.class);
+  final Result result=new Result();
+  final MvccEntity mockMvccEntity=mock(MvccEntity.class);
+  result.addResult(mockMvccEntity);
+  EntityCollectionManagerImpl collectionManager=new EntityCollectionManagerImpl(eventBus,uuidService,collection);
+  final Entity entity=new Entity("test");
+  ArgumentCaptor<EventStart> event=ArgumentCaptor.forClass(EventStart.class);
+  doNothing().when(eventBus).post(event.capture());
+  collectionManager.write(entity);
+  verify(eventBus).post(event.capture());
+  Entity created=event.getValue().getData();
+  assertEquals("Entity re-set into context",entity,created);
+  assertEquals("version did not not match entityId",newVersion,created.getVersion());
+}

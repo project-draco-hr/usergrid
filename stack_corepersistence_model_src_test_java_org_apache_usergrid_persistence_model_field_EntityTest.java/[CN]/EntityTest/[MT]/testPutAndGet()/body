@@ -2,16 +2,12 @@
   final UUID uuid=UUIDGenerator.newTimeUUID();
   final UUID version=UUIDGenerator.newTimeUUID();
   final String type="test";
-  final long created=1l;
-  final long updated=2l;
-  Entity entity=new Entity(uuid,type);
-  entity.setVersion(version);
-  entity.setCreated(created);
-  entity.setUpdated(updated);
-  assertEquals(uuid,entity.getUuid());
-  assertEquals(type,entity.getType());
-  assertEquals(created,entity.getCreated());
-  assertEquals(updated,entity.getUpdated());
+  final Id simpleId=new SimpleId(uuid,type);
+  Entity entity=new Entity(simpleId);
+  FieldUtils.writeDeclaredField(entity,"version",version,true);
+  assertEquals(uuid,entity.getId().getUuid());
+  assertEquals(type,entity.getId().getType());
+  assertEquals(version,entity.getVersion());
   BooleanField boolField=new BooleanField("boolean",false);
   DoubleField doubleField=new DoubleField("double",1d);
   IntegerField intField=new IntegerField("long",1);
@@ -45,6 +41,6 @@
   assertTrue(results.contains(stringField));
   assertTrue(results.contains(uuidField));
   assertEquals(6,results.size());
-  assertEquals(uuid,entity.getUuid());
+  assertEquals(simpleId,entity.getId());
   assertEquals(version,entity.getVersion());
 }
