@@ -1,7 +1,7 @@
 {
   final Id entityId=idIoEvent.getEvent();
-  Preconditions.checkNotNull(entityId,"Entity id required in the load stage");
-  final EntityCollection entityCollection=idIoEvent.getContext();
+  EntityUtils.verifyIdentity(entityId);
+  final EntityCollection entityCollection=idIoEvent.getEntityCollection();
   final UUID versionMax=uuidService.newTimeUUID();
   List<MvccEntity> results=entitySerializationStrategy.load(entityCollection,entityId,versionMax,1);
   if (results.size() != 1) {
