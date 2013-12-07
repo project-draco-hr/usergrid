@@ -7,6 +7,7 @@
   IoEvent<MvccEntity> result=observable.toBlockingObservable().single();
   assertSame("Context was correct",entityCollection,result.getEntityCollection());
   MvccEntity entry=result.getEvent();
-  assertEquals("version did not not match entityId",mvccEntity.getVersion(),entry.getVersion());
-  assertEquals("Entity is correct",entity,entry.getEntity().orNull());
+  assertSame("id correct",entity.getId(),entry.getId());
+  assertSame("version did not not match entityId",entity.getVersion(),entry.getVersion());
+  assertSame("Entity correct",entity,entry.getEntity().get());
 }

@@ -9,9 +9,11 @@
   Observable<IoEvent<MvccEntity>> observable=newStage.call(new IoEvent<Entity>(context,entity));
   IoEvent<MvccEntity> result=observable.toBlockingObservable().single();
   MvccLogEntry entry=logEntry.getValue();
+  assertEquals("id correct",entity.getId(),entry.getEntityId());
   assertEquals("version did not not match entityId",entity.getVersion(),entry.getVersion());
   assertEquals("EventStage is correct",Stage.ACTIVE,entry.getStage());
   MvccEntity created=result.getEvent();
-  assertEquals("version did not not match entityId",entity.getVersion(),created.getVersion());
+  assertSame("id correct",entity.getId(),created.getId());
+  assertSame("version did not not match entityId",entity.getVersion(),created.getVersion());
   assertSame("Entity correct",entity,created.getEntity().get());
 }
