@@ -4,7 +4,7 @@
   final ArgumentCaptor<MvccLogEntry> logEntry=ArgumentCaptor.forClass(MvccLogEntry.class);
   final MutationBatch mutation=mock(MutationBatch.class);
   when(logStrategy.write(same(context),logEntry.capture())).thenReturn(mutation);
-  final Entity entity=generateEntity();
+  final Entity entity=TestEntityGenerator.generateEntity();
   WriteStart newStage=new WriteStart(logStrategy);
   Observable<IoEvent<MvccEntity>> observable=newStage.call(new IoEvent<Entity>(context,entity));
   IoEvent<MvccEntity> result=observable.toBlockingObservable().single();

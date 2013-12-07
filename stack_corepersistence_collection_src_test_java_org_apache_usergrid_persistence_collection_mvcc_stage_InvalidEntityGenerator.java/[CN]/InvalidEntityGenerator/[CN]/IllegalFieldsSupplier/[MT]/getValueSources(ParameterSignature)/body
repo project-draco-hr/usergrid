@@ -1,6 +1,12 @@
 {
   final List<PotentialAssignment> result=new ArrayList<PotentialAssignment>();
-  result.add(PotentialAssignment.forValue("wrongEntityUuidType",wrongEntityUuidType()));
-  result.add(PotentialAssignment.forValue("wrongEntityTypeLength",wrongEntityTypeLength()));
+  for (  PotentialAssignment assignment : new InvalidIdGenerator.IllegalFieldsSupplier().getValueSources(sig)) {
+    try {
+      result.add(PotentialAssignment.forValue(assignment.getDescription(),new Entity((Id)assignment.getValue())));
+    }
+ catch (    PotentialAssignment.CouldNotGenerateValueException e) {
+      throw new RuntimeException(e);
+    }
+  }
   return result;
 }
