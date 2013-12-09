@@ -11,7 +11,6 @@
   final List<MvccEntity> results=Lists.newArrayList(mvccEntity);
   when(serializationStrategy.load(collection,entityId,loadVersion,1)).thenReturn(results);
   Load load=new Load(uuidService,serializationStrategy);
-  Observable<Entity> response=load.call(entityIoEvent);
-  Entity loaded=response.toBlockingObservable().single();
+  Entity loaded=load.call(entityIoEvent);
   assertSame("Same entity was loaded",entity,loaded);
 }

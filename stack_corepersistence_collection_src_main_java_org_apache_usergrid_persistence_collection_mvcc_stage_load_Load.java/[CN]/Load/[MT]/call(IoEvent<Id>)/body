@@ -5,11 +5,11 @@
   final UUID versionMax=uuidService.newTimeUUID();
   List<MvccEntity> results=entitySerializationStrategy.load(scope,entityId,versionMax,1);
   if (results.size() != 1) {
-    return Observable.empty();
+    return null;
   }
   final Optional<Entity> targetVersion=results.get(0).getEntity();
   if (!targetVersion.isPresent()) {
-    return Observable.empty();
+    return null;
   }
-  return Observable.from(targetVersion.get());
+  return targetVersion.get();
 }
