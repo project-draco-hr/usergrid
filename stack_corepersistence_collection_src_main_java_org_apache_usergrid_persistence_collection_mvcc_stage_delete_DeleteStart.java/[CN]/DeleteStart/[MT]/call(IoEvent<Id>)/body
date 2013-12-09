@@ -2,9 +2,9 @@
   final Id entityId=entityIoEvent.getEvent();
   EntityUtils.verifyIdentity(entityId);
   final UUID version=uuidService.newTimeUUID();
-  final EntityCollection entityCollection=entityIoEvent.getEntityCollection();
+  final Scope scope=entityIoEvent.getEntityCollection();
   final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,Stage.ACTIVE);
-  MutationBatch write=logStrategy.write(entityCollection,startEntry);
+  MutationBatch write=logStrategy.write(scope,startEntry);
   try {
     write.execute();
   }
@@ -13,5 +13,5 @@
     throw new CollectionRuntimeException("Failed to execute write asynchronously ",e);
   }
   final MvccEntityImpl nextStage=new MvccEntityImpl(entityId,version,Optional.<Entity>absent());
-  return Observable.from(new IoEvent<MvccEntity>(entityCollection,nextStage));
+  return Observable.from(new IoEvent<MvccEntity>(scope,nextStage));
 }

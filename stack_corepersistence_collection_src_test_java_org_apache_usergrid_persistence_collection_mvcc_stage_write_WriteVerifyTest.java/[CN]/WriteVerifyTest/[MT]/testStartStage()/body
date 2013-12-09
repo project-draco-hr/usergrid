@@ -1,11 +1,11 @@
 {
-  final EntityCollection entityCollection=mock(EntityCollection.class);
+  final Scope scope=mock(Scope.class);
   final Entity entity=generateEntity();
   final MvccEntity mvccEntity=fromEntity(entity);
   WriteVerify newStage=new WriteVerify();
-  Observable<IoEvent<MvccEntity>> observable=newStage.call(new IoEvent<MvccEntity>(entityCollection,mvccEntity));
+  Observable<IoEvent<MvccEntity>> observable=newStage.call(new IoEvent<MvccEntity>(scope,mvccEntity));
   IoEvent<MvccEntity> result=observable.toBlockingObservable().single();
-  assertSame("Context was correct",entityCollection,result.getEntityCollection());
+  assertSame("Context was correct",scope,result.getEntityCollection());
   MvccEntity entry=result.getEvent();
   assertSame("id correct",entity.getId(),entry.getId());
   assertSame("version did not not match entityId",entity.getVersion(),entry.getVersion());
