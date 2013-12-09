@@ -12,9 +12,5 @@
 catch (  ConnectionException e) {
     throw new CollectionRuntimeException("An error occurred connecting to cassandra",e);
   }
-  final Optional<Entity> deSerialized=column.getValue(SER);
-  if (deSerialized.isPresent()) {
-    EntityUtils.setId(deSerialized.get(),entityId);
-  }
-  return new MvccEntityImpl(entityId,version,deSerialized);
+  return new MvccEntityImpl(entityId,version,getEntity(column,entityId));
 }

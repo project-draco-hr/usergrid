@@ -6,8 +6,5 @@
   Preconditions.checkNotNull(entityId.getType(),"The entity id type required to be set for an update operation");
   final UUID version=uuidService.newTimeUUID();
   EntityUtils.setVersion(entity,version);
-  Result result=new Result();
-  eventBus.post(new EventStart(context,entity,result));
-  MvccEntity completed=result.getLast(MvccEntity.class);
-  return completed.getEntity().get();
+  return writeStart.call(new IoEvent<Entity>(context,entity)).mapMany(writeVerifyWrite).mapMany(writeCommit);
 }

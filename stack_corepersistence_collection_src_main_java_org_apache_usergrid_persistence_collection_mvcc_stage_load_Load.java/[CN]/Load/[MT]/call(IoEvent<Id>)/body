@@ -1,0 +1,15 @@
+{
+  final Id entityId=idIoEvent.getEvent();
+  EntityUtils.verifyIdentity(entityId);
+  final EntityCollection entityCollection=idIoEvent.getEntityCollection();
+  final UUID versionMax=uuidService.newTimeUUID();
+  List<MvccEntity> results=entitySerializationStrategy.load(entityCollection,entityId,versionMax,1);
+  if (results.size() != 1) {
+    return Observable.empty();
+  }
+  final Optional<Entity> targetVersion=results.get(0).getEntity();
+  if (!targetVersion.isPresent()) {
+    return Observable.empty();
+  }
+  return Observable.from(targetVersion.get());
+}

@@ -1,0 +1,18 @@
+{
+  final MvccEntity entity=idIoEvent.getEvent();
+  EntityUtils.verifyMvccEntityOptionalEntity(entity);
+  final Id entityId=entity.getId();
+  final UUID version=entity.getVersion();
+  final EntityCollection entityCollection=idIoEvent.getEntityCollection();
+  final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,org.apache.usergrid.persistence.collection.mvcc.entity.Stage.COMMITTED);
+  MutationBatch logMutation=logEntrySerializationStrategy.write(entityCollection,startEntry);
+  MutationBatch entityMutation=entitySerializationStrategy.clear(entityCollection,entityId,version);
+  logMutation.mergeShallow(entityMutation);
+  try {
+    logMutation.execute();
+  }
+ catch (  ConnectionException e) {
+    LOG.error("Failed to execute write asynchronously ",e);
+    throw new CollectionRuntimeException("Failed to execute write asynchronously ",e);
+  }
+}
