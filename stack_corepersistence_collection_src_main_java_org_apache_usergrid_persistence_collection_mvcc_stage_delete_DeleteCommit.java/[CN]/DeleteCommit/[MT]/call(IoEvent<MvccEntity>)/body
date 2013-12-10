@@ -3,10 +3,10 @@
   EntityUtils.verifyMvccEntityOptionalEntity(entity);
   final Id entityId=entity.getId();
   final UUID version=entity.getVersion();
-  final Scope scope=idIoEvent.getEntityCollection();
+  final CollectionScope collectionScope=idIoEvent.getEntityCollection();
   final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,org.apache.usergrid.persistence.collection.mvcc.entity.Stage.COMMITTED);
-  MutationBatch logMutation=logEntrySerializationStrategy.write(scope,startEntry);
-  MutationBatch entityMutation=entitySerializationStrategy.clear(scope,entityId,version);
+  MutationBatch logMutation=logEntrySerializationStrategy.write(collectionScope,startEntry);
+  MutationBatch entityMutation=entitySerializationStrategy.clear(collectionScope,entityId,version);
   logMutation.mergeShallow(entityMutation);
   try {
     logMutation.execute();
