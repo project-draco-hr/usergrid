@@ -1,10 +1,10 @@
 {
-  Preconditions.checkNotNull(context,"context is required");
+  Preconditions.checkNotNull(scope,"scope is required");
   Preconditions.checkNotNull(entityId,"entity id is required");
   Preconditions.checkNotNull(version,"version is required");
   Column<UUID> result;
   try {
-    result=keyspace.prepareQuery(CF_ENTITY_LOG).getKey(entityId).getColumn(version).execute().getResult();
+    result=keyspace.prepareQuery(CF_ENTITY_LOG).getKey(ScopedRowKey.fromKey(scope,entityId)).getColumn(version).execute().getResult();
   }
  catch (  NotFoundException nfe) {
     return null;

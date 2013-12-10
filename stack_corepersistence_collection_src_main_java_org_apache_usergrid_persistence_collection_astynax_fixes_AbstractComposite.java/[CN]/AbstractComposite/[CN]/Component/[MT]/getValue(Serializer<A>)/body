@@ -1,0 +1,15 @@
+{
+  if (s == null) {
+    s=(Serializer<A>)serializer;
+  }
+  if ((value == null) && (bytes != null) && (s != null)) {
+    ByteBuffer cb=bytes.duplicate();
+    if (cb.hasRemaining()) {
+      return s.fromByteBuffer(cb);
+    }
+  }
+  if (value instanceof ByteBuffer) {
+    return (A)((ByteBuffer)value).duplicate();
+  }
+  return (A)value;
+}

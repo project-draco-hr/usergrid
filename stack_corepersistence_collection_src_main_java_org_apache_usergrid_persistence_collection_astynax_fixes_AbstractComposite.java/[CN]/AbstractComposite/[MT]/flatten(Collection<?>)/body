@@ -1,0 +1,25 @@
+{
+  if (c instanceof AbstractComposite) {
+    return ((AbstractComposite)c).getComponents();
+  }
+  boolean hasCollection=false;
+  for (  Object o : c) {
+    if (o instanceof Collection) {
+      hasCollection=true;
+      break;
+    }
+  }
+  if (!hasCollection) {
+    return c;
+  }
+  List newList=new ArrayList();
+  for (  Object o : c) {
+    if (o instanceof Collection) {
+      newList.addAll(flatten((Collection)o));
+    }
+ else {
+      newList.add(o);
+    }
+  }
+  return newList;
+}

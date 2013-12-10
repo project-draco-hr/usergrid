@@ -1,0 +1,18 @@
+{
+  serialized=b.duplicate();
+  components=new ArrayList<Component<?>>();
+  String comparator=null;
+  int i=0;
+  while ((comparator=getComparator(i,b)) != null) {
+    ByteBuffer data=getWithShortLength(b);
+    if (data != null) {
+      Serializer<?> s=getSerializer(i,comparator);
+      ComponentEquality equality=ComponentEquality.fromByte(b.get());
+      components.add(new Component(null,data.slice(),s,comparator,equality));
+    }
+ else {
+      throw new RuntimeException("Missing component data in composite type");
+    }
+    i++;
+  }
+}

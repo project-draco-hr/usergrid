@@ -1,9 +1,9 @@
 {
-  Preconditions.checkNotNull(context,"context is required");
+  Preconditions.checkNotNull(scope,"scope is required");
   Preconditions.checkNotNull(entityId,"entity id is required");
   Preconditions.checkNotNull(version,"version is required");
   Preconditions.checkArgument(maxSize > 0,"max Size must be greater than 0");
-  ColumnList<UUID> columns=keyspace.prepareQuery(CF_ENTITY_LOG).getKey(entityId).withColumnRange(version,null,false,maxSize).execute().getResult();
+  ColumnList<UUID> columns=keyspace.prepareQuery(CF_ENTITY_LOG).getKey(ScopedRowKey.fromKey(scope,entityId)).withColumnRange(version,null,false,maxSize).execute().getResult();
   List<MvccLogEntry> results=new ArrayList<MvccLogEntry>(columns.size());
   for (  Column<UUID> col : columns) {
     final UUID storedVersion=col.getName();

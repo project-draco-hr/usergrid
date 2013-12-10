@@ -1,0 +1,46 @@
+{
+  if (serialized != null) {
+    return serialized.duplicate();
+  }
+  ByteBufferOutputStream out=new ByteBufferOutputStream();
+  int i=0;
+  for (  Component c : components) {
+    Serializer<?> s=serializerForPosition(i);
+    ByteBuffer cb=c.getBytes(s);
+    if (cb == null) {
+      cb=ByteBuffer.allocate(0);
+    }
+    if (dynamic) {
+      String comparator=comparatorForPosition(i);
+      if (comparator == null) {
+        comparator=c.getComparator();
+      }
+      if (comparator == null) {
+        comparator=ComparatorType.BYTESTYPE.getTypeName();
+      }
+      int p=comparator.indexOf("(reversed=true)");
+      boolean desc=false;
+      if (p >= 0) {
+        comparator=comparator.substring(0,p);
+        desc=true;
+      }
+      if (aliasToComparatorMapping.inverse().containsKey(comparator)) {
+        byte a=aliasToComparatorMapping.inverse().get(comparator);
+        if (desc) {
+          a=(byte)Character.toUpperCase((char)a);
+        }
+        out.writeShort((short)(0x8000 | a));
+      }
+ else {
+        out.writeShort((short)comparator.length());
+        out.write(ByteBufferUtil.bytes(comparator));
+      }
+    }
+    out.writeShort((short)cb.remaining());
+    out.write(cb.slice());
+    out.write(c.getEquality().toByte());
+    i++;
+  }
+  serialized=out.getByteBuffer();
+  return serialized.duplicate();
+}

@@ -1,11 +1,11 @@
 {
-  Preconditions.checkNotNull(context,"context is required");
+  Preconditions.checkNotNull(scope,"scope is required");
   Preconditions.checkNotNull(entityId,"entity id is required");
   Preconditions.checkNotNull(version,"version is required");
   Preconditions.checkArgument(maxSize > 0,"max Size must be greater than 0");
   ColumnList<UUID> columns=null;
   try {
-    columns=keyspace.prepareQuery(CF_ENTITY_DATA).getKey(entityId).withColumnRange(version,null,false,maxSize).execute().getResult();
+    columns=keyspace.prepareQuery(CF_ENTITY_DATA).getKey(ScopedRowKey.fromKey(scope,entityId)).withColumnRange(version,null,false,maxSize).execute().getResult();
   }
  catch (  ConnectionException e) {
     throw new CollectionRuntimeException("An error occurred connecting to cassandra",e);

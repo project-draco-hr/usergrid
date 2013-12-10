@@ -1,0 +1,24 @@
+{
+  serialized=null;
+  if (element instanceof Component) {
+    Component prev=components.set(index,(Component<?>)element);
+    if (prev != null) {
+      return prev.getValue();
+    }
+    return null;
+  }
+  element=mapIfNumber(element);
+  Serializer s=serializerForPosition(index);
+  if (s == null) {
+    s=SerializerTypeInferer.getSerializer(element);
+  }
+  String c=comparatorForPosition(index);
+  if (c == null) {
+    c=comparatorForSerializer(s);
+  }
+  Component prev=components.set(index,new Component(element,null,s,c,ComponentEquality.EQUAL));
+  if (prev != null) {
+    return prev.getValue();
+  }
+  return null;
+}

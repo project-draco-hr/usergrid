@@ -1,0 +1,14 @@
+{
+  int p=c.indexOf('(');
+  if (p >= 0) {
+    c=c.substring(0,p);
+  }
+  if (ComparatorType.LEXICALUUIDTYPE.getTypeName().equals(c) || ComparatorType.TIMEUUIDTYPE.getTypeName().equals(c)) {
+    return UUIDSerializer.get();
+  }
+  Serializer<?> s=SERIALIZERS.getInstance(serializerToComparatorMapping.inverse().get(c));
+  if (s != null) {
+    return s;
+  }
+  return ByteBufferSerializer.get();
+}
