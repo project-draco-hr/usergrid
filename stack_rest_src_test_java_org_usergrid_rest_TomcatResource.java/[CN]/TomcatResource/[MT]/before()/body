@@ -1,0 +1,18 @@
+{
+  if (tomcat != null) {
+    return;
+  }
+synchronized (mutex) {
+    if (tomcat != null) {
+      return;
+    }
+    File dataDir=Files.createTempDir();
+    dataDir.deleteOnExit();
+    port=AvailablePortFinder.getNextAvailable(9998 + RandomUtils.nextInt(10));
+    tomcat=new Tomcat();
+    tomcat.setBaseDir(dataDir.getAbsolutePath());
+    tomcat.setPort(port);
+    tomcat.addWebapp(CONTEXT,new File("src/main/webapp").getAbsolutePath());
+    tomcat.start();
+  }
+}

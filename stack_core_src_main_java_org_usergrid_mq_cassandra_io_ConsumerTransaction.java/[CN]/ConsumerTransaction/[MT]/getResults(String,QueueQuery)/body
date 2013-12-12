@@ -7,7 +7,9 @@
   QueueResults results=null;
   Lock lock=lockManager.createLock(applicationId,queueId.toString(),consumerId.toString());
   try {
-    lock.lock();
+    if (!lock.tryLock(lockTimeout,TimeUnit.SECONDS)) {
+      throw new QueueException("Unable to obtain a lock on queue '" + queuePath + "' after '"+ lockTimeout+ "'seconds");
+    }
     long startTime=System.currentTimeMillis();
     UUID startTimeUUID=UUIDUtils.newTimeUUID(startTime,0);
     QueueBounds bounds=getQueueBounds(queueId);
