@@ -1,0 +1,10 @@
+{
+  CustomCollection things=context.application().collection("things");
+  Map<String,String> entity=hashMap("name","thing1");
+  JsonNode response=things.create(entity);
+  UUID entityId=getEntityId(response,0);
+  assertNotNull(entityId);
+  response=things.entity(entityId).withAccept(acceptHeader).get();
+  UUID returnedEntityId=getEntityId(response,0);
+  assertEquals(entityId,returnedEntityId);
+}
