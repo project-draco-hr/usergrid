@@ -1,4 +1,10 @@
 {
+  Injector injector=Guice.createInjector(new TestCollectionModule());
+  migrationManager=injector.getInstance(MigrationManager.class);
+  if (migrationManager == null) {
+    LOG.error("The migrationManager is NULL: blowing chunks");
+    throw new NullPointerException("The migration manager was not injected.");
+  }
   if (started) {
     return;
   }
@@ -16,6 +22,7 @@ synchronized (mutex) {
       cass=new EmbeddedCassandra(dataDir,"Usergrid",THRIFT_PORT,GOSSIP_PORT);
       cass.start();
       LOG.info("Cassandra started");
+      migrationManager.migrate();
       started=true;
     }
  catch (    IOException e) {
