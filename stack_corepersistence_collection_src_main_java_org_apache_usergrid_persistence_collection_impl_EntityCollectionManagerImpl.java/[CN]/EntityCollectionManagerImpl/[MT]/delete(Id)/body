@@ -2,5 +2,5 @@
   Preconditions.checkNotNull(entityId,"Entity id is required in this stage");
   Preconditions.checkNotNull(entityId.getUuid(),"Entity id is required in this stage");
   Preconditions.checkNotNull(entityId.getType(),"Entity type is required in this stage");
-  return Observable.just(new IoEvent<Id>(collectionScope,entityId)).map(deleteStart).map(deleteCommit);
+  return Observable.just(new IoEvent<Id>(collectionScope,entityId)).subscribeOn(Schedulers.threadPoolForIO()).map(deleteStart).map(deleteCommit);
 }
