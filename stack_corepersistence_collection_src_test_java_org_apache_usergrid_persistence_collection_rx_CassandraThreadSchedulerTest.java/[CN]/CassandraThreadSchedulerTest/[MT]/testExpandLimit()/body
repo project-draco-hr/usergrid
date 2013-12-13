@@ -1,7 +1,7 @@
 {
   final int startCount=10;
-  ConfigurationManager.getConfigInstance().setProperty(CassandraThreadScheduler.RX_IO_THREADS,"" + startCount);
-  final DynamicIntProperty maxThreads=new DynamicIntProperty(CassandraThreadScheduler.RX_IO_THREADS,startCount);
+  ConfigurationManager.getConfigInstance().setProperty(PROP_NAME,"" + startCount);
+  final DynamicIntProperty maxThreads=new DynamicIntProperty(PROP_NAME,startCount);
   final CassandraThreadScheduler cassSchedulerSetup=new CassandraThreadScheduler(maxThreads);
   final Scheduler rxScheduler=cassSchedulerSetup.get();
   final Semaphore semaphore=new Semaphore(0,true);
@@ -17,7 +17,7 @@
  catch (  RejectedExecutionException ree) {
   }
   final int doubleMaxCount=startCount * 2;
-  ConfigurationManager.getConfigInstance().setProperty(CassandraThreadScheduler.RX_IO_THREADS,"" + doubleMaxCount);
+  ConfigurationManager.getConfigInstance().setProperty(PROP_NAME,"" + doubleMaxCount);
   CountDownLatch secondBatch=schedule(rxScheduler,maxThreads.get() - startCount,semaphore);
   try {
     rxScheduler.schedule(new Action0(){

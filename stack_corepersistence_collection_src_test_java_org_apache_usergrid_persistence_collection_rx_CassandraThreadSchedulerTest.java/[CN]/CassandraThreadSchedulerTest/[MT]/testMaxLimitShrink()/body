@@ -1,8 +1,8 @@
 {
   final int maxCount=10;
   final int half=maxCount / 2;
-  ConfigurationManager.getConfigInstance().setProperty(CassandraThreadScheduler.RX_IO_THREADS,"" + maxCount);
-  final DynamicIntProperty maxThreads=new DynamicIntProperty(CassandraThreadScheduler.RX_IO_THREADS,maxCount);
+  ConfigurationManager.getConfigInstance().setProperty(PROP_NAME,"" + maxCount);
+  final DynamicIntProperty maxThreads=new DynamicIntProperty(PROP_NAME,maxCount);
   final CassandraThreadScheduler cassSchedulerSetup=new CassandraThreadScheduler(maxThreads);
   final Scheduler rxScheduler=cassSchedulerSetup.get();
   final Semaphore semaphore=new Semaphore(0,true);
@@ -18,7 +18,7 @@
   }
  catch (  RejectedExecutionException ree) {
   }
-  ConfigurationManager.getConfigInstance().setProperty(CassandraThreadScheduler.RX_IO_THREADS,"" + half);
+  ConfigurationManager.getConfigInstance().setProperty(PROP_NAME,"" + half);
   semaphore.release(half);
   boolean completed=firstHalf.await(20,TimeUnit.SECONDS);
   assertTrue("Completed executing actions",completed);
