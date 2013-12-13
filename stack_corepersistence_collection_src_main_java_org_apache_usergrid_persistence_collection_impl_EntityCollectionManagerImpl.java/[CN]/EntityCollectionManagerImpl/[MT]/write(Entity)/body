@@ -7,6 +7,6 @@
   final UUID version=uuidService.newTimeUUID();
   EntityUtils.setVersion(entity,version);
   Observable<IoEvent<MvccEntity>> observable=Observable.just(new IoEvent<Entity>(collectionScope,entity)).subscribeOn(scheduler).map(writeStart);
-  observable=Concurrent.concurrent(observable,writeVerifyUnique,writeOptimisticVerify);
+  observable=Concurrent.concurrent(scheduler,observable,writeVerifyUnique,writeOptimisticVerify);
   return observable.map(writeCommit);
 }
