@@ -1,0 +1,44 @@
+{
+  if (properties == null) {
+    throw new NullPointerException("DynamicPropertyNames: " + "properties argument to bindProperties() must not be null");
+  }
+  if (binder == null) {
+    throw new NullPointerException("DynamicPropertyNames: " + "binder argument to bindProperties() must not be null");
+  }
+  for (Enumeration<?> e=properties.propertyNames(); e.hasMoreElements(); ) {
+    String propertyName=(String)e.nextElement();
+    String propertyValue=properties.getProperty(propertyName);
+    LOG.debug("setting up a dynamic property for key {} with default value {}",propertyName,propertyValue);
+    if (propertyName.endsWith(".int")) {
+      String namedName=propertyName.substring(0,propertyName.length() - 4);
+      DynamicIntProperty intProperty=DynamicPropertyFactory.getInstance().getIntProperty(propertyName,Integer.valueOf(propertyValue));
+      binder.bind(Key.get(DynamicIntProperty.class,new NamedDynamicProperties(namedName))).toInstance(intProperty);
+    }
+ else     if (propertyName.endsWith(".long")) {
+      String namedName=propertyName.substring(0,propertyName.length() - 5);
+      DynamicLongProperty dynamicProperty=DynamicPropertyFactory.getInstance().getLongProperty(propertyName,Long.valueOf(propertyValue));
+      binder.bind(Key.get(DynamicLongProperty.class,new NamedDynamicProperties(namedName))).toInstance(dynamicProperty);
+    }
+ else     if (propertyName.endsWith(".boolean")) {
+      String namedName=propertyName.substring(0,propertyName.length() - 8);
+      DynamicBooleanProperty dynamicProperty=DynamicPropertyFactory.getInstance().getBooleanProperty(propertyName,Boolean.getBoolean(propertyValue));
+      binder.bind(Key.get(DynamicBooleanProperty.class,new NamedDynamicProperties(namedName))).toInstance(dynamicProperty);
+    }
+ else     if (propertyName.endsWith(".double")) {
+      String namedName=propertyName.substring(0,propertyName.length() - 7);
+      DynamicDoubleProperty dynamicProperty=DynamicPropertyFactory.getInstance().getDoubleProperty(propertyName,Double.valueOf(propertyValue));
+      binder.bind(Key.get(DynamicDoubleProperty.class,new NamedDynamicProperties(namedName))).toInstance(dynamicProperty);
+    }
+ else     if (propertyName.endsWith(".float")) {
+      String namedName=propertyName.substring(0,propertyName.length() - 6);
+      DynamicFloatProperty dynamicProperty=DynamicPropertyFactory.getInstance().getFloatProperty(propertyName,Float.valueOf(propertyValue));
+      binder.bind(Key.get(DynamicFloatProperty.class,new NamedDynamicProperties(namedName))).toInstance(dynamicProperty);
+    }
+ else     if (propertyName.endsWith(".String")) {
+      String namedName=propertyName.substring(0,propertyName.length() - 7);
+      DynamicStringProperty dynamicProperty=DynamicPropertyFactory.getInstance().getStringProperty(propertyName,propertyValue);
+      binder.bind(Key.get(DynamicStringProperty.class,new NamedDynamicProperties(namedName))).toInstance(dynamicProperty);
+    }
+    handleUnknownType(binder,propertyName,propertyValue);
+  }
+}
