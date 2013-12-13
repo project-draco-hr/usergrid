@@ -1,0 +1,13 @@
+{
+  List<Observable<R>> observables=new ArrayList<Observable<R>>();
+  for (  Func1<T,R> funct : concurrent) {
+    final Observable<R> observable=Observable.from(input).subscribeOn(scheduler).map(funct);
+    observables.add(observable);
+  }
+  return Observable.zip(observables,new FuncN<R>(){
+    @Override public R call(    final Object... objects){
+      return (R)objects[0];
+    }
+  }
+);
+}

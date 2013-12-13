@@ -1,0 +1,19 @@
+{
+  final ThreadFactory factory=new ThreadFactory(){
+    @Override public Thread newThread(    final Runnable r){
+      final AtomicLong counter=new AtomicLong();
+      Thread t=new Thread(r,"RxCassandraIOThreadPool-" + counter.incrementAndGet());
+      t.setDaemon(true);
+      return t;
+    }
+  }
+;
+  final ThreadPoolExecutor pool=new ThreadPoolExecutor(0,maxThreadCount.get(),60L,TimeUnit.SECONDS,new SynchronousQueue<Runnable>(),factory,new ThreadPoolExecutor.AbortPolicy());
+  maxThreadCount.addCallback(new Runnable(){
+    @Override public void run(){
+      pool.setMaximumPoolSize(maxThreadCount.get());
+    }
+  }
+);
+  return Schedulers.executor(pool);
+}
