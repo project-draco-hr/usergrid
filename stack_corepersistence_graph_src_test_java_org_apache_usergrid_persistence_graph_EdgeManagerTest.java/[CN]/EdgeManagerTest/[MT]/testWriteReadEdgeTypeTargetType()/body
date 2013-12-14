@@ -1,0 +1,13 @@
+{
+  EdgeManager em=emf.createEdgeManager(scope);
+  Edge edge=createRealEdge("source","test","target");
+  em.writeEdge(edge);
+  SearchByIdType search=createSearchByEdgeAndId(edge.getSourceNode(),edge.getType(),edge.getVersion(),edge.getTargetNode().getType(),null);
+  Observable<Edge> edges=em.loadSourceEdges(search);
+  Edge returned=edges.toBlockingObservable().single();
+  assertEquals("Correct edge returned",edge,returned);
+  search=createSearchByEdgeAndId(edge.getSourceNode(),edge.getType(),edge.getVersion(),edge.getTargetNode().getType() + "invalid",null);
+  edges=em.loadSourceEdges(search);
+  returned=edges.toBlockingObservable().singleOrDefault(null);
+  assertNull("Invalid type should not be returned",returned);
+}
