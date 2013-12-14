@@ -1,0 +1,21 @@
+{
+  final int totalCount=10000000;
+  final int delta=Character.MAX_CODE_POINT - Character.MIN_CODE_POINT;
+  final int lengthToTest=totalCount / delta;
+  final Set<UUID> hashed=new HashSet<UUID>(totalCount);
+  char[] chars;
+  UUID uuidHash;
+  StringBuilder builder=new StringBuilder();
+  for (int index=0; index < lengthToTest; index++) {
+    builder.append('a');
+    for (int charValue=Character.MIN_CODE_POINT; charValue <= Character.MAX_CODE_POINT; charValue++) {
+      chars=Character.toChars(charValue);
+      if (chars.length > 1) {
+        break;
+      }
+      builder.setCharAt(index,chars[0]);
+      uuidHash=EdgeHasher.createEdgeHash(builder.toString());
+      assertFalse("Hash should be unique",hashed.contains(uuidHash));
+    }
+  }
+}
