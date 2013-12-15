@@ -1,8 +1,10 @@
 {
   final ThreadFactory factory=new ThreadFactory(){
+    private final AtomicLong counter=new AtomicLong();
     @Override public Thread newThread(    final Runnable r){
-      final AtomicLong counter=new AtomicLong();
-      Thread t=new Thread(r,"RxCassandraIOThreadPool-" + counter.incrementAndGet());
+      final String threadName="RxCassandraIOThreadPool-" + counter.incrementAndGet();
+      LOG.info("Allocating new IO thread with name {}",threadName);
+      Thread t=new Thread(r,threadName);
       t.setDaemon(true);
       return t;
     }
