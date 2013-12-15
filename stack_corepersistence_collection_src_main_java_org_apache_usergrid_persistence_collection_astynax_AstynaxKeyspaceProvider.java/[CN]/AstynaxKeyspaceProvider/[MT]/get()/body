@@ -1,7 +1,7 @@
 {
-  AstyanaxConfiguration config=new AstyanaxConfigurationImpl().setDiscoveryType(NodeDiscoveryType.TOKEN_AWARE).setTargetCassandraVersion(cassandraVersion.get());
-  ConnectionPoolConfiguration connectionPoolConfiguration=new ConnectionPoolConfigurationImpl("UsergridConnectionPool").setPort(cassandraPort.get()).setMaxConnsPerHost(cassandraConnections.get()).setSeeds(cassandraHosts.get()).setSocketTimeout(cassandraTimeout.get());
-  AstyanaxContext<Keyspace> context=new AstyanaxContext.Builder().forCluster(clusterName.get()).forKeyspace(keyspaceName.get()).withAstyanaxConfiguration(config).withConnectionPoolConfiguration(connectionPoolConfiguration).withConnectionPoolMonitor(new Slf4jConnectionPoolMonitorImpl()).buildKeyspace(ThriftFamilyFactory.getInstance());
+  AstyanaxConfiguration config=new AstyanaxConfigurationImpl().setDiscoveryType(NodeDiscoveryType.TOKEN_AWARE).setTargetCassandraVersion(cassandraConfig.getVersion());
+  ConnectionPoolConfiguration connectionPoolConfiguration=new ConnectionPoolConfigurationImpl("UsergridConnectionPool").setPort(cassandraConfig.getPort()).setMaxConnsPerHost(cassandraConfig.getConnections()).setSeeds(cassandraConfig.getHosts()).setSocketTimeout(cassandraConfig.getTimeout());
+  AstyanaxContext<Keyspace> context=new AstyanaxContext.Builder().forCluster(cassandraConfig.getClusterName()).forKeyspace(cassandraConfig.getKeyspaceName()).withAstyanaxConfiguration(config).withConnectionPoolConfiguration(connectionPoolConfiguration).withConnectionPoolMonitor(new Slf4jConnectionPoolMonitorImpl()).buildKeyspace(ThriftFamilyFactory.getInstance());
   context.start();
   return context.getClient();
 }

@@ -1,24 +1,40 @@
 {
-  install(new CollectionModule());
-  Properties configProperties=new Properties();
-  configProperties.put(AstynaxKeyspaceProvider.CASSANDRA_HOSTS,"localhost");
-  configProperties.put(AstynaxKeyspaceProvider.CASSANDRA_PORT,"" + CassandraRule.THRIFT_PORT);
-  configProperties.put(AstynaxKeyspaceProvider.CASSANDRA_CONNECTIONS,"10");
-  configProperties.put(AstynaxKeyspaceProvider.CASSANDRA_TIMEOUT,"5000");
-  configProperties.put(AstynaxKeyspaceProvider.CASSANDRA_CLUSTER_NAME,"Usergrid");
-  configProperties.put(AstynaxKeyspaceProvider.CASSANDRA_VERSION + ".String","1.2");
-  configProperties.put(AstynaxKeyspaceProvider.COLLECTIONS_KEYSPACE_NAME,"Usergrid_Collections");
-  configProperties.put(CassandraThreadScheduler.RX_IO_THREADS,"20");
-  if (override != null) {
-    configProperties.putAll(override);
+  Map<String,Object> propMap=new HashMap<String,Object>();
+  propMap.put(ICassandraConfig.CASSANDRA_HOSTS,"localhost");
+  propMap.put(ICassandraConfig.CASSANDRA_PORT,"" + CassandraRule.THRIFT_PORT);
+  propMap.put(ICassandraConfig.CASSANDRA_CONNECTIONS,"10");
+  propMap.put(ICassandraConfig.CASSANDRA_TIMEOUT,"5000");
+  propMap.put(ICassandraConfig.CASSANDRA_CLUSTER_NAME,"Usergrid");
+  propMap.put(ICassandraConfig.CASSANDRA_VERSION + ".String","1.2");
+  propMap.put(ICassandraConfig.COLLECTIONS_KEYSPACE_NAME,"Usergrid_Collections");
+  propMap.putAll(override);
+  if (ConfigurationManager.getConfigInstance() instanceof ConcurrentCompositeConfiguration) {
+    ConcurrentCompositeConfiguration config=(ConcurrentCompositeConfiguration)ConfigurationManager.getConfigInstance();
+    ConcurrentMapConfiguration mapConfiguration=new ConcurrentMapConfiguration(propMap);
+    config.addConfigurationAtFront(mapConfiguration,"testConfig");
   }
-  DynamicPropertyNames.bindProperties(binder(),configProperties);
-  configProperties.clear();
-  configProperties.put(MigrationManagerImpl.REPLICATION_FACTOR,"1");
-  configProperties.put(MigrationManagerImpl.STRATEGY_CLASS,SimpleStrategy.class.getName());
-  configProperties.put(MvccLogEntrySerializationStrategyImpl.TIMEOUT_PROP,"60");
+  Properties props=new Properties();
+  props.putAll(propMap);
+  install(new CassandraConfigModule(props));
+  propMap.clear();
+  propMap.put(CassandraThreadScheduler.RX_IO_THREADS,"20");
   if (override != null) {
-    configProperties.putAll(override);
+    propMap.putAll(override);
   }
-  Names.bindProperties(binder(),configProperties);
+  props.clear();
+  props.putAll(propMap);
+  DynamicPropertyNames.bindProperties(binder(),props);
+  propMap.put(MigrationManagerImpl.REPLICATION_FACTOR,"1");
+  propMap.put(MigrationManagerImpl.STRATEGY_CLASS,SimpleStrategy.class.getName());
+  propMap.put(MvccLogEntrySerializationStrategyImpl.TIMEOUT_PROP,"60");
+  if (override != null) {
+    propMap.putAll(override);
+  }
+  props.clear();
+  props.putAll(propMap);
+  Names.bindProperties(binder(),props);
+  install(new SerializationModule());
+  install(new ServiceModule());
+  install(new FactoryModuleBuilder().implement(EntityCollectionManager.class,EntityCollectionManagerImpl.class).implement(EntityCollectionManagerSync.class,EntityCollectionManagerSyncImpl.class).build(EntityCollectionManagerFactory.class));
+  bind(Scheduler.class).toProvider(CassandraThreadScheduler.class);
 }
