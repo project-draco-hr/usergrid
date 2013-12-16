@@ -1,0 +1,27 @@
+{
+  final EdgeManager em=emf.createEdgeManager(scope);
+  Id sourceId1=new SimpleId("source");
+  Id sourceId2=new SimpleId("source2");
+  Id targetId=new SimpleId("target");
+  Edge testTargetEdge=new SimpleEdge(sourceId1,"test",targetId,UUIDGenerator.newTimeUUID());
+  em.writeEdge(testTargetEdge);
+  Edge testTargetEdge2=new SimpleEdge(sourceId2,"test",targetId,UUIDGenerator.newTimeUUID());
+  em.writeEdge(testTargetEdge2);
+  Edge test2TargetEdge=new SimpleEdge(sourceId2,"test2",targetId,UUIDGenerator.newTimeUUID());
+  em.writeEdge(test2TargetEdge);
+  SearchEdgeTypes edgeTypes=new SimpleSearchEdgeTypes(testTargetEdge.getTargetNode(),null);
+  Observable<String> edges=em.getSourceEdgeTypes(edgeTypes);
+  Iterator<String> results=edges.toBlockingObservable().getIterator();
+  assertEquals("Edges correct","test",results.next());
+  edgeTypes=new SimpleSearchEdgeTypes(testTargetEdge.getTargetNode(),"test");
+  edges=em.getSourceEdgeTypes(edgeTypes);
+  results=edges.toBlockingObservable().getIterator();
+  assertEquals("Edges correct","test2",results.next());
+  edges=em.getSourceEdgeTypes(new SimpleSearchEdgeIdTypes(testTargetEdge.getTargetNode(),"test",null));
+  results=edges.toBlockingObservable().getIterator();
+  assertEquals("Types correct",sourceId1.getType(),results.next());
+  edges=em.getSourceEdgeTypes(new SimpleSearchEdgeIdTypes(testTargetEdge.getTargetNode(),"test",sourceId1.getType()));
+  results=edges.toBlockingObservable().getIterator();
+  assertEquals("Types correct",sourceId2.getType(),results.next());
+  assertFalse("No more results",results.hasNext());
+}

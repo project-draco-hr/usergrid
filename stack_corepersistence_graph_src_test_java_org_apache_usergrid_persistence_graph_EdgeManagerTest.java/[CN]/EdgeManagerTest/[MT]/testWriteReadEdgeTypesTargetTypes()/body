@@ -1,0 +1,32 @@
+{
+  final EdgeManager em=emf.createEdgeManager(scope);
+  Id sourceId=new SimpleId("source");
+  Id targetId1=new SimpleId("target");
+  Id targetId2=new SimpleId("target2");
+  Edge testTargetEdge=new SimpleEdge(sourceId,"test",targetId1,UUIDGenerator.newTimeUUID());
+  em.writeEdge(testTargetEdge);
+  Edge testTarget2Edge=new SimpleEdge(sourceId,"test",targetId2,UUIDGenerator.newTimeUUID());
+  em.writeEdge(testTarget2Edge);
+  Edge test2TargetEdge=new SimpleEdge(sourceId,"test2",targetId1,UUIDGenerator.newTimeUUID());
+  em.writeEdge(test2TargetEdge);
+  Observable<String> edges=em.getTargetEdgeTypes(new SimpleSearchEdgeTypes(testTargetEdge.getSourceNode(),null));
+  List<String> results=edges.toList().toBlockingObservable().single();
+  assertEquals("Size correct",2,results.size());
+  assertTrue("Edges correct",results.contains("test"));
+  assertTrue("Edges correct",results.contains("test2"));
+  edges=em.getTargetEdgeIdTypes(new SimpleSearchEdgeIdTypes(testTargetEdge.getSourceNode(),"test",null));
+  results=edges.toList().toBlockingObservable().single();
+  assertEquals("Size correct",2,results.size());
+  assertTrue("Types correct",results.contains(targetId1));
+  assertTrue("Types correct",results.contains(targetId2));
+  edges=em.getTargetEdgeIdTypes(new SimpleSearchEdgeIdTypes(testTargetEdge.getSourceNode(),"test2",null));
+  results=edges.toList().toBlockingObservable().single();
+  assertEquals("Size correct",1,results.size());
+  assertTrue("Types correct",results.contains(targetId1));
+  em.deleteEdge(testTargetEdge);
+  em.deleteEdge(testTarget2Edge);
+  em.deleteEdge(test2TargetEdge);
+  edges=em.getTargetEdgeTypes(new SimpleSearchEdgeTypes(testTargetEdge.getSourceNode(),null));
+  results=edges.toList().toBlockingObservable().single();
+  assertEquals("No results",0,results.size());
+}
