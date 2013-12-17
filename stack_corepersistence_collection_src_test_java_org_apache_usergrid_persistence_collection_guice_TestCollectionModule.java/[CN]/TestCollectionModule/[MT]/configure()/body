@@ -2,7 +2,7 @@
   Map<String,Object> propMap=new HashMap<String,Object>();
   propMap.put(ICassandraConfig.CASSANDRA_HOSTS,"localhost");
   propMap.put(ICassandraConfig.CASSANDRA_PORT,"" + CassandraRule.THRIFT_PORT);
-  propMap.put(ICassandraConfig.CASSANDRA_CONNECTIONS,"10");
+  propMap.put(ICassandraConfig.CASSANDRA_CONNECTIONS,CONNECTION_COUNT);
   propMap.put(ICassandraConfig.CASSANDRA_TIMEOUT,"5000");
   propMap.put(ICassandraConfig.CASSANDRA_CLUSTER_NAME,"Usergrid");
   propMap.put(ICassandraConfig.CASSANDRA_VERSION + ".String","1.2");
@@ -17,7 +17,7 @@
   props.putAll(propMap);
   install(new CassandraConfigModule(props));
   propMap.clear();
-  propMap.put(CassandraThreadScheduler.RX_IO_THREADS,"20");
+  propMap.put(CassandraThreadScheduler.RX_IO_THREADS,CONNECTION_COUNT);
   if (override != null) {
     propMap.putAll(override);
   }
@@ -33,8 +33,6 @@
   props.clear();
   props.putAll(propMap);
   Names.bindProperties(binder(),props);
-  install(new SerializationModule());
-  install(new ServiceModule());
-  install(new FactoryModuleBuilder().implement(EntityCollectionManager.class,EntityCollectionManagerImpl.class).implement(EntityCollectionManagerSync.class,EntityCollectionManagerSyncImpl.class).build(EntityCollectionManagerFactory.class));
-  bind(Scheduler.class).toProvider(CassandraThreadScheduler.class);
+  install(new CollectionModule());
+  bindListener(Matchers.any(),new KeyspaceListener());
 }
