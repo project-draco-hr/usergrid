@@ -4,10 +4,7 @@
     final Observable<R> observable=Observable.from(input).subscribeOn(scheduler).map(funct);
     observables.add(observable);
   }
-  return Observable.zip(observables,new FuncN<R>(){
-    @Override public R call(    final Object... objects){
-      return (R)objects[0];
-    }
-  }
-);
+  Observable.OnSubscribeFunc<R> merge=OperationMerge.merge(observables);
+  Observable<R> newObservable=Observable.create(merge);
+  return newObservable.takeLast(1);
 }
