@@ -1,5 +1,5 @@
 {
-  LOG.info("getChangeLog2");
+  LOG.info("getChangeLog1");
   CollectionScope context=new CollectionScopeImpl(new SimpleId("organization"),new SimpleId("test"),"test");
   EntityCollectionManager manager=factory.createCollectionManager(context);
   Entity e1=new Entity(new SimpleId("test"));
@@ -19,6 +19,7 @@
   e3.getFields().remove(new StringField("nickname","buddy"));
   Observable<Entity> o3=manager.write(e3);
   e3=o3.toBlockingObservable().lastOrDefault(null);
+  LOG.info("ChangeLogTest");
 {
     List<MvccEntity> versions=mvccEntitySerializationStrategy.load(context,e1.getId(),e3.getVersion(),10);
     ChangeLogGeneratorImpl instance=new ChangeLogGeneratorImpl();
@@ -26,9 +27,8 @@
     for (    ChangeLogEntry cle : result) {
       LOG.info(cle.toString());
     }
-    assertEquals(7,result.size());
+    assertEquals(6,result.size());
   }
-  LOG.info("===================");
 {
     List<MvccEntity> versions=mvccEntitySerializationStrategy.load(context,e1.getId(),e3.getVersion(),10);
     ChangeLogGeneratorImpl instance=new ChangeLogGeneratorImpl();
