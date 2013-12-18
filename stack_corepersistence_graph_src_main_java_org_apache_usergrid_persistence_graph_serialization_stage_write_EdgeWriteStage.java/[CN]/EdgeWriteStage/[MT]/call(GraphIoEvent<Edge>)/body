@@ -1,0 +1,11 @@
+{
+  final MutationBatch mutation=edgeMetadata.writeEdge(edgeGraphIoEvent.getOrganization(),edgeGraphIoEvent.getEvent());
+  final MutationBatch edgeMutation=edgeSerialization.writeEdge(edgeGraphIoEvent.getOrganization(),edgeGraphIoEvent.getEvent());
+  mutation.mergeShallow(edgeMutation);
+  try {
+    mutation.execute();
+  }
+ catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to connect to cassandra",e);
+  }
+}
