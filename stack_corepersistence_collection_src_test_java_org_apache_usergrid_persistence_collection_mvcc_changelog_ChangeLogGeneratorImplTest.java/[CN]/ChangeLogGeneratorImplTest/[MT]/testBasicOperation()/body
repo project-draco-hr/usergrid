@@ -1,5 +1,5 @@
 {
-  LOG.info("getChangeLog1");
+  LOG.info("ChangeLogGeneratorImpl test");
   CollectionScope context=new CollectionScopeImpl(new SimpleId("organization"),new SimpleId("test"),"test");
   EntityCollectionManager manager=factory.createCollectionManager(context);
   Entity e1=new Entity(new SimpleId("test"));
@@ -19,15 +19,20 @@
   e3.getFields().remove(new StringField("nickname","buddy"));
   Observable<Entity> o3=manager.write(e3);
   e3=o3.toBlockingObservable().lastOrDefault(null);
-  LOG.info("ChangeLogTest");
 {
     List<MvccEntity> versions=mvccEntitySerializationStrategy.load(context,e1.getId(),e3.getVersion(),10);
     ChangeLogGeneratorImpl instance=new ChangeLogGeneratorImpl();
     List<ChangeLogEntry> result=instance.getChangeLog(versions,e3.getVersion());
     for (    ChangeLogEntry cle : result) {
       LOG.info(cle.toString());
+      Assert.assertFalse(cle.getVersions().isEmpty());
     }
-    assertEquals(6,result.size());
+    Assert.assertEquals(6,result.size());
+    Assert.assertTrue(isAscendingOrder(result));
+    Assert.assertEquals(ChangeLogEntry.ChangeType.PROPERTY_WRITE,result.get(1).getChangeType());
+    Assert.assertEquals("name3",result.get(1).getField().getValue());
+    Assert.assertEquals(ChangeLogEntry.ChangeType.PROPERTY_DELETE,result.get(5).getChangeType());
+    Assert.assertEquals("name1",result.get(5).getField().getValue());
   }
 {
     List<MvccEntity> versions=mvccEntitySerializationStrategy.load(context,e1.getId(),e3.getVersion(),10);
@@ -35,7 +40,13 @@
     List<ChangeLogEntry> result=instance.getChangeLog(versions,e2.getVersion());
     for (    ChangeLogEntry cle : result) {
       LOG.info(cle.toString());
+      Assert.assertFalse(cle.getVersions().isEmpty());
     }
-    assertEquals(6,result.size());
+    Assert.assertEquals(6,result.size());
+    Assert.assertTrue(isAscendingOrder(result));
+    Assert.assertEquals(ChangeLogEntry.ChangeType.PROPERTY_WRITE,result.get(2).getChangeType());
+    Assert.assertEquals("buddy",result.get(2).getField().getValue());
+    Assert.assertEquals(ChangeLogEntry.ChangeType.PROPERTY_DELETE,result.get(4).getChangeType());
+    Assert.assertEquals("count",result.get(4).getField().getName());
   }
 }
