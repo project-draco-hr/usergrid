@@ -1,4 +1,7 @@
 {
+  if (!isFirstTime(binder,name)) {
+    return false;
+  }
   if (isBoolean(value)) {
     DynamicBooleanProperty dynamicProperty=DynamicPropertyFactory.getInstance().getBooleanProperty(name,Boolean.getBoolean(value));
     binder.bind(Key.get(DynamicBooleanProperty.class,new NamedDynamicProperties(name))).toInstance(dynamicProperty);
@@ -22,11 +25,12 @@
     binder.bind(Key.get(DynamicDoubleProperty.class,new NamedDynamicProperties(name))).toInstance(dynamicProperty);
   }
  else   if (isInteger(value)) {
-    DynamicIntProperty intProperty=DynamicPropertyFactory.getInstance().getIntProperty(name,Integer.valueOf(value));
-    binder.bind(Key.get(DynamicIntProperty.class,new NamedDynamicProperties(name))).toInstance(intProperty);
+    DynamicIntProperty dynamicProperty=DynamicPropertyFactory.getInstance().getIntProperty(name,Integer.valueOf(value));
+    binder.bind(Key.get(DynamicIntProperty.class,new NamedDynamicProperties(name))).toInstance(dynamicProperty);
   }
  else {
     DynamicStringProperty dynamicProperty=DynamicPropertyFactory.getInstance().getStringProperty(name,value);
     binder.bind(Key.get(DynamicStringProperty.class,new NamedDynamicProperties(name))).toInstance(dynamicProperty);
   }
+  return true;
 }

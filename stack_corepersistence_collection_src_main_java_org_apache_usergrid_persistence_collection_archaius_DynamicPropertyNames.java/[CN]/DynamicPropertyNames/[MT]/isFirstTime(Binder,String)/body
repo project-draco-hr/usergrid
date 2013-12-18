@@ -1,0 +1,19 @@
+{
+  boolean bindingFirstTime=false;
+  Set<String> boundProperties=bindings.get(binder);
+  if (boundProperties == null) {
+    bindingFirstTime=true;
+    boundProperties=new HashSet<String>();
+    bindings.put(binder,boundProperties);
+  }
+ else   if (!boundProperties.contains(propertyName)) {
+    bindingFirstTime=true;
+  }
+  if (bindingFirstTime) {
+    boundProperties.add(propertyName);
+    LOG.debug("Binding property: {}",propertyName);
+    return true;
+  }
+  LOG.warn("Ignoring multiple attempts to bind duplicate property: {}",propertyName);
+  return false;
+}

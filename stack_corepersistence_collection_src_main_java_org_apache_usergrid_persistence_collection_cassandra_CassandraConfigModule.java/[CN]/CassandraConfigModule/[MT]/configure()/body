@@ -1,12 +1,12 @@
 {
+  if (ConfigurationManager.getConfigInstance() instanceof ConcurrentCompositeConfiguration) {
+    ConcurrentCompositeConfiguration config=(ConcurrentCompositeConfiguration)ConfigurationManager.getConfigInstance();
+    Map<String,Object> values=new HashMap<String,Object>((Map)overrides);
+    values.putAll((Map)PropertyUtils.loadSystemProperties(ICassandraConfig.OPTIONS));
+    ConcurrentMapConfiguration mapConfiguration=new ConcurrentMapConfiguration(values);
+    config.addConfigurationAtFront(mapConfiguration,"CassandraConfigModuleConfig");
+  }
+  new DynamicPropertyNames().bindProperties(binder(),PropertyUtils.loadFromClassPath(CASSANDRA_DEFAULTS_PROPERTIES));
   bind(ICassandraConfig.class).to(DynamicCassandraConfig.class).asEagerSingleton();
   bind(IDynamicCassandraConfig.class).to(DynamicCassandraConfig.class).asEagerSingleton();
-  Properties props=PropertyUtils.loadFromClassPath(CASSANDRA_DEFAULTS_PROPERTIES);
-  props.putAll(overrides);
-  props.putAll(PropertyUtils.loadSystemProperties(ICassandraConfig.OPTIONS));
-  Properties extracted=new Properties();
-  for (  String key : ICassandraConfig.OPTIONS) {
-    extracted.setProperty(key,props.getProperty(key));
-  }
-  DynamicPropertyNames.bindProperties(binder(),extracted);
 }
