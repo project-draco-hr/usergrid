@@ -5,7 +5,7 @@
   final ByteBufferRange searchRange=new RangeBuilder().setLimit(PAGE_SIZE).setStart(search.getLast().orNull()).build();
   RowQuery<ScopedRowKey<OrganizationScope,Id>,String> query=keyspace.prepareQuery(CF_TARGET_EDGE_TYPES).getKey(sourceKey).autoPaginate(true).withColumnRange(searchRange);
   try {
-    return new ColumnNameIterator<String>(query.execute().getResult().iterator());
+    return new ColumnNameIterator<String,String>(query.execute().getResult().iterator(),PARSER);
   }
  catch (  ConnectionException e) {
     throw new RuntimeException("Unable to connect to cassandra",e);
