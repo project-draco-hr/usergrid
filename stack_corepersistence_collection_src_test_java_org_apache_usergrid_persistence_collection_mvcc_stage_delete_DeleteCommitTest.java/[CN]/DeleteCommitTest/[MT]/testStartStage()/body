@@ -11,7 +11,7 @@
   final Entity entity=TestEntityGenerator.generateEntity();
   final MvccEntity mvccEntityInput=TestEntityGenerator.fromEntity(entity);
   WriteCommit newStage=new WriteCommit(logStrategy,mvccEntityStrategy);
-  Entity result=newStage.call(new IoEvent<MvccEntity>(context,mvccEntityInput));
+  Entity result=newStage.call(new CollectionIoEvent<MvccEntity>(context,mvccEntityInput));
   MvccLogEntry entry=logEntry.getValue();
   assertEquals("id correct",entity.getId(),entry.getEntityId());
   assertEquals("version was not correct",entity.getVersion(),entry.getVersion());

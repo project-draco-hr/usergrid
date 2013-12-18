@@ -6,7 +6,7 @@
   when(logStrategy.write(same(context),logEntry.capture())).thenReturn(mutation);
   final Entity entity=TestEntityGenerator.generateEntity();
   WriteStart newStage=new WriteStart(logStrategy);
-  IoEvent<MvccEntity> result=newStage.call(new IoEvent<Entity>(context,entity));
+  CollectionIoEvent<MvccEntity> result=newStage.call(new CollectionIoEvent<Entity>(context,entity));
   MvccLogEntry entry=logEntry.getValue();
   assertEquals("id correct",entity.getId(),entry.getEntityId());
   assertEquals("version did not not match entityId",entity.getVersion(),entry.getVersion());
