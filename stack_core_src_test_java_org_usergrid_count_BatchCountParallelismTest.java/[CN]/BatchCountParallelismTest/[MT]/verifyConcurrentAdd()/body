@@ -9,7 +9,7 @@
           Count count=new Count("Counter","k1","counter1",1);
           batcher.add(count);
         }
-        System.out.println("c: " + c);
+        LOG.info("Task iteration # {} : ",c);
         cdl.countDown();
         return new Boolean(true);
       }
@@ -17,9 +17,18 @@
 ));
   }
   batcher.add(new Count("Counter","k1","counter1",1));
-  System.out.println("size: " + calls.size());
+  LOG.info("size: " + calls.size());
   cdl.await();
-  exec.awaitTermination(3,TimeUnit.SECONDS);
+  exec.shutdown();
+  while (!exec.awaitTermination(3,TimeUnit.SECONDS)) {
+    LOG.warn("jobs not yet finished, wait again");
+  }
   assertEquals(101,batcher.invocationCounter.count());
+  int iteration=0;
+  int total_retry=10;
+  while (batcher.getBatchSubmissionCount() != 10 || iteration < total_retry) {
+    Thread.sleep(3000L);
+    iteration++;
+  }
   assertEquals(10,batcher.getBatchSubmissionCount());
 }
