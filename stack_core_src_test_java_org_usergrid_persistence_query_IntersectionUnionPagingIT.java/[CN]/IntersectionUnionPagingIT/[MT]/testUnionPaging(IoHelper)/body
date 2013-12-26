@@ -1,0 +1,48 @@
+{
+  io.doSetup();
+  int size=500;
+  int pageSize=100;
+  long start=System.currentTimeMillis();
+  LOG.info("Writing {} entities.",size);
+  final String zeros=String.format("%08d",0);
+  Set<String> names=new HashSet<String>(size);
+  for (int i=0; i < size; i++) {
+    Map<String,Object> entity=new HashMap<String,Object>();
+    final String name=String.valueOf(i);
+    entity.put("name",name);
+    entity.put("fieldDate","0000-00-00");
+    String field1;
+    String field2;
+    if (i < pageSize - 10) {
+      field1=String.format("%08d",(int)(100 * Math.random()));
+      field2=zeros;
+    }
+ else {
+      field1=zeros;
+      field2=String.format("%08d",(int)(100 * Math.random()));
+    }
+    names.add(name);
+    entity.put("field1Or",field1);
+    entity.put("field2Or",field2);
+    io.writeEntity(entity);
+  }
+  long stop=System.currentTimeMillis();
+  LOG.info("Writes took {} ms",stop - start);
+  Query query=Query.fromQL("select * where (field1Or > '00000000' OR field2Or > '00000000') AND fieldDate = '0000-00-00'");
+  query.setLimit(pageSize);
+  Results results;
+  start=System.currentTimeMillis();
+  do {
+    results=io.getResults(query);
+    for (int i=0; i < results.size(); i++) {
+      final String name=results.getEntities().get(i).getName();
+      assertTrue(names.contains(name));
+      names.remove(name);
+    }
+    query.setCursor(results.getCursor());
+  }
+ while (results.getCursor() != null);
+  stop=System.currentTimeMillis();
+  LOG.info("Query took {} ms to return {} entities",stop - start,size);
+  assertEquals("All names returned",0,names.size());
+}
