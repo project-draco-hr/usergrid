@@ -1,0 +1,7 @@
+{
+  MutationBatch batch=keyspace.prepareMutationBatch();
+  final long timestamp=version.timestamp();
+  final ScopedRowKey<OrganizationScope,EdgeIdTypeKey> targetTypeKey=new ScopedRowKey<OrganizationScope,EdgeIdTypeKey>(scope,new EdgeIdTypeKey(rowId,edgeType));
+  batch.withRow(cf,targetTypeKey).setTimestamp(timestamp).deleteColumn(colId.getType());
+  return batch;
+}
