@@ -1,12 +1,7 @@
 {
-  Properties properties=loadFromClassPath("serialization-defaults.properties");
-  properties.putAll(overrides);
-  Names.bindProperties(binder(),properties);
-  if (ConfigurationManager.getConfigInstance() instanceof ConcurrentCompositeConfiguration) {
-    ConcurrentCompositeConfiguration config=(ConcurrentCompositeConfiguration)ConfigurationManager.getConfigInstance();
-    ConcurrentMapConfiguration mapConfiguration=new ConcurrentMapConfiguration(overrides);
-    config.addConfigurationAtFront(mapConfiguration,"serializationModuleConfig");
-  }
+  bind(CassandraFig.class).toInstance(cassandraFig);
+  bind(MigrationManagerFig.class).toInstance(migrationManagerFig);
+  bind(SerializationFig.class).toInstance(serializationFig);
   bind(Keyspace.class).toProvider(AstynaxKeyspaceProvider.class);
   bind(MigrationManager.class).to(MigrationManagerImpl.class);
   bind(MvccEntitySerializationStrategy.class).to(MvccEntitySerializationStrategyImpl.class);
