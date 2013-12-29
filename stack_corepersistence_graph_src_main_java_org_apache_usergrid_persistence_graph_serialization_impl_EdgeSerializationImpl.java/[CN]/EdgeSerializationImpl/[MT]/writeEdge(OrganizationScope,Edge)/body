@@ -1,3 +1,13 @@
 {
-  return null;
+  final MutationBatch batch=keyspace.prepareMutationBatch();
+  final String edgeTypeName=edge.getType();
+  final Id sourceNodeId=edge.getSourceNode();
+  final Id targetNodeId=edge.getTargetNode();
+  final long[] edgeType=EdgeHasher.createEdgeHash(edgeTypeName);
+  final long[] targetEdgeType=EdgeHasher.createEdgeHash(edgeTypeName,targetNodeId);
+  final long[] sourceEdgeType=EdgeHasher.createEdgeHash(edgeTypeName,sourceNodeId);
+  final ScopedRowKey<OrganizationScope,Id> sourceKey=new ScopedRowKey<OrganizationScope,Id>(scope,sourceNodeId);
+  final ScopedRowKey<OrganizationScope,Id> targetKey=new ScopedRowKey<OrganizationScope,Id>(scope,targetNodeId);
+  batch.withRow(CF_TARGET_EDGES,sourceKey).putColumn();
+  return batch;
 }
