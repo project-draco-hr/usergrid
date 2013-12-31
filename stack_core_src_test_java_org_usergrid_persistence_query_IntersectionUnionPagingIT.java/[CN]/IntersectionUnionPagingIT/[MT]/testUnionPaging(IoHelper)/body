@@ -14,12 +14,12 @@
     String field1;
     String field2;
     if (i < pageSize - 10) {
-      field1=String.format("%08d",(int)(100 * Math.random()));
+      field1=String.format("%08d",i + 1);
       field2=zeros;
     }
  else {
       field1=zeros;
-      field2=String.format("%08d",(int)(100 * Math.random()));
+      field2=String.format("%08d",i + 1);
     }
     names.add(name);
     entity.put("field1Or",field1);
@@ -36,7 +36,7 @@
     results=io.getResults(query);
     for (int i=0; i < results.size(); i++) {
       final String name=results.getEntities().get(i).getName();
-      assertTrue(names.contains(name));
+      assertTrue("Value should not be returned twice",names.contains(name));
       names.remove(name);
     }
     query.setCursor(results.getCursor());
