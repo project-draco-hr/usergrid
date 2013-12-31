@@ -5,10 +5,13 @@
   ServerSocket ss=null;
   DatagramSocket ds=null;
   try {
-    ss=new ServerSocket(port);
+    ss=new ServerSocket();
     ss.setReuseAddress(true);
-    ds=new DatagramSocket(port);
+    ss.bind(new InetSocketAddress((InetAddress)null,port),0);
+    ds=new DatagramSocket(null);
     ds.setReuseAddress(true);
+    ds.bind(new InetSocketAddress((InetAddress)null,port));
+    LOG.info("port {} available",port);
     return true;
   }
  catch (  IOException e) {
@@ -25,5 +28,6 @@
       }
     }
   }
+  LOG.info("port {} unavailable",port);
   return false;
 }
