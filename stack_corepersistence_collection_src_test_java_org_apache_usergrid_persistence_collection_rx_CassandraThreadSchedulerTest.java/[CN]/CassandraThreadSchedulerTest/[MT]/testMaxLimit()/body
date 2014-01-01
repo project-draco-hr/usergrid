@@ -1,10 +1,10 @@
 {
   final int maxCount=10;
-  ConfigurationManager.getConfigInstance().setProperty(PROP_NAME,"" + maxCount);
-  final CassandraThreadScheduler cassSchedulerSetup=new CassandraThreadScheduler(maxThreads);
+  rxFig.override("getMaxThreadCount",String.valueOf(maxCount));
+  final CassandraThreadScheduler cassSchedulerSetup=new CassandraThreadScheduler(rxFig);
   final Scheduler rxScheduler=cassSchedulerSetup.get();
   final Semaphore semaphore=new Semaphore(0,true);
-  CountDownLatch result=schedule(rxScheduler,maxThreads.get(),semaphore,TEST_TIMEOUT);
+  CountDownLatch result=schedule(rxScheduler,rxFig.getMaxThreadCount(),semaphore,TEST_TIMEOUT);
   try {
     rxScheduler.schedule(new Action0(){
       @Override public void call(){
@@ -15,7 +15,7 @@
   }
  catch (  RejectedExecutionException ree) {
   }
-  semaphore.release(maxThreads.get());
+  semaphore.release(rxFig.getMaxThreadCount());
   boolean completed=result.await(20,TimeUnit.SECONDS);
   assertTrue("Completed executing actions",completed);
   result=schedule(rxScheduler,1,semaphore,TEST_TIMEOUT);
