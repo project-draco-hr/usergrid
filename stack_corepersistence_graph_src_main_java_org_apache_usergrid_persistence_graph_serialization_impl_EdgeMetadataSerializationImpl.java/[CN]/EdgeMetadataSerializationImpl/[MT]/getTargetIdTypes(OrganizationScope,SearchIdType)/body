@@ -1,0 +1,13 @@
+{
+  ValidationUtils.validateOrganizationScope(scope);
+  EdgeUtils.validateSearchEdgeIdType(search);
+  final ScopedRowKey<OrganizationScope,EdgeIdTypeKey> sourceTypeKey=new ScopedRowKey<OrganizationScope,EdgeIdTypeKey>(scope,new EdgeIdTypeKey(search.getNode(),search.getEdgeType()));
+  final ByteBufferRange searchRange=new RangeBuilder().setLimit(PAGE_SIZE).setStart(search.getLast().orNull()).build();
+  RowQuery<ScopedRowKey<OrganizationScope,EdgeIdTypeKey>,String> query=keyspace.prepareQuery(CF_TARGET_EDGE_ID_TYPES).getKey(sourceTypeKey).autoPaginate(true).withColumnRange(searchRange);
+  try {
+    return new ColumnNameIterator<String,String>(query.execute().getResult().iterator(),PARSER);
+  }
+ catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to connect to cassandra",e);
+  }
+}
