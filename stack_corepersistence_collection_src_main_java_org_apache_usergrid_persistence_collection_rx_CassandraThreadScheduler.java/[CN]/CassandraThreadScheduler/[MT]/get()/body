@@ -10,10 +10,13 @@
     }
   }
 ;
-  final ThreadPoolExecutor pool=new ThreadPoolExecutor(0,maxThreadCount.get(),60L,TimeUnit.SECONDS,new SynchronousQueue<Runnable>(),factory,new ThreadPoolExecutor.AbortPolicy());
-  maxThreadCount.addCallback(new Runnable(){
-    @Override public void run(){
-      pool.setMaximumPoolSize(maxThreadCount.get());
+  final ThreadPoolExecutor pool=new ThreadPoolExecutor(0,rxFig.getMaxThreadCount(),60L,TimeUnit.SECONDS,new SynchronousQueue<Runnable>(),factory,new ThreadPoolExecutor.AbortPolicy());
+  rxFig.addPropertyChangeListener(new PropertyChangeListener(){
+    @Override public void propertyChange(    final PropertyChangeEvent evt){
+      if (evt.getPropertyName().equals(rxFig.getKeyByMethod("getMaxThreadCount"))) {
+        LOG.debug("Getting update to property: rxFig.getMaxThreadCount() old = {}, new = {} ",evt.getOldValue(),evt.getNewValue());
+        pool.setMaximumPoolSize((Integer)evt.getNewValue());
+      }
     }
   }
 );
