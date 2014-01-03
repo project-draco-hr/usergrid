@@ -1,14 +1,7 @@
 {
-  CassandraConfigModule cassandraConfigModule=new CassandraConfigModule(overrides);
-  Injector injector=Guice.createInjector(cassandraConfigModule);
-  IDynamicCassandraConfig cassandraConfig=injector.getInstance(IDynamicCassandraConfig.class);
-  if (ConfigurationManager.getConfigInstance() instanceof ConcurrentCompositeConfiguration) {
-    ConcurrentCompositeConfiguration config=(ConcurrentCompositeConfiguration)ConfigurationManager.getConfigInstance();
-    ConcurrentMapConfiguration mapConfiguration=new ConcurrentMapConfiguration((Map)overrides);
-    config.addConfigurationAtFront(mapConfiguration,"CollectionModule");
-  }
-  install(cassandraConfigModule);
-  install(new SerializationModule(overrides));
+  install(new GuicyFigModule(RxFig.class,MigrationManagerFig.class,CassandraFig.class,SerializationFig.class));
+  install(new SerializationModule());
   install(new ServiceModule());
   install(new FactoryModuleBuilder().implement(EntityCollectionManager.class,EntityCollectionManagerImpl.class).implement(EntityCollectionManagerSync.class,EntityCollectionManagerSyncImpl.class).build(EntityCollectionManagerFactory.class));
+  bind(Scheduler.class).toProvider(CassandraThreadScheduler.class);
 }
