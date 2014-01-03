@@ -1,4 +1,5 @@
 {
+  TimeoutEnv.serializationFig.override("getTimeout","1");
   final Id organizationId=new SimpleId("organization");
   final Id applicationId=new SimpleId("application");
   final String name="test";
@@ -8,7 +9,7 @@
   for (  Stage stage : Stage.values()) {
     MvccLogEntry saved=new MvccLogEntryImpl(id,version,stage);
     logEntryStrategy.write(context,saved).execute();
-    Thread.sleep(1000);
+    Thread.sleep(500);
     MvccLogEntry returned=logEntryStrategy.load(context,id,version);
     if (stage.isTransient()) {
       assertNull("Active is transient and should time out",returned);
@@ -18,5 +19,5 @@
       assertEquals("Returned should equal the saved",saved,returned);
     }
   }
-  TimeoutEnv.cassandraFig.override("getTimeout",null);
+  TimeoutEnv.serializationFig.override("getTimeout",null);
 }
