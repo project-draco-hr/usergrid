@@ -1,0 +1,12 @@
+{
+  Preconditions.checkNotNull(collectionScope,"collectionScope is required");
+  Preconditions.checkNotNull(value,"value is required");
+  final UUID colName=value.getEntityVersion();
+  final Field field=value.getField();
+  return doWrite(collectionScope,value.getEntityId(),value.getEntityVersion(),new UniqueValueSerialziationStrategyImpl.RowOp(){
+    @Override public void doOp(    final ColumnListMutation<UUID> colMutation){
+      colMutation.putColumn(colName,field,SER,null);
+    }
+  }
+);
+}
