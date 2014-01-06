@@ -1,0 +1,23 @@
+{
+  ValidationUtils.validateOrganizationScope(scope);
+  EdgeUtils.validateSearchByEdgeType(edgeType);
+  final String edgeTypeName=edgeType.getType();
+  final Id nodeId=edgeType.getNode();
+  final UUID version=edgeType.getMaxVersion();
+  final ScopedRowKey<OrganizationScope,Id> sourceKey=new ScopedRowKey<OrganizationScope,Id>(scope,nodeId);
+  DirectedEdge sourceEdge;
+  if (edgeType.last().isPresent()) {
+    sourceEdge=directedEdgeCreator.getDirectedEdge(edgeType.last().get());
+  }
+ else {
+    sourceEdge=new DirectedEdge(edgeTypeName,nodeId,version);
+  }
+  final ByteBufferRange searchRange=new RangeBuilder().setLimit(PAGE_SIZE).setStart(sourceEdge,edgeSerializer).build();
+  RowQuery<ScopedRowKey<OrganizationScope,Id>,DirectedEdge> query=keyspace.prepareQuery(cf).getKey(sourceKey).autoPaginate(true).withColumnRange(searchRange);
+  try {
+    return new ColumnNameIterator<DirectedEdge,Edge>(query.execute().getResult().iterator(),new SourceEdgeColumnParser(nodeId,edgeTypeName));
+  }
+ catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to connect to cassandra",e);
+  }
+}

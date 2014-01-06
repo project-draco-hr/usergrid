@@ -1,3 +1,18 @@
 {
-  return null;
+  ValidationUtils.validateOrganizationScope(scope);
+  EdgeUtils.validateEdge(edge);
+  final MutationBatch batch=keyspace.prepareMutationBatch();
+  final String edgeTypeName=edge.getType();
+  final Id sourceNodeId=edge.getSourceNode();
+  final Id targetNodeId=edge.getTargetNode();
+  final UUID version=edge.getVersion();
+  final ScopedRowKey<OrganizationScope,Id> sourceKey=new ScopedRowKey<OrganizationScope,Id>(scope,sourceNodeId);
+  final DirectedEdge sourceEdge=new DirectedEdge(edgeTypeName,targetNodeId,version);
+  final ScopedRowKey<OrganizationScope,Id> targetKey=new ScopedRowKey<OrganizationScope,Id>(scope,targetNodeId);
+  final DirectedEdge targetEdge=new DirectedEdge(edgeTypeName,sourceNodeId,version);
+  batch.withRow(CF_SOURCE_EDGES,sourceKey).deleteColumn(sourceEdge);
+  batch.withRow(CF_SOURCE_TYPE_EDGES,sourceKey).deleteColumn(sourceEdge);
+  batch.withRow(CF_TARGET_EDGES,targetKey).deleteColumn(targetEdge);
+  batch.withRow(CF_TARGET_TYPE_EDGES,targetKey).deleteColumn(targetEdge);
+  return batch;
 }

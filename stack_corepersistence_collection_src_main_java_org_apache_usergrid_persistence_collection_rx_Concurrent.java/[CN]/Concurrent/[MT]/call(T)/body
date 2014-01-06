@@ -1,7 +1,7 @@
 {
   List<Observable<R>> observables=new ArrayList<Observable<R>>(concurrent.length);
   for (  Func1<T,R> funct : concurrent) {
-    final Observable<R> observable=Observable.from(input).subscribeOn(scheduler).map(funct);
+    final Observable<R> observable=Observable.from(input).subscribeOn(Schedulers.threadPoolForIO()).map(funct);
     observables.add(observable);
   }
   final Observable.OnSubscribeFunc<R> merge=OperationMerge.merge(observables);

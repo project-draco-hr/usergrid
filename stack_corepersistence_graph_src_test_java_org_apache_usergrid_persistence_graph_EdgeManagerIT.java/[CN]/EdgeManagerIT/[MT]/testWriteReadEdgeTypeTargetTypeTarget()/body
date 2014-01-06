@@ -1,7 +1,7 @@
 {
   EdgeManager em=emf.createEdgeManager(scope);
   Edge edge=createRealEdge("source","test","target");
-  em.writeEdge(edge);
+  em.writeEdge(edge).toBlockingObservable().last();
   SearchByIdType search=createSearchByEdgeAndId(edge.getTargetNode(),edge.getType(),edge.getVersion(),edge.getSourceNode().getType(),null);
   Observable<Edge> edges=em.loadTargetEdges(search);
   Edge returned=edges.toBlockingObservable().single();
