@@ -5,7 +5,7 @@
   final Id source=edge.getSourceNode();
   final Id target=edge.getTargetNode();
   final String edgeType=edge.getType();
-  final long timestamp=edge.getVersion().timestamp();
+  final long timestamp=CassUtils.getWriteTimestamp(edge.getVersion());
   final ScopedRowKey<OrganizationScope,Id> sourceKey=new ScopedRowKey<OrganizationScope,Id>(scope,source);
   batch.withRow(CF_TARGET_EDGE_TYPES,sourceKey).setTimestamp(timestamp).putColumn(edgeType,HOLDER);
   final ScopedRowKey<OrganizationScope,EdgeIdTypeKey> sourceTypeKey=new ScopedRowKey<OrganizationScope,EdgeIdTypeKey>(scope,new EdgeIdTypeKey(source,edgeType));
