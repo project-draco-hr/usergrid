@@ -1,0 +1,15 @@
+{
+  Preconditions.checkNotNull(colScope,"collectionScope is required");
+  Preconditions.checkNotNull(entityId,"entity id is required");
+  Preconditions.checkNotNull(version,"entity version is required");
+  Preconditions.checkNotNull(fieldName,"fieldName is required");
+  Column<UUID> result;
+  try {
+    result=keyspace.prepareQuery(CF_UNIQUE_VALUES).getKey(ScopedRowKey.fromKey(colScope,entityId)).getColumn(version).execute().getResult();
+  }
+ catch (  NotFoundException nfe) {
+    return null;
+  }
+  final Field field=result.getValue(SER);
+  return new UniqueValueImpl(colScope,field,version,entityId);
+}
