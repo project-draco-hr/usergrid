@@ -1,9 +1,27 @@
 {
-  ValidationUtils.verifyMvccEntityWithEntity(mvccEntityIoEvent.getEvent());
-  Entity entity=mvccEntityIoEvent.getEvent().getEntity().get();
+  ValidationUtils.verifyMvccEntityWithEntity(ioevent.getEvent());
+  Entity entity=ioevent.getEvent().getEntity().get();
   for (  Field field : entity.getFields()) {
     if (field.isUnique()) {
+      UniqueValue uniqueValue=null;
+      try {
+        uniqueValue=uniqueValueSerializiationStrategy.load(ioevent.getEntityCollection(),field);
+      }
+ catch (      ConnectionException e) {
+        throw new CollectionRuntimeException(e);
+      }
+      if (uniqueValue != null) {
+        throw new CollectionRuntimeException("Duplicate field value " + field.toString());
+      }
+      uniqueValue=new UniqueValueImpl(ioevent.getEntityCollection(),field,entity.getId(),entity.getVersion());
+      MutationBatch mb=uniqueValueSerializiationStrategy.write(uniqueValue);
+      try {
+        mb.execute();
+      }
+ catch (      ConnectionException ex) {
+        throw new CollectionRuntimeException("Error writing unique value " + field.toString(),ex);
+      }
     }
   }
-  return mvccEntityIoEvent;
+  return ioevent;
 }
