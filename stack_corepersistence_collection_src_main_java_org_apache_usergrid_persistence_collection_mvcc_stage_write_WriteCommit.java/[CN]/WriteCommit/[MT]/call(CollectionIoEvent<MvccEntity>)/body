@@ -5,9 +5,16 @@
   final UUID version=entity.getVersion();
   final CollectionScope collectionScope=ioEvent.getEntityCollection();
   final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,org.apache.usergrid.persistence.collection.mvcc.entity.Stage.COMMITTED);
-  MutationBatch logMutation=logEntrySerializationStrategy.write(collectionScope,startEntry);
-  MutationBatch entityMutation=entitySerializationStrategy.write(collectionScope,entity);
+  MutationBatch logMutation=logEntryStrat.write(collectionScope,startEntry);
+  MutationBatch entityMutation=entityStrat.write(collectionScope,entity);
   logMutation.mergeShallow(entityMutation);
+  for (  Field field : entity.getEntity().get().getFields()) {
+    if (field.isUnique()) {
+      UniqueValue written=new UniqueValueImpl(ioEvent.getEntityCollection(),field,entity.getId(),entity.getVersion());
+      MutationBatch mb=uniqueValueStrat.write(written,null);
+      logMutation.mergeShallow(mb);
+    }
+  }
   try {
     logMutation.execute();
   }

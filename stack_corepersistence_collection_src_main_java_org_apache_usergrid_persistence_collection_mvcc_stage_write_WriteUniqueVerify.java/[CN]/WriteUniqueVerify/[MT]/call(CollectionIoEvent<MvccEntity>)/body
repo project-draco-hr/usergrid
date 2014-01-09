@@ -4,7 +4,7 @@
   for (  Field field : entity.getFields()) {
     if (field.isUnique()) {
       UniqueValue written=new UniqueValueImpl(ioevent.getEntityCollection(),field,entity.getId(),entity.getVersion());
-      MutationBatch mb=uniqueValueSerializiationStrategy.write(written,null);
+      MutationBatch mb=uniqueValueStrat.write(written,10);
       try {
         mb.execute();
       }
@@ -13,7 +13,7 @@
       }
       UniqueValue loaded;
       try {
-        loaded=uniqueValueSerializiationStrategy.load(ioevent.getEntityCollection(),field);
+        loaded=uniqueValueStrat.load(ioevent.getEntityCollection(),field);
       }
  catch (      ConnectionException ex) {
         throw new CollectionRuntimeException(ex);
