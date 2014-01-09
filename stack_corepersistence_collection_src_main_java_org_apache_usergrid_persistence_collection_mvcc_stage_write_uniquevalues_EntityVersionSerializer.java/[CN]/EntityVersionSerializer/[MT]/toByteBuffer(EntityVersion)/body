@@ -1,6 +1,7 @@
 {
-  DynamicComposite composite=new DynamicComposite();
-  ID_COL_SERIALIZER.toComposite(composite,ev.getEntityId());
-  composite.addComponent(ev.getEntityVersion(),UUID_SERIALIZER);
-  return composite.serialize();
+  CompositeBuilder builder=Composites.newDynamicCompositeBuilder();
+  builder.add(ev.getEntityId().getUuid(),UUIDSerializer.get());
+  builder.add(ev.getEntityId().getType(),StringSerializer.get());
+  builder.add(ev.getEntityVersion(),UUIDSerializer.get());
+  return builder.build();
 }
