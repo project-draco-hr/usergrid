@@ -1,7 +1,7 @@
 {
-  final long timestamp=version.timestamp();
-  final ScopedRowKey<OrganizationScope,Id> targetKey=new ScopedRowKey<OrganizationScope,Id>(scope,rowKeyId);
+  final long timestamp=CassUtils.getDeleteTimestamp(version);
+  final ScopedRowKey<OrganizationScope,Id> rowKey=new ScopedRowKey<OrganizationScope,Id>(scope,rowKeyId);
   final MutationBatch batch=keyspace.prepareMutationBatch();
-  batch.withRow(cf,targetKey).setTimestamp(timestamp).deleteColumn(edgeType);
+  batch.withRow(cf,rowKey).setTimestamp(timestamp).deleteColumn(edgeType);
   return batch;
 }
