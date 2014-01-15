@@ -1,13 +1,13 @@
 {
-  final Entity entity=ioevent.getEvent().getEntity().get();
   ValidationUtils.verifyMvccEntityWithEntity(ioevent.getEvent());
+  final Entity entity=ioevent.getEvent().getEntity().get();
   final List<Future<FieldUniquenessResult>> results=new ArrayList<Future<FieldUniquenessResult>>();
   for (  final Field field : entity.getFields()) {
     if (field.isUnique()) {
       results.add(threadPool.submit(new Callable<FieldUniquenessResult>(){
         public FieldUniquenessResult call() throws Exception {
           UniqueValue written=new UniqueValueImpl(ioevent.getEntityCollection(),field,entity.getId(),entity.getVersion());
-          MutationBatch mb=uniqueValueStrat.write(written,writeFig.getUniqueValueTimeToLive());
+          MutationBatch mb=uniqueValueStrat.write(written,UNIQUE_VALUE_TTL);
           try {
             mb.execute();
           }
