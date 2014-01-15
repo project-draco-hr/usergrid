@@ -1,17 +1,8 @@
 {
-  cassandraFig.override("getPort",THRIFT_PORT_STR);
-  cassandraFig.override("getConnections","20");
-  cassandraFig.override("getHosts","localhost");
-  cassandraFig.override("getClusterName","Usergrid");
-  cassandraFig.override("getKeyspaceName","Usergrid_Collections");
   if (started) {
     return;
   }
 synchronized (mutex) {
-    if (started) {
-      return;
-    }
-    cassandraFig.bypass("getPort",THRIFT_PORT_STR);
     File dataDir=Files.createTempDir();
     dataDir.deleteOnExit();
     if (dataDir.exists()) {
@@ -19,7 +10,7 @@ synchronized (mutex) {
     }
     try {
       LOG.info("Starting cassandra");
-      cass=new EmbeddedCassandra(dataDir,"Usergrid",THRIFT_PORT,GOSSIP_PORT);
+      cass=new EmbeddedCassandra(dataDir,"Usergrid",cassandraFig.getThriftPort(),AvailablePortFinder.getNextAvailable());
       cass.start();
       LOG.info("Cassandra started");
       started=true;
