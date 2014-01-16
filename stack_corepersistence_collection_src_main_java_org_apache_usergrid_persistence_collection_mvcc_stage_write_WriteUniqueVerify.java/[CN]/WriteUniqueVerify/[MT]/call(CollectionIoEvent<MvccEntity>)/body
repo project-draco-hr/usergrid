@@ -1,4 +1,45 @@
 {
-  ValidationUtils.verifyMvccEntityWithEntity(mvccEntityIoEvent.getEvent());
-  return mvccEntityIoEvent;
+  ValidationUtils.verifyMvccEntityWithEntity(ioevent.getEvent());
+  final Entity entity=ioevent.getEvent().getEntity().get();
+  final List<Future<FieldUniquenessResult>> results=new ArrayList<Future<FieldUniquenessResult>>();
+  for (  final Field field : entity.getFields()) {
+    if (field.isUnique()) {
+      results.add(threadPool.submit(new Callable<FieldUniquenessResult>(){
+        public FieldUniquenessResult call() throws Exception {
+          UniqueValue written=new UniqueValueImpl(ioevent.getEntityCollection(),field,entity.getId(),entity.getVersion());
+          MutationBatch mb=uniqueValueStrat.write(written,UNIQUE_VALUE_TTL);
+          try {
+            mb.execute();
+          }
+ catch (          ConnectionException ex) {
+            throw new CollectionRuntimeException("Error writing unique value " + field.toString(),ex);
+          }
+          UniqueValue loaded;
+          try {
+            loaded=uniqueValueStrat.load(ioevent.getEntityCollection(),field);
+          }
+ catch (          ConnectionException ex) {
+            throw new CollectionRuntimeException(ex);
+          }
+          return new FieldUniquenessResult(field,loaded.equals(written));
+        }
+      }
+));
+    }
+  }
+  for (  Future<FieldUniquenessResult> result : results) {
+    try {
+      if (!result.get().isUnique()) {
+        Field field=result.get().getField();
+        throw new CollectionRuntimeException("Duplicate field value " + field.getName() + " = "+ field.getValue().toString());
+      }
+    }
+ catch (    InterruptedException ex) {
+      LOG.error("Error verifing uniqueness",ex);
+    }
+catch (    ExecutionException ex) {
+      LOG.error("Error verifing uniqueness",ex);
+    }
+  }
+  return ioevent;
 }
