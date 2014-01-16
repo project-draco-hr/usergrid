@@ -5,8 +5,28 @@
   for (  String key : properties.keySet()) {
     feilds.append(key);
     feilds.append(",");
-    Object value=entity.getProperty(key);
-    Class type=value.getClass();
+    Class type=null;
+    try {
+      type=entity.getProperty(key).getClass();
+    }
+ catch (    NullPointerException ne) {
+      type=entity.getDynamicProperties().get(key).getClass();
+    }
+    Object value=null;
+    if (StringUtils.equals("name",key)) {
+      value=entity.getName();
+    }
+ else {
+      value=entity.getProperty(key);
+    }
+    if (type == Boolean.class) {
+      if ((Boolean)value) {
+        value=1;
+      }
+ else {
+        value=0;
+      }
+    }
     String sqlType=getSqlDatatype(type);
     if (StringUtils.equals("TEXT",sqlType)) {
       values.append("'");

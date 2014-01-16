@@ -1,0 +1,12 @@
+{
+  String uuid=UUID.randomUUID().toString().replaceAll("-","");
+  orgName=orgName + uuid;
+  appName=appName + uuid;
+  email=orgName + "@usergrid.com";
+  ManagementService managementService=QueryITSuite.serverResource.getMgmtSvc();
+  UserInfo user=managementService.createAdminUser(orgName,"Query Test",email,password,false,false);
+  OrganizationInfo org=managementService.createOrganization(orgName,user,false);
+  assertNotNull(org);
+  ApplicationInfo app=managementService.createApplication(org.getUuid(),appName);
+  assertNotNull(app);
+}

@@ -1,0 +1,28 @@
+{
+  String json=null;
+  try {
+    URL url=Thread.currentThread().getContextClassLoader().getResource(collection + ".json");
+    json=FileUtils.readFileToString(FileUtils.toFile(url),Charset.forName("UTF-8"));
+  }
+ catch (  IOException e) {
+    e.printStackTrace();
+  }
+  List<Entity> entities=new ArrayList<Entity>();
+  List<Map<String,Object>> datas=(List<Map<String,Object>>)JsonUtils.parse(json);
+  int index=0;
+  for (  Map<String,Object> data : datas) {
+    long created=System.currentTimeMillis() + (index * 1000);
+    QueryEntity entity=new QueryEntity();
+    entity.setType(collection);
+    for (    Map.Entry<String,Object> property : data.entrySet()) {
+      if (StringUtils.equals("name",property.getKey()))       entity.setName((String)property.getValue());
+ else       entity.setProperty(property.getKey(),property.getValue());
+    }
+    entity.setProperties(data);
+    entity.setCreated(created);
+    entity.setModified(created);
+    entities.add(entity);
+    index++;
+  }
+  return entities;
+}

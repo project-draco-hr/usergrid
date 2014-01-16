@@ -1,0 +1,25 @@
+{
+  String sqlite="SELECT * FROM users WHERE sex = 'female' or age >= 12 and age < 20 LIMIT 20";
+  String api="select * where sex = 'female' or age >= 12 and age < 20";
+  int limit=20;
+  QueryRequest request=new QueryRequest();
+  request.setDbQuery(sqlite);
+  request.getApiQuery().setQuery(api);
+  request.getApiQuery().setLimit(limit);
+  QueryResponse response=validator.execute(request,new QueryResultsMatcher(){
+    @Override public boolean equals(    List<Entity> expectedEntities,    List<Entity> actuallyEntities){
+      boolean equals=expectedEntities.size() == expectedEntities.size();
+      if (!equals)       return false;
+      for (      Entity entity : actuallyEntities) {
+        int age=(Integer)entity.getProperty("age");
+        String sex=(String)entity.getProperty("sex");
+        if (((StringUtils.equals("female",sex) || age >= 12) && age < 20) == false) {
+          return false;
+        }
+      }
+      return equals;
+    }
+  }
+);
+  Assert.assertTrue(response.toString(),response.result());
+}
