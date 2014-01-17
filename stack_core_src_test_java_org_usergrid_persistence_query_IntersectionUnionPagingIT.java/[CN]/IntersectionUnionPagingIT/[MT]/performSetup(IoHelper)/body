@@ -1,0 +1,31 @@
+{
+  io.doSetup();
+  int size=500;
+  long start=System.currentTimeMillis();
+  LOG.info("Writing {} entities.",size);
+  final String zeros=String.format("%08d",0);
+  Set<String> names=new HashSet<String>(size);
+  for (int i=0; i < size; i++) {
+    Map<String,Object> entity=new HashMap<String,Object>();
+    final String name=String.valueOf(i);
+    entity.put("name",name);
+    entity.put("fieldDate","0000-00-00");
+    String field1;
+    String field2;
+    if (i < PAGE_SIZE - 10) {
+      field1=String.format("%08d",i + 1);
+      field2=zeros;
+    }
+ else {
+      field1=zeros;
+      field2=String.format("%08d",i + 1);
+    }
+    names.add(name);
+    entity.put("field1Or",field1);
+    entity.put("field2Or",field2);
+    io.writeEntity(entity);
+  }
+  long stop=System.currentTimeMillis();
+  LOG.info("Writes took {} ms",stop - start);
+  return Collections.unmodifiableSet(names);
+}
