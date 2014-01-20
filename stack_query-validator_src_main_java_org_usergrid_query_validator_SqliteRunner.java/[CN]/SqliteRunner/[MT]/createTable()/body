@@ -8,7 +8,13 @@
   for (  String key : properties.keySet()) {
     builder.append(key);
     builder.append(" ");
-    Class type=entity.getProperty(key).getClass();
+    Class type=null;
+    try {
+      type=entity.getProperty(key).getClass();
+    }
+ catch (    NullPointerException ne) {
+      type=entity.getDynamicProperties().get(key).getClass();
+    }
     String sqlType=getSqlDatatype(type);
     builder.append(sqlType);
     builder.append(",");
