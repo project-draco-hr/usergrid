@@ -1,4 +1,18 @@
 {
   ValidationUtils.verifyMvccEntityWithEntity(mvccEntityIoEvent.getEvent());
+  MvccEntity entity=mvccEntityIoEvent.getEvent();
+  CollectionScope collectionScope=mvccEntityIoEvent.getEntityCollection();
+  try {
+    List<MvccLogEntry> versions=logEntryStrat.load(collectionScope,entity.getId(),entity.getVersion(),2);
+    if (versions.size() > 1 && versions.get(1).getStage().ordinal() < Stage.COMMITTED.ordinal()) {
+      final MvccLogEntry rollbackEntry=new MvccLogEntryImpl(entity.getId(),entity.getVersion(),Stage.ROLLBACK);
+      logEntryStrat.write(collectionScope,rollbackEntry);
+      throw new CollectionRuntimeException("Change conflict, not first writer");
+    }
+  }
+ catch (  ConnectionException e) {
+    LOG.error("Error reading entity log",e);
+    throw new CollectionRuntimeException("Error reading entity log",e);
+  }
   return mvccEntityIoEvent;
 }
