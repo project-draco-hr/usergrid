@@ -1,0 +1,19 @@
+{
+  EdgeManager em=emf.createEdgeManager(scope);
+  Edge edge1=createEdge("source","test","target");
+  em.writeEdge(edge1);
+  Edge edge2=createEdge("source","test","target");
+  em.writeEdge(edge2);
+  Edge edge3=createEdge("source","test","target");
+  em.writeEdge(edge3);
+  SearchByEdgeType search=createSearchByEdge(edge1.getSourceNode(),edge1.getType(),edge1.getVersion(),null);
+  Observable<Edge> edges=em.loadSourceEdges(search);
+  Iterator<Edge> returned=edges.toBlockingObservable().next().iterator();
+  assertEquals("Correct edge returned",edge1,returned.next());
+  assertEquals("Correct edge returned",edge2,returned.next());
+  search=createSearchByEdge(edge1.getSourceNode(),edge1.getType(),edge1.getVersion(),edge2);
+  edges=em.loadSourceEdges(search);
+  returned=edges.toBlockingObservable().next().iterator();
+  assertEquals("Paged correctly",edge3,returned.next());
+  assertFalse("End of stream",returned.hasNext());
+}

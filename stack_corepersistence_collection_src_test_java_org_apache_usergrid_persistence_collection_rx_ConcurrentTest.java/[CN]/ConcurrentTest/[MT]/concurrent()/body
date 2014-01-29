@@ -1,0 +1,18 @@
+{
+  final String source="test";
+  Observable<String> observable=Observable.from(source);
+  final CountDownLatch latch=new CountDownLatch(0);
+  TestConcurrent instance1=new TestConcurrent(latch);
+  TestConcurrent instance2=new TestConcurrent(latch);
+  TestConcurrent instance3=new TestConcurrent(latch);
+  observable=observable.subscribeOn(Schedulers.threadPoolForIO());
+  Observable<String> result=Concurrent.concurrent(observable,instance1,instance2,instance3);
+  assertEquals("No invocation yet",0,set.size());
+  String response=result.toBlockingObservable().single();
+  assertEquals("Same value emitted",source,response);
+  assertEquals("3 thread invoked",3,set.size());
+  for (  Multiset.Entry<String> entry : set.entrySet()) {
+    System.out.println(entry.getElement());
+    assertEquals("1 Thread per invocation",1,entry.getCount());
+  }
+}

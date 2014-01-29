@@ -1,0 +1,26 @@
+{
+  if (started) {
+    return;
+  }
+synchronized (mutex) {
+    if (started) {
+      return;
+    }
+    cassandraFig.bypass("getPort",THRIFT_PORT_STR);
+    File dataDir=Files.createTempDir();
+    dataDir.deleteOnExit();
+    if (dataDir.exists()) {
+      FileUtils.deleteRecursive(dataDir);
+    }
+    try {
+      LOG.info("Starting cassandra");
+      cass=new EmbeddedCassandra(dataDir,"Usergrid",THRIFT_PORT,GOSSIP_PORT);
+      cass.start();
+      LOG.info("Cassandra started");
+      started=true;
+    }
+ catch (    IOException e) {
+      throw new RuntimeException("Unable to start cassandra",e);
+    }
+  }
+}

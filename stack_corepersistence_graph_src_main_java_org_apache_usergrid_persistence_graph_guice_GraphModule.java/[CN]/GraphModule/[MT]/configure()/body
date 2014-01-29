@@ -1,0 +1,10 @@
+{
+  install(new CollectionModule());
+  bind(PostProcessObserver.class).to(CollectionIndexObserver.class);
+  bind(EdgeMetadataSerialization.class).to(EdgeMetadataSerializationImpl.class);
+  bind(EdgeSerialization.class).to(EdgeSerializationImpl.class);
+  install(new FactoryModuleBuilder().implement(EdgeManager.class,EdgeManagerImpl.class).build(EdgeManagerFactory.class));
+  Multibinder<Migration> uriBinder=Multibinder.newSetBinder(binder(),Migration.class);
+  uriBinder.addBinding().to(EdgeMetadataSerializationImpl.class);
+  uriBinder.addBinding().to(EdgeSerializationImpl.class);
+}
