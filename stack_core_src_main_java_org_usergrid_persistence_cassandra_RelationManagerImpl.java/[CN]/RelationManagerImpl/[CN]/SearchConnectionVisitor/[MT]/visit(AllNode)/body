@@ -6,9 +6,6 @@
   if (slice.hasCursor()) {
     start=slice.getCursor();
   }
-  if (start != null) {
-    size++;
-  }
   boolean skipFirst=node.isForceKeepFirst() ? false : slice.hasCursor();
   UUID entityIdToUse;
   String dictionaryType;
@@ -32,6 +29,6 @@
  else {
     connectionTypes=new ConnectionTypesIterator(cass,applicationId,entityIdToUse,outgoing,size);
   }
-  IndexScanner connectionScanner=new ConnectedIndexScanner(cass,dictionaryType,applicationId,entityIdToUse,connectionTypes,start,slice.isReversed(),size);
-  this.results.push(new SliceIterator(slice,connectionScanner,connectionParser,skipFirst));
+  IndexScanner connectionScanner=new ConnectedIndexScanner(cass,dictionaryType,applicationId,entityIdToUse,connectionTypes,start,slice.isReversed(),size,skipFirst);
+  this.results.push(new SliceIterator(slice,connectionScanner,connectionParser));
 }

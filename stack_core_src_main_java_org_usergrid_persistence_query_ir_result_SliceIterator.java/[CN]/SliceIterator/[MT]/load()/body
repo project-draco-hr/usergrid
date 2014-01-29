@@ -4,9 +4,6 @@
   }
   Iterator<HColumn<ByteBuffer,ByteBuffer>> results=scanner.next().iterator();
   cols.clear();
-  if (skipFirst && results.hasNext()) {
-    results.next();
-  }
   parsedCols.clear();
   while (results.hasNext()) {
     ByteBuffer colName=results.next().getName().duplicate();
@@ -14,7 +11,6 @@
     if (parsed == null) {
       continue;
     }
-    logger.debug("Parsed column with uuid '{}'",parsed.getUUID());
     last=parsed;
     cols.put(parsed.getUUID(),parsed);
     parsedCols.add(parsed);
