@@ -2,16 +2,28 @@
   if (!hasMore) {
     return false;
   }
+  boolean skipFirst=this.skipFirst && start == scanStart;
+  int totalSelectSize=pageSize + 1;
+  if (skipFirst) {
+    totalSelectSize++;
+  }
   lastResults=new LinkedHashSet<HColumn<ByteBuffer,ByteBuffer>>();
+  HColumn<ByteBuffer,ByteBuffer> first=null;
+  HColumn<ByteBuffer,ByteBuffer> last=null;
   while (currentConnectionType != null) {
-    int selectSize=pageSize + 1 - lastResults.size();
+    int selectSize=totalSelectSize - lastResults.size();
     Object key=key(entityId,dictionaryType,currentConnectionType);
     List<HColumn<ByteBuffer,ByteBuffer>> results=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_COMPOSITE_DICTIONARIES,key,start,null,selectSize,reversed);
+    final int resultSize=results.size();
+    if (resultSize > 0) {
+      last=results.get(resultSize - 1);
+      if (first == null) {
+        first=results.get(0);
+      }
+    }
     lastResults.addAll(results);
-    if (results.size() == selectSize) {
+    if (resultSize == selectSize) {
       hasMore=true;
-      start=results.get(results.size() - 1).getName();
-      lastResults.remove(lastResults.size() - 1);
       break;
     }
  else {
@@ -22,6 +34,13 @@
       }
       currentConnectionType=connectionTypes.next();
     }
+  }
+  if (skipFirst && first != null) {
+    lastResults.remove(first);
+  }
+  if (hasMore && last != null) {
+    start=last.getName();
+    lastResults.remove(last);
   }
   return lastResults != null && lastResults.size() > 0;
 }
