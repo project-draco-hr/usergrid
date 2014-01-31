@@ -1,10 +1,9 @@
 {
   final long[] targetEdgeTypes=getHash(edge);
   DynamicComposite composite=new DynamicComposite();
-  for (  long hash : targetEdgeTypes) {
-    composite.add(hash);
-  }
-  ID_COL_SERIALIZER.toComposite(composite,edge.id);
+  composite.addComponent(targetEdgeTypes[0],LONG_SERIALIZER);
+  composite.addComponent(targetEdgeTypes[1],LONG_SERIALIZER);
   composite.addComponent(edge.version,UUID_SERIALIZER);
+  ID_COL_SERIALIZER.toComposite(composite,edge.id);
   return composite.serialize();
 }
