@@ -1,3 +1,27 @@
 {
-  return getEdges(scope,edgeType,GRAPH_TARGET_NODE_EDGES,EDGE_TYPE_ID_SERIALIZER,SOURCE_DIRECTED_EDGE_CREATOR,new TargetEdgeColumnParser(edgeType));
+  ValidationUtils.validateOrganizationScope(scope);
+  EdgeUtils.validateSearchByEdgeType(edgeType);
+  final Id targetId=edgeType.getNode();
+  final String type=edgeType.getType();
+  return getEdges(scope,GRAPH_TARGET_NODE_EDGES,new EdgeSearcher<RowKey>(){
+    @Override public void setRange(    final RangeBuilder builder){
+      if (edgeType.last().isPresent()) {
+        final Edge edge=edgeType.last().get();
+        DirectedEdge sourceEdge=new DirectedEdge(edge.getSourceNode(),edge.getVersion());
+        builder.setStart(sourceEdge,EDGE_SERIALIZER);
+      }
+    }
+    @Override public ScopedRowKey<OrganizationScope,RowKey> getRowKey(){
+      final RowKey sourceRowKey=new RowKey(targetId,type);
+      return ScopedRowKey.fromKey(scope,sourceRowKey);
+    }
+    @Override public boolean hasPage(){
+      return edgeType.last().isPresent();
+    }
+    @Override public Edge parseColumn(    final Column<DirectedEdge> column){
+      final DirectedEdge edge=column.getName();
+      return new SimpleEdge(edge.id,type,targetId,edge.version);
+    }
+  }
+);
 }
