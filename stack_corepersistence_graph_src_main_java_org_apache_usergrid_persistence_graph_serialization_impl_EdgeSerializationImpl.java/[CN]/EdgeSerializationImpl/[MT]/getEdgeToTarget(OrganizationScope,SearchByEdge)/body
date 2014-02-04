@@ -1,3 +1,33 @@
 {
-  return null;
+  ValidationUtils.validateOrganizationScope(scope);
+  EdgeUtils.validateSearchByEdge(search);
+  final Id sourceId=search.sourceNode();
+  final Id targetId=search.targetNode();
+  final String type=search.getType();
+  final UUID maxVersion=search.getMaxVersion();
+  final Optional<Edge> last=search.last();
+  return getEdges(GRAPH_TARGET_NODE_EDGES,new EdgeSearcher<RowKey>(){
+    @Override public void setRange(    final RangeBuilder builder){
+      if (last.isPresent()) {
+        final Edge edge=last.get();
+        DirectedEdge sourceEdge=new DirectedEdge(edge.getSourceNode(),edge.getVersion());
+        builder.setStart(sourceEdge,EDGE_SERIALIZER);
+      }
+      final DirectedEdge last=new DirectedEdge(sourceId,maxVersion);
+      final ByteBuffer colValue=EDGE_SERIALIZER.createSearchEdgeInclusive(last);
+      builder.setEnd(colValue);
+    }
+    @Override public ScopedRowKey<OrganizationScope,RowKey> getRowKey(){
+      final RowKey sourceRowKey=new RowKey(targetId,type);
+      return ScopedRowKey.fromKey(scope,sourceRowKey);
+    }
+    @Override public boolean hasPage(){
+      return last.isPresent();
+    }
+    @Override public Edge parseColumn(    final Column<DirectedEdge> column){
+      final DirectedEdge edge=column.getName();
+      return new SimpleEdge(edge.id,type,targetId,edge.version);
+    }
+  }
+);
 }
