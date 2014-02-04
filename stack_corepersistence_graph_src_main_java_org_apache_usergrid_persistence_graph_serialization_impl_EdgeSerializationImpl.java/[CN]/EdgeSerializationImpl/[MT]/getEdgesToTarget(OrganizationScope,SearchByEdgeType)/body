@@ -3,23 +3,14 @@
   EdgeUtils.validateSearchByEdgeType(edgeType);
   final Id targetId=edgeType.getNode();
   final String type=edgeType.getType();
-  return getEdges(GRAPH_TARGET_NODE_EDGES,new EdgeSearcher<RowKey>(){
-    @Override public void setRange(    final RangeBuilder builder){
-      if (edgeType.last().isPresent()) {
-        final Edge edge=edgeType.last().get();
-        DirectedEdge sourceEdge=new DirectedEdge(edge.getSourceNode(),edge.getVersion());
-        builder.setStart(sourceEdge,EDGE_SERIALIZER);
-      }
+  return getEdges(GRAPH_TARGET_NODE_EDGES,new EdgeSearcher<RowKey>(scope,edgeType.last()){
+    @Override protected RowKey generateRowKey(){
+      return new RowKey(targetId,type);
     }
-    @Override public ScopedRowKey<OrganizationScope,RowKey> getRowKey(){
-      final RowKey sourceRowKey=new RowKey(targetId,type);
-      return ScopedRowKey.fromKey(scope,sourceRowKey);
+    @Override protected DirectedEdge getStartColumn(    final Edge last){
+      return new DirectedEdge(last.getSourceNode(),last.getVersion());
     }
-    @Override public boolean hasPage(){
-      return edgeType.last().isPresent();
-    }
-    @Override public Edge parseColumn(    final Column<DirectedEdge> column){
-      final DirectedEdge edge=column.getName();
+    @Override protected Edge createEdge(    final DirectedEdge edge){
       return new SimpleEdge(edge.id,type,targetId,edge.version);
     }
   }

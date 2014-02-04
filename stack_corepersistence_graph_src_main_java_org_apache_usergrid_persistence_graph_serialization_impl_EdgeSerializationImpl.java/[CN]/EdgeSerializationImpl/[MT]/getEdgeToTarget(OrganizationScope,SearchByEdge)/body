@@ -3,29 +3,22 @@
   EdgeUtils.validateSearchByEdge(search);
   final Id sourceId=search.sourceNode();
   final Id targetId=search.targetNode();
-  final String type=search.getType();
   final UUID maxVersion=search.getMaxVersion();
-  final Optional<Edge> last=search.last();
-  return getEdges(GRAPH_TARGET_NODE_EDGES,new EdgeSearcher<RowKey>(){
+  final String type=search.getType();
+  return getEdges(GRAPH_TARGET_NODE_EDGES,new EdgeSearcher<RowKey>(scope,search.last()){
     @Override public void setRange(    final RangeBuilder builder){
-      if (last.isPresent()) {
-        final Edge edge=last.get();
-        DirectedEdge sourceEdge=new DirectedEdge(edge.getSourceNode(),edge.getVersion());
-        builder.setStart(sourceEdge,EDGE_SERIALIZER);
-      }
+      super.setRange(builder);
       final DirectedEdge last=new DirectedEdge(sourceId,maxVersion);
       final ByteBuffer colValue=EDGE_SERIALIZER.createSearchEdgeInclusive(last);
       builder.setEnd(colValue);
     }
-    @Override public ScopedRowKey<OrganizationScope,RowKey> getRowKey(){
-      final RowKey sourceRowKey=new RowKey(targetId,type);
-      return ScopedRowKey.fromKey(scope,sourceRowKey);
+    @Override protected RowKey generateRowKey(){
+      return new RowKey(targetId,type);
     }
-    @Override public boolean hasPage(){
-      return last.isPresent();
+    @Override protected DirectedEdge getStartColumn(    final Edge last){
+      return new DirectedEdge(last.getSourceNode(),last.getVersion());
     }
-    @Override public Edge parseColumn(    final Column<DirectedEdge> column){
-      final DirectedEdge edge=column.getName();
+    @Override protected Edge createEdge(    final DirectedEdge edge){
       return new SimpleEdge(edge.id,type,targetId,edge.version);
     }
   }

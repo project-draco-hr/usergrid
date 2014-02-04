@@ -1,31 +1,24 @@
 {
   ValidationUtils.validateOrganizationScope(scope);
   EdgeUtils.validateSearchByEdge(search);
-  final Id sourceId=search.sourceNode();
   final Id targetId=search.targetNode();
+  final Id sourceId=search.sourceNode();
   final String type=search.getType();
   final UUID maxVersion=search.getMaxVersion();
-  final Optional<Edge> last=search.last();
-  return getEdges(GRAPH_SOURCE_NODE_EDGES,new EdgeSearcher<RowKey>(){
+  return getEdges(GRAPH_SOURCE_NODE_EDGES,new EdgeSearcher<RowKey>(scope,search.last()){
     @Override public void setRange(    final RangeBuilder builder){
-      if (search.last().isPresent()) {
-        final Edge edge=search.last().get();
-        DirectedEdge sourceEdge=new DirectedEdge(edge.getTargetNode(),edge.getVersion());
-        builder.setStart(sourceEdge,EDGE_SERIALIZER);
-      }
+      super.setRange(builder);
       final DirectedEdge last=new DirectedEdge(targetId,maxVersion);
       final ByteBuffer colValue=EDGE_SERIALIZER.createSearchEdgeInclusive(last);
       builder.setEnd(colValue);
     }
-    @Override public ScopedRowKey<OrganizationScope,RowKey> getRowKey(){
-      final RowKey sourceRowKey=new RowKey(sourceId,type);
-      return ScopedRowKey.fromKey(scope,sourceRowKey);
+    @Override protected RowKey generateRowKey(){
+      return new RowKey(sourceId,type);
     }
-    @Override public boolean hasPage(){
-      return search.last().isPresent();
+    @Override protected DirectedEdge getStartColumn(    final Edge last){
+      return new DirectedEdge(last.getTargetNode(),last.getVersion());
     }
-    @Override public Edge parseColumn(    final Column<DirectedEdge> column){
-      final DirectedEdge edge=column.getName();
+    @Override protected Edge createEdge(    final DirectedEdge edge){
       return new SimpleEdge(sourceId,type,edge.id,edge.version);
     }
   }
