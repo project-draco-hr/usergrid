@@ -13,6 +13,9 @@
         DirectedEdge sourceEdge=new DirectedEdge(edge.getTargetNode(),edge.getVersion());
         builder.setStart(sourceEdge,EDGE_SERIALIZER);
       }
+      final DirectedEdge last=new DirectedEdge(targetId,maxVersion);
+      final ByteBuffer colValue=EDGE_SERIALIZER.createSearchEdgeInclusive(last);
+      builder.setEnd(colValue);
     }
     @Override public ScopedRowKey<OrganizationScope,RowKey> getRowKey(){
       final RowKey sourceRowKey=new RowKey(sourceId,type);

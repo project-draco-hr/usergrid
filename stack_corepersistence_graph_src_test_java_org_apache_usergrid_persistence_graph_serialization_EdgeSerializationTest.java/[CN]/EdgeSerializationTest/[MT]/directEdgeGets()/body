@@ -30,4 +30,12 @@
   assertFalse("No results should be returned",results.hasNext());
   results=serialization.getEdgeToTarget(scope,search);
   assertFalse("No results should be returned",results.hasNext());
+  search=createGetByEdge(sourceId,"edge1",targetId,edgev1.getVersion(),null);
+  results=serialization.getEdgeFromSource(scope,search);
+  assertEquals(edgev1,results.next());
+  assertFalse("Max version was honored",results.hasNext());
+  search=createGetByEdge(sourceId,"edge1",targetId,edgev1.getVersion(),null);
+  results=serialization.getEdgeToTarget(scope,search);
+  assertEquals(edgev1,results.next());
+  assertFalse("Max version was honored",results.hasNext());
 }
