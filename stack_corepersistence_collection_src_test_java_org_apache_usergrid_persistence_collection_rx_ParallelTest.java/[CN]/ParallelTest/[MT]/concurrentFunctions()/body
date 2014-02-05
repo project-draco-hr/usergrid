@@ -1,0 +1,31 @@
+{
+  final String input="input";
+  final int size=9;
+  final CountDownLatch latch=new CountDownLatch(size);
+  List<Observable<String>> observables=new ArrayList<Observable<String>>(size);
+  for (int i=0; i < size; i++) {
+    observables.add(new CassandraCommand<String>(input).toObservable().map(new Func1<String,String>(){
+      @Override public String call(      final String s){
+        latch.countDown();
+        logger.info("Function executing on thread {} with latch value {}",Thread.currentThread().getName(),latch.getCount());
+        try {
+          latch.await();
+        }
+ catch (        InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+        return s;
+      }
+    }
+));
+  }
+  Observable<String> zipped=Observable.zip(observables,new FuncN<String>(){
+    @Override public String call(    final Object... args){
+      assertEquals(size,args.length);
+      return input;
+    }
+  }
+);
+  String last=zipped.toBlockingObservable().last();
+  assertEquals(input,last);
+}

@@ -1,12 +1,12 @@
 {
   final String source="test";
-  Observable<String> observable=Observable.from(source);
-  final CountDownLatch latch=new CountDownLatch(0);
+  Observable<String> observable=CassandraCommand.toObservable(source);
+  final CountDownLatch latch=new CountDownLatch(3);
   TestConcurrent instance1=new TestConcurrent(latch);
   TestConcurrent instance2=new TestConcurrent(latch);
   TestConcurrent instance3=new TestConcurrent(latch);
-  observable=observable.subscribeOn(Schedulers.threadPoolForIO());
-  Observable<String> result=Concurrent.concurrent(observable,instance1,instance2,instance3);
+  Zip zip=new Zip();
+  Observable<String> result=Concurrent.concurrent(observable,zip,instance1,instance2,instance3);
   assertEquals("No invocation yet",0,set.size());
   String response=result.toBlockingObservable().single();
   assertEquals("Same value emitted",source,response);
