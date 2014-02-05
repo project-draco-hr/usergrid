@@ -1,10 +1,14 @@
 {
   Status responseStatus=null;
+  Map<String,String> storageinfo=hashMap("s3_token","insert_token_data_here").map("s3_key","insert_secret_here").map("bucket_location","insert_bucket_location_here");
+  Map<String,Object> propertiesPayload=hashMap("storage_provider",(Object)"s3").map("storage_info",storageinfo);
+  Map<String,Object> payload=hashMap("path",(Object)"test-organization/test-app/user");
+  payload.put("properties",propertiesPayload);
   try {
-    resource().path("/management/export").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class);
+    resource().path("/management/export").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
   }
  catch (  UniformInterfaceException uie) {
     responseStatus=uie.getResponse().getClientResponseStatus();
   }
-  assertEquals(Status.BAD_REQUEST,responseStatus);
+  assertEquals(Status.OK,responseStatus);
 }
