@@ -4,7 +4,8 @@
   BiMap<UUID,String> applications=managementService.getApplicationsForOrganization(organization.getKey());
   for (  Map.Entry<UUID,String> application : applications.entrySet()) {
     logger.info(application.getValue() + " : " + application.getKey());
-    JsonGenerator jg=getJsonGenerator(createOutputFile("application",application.getValue()));
+    String appFileName=prepareOutputFileName("application",application.getValue());
+    JsonGenerator jg=getJsonGenerator(new File(appFileName));
     EntityManager rootEm=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
     Entity appEntity=rootEm.get(application.getKey());
     Map<String,Object> dictionaries=new HashMap<String,Object>();
@@ -25,7 +26,8 @@
     nsEntity.setMetadata("collections",collections);
     jg.writeStartArray();
     jg.writeObject(nsEntity);
-    JsonGenerator collectionsJg=getJsonGenerator(createOutputFile("collections",application.getValue()));
+    String collectionsFilename=prepareOutputFileName("collections","appDummyName");
+    JsonGenerator collectionsJg=getJsonGenerator(new File(collectionsFilename));
     collectionsJg.writeStartObject();
     Map<String,Object> metadata=em.getApplicationCollectionMetadata();
     for (    String collectionName : metadata.keySet()) {
@@ -49,6 +51,6 @@
     collectionsJg.close();
     jg.writeEndArray();
     jg.close();
-    copyToS3(filename,config);
+    copyToS3(appFileName,config);
   }
 }
