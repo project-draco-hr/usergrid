@@ -1,11 +1,11 @@
 {
+  String errorDescription="User must be confirmed to authenticate";
+  OAuthResponse response=null;
   try {
-    ExportInfo objEx=new ExportInfo(json);
-    ExportService ex=new ExportServiceDos();
-    ex.doExport(objEx);
+    response=OAuthResponse.status(SC_OK).buildJSONMessage();
   }
- catch (  Exception e) {
-    return Response.serverError().build();
+ catch (  OAuthSystemException e) {
+    e.printStackTrace();
   }
-  return Response.ok().build();
+  return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
 }

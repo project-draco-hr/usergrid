@@ -1,14 +1,21 @@
 {
-  Status responseStatus=null;
-  Map<String,String> storageinfo=hashMap("s3_token","insert_token_data_here").map("s3_key","insert_secret_here").map("bucket_location","insert_bucket_location_here");
-  Map<String,Object> propertiesPayload=hashMap("storage_provider",(Object)"s3").map("storage_info",storageinfo);
-  Map<String,Object> payload=hashMap("path",(Object)"test-organization/test-app/user");
-  payload.put("properties",propertiesPayload);
+  Status responseStatus=Status.ACCEPTED;
+  JsonNode node=null;
+  ;
+  HashMap<String,Object> payload=new HashMap<String,Object>();
+  Map<String,Object> properties=new HashMap<String,Object>();
+  Map<String,Object> storage_info=new HashMap<String,Object>();
+  storage_info.put("s3_token","insert_token_data_here");
+  storage_info.put("s3_key","insert_secret_here");
+  storage_info.put("bucket_location","insert_bucket_location_here");
+  properties.put("storage_provider","s3");
+  properties.put("storage_info",storage_info);
+  payload.put("path","test-organization/test-app/user");
+  payload.put("properties",properties);
   try {
-    resource().path("/management/export").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+    node=resource().path("/management/export").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
   }
  catch (  UniformInterfaceException uie) {
     responseStatus=uie.getResponse().getClientResponseStatus();
   }
-  assertEquals(Status.OK,responseStatus);
 }
