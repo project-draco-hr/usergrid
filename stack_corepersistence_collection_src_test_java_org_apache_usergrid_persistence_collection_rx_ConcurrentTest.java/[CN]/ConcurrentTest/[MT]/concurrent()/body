@@ -1,16 +1,20 @@
 {
   final String source="test";
   Observable<String> observable=CassandraCommand.toObservable(source);
-  final CountDownLatch latch=new CountDownLatch(3);
-  TestConcurrent instance1=new TestConcurrent(latch);
-  TestConcurrent instance2=new TestConcurrent(latch);
-  TestConcurrent instance3=new TestConcurrent(latch);
+  final int size=100;
+  ConfigurationManager.getConfigInstance().setProperty(CassandraCommand.THREAD_POOL_SIZE,size / 2);
+  ConfigurationManager.getConfigInstance().setProperty(CassandraCommand.THREAD_POOL_QUEUE,-1);
+  final CountDownLatch latch=new CountDownLatch(size);
+  TestConcurrent[] concurrentFunctions=new TestConcurrent[size];
+  for (int i=0; i < size; i++) {
+    concurrentFunctions[i]=new TestConcurrent(latch,i);
+  }
   Zip zip=new Zip();
-  Observable<String> result=Concurrent.concurrent(observable,zip,instance1,instance2,instance3);
+  Observable<Integer> result=Concurrent.concurrent(observable,zip,concurrentFunctions);
   assertEquals("No invocation yet",0,set.size());
-  String response=result.toBlockingObservable().single();
-  assertEquals("Same value emitted",source,response);
-  assertEquals("3 thread invoked",3,set.size());
+  Integer response=result.toBlockingObservable().single();
+  assertEquals("Same value emitted",size - 1,response.intValue());
+  assertEquals(size + " threads invoked",size,set.size());
   for (  Multiset.Entry<String> entry : set.entrySet()) {
     System.out.println(entry.getElement());
     assertEquals("1 Thread per invocation",1,entry.getCount());
