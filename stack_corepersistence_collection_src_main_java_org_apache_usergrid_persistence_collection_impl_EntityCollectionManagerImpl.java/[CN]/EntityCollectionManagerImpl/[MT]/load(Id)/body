@@ -2,5 +2,5 @@
   Preconditions.checkNotNull(entityId,"Entity id required in the load stage");
   Preconditions.checkNotNull(entityId.getUuid(),"Entity id uuid required in the load stage");
   Preconditions.checkNotNull(entityId.getType(),"Entity id type required in the load stage");
-  return CassandraCommand.toObservable(new CollectionIoEvent<Id>(collectionScope,entityId)).map(load);
+  return Observable.from(new CollectionIoEvent<Id>(collectionScope,entityId)).subscribeOn(scheduler).map(load);
 }

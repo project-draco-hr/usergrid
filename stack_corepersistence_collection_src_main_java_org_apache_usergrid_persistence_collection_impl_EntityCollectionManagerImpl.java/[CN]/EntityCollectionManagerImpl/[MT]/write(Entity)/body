@@ -7,7 +7,7 @@
   final UUID version=uuidService.newTimeUUID();
   EntityUtils.setVersion(entity,version);
   CollectionIoEvent<Entity> writeData=new CollectionIoEvent<Entity>(collectionScope,entity);
-  Observable<CollectionIoEvent<MvccEntity>> observable=CassandraCommand.toObservable(writeData).map(writeStart);
-  observable=Concurrent.concurrent(observable,new WaitZip(),writeVerifyUnique,writeOptimisticVerify);
+  Observable<CollectionIoEvent<MvccEntity>> observable=Observable.from(writeData).subscribeOn(scheduler).map(writeStart);
+  observable=Concurrent.concurrent(observable,scheduler,new WaitZip(),writeVerifyUnique,writeOptimisticVerify);
   return observable.map(writeCommit);
 }

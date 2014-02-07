@@ -1,16 +1,15 @@
 {
+  final Scheduler scheduler=Schedulers.threadPoolForIO();
   final String source="test";
-  Observable<String> observable=CassandraCommand.toObservable(source);
-  final int size=100;
-  ConfigurationManager.getConfigInstance().setProperty(CassandraCommand.THREAD_POOL_SIZE,size / 2);
-  ConfigurationManager.getConfigInstance().setProperty(CassandraCommand.THREAD_POOL_QUEUE,-1);
+  Observable<String> observable=Observable.from(source);
+  final int size=5;
   final CountDownLatch latch=new CountDownLatch(size);
   TestConcurrent[] concurrentFunctions=new TestConcurrent[size];
   for (int i=0; i < size; i++) {
     concurrentFunctions[i]=new TestConcurrent(latch,i);
   }
   Zip zip=new Zip();
-  Observable<Integer> result=Concurrent.concurrent(observable,zip,concurrentFunctions);
+  Observable<Integer> result=Concurrent.concurrent(observable,scheduler,zip,concurrentFunctions);
   assertEquals("No invocation yet",0,set.size());
   Integer response=result.toBlockingObservable().single();
   assertEquals("Same value emitted",size - 1,response.intValue());
