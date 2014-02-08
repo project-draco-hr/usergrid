@@ -1,2 +1,20 @@
 {
+  String pathToBeParsed=config.getPath();
+  String[] pathItems=pathToBeParsed.split("/");
+  try {
+    managementService.getOrganizationByName(pathItems[0]);
+  }
+ catch (  Exception e) {
+    logger.error("Organization doesn't exist");
+  }
+  try {
+    managementService.getApplicationInfo(pathItems[1]);
+  }
+ catch (  Exception e) {
+    logger.error("Application doesn't exist");
+  }
+  JobData jobData=new JobData();
+  jobData.setProperty("jobId","0001");
+  long soonestPossible=System.currentTimeMillis() + 250;
+  sch.createJob("queueExportJob",soonestPossible,jobData);
 }
