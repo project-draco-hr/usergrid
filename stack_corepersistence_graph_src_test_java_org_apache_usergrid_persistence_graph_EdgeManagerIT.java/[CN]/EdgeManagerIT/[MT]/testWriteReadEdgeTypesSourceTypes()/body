@@ -13,24 +13,24 @@
   em.writeEdge(test2TargetEdge).toBlockingObservable().singleOrDefault(null);
   ;
   final SearchEdgeType edgeTypes=new SimpleSearchEdgeType(testTargetEdge.getTargetNode(),null);
-  Observable<String> edges=em.getEdgeTypesFromSource(edgeTypes);
+  Observable<String> edges=em.getEdgeTypesToTarget(edgeTypes);
   List<String> results=edges.toList().toBlockingObservable().single();
   assertEquals("Size correct",2,results.size());
   assertTrue("Edges correct",results.contains("test"));
   assertTrue("Edges correct",results.contains("test2"));
-  edges=em.getEdgeTypesFromSource(new SimpleSearchIdType(testTargetEdge.getTargetNode(),"test",null));
+  edges=em.getEdgeTypesToTarget(new SimpleSearchIdType(testTargetEdge.getTargetNode(),"test",null));
   results=edges.toList().toBlockingObservable().single();
   assertEquals("Size correct",2,results.size());
   assertTrue("Types correct",results.contains(sourceId1.getType()));
   assertTrue("Types correct",results.contains(sourceId2.getType()));
-  edges=em.getIdTypesFromSource(new SimpleSearchIdType(testTargetEdge.getTargetNode(),"test2",null));
+  edges=em.getIdTypesToTarget(new SimpleSearchIdType(testTargetEdge.getTargetNode(),"test2",null));
   results=edges.toList().toBlockingObservable().single();
   assertEquals("Size correct",1,results.size());
   assertTrue("Types correct",results.contains(sourceId1.getType()));
   em.deleteEdge(testTargetEdge);
   em.deleteEdge(testTarget2Edge);
   em.deleteEdge(test2TargetEdge);
-  edges=em.getEdgeTypesToTarget(new SimpleSearchEdgeType(testTargetEdge.getSourceNode(),null));
+  edges=em.getEdgeTypesFromSource(new SimpleSearchEdgeType(testTargetEdge.getSourceNode(),null));
   results=edges.toList().toBlockingObservable().single();
   assertEquals("No results",0,results.size());
 }
