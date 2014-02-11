@@ -1,0 +1,15 @@
+{
+  final AccountCreationProps.SuperUser superUser=properties.getSuperUser();
+  if (superUser.isEnabled()) {
+    UserInfo user=this.getAdminUserByUsername(superUser.getUsername());
+    if (user == null) {
+      createAdminUser(superUser.getUsername(),"Super User",superUser.getEmail(),superUser.getPassword(),superUser.isEnabled(),!superUser.isEnabled());
+    }
+ else {
+      this.setAdminUserPassword(user.getUuid(),superUser.getPassword());
+    }
+  }
+ else {
+    logger.warn("Missing values for superuser account, check properties.  Skipping superuser account setup...");
+  }
+}
