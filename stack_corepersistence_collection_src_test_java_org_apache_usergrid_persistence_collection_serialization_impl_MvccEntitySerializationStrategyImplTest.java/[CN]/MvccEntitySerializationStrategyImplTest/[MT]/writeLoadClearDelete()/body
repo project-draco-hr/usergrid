@@ -7,7 +7,7 @@
   final Id entityId=new SimpleId("test");
   Entity entity=new Entity(entityId);
   EntityUtils.setVersion(entity,version);
-  MvccEntity saved=new MvccEntityImpl(entityId,version,Optional.of(entity));
+  MvccEntity saved=new MvccEntityImpl(entityId,version,MvccEntity.Status.COMPLETE,Optional.of(entity));
   serializationStrategy.write(context,saved).execute();
   MvccEntity returned=serializationStrategy.load(context,entityId,version);
   assertEquals("Mvcc entities are the same",saved,returned);

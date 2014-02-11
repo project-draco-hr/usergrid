@@ -1,7 +1,17 @@
 {
-  final ByteBuffer check=byteBuffer.duplicate();
-  if (check.remaining() == 1 && check.get() == EMPTY[0]) {
-    return Optional.absent();
+  CompositeParser parser=Composites.newCompositeParser(byteBuffer);
+  final byte[] version=parser.read(BYTES_ARRAY_SERIALIZER);
+  if (!Arrays.equals(VERSION,version)) {
+    throw new UnsupportedOperationException("A version of type " + version + " is unsupported");
   }
-  return Optional.of((Entity)SER.fromByteBuffer(byteBuffer));
+  final byte[] state=parser.read(BYTES_ARRAY_SERIALIZER);
+  if (Arrays.equals(STATE_DELETED,state)) {
+    return new EntityWrapper(MvccEntity.Status.COMPLETE,Optional.<Entity>absent());
+  }
+  final Entity storedEntity=(Entity)parser.read(SER);
+  final Optional<Entity> entity=Optional.of(storedEntity);
+  if (Arrays.equals(STATE_COMPLETE,state)) {
+    return new EntityWrapper(MvccEntity.Status.COMPLETE,entity);
+  }
+  return new EntityWrapper(MvccEntity.Status.PARTIAL,entity);
 }
