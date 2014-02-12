@@ -6,7 +6,8 @@
   Preconditions.checkNotNull(entityId.getType(),"The entity id type required to be set for an update operation");
   final UUID version=uuidService.newTimeUUID();
   EntityUtils.setVersion(entity,version);
-  Observable<CollectionIoEvent<MvccEntity>> observable=WriteCommand.toObservable(new CollectionIoEvent<Entity>(collectionScope,entity)).map(writeStart);
-  observable=Concurrent.concurrent(observable,writeVerifyUnique,writeOptimisticVerify);
+  CollectionIoEvent<Entity> writeData=new CollectionIoEvent<Entity>(collectionScope,entity);
+  Observable<CollectionIoEvent<MvccEntity>> observable=Observable.from(writeData).subscribeOn(scheduler).map(writeStart);
+  observable=Concurrent.concurrent(observable,scheduler,new WaitZip(),writeVerifyUnique,writeOptimisticVerify);
   return observable.map(writeCommit);
 }

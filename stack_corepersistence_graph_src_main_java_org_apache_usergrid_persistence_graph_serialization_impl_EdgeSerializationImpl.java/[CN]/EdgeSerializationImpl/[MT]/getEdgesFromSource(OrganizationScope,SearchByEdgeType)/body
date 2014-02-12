@@ -1,0 +1,18 @@
+{
+  ValidationUtils.validateOrganizationScope(scope);
+  EdgeUtils.validateSearchByEdgeType(edgeType);
+  final Id sourceId=edgeType.getNode();
+  final String type=edgeType.getType();
+  return getEdges(GRAPH_SOURCE_NODE_EDGES,new EdgeSearcher<RowKey>(scope,edgeType.last()){
+    @Override protected RowKey generateRowKey(){
+      return new RowKey(sourceId,type);
+    }
+    @Override protected DirectedEdge getStartColumn(    final Edge last){
+      return new DirectedEdge(last.getTargetNode(),last.getVersion());
+    }
+    @Override protected Edge createEdge(    final DirectedEdge edge){
+      return new SimpleEdge(sourceId,type,edge.id,edge.version);
+    }
+  }
+);
+}

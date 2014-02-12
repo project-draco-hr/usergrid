@@ -1,0 +1,13 @@
+{
+  return observable.mapMany(new Func1<T,Observable<Z>>(){
+    @Override public Observable<Z> call(    final T input){
+      List<Observable<R>> observables=new ArrayList<Observable<R>>(concurrent.length);
+      for (      Func1<T,R> funct : concurrent) {
+        final Observable<R> observable=Observable.from(input).subscribeOn(scheduler).map(funct);
+        observables.add(observable);
+      }
+      return Observable.zip(observables,zipFunction);
+    }
+  }
+);
+}

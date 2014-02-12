@@ -1,0 +1,26 @@
+{
+  ValidationUtils.validateOrganizationScope(scope);
+  EdgeUtils.validateSearchByEdge(search);
+  final Id sourceId=search.sourceNode();
+  final Id targetId=search.targetNode();
+  final UUID maxVersion=search.getMaxVersion();
+  final String type=search.getType();
+  return getEdges(GRAPH_TARGET_NODE_EDGES,new EdgeSearcher<RowKey>(scope,search.last()){
+    @Override public void setRange(    final RangeBuilder builder){
+      super.setRange(builder);
+      final DirectedEdge last=new DirectedEdge(sourceId,maxVersion);
+      final ByteBuffer colValue=EDGE_SERIALIZER.createSearchEdgeInclusive(last);
+      builder.setEnd(colValue);
+    }
+    @Override protected RowKey generateRowKey(){
+      return new RowKey(targetId,type);
+    }
+    @Override protected DirectedEdge getStartColumn(    final Edge last){
+      return new DirectedEdge(last.getSourceNode(),last.getVersion());
+    }
+    @Override protected Edge createEdge(    final DirectedEdge edge){
+      return new SimpleEdge(edge.id,type,targetId,edge.version);
+    }
+  }
+);
+}
