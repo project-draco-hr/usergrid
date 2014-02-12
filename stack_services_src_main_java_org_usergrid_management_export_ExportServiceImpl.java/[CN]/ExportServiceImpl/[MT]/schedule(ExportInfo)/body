@@ -14,8 +14,15 @@
     logger.error("Application doesn't exist");
   }
   JobData jobData=new JobData();
-  jobData.setProperty("exportId","0001");
   jobData.setProperty("exportInfo",config);
   long soonestPossible=System.currentTimeMillis() + 250;
-  sch.createJob("exportJob",soonestPossible,jobData);
+  JobData retJobData=sch.createJob("exportJob",soonestPossible,jobData);
+  jobUUID=retJobData.getUuid();
+  try {
+    JobStat merp=sch.getStatsForJob("exportJob",retJobData.getUuid());
+    System.out.println("hi");
+  }
+ catch (  Exception e) {
+    logger.error("could not get stats for job");
+  }
 }
