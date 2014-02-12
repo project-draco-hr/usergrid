@@ -1,7 +1,7 @@
 {
-  ValidationUtils.verifyMvccEntityWithEntity(mvccEntityIoEvent.getEvent());
-  MvccEntity entity=mvccEntityIoEvent.getEvent();
-  CollectionScope collectionScope=mvccEntityIoEvent.getEntityCollection();
+  ValidationUtils.verifyMvccEntityWithEntity(ioevent.getEvent());
+  MvccEntity entity=ioevent.getEvent();
+  CollectionScope collectionScope=ioevent.getEntityCollection();
   try {
     List<MvccLogEntry> versions=logEntryStrat.load(collectionScope,entity.getId(),entity.getVersion(),2);
     if (versions.size() > 1 && versions.get(1).getStage().ordinal() < Stage.COMMITTED.ordinal()) {
@@ -14,5 +14,5 @@
     LOG.error("Error reading entity log",e);
     throw new CollectionRuntimeException("Error reading entity log",e);
   }
-  return mvccEntityIoEvent;
+  return ioevent;
 }
