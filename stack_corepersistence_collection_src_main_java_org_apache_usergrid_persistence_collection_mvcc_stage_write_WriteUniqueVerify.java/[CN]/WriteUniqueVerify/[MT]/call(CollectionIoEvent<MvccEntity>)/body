@@ -2,8 +2,8 @@
   ValidationUtils.verifyMvccEntityWithEntity(ioevent.getEvent());
   final Entity entity=ioevent.getEvent().getEntity().get();
   final List<Observable<FieldUniquenessResult>> fields=new ArrayList<Observable<FieldUniquenessResult>>();
-  for (  Field field : entity.getFields()) {
-    if (!field.isUnique()) {
+  for (  final Field field : entity.getFields()) {
+    if (field.isUnique()) {
       Observable<FieldUniquenessResult> result=Observable.from(field).subscribeOn(scheduler).map(new Func1<Field,FieldUniquenessResult>(){
         @Override public FieldUniquenessResult call(        Field field){
           UniqueValue written=new UniqueValueImpl(ioevent.getEntityCollection(),field,entity.getId(),entity.getVersion());
