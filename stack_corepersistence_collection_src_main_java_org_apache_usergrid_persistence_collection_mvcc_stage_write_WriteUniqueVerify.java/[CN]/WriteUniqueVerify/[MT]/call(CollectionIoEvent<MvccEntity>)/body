@@ -1,13 +1,13 @@
 {
   ValidationUtils.verifyMvccEntityWithEntity(ioevent.getEvent());
   final Entity entity=ioevent.getEvent().getEntity().get();
-  final List<Future<FieldUniquenessResult>> results=new ArrayList<Future<FieldUniquenessResult>>();
-  for (  final Field field : entity.getFields()) {
-    if (field.isUnique()) {
-      results.add(threadPool.submit(new Callable<FieldUniquenessResult>(){
-        public FieldUniquenessResult call() throws Exception {
+  final List<Observable<FieldUniquenessResult>> fields=new ArrayList<Observable<FieldUniquenessResult>>();
+  for (  Field field : entity.getFields()) {
+    if (!field.isUnique()) {
+      Observable<FieldUniquenessResult> result=Observable.from(field).subscribeOn(scheduler).map(new Func1<Field,FieldUniquenessResult>(){
+        @Override public FieldUniquenessResult call(        Field field){
           UniqueValue written=new UniqueValueImpl(ioevent.getEntityCollection(),field,entity.getId(),entity.getVersion());
-          MutationBatch mb=uniqueValueStrat.write(written,UNIQUE_VALUE_TTL);
+          MutationBatch mb=uniqueValueStrat.write(written,serializationFig.getTimeout());
           try {
             mb.execute();
           }
@@ -24,22 +24,25 @@
           return new FieldUniquenessResult(field,loaded.equals(written));
         }
       }
-));
+);
+      fields.add(result);
     }
   }
-  for (  Future<FieldUniquenessResult> result : results) {
-    try {
-      if (!result.get().isUnique()) {
-        Field field=result.get().getField();
-        throw new CollectionRuntimeException("Duplicate field value " + field.getName() + " = "+ field.getValue().toString());
+  if (fields.size() == 0) {
+    return Observable.from(ioevent).subscribeOn(scheduler);
+  }
+  final FuncN<CollectionIoEvent<MvccEntity>> zipFunction=new FuncN<CollectionIoEvent<MvccEntity>>(){
+    @Override public CollectionIoEvent<MvccEntity> call(    final Object... args){
+      for (      Object resultObj : args) {
+        FieldUniquenessResult result=(FieldUniquenessResult)resultObj;
+        if (!result.isUnique()) {
+          Field field=result.getField();
+          throw new CollectionRuntimeException("Duplicate field value " + field.getName() + " = "+ field.getValue().toString());
+        }
       }
-    }
- catch (    InterruptedException ex) {
-      LOG.error("Error verifing uniqueness",ex);
-    }
-catch (    ExecutionException ex) {
-      LOG.error("Error verifing uniqueness",ex);
+      return ioevent;
     }
   }
-  return ioevent;
+;
+  return Observable.zip(fields,zipFunction);
 }
