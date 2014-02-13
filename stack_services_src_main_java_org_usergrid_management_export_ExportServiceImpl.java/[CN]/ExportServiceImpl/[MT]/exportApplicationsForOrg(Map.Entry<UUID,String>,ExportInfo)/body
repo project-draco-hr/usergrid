@@ -1,10 +1,12 @@
 {
+  ByteArrayOutputStream baos=new ByteArrayOutputStream();
+  ObjectOutputStream oos=new ObjectOutputStream(baos);
   logger.info("" + organization);
   BiMap<UUID,String> applications=managementService.getApplicationsForOrganization(organization.getKey());
   for (  Map.Entry<UUID,String> application : applications.entrySet()) {
     logger.info(application.getValue() + " : " + application.getKey());
     String appFileName=prepareOutputFileName("application",application.getValue());
-    JsonGenerator jg=getJsonGenerator(new File(appFileName));
+    JsonGenerator jg=getJsonGenerator(oos);
     EntityManager rootEm=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
     Entity appEntity=rootEm.get(application.getKey());
     Map<String,Object> dictionaries=new HashMap<String,Object>();
@@ -24,10 +26,6 @@
     nsEntity.setMetadata("counters",entityCounters);
     nsEntity.setMetadata("collections",collections);
     jg.writeStartArray();
-    jg.writeObject(nsEntity);
-    String collectionsFilename=prepareOutputFileName("collections","appDummyName");
-    JsonGenerator collectionsJg=getJsonGenerator(new File(collectionsFilename));
-    collectionsJg.writeStartObject();
     Map<String,Object> metadata=em.getApplicationCollectionMetadata();
     for (    String collectionName : metadata.keySet()) {
       Query query=new Query();
@@ -36,8 +34,7 @@
       Results entities=em.searchCollection(em.getApplicationRef(),collectionName,query);
       while (entities.size() > 0) {
         for (        Entity entity : entities) {
-          jg.writeObject(entity);
-          saveCollectionMembers(collectionsJg,em,application.getValue(),entity);
+          saveCollectionMembers(jg,em,application.getValue(),entity);
         }
         if (entities.getCursor() == null) {
           break;
@@ -46,10 +43,11 @@
         entities=em.searchCollection(em.getApplicationRef(),collectionName,query);
       }
     }
-    collectionsJg.writeEndObject();
-    collectionsJg.close();
     jg.writeEndArray();
     jg.close();
-    s3Export.copyToS3(appFileName,config);
+    oos.flush();
+    oos.close();
+    InputStream is=new ByteArrayInputStream(baos.toByteArray());
+    s3Export.copyToS3(is,config);
   }
 }
