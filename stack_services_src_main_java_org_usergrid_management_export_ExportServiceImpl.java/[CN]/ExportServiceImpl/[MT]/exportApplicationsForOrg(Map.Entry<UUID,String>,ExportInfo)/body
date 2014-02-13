@@ -1,12 +1,11 @@
 {
   ByteArrayOutputStream baos=new ByteArrayOutputStream();
-  ObjectOutputStream oos=new ObjectOutputStream(baos);
   logger.info("" + organization);
   BiMap<UUID,String> applications=managementService.getApplicationsForOrganization(organization.getKey());
   for (  Map.Entry<UUID,String> application : applications.entrySet()) {
     logger.info(application.getValue() + " : " + application.getKey());
     String appFileName=prepareOutputFileName("application",application.getValue());
-    JsonGenerator jg=getJsonGenerator(oos);
+    JsonGenerator jg=getJsonGenerator(baos);
     EntityManager rootEm=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
     Entity appEntity=rootEm.get(application.getKey());
     Map<String,Object> dictionaries=new HashMap<String,Object>();
@@ -26,6 +25,7 @@
     nsEntity.setMetadata("counters",entityCounters);
     nsEntity.setMetadata("collections",collections);
     jg.writeStartArray();
+    jg.writeObject(nsEntity);
     Map<String,Object> metadata=em.getApplicationCollectionMetadata();
     for (    String collectionName : metadata.keySet()) {
       Query query=new Query();
@@ -45,8 +45,8 @@
     }
     jg.writeEndArray();
     jg.close();
-    oos.flush();
-    oos.close();
+    baos.flush();
+    baos.close();
     InputStream is=new ByteArrayInputStream(baos.toByteArray());
     s3Export.copyToS3(is,config);
   }
