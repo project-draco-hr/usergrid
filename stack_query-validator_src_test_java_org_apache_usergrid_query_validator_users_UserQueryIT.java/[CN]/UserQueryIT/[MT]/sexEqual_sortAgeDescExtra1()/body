@@ -1,0 +1,22 @@
+{
+  String sqlite="SELECT * FROM users WHERE sex = 'male' ORDER BY age desc LIMIT 10";
+  String api="select * where sex = 'male' order by age desc";
+  QueryRequest request=new QueryRequest();
+  request.setDbQuery(sqlite);
+  request.getApiQuery().setQuery(api);
+  QueryResponse response=validator.execute(request,new QueryResultsMatcher(){
+    @Override public boolean equals(    List<Entity> expectedEntities,    List<Entity> actuallyEntities){
+      boolean equals=expectedEntities.size() == expectedEntities.size();
+      if (!equals)       return false;
+      for (      Entity entity : actuallyEntities) {
+        String sex=(String)entity.getProperty("sex");
+        if ((StringUtils.equals("male",sex)) == false) {
+          return false;
+        }
+      }
+      return equals;
+    }
+  }
+);
+  Assert.assertTrue(response.toString(),response.result());
+}

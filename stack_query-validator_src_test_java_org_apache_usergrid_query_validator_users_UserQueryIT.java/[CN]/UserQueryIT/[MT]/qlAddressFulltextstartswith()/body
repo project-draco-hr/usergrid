@@ -1,0 +1,22 @@
+{
+  String sqlite=" SELECT * FROM users WHERE address LIKE 'A%' LIMIT 10";
+  String api="select * where address contains 'A*'";
+  QueryRequest request=new QueryRequest();
+  request.setDbQuery(sqlite);
+  request.getApiQuery().setQuery(api);
+  QueryResponse response=validator.execute(request,new QueryResultsMatcher(){
+    @Override public boolean equals(    List<Entity> expectedEntities,    List<Entity> actuallyEntities){
+      boolean equals=expectedEntities.size() == expectedEntities.size();
+      if (!equals)       return false;
+      for (      Entity entity : actuallyEntities) {
+        String address=(String)entity.getProperty("address");
+        if ((StringUtils.startsWith(address,"A")) == false) {
+          return false;
+        }
+      }
+      return equals;
+    }
+  }
+);
+  Assert.assertTrue(response.toString(),response.result());
+}
