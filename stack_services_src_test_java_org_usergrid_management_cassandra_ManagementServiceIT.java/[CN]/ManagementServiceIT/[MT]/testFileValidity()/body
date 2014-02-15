@@ -1,0 +1,47 @@
+{
+  File f=null;
+  try {
+    f=new File("test.json");
+    f.delete();
+  }
+ catch (  Exception e) {
+  }
+  S3Export s3Export=new MockS3ExportImpl();
+  ExportService exportService=setup.getExportService();
+  HashMap<String,Object> payload=new HashMap<String,Object>();
+  Map<String,Object> properties=new HashMap<String,Object>();
+  Map<String,Object> storage_info=new HashMap<String,Object>();
+  storage_info.put("admin_token","insert_token_data_here");
+  storage_info.put("s3_key","insert key here");
+  storage_info.put("s3_accessId","insert access id here");
+  storage_info.put("bucket_location","insert bucket name here");
+  properties.put("storage_provider","s3");
+  properties.put("storage_info",storage_info);
+  payload.put("path","test-organization/test-app/user");
+  payload.put("properties",properties);
+  ExportInfo exportInfo=new ExportInfo(payload);
+  JobData jobData=new JobData();
+  jobData.setProperty("jobName","exportJob");
+  jobData.setProperty("ExportInfo",exportInfo);
+  JobExecution jobExecution=mock(JobExecution.class);
+  exportService.setS3Export(s3Export);
+  exportService.doExport(exportInfo,jobExecution);
+  JSONParser parser=new JSONParser();
+  org.json.simple.JSONArray a=(org.json.simple.JSONArray)parser.parse(new FileReader(f));
+  if (a.size() > 0) {
+    org.json.simple.JSONObject entity=(org.json.simple.JSONObject)a.get(0);
+    String appName=(String)entity.get("applicationName");
+    assertEquals("ed-application",appName);
+    String path=(String)entity.get("name");
+    assertEquals("ed-organization/ed-application",path);
+  }
+ else {
+    assert(false);
+  }
+  for (int i=1; a.size() < i; i++) {
+    org.json.simple.JSONObject entity=(org.json.simple.JSONObject)a.get(i);
+    org.json.simple.JSONObject entityData=(JSONObject)entity.get("Metadata");
+    assertNotNull(entityData);
+  }
+  f.delete();
+}

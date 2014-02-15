@@ -39,8 +39,11 @@
       while (entities.size() > 0) {
         jobExecution.heartbeat();
         for (        Entity entity : entities) {
+          jg.writeStartObject();
+          jg.writeFieldName("Metadata");
           jg.writeObject(entity);
           saveCollectionMembers(jg,em,application.getValue(),entity);
+          jg.writeEndObject();
         }
         if (entities.getCursor() == null) {
           break;
@@ -54,6 +57,6 @@
     baos.flush();
     baos.close();
     InputStream is=new ByteArrayInputStream(baos.toByteArray());
-    s3Export.copyToS3(is,config);
+    s3Export.copyToS3(is,config,appFileName);
   }
 }

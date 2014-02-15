@@ -1,0 +1,35 @@
+{
+  HashMap<String,Object> payload=new HashMap<String,Object>();
+  Map<String,Object> properties=new HashMap<String,Object>();
+  Map<String,Object> storage_info=new HashMap<String,Object>();
+  storage_info.put("admin_token","insert_token_data_here");
+  properties.put("storage_provider","s3");
+  properties.put("storage_info",storage_info);
+  payload.put("path","test-organization/test-app/user");
+  payload.put("properties",properties);
+  ExportInfo exportInfo=new ExportInfo(payload);
+  S3Export s3Export=new S3ExportImpl();
+  JobExecution jobExecution=mock(JobExecution.class);
+  UUID uuid=UUIDUtils.newTimeUUID();
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  Map<String,Object> userProperties=null;
+  Entity[] entity;
+  entity=new Entity[10];
+  for (int i=0; i < 10; i++) {
+    userProperties=new LinkedHashMap<String,Object>();
+    userProperties.put("username","billybob" + i);
+    userProperties.put("email","test" + i + "@anuff.com");
+    entity[i]=em.create("user",userProperties);
+  }
+  em.createConnection(em.getRef(entity[0].getUuid()),"Likes",em.getRef(entity[1].getUuid()));
+  em.createConnection(em.getRef(entity[1].getUuid()),"Likes",em.getRef(entity[0].getUuid()));
+  try {
+    setup.getExportService().setS3Export(s3Export);
+    setup.getExportService().doExport(exportInfo,jobExecution);
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+    assert(false);
+  }
+  assert(true);
+}
