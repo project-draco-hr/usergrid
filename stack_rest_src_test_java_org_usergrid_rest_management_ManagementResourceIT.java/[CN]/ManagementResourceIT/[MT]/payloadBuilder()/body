@@ -1,8 +1,4 @@
 {
-  Status responseStatus=Status.ACCEPTED;
-  String uuid;
-  UUID jobUUID=null;
-  JsonNode node=null;
   HashMap<String,Object> payload=new HashMap<String,Object>();
   Map<String,Object> properties=new HashMap<String,Object>();
   Map<String,Object> storage_info=new HashMap<String,Object>();
@@ -13,12 +9,5 @@
   properties.put("storage_info",storage_info);
   payload.put("path","test-organization/test-app/user");
   payload.put("properties",properties);
-  try {
-    node=resource().path("/management/export").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
-  }
- catch (  UniformInterfaceException uie) {
-    responseStatus=uie.getResponse().getClientResponseStatus();
-  }
-  assertEquals(Status.ACCEPTED,responseStatus);
-  assertNotNull(node.get("jobUUID"));
+  return payload;
 }
