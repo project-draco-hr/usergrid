@@ -6,7 +6,7 @@
   final CollectionScope collectionScope=idIoEvent.getEntityCollection();
   final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,org.apache.usergrid.persistence.collection.mvcc.entity.Stage.COMMITTED);
   MutationBatch logMutation=logStrat.write(collectionScope,startEntry);
-  MutationBatch entityMutation=entityStrat.clear(collectionScope,entityId,version);
+  MutationBatch entityMutation=entityStrat.mark(collectionScope,entityId,version);
   logMutation.mergeShallow(entityMutation);
   try {
     logMutation.execute();
