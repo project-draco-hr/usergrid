@@ -1,0 +1,8 @@
+{
+  ValidationUtils.validateOrganizationScope(scope);
+  ValidationUtils.verifyIdentity(node);
+  ValidationUtils.verifyTimeUuid(version,"version");
+  MutationBatch batch=keyspace.prepareMutationBatch();
+  batch.withRow(GRAPH_DELETE,ScopedRowKey.fromKey(scope,node)).setTimestamp(version.timestamp()).deleteColumn(true);
+  return batch;
+}

@@ -1,0 +1,10 @@
+{
+  final Id nodeId=createId("test");
+  final UUID version=UUIDGenerator.newTimeUUID();
+  serialization.mark(scope,nodeId,version).execute();
+  Optional<UUID> returned=serialization.getMaxVersion(scope,nodeId);
+  assertEquals(version,returned.get());
+  serialization.delete(scope,nodeId,returned.get()).execute();
+  returned=serialization.getMaxVersion(scope,nodeId);
+  assertFalse(returned.isPresent());
+}
