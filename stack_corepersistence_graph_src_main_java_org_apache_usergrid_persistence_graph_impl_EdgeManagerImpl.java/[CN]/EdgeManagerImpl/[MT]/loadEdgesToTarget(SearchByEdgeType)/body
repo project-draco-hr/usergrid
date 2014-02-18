@@ -1,13 +1,13 @@
 {
-  return Observable.create(new ObservableIterator<Edge>(){
-    @Override protected Iterator<Edge> getIterator(){
+  return Observable.create(new ObservableIterator<MarkedEdge>(){
+    @Override protected Iterator<MarkedEdge> getIterator(){
       return edgeSerialization.getEdgesToTarget(scope,search);
     }
   }
-).filter(new MaxFilter(search.getMaxVersion())).distinctUntilChanged(new Func1<Edge,Id>(){
+).filter(new EdgeFilter(search.getMaxVersion())).distinctUntilChanged(new Func1<Edge,Id>(){
     @Override public Id call(    final Edge edge){
       return edge.getSourceNode();
     }
   }
-);
+).map(mapper);
 }

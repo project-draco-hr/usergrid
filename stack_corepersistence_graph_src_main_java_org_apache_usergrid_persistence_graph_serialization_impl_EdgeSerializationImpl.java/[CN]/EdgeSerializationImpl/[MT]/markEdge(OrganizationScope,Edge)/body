@@ -1,0 +1,10 @@
+{
+  final MutationBatch batch=keyspace.prepareMutationBatch();
+  doWrite(scope,edge,new RowOp(){
+    @Override public void doWrite(    final MultiTennantColumnFamily columnFamily,    final Object rowKey,    final DirectedEdge edge){
+      batch.withRow(columnFamily,ScopedRowKey.fromKey(scope,rowKey)).putColumn(edge,true);
+    }
+  }
+);
+  return batch;
+}

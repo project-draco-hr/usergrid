@@ -4,7 +4,7 @@
   final ScopedRowKey<OrganizationScope,R> rowKey=searcher.getRowKey();
   RowQuery<ScopedRowKey<OrganizationScope,R>,DirectedEdge> query=keyspace.prepareQuery(cf).getKey(rowKey).autoPaginate(true).withColumnRange(rangeBuilder.build());
   try {
-    return new ColumnNameIterator<DirectedEdge,Edge>(query.execute().getResult().iterator(),searcher,searcher.hasPage());
+    return new ColumnNameIterator<DirectedEdge,MarkedEdge>(query.execute().getResult().iterator(),searcher,searcher.hasPage());
   }
  catch (  ConnectionException e) {
     throw new RuntimeException("Unable to connect to cassandra",e);

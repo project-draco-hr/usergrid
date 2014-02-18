@@ -1,8 +1,8 @@
 {
-  return Observable.create(new ObservableIterator<Edge>(){
-    @Override protected Iterator<Edge> getIterator(){
+  return Observable.create(new ObservableIterator<MarkedEdge>(){
+    @Override protected Iterator<MarkedEdge> getIterator(){
       return edgeSerialization.getEdgesFromSourceByTargetType(scope,search);
     }
   }
-).filter(new MaxFilter(search.getMaxVersion())).takeFirst();
+).filter(new EdgeFilter(search.getMaxVersion())).takeFirst().map(mapper);
 }

@@ -1,10 +1,10 @@
 {
   EdgeManager em=edgeManagerFactory.createEdgeManager(scope);
-  Edge edge=new SimpleEdge(scope.getOwner(),scope.getName(),entity.getId(),entity.getVersion());
+  Edge edge=new SimpleMarkedEdge(scope.getOwner(),scope.getName(),entity.getId(),entity.getVersion(),false);
   if (entity.getEntity().isPresent()) {
-    em.writeEdge(edge);
+    em.writeEdge(edge).toBlockingObservable().last();
   }
  else {
-    em.deleteEdge(edge);
+    em.deleteEdge(edge).toBlockingObservable().last();
   }
 }
