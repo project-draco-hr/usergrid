@@ -3,7 +3,7 @@
   ValidationUtils.verifyIdentity(node);
   ColumnFamilyQuery<ScopedRowKey<OrganizationScope,Id>,Boolean> query=keyspace.prepareQuery(GRAPH_DELETE);
   try {
-    Column<Boolean> result=query.getKey(ScopedRowKey.fromKey(scope,node)).getColumn(true).execute().getResult();
+    Column<Boolean> result=query.setConsistencyLevel(fig.getReadCL()).getKey(ScopedRowKey.fromKey(scope,node)).getColumn(true).execute().getResult();
     return Optional.of(result.getUUIDValue());
   }
  catch (  NotFoundException e) {
