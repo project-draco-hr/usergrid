@@ -4,10 +4,15 @@
       return edgeSerialization.getEdgesFromSource(scope,search);
     }
   }
-).filter(new EdgeFilter(search.getMaxVersion())).distinctUntilChanged(new Func1<Edge,Id>(){
+).buffer(graphFig.getScanPageSize()).flatMap(new Func1<List<MarkedEdge>,Observable<MarkedEdge>>(){
+    @Override public Observable<MarkedEdge> call(    final List<MarkedEdge> markedEdges){
+      return Observable.from(markedEdges).filter(new EdgeFilter(search.getMaxVersion()));
+    }
+  }
+).distinctUntilChanged(new Func1<Edge,Id>(){
     @Override public Id call(    final Edge edge){
       return edge.getTargetNode();
     }
   }
-).map(mapper);
+).cast(Edge.class);
 }
