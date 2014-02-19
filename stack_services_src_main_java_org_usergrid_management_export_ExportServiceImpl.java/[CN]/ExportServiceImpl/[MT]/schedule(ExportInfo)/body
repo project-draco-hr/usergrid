@@ -1,4 +1,7 @@
 {
+  EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+  Export export=new Export();
+  export.setState(Export.State.PENDING);
   String pathToBeParsed=config.getPath();
   String[] pathItems=pathToBeParsed.split("/");
   try {
@@ -13,16 +16,11 @@
  catch (  Exception e) {
     logger.error("Application doesn't exist");
   }
+  export=em.create(export);
   JobData jobData=new JobData();
   jobData.setProperty("exportInfo",config);
+  jobData.setProperty(EXPORT_ID,export.getUuid());
   long soonestPossible=System.currentTimeMillis() + 250;
-  JobData retJobData=sch.createJob("exportJob",soonestPossible,jobData);
-  jobUUID=retJobData.getUuid();
-  try {
-    JobStat merp=sch.getStatsForJob("exportJob",retJobData.getUuid());
-    System.out.println("hi");
-  }
- catch (  Exception e) {
-    logger.error("could not get stats for job");
-  }
+  sch.createJob(EXPORT_JOB_NAME,soonestPossible,jobData);
+  return export.getUuid();
 }

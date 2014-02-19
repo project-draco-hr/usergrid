@@ -3,8 +3,10 @@
   Status responseStatus=Status.OK;
   HashMap<String,Object> payload=payloadBuilder();
   node=resource().path("/management/export").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+  String uuid=String.valueOf(node.get("jobUUID"));
+  uuid=uuid.replaceAll("\"","");
   try {
-    node=resource().path("/management/export/" + node.get("jobUUID")).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+    node=resource().path("test-organization/default-app/").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
   }
  catch (  UniformInterfaceException uie) {
     responseStatus=uie.getResponse().getClientResponseStatus();

@@ -1,6 +1,13 @@
 {
-  Map<UUID,String> organizations=getOrgs();
+  UUID exportId=(UUID)jobExecution.getJobData().getProperty(EXPORT_ID);
+  EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+  Export export=em.get(exportId,Export.class);
+  export.setState(Export.State.STARTED);
+  em.update(export);
+  Map<UUID,String> organizations=getOrgs(config);
   for (  Map.Entry<UUID,String> organization : organizations.entrySet()) {
     exportApplicationsForOrg(organization,config,jobExecution);
   }
+  export.setState(Export.State.COMPLETED);
+  em.update(export);
 }
