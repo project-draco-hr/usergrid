@@ -1,0 +1,13 @@
+{
+  InputStream is=this.getClass().getResourceAsStream("/sample.json");
+  ObjectMapper mapper=new ObjectMapper();
+  List<Object> sampleJson=mapper.readValue(is,new TypeReference<List<Object>>(){
+  }
+);
+  for (  Object o : sampleJson) {
+    Map<String,Object> item=(Map<String,Object>)o;
+    String id=item.get("id").toString();
+    XContentBuilder dxcb=ElasticSearchUtils.prepareContentForIndexing(jsonBuilder(),type,item);
+    IndexResponse ir=client.prepareIndex(index,type,id).setSource(dxcb).setRefresh(true).execute().actionGet();
+  }
+}
