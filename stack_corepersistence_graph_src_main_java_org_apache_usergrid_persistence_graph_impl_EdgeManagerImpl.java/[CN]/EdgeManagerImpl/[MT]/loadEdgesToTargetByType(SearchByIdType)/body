@@ -4,5 +4,10 @@
       return edgeSerialization.getEdgesToTargetBySourceType(scope,search);
     }
   }
-).filter(new EdgeFilter(search.getMaxVersion())).takeFirst().map(mapper);
+).buffer(graphFig.getScanPageSize()).flatMap(new EdgeBufferFilter(search.getMaxVersion())).distinctUntilChanged(new Func1<Edge,Id>(){
+    @Override public Id call(    final Edge edge){
+      return edge.getSourceNode();
+    }
+  }
+).cast(Edge.class);
 }

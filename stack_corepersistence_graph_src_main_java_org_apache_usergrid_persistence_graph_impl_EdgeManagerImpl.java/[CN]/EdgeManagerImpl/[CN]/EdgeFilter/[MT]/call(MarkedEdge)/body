@@ -1,3 +1,15 @@
 {
-  return !edge.isDeleted() && UUIDComparator.staticCompare(edge.getVersion(),maxVersion) < 1;
+  final UUID edgeVersion=edge.getVersion();
+  if (edge.isDeleted() || UUIDComparator.staticCompare(edgeVersion,maxVersion) > 0) {
+    return false;
+  }
+  final UUID sourceVersion=markCache.get(edge.getSourceNode());
+  if (sourceVersion != null && UUIDComparator.staticCompare(edgeVersion,sourceVersion) < 1) {
+    return false;
+  }
+  final UUID targetVersion=markCache.get(edge.getTargetNode());
+  if (targetVersion != null && UUIDComparator.staticCompare(edgeVersion,targetVersion) < 1) {
+    return false;
+  }
+  return true;
 }
