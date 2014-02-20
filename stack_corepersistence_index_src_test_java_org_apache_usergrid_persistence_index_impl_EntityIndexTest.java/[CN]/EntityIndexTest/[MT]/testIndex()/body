@@ -5,7 +5,23 @@
   String index=RandomStringUtils.randomAlphanumeric(20).toLowerCase();
   String type=scope.getName();
   EntityCollectionIndex entityIndex=new EntityCollectionIndexImpl(client,index,scope,true);
-  indexSampleData(entityIndex);
+  InputStream is=this.getClass().getResourceAsStream("/sample-large.json");
+  ObjectMapper mapper=new ObjectMapper();
+  List<Object> sampleJson=mapper.readValue(is,new TypeReference<List<Object>>(){
+  }
+);
+  int count=0;
+  StopWatch timer=new StopWatch();
+  timer.start();
+  for (  Object o : sampleJson) {
+    Map<String,Object> item=(Map<String,Object>)o;
+    Entity entity=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),scope.getName()));
+    entity=EntityIndexTest.mapToEntity(entity,item);
+    entityIndex.index(entity);
+    count++;
+  }
+  timer.stop();
+  logger.info("Total time to index {} entries {}ms, average {}ms/entry",count,timer.getTime(),timer.getTime() / count);
   testQueries(client,index,type);
   client.close();
 }
