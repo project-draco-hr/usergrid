@@ -2,9 +2,6 @@
   if (entity == null) {
     entity=new Entity();
   }
-  if (map.get("version_ug_field") != null) {
-    EntityUtils.setVersion(entity,UUID.fromString((String)map.get("version_ug_field")));
-  }
   for (  String fieldName : map.keySet()) {
     Object value=map.get(fieldName);
     if (value instanceof String) {
@@ -23,10 +20,10 @@
       entity.setField(new LongField(fieldName,(Long)value));
     }
  else     if (value instanceof List) {
-      entity.setField(listToListField(fieldName,(List)value));
+      entity.setField(listToListField(scope,fieldName,(List)value));
     }
  else     if (value instanceof Map) {
-      entity.setField(new EntityObjectField(fieldName,mapToEntity((Map<String,Object>)value)));
+      entity.setField(new EntityObjectField(fieldName,mapToEntity(scope,(Map<String,Object>)value)));
     }
  else {
       throw new RuntimeException("Unknown type " + value.getClass().getName());
