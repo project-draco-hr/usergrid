@@ -4,12 +4,13 @@
   Map<String,String> uuidRet=new HashMap<String,String>();
   try {
     ExportInfo objEx=new ExportInfo(json);
+    objEx.setApplicationId(applicationId);
     jobUUID=exportService.schedule(objEx);
     uuidRet.put("jobUUID",jobUUID.toString());
   }
  catch (  NullPointerException e) {
     OAuthResponse errorMsg=OAuthResponse.errorResponse(SC_BAD_REQUEST).setErrorDescription("Job Not Created").buildJSONMessage();
-    return Response.status(errorMsg.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(errorMsg.getBody(),callback)).build();
+    return Response.status(errorMsg.getResponseStatus()).type(JSONPUtils.jsonMediaType(callback)).entity(ServiceResource.wrapWithCallback(errorMsg.getBody(),callback)).build();
   }
 catch (  Exception e) {
     return Response.status(SC_INTERNAL_SERVER_ERROR).build();

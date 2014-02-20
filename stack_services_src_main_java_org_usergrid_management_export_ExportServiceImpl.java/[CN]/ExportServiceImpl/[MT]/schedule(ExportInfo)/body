@@ -1,5 +1,5 @@
 {
-  EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+  EntityManager em=emf.getEntityManager(config.getApplicationId());
   Export export=new Export();
   export.setState(Export.State.PENDING);
   String pathToBeParsed=config.getPath();
@@ -17,6 +17,8 @@
     logger.error("Application doesn't exist");
   }
   export=em.create(export);
+  export.setState(Export.State.PENDING);
+  em.update(export);
   JobData jobData=new JobData();
   jobData.setProperty("exportInfo",config);
   jobData.setProperty(EXPORT_ID,export.getUuid());

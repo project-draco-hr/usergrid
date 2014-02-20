@@ -1,9 +1,19 @@
 {
   logger.info("execute ExportJob {}",jobExecution);
+  ExportInfo config=null;
   JobData jobData=jobExecution.getJobData();
-  UUID exportId=(UUID)jobData.getProperty("exportId");
-  ExportInfo config=(ExportInfo)jobData.getProperty("exportInfo");
-  jobExecution.heartbeat();
-  exportService.doExport(config,jobExecution);
-  logger.info("executed ExportJob completed normally");
+  config=(ExportInfo)jobData.getProperty("exportInfo");
+  if (jobData == null) {
+    logger.error("jobData cannot be null");
+    return;
+  }
+ else   if (config == null) {
+    logger.error("Export information cannot be null");
+    return;
+  }
+ else {
+    jobExecution.heartbeat();
+    exportService.doExport(config,jobExecution);
+  }
+  logger.info("executed ExportJob process completed");
 }

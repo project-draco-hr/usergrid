@@ -1,0 +1,28 @@
+{
+  EntityManagerFactory emf=setup.getEmf();
+  EntityManager em=emf.getEntityManager(applicationId);
+  HashMap<String,Object> payload=payloadBuilder();
+  ExportService eS=setup.getExportService();
+  JobExecution jobExecution=mock(JobExecution.class);
+  ExportInfo exportInfo=new ExportInfo(payload);
+  exportInfo.setApplicationId(applicationId);
+  UUID entityExportUUID=eS.schedule(exportInfo);
+  JobData jobData=new JobData();
+  jobData.setProperty("jobName","exportJob");
+  jobData.setProperty("exportInfo",exportInfo);
+  jobData.setProperty("exportId",entityExportUUID);
+  when(jobExecution.getJobData()).thenReturn(jobData);
+  Export exportEntity=(Export)em.get(entityExportUUID);
+  assertNotNull(exportEntity);
+  String derp=exportEntity.getState().name();
+  assertEquals("PENDING",exportEntity.getState().name());
+  try {
+    eS.doExport(exportInfo,jobExecution);
+  }
+ catch (  Exception e) {
+    assert(false);
+  }
+  exportEntity=(Export)em.get(entityExportUUID);
+  assertNotNull(exportEntity);
+  assertEquals("COMPLETED",exportEntity.getState().name());
+}
