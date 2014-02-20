@@ -3,18 +3,13 @@
   if (edge.isDeleted() || UUIDComparator.staticCompare(edgeVersion,maxVersion) > 0) {
     return false;
   }
-  try {
-    final Optional<UUID> sourceId=markCache.get(edge.getSourceNode());
-    if (sourceId.isPresent() && UUIDComparator.staticCompare(edgeVersion,sourceId.get()) < 1) {
-      return false;
-    }
-    final Optional<UUID> targetId=markCache.get(edge.getTargetNode());
-    if (targetId.isPresent() && UUIDComparator.staticCompare(edgeVersion,targetId.get()) < 1) {
-      return false;
-    }
+  final UUID sourceVersion=markCache.get(edge.getSourceNode());
+  if (sourceVersion != null && UUIDComparator.staticCompare(edgeVersion,sourceVersion) < 1) {
+    return false;
   }
- catch (  ExecutionException e) {
-    throw new RuntimeException("Unable to evaluate edge for filtering",e);
+  final UUID targetVersion=markCache.get(edge.getTargetNode());
+  if (targetVersion != null && UUIDComparator.staticCompare(edgeVersion,targetVersion) < 1) {
+    return false;
   }
   return true;
 }
