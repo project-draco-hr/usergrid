@@ -1,0 +1,14 @@
+{
+  InputStream is=this.getClass().getResourceAsStream("/sample-small.json");
+  ObjectMapper mapper=new ObjectMapper();
+  List<Object> sampleJson=mapper.readValue(is,new TypeReference<List<Object>>(){
+  }
+);
+  for (  Object o : sampleJson) {
+    Map<String,Object> item=(Map<String,Object>)o;
+    Entity entity=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),entityIndex.getScopeName()));
+    EntityUtils.setVersion(entity,UUIDGenerator.newTimeUUID());
+    entity=EntityIndexTest.mapToEntity(entity,item);
+    entityIndex.index(entity);
+  }
+}
