@@ -2,10 +2,19 @@
   UUID exportId=(UUID)jobExecution.getJobData().getProperty(EXPORT_ID);
   EntityManager em=emf.getEntityManager(config.getApplicationId());
   Export export=em.get(exportId,Export.class);
+  String pathToBeParsed=config.getPath();
+  String[] pathItems=pathToBeParsed.split("/");
+  try {
+    managementService.getOrganizationByName(pathItems[0]);
+  }
+ catch (  Exception e) {
+    logger.error("Organization doesn't exist");
+    return;
+  }
   export.setState(Export.State.STARTED);
   em.update(export);
-  Map<UUID,String> organizations=getOrgs(config);
-  for (  Map.Entry<UUID,String> organization : organizations.entrySet()) {
+  Map<UUID,String> organizationGet=getOrgs(config);
+  for (  Map.Entry<UUID,String> organization : organizationGet.entrySet()) {
     exportApplicationsForOrg(organization,config,jobExecution);
   }
   export.setState(Export.State.COMPLETED);
