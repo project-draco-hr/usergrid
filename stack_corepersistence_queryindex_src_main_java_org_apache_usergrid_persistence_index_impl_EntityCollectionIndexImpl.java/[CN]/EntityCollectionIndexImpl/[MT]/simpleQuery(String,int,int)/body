@@ -1,0 +1,16 @@
+{
+  QueryStringQueryBuilder builder=new QueryStringQueryBuilder(query);
+  SearchResponse sr=client.prepareSearch(index).setTypes(scope.getName()).setQuery(builder).setFrom(from).setSize(size).execute().actionGet();
+  List<Ref> refs=new ArrayList<Ref>();
+  SearchHits hits=sr.getHits();
+  for (  SearchHit hit : hits.getHits()) {
+    String[] idparts=hit.getId().split("\\|");
+    String id=idparts[0];
+    String type=idparts[1];
+    String version=idparts[2];
+    Ref ref=new Ref(new SimpleId(UUID.fromString(id),type),UUID.fromString(version));
+    refs.add(ref);
+  }
+  EntitySearchResults results=new EntitySearchResults(sr.getHits().getTotalHits(),refs);
+  return results;
+}

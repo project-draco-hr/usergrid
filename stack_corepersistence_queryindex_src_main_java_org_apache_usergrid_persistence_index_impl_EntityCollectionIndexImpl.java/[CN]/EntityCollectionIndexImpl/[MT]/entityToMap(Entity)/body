@@ -1,0 +1,30 @@
+{
+  Map<String,Object> entityMap=new HashMap<String,Object>();
+  for (  Object f : entity.getFields().toArray()) {
+    if (f instanceof ListField || f instanceof ArrayField) {
+      Field field=(Field)f;
+      List list=(List)field.getValue();
+      entityMap.put(field.getName(),new ArrayList(processCollectionForMap(list)));
+    }
+ else     if (f instanceof SetField) {
+      Field field=(Field)f;
+      Set set=(Set)field.getValue();
+      entityMap.put(field.getName(),new ArrayList(processCollectionForMap(set)));
+    }
+ else     if (f instanceof EntityObjectField) {
+      Field field=(Field)f;
+      Entity ev=(Entity)field.getValue();
+      entityMap.put(field.getName(),entityToMap(ev));
+    }
+ else     if (f instanceof StringField) {
+      Field field=(Field)f;
+      entityMap.put(field.getName(),field.getValue());
+      entityMap.put(field.getName() + STRING_FIELD_SUFFIX,field.getValue());
+    }
+ else {
+      Field field=(Field)f;
+      entityMap.put(field.getName(),field.getValue());
+    }
+  }
+  return entityMap;
+}
