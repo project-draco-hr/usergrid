@@ -1,0 +1,18 @@
+{
+  final long timeout=500;
+  final TestEvent event=new TestEvent();
+  final TimeoutEvent<TestEvent> timeoutEvent=new TimeoutEvent<TestEvent>(){
+    @Override public TestEvent getEvent(){
+      return event;
+    }
+    @Override public long getTimeout(){
+      return timeout;
+    }
+  }
+;
+  final TimeoutQueue queue=mock(TimeoutQueue.class);
+  AsyncProcessor asyncProcessor=constructProcessor(null,queue);
+  when(queue.queue(event,timeout)).thenReturn(timeoutEvent);
+  TimeoutEvent<TestEvent> returned=asyncProcessor.setVerification(event,timeout);
+  assertSame(timeoutEvent,returned);
+}
