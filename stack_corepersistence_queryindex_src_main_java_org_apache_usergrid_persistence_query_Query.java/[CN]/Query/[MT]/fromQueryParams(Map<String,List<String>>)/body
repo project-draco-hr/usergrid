@@ -1,20 +1,16 @@
 {
   Query q=null;
-  CounterResolution resolution=null;
   List<Id> identifiers=null;
   String ql=QueryUtils.queryStrFrom(params);
   String type=first(params.get("type"));
   Boolean reversed=firstBoolean(params.get("reversed"));
   String connection=first(params.get("connection"));
+  UUID start=firstUuid(params.get("start"));
   String cursor=first(params.get("cursor"));
   Integer limit=firstInteger(params.get("limit"));
   List<String> permissions=params.get("permission");
   Long startTime=firstLong(params.get("start_time"));
   Long finishTime=firstLong(params.get("end_time"));
-  List<String> l=params.get("resolution");
-  if (!isEmpty(l)) {
-    resolution=CounterResolution.fromString(l.get(0));
-  }
   Boolean pad=firstBoolean(params.get("pad"));
   for (  Entry<String,List<String>> param : params.entrySet()) {
     Id identifier=null;
@@ -30,7 +26,7 @@
   if (ql != null) {
     q=Query.fromQL(decode(ql));
   }
-  l=params.get("filter");
+  List<String> l=params.get("filter");
   if (!isEmpty(l)) {
     q=newQueryIfNull(q);
     for (    String s : l) {
@@ -56,6 +52,10 @@
     q=newQueryIfNull(q);
     q.setPermissions(permissions);
   }
+  if (start != null) {
+    q=newQueryIfNull(q);
+    q.setStartResult(start);
+  }
   if (cursor != null) {
     q=newQueryIfNull(q);
     q.setCursor(cursor);
@@ -71,10 +71,6 @@
   if (finishTime != null) {
     q=newQueryIfNull(q);
     q.setFinishTime(finishTime);
-  }
-  if (resolution != null) {
-    q=newQueryIfNull(q);
-    q.setResolution(resolution);
   }
   if (pad != null) {
     q=newQueryIfNull(q);

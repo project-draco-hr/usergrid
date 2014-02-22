@@ -1,0 +1,23 @@
+{
+  if (entitiesByType != null) {
+    return refsByType.get(type);
+  }
+  List<EntityRef> l=cast(getEntitiesByType(type));
+  if (l != null) {
+    return l;
+  }
+  getRefs();
+  if (refs == null) {
+    return null;
+  }
+  refsByType=new LinkedHashMap<String,List<EntityRef>>();
+  for (  Entity entity : entities) {
+    l=refsByType.get(entity.getId().getType());
+    if (l == null) {
+      l=new ArrayList<EntityRef>();
+      refsByType.put(entity.getId().getType(),l);
+    }
+    l.add(ref(entity.getId(),entity.getVersion()));
+  }
+  return l;
+}
