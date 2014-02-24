@@ -6,31 +6,14 @@
     logger.info(application.getValue() + " : " + application.getKey());
     String appFileName=prepareOutputFileName("application",application.getValue());
     JsonGenerator jg=getJsonGenerator(baos);
-    EntityManager rootEm=emf.getEntityManager(config.getApplicationId());
-    Entity appEntity=rootEm.get(application.getKey());
-    jobExecution.heartbeat();
-    Map<String,Object> dictionaries=new HashMap<String,Object>();
-    for (    String dictionary : rootEm.getDictionaries(appEntity)) {
-      Map<Object,Object> dict=rootEm.getDictionaryAsMap(appEntity,dictionary);
-      if (dict.isEmpty()) {
-        continue;
-      }
-      dictionaries.put(dictionary,dict);
-    }
     EntityManager em=emf.getEntityManager(application.getKey());
-    Entity nsEntity=em.get(application.getKey());
-    Set<String> collections=em.getApplicationCollections();
-    Map<String,Long> entityCounters=em.getApplicationCounters();
-    nsEntity.setMetadata("organization",organization);
-    nsEntity.setMetadata("dictionaries",dictionaries);
-    nsEntity.setMetadata("counters",entityCounters);
-    nsEntity.setMetadata("collections",collections);
-    jobExecution.heartbeat();
     jg.writeStartArray();
-    jg.writeObject(nsEntity);
     Map<String,Object> metadata=em.getApplicationCollectionMetadata();
     long starting_time=System.currentTimeMillis();
     for (    String collectionName : metadata.keySet()) {
+      if (collectionName.equals("exports")) {
+        continue;
+      }
       Query query=new Query();
       query.setLimit(MAX_ENTITY_FETCH);
       query.setResultsLevel(Results.Level.ALL_PROPERTIES);

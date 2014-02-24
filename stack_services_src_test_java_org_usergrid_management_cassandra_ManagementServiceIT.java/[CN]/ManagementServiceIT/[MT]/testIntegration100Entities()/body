@@ -1,12 +1,5 @@
 {
-  File f=null;
-  try {
-    f=new File("test.json");
-    f.delete();
-  }
- catch (  Exception e) {
-  }
-  S3Export s3Export=new MockS3ExportImpl();
+  S3Export s3Export=new S3ExportImpl();
   ExportService exportService=setup.getExportService();
   HashMap<String,Object> payload=payloadBuilder();
   ExportInfo exportInfo=new ExportInfo(payload);
@@ -14,15 +7,13 @@
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
   Map<String,Object> userProperties=null;
   Entity[] entity;
-  entity=new Entity[10];
-  for (int i=0; i < 10; i++) {
+  entity=new Entity[100];
+  for (int i=0; i < 100; i++) {
     userProperties=new LinkedHashMap<String,Object>();
     userProperties.put("username","billybob" + i);
     userProperties.put("email","test" + i + "@anuff.com");
     entity[i]=em.create("user",userProperties);
   }
-  em.createConnection(em.getRef(entity[0].getUuid()),"Vibrations",em.getRef(entity[1].getUuid()));
-  em.createConnection(em.getRef(entity[1].getUuid()),"Vibrations",em.getRef(entity[0].getUuid()));
   UUID exportUUID=exportService.schedule(exportInfo);
   exportService.setS3Export(s3Export);
   JobData jobData=new JobData();
@@ -32,13 +23,4 @@
   JobExecution jobExecution=mock(JobExecution.class);
   when(jobExecution.getJobData()).thenReturn(jobData);
   exportService.doExport(exportInfo,jobExecution);
-  JSONParser parser=new JSONParser();
-  org.json.simple.JSONArray a=(org.json.simple.JSONArray)parser.parse(new FileReader(f));
-  assertEquals(13,a.size());
-  org.json.simple.JSONObject objEnt=(org.json.simple.JSONObject)a.get(0);
-  org.json.simple.JSONObject objConnections=(org.json.simple.JSONObject)objEnt.get("connections");
-  assertNotNull(objConnections);
-  org.json.simple.JSONArray objVibrations=(org.json.simple.JSONArray)objConnections.get("Vibrations");
-  assertNotNull(objVibrations);
-  f.delete();
 }

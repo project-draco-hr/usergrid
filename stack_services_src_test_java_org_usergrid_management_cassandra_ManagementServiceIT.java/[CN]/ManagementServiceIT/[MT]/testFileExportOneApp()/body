@@ -1,17 +1,15 @@
 {
   File f=null;
+  String orgName="ed-organization";
+  String appName="testAppNotExported";
   try {
     f=new File("test.json");
     f.delete();
   }
  catch (  Exception e) {
   }
-  S3Export s3Export=new MockS3ExportImpl();
-  ExportService exportService=setup.getExportService();
-  HashMap<String,Object> payload=payloadBuilder();
-  ExportInfo exportInfo=new ExportInfo(payload);
-  exportInfo.setApplicationId(applicationId);
-  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  UUID appId=setup.getEmf().createApplication(orgName,appName);
+  EntityManager em=setup.getEmf().getEntityManager(appId);
   Map<String,Object> userProperties=null;
   Entity[] entity;
   entity=new Entity[10];
@@ -21,8 +19,11 @@
     userProperties.put("email","test" + i + "@anuff.com");
     entity[i]=em.create("user",userProperties);
   }
-  em.createConnection(em.getRef(entity[0].getUuid()),"Vibrations",em.getRef(entity[1].getUuid()));
-  em.createConnection(em.getRef(entity[1].getUuid()),"Vibrations",em.getRef(entity[0].getUuid()));
+  S3Export s3Export=new MockS3ExportImpl();
+  ExportService exportService=setup.getExportService();
+  HashMap<String,Object> payload=payloadBuilder();
+  ExportInfo exportInfo=new ExportInfo(payload);
+  exportInfo.setApplicationId(applicationId);
   UUID exportUUID=exportService.schedule(exportInfo);
   exportService.setS3Export(s3Export);
   JobData jobData=new JobData();
@@ -34,11 +35,12 @@
   exportService.doExport(exportInfo,jobExecution);
   JSONParser parser=new JSONParser();
   org.json.simple.JSONArray a=(org.json.simple.JSONArray)parser.parse(new FileReader(f));
-  assertEquals(13,a.size());
-  org.json.simple.JSONObject objEnt=(org.json.simple.JSONObject)a.get(0);
-  org.json.simple.JSONObject objConnections=(org.json.simple.JSONObject)objEnt.get("connections");
-  assertNotNull(objConnections);
-  org.json.simple.JSONArray objVibrations=(org.json.simple.JSONArray)objConnections.get("Vibrations");
-  assertNotNull(objVibrations);
+  assertEquals(3,a.size());
+  for (int i=0; i < a.size(); i++) {
+    org.json.simple.JSONObject data=(org.json.simple.JSONObject)a.get(i);
+    org.json.simple.JSONObject entityData=(JSONObject)data.get("Metadata");
+    String entityName=(String)entityData.get("name");
+    assertNotEquals("junkRealName",entityName);
+  }
   f.delete();
 }
