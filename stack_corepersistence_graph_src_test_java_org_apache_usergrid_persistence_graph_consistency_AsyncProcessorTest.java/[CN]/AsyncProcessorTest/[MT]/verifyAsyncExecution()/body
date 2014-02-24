@@ -1,7 +1,5 @@
 {
   final TestListener listener=new TestListener();
-  final EventBus testBus=new EventBus("test");
-  testBus.register(listener);
   final TestEvent event=new TestEvent();
   final TimeoutEvent<TestEvent> timeoutEvent=new TimeoutEvent<TestEvent>(){
     @Override public TestEvent getEvent(){
@@ -13,7 +11,7 @@
   }
 ;
   final TimeoutQueue queue=mock(TimeoutQueue.class);
-  final AsyncProcessor asyncProcessor=constructProcessor(testBus,queue);
+  final AsyncProcessor asyncProcessor=constructProcessor(queue,listener);
   final CountDownLatch latch=new CountDownLatch(1);
   when(queue.remove(timeoutEvent)).thenAnswer(new Answer<Boolean>(){
     @Override public Boolean answer(    final InvocationOnMock invocation) throws Throwable {

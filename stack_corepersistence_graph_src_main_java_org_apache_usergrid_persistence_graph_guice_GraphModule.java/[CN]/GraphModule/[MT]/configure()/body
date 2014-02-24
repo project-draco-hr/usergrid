@@ -11,18 +11,5 @@
   migrationBinding.addBinding().to(EdgeMetadataSerializationImpl.class);
   migrationBinding.addBinding().to(EdgeSerializationImpl.class);
   migrationBinding.addBinding().to(NodeSerializationImpl.class);
-  final EventBus eventBus=new EventBus("AsyncProcessorBus");
-  bind(EventBus.class).toInstance(eventBus);
-  bindListener(Matchers.any(),new TypeListener(){
-    @Override public <I>void hear(    @SuppressWarnings("unused") final TypeLiteral<I> typeLiteral,    final TypeEncounter<I> typeEncounter){
-      typeEncounter.register(new InjectionListener<I>(){
-        @Override public void afterInjection(        final I instance){
-          eventBus.register(instance);
-        }
-      }
-);
-    }
-  }
-);
   bind(AsyncProcessor.class).to(AsyncProcessorImpl.class);
 }

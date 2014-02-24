@@ -1,7 +1,5 @@
 {
   final ErrorListener listener=new ErrorListener();
-  final EventBus testBus=new EventBus("test");
-  testBus.register(listener);
   final TestEvent event=new TestEvent();
   final boolean[] invoked=new boolean[]{false,false};
   final TimeoutEvent<TestEvent> timeoutEvent=new TimeoutEvent<TestEvent>(){
@@ -14,7 +12,7 @@
   }
 ;
   final TimeoutQueue queue=mock(TimeoutQueue.class);
-  final AsyncProcessorImpl asyncProcessor=constructProcessor(testBus,queue);
+  final AsyncProcessorImpl asyncProcessor=constructProcessor(queue,listener);
   final CountDownLatch latch=new CountDownLatch(1);
   final TimeoutEvent<?>[] errorEvents={null};
   asyncProcessor.addListener(new AsyncProcessorImpl.ErrorListener(){
@@ -38,5 +36,5 @@
   assertSame(event,firedEvent);
   assertFalse("Queue remove should not be invoked",invoked[0]);
   assertTrue("Error listener should be invoked",invoked[1]);
-  assertEquals(event,errorEvents[0]);
+  assertEquals(event,errorEvents[0].getEvent());
 }
