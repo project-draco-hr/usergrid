@@ -1,4 +1,7 @@
 {
+  UUID exportId=(UUID)jobExecution.getJobData().getProperty(EXPORT_ID);
+  EntityManager exportManager=emf.getEntityManager(config.getApplicationId());
+  Export export=exportManager.get(exportId,Export.class);
   ByteArrayOutputStream baos=new ByteArrayOutputStream();
   logger.info("" + organization);
   BiMap<UUID,String> applications=managementService.getApplicationsForOrganization(organization.getKey());
@@ -34,6 +37,12 @@
     baos.flush();
     baos.close();
     InputStream is=new ByteArrayInputStream(baos.toByteArray());
-    s3Export.copyToS3(is,config,appFileName);
+    try {
+      s3Export.copyToS3(is,config,appFileName);
+    }
+ catch (    Exception e) {
+      export.setState(Export.State.FAILED);
+      return;
+    }
   }
 }

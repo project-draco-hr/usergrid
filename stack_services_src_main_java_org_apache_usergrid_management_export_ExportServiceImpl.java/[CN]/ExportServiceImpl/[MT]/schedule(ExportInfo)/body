@@ -1,28 +1,19 @@
 {
+  if (config == null) {
+    logger.error("export information cannot be null");
+    return null;
+  }
   EntityManager em=emf.getEntityManager(config.getApplicationId());
   Export export=new Export();
-  export.setState(Export.State.PENDING);
-  String pathToBeParsed=config.getPath();
-  String[] pathItems=pathToBeParsed.split("/");
-  try {
-    managementService.getOrganizationByName(pathItems[0]);
-  }
- catch (  Exception e) {
-    logger.error("Organization doesn't exist");
-  }
-  try {
-    managementService.getApplicationInfo(pathItems[1]);
-  }
- catch (  Exception e) {
-    logger.error("Application doesn't exist");
-  }
   export=em.create(export);
-  export.setState(Export.State.PENDING);
+  export.setState(Export.State.CREATED);
   em.update(export);
   JobData jobData=new JobData();
   jobData.setProperty("exportInfo",config);
   jobData.setProperty(EXPORT_ID,export.getUuid());
   long soonestPossible=System.currentTimeMillis() + 250;
   sch.createJob(EXPORT_JOB_NAME,soonestPossible,jobData);
+  export.setState(Export.State.SCHEDULED);
+  em.update(export);
   return export.getUuid();
 }

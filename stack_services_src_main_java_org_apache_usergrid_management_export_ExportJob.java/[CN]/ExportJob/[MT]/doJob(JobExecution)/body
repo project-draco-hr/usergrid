@@ -1,19 +1,27 @@
 {
   logger.info("execute ExportJob {}",jobExecution);
+  UUID exportId=(UUID)jobExecution.getJobData().getProperty(EXPORT_ID);
   ExportInfo config=null;
   JobData jobData=jobExecution.getJobData();
-  config=(ExportInfo)jobData.getProperty("exportInfo");
   if (jobData == null) {
     logger.error("jobData cannot be null");
     return;
   }
- else   if (config == null) {
+  config=(ExportInfo)jobData.getProperty("exportInfo");
+  if (config == null) {
     logger.error("Export information cannot be null");
     return;
   }
- else {
-    jobExecution.heartbeat();
+  EntityManager em=emf.getEntityManager(config.getApplicationId());
+  Export export=em.get(exportId,Export.class);
+  jobExecution.heartbeat();
+  try {
     exportService.doExport(config,jobExecution);
+  }
+ catch (  Exception e) {
+    logger.error("Export Service failed to complete job");
+    export.setState(Export.State.FAILED);
+    em.update(export);
   }
   logger.info("executed ExportJob process completed");
 }
