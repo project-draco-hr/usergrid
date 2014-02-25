@@ -1,0 +1,27 @@
+{
+  UserInfo userInfo=null;
+  User user=findUserEntity(MANAGEMENT_APPLICATION_ID,name);
+  if (user == null) {
+    return null;
+  }
+  if (verify(MANAGEMENT_APPLICATION_ID,user.getUuid(),password)) {
+    userInfo=getUserInfo(MANAGEMENT_APPLICATION_ID,user);
+    boolean userIsSuperAdmin=StringUtils.equals(getProperty(PROPERTIES_SYSADMIN_LOGIN_EMAIL),userInfo.getEmail());
+    boolean testUserEnabled=getBooleanProperty(PROPERTIES_SETUP_TEST_ACCOUNT);
+    boolean userIsTestUser=!testUserEnabled ? false : StringUtils.equals(getProperty(PROPERTIES_SYSADMIN_LOGIN_EMAIL),userInfo.getEmail());
+    if (!userIsSuperAdmin && !userIsTestUser) {
+      if (!userInfo.isConfirmed() && newAdminUsersRequireConfirmation()) {
+        throw new UnconfirmedAdminUserException();
+      }
+      if (!userInfo.isActivated()) {
+        throw new UnactivatedAdminUserException();
+      }
+      if (userInfo.isDisabled()) {
+        throw new DisabledAdminUserException();
+      }
+    }
+    return userInfo;
+  }
+  logger.info("password compare fail for {}",name);
+  return null;
+}

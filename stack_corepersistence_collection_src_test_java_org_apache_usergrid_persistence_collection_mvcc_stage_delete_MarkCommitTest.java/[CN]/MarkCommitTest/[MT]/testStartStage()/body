@@ -1,0 +1,25 @@
+{
+  final CollectionScope context=mock(CollectionScope.class);
+  final MvccLogEntrySerializationStrategy logStrategy=mock(MvccLogEntrySerializationStrategy.class);
+  final ArgumentCaptor<MvccLogEntry> logEntry=ArgumentCaptor.forClass(MvccLogEntry.class);
+  final MutationBatch logMutation=mock(MutationBatch.class);
+  when(logStrategy.write(same(context),logEntry.capture())).thenReturn(logMutation);
+  final MvccEntitySerializationStrategy mvccEntityStrategy=mock(MvccEntitySerializationStrategy.class);
+  final UniqueValueSerializationStrategy uniqueValueStrategy=mock(UniqueValueSerializationStrategy.class);
+  final ArgumentCaptor<MvccEntity> mvccEntityCapture=ArgumentCaptor.forClass(MvccEntity.class);
+  final MutationBatch mvccEntityMutation=mock(MutationBatch.class);
+  when(mvccEntityStrategy.write(same(context),mvccEntityCapture.capture())).thenReturn(mvccEntityMutation);
+  final Entity entity=TestEntityGenerator.generateEntity();
+  final MvccEntity mvccEntityInput=TestEntityGenerator.fromEntity(entity);
+  WriteCommit newStage=new WriteCommit(logStrategy,mvccEntityStrategy,uniqueValueStrategy);
+  Entity result=newStage.call(new CollectionIoEvent<MvccEntity>(context,mvccEntityInput));
+  MvccLogEntry entry=logEntry.getValue();
+  assertEquals("id correct",entity.getId(),entry.getEntityId());
+  assertEquals("version was not correct",entity.getVersion(),entry.getVersion());
+  assertEquals("EventStage is correct",Stage.COMMITTED,entry.getStage());
+  MvccEntity written=mvccEntityCapture.getValue();
+  assertEquals("version was correct",entity.getVersion(),written.getVersion());
+  assertSame("Entity correct",entity,written.getEntity().get());
+  assertSame("Entity Id is correct",entity.getId(),written.getId());
+  assertSame("Entity came from result",entity,result);
+}

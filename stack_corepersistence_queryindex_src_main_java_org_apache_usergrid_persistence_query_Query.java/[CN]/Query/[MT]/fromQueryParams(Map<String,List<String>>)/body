@@ -1,0 +1,88 @@
+{
+  Query q=null;
+  List<Id> identifiers=null;
+  String ql=Query.queryStrFrom(params);
+  String type=first(params.get("type"));
+  Boolean reversed=firstBoolean(params.get("reversed"));
+  String connection=first(params.get("connection"));
+  UUID start=firstUuid(params.get("start"));
+  String cursor=first(params.get("cursor"));
+  Integer limit=firstInteger(params.get("limit"));
+  List<String> permissions=params.get("permission");
+  Long startTime=firstLong(params.get("start_time"));
+  Long finishTime=firstLong(params.get("end_time"));
+  Boolean pad=firstBoolean(params.get("pad"));
+  for (  Entry<String,List<String>> param : params.entrySet()) {
+    Id identifier=null;
+    if ((param.getValue() == null) || (param.getValue().size() == 0)) {
+      if (identifier != null) {
+        if (identifiers == null) {
+          identifiers=new ArrayList<Id>();
+        }
+        identifiers.add(identifier);
+      }
+    }
+  }
+  if (ql != null) {
+    q=Query.fromQL(decode(ql));
+  }
+  List<String> l=params.get("filter");
+  if (!isEmpty(l)) {
+    q=newQueryIfNull(q);
+    for (    String s : l) {
+      q.addFilter(decode(s));
+    }
+  }
+  l=params.get("sort");
+  if (!isEmpty(l)) {
+    q=newQueryIfNull(q);
+    for (    String s : l) {
+      q.addSort(decode(s));
+    }
+  }
+  if (type != null) {
+    q=newQueryIfNull(q);
+    q.setEntityType(type);
+  }
+  if (connection != null) {
+    q=newQueryIfNull(q);
+    q.setConnectionType(connection);
+  }
+  if (permissions != null) {
+    q=newQueryIfNull(q);
+    q.setPermissions(permissions);
+  }
+  if (start != null) {
+    q=newQueryIfNull(q);
+    q.setStartResult(start);
+  }
+  if (cursor != null) {
+    q=newQueryIfNull(q);
+    q.setCursor(cursor);
+  }
+  if (limit != null) {
+    q=newQueryIfNull(q);
+    q.setLimit(limit);
+  }
+  if (startTime != null) {
+    q=newQueryIfNull(q);
+    q.setStartTime(startTime);
+  }
+  if (finishTime != null) {
+    q=newQueryIfNull(q);
+    q.setFinishTime(finishTime);
+  }
+  if (pad != null) {
+    q=newQueryIfNull(q);
+    q.setPad(pad);
+  }
+  if (identifiers != null) {
+    q=newQueryIfNull(q);
+    q.setIdentifiers(identifiers);
+  }
+  if (reversed != null) {
+    q=newQueryIfNull(q);
+    q.setReversed(reversed);
+  }
+  return q;
+}
