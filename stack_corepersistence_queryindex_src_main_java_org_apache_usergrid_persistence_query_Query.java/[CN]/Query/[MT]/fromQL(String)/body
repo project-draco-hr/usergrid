@@ -13,12 +13,15 @@
       ql="select * where " + ql;
     }
   }
-  ANTLRStringStream in=new ANTLRStringStream(qlt.trim());
+  ANTLRStringStream in=new ANTLRStringStream(ql.trim());
   QueryFilterLexer lexer=new QueryFilterLexer(in);
   CommonTokenStream tokens=new CommonTokenStream(lexer);
   QueryFilterParser parser=new QueryFilterParser(tokens);
   try {
     Query q=parser.ql().query;
+    QueryVisitor v=new EsDslQueryVistor();
+    q.getRootOperand().visit(v);
+    q.setQueryBuilder(v.getQueryBuilder());
     q.setQl(originalQl);
     return q;
   }
@@ -29,5 +32,9 @@
     Token token=e.token;
     String message=String.format("The query cannot be parsed. " + "The token '%s' at column %d on line %d cannot be parsed",token.getText(),index,lineNumber);
     throw new QueryParseException(message,e);
+  }
+catch (  PersistenceException pe) {
+    String message="Error building ElasticSEarch query string";
+    throw new QueryParseException(message,pe);
   }
 }
