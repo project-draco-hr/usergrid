@@ -1,8 +1,10 @@
 {
   StopWatch timer=new StopWatch();
   timer.start();
-  EntitySearchResults results=entityIndex.simpleQuery(query,0,999);
+  Query query=Query.fromQL(queryString);
+  query.setLimit(1000);
+  Results results=entityIndex.execute(query);
   timer.stop();
-  assertEquals(num,results.count());
+  assertEquals(num,results.getRefs().size());
   logger.debug("Query2 time {}ms",timer.getTime());
 }
