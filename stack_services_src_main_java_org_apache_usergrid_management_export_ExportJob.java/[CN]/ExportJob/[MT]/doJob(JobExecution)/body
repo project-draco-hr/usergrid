@@ -12,16 +12,13 @@
     logger.error("Export information cannot be null");
     return;
   }
-  EntityManager em=emf.getEntityManager(config.getApplicationId());
-  Export export=em.get(exportId,Export.class);
   jobExecution.heartbeat();
   try {
     exportService.doExport(config,jobExecution);
   }
  catch (  Exception e) {
     logger.error("Export Service failed to complete job");
-    export.setState(Export.State.FAILED);
-    em.update(export);
+    return;
   }
   logger.info("executed ExportJob process completed");
 }
