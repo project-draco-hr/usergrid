@@ -8,14 +8,13 @@
     PagingResultsIterator itr=new PagingResultsIterator(results);
     List<EntityRef> refs=new ArrayList<EntityRef>();
     ConnectedEntityRef c;
-    int breaker=10000;
+    int breaker=5;
     while (itr.hasNext()) {
       c=(ConnectedEntityRef)itr.next();
       refs.add(c);
       if (refs.size() > breaker) {
         em.addToCollections(refs,"feed",activity);
         refs.clear();
-        break;
       }
     }
     if (refs.size() > 0) {
