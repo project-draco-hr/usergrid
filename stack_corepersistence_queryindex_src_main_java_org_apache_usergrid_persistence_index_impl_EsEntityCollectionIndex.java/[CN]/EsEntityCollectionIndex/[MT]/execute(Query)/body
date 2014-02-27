@@ -1,14 +1,13 @@
 {
-  logger.info("-------------------------------------------------------------------------");
-  logger.info("execute ");
-  logger.info("-------------------------------------------------------------------------");
+  final QueryBuilder qb;
   if (query.getQueryBuilder() != null) {
-    logger.info("query is: " + query.getQueryBuilder().toString());
+    qb=query.getQueryBuilder();
   }
  else {
-    logger.info("query is: " + query.getQl());
+    qb=QueryBuilders.matchAllQuery();
   }
-  SearchRequestBuilder srb=client.prepareSearch(index).setTypes(scope.getName()).setQuery(query.getQueryBuilder()).setFrom(0).setSize(query.getLimit());
+  logger.debug("Query: " + qb.toString());
+  SearchRequestBuilder srb=client.prepareSearch(index).setTypes(scope.getName()).setQuery(qb).setFrom(0).setSize(query.getLimit());
   for (  Query.SortPredicate sp : query.getSortPredicates()) {
     final SortOrder order;
     if (sp.getDirection().equals(Query.SortDirection.ASCENDING)) {
@@ -23,6 +22,7 @@
   SearchHits hits=sr.getHits();
   Results results=new Results();
   List<EntityRef> refs=new ArrayList<EntityRef>();
+  List<Entity> entities=new ArrayList<Entity>();
   for (  SearchHit hit : hits.getHits()) {
     String[] idparts=hit.getId().split("\\|");
     String id=idparts[0];
@@ -30,7 +30,17 @@
     String version=idparts[2];
     EntityRef ref=new SimpleEntityRef(new SimpleId(UUID.fromString(id),type),UUID.fromString(version));
     refs.add(ref);
+    Entity entity=manager.load(ref.getId()).toBlockingObservable().last();
+    if (entity == null) {
+      throw new RuntimeException("Entity id [" + ref.getId() + "] not found");
+    }
+    entities.add(entity);
   }
-  results.setRefs(refs);
+  if (hits.getHits().length == 1) {
+    results.setEntity(entities.get(0));
+  }
+ else {
+    results.setEntities(entities);
+  }
   return results;
 }

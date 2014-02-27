@@ -1,8 +1,11 @@
 {
-  if (type.equals(scope.getName())) {
+  if (!type.equals(scope.getName())) {
     throw new RuntimeException("Incorrect type [" + type + "] for scope: "+ scope.getName());
   }
-  Entity entity=new Entity(new SimpleId(type));
+  Entity entity=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),scope.getName()));
+  entity=EntityMapUtils.mapToEntity(scope.getName(),entity,properties);
   EntityUtils.setVersion(entity,UUIDGenerator.newTimeUUID());
-  return ecm.write(entity);
+  entity=ecm.write(entity).toBlockingObservable().last();
+  index.index(entity);
+  return entity;
 }

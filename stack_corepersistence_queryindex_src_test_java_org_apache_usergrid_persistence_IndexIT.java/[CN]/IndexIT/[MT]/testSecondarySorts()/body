@@ -10,7 +10,7 @@
     properties.put("name",name);
     properties.put("group",i / 3);
     properties.put("reverse_name",alphabet[alphabet.length - 1 - i]);
-    em.create("item",properties);
+    em.create("items",properties);
   }
   Query query=Query.fromQL("group = 1 order by name desc");
   Results r=em.searchCollection(em.getApplicationRef(),"items",query);
@@ -18,7 +18,7 @@
   int i=6;
   for (  Entity entity : r.getEntities()) {
     i--;
-    assertEquals(1L,entity.getField("group").getValue());
+    assertEquals(1,entity.getField("group").getValue());
     assertEquals(alphabet[i],entity.getField("name").getValue());
   }
   assertEquals(3,i);

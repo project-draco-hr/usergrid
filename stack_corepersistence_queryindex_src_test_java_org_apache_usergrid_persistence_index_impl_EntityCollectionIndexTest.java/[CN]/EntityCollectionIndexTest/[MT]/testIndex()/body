@@ -1,8 +1,8 @@
 {
-  final CollectionScope scope=mock(CollectionScope.class);
-  when(scope.getName()).thenReturn("contacts");
-  String index=RandomStringUtils.randomAlphanumeric(20).toLowerCase();
-  String type=scope.getName();
+  Id appId=new SimpleId("application");
+  Id orgId=new SimpleId("organization");
+  CollectionScope scope=new CollectionScopeImpl(appId,orgId,"contacts");
+  EntityCollectionManager entityManager=collectionManagerFactory.createCollectionManager(scope);
   EntityCollectionIndex entityIndex=collectionIndexFactory.createCollectionIndex(scope);
   InputStream is=this.getClass().getResourceAsStream("/sample-large.json");
   ObjectMapper mapper=new ObjectMapper();
@@ -17,6 +17,7 @@
     Entity entity=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),scope.getName()));
     entity=EntityMapUtils.mapToEntity(scope.getName(),entity,item);
     EntityUtils.setVersion(entity,UUIDGenerator.newTimeUUID());
+    entity=entityManager.write(entity).toBlockingObservable().last();
     entityIndex.index(entity);
     count++;
   }
