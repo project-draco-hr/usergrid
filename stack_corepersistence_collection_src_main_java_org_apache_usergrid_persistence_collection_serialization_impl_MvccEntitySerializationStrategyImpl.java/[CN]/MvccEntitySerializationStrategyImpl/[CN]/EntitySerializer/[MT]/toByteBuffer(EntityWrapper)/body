@@ -1,6 +1,11 @@
 {
+  if (wrapper == null) {
+    return null;
+  }
   CompositeBuilder builder=Composites.newCompositeBuilder();
   builder.addBytes(VERSION);
+  f.disable(SmileParser.Feature.REQUIRE_HEADER);
+  mapper=new ObjectMapper(f);
   if (!wrapper.entity.isPresent()) {
     builder.addBytes(STATE_DELETED);
     return builder.build();
@@ -11,6 +16,17 @@
  else {
     builder.addBytes(STATE_PARTIAL);
   }
-  builder.addBytes(SER.toByteBuffer(wrapper.entity.get()));
+  try {
+    builder.addBytes(mapper.writeValueAsBytes(wrapper.entity.get()));
+  }
+ catch (  JsonMappingException e) {
+    e.printStackTrace();
+  }
+catch (  JsonGenerationException e) {
+    e.printStackTrace();
+  }
+catch (  IOException e) {
+    e.printStackTrace();
+  }
   return builder.build();
 }
