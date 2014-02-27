@@ -1,7 +1,7 @@
 {
   final TestListener listener=new TestListener();
   final TestEvent event=new TestEvent();
-  final TimeoutEvent<TestEvent> timeoutEvent=new TimeoutEvent<TestEvent>(){
+  final AsynchonrousEvent<TestEvent> asynchonrousEvent=new AsynchonrousEvent<TestEvent>(){
     @Override public TestEvent getEvent(){
       return event;
     }
@@ -13,14 +13,14 @@
   final TimeoutQueue queue=mock(TimeoutQueue.class);
   final AsyncProcessor asyncProcessor=constructProcessor(queue,listener);
   final CountDownLatch latch=new CountDownLatch(1);
-  when(queue.remove(timeoutEvent)).thenAnswer(new Answer<Boolean>(){
+  when(queue.remove(asynchonrousEvent)).thenAnswer(new Answer<Boolean>(){
     @Override public Boolean answer(    final InvocationOnMock invocation) throws Throwable {
       latch.countDown();
       return true;
     }
   }
 );
-  asyncProcessor.start(timeoutEvent);
+  asyncProcessor.start(asynchonrousEvent);
   latch.await();
   final TestEvent firedEvent=listener.events.peek();
   assertSame(event,firedEvent);
