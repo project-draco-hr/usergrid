@@ -1,10 +1,9 @@
 {
-  Client client=elasticSearchRule.getClient();
   final CollectionScope scope=mock(CollectionScope.class);
   when(scope.getName()).thenReturn("contacts");
   String index=RandomStringUtils.randomAlphanumeric(20).toLowerCase();
   String type=scope.getName();
-  EntityCollectionIndex entityIndex=new EsEntityCollectionIndex(client,index,scope,true);
+  EntityCollectionIndex entityIndex=collectionIndexFactory.createCollectionIndex(scope);
   InputStream is=this.getClass().getResourceAsStream("/sample-large.json");
   ObjectMapper mapper=new ObjectMapper();
   List<Object> sampleJson=mapper.readValue(is,new TypeReference<List<Object>>(){
@@ -24,5 +23,4 @@
   timer.stop();
   logger.info("Total time to index {} entries {}ms, average {}ms/entry",count,timer.getTime(),timer.getTime() / count);
   testQueries(entityIndex);
-  client.close();
 }

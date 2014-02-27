@@ -1,0 +1,14 @@
+{
+  if (client == null) {
+    if (indexFig.isEmbedded()) {
+      int port=AvailablePortFinder.getNextAvailable(2000);
+      Settings settings=ImmutableSettings.settingsBuilder().put("node.http.enabled",true).put("transport.tcp.port",port).put("path.logs","target/elasticsearch/logs_" + port).put("path.data","target/elasticsearch/data_" + port).put("gateway.type","none").put("index.store.type","memory").put("index.number_of_shards",1).put("index.number_of_replicas",1).build();
+      Node node=NodeBuilder.nodeBuilder().local(true).settings(settings).node();
+      client=node.client();
+    }
+ else {
+      throw new UnsupportedOperationException("Non-embedded ElasticSearch not yet supported");
+    }
+  }
+  return client;
+}

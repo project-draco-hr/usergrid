@@ -1,6 +1,25 @@
 {
-  logger.info("query is: " + query.getQueryBuilder().toString());
-  SearchResponse sr=client.prepareSearch(index).setTypes(scope.getName()).setQuery(query.getQueryBuilder()).setFrom(0).setSize(query.getLimit()).execute().actionGet();
+  logger.info("-------------------------------------------------------------------------");
+  logger.info("execute ");
+  logger.info("-------------------------------------------------------------------------");
+  if (query.getQueryBuilder() != null) {
+    logger.info("query is: " + query.getQueryBuilder().toString());
+  }
+ else {
+    logger.info("query is: " + query.getQl());
+  }
+  SearchRequestBuilder srb=client.prepareSearch(index).setTypes(scope.getName()).setQuery(query.getQueryBuilder()).setFrom(0).setSize(query.getLimit());
+  for (  Query.SortPredicate sp : query.getSortPredicates()) {
+    final SortOrder order;
+    if (sp.getDirection().equals(Query.SortDirection.ASCENDING)) {
+      order=SortOrder.ASC;
+    }
+ else {
+      order=SortOrder.DESC;
+    }
+    srb.addSort(sp.getPropertyName(),order);
+  }
+  SearchResponse sr=srb.execute().actionGet();
   SearchHits hits=sr.getHits();
   Results results=new Results();
   List<EntityRef> refs=new ArrayList<EntityRef>();
