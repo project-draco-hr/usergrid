@@ -1,0 +1,37 @@
+{
+  final UUID maxVersion=write.getVersion();
+  return Observable.create(new ObservableIterator<MarkedEdge>(){
+    @Override protected Iterator<MarkedEdge> getIterator(){
+      final SimpleSearchByEdge search=new SimpleSearchByEdge(write.getSourceNode(),write.getType(),write.getTargetNode(),maxVersion,null);
+      return edgeSerialization.getEdgeFromSource(scope,search);
+    }
+  }
+).filter(new Func1<MarkedEdge,Boolean>(){
+    /** 
+ * We only want to return edges < this version so we remove them
+ * @param markedEdge
+ * @return
+ */
+    @Override public Boolean call(    final MarkedEdge markedEdge){
+      return UUIDComparator.staticCompare(markedEdge.getVersion(),maxVersion) < 0;
+    }
+  }
+).buffer(graphFig.getScanPageSize()).map(new Func1<List<MarkedEdge>,Integer>(){
+    @Override public Integer call(    final List<MarkedEdge> markedEdges){
+      final int size=markedEdges.size();
+      final MutationBatch batch=edgeSerialization.deleteEdge(scope,markedEdges.get(0));
+      for (int i=1; i < size; i++) {
+        final MutationBatch delete=edgeSerialization.deleteEdge(scope,markedEdges.get(i));
+        batch.mergeShallow(delete);
+      }
+      try {
+        batch.execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException("Unable to issue write to cassandra",e);
+      }
+      return size;
+    }
+  }
+);
+}

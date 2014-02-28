@@ -1,0 +1,18 @@
+{
+  final Optional<UUID> mark=nodeSerialization.getMaxVersion(scope,node);
+  if (!mark.isPresent()) {
+    return Observable.just(0);
+  }
+  final UUID maxVersion=mark.get();
+  return getEdgeTypesToTarget(new SimpleSearchEdgeType(node,null)).flatMap(new Func1<String,Observable<Edge>>(){
+    @Override public Observable<Edge> call(    final String edgeType){
+      return loadEdgesToTarget(new SimpleSearchByEdgeType(node,edgeType,maxVersion,null)).doOnEach(new Action1<Edge>(){
+        @Override public void call(        final Edge edge){
+          deleteEdge(edge);
+        }
+      }
+);
+    }
+  }
+).count();
+}

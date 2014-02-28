@@ -2,7 +2,7 @@
   final AsynchronousErrorListener listener=new AsynchronousErrorListener();
   final TestEvent event=new TestEvent();
   final boolean[] invoked=new boolean[]{false,false};
-  final AsynchonrousEvent<TestEvent> asynchonrousEvent=new AsynchonrousEvent<TestEvent>(){
+  final AsynchronousEvent<TestEvent> asynchronousEvent=new AsynchronousEvent<TestEvent>(){
     @Override public TestEvent getEvent(){
       return event;
     }
@@ -14,23 +14,23 @@
   final TimeoutQueue queue=mock(TimeoutQueue.class);
   final AsyncProcessorImpl asyncProcessor=constructProcessor(queue,listener);
   final CountDownLatch latch=new CountDownLatch(1);
-  final AsynchonrousEvent<?>[] errorEvents={null};
+  final AsynchronousEvent<?>[] errorEvents={null};
   asyncProcessor.addErrorListener(new ErrorListener<TestEvent>(){
-    @Override public void onError(    final AsynchonrousEvent<TestEvent> event,    final Throwable t){
+    @Override public void onError(    final AsynchronousEvent<TestEvent> event,    final Throwable t){
       errorEvents[0]=event;
       invoked[1]=true;
       latch.countDown();
     }
   }
 );
-  when(queue.remove(asynchonrousEvent)).then(new Answer<Boolean>(){
+  when(queue.remove(asynchronousEvent)).then(new Answer<Boolean>(){
     @Override public Boolean answer(    final InvocationOnMock invocation) throws Throwable {
       invoked[0]=true;
       return false;
     }
   }
 );
-  asyncProcessor.start(asynchonrousEvent);
+  asyncProcessor.start(asynchronousEvent);
   latch.await();
   final TestEvent firedEvent=listener.events.peek();
   assertSame(event,firedEvent);

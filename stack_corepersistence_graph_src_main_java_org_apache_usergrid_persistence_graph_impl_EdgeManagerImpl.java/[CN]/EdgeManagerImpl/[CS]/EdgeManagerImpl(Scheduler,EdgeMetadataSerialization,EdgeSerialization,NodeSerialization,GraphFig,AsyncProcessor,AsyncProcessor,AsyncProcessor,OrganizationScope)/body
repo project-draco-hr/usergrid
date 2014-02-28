@@ -7,24 +7,9 @@
   this.nodeSerialization=nodeSerialization;
   this.graphFig=graphFig;
   this.edgeWriteAsyncProcessor=edgeWrite;
-  this.edgeWriteAsyncProcessor.addListener(new AsynchronousEventListener<Edge>(){
-    @Override public void receive(    final Edge edge){
-      repairEdgeAsync(edge);
-    }
-  }
-);
+  this.edgeWriteAsyncProcessor.addListener(new EdgeWriteListener());
   this.edgeDeleteAsyncProcessor=edgeDelete;
-  this.edgeDeleteAsyncProcessor.addListener(new AsynchronousEventListener<Edge>(){
-    @Override public void receive(    final Edge edge){
-      deleteEdgeAsync(edge);
-    }
-  }
-);
+  this.edgeDeleteAsyncProcessor.addListener(new EdgeDeleteListener());
   this.nodeDeleteAsyncProcessor=nodeDelete;
-  this.nodeDeleteAsyncProcessor.addListener(new AsynchronousEventListener<Id>(){
-    @Override public void receive(    final Id event){
-      deleteNodeAsync(event);
-    }
-  }
-);
+  this.nodeDeleteAsyncProcessor.addListener(new NodeDeleteListener());
 }
