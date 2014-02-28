@@ -1,11 +1,5 @@
 {
-  final QueryBuilder qb;
-  if (query.getQueryBuilder() != null) {
-    qb=query.getQueryBuilder();
-  }
- else {
-    qb=QueryBuilders.matchAllQuery();
-  }
+  QueryBuilder qb=query.createQueryBuilder();
   logger.debug("Query: " + qb.toString());
   SearchRequestBuilder srb=client.prepareSearch(index).setTypes(scope.getName()).setQuery(qb).setFrom(0).setSize(query.getLimit());
   for (  Query.SortPredicate sp : query.getSortPredicates()) {

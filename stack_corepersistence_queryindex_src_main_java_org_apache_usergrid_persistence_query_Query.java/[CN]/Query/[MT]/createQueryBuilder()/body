@@ -1,0 +1,17 @@
+{
+  final QueryBuilder queryBuilder;
+  if (getRootOperand() != null) {
+    QueryVisitor v=new EsDslQueryVistor();
+    try {
+      getRootOperand().visit(v);
+    }
+ catch (    PersistenceException ex) {
+      throw new RuntimeException("Error building ElasticSearch query",ex);
+    }
+    queryBuilder=v.getQueryBuilder();
+  }
+ else {
+    queryBuilder=QueryBuilders.matchAllQuery();
+  }
+  return queryBuilder;
+}

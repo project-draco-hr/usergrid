@@ -1,4 +1,5 @@
 {
+  String type=entity.getId().getType();
   CollectionScope scope=new CollectionScopeImpl(appId,orgId,type);
   EntityCollectionManager ecm=ecmf.createCollectionManager(scope);
   EntityCollectionIndex eci=ecif.createCollectionIndex(scope);
@@ -10,10 +11,6 @@
     collectionName=type + "s";
   }
   typesByCollectionNames.put(collectionName,type);
-  Entity entity=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),scope.getName()));
-  entity=EntityMapUtils.mapToEntity(scope.getName(),entity,properties);
-  EntityUtils.setVersion(entity,UUIDGenerator.newTimeUUID());
   entity=ecm.write(entity).toBlockingObservable().last();
   eci.index(entity);
-  return entity;
 }
