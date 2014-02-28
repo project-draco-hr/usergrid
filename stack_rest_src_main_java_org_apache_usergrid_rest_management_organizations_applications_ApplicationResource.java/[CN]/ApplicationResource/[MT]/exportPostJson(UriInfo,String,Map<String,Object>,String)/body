@@ -16,7 +16,8 @@
     return Response.status(errorMsg.getResponseStatus()).type(JSONPUtils.jsonMediaType(callback)).entity(ServiceResource.wrapWithCallback(errorMsg.getBody(),callback)).build();
   }
 catch (  Exception e) {
-    return Response.status(SC_INTERNAL_SERVER_ERROR).build();
+    OAuthResponse errorMsg=OAuthResponse.errorResponse(SC_INTERNAL_SERVER_ERROR).setErrorDescription(e.getMessage()).buildJSONMessage();
+    return Response.status(errorMsg.getResponseStatus()).type(JSONPUtils.jsonMediaType(callback)).entity(ServiceResource.wrapWithCallback(errorMsg.getBody(),callback)).build();
   }
   return Response.status(SC_ACCEPTED).entity(uuidRet).build();
 }
