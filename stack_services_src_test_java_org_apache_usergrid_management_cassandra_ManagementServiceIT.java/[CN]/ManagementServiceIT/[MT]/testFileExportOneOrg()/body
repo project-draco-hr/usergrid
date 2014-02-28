@@ -1,16 +1,18 @@
 {
   File f=null;
   try {
-    f=new File("test.json");
+    f=new File("exportOneOrg.json");
     f.delete();
   }
  catch (  Exception e) {
   }
   setup.getMgmtSvc().createOwnerAndOrganization("noExport","junkUserName","junkRealName","ugExport@usergrid.com","123456789");
   S3Export s3Export=new MockS3ExportImpl();
+  s3Export.setFilename("exportOneOrg.json");
   ExportService exportService=setup.getExportService();
   HashMap<String,Object> payload=payloadBuilder();
   ExportInfo exportInfo=new ExportInfo(payload);
+  exportInfo.setOrganizationId(organization.getUuid());
   exportInfo.setApplicationId(applicationId);
   exportInfo.setCollection("roles");
   UUID exportUUID=exportService.schedule(exportInfo);

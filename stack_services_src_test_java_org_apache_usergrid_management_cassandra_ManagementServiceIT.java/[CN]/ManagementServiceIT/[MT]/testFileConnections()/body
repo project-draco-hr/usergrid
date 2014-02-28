@@ -1,15 +1,16 @@
 {
   File f=null;
   try {
-    f=new File("test.json");
-    f.delete();
+    f=new File("testFileConnections.json");
   }
  catch (  Exception e) {
   }
   S3Export s3Export=new MockS3ExportImpl();
+  s3Export.setFilename("testFileConnections.json");
   ExportService exportService=setup.getExportService();
   HashMap<String,Object> payload=payloadBuilder();
   ExportInfo exportInfo=new ExportInfo(payload);
+  exportInfo.setOrganizationId(organization.getUuid());
   exportInfo.setApplicationId(applicationId);
   exportInfo.setCollection("users");
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
