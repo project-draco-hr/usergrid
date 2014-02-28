@@ -4,13 +4,28 @@
   Export export=em.get(exportId,Export.class);
   export.setState(Export.State.STARTED);
   em.update(export);
-  try {
-    exportApplicationForOrg(config.getOrganizationId(),config,jobExecution);
+  if (config.getCollection() == null) {
+    Map<UUID,String> organizations=getOrgs();
+    for (    Map.Entry<UUID,String> organization : organizations.entrySet()) {
+      try {
+        exportApplicationsForOrg(organization,config,jobExecution);
+      }
+ catch (      Exception e) {
+        export.setState(Export.State.FAILED);
+        em.update(export);
+        return;
+      }
+    }
   }
- catch (  Exception e) {
-    export.setState(Export.State.FAILED);
-    em.update(export);
-    return;
+ else {
+    try {
+      exportApplicationForOrg(config.getOrganizationId(),config,jobExecution);
+    }
+ catch (    Exception e) {
+      export.setState(Export.State.FAILED);
+      em.update(export);
+      return;
+    }
   }
   export.setState(Export.State.FINISHED);
   em.update(export);
