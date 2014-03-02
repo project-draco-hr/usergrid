@@ -1,30 +1,31 @@
 {
   File f=null;
+  String orgName="ed-organization";
+  String appName="testAppNotExported";
   try {
-    f=new File("exportOneCollection.json");
+    f=new File("exportOneApp.json");
     f.delete();
   }
  catch (  Exception e) {
   }
-  EntityManager em=setup.getEmf().getEntityManager(applicationId);
-  em.createApplicationCollection("baconators");
+  UUID appId=setup.getEmf().createApplication(orgName,appName);
+  EntityManager em=setup.getEmf().getEntityManager(appId);
   Map<String,Object> userProperties=null;
   Entity[] entity;
-  entity=new Entity[10];
-  for (int i=0; i < 10; i++) {
+  entity=new Entity[1];
+  for (int i=0; i < 1; i++) {
     userProperties=new LinkedHashMap<String,Object>();
-    userProperties.put("username","billybob" + i);
+    userProperties.put("username","junkRealName");
     userProperties.put("email","test" + i + "@anuff.com");
-    entity[i]=em.create("baconators",userProperties);
+    entity[i]=em.create("users",userProperties);
   }
   S3Export s3Export=new MockS3ExportImpl();
-  s3Export.setFilename("exportOneCollection.json");
+  s3Export.setFilename("exportOneApp.json");
   ExportService exportService=setup.getExportService();
   HashMap<String,Object> payload=payloadBuilder();
   ExportInfo exportInfo=new ExportInfo(payload);
   exportInfo.setOrganizationId(organization.getUuid());
   exportInfo.setApplicationId(applicationId);
-  exportInfo.setCollection("baconators");
   UUID exportUUID=exportService.schedule(exportInfo);
   exportService.setS3Export(s3Export);
   JobData jobData=new JobData();
@@ -36,7 +37,6 @@
   exportService.doExport(exportInfo,jobExecution);
   JSONParser parser=new JSONParser();
   org.json.simple.JSONArray a=(org.json.simple.JSONArray)parser.parse(new FileReader(f));
-  assertEquals(10,a.size());
   for (int i=0; i < a.size(); i++) {
     org.json.simple.JSONObject data=(org.json.simple.JSONObject)a.get(i);
     org.json.simple.JSONObject entityData=(JSONObject)data.get("Metadata");
