@@ -2,6 +2,7 @@
   File f=null;
   try {
     f=new File("testFileConnections.json");
+    f.delete();
   }
  catch (  Exception e) {
   }
@@ -16,8 +17,8 @@
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
   Map<String,Object> userProperties=null;
   Entity[] entity;
-  entity=new Entity[10];
-  for (int i=0; i < 10; i++) {
+  entity=new Entity[2];
+  for (int i=0; i < 2; i++) {
     userProperties=new LinkedHashMap<String,Object>();
     userProperties.put("username","billybob" + i);
     userProperties.put("email","test" + i + "@anuff.com");
@@ -36,6 +37,7 @@
   exportService.doExport(exportInfo,jobExecution);
   JSONParser parser=new JSONParser();
   org.json.simple.JSONArray a=(org.json.simple.JSONArray)parser.parse(new FileReader(f));
+  assertEquals(2,a.size());
   org.json.simple.JSONObject objEnt=(org.json.simple.JSONObject)a.get(0);
   org.json.simple.JSONObject objConnections=(org.json.simple.JSONObject)objEnt.get("connections");
   assertNotNull(objConnections);
