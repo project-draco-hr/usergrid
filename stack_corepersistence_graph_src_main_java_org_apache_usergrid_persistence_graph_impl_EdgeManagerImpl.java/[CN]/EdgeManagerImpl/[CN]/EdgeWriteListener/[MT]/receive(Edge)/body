@@ -16,8 +16,8 @@
       return UUIDComparator.staticCompare(markedEdge.getVersion(),maxVersion) < 0;
     }
   }
-).buffer(graphFig.getScanPageSize()).map(new Func1<List<MarkedEdge>,Integer>(){
-    @Override public Integer call(    final List<MarkedEdge> markedEdges){
+).buffer(graphFig.getScanPageSize()).map(new Func1<List<MarkedEdge>,Edge>(){
+    @Override public Edge call(    final List<MarkedEdge> markedEdges){
       final int size=markedEdges.size();
       final MutationBatch batch=edgeSerialization.deleteEdge(scope,markedEdges.get(0));
       for (int i=1; i < size; i++) {
@@ -30,7 +30,7 @@
  catch (      ConnectionException e) {
         throw new RuntimeException("Unable to issue write to cassandra",e);
       }
-      return size;
+      return write;
     }
   }
 );

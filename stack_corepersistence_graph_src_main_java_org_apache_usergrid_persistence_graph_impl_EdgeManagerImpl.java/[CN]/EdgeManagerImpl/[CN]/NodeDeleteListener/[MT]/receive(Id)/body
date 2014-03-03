@@ -1,18 +1,28 @@
 {
-  final Optional<UUID> mark=nodeSerialization.getMaxVersion(scope,node);
-  if (!mark.isPresent()) {
-    return Observable.just(0);
+  return Observable.from(node).map(new Func1<Id,Optional<UUID>>(){
+    @Override public Optional<UUID> call(    final Id id){
+      return nodeSerialization.getMaxVersion(scope,node);
+    }
   }
-  final UUID maxVersion=mark.get();
-  return getEdgeTypesToTarget(new SimpleSearchEdgeType(node,null)).flatMap(new Func1<String,Observable<Edge>>(){
-    @Override public Observable<Edge> call(    final String edgeType){
-      return loadEdgesToTarget(new SimpleSearchByEdgeType(node,edgeType,maxVersion,null)).doOnEach(new Action1<Edge>(){
-        @Override public void call(        final Edge edge){
-          deleteEdge(edge);
+).flatMap(new Func1<Optional<UUID>,Observable<Edge>>(){
+    @Override public Observable<Edge> call(    final Optional<UUID> uuidOptional){
+      return getEdgeTypesToTarget(new SimpleSearchEdgeType(node,null)).flatMap(new Func1<String,Observable<Edge>>(){
+        @Override public Observable<Edge> call(        final String edgeType){
+          return loadEdgesToTarget(new SimpleSearchByEdgeType(node,edgeType,uuidOptional.get(),null)).doOnEach(new Action1<Edge>(){
+            @Override public void call(            final Edge edge){
+              deleteEdge(edge);
+            }
+          }
+);
         }
       }
 );
     }
   }
-).count();
+).map(new Func1<Edge,Id>(){
+    @Override public Id call(    final Edge edge){
+      return node;
+    }
+  }
+);
 }

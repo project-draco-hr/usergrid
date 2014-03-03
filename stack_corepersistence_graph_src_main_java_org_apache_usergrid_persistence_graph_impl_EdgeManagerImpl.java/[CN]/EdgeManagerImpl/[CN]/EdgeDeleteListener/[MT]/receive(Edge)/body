@@ -2,45 +2,30 @@
   final UUID maxVersion=delete.getVersion();
   return Observable.from(delete).flatMap(new Func1<Edge,Observable<MutationBatch>>(){
     @Override public Observable<MutationBatch> call(    final Edge edge){
-      Observable<Integer> sourceIdType=loadEdgesFromSourceByType(new SimpleSearchByIdType(edge.getSourceNode(),edge.getType(),maxVersion,edge.getTargetNode().getType(),null)).take(2).count().doOnEach(new Action1<Integer>(){
-        @Override public void call(        final Integer count){
+      Observable<MutationBatch> sourceIdType=loadEdgesFromSourceByType(new SimpleSearchByIdType(edge.getSourceNode(),edge.getType(),maxVersion,edge.getTargetNode().getType(),null)).take(2).count().map(new Func1<Integer,MutationBatch>(){
+        @Override public MutationBatch call(        final Integer count){
           if (count == 2) {
-            return;
+            return null;
           }
-          try {
-            edgeMetadataSerialization.removeEdgeTypeFromSource(scope,delete).execute();
-          }
- catch (          ConnectionException e) {
-            throw new RuntimeException("Unable to execute mutation",e);
-          }
+          return edgeMetadataSerialization.removeEdgeTypeFromSource(scope,delete);
         }
       }
 );
-      Observable<Integer> targetIdType=loadEdgesToTargetByType(new SimpleSearchByIdType(edge.getTargetNode(),edge.getType(),maxVersion,edge.getSourceNode().getType(),null)).take(2).count().doOnEach(new Action1<Integer>(){
-        @Override public void call(        final Integer count){
+      Observable<MutationBatch> targetIdType=loadEdgesToTargetByType(new SimpleSearchByIdType(edge.getTargetNode(),edge.getType(),maxVersion,edge.getSourceNode().getType(),null)).take(2).count().map(new Func1<Integer,MutationBatch>(){
+        @Override public MutationBatch call(        final Integer count){
           if (count == 2) {
-            return;
+            return null;
           }
-          try {
-            edgeMetadataSerialization.removeEdgeTypeToTarget(scope,delete).execute();
-          }
- catch (          ConnectionException e) {
-            throw new RuntimeException("Unable to execute mutation",e);
-          }
+          return edgeMetadataSerialization.removeEdgeTypeToTarget(scope,delete);
         }
       }
 );
-      Observable<Integer> sourceType=loadEdgesFromSource(new SimpleSearchByEdgeType(edge.getSourceNode(),edge.getType(),maxVersion,null)).take(2).count().doOnEach(new Action1<Integer>(){
-        @Override public void call(        final Integer count){
+      Observable<MutationBatch> sourceType=loadEdgesFromSource(new SimpleSearchByEdgeType(edge.getSourceNode(),edge.getType(),maxVersion,null)).take(2).count().map(new Func1<Integer,MutationBatch>(){
+        @Override public MutationBatch call(        final Integer count){
           if (count == 2) {
-            return;
+            return null;
           }
-          try {
-            edgeMetadataSerialization.removeEdgeTypeFromSource(scope,delete).execute();
-          }
- catch (          ConnectionException e) {
-            throw new RuntimeException("Unable to execute mutation",e);
-          }
+          return edgeMetadataSerialization.removeEdgeTypeFromSource(scope,delete);
         }
       }
 );
@@ -74,10 +59,16 @@
 );
     }
   }
-).map(new Func1<MutationBatch,MutationBatch>(){
-    @Override public MutationBatch call(    final MutationBatch mutationBatch){
-      return mutationBatch;
+).map(new Func1<MutationBatch,Edge>(){
+    @Override public Edge call(    final MutationBatch mutationBatch){
+      try {
+        mutationBatch.execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException("Unable to execute mutation",e);
+      }
+      return delete;
     }
   }
-).count();
+);
 }
