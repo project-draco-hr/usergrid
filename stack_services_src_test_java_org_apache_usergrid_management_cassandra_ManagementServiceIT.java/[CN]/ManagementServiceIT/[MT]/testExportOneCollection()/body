@@ -1,5 +1,6 @@
 {
   File f=null;
+  int entitiesToCreate=10000;
   try {
     f=new File("exportOneCollection.json");
     f.delete();
@@ -10,8 +11,8 @@
   em.createApplicationCollection("baconators");
   Map<String,Object> userProperties=null;
   Entity[] entity;
-  entity=new Entity[10];
-  for (int i=0; i < 10; i++) {
+  entity=new Entity[entitiesToCreate];
+  for (int i=0; i < entitiesToCreate; i++) {
     userProperties=new LinkedHashMap<String,Object>();
     userProperties.put("username","billybob" + i);
     userProperties.put("email","test" + i + "@anuff.com");
@@ -36,6 +37,6 @@
   exportService.doExport(exportInfo,jobExecution);
   JSONParser parser=new JSONParser();
   org.json.simple.JSONArray a=(org.json.simple.JSONArray)parser.parse(new FileReader(f));
-  assertEquals(10,a.size());
+  assertEquals(entitiesToCreate,a.size());
   f.delete();
 }
