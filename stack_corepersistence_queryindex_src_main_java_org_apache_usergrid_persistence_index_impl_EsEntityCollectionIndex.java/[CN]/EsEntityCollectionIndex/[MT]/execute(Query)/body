@@ -1,7 +1,13 @@
 {
   QueryBuilder qb=query.createQueryBuilder();
   logger.debug("Executing query on type {} query: {} ",scope.getName(),qb.toString());
-  SearchRequestBuilder srb=client.prepareSearch(index).setTypes(scope.getName()).setQuery(qb).setFrom(0).setSize(query.getLimit());
+  SearchRequestBuilder srb=client.prepareSearch(index).setTypes(scope.getName()).setQuery(qb);
+  FilterBuilder fb=query.createFilterBuilder();
+  if (fb != null) {
+    logger.debug("   Filter: {} ",fb.toString());
+    srb=srb.setPostFilter(fb);
+  }
+  srb=srb.setFrom(0).setSize(query.getLimit());
   for (  Query.SortPredicate sp : query.getSortPredicates()) {
     final SortOrder order;
     if (sp.getDirection().equals(Query.SortDirection.ASCENDING)) {
@@ -14,6 +20,7 @@
   }
   SearchResponse sr=srb.execute().actionGet();
   SearchHits hits=sr.getHits();
+  logger.debug("   Results: " + sr.toString());
   logger.debug("   Hit count: " + hits.getTotalHits());
   Results results=new Results();
   List<Entity> entities=new ArrayList<Entity>();
