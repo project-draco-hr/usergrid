@@ -4,16 +4,17 @@
   Id orgId=new SimpleId("testOrganization");
   EntityManagerFacade em=new EntityManagerFacade(orgId,appId,collectionManagerFactory,collectionIndexFactory);
   assertNotNull(em);
-  final double lat=37.776753;
-  final double lon=-122.407846;
+  final Point folsomAnd7th=new Point(37.774277,-122.404744);
+  final Point folsomAndBryant=new Point(37.776753,-122.407846);
+  final Point paloalto=new Point(37.426373,-122.14108);
   Map<String,Object> properties=new LinkedHashMap<String,Object>(){
 {
       put("username","edanuff");
       put("email","ed@anuff.com");
       put("location",new HashMap<String,Object>(){
 {
-          put("latitude",lat);
-          put("longitude",lon);
+          put("latitude",folsomAndBryant.getLat());
+          put("longitude",folsomAndBryant.getLon());
         }
       }
 );
@@ -23,27 +24,21 @@
   Entity user=em.create("user",properties);
   assertNotNull(user);
   LOG.info(user.toString());
-  Point center=new Point(37.774277,-122.404744);
-  Query q=Query.fromQL("location within 100 of " + center.getLat() + ","+ center.getLon()+ " limit 100");
+  Query q=Query.fromQL("location within 100 of " + folsomAnd7th.getLat() + ","+ folsomAnd7th.getLon()+ " limit 100");
   Results results=em.searchCollection(null,"users",q);
   assertEquals(0,results.size());
-  q=Query.fromQL("location within 400 of " + lat + ","+ lon+ " limit 100");
+  q=Query.fromQL("location within 400 of " + folsomAnd7th.getLat() + ","+ folsomAnd7th.getLon()+ " limit 100");
   results=em.searchCollection(null,"users",q);
   assertEquals(1,results.size());
-  em.delete(user);
-  q=Query.fromQL("location within 400 of " + lat + ","+ lon+ " limit 100");
+  updatePos(em,new SimpleEntityRef(user.getId(),user.getVersion()),paloalto.getLat(),paloalto.getLon());
+  q=Query.fromQL("location within 200 of " + folsomAndBryant.getLat() + ","+ folsomAndBryant.getLon()+ " limit 100");
   results=em.searchCollection(null,"users",q);
   assertEquals(0,results.size());
-  updatePos(em,new SimpleEntityRef(user.getId(),user.getVersion()),37.426373,-122.14108);
-  q=Query.fromQL("location within 200 of " + center.getLat() + ","+ center.getLon()+ " limit 100");
-  results=em.searchCollection(null,"users",q);
-  assertEquals(0,results.size());
-  updatePos(em,user,37.774277,-122.404744);
-  center=new Point(37.776753,-122.407846);
-  q=Query.fromQL("location within 1000 of " + center.getLat() + ","+ center.getLon()+ " limit 100");
+  updatePos(em,user,folsomAnd7th.getLat(),folsomAnd7th.getLon());
+  q=Query.fromQL("location within 1000 of " + folsomAndBryant.getLat() + ","+ folsomAndBryant.getLon()+ " limit 100");
   results=em.searchCollection(null,"users",q);
   assertEquals(1,results.size());
-  q=Query.fromQL("location within " + Integer.MAX_VALUE + " of "+ center.getLat()+ ","+ center.getLon()+ " limit 100");
+  q=Query.fromQL("location within " + Integer.MAX_VALUE + " of "+ folsomAndBryant.getLat()+ ","+ folsomAndBryant.getLon()+ " limit 100");
   results=em.searchCollection(null,"users",q);
   assertEquals(1,results.size());
   LinkedHashMap<String,Object> properties2=new LinkedHashMap<String,Object>(){
@@ -62,21 +57,21 @@
 ;
   Entity user2=em.create("user",properties2);
   assertNotNull(user2);
-  q=Query.fromQL("location within 10000 of " + center.getLat() + ","+ center.getLon()+ " limit 100");
+  q=Query.fromQL("location within 10000 of " + folsomAndBryant.getLat() + ","+ folsomAndBryant.getLon()+ " limit 100");
   results=em.searchCollection(null,"users",q);
   assertEquals(1,results.size());
-  q=Query.fromQL("location within " + Integer.MAX_VALUE + " of "+ center.getLat()+ ","+ center.getLon()+ " limit 100");
+  q=Query.fromQL("location within " + Integer.MAX_VALUE + " of "+ folsomAndBryant.getLat()+ ","+ folsomAndBryant.getLon()+ " limit 100");
   results=em.searchCollection(null,"users",q);
   assertEquals(2,results.size());
-  center=new Point(31.14,121.27);
-  q=Query.fromQL("location within " + Integer.MAX_VALUE + " of "+ center.getLat()+ ","+ center.getLon()+ " limit 100");
+  Point shanghai=new Point(31.14,121.27);
+  q=Query.fromQL("location within " + Integer.MAX_VALUE + " of "+ shanghai.getLat()+ ","+ shanghai.getLon()+ " limit 100");
   results=em.searchCollection(null,"users",q);
   assertEquals(2,results.size());
   Results emSearchResults=em.searchCollection(em.getApplicationRef(),"users",Query.fromQL("location within 1000 of 37.776753, -122.407846"));
   assertEquals(1,emSearchResults.size());
-  updatePos(em,user,37.776753,-122.407846);
-  center=new Point(37.428526,-122.140916);
-  q=Query.fromQL("location within 1000 of " + center.getLat() + ","+ center.getLon()+ " limit 100");
+  updatePos(em,user,folsomAndBryant.getLat(),folsomAndBryant.getLon());
+  Point paloaltoCaltran=new Point(37.428526,-122.140916);
+  q=Query.fromQL("location within 1000 of " + paloaltoCaltran.getLat() + ","+ paloaltoCaltran.getLon()+ " limit 100");
   results=em.searchCollection(null,"users",q);
   assertEquals(0,results.size());
   emSearchResults=em.searchCollection(em.getApplicationRef(),"users",Query.fromQL("location within 1000 of 37.428526, -122.140916"));
