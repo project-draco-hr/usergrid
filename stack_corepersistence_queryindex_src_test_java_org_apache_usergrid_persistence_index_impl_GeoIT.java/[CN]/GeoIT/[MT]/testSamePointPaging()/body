@@ -1,0 +1,27 @@
+{
+  Id appId=new SimpleId("testGeo");
+  Id orgId=new SimpleId("testOrganization");
+  EntityManagerFacade em=new EntityManagerFacade(orgId,appId,collectionManagerFactory,collectionIndexFactory);
+  assertNotNull(em);
+  int numEntities=10;
+  for (int i=0; i < numEntities; i++) {
+    Map<String,Object> data=new HashMap<String,Object>(2);
+    data.put("name",String.valueOf(i));
+    setPos(data,0,0);
+    em.create("store",data);
+  }
+  Query query=new Query();
+  query.addFilter("location within 50000000 of 0, 0");
+  query.setLimit(10);
+  int count=0;
+  Results results;
+  do {
+    results=em.searchCollection(em.getApplicationRef(),"stores",query);
+    for (    Entity entity : results.getEntities()) {
+      count++;
+    }
+    query.setCursor(results.getCursor());
+  }
+ while (results.getCursor() != null);
+  assertEquals(numEntities,count);
+}

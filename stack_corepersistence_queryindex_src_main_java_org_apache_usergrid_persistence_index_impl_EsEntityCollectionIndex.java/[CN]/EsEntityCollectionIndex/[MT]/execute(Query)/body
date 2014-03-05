@@ -1,27 +1,35 @@
 {
   QueryBuilder qb=query.createQueryBuilder();
-  logger.debug("Executing query on type {} query: {} ",scope.getName(),qb.toString());
-  SearchRequestBuilder srb=client.prepareSearch(index).setTypes(scope.getName()).setQuery(qb);
-  FilterBuilder fb=query.createFilterBuilder();
-  if (fb != null) {
-    logger.debug("   Filter: {} ",fb.toString());
-    srb=srb.setPostFilter(fb);
-  }
-  srb=srb.setFrom(0).setSize(query.getLimit());
-  for (  Query.SortPredicate sp : query.getSortPredicates()) {
-    final SortOrder order;
-    if (sp.getDirection().equals(Query.SortDirection.ASCENDING)) {
-      order=SortOrder.ASC;
+  log.debug("Executing query on type {} query: {} ",scope.getName(),query.toString());
+  SearchResponse sr;
+  if (query.getCursor() == null) {
+    log.debug("Executing query on type {} query: {} ",scope.getName(),qb.toString());
+    SearchRequestBuilder srb=client.prepareSearch(index).setTypes(scope.getName()).setScroll(cursorTimeout + "m").setQuery(qb);
+    FilterBuilder fb=query.createFilterBuilder();
+    if (fb != null) {
+      log.debug("   Filter: {} ",fb.toString());
+      srb=srb.setPostFilter(fb);
     }
+    srb=srb.setFrom(0).setSize(query.getLimit());
+    for (    Query.SortPredicate sp : query.getSortPredicates()) {
+      final SortOrder order;
+      if (sp.getDirection().equals(Query.SortDirection.ASCENDING)) {
+        order=SortOrder.ASC;
+      }
  else {
-      order=SortOrder.DESC;
+        order=SortOrder.DESC;
+      }
+      srb.addSort(sp.getPropertyName(),order);
     }
-    srb.addSort(sp.getPropertyName(),order);
+    sr=srb.execute().actionGet();
   }
-  SearchResponse sr=srb.execute().actionGet();
+ else {
+    log.debug("Executing query on type {} cursor: {} ",scope.getName(),query.getCursor());
+    SearchScrollRequestBuilder ssrb=client.prepareSearchScroll(query.getCursor()).setScroll(cursorTimeout + "m");
+    sr=ssrb.execute().actionGet();
+  }
   SearchHits hits=sr.getHits();
-  logger.debug("   Results: " + sr.toString());
-  logger.debug("   Hit count: " + hits.getTotalHits());
+  log.debug("   Hit count: {} Total hits: {}",hits.getHits().length,hits.getTotalHits());
   Results results=new Results();
   List<Entity> entities=new ArrayList<Entity>();
   for (  SearchHit hit : hits.getHits()) {
@@ -36,7 +44,7 @@
     }
     UUID entityVersion=UUID.fromString(version);
     if (entityVersion.compareTo(entity.getVersion()) == -1) {
-      logger.debug("   Stale hit " + hit.getId());
+      log.debug("   Stale hit " + hit.getId());
     }
  else {
       entities.add(entity);
@@ -46,8 +54,12 @@
     results.setEntity(entities.get(0));
   }
  else {
-    logger.debug("   Returning " + entities.size() + " entities");
+    log.debug("   Returning " + entities.size() + " entities");
     results.setEntities(entities);
+  }
+  if (!entities.isEmpty()) {
+    results.setCursor(sr.getScrollId());
+    log.debug("   Cursor = " + sr.getScrollId());
   }
   return results;
 }
