@@ -1,11 +1,10 @@
 {
   HashMap<String,Object> payload=payloadBuilder();
-  ExportInfo exportInfo=new ExportInfo(payload);
-  exportInfo.setOrganizationId(organization.getUuid());
-  exportInfo.setApplicationId(applicationId);
+  payload.put("organizationId",organization.getUuid());
+  payload.put("applicationId",applicationId);
   JobData jobData=new JobData();
   jobData.setProperty("jobName","exportJob");
-  jobData.setProperty("exportInfo",exportInfo);
+  jobData.setProperty("exportInfo",payload);
   JobExecution jobExecution=mock(JobExecution.class);
   when(jobExecution.getJobData()).thenReturn(jobData);
   ExportJob job=new ExportJob();

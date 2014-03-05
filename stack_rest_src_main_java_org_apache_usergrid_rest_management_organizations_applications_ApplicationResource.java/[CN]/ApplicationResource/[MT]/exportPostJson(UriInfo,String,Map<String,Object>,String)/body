@@ -4,11 +4,13 @@
   String colExport=collection_name;
   Map<String,String> uuidRet=new HashMap<String,String>();
   try {
-    ExportInfo objEx=new ExportInfo(json);
-    objEx.setOrganizationId(organization.getUuid());
-    objEx.setApplicationId(applicationId);
-    objEx.setCollection(colExport);
-    jobUUID=exportService.schedule(objEx);
+    if (json.get("properties") == null) {
+      throw new NullPointerException();
+    }
+    json.put("organizationId",organization.getUuid());
+    json.put("applicationId",applicationId);
+    json.put("collectionName",colExport);
+    jobUUID=exportService.schedule(json);
     uuidRet.put("jobUUID",jobUUID.toString());
   }
  catch (  NullPointerException e) {
