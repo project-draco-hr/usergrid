@@ -1,4 +1,13 @@
 {
+  if (entity.getId() == null) {
+    throw new RuntimeException("Cannot index entity with id null");
+  }
+  if (entity.getId().getUuid() == null || entity.getId().getType() == null) {
+    throw new RuntimeException("Cannot index entity with incomplete id");
+  }
+  if (entity.getVersion() == null) {
+    throw new RuntimeException("Cannot index entity with version null");
+  }
   Map<String,Object> entityAsMap=EsEntityCollectionIndex.entityToMap(entity);
   entityAsMap.put("created",entity.getVersion().timestamp());
   String indexId=createIndexId(entity);

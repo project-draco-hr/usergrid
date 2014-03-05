@@ -30,11 +30,11 @@
     String type=idparts[1];
     String version=idparts[2];
     Id entityId=new SimpleId(UUID.fromString(id),type);
-    UUID entityVersion=UUID.fromString(version);
     Entity entity=manager.load(entityId).toBlockingObservable().last();
     if (entity == null) {
       throw new RuntimeException("Entity id [" + entityId + "] not found");
     }
+    UUID entityVersion=UUID.fromString(version);
     if (entityVersion.compareTo(entity.getVersion()) == -1) {
       logger.debug("   Stale hit " + hit.getId());
     }
