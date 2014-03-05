@@ -1,6 +1,6 @@
 {
   File f=null;
-  int index=0;
+  int indexCon=0;
   try {
     f=new File("testFileConnections.json");
     f.delete();
@@ -38,15 +38,15 @@
   exportService.doExport(exportInfo,jobExecution);
   JSONParser parser=new JSONParser();
   org.json.simple.JSONArray a=(org.json.simple.JSONArray)parser.parse(new FileReader(f));
-  for (index=0; index < a.size(); index++) {
-    JSONObject jObj=(JSONObject)a.get(index);
+  for (indexCon=0; indexCon < a.size(); indexCon++) {
+    JSONObject jObj=(JSONObject)a.get(indexCon);
     JSONObject data=(JSONObject)jObj.get("Metadata");
     String uuid=(String)data.get("uuid");
     if (entity[0].getUuid().toString().equals(uuid)) {
       break;
     }
   }
-  org.json.simple.JSONObject objEnt=(org.json.simple.JSONObject)a.get(index);
+  org.json.simple.JSONObject objEnt=(org.json.simple.JSONObject)a.get(indexCon);
   org.json.simple.JSONObject objConnections=(org.json.simple.JSONObject)objEnt.get("connections");
   assertNotNull(objConnections);
   org.json.simple.JSONArray objVibrations=(org.json.simple.JSONArray)objConnections.get("Vibrations");
