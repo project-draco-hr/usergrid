@@ -11,8 +11,10 @@
   }
 ;
   final TimeoutQueue queue=mock(TimeoutQueue.class);
-  AsyncProcessor asyncProcessor=constructProcessor(queue);
-  when(queue.queue(event,timeout)).thenReturn(asynchronousMessage);
-  AsynchronousMessage<TestEvent> returned=asyncProcessor.setVerification(event,timeout);
+  when(queue.take(1,10000l)).thenReturn(Collections.singletonList(asynchronousMessage));
+  AsyncProcessor<TestEvent> processor=constructProcessor(queue);
+  Collection<AsynchronousMessage<TestEvent>> timeouts=processor.getTimeouts(1,10000l);
+  assertEquals(1,timeouts.size());
+  AsynchronousMessage<TestEvent> returned=timeouts.iterator().next();
   assertSame(asynchronousMessage,returned);
 }

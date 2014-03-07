@@ -6,8 +6,8 @@
   final Semaphore semaphore=new Semaphore(0,true);
   CountDownLatch firstBatch=schedule(rxScheduler,rxFig.getMaxThreadCount(),semaphore,TEST_TIMEOUT);
   try {
-    rxScheduler.schedule(new Action0(){
-      @Override public void call(){
+    rxScheduler.schedule(new Action1<Scheduler.Inner>(){
+      @Override public void call(      final Scheduler.Inner inner){
       }
     }
 );
@@ -19,8 +19,8 @@
   rxFig.override(RxFig.PROP_THREAD,"" + doubleMaxCount);
   CountDownLatch secondBatch=schedule(rxScheduler,rxFig.getMaxThreadCount() - startCount,semaphore,TEST_TIMEOUT);
   try {
-    rxScheduler.schedule(new Action0(){
-      @Override public void call(){
+    rxScheduler.schedule(new Action1<Scheduler.Inner>(){
+      @Override public void call(      final Scheduler.Inner inner){
       }
     }
 );

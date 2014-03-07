@@ -20,6 +20,9 @@
 ).doOnCompleted(new Action0(){
     @Override public void call(){
       queue.remove(event);
+      for (      CompleteListener<T> listener : completeListeners) {
+        listener.onComplete(event);
+      }
     }
   }
 ).subscribe(new Action1<AsynchronousMessage<T>>(){
