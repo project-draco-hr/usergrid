@@ -1,0 +1,18 @@
+{
+  CollectionScope scope=new CollectionScopeImpl(appId,orgId,type);
+  EntityCollectionManager ecm=ecmf.createCollectionManager(scope);
+  EntityCollectionIndex eci=ecif.createCollectionIndex(scope);
+  final String collectionName;
+  if (type.endsWith("y")) {
+    collectionName=type.substring(0,type.length() - 1) + "ies";
+  }
+ else {
+    collectionName=type + "s";
+  }
+  typesByCollectionNames.put(collectionName,type);
+  Entity entity=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),type));
+  entity=EntityBuilder.fromMap(scope.getName(),entity,properties);
+  entity=ecm.write(entity).toBlockingObservable().last();
+  eci.index(entity);
+  return entity;
+}

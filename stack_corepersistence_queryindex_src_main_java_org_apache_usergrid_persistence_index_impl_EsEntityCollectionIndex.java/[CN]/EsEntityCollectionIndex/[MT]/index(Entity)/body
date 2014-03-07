@@ -1,5 +1,18 @@
 {
+  if (entity.getId() == null) {
+    throw new IllegalArgumentException("Cannot index entity with id null");
+  }
+  if (entity.getId().getUuid() == null || entity.getId().getType() == null) {
+    throw new IllegalArgumentException("Cannot index entity with incomplete id");
+  }
+  if (entity.getVersion() == null) {
+    throw new IllegalArgumentException("Cannot index entity with version null");
+  }
   Map<String,Object> entityAsMap=EsEntityCollectionIndex.entityToMap(entity);
-  IndexRequestBuilder irb=client.prepareIndex(index,scope.getName(),createIndexId(entity)).setSource(entityAsMap).setRefresh(refresh);
-  IndexResponse ir=irb.execute().actionGet();
+  entityAsMap.put("created",entity.getId().getUuid().timestamp());
+  entityAsMap.put("updated",entity.getVersion().timestamp());
+  String indexId=createIndexId(entity);
+  IndexRequestBuilder irb=client.prepareIndex(indexName,typeName,indexId).setSource(entityAsMap).setRefresh(refresh);
+  irb.execute().actionGet();
+  log.debug("Indexed Entity with index id " + indexId);
 }

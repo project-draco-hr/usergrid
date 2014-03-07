@@ -1,17 +1,65 @@
 {
-  logger.info("query is: " + query.getQueryBuilder().toString());
-  SearchResponse sr=client.prepareSearch(index).setTypes(scope.getName()).setQuery(query.getQueryBuilder()).setFrom(0).setSize(query.getLimit()).execute().actionGet();
+  QueryBuilder qb=query.createQueryBuilder();
+  SearchResponse sr;
+  if (query.getCursor() == null) {
+    log.debug("Executing query on type {} query: {} ",scope.getName(),qb.toString());
+    log.debug("   Type name: " + typeName);
+    SearchRequestBuilder srb=client.prepareSearch(indexName).setTypes(typeName).setScroll(cursorTimeout + "m").setQuery(qb);
+    FilterBuilder fb=query.createFilterBuilder();
+    if (fb != null) {
+      log.debug("   Filter: {} ",fb.toString());
+      srb=srb.setPostFilter(fb);
+    }
+    srb=srb.setFrom(0).setSize(query.getLimit());
+    for (    Query.SortPredicate sp : query.getSortPredicates()) {
+      final SortOrder order;
+      if (sp.getDirection().equals(Query.SortDirection.ASCENDING)) {
+        order=SortOrder.ASC;
+      }
+ else {
+        order=SortOrder.DESC;
+      }
+      srb.addSort(sp.getPropertyName(),order);
+    }
+    sr=srb.execute().actionGet();
+  }
+ else {
+    log.debug("Executing query on type {} cursor: {} ",scope.getName(),query.getCursor());
+    SearchScrollRequestBuilder ssrb=client.prepareSearchScroll(query.getCursor()).setScroll(cursorTimeout + "m");
+    sr=ssrb.execute().actionGet();
+  }
   SearchHits hits=sr.getHits();
+  log.debug("   Hit count: {} Total hits: {}",hits.getHits().length,hits.getTotalHits());
   Results results=new Results();
-  List<EntityRef> refs=new ArrayList<EntityRef>();
+  List<Entity> entities=new ArrayList<Entity>();
   for (  SearchHit hit : hits.getHits()) {
-    String[] idparts=hit.getId().split("\\|");
+    String[] idparts=hit.getId().split(ID_SEPARATOR_SPLITTER);
     String id=idparts[0];
     String type=idparts[1];
     String version=idparts[2];
-    EntityRef ref=new SimpleEntityRef(new SimpleId(UUID.fromString(id),type),UUID.fromString(version));
-    refs.add(ref);
+    Id entityId=new SimpleId(UUID.fromString(id),type);
+    Entity entity=manager.load(entityId).toBlockingObservable().last();
+    if (entity == null) {
+      throw new IndexException("Entity id [" + entityId + "] not found");
+    }
+    UUID entityVersion=UUID.fromString(version);
+    if (entityVersion.compareTo(entity.getVersion()) == -1) {
+      log.debug("   Stale hit " + hit.getId());
+    }
+ else {
+      entities.add(entity);
+    }
   }
-  results.setRefs(refs);
+  if (entities.size() == 1) {
+    results.setEntity(entities.get(0));
+  }
+ else {
+    log.debug("   Returning " + entities.size() + " entities");
+    results.setEntities(entities);
+  }
+  if (!entities.isEmpty()) {
+    results.setCursor(sr.getScrollId());
+    log.debug("   Cursor = " + sr.getScrollId());
+  }
   return results;
 }
