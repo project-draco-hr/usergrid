@@ -1,0 +1,50 @@
+{
+  checkPermissionsForCollection(context);
+  if (!query.hasQueryPredicates() && (query.getEntityType() != null) && query.containsNameOrEmailIdentifiersOnly()) {
+    String name=query.getSingleNameOrEmailIdentifier();
+    String nameProperty=Schema.getDefaultSchema().aliasProperty(query.getEntityType());
+    if (nameProperty == null) {
+      nameProperty="name";
+    }
+    EntityRef ref=em.getAlias(query.getEntityType(),name);
+    if (ref == null) {
+      return null;
+    }
+    Entity entity=em.get(ref);
+    if (entity == null) {
+      return null;
+    }
+    entity=importEntity(context,entity);
+    return new ServiceResults(null,context,Type.CONNECTION,Results.fromEntity(entity),null,null);
+  }
+  int count=query.getLimit();
+  Results.Level level=Results.Level.REFS;
+  if (!context.moreParameters()) {
+    count=Query.MAX_LIMIT;
+    level=Level.ALL_PROPERTIES;
+    if (logger.isDebugEnabled()) {
+      logger.debug("Query does not have more parameters, overwriting limit to: {} and level to {}",count,level.name());
+    }
+  }
+  if (context.getRequest().isReturnsTree()) {
+    level=Results.Level.ALL_PROPERTIES;
+  }
+  query.setLimit(query.getLimit(count));
+  query.setResultsLevel(level);
+  Results r=null;
+  if (connecting()) {
+    if (query.hasQueryPredicates()) {
+      logger.info("Attempted query of backwards connections");
+      return null;
+    }
+ else {
+      r=em.getConnectingEntities(context.getOwner().getUuid(),query.getConnectionType(),query.getEntityType(),level,query.getLimit());
+    }
+  }
+ else {
+    r=em.searchConnectedEntities(context.getOwner(),query);
+  }
+  importEntities(context,r);
+  List<ServiceRequest> nextRequests=context.getNextServiceRequests(r.getRefs());
+  return new ServiceResults(this,context,Type.CONNECTION,r,null,nextRequests);
+}
