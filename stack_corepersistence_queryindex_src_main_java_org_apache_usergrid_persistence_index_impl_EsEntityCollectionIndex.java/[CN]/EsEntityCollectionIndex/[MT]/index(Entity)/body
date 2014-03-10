@@ -1,17 +1,9 @@
 {
+  ValidationUtils.verifyEntityWrite(entity);
   StopWatch timer=null;
   if (log.isDebugEnabled()) {
     timer=new StopWatch();
     timer.start();
-  }
-  if (entity.getId() == null) {
-    throw new IllegalArgumentException("Cannot index entity with id null");
-  }
-  if (entity.getId().getUuid() == null || entity.getId().getType() == null) {
-    throw new IllegalArgumentException("Cannot index entity with incomplete id");
-  }
-  if (entity.getVersion() == null) {
-    throw new IllegalArgumentException("Cannot index entity with version null");
   }
   Map<String,Object> entityAsMap=EsEntityCollectionIndex.entityToMap(entity);
   entityAsMap.put("created",entity.getId().getUuid().timestamp());
