@@ -2,7 +2,7 @@
   LOG.info("GeoIT.testGeo");
   Id appId=new SimpleId("testGeo");
   Id orgId=new SimpleId("testOrganization");
-  EntityManagerFacade em=new EntityManagerFacade(orgId,appId,collectionManagerFactory,collectionIndexFactory);
+  EntityManagerFacade em=new EntityManagerFacade(orgId,appId,cmf,cif);
   assertNotNull(em);
   final Point folsomAnd7th=new Point(37.774277,-122.404744);
   final Point folsomAndBryant=new Point(37.776753,-122.407846);
@@ -24,6 +24,7 @@
   Entity user=em.create("user",properties);
   assertNotNull(user);
   LOG.info(user.toString());
+  em.refreshIndex();
   Query q=Query.fromQL("location within 100 of " + folsomAnd7th.getLat() + ","+ folsomAnd7th.getLon()+ " limit 100");
   Results results=em.searchCollection(null,"users",q);
   assertEquals(0,results.size());
@@ -31,10 +32,12 @@
   results=em.searchCollection(null,"users",q);
   assertEquals(1,results.size());
   updatePos(em,new SimpleEntityRef(user.getId(),user.getVersion()),paloalto.getLat(),paloalto.getLon());
+  em.refreshIndex();
   q=Query.fromQL("location within 200 of " + folsomAndBryant.getLat() + ","+ folsomAndBryant.getLon()+ " limit 100");
   results=em.searchCollection(null,"users",q);
   assertEquals(0,results.size());
   updatePos(em,user,folsomAnd7th.getLat(),folsomAnd7th.getLon());
+  em.refreshIndex();
   q=Query.fromQL("location within 1000 of " + folsomAndBryant.getLat() + ","+ folsomAndBryant.getLon()+ " limit 100");
   results=em.searchCollection(null,"users",q);
   assertEquals(1,results.size());
@@ -57,6 +60,7 @@
 ;
   Entity user2=em.create("user",properties2);
   assertNotNull(user2);
+  em.refreshIndex();
   q=Query.fromQL("location within 10000 of " + folsomAndBryant.getLat() + ","+ folsomAndBryant.getLon()+ " limit 100");
   results=em.searchCollection(null,"users",q);
   assertEquals(1,results.size());
@@ -82,4 +86,5 @@
   properties.put("location",getLocation(37.779632,-122.395131));
   Entity restaurant=em.create("restaurant",properties);
   assertNotNull(restaurant);
+  em.refreshIndex();
 }

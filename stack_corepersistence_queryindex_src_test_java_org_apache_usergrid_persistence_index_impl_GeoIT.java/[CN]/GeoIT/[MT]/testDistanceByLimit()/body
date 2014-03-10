@@ -1,7 +1,7 @@
 {
   Id appId=new SimpleId("testGeo");
-  Id orgId=new SimpleId("testOrganization");
-  EntityManagerFacade em=new EntityManagerFacade(orgId,appId,collectionManagerFactory,collectionIndexFactory);
+  Id orgId=new SimpleId("testDistanceByLimit");
+  EntityManagerFacade em=new EntityManagerFacade(orgId,appId,cmf,cif);
   assertNotNull(em);
   int numEntities=10;
   float minLattitude=-90;
@@ -25,6 +25,7 @@
     data.put("location",location);
     em.create("car",data);
   }
+  em.refreshIndex();
   Query query=new Query();
   query.addFilter("location within " + (50000 * 1000) + " of -90, -180");
   query.setLimit(100);
@@ -34,6 +35,7 @@
     for (    Entity entity : results.getEntities()) {
       count++;
     }
+    query.setCursor(results.getCursor());
   }
  while (query.getCursor() != null);
   assertEquals(numEntities,count);

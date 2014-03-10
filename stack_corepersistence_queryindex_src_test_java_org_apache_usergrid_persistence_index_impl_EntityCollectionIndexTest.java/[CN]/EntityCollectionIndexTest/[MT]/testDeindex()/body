@@ -2,8 +2,8 @@
   Id appId=new SimpleId("AutoSpotterApp");
   Id orgId=new SimpleId("AutoWorldMagazine");
   CollectionScope scope=new CollectionScopeImpl(appId,orgId,"fastcars");
-  EntityCollectionIndex entityIndex=collectionIndexFactory.createCollectionIndex(scope);
-  EntityCollectionManager entityManager=collectionManagerFactory.createCollectionManager(scope);
+  EntityCollectionIndex entityIndex=cif.createCollectionIndex(scope);
+  EntityCollectionManager entityManager=cmf.createCollectionManager(scope);
   Map entityMap=new HashMap(){
 {
       put("name","Ferrari 212 Inter");
@@ -16,10 +16,12 @@
   EntityUtils.setId(entity,new SimpleId("fastcar"));
   entity=entityManager.write(entity).toBlockingObservable().last();
   entityIndex.index(entity);
+  entityIndex.refresh();
   Results results=entityIndex.execute(Query.fromQL("name contains 'Ferrari*'"));
   assertEquals(1,results.getEntities().size());
   entityManager.delete(entity.getId());
   entityIndex.deindex(entity);
+  entityIndex.refresh();
   results=entityIndex.execute(Query.fromQL("name contains 'Ferrari*'"));
   assertEquals(0,results.getEntities().size());
 }

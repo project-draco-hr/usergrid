@@ -1,12 +1,9 @@
 {
-  if (entity.getId() == null) {
-    throw new IllegalArgumentException("Cannot index entity with id null");
-  }
-  if (entity.getId().getUuid() == null || entity.getId().getType() == null) {
-    throw new IllegalArgumentException("Cannot index entity with incomplete id");
-  }
-  if (entity.getVersion() == null) {
-    throw new IllegalArgumentException("Cannot index entity with version null");
+  ValidationUtils.verifyEntityWrite(entity);
+  StopWatch timer=null;
+  if (log.isDebugEnabled()) {
+    timer=new StopWatch();
+    timer.start();
   }
   Map<String,Object> entityAsMap=EsEntityCollectionIndex.entityToMap(entity);
   entityAsMap.put("created",entity.getId().getUuid().timestamp());
@@ -14,5 +11,15 @@
   String indexId=createIndexId(entity);
   IndexRequestBuilder irb=client.prepareIndex(indexName,typeName,indexId).setSource(entityAsMap).setRefresh(refresh);
   irb.execute().actionGet();
-  log.debug("Indexed Entity with index id " + indexId);
+  if (log.isDebugEnabled()) {
+    timer.stop();
+    double average=averageIndexTime.get();
+    if (!averageIndexTime.compareAndSet(0,timer.getTime())) {
+      averageIndexTime.compareAndSet(average,(average + timer.getTime()) / 2.0);
+    }
+    long count=indexedCount.addAndGet(1);
+    if (count % 1000 == 0) {
+      log.debug("Indexed {} entities, average time {}ms",count,averageIndexTime.get());
+    }
+  }
 }

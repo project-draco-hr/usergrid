@@ -1,7 +1,7 @@
 {
   Id appId=new SimpleId("testGeo");
-  Id orgId=new SimpleId("testOrganization");
-  EntityManagerFacade em=new EntityManagerFacade(orgId,appId,collectionManagerFactory,collectionIndexFactory);
+  Id orgId=new SimpleId("testGeoWithIntersection");
+  EntityManagerFacade em=new EntityManagerFacade(orgId,appId,cmf,cif);
   assertNotNull(em);
   int size=100;
   int min=50;
@@ -15,6 +15,7 @@
     Entity e=em.create("puppy",data);
     created.add(e);
   }
+  em.refreshIndex();
   int startDelta=size - min;
   String queryString=String.format("select * where index >= %d and index < %d order by index",min,max);
   Query query=Query.fromQL(queryString);

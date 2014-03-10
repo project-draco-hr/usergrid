@@ -1,7 +1,7 @@
 {
   Id appId=new SimpleId("testGeo");
-  Id orgId=new SimpleId("testOrganization");
-  EntityManagerFacade em=new EntityManagerFacade(orgId,appId,collectionManagerFactory,collectionIndexFactory);
+  Id orgId=new SimpleId("testPointPaging");
+  EntityManagerFacade em=new EntityManagerFacade(orgId,appId,cmf,cif);
   assertNotNull(em);
   int numEntities=10;
   float minLattitude=-90;
@@ -19,6 +19,7 @@
     data.put("location",location);
     em.create("dog",data);
   }
+  em.refreshIndex();
   Query query=new Query();
   query.addFilter("location within 50000000 of -90, -180");
   query.setLimit(100);

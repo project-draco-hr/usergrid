@@ -1,23 +1,26 @@
 {
-  Client newClient=null;
-  if (fig.isEmbedded()) {
-    log.info("--------------------------------");
-    log.info("Starting embedded ElasticSearch");
-    log.info("--------------------------------");
-    int port=AvailablePortFinder.getNextAvailable(2000);
-    Settings settings=ImmutableSettings.settingsBuilder().put("node.http.enabled",true).put("transport.tcp.port",port).put("path.logs","target/elasticsearch/logs_" + port).put("path.data","target/elasticsearch/data_" + port).put("gateway.type","none").put("index.store.type","memory").put("index.number_of_shards",1).put("index.number_of_replicas",1).build();
-    Node node=NodeBuilder.nodeBuilder().local(true).settings(settings).node();
-    newClient=node.client();
-  }
- else {
-    log.info("--------------------------------");
-    log.info("Creating ElasticSearch client");
-    log.info("--------------------------------");
-    TransportClient transportClient=new TransportClient();
-    for (    String host : fig.getHosts().split(",")) {
-      transportClient.addTransportAddress(new InetSocketTransportAddress(host,fig.getPort()));
+  if (client == null) {
+    Client newClient=null;
+    if (fig.isEmbedded()) {
+      log.info("--------------------------------");
+      log.info("Starting embedded ElasticSearch");
+      log.info("--------------------------------");
+      int port=AvailablePortFinder.getNextAvailable(2000);
+      Settings settings=ImmutableSettings.settingsBuilder().put("node.http.enabled",true).put("transport.tcp.port",port).put("path.logs","target/elasticsearch/logs_" + port).put("path.data","target/elasticsearch/data_" + port).put("gateway.type","none").put("index.store.type","memory").put("index.number_of_shards",1).put("index.number_of_replicas",1).build();
+      Node node=NodeBuilder.nodeBuilder().local(true).settings(settings).node();
+      newClient=node.client();
     }
-    newClient=transportClient;
+ else {
+      log.info("--------------------------------");
+      log.info("Creating ElasticSearch client");
+      log.info("--------------------------------");
+      TransportClient transportClient=new TransportClient();
+      for (      String host : fig.getHosts().split(",")) {
+        transportClient.addTransportAddress(new InetSocketTransportAddress(host,fig.getPort()));
+      }
+      newClient=transportClient;
+    }
+    client=newClient;
   }
-  return newClient;
+  return client;
 }
