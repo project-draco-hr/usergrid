@@ -16,10 +16,12 @@
   EntityUtils.setId(entity,new SimpleId("fastcar"));
   entity=entityManager.write(entity).toBlockingObservable().last();
   entityIndex.index(entity);
+  entityIndex.refresh();
   Results results=entityIndex.execute(Query.fromQL("name contains 'Ferrari*'"));
   assertEquals(1,results.getEntities().size());
   entityManager.delete(entity.getId());
   entityIndex.deindex(entity);
+  entityIndex.refresh();
   results=entityIndex.execute(Query.fromQL("name contains 'Ferrari*'"));
   assertEquals(0,results.getEntities().size());
 }
