@@ -1,0 +1,17 @@
+{
+  logger.info("execute ExportJob {}",jobExecution);
+  JobData jobData=jobExecution.getJobData();
+  if (jobData == null) {
+    logger.error("jobData cannot be null");
+    return;
+  }
+  jobExecution.heartbeat();
+  try {
+    exportService.doExport(jobExecution);
+  }
+ catch (  Exception e) {
+    logger.error("Export Service failed to complete job");
+    return;
+  }
+  logger.info("executed ExportJob process completed");
+}

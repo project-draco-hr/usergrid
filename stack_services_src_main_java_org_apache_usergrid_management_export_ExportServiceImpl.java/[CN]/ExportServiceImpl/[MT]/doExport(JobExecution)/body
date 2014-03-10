@@ -1,0 +1,45 @@
+{
+  Map<String,Object> config=(Map<String,Object>)jobExecution.getJobData().getProperty("exportInfo");
+  if (config == null) {
+    logger.error("Export Information passed through is null");
+    return;
+  }
+  UUID exportId=(UUID)jobExecution.getJobData().getProperty(EXPORT_ID);
+  if (config.get("applicationId") == null) {
+    logger.error("Export Information application uuid is null");
+    return;
+  }
+  EntityManager em=emf.getEntityManager((UUID)config.get("applicationId"));
+  Export export=em.get(exportId,Export.class);
+  export.setState(Export.State.STARTED);
+  em.update(export);
+  if (config.get("collectionName") == null) {
+    Map<UUID,String> organizations=getOrgs();
+    if (organizations == null) {
+      logger.error("No organizations could be found");
+      return;
+    }
+    for (    Map.Entry<UUID,String> organization : organizations.entrySet()) {
+      try {
+        exportApplicationsForOrg(organization,config,jobExecution);
+      }
+ catch (      Exception e) {
+        export.setState(Export.State.FAILED);
+        em.update(export);
+        return;
+      }
+    }
+  }
+ else {
+    try {
+      exportApplicationForOrg((UUID)config.get("organizationId"),config,jobExecution);
+    }
+ catch (    Exception e) {
+      export.setState(Export.State.FAILED);
+      em.update(export);
+      return;
+    }
+  }
+  export.setState(Export.State.FINISHED);
+  em.update(export);
+}
