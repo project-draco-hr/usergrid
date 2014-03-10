@@ -1,11 +1,15 @@
 {
-  if (entities != null) {
-    return entities;
-  }
-  if (entity != null) {
+  if (entities == null) {
     entities=new ArrayList<Entity>();
-    entities.add(entity);
-    return entities;
+    refs=new ArrayList<EntityRef>();
+    for (    Id id : ids) {
+      Entity entity=ecm.load(id).toBlockingObservable().last();
+      if (entity == null) {
+        throw new IndexException("Entity id [" + id + "] not found");
+      }
+      entities.add(entity);
+      refs.add(new SimpleEntityRef(entity.getId(),entity.getVersion()));
+    }
   }
-  return new ArrayList<Entity>();
+  return Collections.unmodifiableList(entities);
 }
