@@ -2,18 +2,18 @@
   if (organizationId == null) {
     return null;
   }
-  BiMap<UUID,String> applications=HashBiMap.create();
-  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
-  Results results=em.getConnectedEntities(organizationId,"owns",APPLICATION_INFO,Level.ALL_PROPERTIES);
-  if (!results.isEmpty()) {
-    String entityName=null;
-    for (    Entity entity : results.getEntities()) {
-      entityName=entity.getName();
-      if (entityName != null) {
-        entityName=entityName.toLowerCase();
-      }
-      applications.put(entity.getUuid(),entityName);
+  final BiMap<UUID,String> applications=HashBiMap.create();
+  final EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  final Results results=em.getConnectedEntities(organizationId,"owns",APPLICATION_INFO,Level.ALL_PROPERTIES);
+  final PagingResultsIterator itr=new PagingResultsIterator(results);
+  String entityName;
+  while (itr.hasNext()) {
+    final Entity entity=(Entity)itr.next();
+    entityName=entity.getName();
+    if (entityName != null) {
+      entityName=entityName.toLowerCase();
     }
+    applications.put(entity.getUuid(),entityName);
   }
   return applications;
 }

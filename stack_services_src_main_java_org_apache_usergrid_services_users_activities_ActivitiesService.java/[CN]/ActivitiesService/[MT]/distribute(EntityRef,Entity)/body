@@ -3,9 +3,22 @@
     return;
   }
   em.addToCollection(user,"feed",activity);
-  Results r=em.getConnectingEntities(user.getUuid(),"following",User.ENTITY_TYPE,Results.Level.REFS);
-  List<EntityRef> refs=r.getRefs();
-  if (refs != null) {
-    em.addToCollections(refs,"feed",activity);
+  Results results=em.getConnectingEntities(user.getUuid(),"following",User.ENTITY_TYPE,Results.Level.REFS);
+  if (results != null) {
+    PagingResultsIterator itr=new PagingResultsIterator(results);
+    List<EntityRef> refs=new ArrayList<EntityRef>();
+    ConnectedEntityRef c;
+    int breaker=10000;
+    while (itr.hasNext()) {
+      c=(ConnectedEntityRef)itr.next();
+      refs.add(c);
+      if (refs.size() > breaker) {
+        em.addToCollections(refs,"feed",activity);
+        refs.clear();
+      }
+    }
+    if (refs.size() > 0) {
+      em.addToCollections(refs,"feed",activity);
+    }
   }
 }
