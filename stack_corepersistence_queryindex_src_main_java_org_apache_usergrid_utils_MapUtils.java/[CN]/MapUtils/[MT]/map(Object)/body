@@ -1,0 +1,25 @@
+{
+  Map<K,V> map=new LinkedHashMap<K,V>();
+  int i=0;
+  while (i < objects.length) {
+    if (objects[i] instanceof Map.Entry) {
+      Map.Entry<K,V> entry=(Entry<K,V>)objects[i];
+      map.put(entry.getKey(),entry.getValue());
+      i++;
+    }
+ else     if (objects[i] instanceof Map) {
+      map.putAll((Map<? extends K,? extends V>)objects[i]);
+      i++;
+    }
+ else     if (i < (objects.length - 1)) {
+      K k=(K)objects[i];
+      V v=(V)objects[i + 1];
+      map.put(k,v);
+      i+=2;
+    }
+ else {
+      break;
+    }
+  }
+  return map;
+}

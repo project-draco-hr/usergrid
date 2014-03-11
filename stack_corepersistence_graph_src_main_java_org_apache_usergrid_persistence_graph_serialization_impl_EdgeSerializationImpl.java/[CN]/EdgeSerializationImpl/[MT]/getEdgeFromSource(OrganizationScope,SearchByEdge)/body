@@ -7,10 +7,12 @@
   final UUID maxVersion=search.getMaxVersion();
   return getEdges(GRAPH_SOURCE_NODE_EDGES,new EdgeSearcher<RowKey>(scope,search.last()){
     @Override public void setRange(    final RangeBuilder builder){
-      super.setRange(builder);
+      if (last.isPresent()) {
+        super.setRange(builder);
+        return;
+      }
       final DirectedEdge last=new DirectedEdge(targetId,maxVersion);
-      final ByteBuffer colValue=EDGE_SERIALIZER.createSearchEdgeInclusive(last);
-      builder.setEnd(colValue);
+      builder.setStart(last,EDGE_SERIALIZER);
     }
     @Override protected RowKey generateRowKey(){
       return new RowKey(sourceId,type);
@@ -18,8 +20,8 @@
     @Override protected DirectedEdge getStartColumn(    final Edge last){
       return new DirectedEdge(last.getTargetNode(),last.getVersion());
     }
-    @Override protected Edge createEdge(    final DirectedEdge edge){
-      return new SimpleEdge(sourceId,type,edge.id,edge.version);
+    @Override protected MarkedEdge createEdge(    final DirectedEdge edge,    final boolean marked){
+      return new SimpleMarkedEdge(sourceId,type,edge.id,edge.version,marked);
     }
   }
 );

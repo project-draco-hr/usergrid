@@ -1,0 +1,13 @@
+{
+  tsLock.lock();
+  int pointer=customMicrosPointer.getAndIncrement();
+  try {
+    if (pointer > 990) {
+      customMicrosPointer.set(0);
+    }
+  }
+  finally {
+    tsLock.unlock();
+  }
+  return newTimeUUID(ts,MICROS[pointer]);
+}

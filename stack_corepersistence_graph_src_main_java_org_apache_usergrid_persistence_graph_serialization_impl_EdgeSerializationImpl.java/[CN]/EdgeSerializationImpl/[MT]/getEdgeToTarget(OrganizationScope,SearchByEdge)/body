@@ -7,10 +7,12 @@
   final String type=search.getType();
   return getEdges(GRAPH_TARGET_NODE_EDGES,new EdgeSearcher<RowKey>(scope,search.last()){
     @Override public void setRange(    final RangeBuilder builder){
-      super.setRange(builder);
-      final DirectedEdge last=new DirectedEdge(sourceId,maxVersion);
-      final ByteBuffer colValue=EDGE_SERIALIZER.createSearchEdgeInclusive(last);
-      builder.setEnd(colValue);
+      if (last.isPresent()) {
+        super.setRange(builder);
+        return;
+      }
+      final DirectedEdge colValue=new DirectedEdge(sourceId,maxVersion);
+      builder.setStart(colValue,EDGE_SERIALIZER);
     }
     @Override protected RowKey generateRowKey(){
       return new RowKey(targetId,type);
@@ -18,8 +20,8 @@
     @Override protected DirectedEdge getStartColumn(    final Edge last){
       return new DirectedEdge(last.getSourceNode(),last.getVersion());
     }
-    @Override protected Edge createEdge(    final DirectedEdge edge){
-      return new SimpleEdge(edge.id,type,targetId,edge.version);
+    @Override protected MarkedEdge createEdge(    final DirectedEdge edge,    final boolean marked){
+      return new SimpleMarkedEdge(edge.id,type,targetId,edge.version,marked);
     }
   }
 );
