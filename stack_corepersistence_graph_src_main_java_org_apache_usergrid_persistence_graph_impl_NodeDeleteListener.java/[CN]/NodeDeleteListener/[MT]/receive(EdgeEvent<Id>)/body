@@ -6,23 +6,45 @@
       return nodeSerialization.getMaxVersion(scope,node);
     }
   }
-).flatMap(new Func1<Optional<UUID>,Observable<MarkedEdge>>(){
-    @Override public Observable<MarkedEdge> call(    final Optional<UUID> uuidOptional){
-      return getEdgesTypesToTarget(scope,new SimpleSearchEdgeType(node,null)).flatMap(new Func1<String,Observable<MarkedEdge>>(){
-        @Override public Observable<MarkedEdge> call(        final String edgeType){
-          return loadEdgesToTarget(scope,new SimpleSearchByEdgeType(node,edgeType,uuidOptional.get(),null)).doOnEach(new Action1<MarkedEdge>(){
-            @Override public void call(            final MarkedEdge markedEdge){
-              edgeSerialization.deleteEdge(scope,markedEdge);
-            }
-          }
-);
+).takeWhile(new Func1<Optional<UUID>,Boolean>(){
+    @Override public Boolean call(    final Optional<UUID> uuidOptional){
+      return uuidOptional.isPresent();
+    }
+  }
+).flatMap(new Func1<Optional<UUID>,Observable<List<MarkedEdge>>>(){
+    @Override public Observable<List<MarkedEdge>> call(    final Optional<UUID> uuidOptional){
+      Observable<List<MarkedEdge>> targetEdges=getEdgesTypesToTarget(scope,new SimpleSearchEdgeType(node,null)).flatMap(new Func1<String,Observable<List<MarkedEdge>>>(){
+        @Override public Observable<List<MarkedEdge>> call(        final String edgeType){
+          return loadEdgesToTarget(scope,new SimpleSearchByEdgeType(node,edgeType,uuidOptional.get(),null)).buffer(graphFig.getScanPageSize());
         }
       }
 );
+      Observable<List<MarkedEdge>> sourceEdges=getEdgesTypesFromSource(scope,new SimpleSearchEdgeType(node,null)).flatMap(new Func1<String,Observable<List<MarkedEdge>>>(){
+        @Override public Observable<List<MarkedEdge>> call(        final String edgeType){
+          return loadEdgesFromSource(scope,new SimpleSearchByEdgeType(node,edgeType,uuidOptional.get(),null)).buffer(graphFig.getScanPageSize());
+        }
+      }
+);
+      return Observable.merge(targetEdges,sourceEdges);
     }
   }
-).map(new Func1<MarkedEdge,EdgeEvent<Id>>(){
-    @Override public EdgeEvent<Id> call(    final MarkedEdge edge){
+).doOnNext(new Action1<List<MarkedEdge>>(){
+    @Override public void call(    final List<MarkedEdge> markedEdges){
+      MutationBatch batch=keyspace.prepareMutationBatch();
+      for (      MarkedEdge marked : markedEdges) {
+        final MutationBatch edgeBatch=edgeSerialization.deleteEdge(scope,marked);
+        batch.mergeShallow(edgeBatch);
+      }
+      try {
+        batch.execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException("Unable to execute mutation");
+      }
+    }
+  }
+).map(new Func1<List<MarkedEdge>,EdgeEvent<Id>>(){
+    @Override public EdgeEvent<Id> call(    final List<MarkedEdge> markedEdges){
       return edgeEvent;
     }
   }

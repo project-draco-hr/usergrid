@@ -1,0 +1,17 @@
+{
+  if (markedEdges.size() == 0) {
+    return;
+  }
+  Iterator<MarkedEdge> marked=markedEdges.iterator();
+  MutationBatch batch=edgeSerialization.deleteEdge(scope,marked.next());
+  while (marked.hasNext()) {
+    final MutationBatch newDelete=edgeSerialization.deleteEdge(scope,marked.next());
+    batch.mergeShallow(newDelete);
+  }
+  try {
+    batch.execute();
+  }
+ catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to execute batch mutation",e);
+  }
+}

@@ -1,0 +1,14 @@
+{
+  EdgeManager em=emf.createEdgeManager(scope);
+  Edge edge=createEdge("source","test","target");
+  Edge last=em.writeEdge(edge).toBlockingObservable().last();
+  assertEquals(edge,last);
+  Id sourceNode=edge.getSourceNode();
+  Id targetNode=edge.getTargetNode();
+  EdgeEvent<Id> deleteEvent=new EdgeEvent<Id>(scope,sourceNode);
+  EdgeEvent<Id> event=deleteListener.receive(deleteEvent).toBlockingObservable().lastOrDefault(null);
+  assertNull("Mark was not set, no delete should be executed",event);
+  deleteEvent=new EdgeEvent<Id>(scope,targetNode);
+  event=deleteListener.receive(deleteEvent).toBlockingObservable().lastOrDefault(null);
+  assertNull("Mark was not set, no delete should be executed",event);
+}
