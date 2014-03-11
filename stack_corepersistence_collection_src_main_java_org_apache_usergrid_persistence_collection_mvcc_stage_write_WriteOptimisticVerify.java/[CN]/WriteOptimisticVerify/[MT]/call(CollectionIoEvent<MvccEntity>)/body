@@ -7,12 +7,12 @@
     if (versions.size() > 1 && versions.get(1).getStage().ordinal() < Stage.COMMITTED.ordinal()) {
       final MvccLogEntry rollbackEntry=new MvccLogEntryImpl(entity.getId(),entity.getVersion(),Stage.ROLLBACK);
       logEntryStrat.write(collectionScope,rollbackEntry);
-      throw new CollectionRuntimeException("Change conflict, not first writer");
+      throw new WriteOptimisticVerifyException("Change conflict, not first writer");
     }
   }
  catch (  ConnectionException e) {
     LOG.error("Error reading entity log",e);
-    throw new CollectionRuntimeException("Error reading entity log",e);
+    throw new WriteOptimisticVerifyException("Error reading entity log",e);
   }
   return ioevent;
 }
