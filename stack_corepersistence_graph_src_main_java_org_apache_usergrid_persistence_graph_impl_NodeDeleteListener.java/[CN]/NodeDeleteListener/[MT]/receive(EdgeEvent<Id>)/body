@@ -1,7 +1,8 @@
 {
   final Id node=edgeEvent.getData();
   final OrganizationScope scope=edgeEvent.getOrganizationScope();
-  return Observable.from(node).map(new Func1<Id,Optional<UUID>>(){
+  final UUID version=edgeEvent.getVersion();
+  return Observable.from(node).subscribeOn(scheduler).map(new Func1<Id,Optional<UUID>>(){
     @Override public Optional<UUID> call(    final Id id){
       return nodeSerialization.getMaxVersion(scope,node);
     }
@@ -13,38 +14,86 @@
   }
 ).flatMap(new Func1<Optional<UUID>,Observable<List<MarkedEdge>>>(){
     @Override public Observable<List<MarkedEdge>> call(    final Optional<UUID> uuidOptional){
-      Observable<List<MarkedEdge>> targetEdges=getEdgesTypesToTarget(scope,new SimpleSearchEdgeType(node,null)).flatMap(new Func1<String,Observable<List<MarkedEdge>>>(){
-        @Override public Observable<List<MarkedEdge>> call(        final String edgeType){
-          return loadEdgesToTarget(scope,new SimpleSearchByEdgeType(node,edgeType,uuidOptional.get(),null)).buffer(graphFig.getScanPageSize());
+      Observable<MarkedEdge> targetEdges=getEdgesTypesToTarget(scope,new SimpleSearchEdgeType(node,null)).flatMap(new Func1<String,Observable<MarkedEdge>>(){
+        @Override public Observable<MarkedEdge> call(        final String edgeType){
+          return loadEdgesToTarget(scope,new SimpleSearchByEdgeType(node,edgeType,uuidOptional.get(),null));
         }
       }
 );
-      Observable<List<MarkedEdge>> sourceEdges=getEdgesTypesFromSource(scope,new SimpleSearchEdgeType(node,null)).flatMap(new Func1<String,Observable<List<MarkedEdge>>>(){
-        @Override public Observable<List<MarkedEdge>> call(        final String edgeType){
-          return loadEdgesFromSource(scope,new SimpleSearchByEdgeType(node,edgeType,uuidOptional.get(),null)).buffer(graphFig.getScanPageSize());
+      Observable<MarkedEdge> sourceEdges=getEdgesTypesFromSource(scope,new SimpleSearchEdgeType(node,null)).flatMap(new Func1<String,Observable<MarkedEdge>>(){
+        @Override public Observable<MarkedEdge> call(        final String edgeType){
+          return loadEdgesFromSource(scope,new SimpleSearchByEdgeType(node,edgeType,uuidOptional.get(),null));
         }
       }
 );
-      return Observable.merge(targetEdges,sourceEdges);
+      return Observable.merge(targetEdges,sourceEdges).buffer(graphFig.getScanPageSize()).doOnNext(new Action1<List<MarkedEdge>>(){
+        @Override public void call(        final List<MarkedEdge> markedEdges){
+          MutationBatch batch=keyspace.prepareMutationBatch();
+          for (          MarkedEdge marked : markedEdges) {
+            batch.mergeShallow(edgeSerialization.deleteEdge(scope,marked));
+          }
+          try {
+            batch.execute();
+          }
+ catch (          ConnectionException e) {
+            throw new RuntimeException("Unable to execute mutation");
+          }
+        }
+      }
+);
     }
   }
-).doOnNext(new Action1<List<MarkedEdge>>(){
-    @Override public void call(    final List<MarkedEdge> markedEdges){
-      MutationBatch batch=keyspace.prepareMutationBatch();
-      for (      MarkedEdge marked : markedEdges) {
-        final MutationBatch edgeBatch=edgeSerialization.deleteEdge(scope,marked);
-        batch.mergeShallow(edgeBatch);
+).last().flatMap(new Func1<List<MarkedEdge>,Observable<String>>(){
+    @Override public Observable<String> call(    final List<MarkedEdge> markedEdges){
+      Observable<String> targets=getEdgesTypesToTarget(scope,new SimpleSearchEdgeType(node,null)).doOnNext(new Action1<String>(){
+        @Override public void call(        final String type){
+          final MutationBatch batch=keyspace.prepareMutationBatch();
+          final Iterator<String> types=edgeMetadataSerialization.getIdTypesToTarget(scope,new SimpleSearchIdType(node,type,null));
+          while (types.hasNext()) {
+            batch.mergeShallow(edgeMetadataSerialization.removeIdTypeToTarget(scope,node,type,types.next(),version));
+          }
+          batch.mergeShallow(edgeMetadataSerialization.removeEdgeTypeToTarget(scope,node,type,version));
+          try {
+            batch.execute();
+          }
+ catch (          ConnectionException e) {
+            throw new RuntimeException("Unable to execute cassandra call");
+          }
+        }
       }
-      try {
-        batch.execute();
+);
+      Observable<String> sources=getEdgesTypesFromSource(scope,new SimpleSearchEdgeType(node,null)).doOnNext(new Action1<String>(){
+        @Override public void call(        final String type){
+          final MutationBatch batch=keyspace.prepareMutationBatch();
+          final Iterator<String> types=edgeMetadataSerialization.getIdTypesFromSource(scope,new SimpleSearchIdType(node,type,null));
+          while (types.hasNext()) {
+            batch.mergeShallow(edgeMetadataSerialization.removeIdTypeFromSource(scope,node,type,types.next(),version));
+          }
+          batch.mergeShallow(edgeMetadataSerialization.removeEdgeTypeFromSource(scope,node,type,version));
+          try {
+            batch.execute();
+          }
+ catch (          ConnectionException e) {
+            throw new RuntimeException("Unable to execute cassandra call");
+          }
+        }
       }
- catch (      ConnectionException e) {
-        throw new RuntimeException("Unable to execute mutation");
+);
+      return Observable.merge(targets,sources).doOnCompleted(new Action0(){
+        @Override public void call(){
+          try {
+            nodeSerialization.delete(scope,node,edgeEvent.getVersion()).execute();
+          }
+ catch (          ConnectionException e) {
+            throw new RuntimeException("Unable to execute mutation");
+          }
+        }
       }
+);
     }
   }
-).map(new Func1<List<MarkedEdge>,EdgeEvent<Id>>(){
-    @Override public EdgeEvent<Id> call(    final List<MarkedEdge> markedEdges){
+).map(new Func1<String,EdgeEvent<Id>>(){
+    @Override public EdgeEvent<Id> call(    final String mark){
       return edgeEvent;
     }
   }

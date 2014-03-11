@@ -5,10 +5,11 @@
   assertEquals(edge,last);
   Id sourceNode=edge.getSourceNode();
   Id targetNode=edge.getTargetNode();
-  EdgeEvent<Id> deleteEvent=new EdgeEvent<Id>(scope,sourceNode);
+  UUID version=UUIDGenerator.newTimeUUID();
+  EdgeEvent<Id> deleteEvent=new EdgeEvent<Id>(scope,version,sourceNode);
   EdgeEvent<Id> event=deleteListener.receive(deleteEvent).toBlockingObservable().lastOrDefault(null);
   assertNull("Mark was not set, no delete should be executed",event);
-  deleteEvent=new EdgeEvent<Id>(scope,targetNode);
+  deleteEvent=new EdgeEvent<Id>(scope,version,targetNode);
   event=deleteListener.receive(deleteEvent).toBlockingObservable().lastOrDefault(null);
   assertNull("Mark was not set, no delete should be executed",event);
 }
