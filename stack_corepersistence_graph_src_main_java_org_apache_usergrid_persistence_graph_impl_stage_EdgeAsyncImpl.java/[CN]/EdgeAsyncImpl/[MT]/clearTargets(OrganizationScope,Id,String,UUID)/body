@@ -3,7 +3,7 @@
   ValidationUtils.verifyIdentity(targetId);
   Preconditions.checkNotNull(edgeType,"edge type is required");
   Preconditions.checkNotNull(version,"version is required");
-  return loadEdgeIdsToTarget(scope,new SimpleSearchIdType(targetId,edgeType,null)).buffer(graphFig.getRepairConcurrentSize()).flatMap(new Func1<List<String>,Observable<Integer>>(){
+  Observable<Integer> deleteCounts=loadEdgeIdsToTarget(scope,new SimpleSearchIdType(targetId,edgeType,null)).buffer(graphFig.getRepairConcurrentSize()).flatMap(new Func1<List<String>,Observable<Integer>>(){
     @Override public Observable<Integer> call(    final List<String> types){
       final MutationBatch batch=keyspace.prepareMutationBatch();
       final List<Observable<Integer>> checks=new ArrayList<Observable<Integer>>(types.size());
@@ -41,7 +41,8 @@
 );
     }
   }
-).map(new Func1<Integer,Integer>(){
+).defaultIfEmpty(0);
+  return MathObservable.sumInteger(deleteCounts).map(new Func1<Integer,Integer>(){
     @Override public Integer call(    final Integer subTypes){
       if (subTypes != 0) {
         return subTypes;
@@ -55,5 +56,5 @@
       return subTypes;
     }
   }
-).defaultIfEmpty(0);
+);
 }
