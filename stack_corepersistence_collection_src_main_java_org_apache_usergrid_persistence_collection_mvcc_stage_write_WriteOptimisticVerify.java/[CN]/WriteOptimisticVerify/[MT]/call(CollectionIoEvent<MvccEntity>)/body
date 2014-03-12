@@ -7,8 +7,7 @@
     List<MvccLogEntry> versions=logEntryStrat.load(collectionScope,entity.getId(),entity.getVersion(),2);
     if (versions.size() > 1 && versions.get(1).getStage().ordinal() < Stage.COMMITTED.ordinal()) {
       log.debug("Conflict writing entity id {} version {}",entity.getId().toString(),entity.getVersion().toString());
-      final MvccLogEntry rollbackEntry=new MvccLogEntryImpl(entity.getId(),entity.getVersion(),Stage.ROLLBACK);
-      logEntryStrat.write(collectionScope,rollbackEntry);
+      logEntryStrat.delete(collectionScope,entity.getId(),entity.getVersion());
       List<Observable<FieldDeleteResult>> results=new ArrayList<Observable<FieldDeleteResult>>();
       int uniqueFieldCount=0;
       for (      final Field field : entity.getFields()) {
