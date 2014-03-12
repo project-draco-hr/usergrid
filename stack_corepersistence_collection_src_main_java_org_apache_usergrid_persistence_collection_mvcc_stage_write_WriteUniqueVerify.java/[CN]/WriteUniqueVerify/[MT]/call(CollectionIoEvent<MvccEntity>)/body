@@ -2,7 +2,7 @@
   ValidationUtils.verifyMvccEntityWithEntity(ioevent.getEvent());
   final Entity entity=ioevent.getEvent().getEntity().get();
   final List<Observable<FieldUniquenessResult>> fields=new ArrayList<Observable<FieldUniquenessResult>>();
-  for (  Field field : entity.getFields()) {
+  for (  final Field field : entity.getFields()) {
     if (field.isUnique()) {
       Observable<FieldUniquenessResult> result=Observable.from(field).subscribeOn(scheduler).map(new Func1<Field,FieldUniquenessResult>(){
         @Override public FieldUniquenessResult call(        Field field){
@@ -28,17 +28,21 @@
       fields.add(result);
     }
   }
-  if (fields.size() == 0) {
+  if (fields.isEmpty()) {
     return Observable.from(ioevent).subscribeOn(scheduler);
   }
   final FuncN<CollectionIoEvent<MvccEntity>> zipFunction=new FuncN<CollectionIoEvent<MvccEntity>>(){
     @Override public CollectionIoEvent<MvccEntity> call(    final Object... args){
+      Map<String,Field> uniquenessVioloations=new HashMap<String,Field>();
       for (      Object resultObj : args) {
         FieldUniquenessResult result=(FieldUniquenessResult)resultObj;
         if (!result.isUnique()) {
           Field field=result.getField();
-          throw new WriteUniqueVerifyException("Duplicate field value " + field.getName() + " = "+ field.getValue().toString());
+          uniquenessVioloations.put(field.getName(),field);
         }
+      }
+      if (!uniquenessVioloations.isEmpty()) {
+        throw new WriteUniqueVerifyException(uniquenessVioloations);
       }
       return ioevent;
     }

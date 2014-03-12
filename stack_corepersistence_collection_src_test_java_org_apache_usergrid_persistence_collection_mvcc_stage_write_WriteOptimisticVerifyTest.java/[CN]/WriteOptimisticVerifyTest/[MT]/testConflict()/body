@@ -1,22 +1,33 @@
 {
-  final CollectionScope collectionScope=mock(CollectionScope.class);
-  when(collectionScope.getOrganization()).thenReturn(new SimpleId(UUIDGenerator.newTimeUUID(),"organization"));
-  when(collectionScope.getOwner()).thenReturn(new SimpleId(UUIDGenerator.newTimeUUID(),"owner"));
+  final CollectionScope scope=mock(CollectionScope.class);
+  when(scope.getOrganization()).thenReturn(new SimpleId(UUIDGenerator.newTimeUUID(),"organization"));
+  when(scope.getOwner()).thenReturn(new SimpleId(UUIDGenerator.newTimeUUID(),"owner"));
   final Entity entity=generateEntity();
-  final MvccEntity mvccEntity=fromEntity(entity);
+  entity.setField(new StringField("name","FOO",true));
+  entity.setField(new StringField("identifier","BAR",true));
   List<MvccLogEntry> logEntries=new ArrayList<MvccLogEntry>();
   logEntries.add(new MvccLogEntryImpl(entity.getId(),UUIDGenerator.newTimeUUID(),Stage.ACTIVE));
   logEntries.add(new MvccLogEntryImpl(entity.getId(),UUIDGenerator.newTimeUUID(),Stage.ACTIVE));
-  MvccLogEntrySerializationStrategy noConflictLog=mock(MvccLogEntrySerializationStrategy.class);
-  when(noConflictLog.load(collectionScope,entity.getId(),entity.getVersion(),2)).thenReturn(logEntries);
-  WriteOptimisticVerify newStage=new WriteOptimisticVerify(noConflictLog);
-  CollectionIoEvent<MvccEntity> result;
+  MvccLogEntrySerializationStrategy conflictLog=mock(MvccLogEntrySerializationStrategy.class);
+  when(conflictLog.load(scope,entity.getId(),entity.getVersion(),2)).thenReturn(logEntries);
+  UniqueValueSerializationStrategy uvstrat=mock(UniqueValueSerializationStrategy.class);
+  UniqueValue uv1=new UniqueValueImpl(scope,entity.getField("name"),entity.getId(),entity.getVersion());
+  UniqueValue uv2=new UniqueValueImpl(scope,entity.getField("identifier"),entity.getId(),entity.getVersion());
+  MutationBatch mb=mock(MutationBatch.class);
+  when(uvstrat.delete(uv1)).thenReturn(mb);
+  when(uvstrat.delete(uv2)).thenReturn(mb);
+  Injector injector=Guice.createInjector(new TestCollectionModule());
+  Scheduler scheduler=injector.getInstance(Scheduler.class);
+  final MvccEntity mvccEntity=fromEntity(entity);
   boolean conflictDetected=false;
+  WriteOptimisticVerify newStage=new WriteOptimisticVerify(conflictLog,uvstrat,scheduler);
   try {
-    result=newStage.call(new CollectionIoEvent<MvccEntity>(collectionScope,mvccEntity));
+    newStage.call(new CollectionIoEvent<MvccEntity>(scope,mvccEntity));
   }
- catch (  Exception e) {
+ catch (  WriteOptimisticVerifyException e) {
     conflictDetected=true;
   }
   assertTrue(conflictDetected);
+  verify(uvstrat,times(1)).delete(uv1);
+  verify(uvstrat,times(1)).delete(uv2);
 }

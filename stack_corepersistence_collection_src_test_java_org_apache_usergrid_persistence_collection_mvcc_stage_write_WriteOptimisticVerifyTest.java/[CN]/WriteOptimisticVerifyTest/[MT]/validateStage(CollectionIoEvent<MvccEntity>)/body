@@ -1,4 +1,7 @@
 {
   MvccLogEntrySerializationStrategy logstrat=mock(MvccLogEntrySerializationStrategy.class);
-  new WriteOptimisticVerify(logstrat).call(event);
+  UniqueValueSerializationStrategy uvstrat=mock(UniqueValueSerializationStrategy.class);
+  Injector injector=Guice.createInjector(new TestCollectionModule());
+  Scheduler scheduler=injector.getInstance(Scheduler.class);
+  new WriteOptimisticVerify(logstrat,uvstrat,scheduler).call(event);
 }
