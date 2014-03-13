@@ -12,14 +12,14 @@
             mb.execute();
           }
  catch (          ConnectionException ex) {
-            throw new WriteUniqueVerifyException("Error writing unique value " + field.toString(),ex);
+            throw new WriteUniqueVerifyException(entity,ioevent.getEntityCollection(),"Error writing unique value " + field.toString(),ex);
           }
           UniqueValue loaded;
           try {
             loaded=uniqueValueStrat.load(ioevent.getEntityCollection(),field);
           }
  catch (          ConnectionException ex) {
-            throw new WriteUniqueVerifyException("Error verifying write",ex);
+            throw new WriteUniqueVerifyException(entity,ioevent.getEntityCollection(),"Error verifying write",ex);
           }
           return new FieldUniquenessResult(field,loaded.equals(written));
         }
@@ -42,7 +42,7 @@
         }
       }
       if (!uniquenessVioloations.isEmpty()) {
-        throw new WriteUniqueVerifyException(uniquenessVioloations);
+        throw new WriteUniqueVerifyException(entity,ioevent.getEntityCollection(),uniquenessVioloations);
       }
       return ioevent;
     }

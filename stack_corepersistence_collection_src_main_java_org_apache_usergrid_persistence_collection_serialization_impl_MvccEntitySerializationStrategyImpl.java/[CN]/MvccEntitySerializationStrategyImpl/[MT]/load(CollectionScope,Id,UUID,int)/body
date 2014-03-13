@@ -8,7 +8,7 @@
     columns=keyspace.prepareQuery(CF_ENTITY_DATA).getKey(ScopedRowKey.fromKey(collectionScope,entityId)).withColumnRange(version,null,false,maxSize).execute().getResult();
   }
  catch (  ConnectionException e) {
-    throw new CollectionRuntimeException("An error occurred connecting to cassandra",e);
+    throw new CollectionRuntimeException(null,collectionScope,"An error occurred connecting to cassandra",e);
   }
   List<MvccEntity> results=new ArrayList<MvccEntity>(columns.size());
   for (  Column<UUID> col : columns) {
