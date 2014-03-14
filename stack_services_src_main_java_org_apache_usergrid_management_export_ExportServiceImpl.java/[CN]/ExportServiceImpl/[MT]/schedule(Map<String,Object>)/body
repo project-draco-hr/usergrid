@@ -1,0 +1,36 @@
+{
+  if (config == null) {
+    logger.error("export information cannot be null");
+    return null;
+  }
+  if (config.get("applicationId") == null) {
+    logger.error("application information from export info could not be found");
+    return null;
+  }
+  EntityManager em=null;
+  try {
+    em=emf.getEntityManager((UUID)config.get("applicationId"));
+  }
+ catch (  Exception e) {
+    logger.error("application doesn't exist within the current context");
+    return null;
+  }
+  Export export=new Export();
+  try {
+    export=em.create(export);
+  }
+ catch (  Exception e) {
+    logger.error("Export entity creation failed");
+    return null;
+  }
+  export.setState(Export.State.CREATED);
+  em.update(export);
+  JobData jobData=new JobData();
+  jobData.setProperty("exportInfo",config);
+  jobData.setProperty(EXPORT_ID,export.getUuid());
+  long soonestPossible=System.currentTimeMillis() + 250;
+  sch.createJob(EXPORT_JOB_NAME,soonestPossible,jobData);
+  export.setState(Export.State.SCHEDULED);
+  em.update(export);
+  return export.getUuid();
+}
