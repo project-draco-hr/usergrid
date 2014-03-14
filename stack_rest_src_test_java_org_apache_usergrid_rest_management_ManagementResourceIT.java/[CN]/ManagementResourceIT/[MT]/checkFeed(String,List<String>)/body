@@ -1,0 +1,24 @@
+{
+  JsonNode userFeed;
+  createUser(leader);
+  String preFollowContent=leader + ": pre-something to look for " + UUID.randomUUID().toString();
+  addActivity(leader,leader + " " + leader+ "son",preFollowContent);
+  String lastUser=followers.get(followers.size() - 1);
+  int i=0;
+  for (  String user : followers) {
+    createUser(user);
+    follow(user,leader);
+  }
+  userFeed=getUserFeed(lastUser);
+  assertTrue(userFeed.size() == 1);
+  userFeed=getUserFeed(lastUser);
+  assertTrue(userFeed.size() == 1);
+  String postFollowContent=leader + ": something to look for " + UUID.randomUUID().toString();
+  addActivity(leader,leader + " " + leader+ "son",postFollowContent);
+  userFeed=getUserFeed(lastUser);
+  assertNotNull(userFeed);
+  assertTrue(userFeed.size() > 1);
+  String serialized=userFeed.toString();
+  assertTrue(serialized.indexOf(postFollowContent) > 0);
+  assertTrue(serialized.indexOf(preFollowContent) > 0);
+}
