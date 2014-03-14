@@ -1,0 +1,30 @@
+{
+  final int size=10;
+  final List<Edge> versions=new ArrayList<Edge>(size);
+  final Id sourceId=createId("source");
+  final Id targetId=createId("target");
+  final String edgeType="edge";
+  for (int i=0; i < size; i++) {
+    final Edge edge=createEdge(sourceId,edgeType,targetId);
+    versions.add(edge);
+    edgeSerialization.writeEdge(scope,edge).execute();
+    System.out.println(String.format("[%d] %s",i,edge));
+  }
+  int keepIndex=size / 2;
+  Edge keep=versions.get(keepIndex);
+  Iterable<MarkedEdge> edges=edgeWriteRepair.repair(scope,keep).toBlockingObservable().toIterable();
+  int index=0;
+  for (  MarkedEdge edge : edges) {
+    final Edge removed=versions.get(keepIndex - index - 1);
+    assertEquals("Removed matches saved index",removed,edge);
+    index++;
+  }
+  Iterator<MarkedEdge> iterator=edgeSerialization.getEdgeFromSource(scope,new SimpleSearchByEdge(sourceId,edgeType,targetId,UUIDGenerator.newTimeUUID(),null));
+  index=0;
+  for (  MarkedEdge edge : new IterableWrapper<MarkedEdge>(iterator)) {
+    final Edge saved=versions.get(size - index - 1);
+    assertEquals(saved,edge);
+    index++;
+  }
+  assertEquals("Kept edge version was the minimum",keepIndex,index);
+}
