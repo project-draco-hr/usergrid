@@ -1,22 +1,25 @@
 {
   CompositeParser parser=Composites.newCompositeParser(byteBuffer);
   byte[] b=new byte[byteBuffer.remaining()];
-  byteBuffer.get(b,0,b.length);
-  final byte[] version=parser.read(BYTES_ARRAY_SERIALIZER);
+  byte[] version=parser.read(BYTES_ARRAY_SERIALIZER);
   if (!Arrays.equals(VERSION,version)) {
     throw new UnsupportedOperationException("A version of type " + version + " is unsupported");
   }
-  final byte[] state=parser.read(BYTES_ARRAY_SERIALIZER);
+  byte[] state=parser.read(BYTES_ARRAY_SERIALIZER);
   if (Arrays.equals(STATE_DELETED,state)) {
     return new EntityWrapper(MvccEntity.Status.COMPLETE,Optional.<Entity>absent());
   }
+  Object storedObject=null;
   Entity storedEntity=null;
+  String derper=null;
+  byteBuffer.position(9);
   try {
-    storedEntity=mapper.readValue(b,Entity.class);
+    storedObject=mapper.readValue(helper,Object.class);
   }
  catch (  IOException e) {
     e.printStackTrace();
   }
+  storedEntity=convertToEntity(storedObject);
   final Optional<Entity> entity=Optional.of(storedEntity);
   if (Arrays.equals(STATE_COMPLETE,state)) {
     return new EntityWrapper(MvccEntity.Status.COMPLETE,entity);

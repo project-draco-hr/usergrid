@@ -4,8 +4,6 @@
   }
   CompositeBuilder builder=Composites.newCompositeBuilder();
   builder.addBytes(VERSION);
-  f.disable(SmileParser.Feature.REQUIRE_HEADER);
-  mapper=new ObjectMapper(f);
   if (!wrapper.entity.isPresent()) {
     builder.addBytes(STATE_DELETED);
     return builder.build();
@@ -18,6 +16,7 @@
   }
   try {
     builder.addBytes(mapper.writeValueAsBytes(wrapper.entity.get()));
+    helper=mapper.writeValueAsString(wrapper.entity.get());
   }
  catch (  JsonMappingException e) {
     e.printStackTrace();
