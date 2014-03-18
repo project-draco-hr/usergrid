@@ -8,8 +8,8 @@
   UUID deleteVersion=UUIDGenerator.newTimeUUID();
   nodeSerialization.mark(scope,sourceNode,deleteVersion).execute();
   EdgeEvent<Id> deleteEvent=new EdgeEvent<Id>(scope,deleteVersion,sourceNode);
-  EdgeEvent<Id> event=deleteListener.receive(deleteEvent).toBlockingObservable().last();
-  assertEquals(deleteEvent,event);
+  int count=deleteListener.receive(deleteEvent).toBlockingObservable().last();
+  assertEquals(1,count);
   UUID now=UUIDGenerator.newTimeUUID();
   Iterator<MarkedEdge> returned=edgeSerialization.getEdgesFromSource(scope,createSearchByEdge(sourceNode,edge.getType(),now,null));
   assertFalse("No source should be returned",returned.hasNext());

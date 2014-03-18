@@ -7,18 +7,16 @@
     @Override public Observable<Integer> call(    final List<String> types){
       final MutationBatch batch=keyspace.prepareMutationBatch();
       final List<Observable<Integer>> checks=new ArrayList<Observable<Integer>>(types.size());
-      for (      final String sourceIdType : types) {
-        Observable<Integer> search=serialization.loadEdges(scope,node,edgeType,sourceIdType,version).distinctUntilChanged(new Func1<MarkedEdge,Id>(){
-          @Override public Id call(          final MarkedEdge markedEdge){
-            return markedEdge.getSourceNode();
-          }
-        }
-).take(1).count().doOnNext(new Action1<Integer>(){
+      for (      final String subType : types) {
+        LOG.debug("Checking for edges with nodeId {}, type {}, and subtype {}",node,edgeType,subType);
+        Observable<Integer> search=serialization.loadEdges(scope,node,edgeType,subType,version).take(1).count().doOnNext(new Action1<Integer>(){
           @Override public void call(          final Integer count){
             if (count != 0) {
+              LOG.debug("Found edge with nodeId {}, type {}, and subtype {}. Not removing subtype. ",node,edgeType,subType);
               return;
             }
-            batch.mergeShallow(serialization.removeEdgeSubType(scope,node,edgeType,sourceIdType,version));
+            LOG.debug("No edges with nodeId {}, type {}, and subtype {}. Removing",node,edgeType,subType);
+            batch.mergeShallow(serialization.removeEdgeSubType(scope,node,edgeType,subType,version));
           }
         }
 );
@@ -26,9 +24,7 @@
       }
       return MathObservable.sumInteger(Observable.merge(checks)).doOnNext(new Action1<Integer>(){
         @Override public void call(        final Integer count){
-          if (batch.isEmpty()) {
-            return;
-          }
+          LOG.debug("Executing batch for subtype deletion with type {}.  Mutation has {} rows to mutate ",edgeType,batch.getRowCount());
           try {
             batch.execute();
           }
@@ -41,12 +37,14 @@
     }
   }
 ).defaultIfEmpty(0);
-  return MathObservable.sumInteger(deleteCounts).last().doOnNext(new Action1<Integer>(){
-    @Override public void call(    final Integer subTypes){
-      if (subTypes != 0) {
+  return MathObservable.sumInteger(deleteCounts).lastOrDefault(0).doOnNext(new Action1<Integer>(){
+    @Override public void call(    final Integer subTypeUsedCount){
+      if (subTypeUsedCount != 0) {
+        LOG.debug("Type {} has {} subtypes in use as of version {}.  Not deleting type.",edgeType,subTypeUsedCount,version);
         return;
       }
       try {
+        LOG.debug("Type {} has no subtypes in use as of version {}.  Deleting type.",edgeType,version);
         serialization.removeEdgeType(scope,node,edgeType,version).execute();
       }
  catch (      ConnectionException e) {

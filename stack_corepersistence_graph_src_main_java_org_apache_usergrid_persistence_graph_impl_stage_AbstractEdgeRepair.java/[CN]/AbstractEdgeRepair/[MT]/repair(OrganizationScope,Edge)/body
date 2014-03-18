@@ -6,6 +6,7 @@
     @Override public Observable<MarkedEdge> call(    final List<MarkedEdge> markedEdges){
       final MutationBatch batch=keyspace.prepareMutationBatch();
       for (      MarkedEdge edge : markedEdges) {
+        LOG.debug("Deleting edge {}",edge);
         final MutationBatch delete=edgeSerialization.deleteEdge(scope,edge);
         batch.mergeShallow(delete);
       }
