@@ -1,16 +1,10 @@
 {
   try {
-    new HystrixCommand<Void>(HystrixCommand.Setter.withGroupKey(GROUP_KEY).andCommandPropertiesDefaults(HystrixCommandProperties.Setter().withExecutionIsolationThreadTimeoutInMilliseconds(executionTimeout))){
-      @Override protected Void run() throws Exception {
-        final Iterator<T> itr=getIterator();
-        while (itr.hasNext() && !subscriber.isUnsubscribed()) {
-          subscriber.onNext(itr.next());
-        }
-        subscriber.onCompleted();
-        return null;
-      }
+    Iterator<T> itr=getIterator();
+    while (itr.hasNext() && !subscriber.isUnsubscribed()) {
+      subscriber.onNext(itr.next());
     }
-.execute();
+    subscriber.onCompleted();
   }
  catch (  Throwable t) {
     subscriber.onError(t);
