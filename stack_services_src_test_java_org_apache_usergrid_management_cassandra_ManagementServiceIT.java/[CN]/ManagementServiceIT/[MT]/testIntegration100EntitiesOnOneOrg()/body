@@ -40,4 +40,14 @@
   JobExecution jobExecution=mock(JobExecution.class);
   when(jobExecution.getJobData()).thenReturn(jobData);
   exportService.doExport(jobExecution);
+  AWSCredentials myCredentials=new BasicAWSCredentials(System.getProperty("accessKey"),System.getProperty("secretKey"));
+  AmazonS3 s3client=new AmazonS3Client(myCredentials);
+  S3Object sd=null;
+  try {
+    sd=s3client.getObject(new GetObjectRequest(System.getProperty("bucketName"),s3Export.getFilename()));
+  }
+ catch (  Exception e) {
+    assert(false);
+  }
+  assertNotNull(sd);
 }
