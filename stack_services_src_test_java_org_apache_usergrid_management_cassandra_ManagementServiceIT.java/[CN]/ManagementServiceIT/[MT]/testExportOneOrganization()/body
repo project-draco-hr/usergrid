@@ -1,5 +1,5 @@
 {
-  int entitiesToCreate=10000;
+  int entitiesToCreate=10;
   File f=null;
   try {
     f=new File("exportOneOrganization.json");
@@ -24,7 +24,6 @@
   HashMap<String,Object> payload=payloadBuilder();
   payload.put("organizationId",organization.getUuid());
   payload.put("applicationId",applicationId);
-  payload.put("collectionName","baconators");
   for (int i=0; i < 100; i++) {
     OrganizationInfo orgMade=setup.getMgmtSvc().createOrganization("superboss" + i,adminUser,true);
     ApplicationInfo appMade=setup.getMgmtSvc().createApplication(orgMade.getUuid(),"superapp" + i);
@@ -35,9 +34,9 @@
     entNotCopied=new Entity[entitiesToCreate];
     for (int index=0; index < 10; index++) {
       entityLevelProperties=new LinkedHashMap<String,Object>();
-      entityLevelProperties.put("username","bobso" + i);
-      entityLevelProperties.put("email","derp" + i + "@anuff.com");
-      entNotCopied[i]=customMaker.create("superappCol",entityLevelProperties);
+      entityLevelProperties.put("username","bobso" + index);
+      entityLevelProperties.put("email","derp" + index + "@anuff.com");
+      entNotCopied[index]=customMaker.create("superappCol",entityLevelProperties);
     }
   }
   UUID exportUUID=exportService.schedule(payload);
@@ -51,6 +50,6 @@
   exportService.doExport(jobExecution);
   JSONParser parser=new JSONParser();
   org.json.simple.JSONArray a=(org.json.simple.JSONArray)parser.parse(new FileReader(f));
-  assertEquals(entitiesToCreate,a.size());
+  assertEquals(entitiesToCreate + 3,a.size());
   f.delete();
 }
