@@ -37,7 +37,7 @@
         }
       }
 );
-      return Observable.merge(targetEdges,sourceEdges);
+      return Observable.concat(targetEdges,sourceEdges);
     }
   }
 ).flatMap(new Func1<MarkedEdge,Observable<MarkedEdge>>(){
@@ -50,7 +50,7 @@
     @Override public Observable<MarkedEdge> call(    final MarkedEdge edge){
       Observable<Integer> sourceMetaRepaired=edgeMetaRepair.repairSources(scope,edge.getSourceNode(),edge.getType(),version);
       Observable<Integer> targetMetaRepaired=edgeMetaRepair.repairTargets(scope,edge.getTargetNode(),edge.getType(),version);
-      return Observable.merge(sourceMetaRepaired,targetMetaRepaired).last().map(new Func1<Integer,MarkedEdge>(){
+      return Observable.concat(sourceMetaRepaired,targetMetaRepaired).last().map(new Func1<Integer,MarkedEdge>(){
         @Override public MarkedEdge call(        final Integer integer){
           LOG.debug("Retained {} subtypes for edge {}",integer,edge);
           return edge;

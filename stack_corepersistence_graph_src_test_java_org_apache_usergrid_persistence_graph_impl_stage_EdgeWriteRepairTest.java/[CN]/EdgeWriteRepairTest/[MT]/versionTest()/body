@@ -1,30 +1,38 @@
 {
-  final int size=10;
+  final int size=20;
   final List<Edge> versions=new ArrayList<Edge>(size);
   final Id sourceId=createId("source");
   final Id targetId=createId("target");
   final String edgeType="edge";
+  int deleteIndex=size / 2;
+  Set<Edge> deletedEdges=new HashSet<Edge>();
   for (int i=0; i < size; i++) {
     final Edge edge=createEdge(sourceId,edgeType,targetId);
     versions.add(edge);
     edgeSerialization.writeEdge(scope,edge).execute();
-    System.out.println(String.format("[%d] %s",i,edge));
+    LOG.info("Writing edge at index [{}] {}",i,edge);
+    if (i < deleteIndex) {
+      deletedEdges.add(edge);
+    }
   }
-  int keepIndex=size / 2;
-  Edge keep=versions.get(keepIndex);
+  Edge keep=versions.get(deleteIndex);
   Iterable<MarkedEdge> edges=edgeWriteRepair.repair(scope,keep).toBlockingObservable().toIterable();
-  int index=0;
+  Multiset<Edge> deletedStream=HashMultiset.create();
   for (  MarkedEdge edge : edges) {
-    final Edge removed=versions.get(keepIndex - index - 1);
-    assertEquals("Removed matches saved index",removed,edge);
-    index++;
+    LOG.info("Returned edge {} for repair",edge);
+    final boolean shouldBeDeleted=deletedEdges.contains(edge);
+    assertTrue("Removed matches saved index",shouldBeDeleted);
+    deletedStream.add(edge);
   }
+  deletedEdges.removeAll(deletedStream.elementSet());
+  assertEquals(0,deletedEdges.size());
   Iterator<MarkedEdge> iterator=edgeSerialization.getEdgeFromSource(scope,new SimpleSearchByEdge(sourceId,edgeType,targetId,UUIDGenerator.newTimeUUID(),null));
-  index=0;
+  int count=0;
   for (  MarkedEdge edge : new IterableWrapper<MarkedEdge>(iterator)) {
-    final Edge saved=versions.get(size - index - 1);
+    final Edge saved=versions.get(size - count - 1);
     assertEquals(saved,edge);
-    index++;
+    count++;
   }
-  assertEquals("Kept edge version was the minimum",keepIndex,index);
+  final int keptCount=size - deleteIndex;
+  assertEquals("Kept edge version was the minimum",keptCount,count);
 }
