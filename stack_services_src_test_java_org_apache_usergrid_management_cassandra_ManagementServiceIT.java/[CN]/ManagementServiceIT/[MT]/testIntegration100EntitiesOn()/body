@@ -24,14 +24,22 @@
   when(jobExecution.getJobData()).thenReturn(jobData);
   exportService.doExport(jobExecution);
   while (!exportService.getState(applicationId,exportUUID).equals("FINISHED"))   ;
-  AWSCredentials myCredentials=new BasicAWSCredentials(System.getProperty("accessKey"),System.getProperty("secretKey"));
-  AmazonS3 s3client=new AmazonS3Client(myCredentials);
-  S3Object sd=null;
+  String bucketName=System.getProperty("bucketName");
+  String accessId=System.getProperty("accessKey");
+  String secretKey=System.getProperty("secretKey");
+  Properties overrides=new Properties();
+  overrides.setProperty("s3" + ".identity",accessId);
+  overrides.setProperty("s3" + ".credential",secretKey);
+  Blob bo=null;
   try {
-    sd=s3client.getObject(new GetObjectRequest(System.getProperty("bucketName"),s3Export.getFilename()));
+    final Iterable<? extends Module> MODULES=ImmutableSet.of(new JavaUrlHttpCommandExecutorServiceModule(),new Log4JLoggingModule(),new NettyPayloadModule());
+    BlobStoreContext context=ContextBuilder.newBuilder("s3").credentials(accessId,secretKey).modules(MODULES).overrides(overrides).buildView(BlobStoreContext.class);
+    AsyncBlobStore blobStore=context.getAsyncBlobStore();
+    ListenableFuture<Blob> futureETag=blobStore.getBlob(bucketName,s3Export.getFilename());
+    bo=futureETag.get(1,TimeUnit.SECONDS);
   }
  catch (  Exception e) {
     assert(false);
   }
-  assertNotNull(sd);
+  assertNotNull(bo);
 }
