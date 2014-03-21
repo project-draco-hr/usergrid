@@ -2,7 +2,7 @@
   final T data=event.getEvent();
   List<Observable<?>> observables=new ArrayList<Observable<?>>(listeners.size());
   for (  MessageListener<T,T> listener : listeners) {
-    observables.add(listener.receive(data).subscribeOn(scheduler));
+    observables.add(listener.receive(data).subscribeOn(Schedulers.io()));
   }
   Observable.zip(observables,new FuncN<AsynchronousMessage<T>>(){
     @Override public AsynchronousMessage<T> call(    final Object... args){
