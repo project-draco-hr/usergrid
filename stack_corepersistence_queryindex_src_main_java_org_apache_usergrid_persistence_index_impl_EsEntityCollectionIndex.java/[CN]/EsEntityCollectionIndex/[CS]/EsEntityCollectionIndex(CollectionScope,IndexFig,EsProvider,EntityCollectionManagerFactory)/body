@@ -8,9 +8,17 @@
   this.refresh=config.isForcedRefresh();
   this.cursorTimeout=config.getQueryCursorTimeout();
   AdminClient admin=client.admin();
-  if (!admin.indices().exists(new IndicesExistsRequest(indexName)).actionGet().isExists()) {
+  try {
     admin.indices().prepareCreate(indexName).execute().actionGet();
     log.debug("Created new index: " + indexName);
+  }
+ catch (  Exception e) {
+    if (log.isDebugEnabled()) {
+      log.debug("Exception creating index, already exists?",e);
+    }
+ else {
+      log.info(e.getMessage());
+    }
   }
   if (!admin.indices().typesExists(new TypesExistsRequest(new String[]{indexName},typeName)).actionGet().isExists()) {
     try {
