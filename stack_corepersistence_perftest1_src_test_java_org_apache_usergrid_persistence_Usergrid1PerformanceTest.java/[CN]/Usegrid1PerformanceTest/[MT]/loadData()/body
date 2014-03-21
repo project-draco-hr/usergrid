@@ -1,0 +1,18 @@
+{
+  long time=new Date().getTime();
+  List<UUID> apps=new ArrayList<UUID>();
+  List<Thread> threads=new ArrayList<Thread>();
+  for (int i=0; i < orgCount; i++) {
+    for (int j=0; j < appCount; j++) {
+      UUID appId=getEmf().createApplication("testorg-" + RandomStringUtils.randomAlphanumeric(6),"testapp-" + RandomStringUtils.randomAlphanumeric(6));
+      apps.add(appId);
+      Thread t=new Thread(new DataLoader(appId));
+      t.start();
+      threads.add(t);
+    }
+  }
+  for (  Thread t : threads) {
+    t.join();
+  }
+  return apps;
+}
