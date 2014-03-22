@@ -1,0 +1,29 @@
+{
+  final TestListener listener=new TestListener();
+  final EventBus testBus=new EventBus("test");
+  testBus.register(listener);
+  final TestEvent event=new TestEvent();
+  final TimeoutEvent<TestEvent> timeoutEvent=new TimeoutEvent<TestEvent>(){
+    @Override public TestEvent getEvent(){
+      return event;
+    }
+    @Override public long getTimeout(){
+      return 500;
+    }
+  }
+;
+  final TimeoutQueue queue=mock(TimeoutQueue.class);
+  final AsyncProcessor asyncProcessor=constructProcessor(testBus,queue);
+  final CountDownLatch latch=new CountDownLatch(1);
+  when(queue.remove(timeoutEvent)).thenAnswer(new Answer<Boolean>(){
+    @Override public Boolean answer(    final InvocationOnMock invocation) throws Throwable {
+      latch.countDown();
+      return true;
+    }
+  }
+);
+  asyncProcessor.start(timeoutEvent);
+  latch.await();
+  final TestEvent firedEvent=listener.events.peek();
+  assertSame(event,firedEvent);
+}
