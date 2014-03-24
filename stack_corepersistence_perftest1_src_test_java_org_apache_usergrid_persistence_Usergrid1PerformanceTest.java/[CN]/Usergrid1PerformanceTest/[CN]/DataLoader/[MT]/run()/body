@@ -25,20 +25,20 @@
         if (s.trim().equals("")) {
           Entity entity=em.create("review",currentEntityMap);
           if (maxEntities < 20) {
-            log.info("Index written for {}",entity.getUuid());
-            log.info("---");
+            log(String.format("Index written for %s",entity.getUuid().toString()));
+            log("---");
           }
           currentEntityMap=new HashMap<String,Object>();
           count++;
           if (count % 100000 == 0) {
-            log.info("Indexed {} reviews in {}",count,appId);
+            log(String.format("Indexed %d reviews in %s",count,appId.toString()));
           }
           continue;
         }
         String name=s.substring(0,s.indexOf(":")).replace("/","_").toLowerCase();
         String value=s.substring(s.indexOf(":") + 1).trim();
         if (maxEntities < 20) {
-          log.info("Indexing {} = {}",name,value);
+          log(String.format("Indexing %s = %s",name,value));
         }
         if (NumberUtils.isNumber(value) && value.contains(".")) {
           currentEntityMap.put(name,Double.parseDouble(value));
@@ -51,7 +51,7 @@
         }
       }
  catch (      Exception e) {
-        log.info("Error on line " + count);
+        log("Error on line " + count);
       }
     }
   }
