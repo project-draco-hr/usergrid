@@ -20,43 +20,36 @@
           return loadEdgesToTarget(scope,new SimpleSearchByEdgeType(node,edgeType,version,null));
         }
       }
-).distinctUntilChanged(new Func1<Edge,Id>(){
-        @Override public Id call(        final Edge edge){
-          return edge.getSourceNode();
-        }
-      }
 );
       Observable<MarkedEdge> sourceEdges=getEdgesTypesFromSource(scope,new SimpleSearchEdgeType(node,null)).flatMap(new Func1<String,Observable<MarkedEdge>>(){
         @Override public Observable<MarkedEdge> call(        final String edgeType){
           return loadEdgesFromSource(scope,new SimpleSearchByEdgeType(node,edgeType,version,null));
         }
       }
-).distinctUntilChanged(new Func1<Edge,Id>(){
-        @Override public Id call(        final Edge edge){
-          return edge.getTargetNode();
-        }
-      }
 );
-      return Observable.concat(targetEdges,sourceEdges);
+      return Observable.merge(targetEdges,sourceEdges);
+    }
+  }
+).buffer(graphFig.getScanPageSize()).flatMap(new Func1<List<MarkedEdge>,Observable<MarkedEdge>>(){
+    @Override public Observable<MarkedEdge> call(    final List<MarkedEdge> markedEdges){
+      final MutationBatch batch=keyspace.prepareMutationBatch();
+      for (      MarkedEdge edge : markedEdges) {
+        LOG.debug("Deleting edge {}",edge);
+        final MutationBatch delete=edgeSerialization.deleteEdge(scope,edge);
+        batch.mergeShallow(delete);
+      }
+      try {
+        batch.execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException("Unable to delete edges",e);
+      }
+      return Observable.from(markedEdges);
     }
   }
 ).flatMap(new Func1<MarkedEdge,Observable<MarkedEdge>>(){
     @Override public Observable<MarkedEdge> call(    final MarkedEdge edge){
-      LOG.debug("Deleting edge {}",edge);
-      return edgeDeleteRepair.repair(scope,edge);
-    }
-  }
-).flatMap(new Func1<MarkedEdge,Observable<MarkedEdge>>(){
-    @Override public Observable<MarkedEdge> call(    final MarkedEdge edge){
-      Observable<Integer> sourceMetaRepaired=edgeMetaRepair.repairSources(scope,edge.getSourceNode(),edge.getType(),version);
-      Observable<Integer> targetMetaRepaired=edgeMetaRepair.repairTargets(scope,edge.getTargetNode(),edge.getType(),version);
-      return Observable.concat(sourceMetaRepaired,targetMetaRepaired).last().map(new Func1<Integer,MarkedEdge>(){
-        @Override public MarkedEdge call(        final Integer integer){
-          LOG.debug("Retained {} subtypes for edge {}",integer,edge);
-          return edge;
-        }
-      }
-);
+      return Observable.just(edge);
     }
   }
 ).count().defaultIfEmpty(0).doOnCompleted(new Action0(){

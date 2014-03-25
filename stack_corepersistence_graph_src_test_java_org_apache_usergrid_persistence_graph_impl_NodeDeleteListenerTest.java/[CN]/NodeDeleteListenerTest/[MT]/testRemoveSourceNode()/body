@@ -1,5 +1,5 @@
 {
-  EdgeManager em=emf.createEdgeManager(scope);
+  GraphManager em=emf.createEdgeManager(scope);
   Edge edge=createEdge("source","test","target");
   Edge last=em.writeEdge(edge).toBlockingObservable().last();
   assertEquals(edge,last);
@@ -15,6 +15,8 @@
   assertFalse("No source should be returned",returned.hasNext());
   returned=edgeSerialization.getEdgesToTarget(scope,createSearchByEdge(targetNode,edge.getType(),now,null));
   assertFalse("No target should be returned",returned.hasNext());
+  returned=edgeSerialization.getEdgeVersions(scope,createGetByEdge(sourceNode,edge.getType(),targetNode,now,null));
+  assertFalse("No version should be returned",returned.hasNext());
   Iterator<String> types=edgeMetadataSerialization.getEdgeTypesFromSource(scope,createSearchEdge(sourceNode,null));
   assertFalse(types.hasNext());
   types=edgeMetadataSerialization.getEdgeTypesToTarget(scope,createSearchEdge(targetNode,null));

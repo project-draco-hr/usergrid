@@ -1,5 +1,5 @@
 {
-  EdgeManager em=emf.createEdgeManager(scope);
+  GraphManager em=emf.createEdgeManager(scope);
   final UUID earlyVersion=UUIDGenerator.newTimeUUID();
   Edge edge1=createEdge("source","test","target");
   final Id sourceId=edge1.getSourceNode();
@@ -13,11 +13,14 @@
   Observable<Edge> edges=em.loadEdgesFromSource(search);
   Iterator<Edge> returned=edges.toBlockingObservable().getIterator();
   assertEquals("Correct edge returned",edge3,returned.next());
+  assertEquals("Correct edge returned",edge2,returned.next());
+  assertEquals("Correct edge returned",edge1,returned.next());
   assertFalse("No more edges",returned.hasNext());
   search=createSearchByEdge(edge1.getSourceNode(),edge1.getType(),edge2.getVersion(),null);
   edges=em.loadEdgesFromSource(search);
   returned=edges.toBlockingObservable().getIterator();
   assertEquals("Correct edge returned",edge2,returned.next());
+  assertEquals("Correct edge returned",edge1,returned.next());
   assertFalse("No more edges",returned.hasNext());
   search=createSearchByEdge(edge1.getSourceNode(),edge1.getType(),edge1.getVersion(),null);
   edges=em.loadEdgesFromSource(search);
