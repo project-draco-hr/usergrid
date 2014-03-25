@@ -8,8 +8,8 @@
   CountDownLatch firstHalf=schedule(rxScheduler,half,semaphore,TEST_TIMEOUT);
   CountDownLatch secondHalf=schedule(rxScheduler,half,semaphore,TEST_TIMEOUT);
   try {
-    rxScheduler.schedule(new Action0(){
-      @Override public void call(){
+    rxScheduler.schedule(new Action1<Scheduler.Inner>(){
+      @Override public void call(      final Scheduler.Inner inner){
       }
     }
 );
@@ -22,8 +22,8 @@
   boolean completed=firstHalf.await(20,TimeUnit.SECONDS);
   assertTrue("Completed executing actions",completed);
   try {
-    rxScheduler.schedule(new Action0(){
-      @Override public void call(){
+    rxScheduler.schedule(new Action1<Scheduler.Inner>(){
+      @Override public void call(      final Scheduler.Inner inner){
       }
     }
 );

@@ -1,7 +1,7 @@
 {
   final long timeout=500;
   final TestEvent event=new TestEvent();
-  final TimeoutEvent<TestEvent> timeoutEvent=new TimeoutEvent<TestEvent>(){
+  final AsynchronousMessage<TestEvent> asynchronousMessage=new AsynchronousMessage<TestEvent>(){
     @Override public TestEvent getEvent(){
       return event;
     }
@@ -11,8 +11,8 @@
   }
 ;
   final TimeoutQueue queue=mock(TimeoutQueue.class);
-  AsyncProcessor asyncProcessor=constructProcessor(null,queue);
-  when(queue.queue(event,timeout)).thenReturn(timeoutEvent);
-  TimeoutEvent<TestEvent> returned=asyncProcessor.setVerification(event,timeout);
-  assertSame(timeoutEvent,returned);
+  AsyncProcessor asyncProcessor=constructProcessor(queue);
+  when(queue.queue(event,timeout)).thenReturn(asynchronousMessage);
+  AsynchronousMessage<TestEvent> returned=asyncProcessor.setVerification(event,timeout);
+  assertSame(asynchronousMessage,returned);
 }

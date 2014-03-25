@@ -1,0 +1,24 @@
+{
+  Id sourceId=createId("source");
+  final String edgeType="test";
+  final int size=graphFig.getRepairConcurrentSize() * 2;
+  Set<Edge> writtenEdges=new HashSet<Edge>();
+  for (int i=0; i < size; i++) {
+    Edge edge=createEdge(sourceId,edgeType,createId("target" + i));
+    edgeSerialization.writeEdge(scope,edge).execute();
+    edgeMetadataSerialization.writeEdge(scope,edge).execute();
+    writtenEdges.add(edge);
+  }
+  UUID cleanupVersion=UUIDGenerator.newTimeUUID();
+  int value=edgeMetaRepair.repairSources(scope,sourceId,edgeType,cleanupVersion).toBlockingObservable().single();
+  assertEquals("No subtypes removed, edges exist",size,value);
+  for (  Edge created : writtenEdges) {
+    edgeSerialization.deleteEdge(scope,created).execute();
+  }
+  value=edgeMetaRepair.repairSources(scope,sourceId,edgeType,cleanupVersion).toBlockingObservable().single();
+  assertEquals("Subtypes removed",0,value);
+  Iterator<String> edgeTypes=edgeMetadataSerialization.getEdgeTypesFromSource(scope,new SimpleSearchEdgeType(sourceId,null));
+  assertFalse("No edge types exist",edgeTypes.hasNext());
+  Iterator<String> sourceTypes=edgeMetadataSerialization.getIdTypesFromSource(scope,new SimpleSearchIdType(sourceId,edgeType,null));
+  assertFalse("No edge types exist",sourceTypes.hasNext());
+}

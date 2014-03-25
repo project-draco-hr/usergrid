@@ -2,9 +2,7 @@
   final String input="input";
   final int size=100;
   final int expected=size - 1;
-  final Scheduler scheduler=Schedulers.threadPoolForIO();
-  ConfigurationManager.getConfigInstance().setProperty(THREAD_POOL_SIZE,size);
-  ConfigurationManager.getConfigInstance().setProperty(THREAD_POOL_QUEUE,-1);
+  final Scheduler scheduler=Schedulers.io();
   final CountDownLatch latch=new CountDownLatch(size);
   final Multiset<String> set=HashMultiset.create();
   final Observable<String> observable=Observable.from(input).observeOn(scheduler);
@@ -19,23 +17,15 @@
           @Override public Integer call(          final String s){
             final String threadName=Thread.currentThread().getName();
             logger.info("Invoking parallel task in thread {}",threadName);
-            return new HystrixCommand<Integer>(GROUP_KEY){
-              @Override protected Integer run() throws Exception {
-                final String threadName=Thread.currentThread().getName();
-                logger.info("Invoking hystrix task in thread {}",threadName);
-                set.add(threadName);
-                latch.countDown();
-                try {
-                  latch.await();
-                }
- catch (                InterruptedException e) {
-                  throw new RuntimeException("Interrupted",e);
-                }
-                assertTrue(isExecutedInThread());
-                return index;
-              }
+            set.add(threadName);
+            latch.countDown();
+            try {
+              latch.await();
             }
-.execute();
+ catch (            InterruptedException e) {
+              throw new RuntimeException("Interrupted",e);
+            }
+            return index;
           }
         }
 );

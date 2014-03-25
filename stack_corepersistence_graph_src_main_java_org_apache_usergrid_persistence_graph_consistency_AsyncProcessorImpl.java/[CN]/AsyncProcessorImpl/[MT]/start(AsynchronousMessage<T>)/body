@@ -1,0 +1,33 @@
+{
+  final T data=event.getEvent();
+  List<Observable<?>> observables=new ArrayList<Observable<?>>(listeners.size());
+  for (  MessageListener<T,T> listener : listeners) {
+    observables.add(listener.receive(data).subscribeOn(scheduler));
+  }
+  Observable.zip(observables,new FuncN<AsynchronousMessage<T>>(){
+    @Override public AsynchronousMessage<T> call(    final Object... args){
+      return event;
+    }
+  }
+).doOnError(new Action1<Throwable>(){
+    @Override public void call(    final Throwable throwable){
+      LOG.error("Unable to process async event",throwable);
+      for (      ErrorListener listener : errorListeners) {
+        listener.onError(event,throwable);
+      }
+    }
+  }
+).doOnCompleted(new Action0(){
+    @Override public void call(){
+      queue.remove(event);
+      for (      CompleteListener<T> listener : completeListeners) {
+        listener.onComplete(event);
+      }
+    }
+  }
+).subscribe(new Action1<AsynchronousMessage<T>>(){
+    @Override public void call(    final AsynchronousMessage<T> asynchronousMessage){
+    }
+  }
+);
+}

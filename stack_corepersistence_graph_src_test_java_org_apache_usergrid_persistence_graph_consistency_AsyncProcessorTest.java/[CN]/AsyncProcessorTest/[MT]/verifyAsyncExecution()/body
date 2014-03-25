@@ -1,9 +1,7 @@
 {
   final TestListener listener=new TestListener();
-  final EventBus testBus=new EventBus("test");
-  testBus.register(listener);
   final TestEvent event=new TestEvent();
-  final TimeoutEvent<TestEvent> timeoutEvent=new TimeoutEvent<TestEvent>(){
+  final AsynchronousMessage<TestEvent> asynchronousMessage=new AsynchronousMessage<TestEvent>(){
     @Override public TestEvent getEvent(){
       return event;
     }
@@ -13,17 +11,22 @@
   }
 ;
   final TimeoutQueue queue=mock(TimeoutQueue.class);
-  final AsyncProcessor asyncProcessor=constructProcessor(testBus,queue);
-  final CountDownLatch latch=new CountDownLatch(1);
-  when(queue.remove(timeoutEvent)).thenAnswer(new Answer<Boolean>(){
+  final AsyncProcessor asyncProcessor=constructProcessor(queue);
+  asyncProcessor.addListener(listener);
+  final CountDownLatch latch=new CountDownLatch(2);
+  final TestCompleteListener completeListener=new TestCompleteListener(latch);
+  asyncProcessor.addCompleteListener(completeListener);
+  when(queue.remove(asynchronousMessage)).thenAnswer(new Answer<Boolean>(){
     @Override public Boolean answer(    final InvocationOnMock invocation) throws Throwable {
       latch.countDown();
       return true;
     }
   }
 );
-  asyncProcessor.start(timeoutEvent);
+  asyncProcessor.start(asynchronousMessage);
   latch.await();
   final TestEvent firedEvent=listener.events.peek();
   assertSame(event,firedEvent);
+  final TestEvent completeEvent=completeListener.events.peek();
+  assertSame(event,completeEvent);
 }
