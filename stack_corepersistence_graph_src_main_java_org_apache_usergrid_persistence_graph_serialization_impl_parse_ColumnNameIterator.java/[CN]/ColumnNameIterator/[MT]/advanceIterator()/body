@@ -1,8 +1,8 @@
 {
-  try {
-    sourceIterator=rowQuery.execute().getResult().iterator();
+  sourceIterator=new HystrixCommand<Iterator<Column<C>>>(HystrixCommand.Setter.withGroupKey(GROUP_KEY).andCommandPropertiesDefaults(HystrixCommandProperties.Setter().withExecutionIsolationThreadTimeoutInMilliseconds(executionTimeout))){
+    @Override protected Iterator<Column<C>> run() throws Exception {
+      return rowQuery.execute().getResult().iterator();
+    }
   }
- catch (  ConnectionException e) {
-    throw new RuntimeException("Unable to execute query",e);
-  }
+.execute();
 }
