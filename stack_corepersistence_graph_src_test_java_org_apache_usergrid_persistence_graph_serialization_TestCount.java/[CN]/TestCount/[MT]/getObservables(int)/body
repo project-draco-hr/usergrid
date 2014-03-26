@@ -1,0 +1,27 @@
+{
+  final List<Integer> values=new ArrayList<Integer>(size);
+  for (int i=0; i < size; i++) {
+    values.add(i);
+  }
+  return Observable.create(new Observable.OnSubscribe<Integer>(){
+    @Override public void call(    final Subscriber<? super Integer> subscriber){
+      final int size=values.size();
+      for (int i=0; i < size; i++) {
+        if (i % 1000 == 0) {
+          try {
+            Thread.sleep(250);
+          }
+ catch (          InterruptedException e) {
+            subscriber.onError(e);
+            return;
+          }
+        }
+        final Integer value=values.get(i);
+        log.info("Emitting {}",value);
+        subscriber.onNext(value);
+      }
+      subscriber.onCompleted();
+    }
+  }
+).subscribeOn(Schedulers.io());
+}

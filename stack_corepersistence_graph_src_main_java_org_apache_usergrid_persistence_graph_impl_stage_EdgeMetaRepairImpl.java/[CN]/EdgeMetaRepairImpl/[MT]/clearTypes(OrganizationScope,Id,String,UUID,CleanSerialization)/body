@@ -9,13 +9,13 @@
       final List<Observable<Integer>> checks=new ArrayList<Observable<Integer>>(types.size());
       for (      final String subType : types) {
         LOG.debug("Checking for edges with nodeId {}, type {}, and subtype {}",node,edgeType,subType);
-        Observable<Integer> search=serialization.loadEdges(scope,node,edgeType,subType,version).take(1).count().doOnNext(new Action1<Integer>(){
+        Observable<Integer> search=serialization.loadEdges(scope,node,edgeType,subType,version).subscribeOn(Schedulers.io()).take(1).count().doOnNext(new Action1<Integer>(){
           @Override public void call(          final Integer count){
             if (count != 0) {
               LOG.debug("Found edge with nodeId {}, type {}, and subtype {}. Not removing subtype. ",node,edgeType,subType);
               return;
             }
-            LOG.debug("No edges with nodeId {}, type {}, and subtype {}. Removing",node,edgeType,subType);
+            LOG.debug("No edges with nodeId {}, type {}, and subtype {}. Removing subtype.",node,edgeType,subType);
             batch.mergeShallow(serialization.removeEdgeSubType(scope,node,edgeType,subType,version));
           }
         }
@@ -24,7 +24,7 @@
       }
       return MathObservable.sumInteger(Observable.merge(checks)).doOnNext(new Action1<Integer>(){
         @Override public void call(        final Integer count){
-          LOG.debug("Executing batch for subtype deletion with type {}.  Mutation has {} rows to mutate ",edgeType,batch.getRowCount());
+          LOG.debug("Executing batch for subtype deletion with type {}.  " + "Mutation has {} rows to mutate ",edgeType,batch.getRowCount());
           try {
             batch.execute();
           }
