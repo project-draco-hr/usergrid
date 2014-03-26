@@ -1,0 +1,19 @@
+{
+  Id defaultOrgId=new SimpleId("zzz_default_zzz");
+  Id defaultAppId=new SimpleId("zzz_default_zzz");
+  CollectionScope defaultScope=new CollectionScopeImpl(defaultOrgId,defaultAppId,"organizations");
+  EntityCollectionManager ecm=getManager(defaultScope);
+  EntityCollectionIndex eci=getIndex(defaultScope);
+  org.apache.usergrid.persistence.query.Query q=org.apache.usergrid.persistence.query.Query.fromQL("name = '" + app.getOrganizationName() + "'");
+  org.apache.usergrid.persistence.query.Results execute=eci.execute(q);
+  if (execute.isEmpty()) {
+    org.apache.usergrid.persistence.model.entity.Entity entity=new org.apache.usergrid.persistence.model.entity.Entity(new SimpleId(UUIDGenerator.newTimeUUID(),"organization"));
+    entity.setField(new StringField("name",app.getOrganizationName()));
+    entity=ecm.write(entity).toBlockingObservable().last();
+    Id orgId=entity.getId();
+    return orgId;
+  }
+  org.apache.usergrid.persistence.model.entity.Entity entity=execute.getEntities().get(0);
+  Id orgId=entity.getId();
+  return orgId;
+}
