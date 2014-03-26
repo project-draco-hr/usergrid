@@ -1,7 +1,17 @@
 {
   final int sizePerObservable=2000;
-  Observable<Integer> input1=getObservables(sizePerObservable);
-  Observable<Integer> input2=getObservables(sizePerObservable);
+  Observable<Integer> input1=getObservables(sizePerObservable).flatMap(new Func1<Integer,Observable<? extends Integer>>(){
+    @Override public Observable<? extends Integer> call(    final Integer integer){
+      return getObservables(100);
+    }
+  }
+);
+  Observable<Integer> input2=getObservables(sizePerObservable).flatMap(new Func1<Integer,Observable<? extends Integer>>(){
+    @Override public Observable<? extends Integer> call(    final Integer integer){
+      return getObservables(100);
+    }
+  }
+);
   int returned=Observable.merge(input1,input2).buffer(1000).flatMap(new Func1<List<Integer>,Observable<Integer>>(){
     @Override public Observable<Integer> call(    final List<Integer> integers){
       try {
@@ -14,5 +24,5 @@
     }
   }
 ).count().defaultIfEmpty(0).toBlockingObservable().last();
-  assertEquals("Count was correct",sizePerObservable * 2,returned);
+  assertEquals("Count was correct",sizePerObservable * 2 * 100,returned);
 }

@@ -5,14 +5,12 @@
       final MutationBatch mutation=edgeMetadataSerialization.writeEdge(scope,edge);
       final MutationBatch edgeMutation=edgeSerialization.writeEdge(scope,edge);
       mutation.mergeShallow(edgeMutation);
-      final AsynchronousMessage<Edge> event=edgeWriteAsyncProcessor.setVerification(edge,getTimeout());
       try {
         mutation.execute();
       }
  catch (      ConnectionException e) {
         throw new RuntimeException("Unable to connect to cassandra",e);
       }
-      edgeWriteAsyncProcessor.start(event);
       return edge;
     }
   }

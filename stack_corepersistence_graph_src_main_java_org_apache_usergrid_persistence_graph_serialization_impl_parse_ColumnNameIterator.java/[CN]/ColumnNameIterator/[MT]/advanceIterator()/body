@@ -1,8 +1,8 @@
 {
-  sourceIterator=new HystrixCommand<Iterator<Column<C>>>(HystrixCommand.Setter.withGroupKey(GROUP_KEY).andCommandPropertiesDefaults(HystrixCommandProperties.Setter().withExecutionIsolationThreadTimeoutInMilliseconds(executionTimeout))){
-    @Override protected Iterator<Column<C>> run() throws Exception {
-      return rowQuery.execute().getResult().iterator();
-    }
+  try {
+    sourceIterator=rowQuery.execute().getResult().iterator();
   }
-.execute();
+ catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to get next page",e);
+  }
 }
