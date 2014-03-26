@@ -1,6 +1,6 @@
 {
   EdgeUtils.validateEdge(edge);
-  return Observable.from(edge).subscribeOn(Schedulers.io()).map(new Func1<Edge,Edge>(){
+  return HystrixGraphObservable.user(Observable.from(edge).subscribeOn(Schedulers.io()).map(new Func1<Edge,Edge>(){
     @Override public Edge call(    final Edge edge){
       final MutationBatch edgeMutation=edgeSerialization.markEdge(scope,edge);
       final AsynchronousMessage<Edge> event=edgeDeleteAsyncProcessor.setVerification(edge,getTimeout());
@@ -14,5 +14,5 @@
       return edge;
     }
   }
-);
+));
 }
