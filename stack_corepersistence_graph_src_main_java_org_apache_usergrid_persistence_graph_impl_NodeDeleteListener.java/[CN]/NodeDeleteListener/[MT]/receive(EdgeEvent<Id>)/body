@@ -32,6 +32,7 @@
   }
 ).buffer(graphFig.getScanPageSize()).flatMap(new Func1<List<MarkedEdge>,Observable<MarkedEdge>>(){
     @Override public Observable<MarkedEdge> call(    final List<MarkedEdge> markedEdges){
+      LOG.debug("Batching {} edges for deletion",markedEdges.size());
       final MutationBatch batch=keyspace.prepareMutationBatch();
       for (      MarkedEdge edge : markedEdges) {
         LOG.debug("Deleting edge {}",edge);
@@ -45,11 +46,6 @@
         throw new RuntimeException("Unable to delete edges",e);
       }
       return Observable.from(markedEdges);
-    }
-  }
-).flatMap(new Func1<MarkedEdge,Observable<MarkedEdge>>(){
-    @Override public Observable<MarkedEdge> call(    final MarkedEdge edge){
-      return Observable.just(edge);
     }
   }
 ).count().defaultIfEmpty(0).doOnCompleted(new Action0(){
