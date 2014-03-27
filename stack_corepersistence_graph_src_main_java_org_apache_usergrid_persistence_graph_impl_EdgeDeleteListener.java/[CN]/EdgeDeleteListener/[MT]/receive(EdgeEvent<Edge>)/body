@@ -1,0 +1,65 @@
+{
+  final Edge edge=delete.getData();
+  final OrganizationScope scope=delete.getOrganizationScope();
+  final UUID maxVersion=edge.getVersion();
+  final GraphManager graphManager=graphManagerFactory.createEdgeManager(scope);
+  return Observable.from(edge).flatMap(new Func1<Edge,Observable<MutationBatch>>(){
+    @Override public Observable<MutationBatch> call(    final Edge edge){
+      final MutationBatch batch=keyspace.prepareMutationBatch();
+      Observable<Integer> sourceIdType=graphManager.loadEdgesFromSourceByType(new SimpleSearchByIdType(edge.getSourceNode(),edge.getType(),maxVersion,edge.getTargetNode().getType(),null)).take(2).count().doOnNext(new Action1<Integer>(){
+        @Override public void call(        final Integer count){
+          if (count == 1) {
+            final MutationBatch delete=edgeMetadataSerialization.removeEdgeTypeFromSource(scope,edge);
+            batch.mergeShallow(delete);
+          }
+        }
+      }
+);
+      Observable<Integer> targetIdType=graphManager.loadEdgesToTargetByType(new SimpleSearchByIdType(edge.getTargetNode(),edge.getType(),maxVersion,edge.getSourceNode().getType(),null)).take(2).count().doOnNext(new Action1<Integer>(){
+        @Override public void call(        final Integer count){
+          if (count == 1) {
+            final MutationBatch delete=edgeMetadataSerialization.removeEdgeTypeToTarget(scope,edge);
+            batch.mergeShallow(delete);
+          }
+        }
+      }
+);
+      Observable<Integer> sourceType=graphManager.loadEdgesFromSource(new SimpleSearchByEdgeType(edge.getSourceNode(),edge.getType(),maxVersion,null)).take(2).count().doOnNext(new Action1<Integer>(){
+        @Override public void call(        final Integer count){
+          if (count == 1) {
+            final MutationBatch delete=edgeMetadataSerialization.removeEdgeTypeFromSource(scope,edge);
+            batch.mergeShallow(delete);
+          }
+        }
+      }
+);
+      Observable<Integer> targetType=graphManager.loadEdgesToTarget(new SimpleSearchByEdgeType(edge.getTargetNode(),edge.getType(),maxVersion,null)).take(2).count().doOnNext(new Action1<Integer>(){
+        @Override public void call(        final Integer count){
+          if (count == 1) {
+            final MutationBatch delete=edgeMetadataSerialization.removeEdgeTypeToTarget(scope,edge);
+            batch.mergeShallow(delete);
+          }
+        }
+      }
+);
+      return Observable.zip(sourceIdType,targetIdType,sourceType,targetType,new Func4<Integer,Integer,Integer,Integer,MutationBatch>(){
+        @Override public MutationBatch call(        final Integer integer,        final Integer integer2,        final Integer integer3,        final Integer integer4){
+          return batch;
+        }
+      }
+);
+    }
+  }
+).map(new Func1<MutationBatch,EdgeEvent<Edge>>(){
+    @Override public EdgeEvent<Edge> call(    final MutationBatch mutationBatch){
+      try {
+        mutationBatch.execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException("Unable to execute mutation",e);
+      }
+      return delete;
+    }
+  }
+);
+}

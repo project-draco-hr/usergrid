@@ -2,40 +2,29 @@
   final String input="input";
   final int size=100;
   final int expected=size - 1;
-  final Scheduler scheduler=Schedulers.threadPoolForIO();
-  ConfigurationManager.getConfigInstance().setProperty(THREAD_POOL_SIZE,size);
-  ConfigurationManager.getConfigInstance().setProperty(THREAD_POOL_QUEUE,-1);
   final CountDownLatch latch=new CountDownLatch(size);
   final Multiset<String> set=HashMultiset.create();
-  final Observable<String> observable=Observable.from(input).observeOn(scheduler);
+  final Observable<String> observable=Observable.from(input).observeOn(Schedulers.io());
   Observable<Integer> thing=observable.mapMany(new Func1<String,Observable<Integer>>(){
     @Override public Observable<Integer> call(    final String s){
       List<Observable<Integer>> functions=new ArrayList<Observable<Integer>>();
       logger.info("Creating new set of observables in thread {}",Thread.currentThread().getName());
       for (int i=0; i < size; i++) {
         final int index=i;
-        Observable<String> newObservable=Observable.from(input).subscribeOn(scheduler);
+        Observable<String> newObservable=Observable.from(input).subscribeOn(Schedulers.io());
         Observable<Integer> transformed=newObservable.map(new Func1<String,Integer>(){
           @Override public Integer call(          final String s){
             final String threadName=Thread.currentThread().getName();
             logger.info("Invoking parallel task in thread {}",threadName);
-            return new HystrixCommand<Integer>(GROUP_KEY){
-              @Override protected Integer run() throws Exception {
-                final String threadName=Thread.currentThread().getName();
-                logger.info("Invoking hystrix task in thread {}",threadName);
-                set.add(threadName);
-                latch.countDown();
-                try {
-                  latch.await();
-                }
- catch (                InterruptedException e) {
-                  throw new RuntimeException("Interrupted",e);
-                }
-                assertTrue(isExecutedInThread());
-                return index;
-              }
+            set.add(threadName);
+            latch.countDown();
+            try {
+              latch.await();
             }
-.execute();
+ catch (            InterruptedException e) {
+              throw new RuntimeException("Interrupted",e);
+            }
+            return index;
           }
         }
 );

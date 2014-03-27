@@ -1,0 +1,41 @@
+{
+  final int size=3;
+  final List<Edge> versions=new ArrayList<Edge>(size);
+  final Id sourceId=createId("source");
+  final Id targetId=createId("target");
+  final String edgeType="edge";
+  Set<Edge> deletedEdges=new HashSet<Edge>();
+  int deleteIndex=size / 2;
+  for (int i=0; i < size; i++) {
+    final Edge edge=createEdge(sourceId,edgeType,targetId);
+    versions.add(edge);
+    edgeSerialization.writeEdge(scope,edge).execute();
+    LOG.info("Writing edge at index [{}] {}",i,edge);
+    if (i <= deleteIndex) {
+      deletedEdges.add(edge);
+    }
+  }
+  Edge keep=versions.get(deleteIndex);
+  Iterable<MarkedEdge> edges=edgeDeleteRepair.repair(scope,keep).toBlockingObservable().toIterable();
+  Multiset<Edge> deletedStream=HashMultiset.create();
+  for (  MarkedEdge edge : edges) {
+    LOG.info("Returned edge {} for repair",edge);
+    final boolean shouldBeDeleted=deletedEdges.contains(edge);
+    assertTrue("Removed matches saved index",shouldBeDeleted);
+    deletedStream.add(edge);
+  }
+  deletedEdges.removeAll(deletedStream.elementSet());
+  assertEquals(0,deletedEdges.size());
+  Iterator<MarkedEdge> iterator=edgeSerialization.getEdgeVersions(scope,new SimpleSearchByEdge(sourceId,edgeType,targetId,UUIDGenerator.newTimeUUID(),null));
+  int count=0;
+  for (  MarkedEdge edge : new IterableWrapper<MarkedEdge>(iterator)) {
+    LOG.info("Returned edge {} to verify",edge);
+    final int index=size - count - 1;
+    LOG.info("Checking for correct version at index {}",index);
+    final Edge saved=versions.get(index);
+    assertEquals("Retained edge correct",saved,edge);
+    count++;
+  }
+  final int keptCount=size - deleteIndex;
+  assertEquals("Kept edge version was the minimum",keptCount,count + 1);
+}

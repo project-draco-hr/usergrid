@@ -2,6 +2,7 @@
   S3Export s3Export=new S3ExportImpl();
   ExportService exportService=setup.getExportService();
   HashMap<String,Object> payload=payloadBuilder();
+  payload.put("organizationId",organization.getUuid());
   payload.put("applicationId",applicationId);
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
   Map<String,Object> userProperties=null;
@@ -9,8 +10,8 @@
   entity=new Entity[100];
   for (int i=0; i < 100; i++) {
     userProperties=new LinkedHashMap<String,Object>();
-    userProperties.put("username","billybob" + i);
-    userProperties.put("email","test" + i + "@anuff.com");
+    userProperties.put("username","bojangles" + i);
+    userProperties.put("email","bojangles" + i + "@anuff.com");
     entity[i]=em.create("user",userProperties);
   }
   UUID exportUUID=exportService.schedule(payload);
@@ -22,4 +23,23 @@
   JobExecution jobExecution=mock(JobExecution.class);
   when(jobExecution.getJobData()).thenReturn(jobData);
   exportService.doExport(jobExecution);
+  while (!exportService.getState(applicationId,exportUUID).equals("FINISHED"))   ;
+  String bucketName=System.getProperty("bucketName");
+  String accessId=System.getProperty("accessKey");
+  String secretKey=System.getProperty("secretKey");
+  Properties overrides=new Properties();
+  overrides.setProperty("s3" + ".identity",accessId);
+  overrides.setProperty("s3" + ".credential",secretKey);
+  Blob bo=null;
+  try {
+    final Iterable<? extends Module> MODULES=ImmutableSet.of(new JavaUrlHttpCommandExecutorServiceModule(),new Log4JLoggingModule(),new NettyPayloadModule());
+    BlobStoreContext context=ContextBuilder.newBuilder("s3").credentials(accessId,secretKey).modules(MODULES).overrides(overrides).buildView(BlobStoreContext.class);
+    AsyncBlobStore blobStore=context.getAsyncBlobStore();
+    ListenableFuture<Blob> futureETag=blobStore.getBlob(bucketName,s3Export.getFilename());
+    bo=futureETag.get(3,TimeUnit.SECONDS);
+  }
+ catch (  Exception e) {
+    assert(false);
+  }
+  assertNotNull(bo);
 }

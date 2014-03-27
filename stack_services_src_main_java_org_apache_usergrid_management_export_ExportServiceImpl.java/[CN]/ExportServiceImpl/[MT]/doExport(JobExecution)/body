@@ -14,21 +14,13 @@
   export.setState(Export.State.STARTED);
   em.update(export);
   if (config.get("collectionName") == null) {
-    Map<UUID,String> organizations=getOrgs();
-    if (organizations == null) {
-      logger.error("No organizations could be found");
+    if (config.get("organizationId") == null) {
+      logger.error("No organization could be found");
+      export.setState(Export.State.FAILED);
+      em.update(export);
       return;
     }
-    for (    Map.Entry<UUID,String> organization : organizations.entrySet()) {
-      try {
-        exportApplicationsForOrg(organization,config,jobExecution);
-      }
- catch (      Exception e) {
-        export.setState(Export.State.FAILED);
-        em.update(export);
-        return;
-      }
-    }
+    exportApplicationsForOrg((UUID)config.get("organizationId"),config,jobExecution);
   }
  else {
     try {

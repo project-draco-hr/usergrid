@@ -1,0 +1,34 @@
+{
+  GraphManager em=emf.createEdgeManager(scope);
+  final UUID earlyVersion=UUIDGenerator.newTimeUUID();
+  Edge edge1=createEdge("source","test","target");
+  final Id sourceId=edge1.getSourceNode();
+  final Id targetId=edge1.getTargetNode();
+  em.writeEdge(edge1).toBlockingObservable().last();
+  Edge edge2=createEdge(sourceId,edge1.getType(),targetId);
+  em.writeEdge(edge2).toBlockingObservable().last();
+  Edge edge3=createEdge(sourceId,edge1.getType(),targetId);
+  em.writeEdge(edge3).toBlockingObservable().last();
+  SearchByEdgeType search=createSearchByEdge(edge1.getSourceNode(),edge1.getType(),edge3.getVersion(),null);
+  Observable<Edge> edges=em.loadEdgesFromSource(search);
+  Iterator<Edge> returned=edges.toBlockingObservable().getIterator();
+  assertEquals("Correct edge returned",edge3,returned.next());
+  assertEquals("Correct edge returned",edge2,returned.next());
+  assertEquals("Correct edge returned",edge1,returned.next());
+  assertFalse("No more edges",returned.hasNext());
+  search=createSearchByEdge(edge1.getSourceNode(),edge1.getType(),edge2.getVersion(),null);
+  edges=em.loadEdgesFromSource(search);
+  returned=edges.toBlockingObservable().getIterator();
+  assertEquals("Correct edge returned",edge2,returned.next());
+  assertEquals("Correct edge returned",edge1,returned.next());
+  assertFalse("No more edges",returned.hasNext());
+  search=createSearchByEdge(edge1.getSourceNode(),edge1.getType(),edge1.getVersion(),null);
+  edges=em.loadEdgesFromSource(search);
+  returned=edges.toBlockingObservable().getIterator();
+  assertEquals("Correct edge returned",edge1,returned.next());
+  assertFalse("No more edges",returned.hasNext());
+  search=createSearchByEdge(edge1.getSourceNode(),edge1.getType(),earlyVersion,null);
+  edges=em.loadEdgesFromSource(search);
+  returned=edges.toBlockingObservable().getIterator();
+  assertFalse("No more edges",returned.hasNext());
+}
