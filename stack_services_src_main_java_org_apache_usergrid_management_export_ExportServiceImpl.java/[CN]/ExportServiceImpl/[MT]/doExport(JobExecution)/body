@@ -20,10 +20,16 @@
       em.update(export);
       return;
     }
-    exportApplicationsForOrg((UUID)config.get("organizationId"),(UUID)config.get("ApplicationId"),config,jobExecution);
+    exportApplicationsForOrg((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution);
   }
  else {
     try {
+      if (config.get("organizationId") == null) {
+        logger.error("No organization could be found");
+        export.setState(Export.State.FAILED);
+        em.update(export);
+        return;
+      }
       exportApplicationForOrg((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution);
     }
  catch (    Exception e) {

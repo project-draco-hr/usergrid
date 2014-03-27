@@ -4,7 +4,7 @@
   Export export=exportManager.get(exportId,Export.class);
   ByteArrayOutputStream baos=new ByteArrayOutputStream();
   ApplicationInfo application=managementService.getApplicationInfo(applicationId);
-  String appFileName=prepareOutputFileName("application",application.getName(),null);
+  String appFileName=prepareOutputFileName("application",application.getName(),"");
   JsonGenerator jg=getJsonGenerator(baos);
   EntityManager em=emf.getEntityManager(applicationId);
   jg.writeStartArray();
@@ -30,17 +30,17 @@
         jg.writeEndObject();
       }
     }
-    jg.writeEndArray();
-    jg.close();
-    baos.flush();
-    baos.close();
-    InputStream is=new ByteArrayInputStream(baos.toByteArray());
-    try {
-      s3Export.copyToS3(is,config,appFileName);
-    }
- catch (    Exception e) {
-      export.setState(Export.State.FAILED);
-      return;
-    }
+  }
+  jg.writeEndArray();
+  jg.close();
+  baos.flush();
+  baos.close();
+  InputStream is=new ByteArrayInputStream(baos.toByteArray());
+  try {
+    s3Export.copyToS3(is,config,appFileName);
+  }
+ catch (  Exception e) {
+    export.setState(Export.State.FAILED);
+    return;
   }
 }

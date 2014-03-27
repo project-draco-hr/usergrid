@@ -9,6 +9,7 @@
   jg.writeStartArray();
   Map<String,Object> metadata=em.getApplicationCollectionMetadata();
   long starting_time=System.currentTimeMillis();
+  String appFileName=prepareOutputFileName("application",application.getName(),(String)config.get("collectionName"));
   for (  String collectionName : metadata.keySet()) {
     if (collectionName.equals((String)config.get("collectionName"))) {
       Query query=new Query();
@@ -26,18 +27,17 @@
         jg.writeEndObject();
       }
     }
-    jg.writeEndArray();
-    jg.close();
-    baos.flush();
-    baos.close();
-    InputStream is=new ByteArrayInputStream(baos.toByteArray());
-    String appFileName=prepareOutputFileName("application",application.getName(),collectionName);
-    try {
-      s3Export.copyToS3(is,config,appFileName);
-    }
- catch (    Exception e) {
-      export.setState(Export.State.FAILED);
-      return;
-    }
+  }
+  jg.writeEndArray();
+  jg.close();
+  baos.flush();
+  baos.close();
+  InputStream is=new ByteArrayInputStream(baos.toByteArray());
+  try {
+    s3Export.copyToS3(is,config,appFileName);
+  }
+ catch (  Exception e) {
+    export.setState(Export.State.FAILED);
+    return;
   }
 }
