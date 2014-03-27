@@ -1,13 +1,23 @@
 {
-  TokenStream ts=analyzer.tokenStream("keywords",new StringReader(source));
   List<String> keywords=new ArrayList<String>();
+  TokenStream ts=null;
   try {
+    ts=analyzer.tokenStream("keywords",new StringReader(source));
+    ts.reset();
     while (ts.incrementToken()) {
-      keywords.add(ts.getAttribute(TermAttribute.class).term());
+      keywords.add(ts.getAttribute(CharTermAttribute.class).toString());
     }
+    ts.end();
   }
  catch (  IOException e) {
     LOG.error("Error getting keywords ",e);
+  }
+ finally {
+    try {
+      ts.close();
+    }
+ catch (    IOException ignored) {
+    }
   }
   return keywords;
 }

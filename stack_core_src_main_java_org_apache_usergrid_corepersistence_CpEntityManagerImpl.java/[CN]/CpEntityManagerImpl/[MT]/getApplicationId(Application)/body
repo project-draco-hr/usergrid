@@ -4,11 +4,12 @@
   CollectionScope defaultScope=new CollectionScopeImpl(defaultOrgId,defaultAppId,"organizations");
   EntityCollectionManager ecm=getManager(defaultScope);
   EntityCollectionIndex eci=getIndex(defaultScope);
-  org.apache.usergrid.persistence.query.Query q=org.apache.usergrid.persistence.query.Query.fromQL("name = '" + app.getOrganizationName() + "'");
-  org.apache.usergrid.persistence.query.Results execute=eci.execute(q);
+  String orgName=(app == null) ? "zzz_default_zzz" : app.getOrganizationName();
+  org.apache.usergrid.persistence.index.query.Query q=org.apache.usergrid.persistence.index.query.Query.fromQL("name = '" + orgName + "'");
+  org.apache.usergrid.persistence.index.query.Results execute=eci.execute(q);
   if (execute.isEmpty()) {
     org.apache.usergrid.persistence.model.entity.Entity entity=new org.apache.usergrid.persistence.model.entity.Entity(new SimpleId(UUIDGenerator.newTimeUUID(),"organization"));
-    entity.setField(new StringField("name",app.getOrganizationName()));
+    entity.setField(new StringField("name",orgName));
     entity=ecm.write(entity).toBlockingObservable().last();
     Id orgId=entity.getId();
     return orgId;
