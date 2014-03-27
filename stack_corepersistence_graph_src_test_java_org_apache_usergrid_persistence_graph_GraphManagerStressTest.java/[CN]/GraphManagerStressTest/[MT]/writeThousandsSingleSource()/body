@@ -1,0 +1,15 @@
+{
+  EdgeGenerator generator=new EdgeGenerator(){
+    private Id sourceId=createId("source");
+    @Override public Edge newEdge(){
+      Edge edge=createEdge(sourceId,"test",createId("target"));
+      return edge;
+    }
+    @Override public Observable<Edge> doSearch(    final GraphManager manager){
+      UUID uuid=UUIDGenerator.newTimeUUID();
+      return manager.loadEdgesFromSource(new SimpleSearchByEdgeType(sourceId,"test",uuid,null));
+    }
+  }
+;
+  doTest(generator);
+}
