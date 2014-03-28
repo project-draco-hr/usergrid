@@ -2,8 +2,6 @@
   S3Export s3Export=new S3ExportImpl();
   ExportService exportService=setup.getExportService();
   HashMap<String,Object> payload=payloadBuilder();
-  payload.put("organizationId",organization.getUuid());
-  payload.put("applicationId",applicationId);
   OrganizationInfo orgMade=null;
   ApplicationInfo appMade=null;
   for (int i=0; i < 100; i++) {
@@ -21,7 +19,8 @@
       entNotCopied[index]=customMaker.create("superappCol",entityLevelProperties);
     }
   }
-  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  payload.put("organizationId",orgMade.getUuid());
+  EntityManager em=setup.getEmf().getEntityManager(appMade.getId());
   Map<String,Object> userProperties=null;
   Entity[] entity;
   entity=new Entity[100];
@@ -32,6 +31,7 @@
     entity[i]=em.create("user",userProperties);
   }
   UUID exportUUID=exportService.schedule(payload);
+  assertNotNull(exportUUID);
   exportService.setS3Export(s3Export);
   JobData jobData=new JobData();
   jobData.setProperty("jobName","exportJob");
@@ -40,7 +40,7 @@
   JobExecution jobExecution=mock(JobExecution.class);
   when(jobExecution.getJobData()).thenReturn(jobData);
   exportService.doExport(jobExecution);
-  while (!exportService.getState(applicationId,exportUUID).equals("FINISHED"))   ;
+  while (!exportService.getState(appMade.getId(),exportUUID).equals("FINISHED"))   ;
   String bucketName=System.getProperty("bucketName");
   String accessId=System.getProperty("accessKey");
   String secretKey=System.getProperty("secretKey");
@@ -54,10 +54,11 @@
     BlobStoreContext context=ContextBuilder.newBuilder("s3").credentials(accessId,secretKey).modules(MODULES).overrides(overrides).buildView(BlobStoreContext.class);
     blobStore=context.getBlobStore();
     if (!blobStore.blobExists(bucketName,s3Export.getFilename())) {
+      blobStore.deleteContainer(bucketName);
       assert(false);
     }
     Long numOfFiles=blobStore.countBlobs(bucketName);
-    Long numWeWant=Long.valueOf(1);
+    Long numWeWant=Long.valueOf(100);
     assertEquals(numOfFiles,numWeWant);
     bo=blobStore.getBlob(bucketName,s3Export.getFilename());
   }
