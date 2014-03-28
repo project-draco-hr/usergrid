@@ -1,0 +1,9 @@
+{
+  Id id=new SimpleId(entityId,type);
+  org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(id).toBlockingObservable().last();
+  Entity entity=new DynamicEntity(type,cpEntity.getId().getUuid());
+  entity.setUuid(cpEntity.getId().getUuid());
+  Map<String,Object> entityMap=EntityMapUtils.toMap(cpEntity);
+  entity.addProperties(entityMap);
+  return entity;
+}
