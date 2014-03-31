@@ -15,7 +15,14 @@
   export.setState(Export.State.STARTED);
   em.update(export);
   if (em.getApplication().getApplicationName().equals("exporters")) {
-    exportApplicationsFromOrg((UUID)config.get("organizationId"),config,jobExecution);
+    try {
+      exportApplicationsFromOrg((UUID)config.get("organizationId"),config,jobExecution);
+    }
+ catch (    Exception e) {
+      export.setErrorMessage(e.getMessage());
+      export.setState(Export.State.FAILED);
+      em.update(export);
+    }
   }
  else   if (config.get("collectionName") == null) {
     if (config.get("organizationId") == null) {
@@ -24,7 +31,14 @@
       em.update(export);
       return;
     }
-    exportApplicationFromOrg((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution);
+    try {
+      exportApplicationFromOrg((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution);
+    }
+ catch (    Exception e) {
+      export.setErrorMessage(e.getMessage());
+      export.setState(Export.State.FAILED);
+      em.update(export);
+    }
   }
  else {
     try {
@@ -34,9 +48,17 @@
         em.update(export);
         return;
       }
-      exportCollectionFromOrgApp((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution);
+      try {
+        exportCollectionFromOrgApp((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution);
+      }
+ catch (      Exception e) {
+        export.setErrorMessage(e.getMessage());
+        export.setState(Export.State.FAILED);
+        em.update(export);
+      }
     }
  catch (    Exception e) {
+      export.setErrorMessage(e.getMessage());
       export.setState(Export.State.FAILED);
       em.update(export);
       return;

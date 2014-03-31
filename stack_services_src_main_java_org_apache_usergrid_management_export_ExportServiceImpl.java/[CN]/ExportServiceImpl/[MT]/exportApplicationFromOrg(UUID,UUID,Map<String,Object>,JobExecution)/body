@@ -15,12 +15,17 @@
       continue;
     }
     if ((config.get("collectionName") == null) || collectionName.equals(config.get("collectionName"))) {
-      Query query;
+      Query query=null;
       if (config.get("query") == null) {
         query=new Query();
       }
  else {
-        query=Query.fromQL((String)config.get("query"));
+        try {
+          query=Query.fromQL((String)config.get("query"));
+        }
+ catch (        Exception e) {
+          export.setErrorMessage(e.getMessage());
+        }
       }
       query.setLimit(MAX_ENTITY_FETCH);
       query.setResultsLevel(Results.Level.ALL_PROPERTIES);
