@@ -1,27 +1,27 @@
 {
   File f=null;
-  String orgName="ed-organization";
-  String appName="testAppNotExported";
   try {
-    f=new File("exportOneApp.json");
+    f=new File("exportOneAppWQuery.json");
   }
  catch (  Exception e) {
   }
-  UUID appId=setup.getEmf().createApplication(orgName,appName);
-  EntityManager em=setup.getEmf().getEntityManager(appId);
+  f.deleteOnExit();
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
   Map<String,Object> userProperties=null;
   Entity[] entity;
   entity=new Entity[1];
   for (int i=0; i < 1; i++) {
     userProperties=new LinkedHashMap<String,Object>();
+    userProperties.put("name","me");
     userProperties.put("username","junkRealName");
-    userProperties.put("email","test" + i + "@anuff.com");
+    userProperties.put("email","burp" + i + "@anuff.com");
     entity[i]=em.create("users",userProperties);
   }
   S3Export s3Export=new MockS3ExportImpl();
-  s3Export.setFilename("exportOneApp.json");
+  s3Export.setFilename("exportOneAppWQuery.json");
   ExportService exportService=setup.getExportService();
   HashMap<String,Object> payload=payloadBuilder();
+  payload.put("query","select * where username = 'junkRealName'");
   payload.put("organizationId",organization.getUuid());
   payload.put("applicationId",applicationId);
   UUID exportUUID=exportService.schedule(payload);
@@ -35,12 +35,11 @@
   exportService.doExport(jobExecution);
   JSONParser parser=new JSONParser();
   org.json.simple.JSONArray a=(org.json.simple.JSONArray)parser.parse(new FileReader(f));
-  assertEquals(3,a.size());
+  assertEquals(1,a.size());
   for (int i=0; i < a.size(); i++) {
     org.json.simple.JSONObject data=(org.json.simple.JSONObject)a.get(i);
     org.json.simple.JSONObject entityData=(JSONObject)data.get("Metadata");
     String entityName=(String)entityData.get("name");
     assertFalse("junkRealName".equals(entityName));
   }
-  f.deleteOnExit();
 }

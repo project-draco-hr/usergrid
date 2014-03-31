@@ -15,9 +15,16 @@
       continue;
     }
     if ((config.get("collectionName") == null) || collectionName.equals(config.get("collectionName"))) {
-      Query query=new Query();
+      Query query;
+      if (config.get("query") == null) {
+        query=new Query();
+      }
+ else {
+        query=Query.fromQL((String)config.get("query"));
+      }
       query.setLimit(MAX_ENTITY_FETCH);
       query.setResultsLevel(Results.Level.ALL_PROPERTIES);
+      query.setCollection(collectionName);
       Results entities=em.searchCollection(em.getApplicationRef(),collectionName,query);
       PagingResultsIterator itr=new PagingResultsIterator(entities);
       for (      Object e : itr) {
