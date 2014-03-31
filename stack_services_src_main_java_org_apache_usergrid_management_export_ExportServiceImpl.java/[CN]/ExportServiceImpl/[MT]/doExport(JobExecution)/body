@@ -1,26 +1,30 @@
 {
   Map<String,Object> config=(Map<String,Object>)jobExecution.getJobData().getProperty("exportInfo");
+  UUID scopedAppId=(UUID)config.get("applicationId");
   if (config == null) {
     logger.error("Export Information passed through is null");
     return;
   }
   UUID exportId=(UUID)jobExecution.getJobData().getProperty(EXPORT_ID);
-  if (config.get("applicationId") == null) {
+  if (scopedAppId == null) {
     logger.error("Export Information application uuid is null");
     return;
   }
-  EntityManager em=emf.getEntityManager((UUID)config.get("applicationId"));
+  EntityManager em=emf.getEntityManager(scopedAppId);
   Export export=em.get(exportId,Export.class);
   export.setState(Export.State.STARTED);
   em.update(export);
-  if (config.get("collectionName") == null) {
+  if (em.getApplication().getApplicationName().equals("exporters")) {
+    exportApplicationsFromOrg((UUID)config.get("organizationId"),config,jobExecution);
+  }
+ else   if (config.get("collectionName") == null) {
     if (config.get("organizationId") == null) {
       logger.error("No organization could be found");
       export.setState(Export.State.FAILED);
       em.update(export);
       return;
     }
-    exportApplicationsForOrg((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution);
+    exportApplicationFromOrg((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution);
   }
  else {
     try {
@@ -30,7 +34,7 @@
         em.update(export);
         return;
       }
-      exportApplicationForOrg((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution);
+      exportCollectionFromOrgApp((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution);
     }
  catch (    Exception e) {
       export.setState(Export.State.FAILED);

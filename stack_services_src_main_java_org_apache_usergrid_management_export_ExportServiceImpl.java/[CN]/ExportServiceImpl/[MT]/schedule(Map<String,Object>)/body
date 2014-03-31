@@ -1,11 +1,12 @@
 {
+  ApplicationInfo defaultExportApp=null;
   if (config == null) {
     logger.error("export information cannot be null");
     return null;
   }
   if (config.get("applicationId") == null) {
-    logger.error("application information from export info could not be found");
-    return null;
+    defaultExportApp=managementService.createApplication((UUID)config.get("organizationId"),defaultAppExportname);
+    config.put("applicationId",defaultExportApp.getId());
   }
   EntityManager em=null;
   try {
