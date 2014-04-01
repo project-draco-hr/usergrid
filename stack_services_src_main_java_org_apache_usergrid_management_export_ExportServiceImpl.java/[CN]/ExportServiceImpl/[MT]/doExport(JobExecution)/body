@@ -1,15 +1,10 @@
 {
   Map<String,Object> config=(Map<String,Object>)jobExecution.getJobData().getProperty("exportInfo");
-  UUID scopedAppId=(UUID)config.get("applicationId");
   if (config == null) {
     logger.error("Export Information passed through is null");
     return;
   }
   UUID exportId=(UUID)jobExecution.getJobData().getProperty(EXPORT_ID);
-  if (scopedAppId == null) {
-    logger.error("Export Information application uuid is null");
-    return;
-  }
   EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
   Export export=em.get(exportId,Export.class);
   export.setState(Export.State.STARTED);
