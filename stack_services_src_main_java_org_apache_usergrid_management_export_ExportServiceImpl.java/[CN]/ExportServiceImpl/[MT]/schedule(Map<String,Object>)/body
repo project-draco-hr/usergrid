@@ -5,7 +5,11 @@
     return null;
   }
   if (config.get("applicationId") == null) {
-    defaultExportApp=managementService.createApplication((UUID)config.get("organizationId"),defaultAppExportname);
+    ApplicationInfo appExists=managementService.getApplicationInfo("exporters");
+    if (appExists == null) {
+      defaultExportApp=managementService.createApplication((UUID)config.get("organizationId"),defaultAppExportname);
+    }
+ else     defaultExportApp=appExists;
     config.put("applicationId",defaultExportApp.getId());
   }
   EntityManager em=null;
