@@ -10,11 +10,17 @@
     logger.error("Export Information application uuid is null");
     return;
   }
-  EntityManager em=emf.getEntityManager(scopedAppId);
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
   Export export=em.get(exportId,Export.class);
   export.setState(Export.State.STARTED);
   em.update(export);
-  if (em.getApplication().getApplicationName().equals("exporters")) {
+  if (config.get("organizationId") == null) {
+    logger.error("No organization could be found");
+    export.setState(Export.State.FAILED);
+    em.update(export);
+    return;
+  }
+ else   if (config.get("applicationId") == null) {
     try {
       exportApplicationsFromOrg((UUID)config.get("organizationId"),config,jobExecution);
     }
@@ -22,15 +28,10 @@
       export.setErrorMessage(e.getMessage());
       export.setState(Export.State.FAILED);
       em.update(export);
+      return;
     }
   }
  else   if (config.get("collectionName") == null) {
-    if (config.get("organizationId") == null) {
-      logger.error("No organization could be found");
-      export.setState(Export.State.FAILED);
-      em.update(export);
-      return;
-    }
     try {
       exportApplicationFromOrg((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution);
     }
@@ -38,16 +39,11 @@
       export.setErrorMessage(e.getMessage());
       export.setState(Export.State.FAILED);
       em.update(export);
+      return;
     }
   }
  else {
     try {
-      if (config.get("organizationId") == null) {
-        logger.error("No organization could be found");
-        export.setState(Export.State.FAILED);
-        em.update(export);
-        return;
-      }
       try {
         exportCollectionFromOrgApp((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution);
       }
@@ -55,6 +51,7 @@
         export.setErrorMessage(e.getMessage());
         export.setState(Export.State.FAILED);
         em.update(export);
+        return;
       }
     }
  catch (    Exception e) {
