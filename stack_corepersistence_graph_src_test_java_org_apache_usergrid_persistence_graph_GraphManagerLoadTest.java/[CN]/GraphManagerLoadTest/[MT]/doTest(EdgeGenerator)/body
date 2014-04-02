@@ -1,0 +1,11 @@
+{
+  ExecutorService executor=Executors.newFixedThreadPool(numWorkers);
+  List<Future<Boolean>> futures=new ArrayList<Future<Boolean>>(numWorkers);
+  for (int i=0; i < numWorkers; i++) {
+    Future<Boolean> future=executor.submit(new Worker(generator,writeLimit,readCount));
+    futures.add(future);
+  }
+  for (  Future<Boolean> future : futures) {
+    future.get();
+  }
+}
