@@ -1,4 +1,5 @@
 {
+  fn=filename;
   Logger logger=LoggerFactory.getLogger(ExportServiceImpl.class);
   Map<String,Object> properties=(Map<String,Object>)exportInfo.get("properties");
   Map<String,Object> storage_info=(Map<String,Object>)properties.get("storage_info");
@@ -23,7 +24,7 @@
   }
   try {
     AsyncBlobStore blobStore=context.getAsyncBlobStore();
-    BlobBuilder blobBuilder=blobStore.blobBuilder(filename).payload(inputStream).calculateMD5().contentType("text/plain");
+    BlobBuilder blobBuilder=blobStore.blobBuilder(fn).payload(inputStream).calculateMD5().contentType("text/plain");
     Blob blob=blobBuilder.build();
     ListenableFuture<String> futureETag=blobStore.putBlob(bucketName,blob,PutOptions.Builder.multipart());
     logger.info("Uploaded file etag=" + futureETag.get());
