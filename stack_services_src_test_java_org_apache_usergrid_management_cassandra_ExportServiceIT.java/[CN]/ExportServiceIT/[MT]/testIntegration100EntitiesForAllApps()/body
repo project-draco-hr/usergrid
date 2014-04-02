@@ -23,11 +23,7 @@
   payload.put("organizationId",orgMade.getUuid());
   UUID exportUUID=exportService.schedule(payload);
   assertNotNull(exportUUID);
-  exportService.setS3Export(s3Export);
-  JobData jobData=new JobData();
-  jobData.setProperty("jobName","exportJob");
-  jobData.setProperty("exportInfo",payload);
-  jobData.setProperty("exportId",exportUUID);
+  JobData jobData=jobDataCreator(payload,exportUUID,s3Export);
   JobExecution jobExecution=mock(JobExecution.class);
   when(jobExecution.getJobData()).thenReturn(jobData);
   exportService.doExport(jobExecution);

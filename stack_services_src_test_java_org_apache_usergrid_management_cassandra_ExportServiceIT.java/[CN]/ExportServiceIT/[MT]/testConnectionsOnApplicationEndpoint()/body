@@ -5,8 +5,7 @@
   }
  catch (  Exception e) {
   }
-  S3Export s3Export=new MockS3ExportImpl();
-  s3Export.setFilename("testConnectionsOnApplicationEndpoint.json");
+  S3Export s3Export=new MockS3ExportImpl("testConnectionsOnApplicationEndpoint.json");
   ExportService exportService=setup.getExportService();
   HashMap<String,Object> payload=payloadBuilder();
   payload.put("organizationId",organization.getUuid());
@@ -24,11 +23,7 @@
   em.createConnection(em.getRef(entity[0].getUuid()),"Vibrations",em.getRef(entity[1].getUuid()));
   em.createConnection(em.getRef(entity[1].getUuid()),"Vibrations",em.getRef(entity[0].getUuid()));
   UUID exportUUID=exportService.schedule(payload);
-  exportService.setS3Export(s3Export);
-  JobData jobData=new JobData();
-  jobData.setProperty("jobName","exportJob");
-  jobData.setProperty("exportInfo",payload);
-  jobData.setProperty("exportId",exportUUID);
+  JobData jobData=jobDataCreator(payload,exportUUID,s3Export);
   JobExecution jobExecution=mock(JobExecution.class);
   when(jobExecution.getJobData()).thenReturn(jobData);
   exportService.doExport(jobExecution);

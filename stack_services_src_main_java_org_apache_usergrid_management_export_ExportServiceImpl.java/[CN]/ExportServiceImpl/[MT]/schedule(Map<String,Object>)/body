@@ -1,5 +1,6 @@
 {
   ApplicationInfo defaultExportApp=null;
+  S3Export exportTransfer=new S3ExportImpl();
   if (config == null) {
     logger.error("export information cannot be null");
     return null;
@@ -29,6 +30,7 @@
   JobData jobData=new JobData();
   jobData.setProperty("exportInfo",config);
   jobData.setProperty(EXPORT_ID,export.getUuid());
+  jobData.setProperty("s3Export",exportTransfer);
   long soonestPossible=System.currentTimeMillis() + 250;
   sch.createJob(EXPORT_JOB_NAME,soonestPossible,jobData);
   export.setState(Export.State.SCHEDULED);

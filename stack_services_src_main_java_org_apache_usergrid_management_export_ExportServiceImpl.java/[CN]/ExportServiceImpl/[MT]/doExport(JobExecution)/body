@@ -1,5 +1,6 @@
 {
   Map<String,Object> config=(Map<String,Object>)jobExecution.getJobData().getProperty("exportInfo");
+  S3Export s3Export=(S3Export)jobExecution.getJobData().getProperty("s3Export");
   if (config == null) {
     logger.error("Export Information passed through is null");
     return;
@@ -17,7 +18,7 @@
   }
  else   if (config.get("applicationId") == null) {
     try {
-      exportApplicationsFromOrg((UUID)config.get("organizationId"),config,jobExecution);
+      exportApplicationsFromOrg((UUID)config.get("organizationId"),config,jobExecution,s3Export);
     }
  catch (    Exception e) {
       export.setErrorMessage(e.getMessage());
@@ -28,7 +29,7 @@
   }
  else   if (config.get("collectionName") == null) {
     try {
-      exportApplicationFromOrg((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution);
+      exportApplicationFromOrg((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution,s3Export);
     }
  catch (    Exception e) {
       export.setErrorMessage(e.getMessage());
@@ -40,7 +41,7 @@
  else {
     try {
       try {
-        exportCollectionFromOrgApp((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution);
+        exportCollectionFromOrgApp((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution,s3Export);
       }
  catch (      Exception e) {
         export.setErrorMessage(e.getMessage());

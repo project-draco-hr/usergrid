@@ -18,19 +18,14 @@
     userProperties.put("email","test" + i + "@anuff.com");
     entity[i]=em.create("qts",userProperties);
   }
-  S3Export s3Export=new MockS3ExportImpl();
-  s3Export.setFilename("exportOneCollection.json");
+  S3Export s3Export=new MockS3ExportImpl("exportOneCollection.json");
   ExportService exportService=setup.getExportService();
   HashMap<String,Object> payload=payloadBuilder();
   payload.put("organizationId",organization.getUuid());
   payload.put("applicationId",applicationId);
   payload.put("collectionName","qts");
   UUID exportUUID=exportService.schedule(payload);
-  exportService.setS3Export(s3Export);
-  JobData jobData=new JobData();
-  jobData.setProperty("jobName","exportJob");
-  jobData.setProperty("exportInfo",payload);
-  jobData.setProperty("exportId",exportUUID);
+  JobData jobData=jobDataCreator(payload,exportUUID,s3Export);
   JobExecution jobExecution=mock(JobExecution.class);
   when(jobExecution.getJobData()).thenReturn(jobData);
   exportService.doExport(jobExecution);

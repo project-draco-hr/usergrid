@@ -6,19 +6,14 @@
  catch (  Exception e) {
   }
   setup.getMgmtSvc().createOwnerAndOrganization("noExport","junkUserName","junkRealName","ugExport@usergrid.com","123456789");
-  S3Export s3Export=new MockS3ExportImpl();
-  s3Export.setFilename("exportOneOrg.json");
+  S3Export s3Export=new MockS3ExportImpl("exportOneOrg.json");
   ExportService exportService=setup.getExportService();
   HashMap<String,Object> payload=payloadBuilder();
   payload.put("organizationId",organization.getUuid());
   payload.put("applicationId",applicationId);
   payload.put("collectionName","roles");
   UUID exportUUID=exportService.schedule(payload);
-  exportService.setS3Export(s3Export);
-  JobData jobData=new JobData();
-  jobData.setProperty("jobName","exportJob");
-  jobData.setProperty("exportInfo",payload);
-  jobData.setProperty("exportId",exportUUID);
+  JobData jobData=jobDataCreator(payload,exportUUID,s3Export);
   JobExecution jobExecution=mock(JobExecution.class);
   when(jobExecution.getJobData()).thenReturn(jobData);
   exportService.doExport(jobExecution);

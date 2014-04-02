@@ -17,19 +17,14 @@
     userProperties.put("email","burp" + i + "@anuff.com");
     entity[i]=em.create("users",userProperties);
   }
-  S3Export s3Export=new MockS3ExportImpl();
-  s3Export.setFilename("exportOneAppWQuery.json");
+  S3Export s3Export=new MockS3ExportImpl("exportOneAppWQuery.json");
   ExportService exportService=setup.getExportService();
   HashMap<String,Object> payload=payloadBuilder();
   payload.put("query","select * where username = 'junkRealName'");
   payload.put("organizationId",organization.getUuid());
   payload.put("applicationId",applicationId);
   UUID exportUUID=exportService.schedule(payload);
-  exportService.setS3Export(s3Export);
-  JobData jobData=new JobData();
-  jobData.setProperty("jobName","exportJob");
-  jobData.setProperty("exportInfo",payload);
-  jobData.setProperty("exportId",exportUUID);
+  JobData jobData=jobDataCreator(payload,exportUUID,s3Export);
   JobExecution jobExecution=mock(JobExecution.class);
   when(jobExecution.getJobData()).thenReturn(jobData);
   exportService.doExport(jobExecution);
