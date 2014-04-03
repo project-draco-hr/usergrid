@@ -1,5 +1,6 @@
 {
   Map<String,Object> config=(Map<String,Object>)jobExecution.getJobData().getProperty("exportInfo");
+  Object s3PlaceHolder=jobExecution.getJobData().getProperty("s3Export");
   S3Export s3Export=null;
   if (config == null) {
     logger.error("Export Information passed through is null");
@@ -11,10 +12,14 @@
   export.setState(Export.State.STARTED);
   em.update(export);
   try {
-    s3Export=(S3Export)jobExecution.getJobData().getProperty("s3Export");
+    if (s3PlaceHolder != null) {
+      s3Export=(S3Export)s3PlaceHolder;
+    }
+ else     s3Export=new S3ExportImpl();
   }
  catch (  Exception e) {
     logger.error("S3Export doesn't exist");
+    export.setErrorMessage(e.getMessage());
     export.setState(Export.State.FAILED);
     em.update(export);
     return;
