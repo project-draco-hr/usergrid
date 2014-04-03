@@ -1,0 +1,9 @@
+{
+  this.graphs=CacheBuilder.newBuilder().maximumSize(graphFig.getCacheSize()).expireAfterWrite(graphFig.getCacheTimeout(),TimeUnit.MILLISECONDS).build(new CacheLoader<CacheKey,CacheEntry>(){
+    @Override public CacheEntry load(    final CacheKey key) throws Exception {
+      final List<UUID> edges=edgeSeriesSerialization.getEdgeMetaData(key.scope,key.id,key.types);
+      return new CacheEntry(edges);
+    }
+  }
+);
+}

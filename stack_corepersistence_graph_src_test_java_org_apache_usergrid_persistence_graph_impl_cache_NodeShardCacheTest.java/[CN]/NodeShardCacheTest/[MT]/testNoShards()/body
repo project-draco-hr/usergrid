@@ -1,0 +1,17 @@
+{
+  final GraphFig graphFig=getFigMock();
+  final EdgeSeriesSerialization serialization=mock(EdgeSeriesSerialization.class);
+  final Id id=createId("test");
+  final String edgeType="edge";
+  final String otherIdType="type";
+  UUID newTime=UUIDGenerator.newTimeUUID();
+  NodeShardCache cache=new NodeShardCacheImpl(serialization,graphFig);
+  when(serialization.getEdgeMetaData(same(scope),same(id),same(edgeType),same(otherIdType))).thenReturn(Collections.<UUID>emptyList());
+  final MutationBatch batch=mock(MutationBatch.class);
+  when(serialization.writeEdgeMeta(same(scope),same(id),any(UUID.class),same(edgeType),same(otherIdType))).thenReturn(batch);
+  final UUID min=new UUID(0,1);
+  UUID slice=cache.getSlice(scope,id,newTime,edgeType,otherIdType);
+  assertEquals(min,slice);
+  verify(serialization).writeEdgeMeta(scope,id,slice,edgeType,otherIdType);
+  verify(batch).execute();
+}

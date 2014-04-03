@@ -1,0 +1,25 @@
+{
+  final CacheKey key=new CacheKey(scope,nodeId,edgeType);
+  CacheEntry entry;
+  try {
+    entry=this.graphs.get(key);
+  }
+ catch (  ExecutionException e) {
+    throw new RuntimeException("Unable to load cache key for graph",e);
+  }
+  List<UUID> shards=entry.getShardId(time,1);
+  if (shards == null || shards.size() == 0) {
+    try {
+      edgeSeriesSerialization.writeEdgeMeta(scope,nodeId,MIN_UUID,edgeType).execute();
+    }
+ catch (    ConnectionException e) {
+      throw new RuntimeException("Unable to write edge meta data",e);
+    }
+    return MIN_UUID;
+  }
+  final UUID shardId=entry.getShardId(time,1).get(0);
+  if (shardId != null) {
+    return shardId;
+  }
+  throw new RuntimeException("No time UUID shard was found and could not allocate one");
+}
