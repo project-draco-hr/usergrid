@@ -1,6 +1,6 @@
 {
   Map<String,Object> config=(Map<String,Object>)jobExecution.getJobData().getProperty("exportInfo");
-  S3Export s3Export=(S3Export)jobExecution.getJobData().getProperty("s3Export");
+  S3Export s3Export=null;
   if (config == null) {
     logger.error("Export Information passed through is null");
     return;
@@ -10,6 +10,15 @@
   Export export=em.get(exportId,Export.class);
   export.setState(Export.State.STARTED);
   em.update(export);
+  try {
+    s3Export=(S3Export)jobExecution.getJobData().getProperty("s3Export");
+  }
+ catch (  Exception e) {
+    logger.error("S3Export doesn't exist");
+    export.setState(Export.State.FAILED);
+    em.update(export);
+    return;
+  }
   if (config.get("organizationId") == null) {
     logger.error("No organization could be found");
     export.setState(Export.State.FAILED);
