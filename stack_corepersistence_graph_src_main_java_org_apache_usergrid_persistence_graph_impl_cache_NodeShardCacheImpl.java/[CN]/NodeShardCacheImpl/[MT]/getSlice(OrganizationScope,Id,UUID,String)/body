@@ -7,17 +7,7 @@
  catch (  ExecutionException e) {
     throw new RuntimeException("Unable to load cache key for graph",e);
   }
-  List<UUID> shards=entry.getShardId(time,1);
-  if (shards == null || shards.size() == 0) {
-    try {
-      edgeSeriesSerialization.writeEdgeMeta(scope,nodeId,MIN_UUID,edgeType).execute();
-    }
- catch (    ConnectionException e) {
-      throw new RuntimeException("Unable to write edge meta data",e);
-    }
-    return MIN_UUID;
-  }
-  final UUID shardId=entry.getShardId(time,1).get(0);
+  final UUID shardId=entry.getShardId(time);
   if (shardId != null) {
     return shardId;
   }
