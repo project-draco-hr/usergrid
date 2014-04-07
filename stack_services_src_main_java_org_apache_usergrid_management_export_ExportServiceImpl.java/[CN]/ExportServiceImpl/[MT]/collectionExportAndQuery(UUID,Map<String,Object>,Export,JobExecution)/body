@@ -2,7 +2,7 @@
   EntityManager em=emf.getEntityManager(applicationUUID);
   Map<String,Object> metadata=em.getApplicationCollectionMetadata();
   long starting_time=System.currentTimeMillis();
-  File ephemeral=new File("tempExport" + starting_time);
+  File ephemeral=new File("tempExport" + UUID.randomUUID());
   JsonGenerator jg=getJsonGenerator(ephemeral);
   jg.writeStartArray();
   for (  String collectionName : metadata.keySet()) {
@@ -35,10 +35,12 @@
         jg.writeObject(entity);
         saveCollectionMembers(jg,em,(String)config.get("collectionName"),entity);
         jg.writeEndObject();
+        jg.flush();
       }
     }
   }
   jg.writeEndArray();
+  jg.flush();
   jg.close();
   return ephemeral;
 }
