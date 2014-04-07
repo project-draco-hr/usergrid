@@ -2,8 +2,8 @@
   EntityManager em=emf.getEntityManager(applicationUUID);
   Map<String,Object> metadata=em.getApplicationCollectionMetadata();
   long starting_time=System.currentTimeMillis();
-  ByteArrayOutputStream baos=new ByteArrayOutputStream();
-  JsonGenerator jg=getJsonGenerator(baos);
+  File ephemeral=new File("tempExport" + starting_time);
+  JsonGenerator jg=getJsonGenerator(ephemeral);
   jg.writeStartArray();
   for (  String collectionName : metadata.keySet()) {
     if (collectionName.equals("exports")) {
@@ -40,7 +40,5 @@
   }
   jg.writeEndArray();
   jg.close();
-  baos.flush();
-  baos.close();
-  return baos;
+  return ephemeral;
 }
