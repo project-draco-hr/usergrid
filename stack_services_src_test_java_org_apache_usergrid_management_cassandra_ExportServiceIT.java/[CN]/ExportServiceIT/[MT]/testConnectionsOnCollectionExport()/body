@@ -1,0 +1,48 @@
+{
+  File f=null;
+  int indexCon=0;
+  try {
+    f=new File("testFileConnections.json");
+  }
+ catch (  Exception e) {
+  }
+  f.deleteOnExit();
+  S3Export s3Export=new MockS3ExportImpl("testFileConnections.json");
+  ExportService exportService=setup.getExportService();
+  HashMap<String,Object> payload=payloadBuilder();
+  payload.put("organizationId",organization.getUuid());
+  payload.put("applicationId",applicationId);
+  payload.put("collectionName","users");
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  Map<String,Object> userProperties=null;
+  Entity[] entity;
+  entity=new Entity[2];
+  for (int i=0; i < 2; i++) {
+    userProperties=new LinkedHashMap<String,Object>();
+    userProperties.put("username","meatIsGreat" + i);
+    userProperties.put("email","grey" + i + "@anuff.com");
+    entity[i]=em.create("users",userProperties);
+  }
+  em.createConnection(em.getRef(entity[0].getUuid()),"Vibrations",em.getRef(entity[1].getUuid()));
+  em.createConnection(em.getRef(entity[1].getUuid()),"Vibrations",em.getRef(entity[0].getUuid()));
+  UUID exportUUID=exportService.schedule(payload);
+  JobData jobData=jobDataCreator(payload,exportUUID,s3Export);
+  JobExecution jobExecution=mock(JobExecution.class);
+  when(jobExecution.getJobData()).thenReturn(jobData);
+  exportService.doExport(jobExecution);
+  JSONParser parser=new JSONParser();
+  org.json.simple.JSONArray a=(org.json.simple.JSONArray)parser.parse(new FileReader(f));
+  for (indexCon=0; indexCon < a.size(); indexCon++) {
+    JSONObject jObj=(JSONObject)a.get(indexCon);
+    JSONObject data=(JSONObject)jObj.get("Metadata");
+    String uuid=(String)data.get("uuid");
+    if (entity[0].getUuid().toString().equals(uuid)) {
+      break;
+    }
+  }
+  org.json.simple.JSONObject objEnt=(org.json.simple.JSONObject)a.get(indexCon);
+  org.json.simple.JSONObject objConnections=(org.json.simple.JSONObject)objEnt.get("connections");
+  assertNotNull(objConnections);
+  org.json.simple.JSONArray objVibrations=(org.json.simple.JSONArray)objConnections.get("Vibrations");
+  assertNotNull(objVibrations);
+}

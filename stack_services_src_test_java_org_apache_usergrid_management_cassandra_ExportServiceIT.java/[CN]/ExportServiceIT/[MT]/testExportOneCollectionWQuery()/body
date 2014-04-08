@@ -1,0 +1,36 @@
+{
+  File f=null;
+  int entitiesToCreate=5;
+  try {
+    f=new File("exportOneCollectionWQuery.json");
+  }
+ catch (  Exception e) {
+  }
+  f.deleteOnExit();
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  em.createApplicationCollection("baconators");
+  Map<String,Object> userProperties=null;
+  Entity[] entity;
+  entity=new Entity[entitiesToCreate];
+  for (int i=0; i < entitiesToCreate; i++) {
+    userProperties=new LinkedHashMap<String,Object>();
+    userProperties.put("username","billybob" + i);
+    userProperties.put("email","test" + i + "@anuff.com");
+    entity[i]=em.create("baconators",userProperties);
+  }
+  S3Export s3Export=new MockS3ExportImpl("exportOneCollectionWQuery.json");
+  ExportService exportService=setup.getExportService();
+  HashMap<String,Object> payload=payloadBuilder();
+  payload.put("query","select * where username contains 'billybob0'");
+  payload.put("organizationId",organization.getUuid());
+  payload.put("applicationId",applicationId);
+  payload.put("collectionName","baconators");
+  UUID exportUUID=exportService.schedule(payload);
+  JobData jobData=jobDataCreator(payload,exportUUID,s3Export);
+  JobExecution jobExecution=mock(JobExecution.class);
+  when(jobExecution.getJobData()).thenReturn(jobData);
+  exportService.doExport(jobExecution);
+  JSONParser parser=new JSONParser();
+  org.json.simple.JSONArray a=(org.json.simple.JSONArray)parser.parse(new FileReader(f));
+  assertEquals(1,a.size());
+}
