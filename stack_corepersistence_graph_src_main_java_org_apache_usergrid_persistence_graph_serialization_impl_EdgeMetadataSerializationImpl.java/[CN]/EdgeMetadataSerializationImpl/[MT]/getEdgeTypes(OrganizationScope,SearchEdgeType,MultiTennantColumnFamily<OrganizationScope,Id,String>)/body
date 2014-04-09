@@ -2,12 +2,7 @@
   ValidationUtils.validateOrganizationScope(scope);
   EdgeUtils.validateSearchEdgeType(search);
   final ScopedRowKey<OrganizationScope,Id> sourceKey=new ScopedRowKey<OrganizationScope,Id>(scope,search.getNode());
-  final RangeBuilder rangeBuilder=new RangeBuilder().setLimit(graphFig.getScanPageSize()).setStart(search.getLast().or(""));
+  final RangeBuilder rangeBuilder=new RangeBuilder().setLimit(cassandraConfig.getScanPageSize()).setStart(search.getLast().or(""));
   RowQuery<ScopedRowKey<OrganizationScope,Id>,String> query=keyspace.prepareQuery(cf).getKey(sourceKey).autoPaginate(true).withColumnRange(rangeBuilder.build());
-  try {
-    return new ColumnNameIterator<String,String>(query.execute().getResult().iterator(),PARSER,search.getLast().isPresent());
-  }
- catch (  ConnectionException e) {
-    throw new RuntimeException("Unable to connect to cassandra",e);
-  }
+  return new ColumnNameIterator<String,String>(query,PARSER,search.getLast().isPresent(),graphFig.getReadTimeout());
 }

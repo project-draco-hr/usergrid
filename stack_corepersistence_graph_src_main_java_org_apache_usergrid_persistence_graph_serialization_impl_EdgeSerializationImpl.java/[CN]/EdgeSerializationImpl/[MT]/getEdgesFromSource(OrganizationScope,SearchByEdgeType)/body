@@ -3,7 +3,8 @@
   EdgeUtils.validateSearchByEdgeType(edgeType);
   final Id sourceId=edgeType.getNode();
   final String type=edgeType.getType();
-  return getEdges(GRAPH_SOURCE_NODE_EDGES,new EdgeSearcher<RowKey>(scope,edgeType.last()){
+  final UUID maxVersion=edgeType.getMaxVersion();
+  return getEdges(GRAPH_SOURCE_NODE_EDGES,new EdgeSearcher<RowKey>(scope,maxVersion,edgeType.last()){
     @Override protected RowKey generateRowKey(){
       return new RowKey(sourceId,type);
     }

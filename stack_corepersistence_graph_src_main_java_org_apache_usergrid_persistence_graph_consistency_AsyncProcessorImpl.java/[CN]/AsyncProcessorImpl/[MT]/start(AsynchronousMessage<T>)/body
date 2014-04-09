@@ -1,0 +1,31 @@
+{
+  final T data=event.getEvent();
+  List<Observable<?>> observables=new ArrayList<Observable<?>>(listeners.size());
+  for (  MessageListener<T,T> listener : listeners) {
+    observables.add(HystrixGraphObservable.async(listener.receive(data)));
+  }
+  LOG.debug("About to start {} observables for event {}",listeners.size(),event);
+  Observable.zip(observables,new FuncN<AsynchronousMessage<T>>(){
+    @Override public AsynchronousMessage<T> call(    final Object... args){
+      return event;
+    }
+  }
+).subscribe(new Subscriber<AsynchronousMessage<T>>(){
+    @Override public void onCompleted(){
+      LOG.debug("Successfully completed processing for event {}",event);
+      queue.remove(event);
+      for (      CompleteListener<T> listener : completeListeners) {
+        listener.onComplete(event);
+      }
+    }
+    @Override public void onError(    final Throwable throwable){
+      LOG.error("Unable to process async event",throwable);
+      for (      ErrorListener listener : errorListeners) {
+        listener.onError(event,throwable);
+      }
+    }
+    @Override public void onNext(    final AsynchronousMessage<T> tAsynchronousMessage){
+    }
+  }
+);
+}

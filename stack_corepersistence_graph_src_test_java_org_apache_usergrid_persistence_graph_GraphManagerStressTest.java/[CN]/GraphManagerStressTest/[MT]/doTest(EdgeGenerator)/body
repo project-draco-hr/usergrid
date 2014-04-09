@@ -1,0 +1,37 @@
+{
+  GraphManager manager=factory.createEdgeManager(scope);
+  int limit=10000;
+  final StopWatch timer=new StopWatch();
+  timer.start();
+  final Set<Edge> ids=new HashSet<Edge>(limit);
+  for (int i=0; i < limit; i++) {
+    Edge edge=generator.newEdge();
+    Edge returned=manager.writeEdge(edge).toBlockingObservable().last();
+    assertNotNull("Returned has a version",returned.getVersion());
+    ids.add(returned);
+    if (i % 1000 == 0) {
+      log.info("   Wrote: " + i);
+    }
+  }
+  timer.stop();
+  log.info("Total time to write {} entries {}ms",limit,timer.getTime());
+  timer.reset();
+  timer.start();
+  final CountDownLatch latch=new CountDownLatch(1);
+  generator.doSearch(manager).subscribe(new Subscriber<Edge>(){
+    @Override public void onCompleted(){
+      timer.stop();
+      latch.countDown();
+    }
+    @Override public void onError(    final Throwable throwable){
+      fail("Exception occurced " + throwable);
+    }
+    @Override public void onNext(    final Edge edge){
+      ids.remove(edge);
+    }
+  }
+);
+  latch.await();
+  assertEquals(0,ids.size());
+  log.info("Total time to read {} entries {}ms",limit,timer.getTime());
+}

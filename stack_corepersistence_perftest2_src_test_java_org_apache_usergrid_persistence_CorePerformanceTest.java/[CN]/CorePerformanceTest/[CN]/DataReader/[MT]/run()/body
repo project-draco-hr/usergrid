@@ -1,0 +1,18 @@
+{
+  Id orgId=scope.getOrganization();
+  Id appId=scope.getOwner();
+  EntityCollectionManager ecm=getEcmf().createCollectionManager(scope);
+  EntityCollectionIndex eci=getEcif().createCollectionIndex(scope);
+  Query query=Query.fromQL("review_score > 0");
+  query.withLimit(maxEntities < 1000 ? maxEntities : 1000);
+  Results results=eci.execute(query);
+  results.getEntities();
+  int count=results.size();
+  while (results.hasCursor() && count < maxEntities) {
+    query.setCursor(results.getCursor());
+    results=eci.execute(query);
+    results.getEntities();
+    count+=results.size();
+    log.info("Read {} reviews in {} / {} ",count,orgId,appId);
+  }
+}
