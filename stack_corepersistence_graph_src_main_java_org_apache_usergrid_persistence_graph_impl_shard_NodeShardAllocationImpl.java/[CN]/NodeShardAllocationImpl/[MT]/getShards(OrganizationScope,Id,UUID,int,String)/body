@@ -1,3 +1,31 @@
 {
-  return edgeSeriesSerialization.getEdgeMetaData(scope,nodeId,maxShardId,pageSize,edgeTypes);
+  final Iterator<UUID> existingShards=edgeSeriesSerialization.getEdgeMetaData(scope,nodeId,maxShardId,pageSize,edgeTypes);
+  final PushbackIterator<UUID> pushbackIterator=new PushbackIterator(existingShards);
+  final UUID now=UUIDGenerator.newTimeUUID(timeService.getCurrentTime());
+  final List<UUID> futures=new ArrayList<UUID>();
+  while (pushbackIterator.hasNext()) {
+    final UUID value=pushbackIterator.next();
+    if (UUIDComparator.staticCompare(now,value) > 0) {
+      pushbackIterator.pushback(value);
+      break;
+    }
+    futures.add(value);
+  }
+  MutationBatch cleanup=keyspace.prepareMutationBatch();
+  for (int i=futures.size() - 2; i > 0; i--) {
+    final UUID toRemove=futures.get(i);
+    final MutationBatch batch=edgeSeriesSerialization.removeEdgeMeta(scope,nodeId,toRemove,edgeTypes);
+    cleanup.mergeShallow(batch);
+  }
+  try {
+    cleanup.execute();
+  }
+ catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to remove future shards, mutation error",e);
+  }
+  final int futuresSize=futures.size();
+  if (futuresSize > 0) {
+    pushbackIterator.pushback(futures.get(futuresSize - 1));
+  }
+  return pushbackIterator;
 }

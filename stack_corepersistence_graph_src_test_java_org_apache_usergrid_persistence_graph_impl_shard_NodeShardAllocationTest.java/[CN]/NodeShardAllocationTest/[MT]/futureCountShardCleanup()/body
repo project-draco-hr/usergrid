@@ -1,0 +1,38 @@
+{
+  final EdgeSeriesSerialization edgeSeriesSerialization=mock(EdgeSeriesSerialization.class);
+  final EdgeSeriesCounterSerialization edgeSeriesCounterSerialization=mock(EdgeSeriesCounterSerialization.class);
+  final TimeService timeService=mock(TimeService.class);
+  final Keyspace keyspace=mock(Keyspace.class);
+  final MutationBatch batch=mock(MutationBatch.class);
+  when(keyspace.prepareMutationBatch()).thenReturn(batch);
+  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeSeriesSerialization,edgeSeriesCounterSerialization,timeService,graphFig,keyspace);
+  final Id nodeId=createId("test");
+  final String type="type";
+  final String subType="subType";
+  final long timeservicetime=System.currentTimeMillis();
+  when(timeService.getCurrentTime()).thenReturn(timeservicetime);
+  assertTrue("Shard cache mocked",graphFig.getShardCacheTimeout() > 0);
+  final long futureTime=timeService.getCurrentTime() + 2 * graphFig.getShardCacheTimeout();
+  assertTrue("Future time is actually in the future",futureTime > timeService.getCurrentTime());
+  UUID futureUUID1=UUIDGenerator.newTimeUUID(futureTime);
+  UUID futureUUID2=UUIDGenerator.newTimeUUID(futureTime + 1);
+  UUID futureUUID3=UUIDGenerator.newTimeUUID(futureTime + 2);
+  UUID now=UUIDGenerator.newTimeUUID(timeService.getCurrentTime());
+  assertTrue(UUIDComparator.staticCompare(futureUUID1,now) > 0);
+  assertTrue(UUIDComparator.staticCompare(futureUUID2,now) > 0);
+  assertTrue(UUIDComparator.staticCompare(futureUUID3,now) > 0);
+  final int pageSize=100;
+  when(edgeSeriesSerialization.getEdgeMetaData(same(scope),same(nodeId),any(UUID.class),eq(pageSize),same(type),same(subType))).thenReturn(Arrays.asList(futureUUID3,futureUUID2,futureUUID1,Constants.MIN_UUID).iterator());
+  ArgumentCaptor<UUID> newUUIDValue=ArgumentCaptor.forClass(UUID.class);
+  when(edgeSeriesSerialization.removeEdgeMeta(same(scope),same(nodeId),newUUIDValue.capture(),same(type),same(subType))).thenReturn(mock(MutationBatch.class));
+  final Iterator<UUID> result=approximation.getShards(scope,nodeId,Constants.MAX_UUID,pageSize,type,subType);
+  assertTrue("Shards present",result.hasNext());
+  assertEquals("Only single next shard returned",futureUUID1,result.next());
+  assertTrue("Shards present",result.hasNext());
+  assertEquals("Previous shard present",Constants.MIN_UUID,result.next());
+  assertFalse("No shards left",result.hasNext());
+  List<UUID> values=newUUIDValue.getAllValues();
+  assertEquals("2 values removed",values.size());
+  assertEquals("Deleted Max Future",futureUUID3,values.get(0));
+  assertEquals("Deleted Next Future",futureUUID2,values.get(1));
+}

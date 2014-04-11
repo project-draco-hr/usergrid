@@ -1,40 +1,24 @@
 {
-  final UUID now=UUIDGenerator.newTimeUUID();
-  Iterator<UUID> maxShards=getShards(scope,nodeId,MAX_UUID,1,edgeType);
-  if (maxShards.hasNext() && UUIDComparator.staticCompare(now,maxShards.next()) < 0) {
+  final UUID now=UUIDGenerator.newTimeUUID(timeService.getCurrentTime());
+  final Iterator<UUID> maxShards=getShards(scope,nodeId,MAX_UUID,1,edgeType);
+  if (!maxShards.hasNext()) {
     return false;
   }
-  final long newShardTime=timeService.getCurrentTime() + graphFig.getCacheTimeout() * 2;
+  final UUID maxShard=maxShards.next();
+  if (UUIDComparator.staticCompare(maxShard,now) > 0) {
+    return false;
+  }
+  final long count=edgeSeriesCounterSerialization.getCount(scope,nodeId,maxShard,edgeType);
+  if (count < graphFig.getShardSize()) {
+    return false;
+  }
+  final long newShardTime=timeService.getCurrentTime() + graphFig.getShardCacheTimeout() * 2;
   final UUID futureUUID=UUIDGenerator.newTimeUUID(newShardTime);
   try {
     this.edgeSeriesSerialization.writeEdgeMeta(scope,nodeId,futureUUID,edgeType).execute();
   }
  catch (  ConnectionException e) {
     throw new RuntimeException("Unable to write the new edge metadata");
-  }
-  UUID max=null;
-  MutationBatch rollup=null;
-  Iterator<UUID> shards=getShards(scope,nodeId,MAX_UUID,1000,edgeType);
-  while (shards.hasNext()) {
-    final UUID shardId=shards.next();
-    if (UUIDComparator.staticCompare(shardId,max) >= 0) {
-      break;
-    }
-    final MutationBatch batch=edgeSeriesSerialization.removeEdgeMeta(scope,nodeId,shardId,edgeType);
-    if (rollup == null) {
-      rollup=batch;
-    }
- else {
-      rollup.mergeShallow(batch);
-    }
-  }
-  if (rollup != null) {
-    try {
-      rollup.execute();
-    }
- catch (    ConnectionException e) {
-      throw new RuntimeException("Unable to cleanup allocated shards");
-    }
   }
   return true;
 }
