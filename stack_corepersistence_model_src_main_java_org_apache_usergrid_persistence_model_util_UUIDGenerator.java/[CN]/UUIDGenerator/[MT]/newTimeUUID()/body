@@ -1,21 +1,3 @@
 {
-  tsLock.lock();
-  long ts=System.currentTimeMillis();
-  if (ts > timestampMillisNow) {
-    timestampMillisNow=ts;
-    currentMicrosPoint.set(0);
-  }
-  int pointer=currentMicrosPoint.getAndIncrement();
-  try {
-    if (pointer > 990) {
-      TimeUnit.MILLISECONDS.sleep(1L);
-    }
-  }
- catch (  Exception ex) {
-    ex.printStackTrace();
-  }
- finally {
-    tsLock.unlock();
-  }
-  return newTimeUUID(ts,MICROS[pointer]);
+  return generator.generate();
 }

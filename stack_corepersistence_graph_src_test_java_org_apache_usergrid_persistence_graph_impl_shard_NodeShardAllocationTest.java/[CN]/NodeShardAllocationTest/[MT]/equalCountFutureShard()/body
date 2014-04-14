@@ -20,5 +20,8 @@
   assertTrue("Shard allocated",result);
   final long expectedUUIDTime=timeservicetime + 2 * graphFig.getShardCacheTimeout();
   UUID expectedUUID=UUIDGenerator.newTimeUUID(expectedUUIDTime);
-  assertEquals("Expected UUID at 2x timeout generated",expectedUUID,newUUIDValue.getValue());
+  final int comparison=UUIDComparator.staticCompare(expectedUUID,newUUIDValue.getValue());
+  final long expectedTimestamp=expectedUUID.timestamp() / 10000;
+  final long savedTimestamp=newUUIDValue.getValue().timestamp() / 10000;
+  assertEquals("Expected UUID at 2x timeout generated",expectedTimestamp,savedTimestamp);
 }

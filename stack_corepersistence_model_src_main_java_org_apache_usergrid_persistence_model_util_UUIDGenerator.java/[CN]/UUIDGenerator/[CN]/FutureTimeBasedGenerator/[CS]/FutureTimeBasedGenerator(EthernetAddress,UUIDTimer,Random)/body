@@ -1,0 +1,15 @@
+{
+  byte[] uuidBytes=new byte[16];
+  if (ethAddr == null) {
+    ethAddr=EthernetAddress.constructMulticastAddress();
+  }
+  _ethernetAddress=ethAddr;
+  _ethernetAddress.toByteArray(uuidBytes,10);
+  int clockSeq=timer.getClockSequence();
+  uuidBytes[UUIDUtil.BYTE_OFFSET_CLOCK_SEQUENCE]=(byte)(clockSeq >> 8);
+  uuidBytes[UUIDUtil.BYTE_OFFSET_CLOCK_SEQUENCE + 1]=(byte)clockSeq;
+  long l2=gatherLong(uuidBytes,8);
+  _uuidL2=UUIDUtil.initUUIDSecondLong(l2);
+  _timer=timer;
+  this.random=random;
+}

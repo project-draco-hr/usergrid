@@ -18,9 +18,9 @@
   UUID futureUUID2=UUIDGenerator.newTimeUUID(futureTime + 1);
   UUID futureUUID3=UUIDGenerator.newTimeUUID(futureTime + 2);
   UUID now=UUIDGenerator.newTimeUUID(timeService.getCurrentTime());
+  assertTrue(UUIDComparator.staticCompare(futureUUID3,futureUUID2) > 0);
+  assertTrue(UUIDComparator.staticCompare(futureUUID2,futureUUID1) > 0);
   assertTrue(UUIDComparator.staticCompare(futureUUID1,now) > 0);
-  assertTrue(UUIDComparator.staticCompare(futureUUID2,now) > 0);
-  assertTrue(UUIDComparator.staticCompare(futureUUID3,now) > 0);
   final int pageSize=100;
   when(edgeSeriesSerialization.getEdgeMetaData(same(scope),same(nodeId),any(UUID.class),eq(pageSize),same(type),same(subType))).thenReturn(Arrays.asList(futureUUID3,futureUUID2,futureUUID1,Constants.MIN_UUID).iterator());
   ArgumentCaptor<UUID> newUUIDValue=ArgumentCaptor.forClass(UUID.class);
@@ -32,7 +32,7 @@
   assertEquals("Previous shard present",Constants.MIN_UUID,result.next());
   assertFalse("No shards left",result.hasNext());
   List<UUID> values=newUUIDValue.getAllValues();
-  assertEquals("2 values removed",values.size());
+  assertEquals("2 values removed",2,values.size());
   assertEquals("Deleted Max Future",futureUUID3,values.get(0));
   assertEquals("Deleted Next Future",futureUUID2,values.get(1));
 }
