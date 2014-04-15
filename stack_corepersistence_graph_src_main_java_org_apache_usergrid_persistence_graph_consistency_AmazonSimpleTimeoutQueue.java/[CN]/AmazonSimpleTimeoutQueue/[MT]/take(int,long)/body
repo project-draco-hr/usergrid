@@ -1,0 +1,26 @@
+{
+  AWSCredentials awsCredentials=new BasicAWSCredentials(System.getProperty("accessKey"),System.getProperty("secretKey"));
+  AmazonSQSAsyncClient sqsAsyncClient=new AmazonSQSAsyncClient(awsCredentials);
+  ReceiveMessageRequest receiveMessageRequest=new ReceiveMessageRequest(getQueueEndpoint());
+  receiveMessageRequest.setVisibilityTimeout((int)timeout);
+  receiveMessageRequest.setMaxNumberOfMessages(1);
+  Collection<AsynchronousMessage<T>> asynchronousMessageCollection;
+  asynchronousMessageCollection=new ArrayList<>();
+  for (int index=0; index < maxSize; index++) {
+    ReceiveMessageResult receiveMessageResult=sqsAsyncClient.receiveMessage(receiveMessageRequest);
+    List<Message> messageList=receiveMessageResult.getMessages();
+    if (messageList.size() != 0) {
+      try {
+        SimpleAsynchronousMessage<T> simpleAsynchronousMessage=mapper.readValue(messageList.get(0).getBody(),SimpleAsynchronousMessage.class);
+        AmazonSimpleQueueMessage<T> amazonSimpleQueueMessage=new AmazonSimpleQueueMessage<T>(simpleAsynchronousMessage.getEvent(),simpleAsynchronousMessage.getTimeout(),messageList.get(0).getMessageId(),messageList.get(0).getReceiptHandle());
+        asynchronousMessageCollection.add(amazonSimpleQueueMessage);
+      }
+ catch (      IOException e) {
+        e.printStackTrace();
+        return null;
+      }
+    }
+ else     break;
+  }
+  return asynchronousMessageCollection;
+}

@@ -1,0 +1,43 @@
+{
+  AWSCredentials awsCredentials=new BasicAWSCredentials(System.getProperty("accessKey"),System.getProperty("secretKey"));
+  AmazonSQSAsyncClient sqsAsyncClient=new AmazonSQSAsyncClient(awsCredentials);
+  String queueName="testRemove" + UUID.randomUUID();
+  final long time=1l;
+  final long timeout=1;
+  final long extentedTimeout=50;
+  TimeoutQueue queue=null;
+  try {
+    queue=new AmazonSimpleTimeoutQueue(queueName);
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+    assert(false);
+  }
+  try {
+    final TestEvent event=new TestEvent();
+    AsynchronousMessage<TestEvent> asynchronousMessage=queue.queue(event,timeout);
+    assertNotNull(asynchronousMessage);
+    assertEquals(event,asynchronousMessage.getEvent());
+    assertEquals(timeout,asynchronousMessage.getTimeout());
+    Collection<AsynchronousMessage<TestEvent>> results=queue.take(100,timeout);
+    assertEquals("Time not yet elapsed",0,results.size());
+    final long firstTime=time + timeout;
+    try {
+      Thread.sleep(1000);
+    }
+ catch (    InterruptedException e) {
+      e.printStackTrace();
+    }
+    results=queue.take(100,extentedTimeout);
+    assertEquals("Time elapsed",1,results.size());
+    Iterator<AsynchronousMessage<TestEvent>> events=results.iterator();
+    AsynchronousMessage<TestEvent> message=events.next();
+    assertTrue(event.equals(message.getEvent()));
+    queue.remove(message);
+    results=queue.take(100,timeout);
+    assertEquals("Queue now empty",0,results.size());
+  }
+  finally {
+    sqsAsyncClient.deleteQueue(queueName);
+  }
+}

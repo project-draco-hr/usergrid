@@ -1,0 +1,22 @@
+{
+  AWSCredentials awsCredentials=new BasicAWSCredentials(System.getProperty("accessKey"),System.getProperty("secretKey"));
+  AmazonSQSAsyncClient sqsAsyncClient=new AmazonSQSAsyncClient(awsCredentials);
+  SimpleAsynchronousMessage<T> asynchronousMessage=new SimpleAsynchronousMessage<T>(event,timeout);
+  SendMessageResult sendMessageResult=null;
+  if (!(event instanceof Serializable)) {
+    return null;
+  }
+  SendMessageRequest sendMessageRequest=null;
+  try {
+    sendMessageRequest=new SendMessageRequest(getQueueEndpoint(),mapper.writeValueAsString(asynchronousMessage));
+    sendMessageRequest.setDelaySeconds((int)timeout);
+    sendMessageResult=sqsAsyncClient.sendMessage(sendMessageRequest);
+  }
+ catch (  JsonProcessingException e) {
+    sqsAsyncClient.deleteQueue("test");
+    e.printStackTrace();
+    return null;
+  }
+  ;
+  return asynchronousMessage;
+}

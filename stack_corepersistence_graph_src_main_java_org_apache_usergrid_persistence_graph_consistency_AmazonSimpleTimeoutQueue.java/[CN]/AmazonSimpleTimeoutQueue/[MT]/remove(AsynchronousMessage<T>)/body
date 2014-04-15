@@ -1,0 +1,13 @@
+{
+  AWSCredentials awsCredentials=new BasicAWSCredentials(System.getProperty("accessKey"),System.getProperty("secretKey"));
+  AmazonSQSAsyncClient sqsAsyncClient=new AmazonSQSAsyncClient(awsCredentials);
+  try {
+    AmazonSimpleQueueMessage amazonSimpleQueueMessage=(AmazonSimpleQueueMessage)event;
+    sqsAsyncClient.deleteMessage(getQueueEndpoint(),amazonSimpleQueueMessage.getReceiptHandle());
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+    return false;
+  }
+  return true;
+}
