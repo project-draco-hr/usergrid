@@ -1,0 +1,41 @@
+{
+  final AsynchronousErrorListener listener=new AsynchronousErrorListener();
+  final TestEvent event=new TestEvent();
+  final boolean[] invoked=new boolean[]{false,false};
+  final AsynchronousMessage<TestEvent> asynchronousMessage=new AsynchronousMessage<TestEvent>(){
+    @Override public TestEvent getEvent(){
+      return event;
+    }
+    @Override public long getTimeout(){
+      return 500;
+    }
+  }
+;
+  final TimeoutQueue queue=mock(TimeoutQueue.class);
+  final AsyncProcessorImpl asyncProcessor=constructProcessor(queue);
+  asyncProcessor.addListener(listener);
+  final CountDownLatch latch=new CountDownLatch(1);
+  final AsynchronousMessage<?>[] errorEvents={null};
+  asyncProcessor.addErrorListener(new ErrorListener<TestEvent>(){
+    @Override public void onError(    final AsynchronousMessage<TestEvent> event,    final Throwable t){
+      errorEvents[0]=event;
+      invoked[1]=true;
+      latch.countDown();
+    }
+  }
+);
+  when(queue.remove(asynchronousMessage)).then(new Answer<Boolean>(){
+    @Override public Boolean answer(    final InvocationOnMock invocation) throws Throwable {
+      invoked[0]=true;
+      return false;
+    }
+  }
+);
+  asyncProcessor.start(asynchronousMessage);
+  latch.await();
+  final TestEvent firedEvent=listener.events.peek();
+  assertSame(event,firedEvent);
+  assertFalse("Queue remove should not be invoked",invoked[0]);
+  assertTrue("Error listener should be invoked",invoked[1]);
+  assertEquals(event,errorEvents[0].getEvent());
+}

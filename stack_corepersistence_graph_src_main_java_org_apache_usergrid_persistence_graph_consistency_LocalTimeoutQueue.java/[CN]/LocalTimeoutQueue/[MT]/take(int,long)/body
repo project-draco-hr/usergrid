@@ -1,0 +1,19 @@
+{
+  final long now=timeService.getCurrentTime();
+  final long newTimeout=now + timeout;
+  List<AsynchronousMessage<T>> results=new ArrayList<AsynchronousMessage<T>>(maxSize);
+  for (int i=0; i < maxSize; i++) {
+    AsynchronousMessage<T> queuedEvent=queue.peek();
+    if (queuedEvent == null) {
+      break;
+    }
+    if (queuedEvent.getTimeout() > now) {
+      break;
+    }
+    final AsynchronousMessage<T> newEvent=new SimpleAsynchronousMessage<T>(queuedEvent.getEvent(),newTimeout);
+    queue.add(newEvent);
+    queue.poll();
+    results.add(newEvent);
+  }
+  return results;
+}

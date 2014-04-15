@@ -1,0 +1,44 @@
+{
+  GraphManager em=emf.createEdgeManager(scope);
+  final int edgeCount=graphFig.getScanPageSize() * 2;
+  Id toDelete=createId("toDelete");
+  final String edgeType="test";
+  int countSaved=0;
+  int sourceCount=0;
+  int targetCount=0;
+  for (int i=0; i < edgeCount; i++) {
+    Edge edge;
+    if (i % 2 == 0) {
+      edge=createEdge(toDelete,edgeType,createId("target" + Math.random()));
+      sourceCount++;
+    }
+ else {
+      edge=createEdge(createId("source" + Math.random()),edgeType,toDelete);
+      targetCount++;
+    }
+    Edge last=em.writeEdge(edge).toBlockingObservable().last();
+    assertEquals(edge,last);
+    countSaved++;
+  }
+  assertEquals(edgeCount,countSaved);
+  log.info("Saved {} source edges",sourceCount);
+  log.info("Saved {} target edges",targetCount);
+  UUID deleteVersion=UUID.fromString("ffffffff-ffff-1fff-bfff-ffffffffffff");
+  nodeSerialization.mark(scope,toDelete,deleteVersion).execute();
+  EdgeEvent<Id> deleteEvent=new EdgeEvent<Id>(scope,deleteVersion,toDelete);
+  int count=deleteListener.receive(deleteEvent).toBlockingObservable().last();
+  assertEquals(edgeCount,count);
+  UUID now=UUIDGenerator.newTimeUUID();
+  Iterator<MarkedEdge> returned=edgeSerialization.getEdgesToTarget(scope,createSearchByEdge(toDelete,edgeType,now,null));
+  assertFalse("No target should be returned",returned.hasNext());
+  returned=edgeSerialization.getEdgesFromSource(scope,createSearchByEdge(toDelete,edgeType,now,null));
+  assertFalse("No source should be returned",returned.hasNext());
+  Iterator<String> types=edgeMetadataSerialization.getEdgeTypesFromSource(scope,createSearchEdge(toDelete,null));
+  assertFalse(types.hasNext());
+  types=edgeMetadataSerialization.getEdgeTypesToTarget(scope,createSearchEdge(toDelete,null));
+  assertFalse(types.hasNext());
+  Iterator<String> idTypes=edgeMetadataSerialization.getIdTypesFromSource(scope,createSearchIdType(toDelete,edgeType,null));
+  assertFalse(idTypes.hasNext());
+  idTypes=edgeMetadataSerialization.getIdTypesToTarget(scope,createSearchIdType(toDelete,edgeType,null));
+  assertFalse(idTypes.hasNext());
+}

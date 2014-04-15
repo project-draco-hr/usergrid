@@ -1,0 +1,13 @@
+{
+  ConfigurationManager.loadCascadedPropertiesFromResources("usergrid");
+  Injector injector=Guice.createInjector(new TestIndexModule());
+  ecmf=injector.getInstance(EntityCollectionManagerFactory.class);
+  ecif=injector.getInstance(EntityCollectionIndexFactory.class);
+  log.info("Start Data Load");
+  List<OrgAppCollectionScope> scopes=loadData();
+  log.info("Finish Data Load");
+  log.info("Start Data Read");
+  readData(scopes);
+  log.info("Finish Data Read");
+  runSelectedQueries(scopes);
+}

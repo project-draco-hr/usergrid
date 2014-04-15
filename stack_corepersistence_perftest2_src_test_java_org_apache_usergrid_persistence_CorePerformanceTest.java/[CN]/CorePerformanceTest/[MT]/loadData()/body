@@ -1,0 +1,22 @@
+{
+  long time=new Date().getTime();
+  List<CollectionScope> scopes=new ArrayList<CollectionScope>();
+  List<Thread> threads=new ArrayList<Thread>();
+  for (int i=0; i < orgCount; i++) {
+    String orgName="org-" + i + "-"+ time;
+    final Id orgId=new SimpleId(orgName);
+    for (int j=0; j < appCount; j++) {
+      String appName="app-" + j + "-"+ time;
+      final Id appId=new SimpleId(appName);
+      CollectionScope scope=new CollectionScopeImpl(orgId,appId,"reviews");
+      scopes.add(scope);
+      Thread t=new Thread(new DataLoader(scope));
+      t.start();
+      threads.add(t);
+    }
+  }
+  for (  Thread t : threads) {
+    t.join();
+  }
+  return scopes;
+}

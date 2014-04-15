@@ -5,7 +5,15 @@
   final Id entityId=entity.getId();
   return doWrite(collectionScope,entityId,new RowOp(){
     @Override public void doOp(    final ColumnListMutation<UUID> colMutation){
-      colMutation.putColumn(colName,SER.toByteBuffer(new EntityWrapper(entity.getStatus(),entity.getEntity())));
+      try {
+        colMutation.putColumn(colName,SER.toByteBuffer(new EntityWrapper(entity.getStatus(),entity.getEntity())));
+      }
+ catch (      Exception e) {
+        if (entity != null || entity.getEntity().get() != null) {
+          throw new CollectionRuntimeException(entity.getEntity().get(),collectionScope,e);
+        }
+        throw e;
+      }
     }
   }
 );

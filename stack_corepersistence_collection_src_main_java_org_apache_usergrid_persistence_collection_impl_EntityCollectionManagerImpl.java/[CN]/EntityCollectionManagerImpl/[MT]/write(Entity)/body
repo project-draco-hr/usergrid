@@ -7,10 +7,10 @@
   final UUID version=uuidService.newTimeUUID();
   EntityUtils.setVersion(entity,version);
   CollectionIoEvent<Entity> writeData=new CollectionIoEvent<Entity>(collectionScope,entity);
-  Observable<CollectionIoEvent<MvccEntity>> observable=Observable.from(writeData).subscribeOn(scheduler).map(writeStart).flatMap(new Func1<CollectionIoEvent<MvccEntity>,Observable<CollectionIoEvent<MvccEntity>>>(){
+  Observable<CollectionIoEvent<MvccEntity>> observable=Observable.from(writeData).subscribeOn(Schedulers.io()).map(writeStart).flatMap(new Func1<CollectionIoEvent<MvccEntity>,Observable<CollectionIoEvent<MvccEntity>>>(){
     @Override public Observable<CollectionIoEvent<MvccEntity>> call(    final CollectionIoEvent<MvccEntity> mvccEntityCollectionIoEvent){
-      Observable<CollectionIoEvent<MvccEntity>> unique=Observable.from(mvccEntityCollectionIoEvent).subscribeOn(scheduler).flatMap(writeVerifyUnique);
-      Observable<CollectionIoEvent<MvccEntity>> optimistic=Observable.from(mvccEntityCollectionIoEvent).subscribeOn(scheduler).map(writeOptimisticVerify);
+      Observable<CollectionIoEvent<MvccEntity>> unique=Observable.from(mvccEntityCollectionIoEvent).subscribeOn(Schedulers.io()).flatMap(writeVerifyUnique);
+      Observable<CollectionIoEvent<MvccEntity>> optimistic=Observable.from(mvccEntityCollectionIoEvent).subscribeOn(Schedulers.io()).map(writeOptimisticVerify);
       return Observable.zip(unique,optimistic,new Func2<CollectionIoEvent<MvccEntity>,CollectionIoEvent<MvccEntity>,CollectionIoEvent<MvccEntity>>(){
         @Override public CollectionIoEvent<MvccEntity> call(        final CollectionIoEvent<MvccEntity> mvccEntityCollectionIoEvent,        final CollectionIoEvent<MvccEntity> mvccEntityCollectionIoEvent2){
           return mvccEntityCollectionIoEvent;

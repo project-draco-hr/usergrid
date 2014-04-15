@@ -12,9 +12,7 @@
   MvccLogEntrySerializationStrategy noConflictLog=mock(MvccLogEntrySerializationStrategy.class);
   when(noConflictLog.load(collectionScope,entity.getId(),entity.getVersion(),2)).thenReturn(logEntries);
   UniqueValueSerializationStrategy uvstrat=mock(UniqueValueSerializationStrategy.class);
-  Injector injector=Guice.createInjector(new TestCollectionModule());
-  Scheduler scheduler=injector.getInstance(Scheduler.class);
-  WriteOptimisticVerify newStage=new WriteOptimisticVerify(noConflictLog,uvstrat,scheduler);
+  WriteOptimisticVerify newStage=new WriteOptimisticVerify(noConflictLog,uvstrat);
   CollectionIoEvent<MvccEntity> result;
   result=newStage.call(new CollectionIoEvent<MvccEntity>(collectionScope,mvccEntity));
   assertSame("Context was correct",collectionScope,result.getEntityCollection());

@@ -1,0 +1,15 @@
+{
+  GraphManager em=emf.createEdgeManager(scope);
+  Edge edge=createEdge("source","test","target");
+  Edge last=em.writeEdge(edge).toBlockingObservable().last();
+  assertEquals(edge,last);
+  Id sourceNode=edge.getSourceNode();
+  Id targetNode=edge.getTargetNode();
+  UUID version=UUIDGenerator.newTimeUUID();
+  EdgeEvent<Id> deleteEvent=new EdgeEvent<Id>(scope,version,sourceNode);
+  int count=deleteListener.receive(deleteEvent).toBlockingObservable().last();
+  assertEquals("Mark was not set, no delete should be executed",0,count);
+  deleteEvent=new EdgeEvent<Id>(scope,version,targetNode);
+  count=deleteListener.receive(deleteEvent).toBlockingObservable().last();
+  assertEquals("Mark was not set, no delete should be executed",0,count);
+}

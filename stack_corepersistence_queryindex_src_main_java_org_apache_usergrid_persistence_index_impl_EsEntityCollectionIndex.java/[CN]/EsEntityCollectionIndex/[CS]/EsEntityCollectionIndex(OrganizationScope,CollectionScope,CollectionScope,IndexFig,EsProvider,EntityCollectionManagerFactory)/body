@@ -1,0 +1,45 @@
+{
+  ValidationUtils.validateOrganizationScope(orgScope);
+  ValidationUtils.validateCollectionScope(appScope);
+  ValidationUtils.validateCollectionScope(scope);
+  this.manager=factory.createCollectionManager(scope);
+  this.client=provider.getClient();
+  this.scope=scope;
+  this.indexName=createIndexName(config.getIndexNamePrefix(),orgScope,appScope);
+  this.typeName=createTypeName(scope);
+  this.refresh=config.isForcedRefresh();
+  this.cursorTimeout=config.getQueryCursorTimeout();
+  AdminClient admin=client.admin();
+  try {
+    admin.indices().prepareCreate(indexName).execute().actionGet();
+    log.debug("Created new index: " + indexName);
+  }
+ catch (  Exception e) {
+    if (log.isDebugEnabled()) {
+      log.debug("Exception creating index, already exists?",e);
+    }
+ else {
+      log.info(e.getMessage());
+    }
+  }
+  if (!admin.indices().typesExists(new TypesExistsRequest(new String[]{indexName},typeName)).actionGet().isExists()) {
+    try {
+      XContentBuilder mxcb=EsEntityCollectionIndex.createDoubleStringIndexMapping(jsonBuilder(),typeName);
+      PutMappingResponse pmr=admin.indices().preparePutMapping(indexName).setType(typeName).setSource(mxcb).execute().actionGet();
+      if (!admin.indices().typesExists(new TypesExistsRequest(new String[]{indexName},typeName)).actionGet().isExists()) {
+        throw new RuntimeException("Type does not exist in index: " + typeName);
+      }
+      GetMappingsResponse gmr=admin.indices().prepareGetMappings(indexName).addTypes(typeName).execute().actionGet();
+      if (gmr.getMappings().isEmpty()) {
+        throw new RuntimeException("Zero mappings exist for type: " + typeName);
+      }
+      log.debug("Created new type mapping for scope: " + scope.getName());
+      log.debug("   Scope organization: " + scope.getOrganization());
+      log.debug("   Scope owner: " + scope.getOwner());
+      log.debug("   Type name: " + typeName);
+    }
+ catch (    IOException ex) {
+      throw new RuntimeException("Error adding mapping for type " + scope.getName(),ex);
+    }
+  }
+}

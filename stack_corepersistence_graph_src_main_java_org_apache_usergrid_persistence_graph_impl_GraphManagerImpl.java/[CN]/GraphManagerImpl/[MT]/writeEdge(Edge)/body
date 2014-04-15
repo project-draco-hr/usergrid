@@ -1,0 +1,18 @@
+{
+  EdgeUtils.validateEdge(edge);
+  return HystrixGraphObservable.user(Observable.from(edge).subscribeOn(Schedulers.io()).map(new Func1<Edge,Edge>(){
+    @Override public Edge call(    final Edge edge){
+      final MutationBatch mutation=edgeMetadataSerialization.writeEdge(scope,edge);
+      final MutationBatch edgeMutation=edgeSerialization.writeEdge(scope,edge);
+      mutation.mergeShallow(edgeMutation);
+      try {
+        mutation.execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException("Unable to connect to cassandra",e);
+      }
+      return edge;
+    }
+  }
+));
+}

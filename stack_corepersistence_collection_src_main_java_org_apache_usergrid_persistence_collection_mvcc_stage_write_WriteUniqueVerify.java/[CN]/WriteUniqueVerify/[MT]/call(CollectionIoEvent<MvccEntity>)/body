@@ -4,7 +4,7 @@
   final List<Observable<FieldUniquenessResult>> fields=new ArrayList<Observable<FieldUniquenessResult>>();
   for (  final Field field : entity.getFields()) {
     if (field.isUnique()) {
-      Observable<FieldUniquenessResult> result=Observable.from(field).subscribeOn(scheduler).map(new Func1<Field,FieldUniquenessResult>(){
+      Observable<FieldUniquenessResult> result=Observable.from(field).subscribeOn(Schedulers.io()).map(new Func1<Field,FieldUniquenessResult>(){
         @Override public FieldUniquenessResult call(        Field field){
           UniqueValue written=new UniqueValueImpl(ioevent.getEntityCollection(),field,entity.getId(),entity.getVersion());
           MutationBatch mb=uniqueValueStrat.write(written,serializationFig.getTimeout());
@@ -28,8 +28,8 @@
       fields.add(result);
     }
   }
-  if (fields.isEmpty()) {
-    return Observable.from(ioevent).subscribeOn(scheduler);
+  if (fields.size() == 0) {
+    return Observable.from(ioevent).subscribeOn(Schedulers.io());
   }
   final FuncN<CollectionIoEvent<MvccEntity>> zipFunction=new FuncN<CollectionIoEvent<MvccEntity>>(){
     @Override public CollectionIoEvent<MvccEntity> call(    final Object... args){

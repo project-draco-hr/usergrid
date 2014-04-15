@@ -1,0 +1,27 @@
+{
+  final GraphManager em=emf.createEdgeManager(scope);
+  Id sourceId=new SimpleId("source");
+  Id targetId1=new SimpleId("target");
+  Id targetId2=new SimpleId("target2");
+  Edge edge1=createEdge(sourceId,"test",targetId1,UUIDGenerator.newTimeUUID());
+  em.writeEdge(edge1).toBlockingObservable().singleOrDefault(null);
+  Edge edge2=createEdge(sourceId,"test",targetId2,UUIDGenerator.newTimeUUID());
+  em.writeEdge(edge2).toBlockingObservable().singleOrDefault(null);
+  final UUID maxVersion=UUIDGenerator.newTimeUUID();
+  Observable<Edge> edges=em.loadEdgesFromSourceByType(createSearchByEdgeAndId(sourceId,edge1.getType(),maxVersion,targetId1.getType(),null));
+  Iterator<Edge> results=edges.toBlockingObservable().getIterator();
+  assertEquals("Edges correct",edge1,results.next());
+  assertFalse("No more edges",results.hasNext());
+  em.deleteEdge(edge1).toBlockingObservable().last();
+  edges=em.loadEdgesFromSourceByType(createSearchByEdgeAndId(sourceId,edge1.getType(),maxVersion,targetId1.getType(),null));
+  results=edges.toBlockingObservable().getIterator();
+  assertFalse("No more edges",results.hasNext());
+  edges=em.loadEdgesFromSourceByType(createSearchByEdgeAndId(sourceId,edge1.getType(),maxVersion,targetId2.getType(),null));
+  results=edges.toBlockingObservable().getIterator();
+  assertEquals("Edges correct",edge2,results.next());
+  assertFalse("No more edges",results.hasNext());
+  em.deleteEdge(edge2).toBlockingObservable().last();
+  edges=em.loadEdgesFromSourceByType(createSearchByEdgeAndId(sourceId,edge1.getType(),maxVersion,targetId2.getType(),null));
+  results=edges.toBlockingObservable().getIterator();
+  assertFalse("No more edges",results.hasNext());
+}

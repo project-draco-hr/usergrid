@@ -1,11 +1,7 @@
 {
-  install(new GuicyFigModule(RxFig.class,MigrationManagerFig.class,CassandraFig.class,SerializationFig.class));
+  install(new GuicyFigModule(MigrationManagerFig.class,CassandraFig.class,SerializationFig.class));
   install(new SerializationModule());
-  bind(MvccEntitySerializationStrategy.class).to(MvccEntitySerializationStrategyImpl.class);
-  bind(MvccLogEntrySerializationStrategy.class).to(MvccLogEntrySerializationStrategyImpl.class);
-  bind(UniqueValueSerializationStrategy.class).to(UniqueValueSerializationStrategyImpl.class);
   install(new ServiceModule());
   install(new FactoryModuleBuilder().implement(EntityCollectionManager.class,EntityCollectionManagerImpl.class).implement(EntityCollectionManagerSync.class,EntityCollectionManagerSyncImpl.class).build(EntityCollectionManagerFactory.class));
-  bind(Scheduler.class).toProvider(CassandraThreadScheduler.class);
-  bind(RollbackAction.class);
+  bind(UniqueValueSerializationStrategy.class).to(UniqueValueSerializationStrategyImpl.class);
 }

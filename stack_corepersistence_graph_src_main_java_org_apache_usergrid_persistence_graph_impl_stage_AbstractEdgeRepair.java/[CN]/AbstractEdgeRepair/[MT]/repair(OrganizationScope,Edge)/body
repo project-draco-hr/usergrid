@@ -1,0 +1,22 @@
+{
+  final UUID maxVersion=edge.getVersion();
+  Observable<MarkedEdge> edgeVersions=getEdgeVersions(scope,edge);
+  return edgeVersions.filter(getFilter(maxVersion)).buffer(graphFig.getScanPageSize()).flatMap(new Func1<List<MarkedEdge>,Observable<MarkedEdge>>(){
+    @Override public Observable<MarkedEdge> call(    final List<MarkedEdge> markedEdges){
+      final MutationBatch batch=keyspace.prepareMutationBatch();
+      for (      MarkedEdge edge : markedEdges) {
+        LOG.debug("Deleting edge {}",edge);
+        final MutationBatch delete=edgeSerialization.deleteEdge(scope,edge);
+        batch.mergeShallow(delete);
+      }
+      try {
+        batch.execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException("Unable to issue write to cassandra",e);
+      }
+      return Observable.from(markedEdges).subscribeOn(Schedulers.io());
+    }
+  }
+);
+}

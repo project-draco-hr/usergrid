@@ -14,9 +14,10 @@
       log.info("--------------------------------");
       log.info("Creating ElasticSearch client");
       log.info("--------------------------------");
-      TransportClient transportClient=new TransportClient();
+      Settings settings=ImmutableSettings.settingsBuilder().put("cluster.name",fig.getIndexNamePrefix()).build();
+      TransportClient transportClient=new TransportClient(settings);
       for (      String host : fig.getHosts().split(",")) {
-        transportClient.addTransportAddress(new InetSocketTransportAddress(host,fig.getPort()));
+        transportClient.addTransportAddress(new InetSocketTransportAddress(host.trim(),fig.getPort()));
       }
       newClient=transportClient;
     }

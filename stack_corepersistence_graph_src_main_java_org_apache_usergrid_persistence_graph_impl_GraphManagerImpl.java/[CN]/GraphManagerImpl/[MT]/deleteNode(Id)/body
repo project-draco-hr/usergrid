@@ -1,0 +1,18 @@
+{
+  return HystrixGraphObservable.user(Observable.from(node).subscribeOn(Schedulers.io()).map(new Func1<Id,Id>(){
+    @Override public Id call(    final Id id){
+      final UUID deleteTime=UUIDGenerator.newTimeUUID();
+      final MutationBatch nodeMutation=nodeSerialization.mark(scope,id,deleteTime);
+      final AsynchronousMessage<Id> event=nodeDeleteAsyncProcessor.setVerification(node,getTimeout());
+      try {
+        nodeMutation.execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException("Unable to connect to cassandra",e);
+      }
+      nodeDeleteAsyncProcessor.start(event);
+      return id;
+    }
+  }
+));
+}

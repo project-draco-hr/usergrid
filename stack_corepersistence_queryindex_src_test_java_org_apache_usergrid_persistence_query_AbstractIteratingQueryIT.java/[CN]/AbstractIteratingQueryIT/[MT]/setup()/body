@@ -1,6 +1,9 @@
 {
-  Id appId=new SimpleId(getClass().getName());
-  Id orgId=new SimpleId(RandomStringUtils.randomAlphabetic(6));
-  em=new EntityManagerFacade(orgId,appId,cmf,cif);
+  Id orgId=new SimpleId("organization");
+  OrganizationScope orgScope=new OrganizationScopeImpl(orgId);
+  Id appId=new SimpleId("application");
+  CollectionScope appScope=new CollectionScopeImpl(orgId,appId,"test-app");
+  CollectionScope scope=new CollectionScopeImpl(appId,orgId,"test-collection");
+  em=new EntityManagerFacade(orgScope,appScope,cmf,cif);
   app.setEntityManager(em);
 }

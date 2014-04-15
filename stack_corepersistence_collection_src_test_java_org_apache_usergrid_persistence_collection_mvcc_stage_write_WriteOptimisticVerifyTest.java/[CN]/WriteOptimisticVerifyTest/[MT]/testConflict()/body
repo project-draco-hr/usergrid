@@ -17,10 +17,9 @@
   when(uvstrat.delete(uv1)).thenReturn(mb);
   when(uvstrat.delete(uv2)).thenReturn(mb);
   Injector injector=Guice.createInjector(new TestCollectionModule());
-  Scheduler scheduler=injector.getInstance(Scheduler.class);
   final MvccEntity mvccEntity=fromEntity(entity);
   boolean conflictDetected=false;
-  WriteOptimisticVerify newStage=new WriteOptimisticVerify(conflictLog,uvstrat,scheduler);
+  WriteOptimisticVerify newStage=new WriteOptimisticVerify(conflictLog,uvstrat);
   try {
     newStage.call(new CollectionIoEvent<MvccEntity>(scope,mvccEntity));
   }

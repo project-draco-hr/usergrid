@@ -1,0 +1,16 @@
+{
+  if (!applicationContext.isActive()) {
+    LOG.info("Restarting context...");
+    applicationContext.refresh();
+  }
+  if (schemaManagerName != null) {
+    LOG.info("Looking up SchemaManager impl: {}",schemaManagerName);
+    this.schemaManager=applicationContext.getBean(schemaManagerName,SchemaManager.class);
+  }
+ else {
+    LOG.info("The SchemaManager is not specified - using the default SchemaManager impl");
+    this.schemaManager=applicationContext.getBean(SchemaManager.class);
+  }
+  schemaManager.create();
+  schemaManager.populateBaseData();
+}
