@@ -1,0 +1,10 @@
+{
+  this.graphs=CacheBuilder.newBuilder().maximumSize(graphFig.getShardCacheSize()).expireAfterWrite(graphFig.getShardCacheSize(),TimeUnit.MILLISECONDS).build(new CacheLoader<CacheKey,CacheEntry>(){
+    @Override public CacheEntry load(    final CacheKey key) throws Exception {
+      nodeShardAllocation.auditMaxShard(key.scope,key.id,key.types);
+      final Iterator<Long> edges=nodeShardAllocation.getShards(key.scope,key.id,Long.MAX_VALUE,SHARD_PAGE_SIZE,key.types);
+      return new CacheEntry(edges);
+    }
+  }
+);
+}

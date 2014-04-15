@@ -5,11 +5,11 @@
   final Id targetNodeId=edge.getTargetNode();
   final UUID version=edge.getVersion();
   final String type=edge.getType();
-  final RowKey sourceRowKey=new RowKey(sourceNodeId,type);
-  final RowKeyType sourceRowKeyType=new RowKeyType(sourceNodeId,type,targetNodeId);
+  final RowKey sourceRowKey=new RowKey(sourceNodeId,type,edgeShardStrategy.getWriteShard(sourceNodeId,version,type));
+  final RowKeyType sourceRowKeyType=new RowKeyType(sourceNodeId,type,targetNodeId,edgeShardStrategy.getWriteShard(sourceNodeId,version,type,targetNodeId.getType()));
   final DirectedEdge sourceEdge=new DirectedEdge(targetNodeId,version);
-  final RowKey targetRowKey=new RowKey(targetNodeId,type);
-  final RowKeyType targetRowKeyType=new RowKeyType(targetNodeId,type,sourceNodeId);
+  final RowKey targetRowKey=new RowKey(targetNodeId,type,edgeShardStrategy.getWriteShard(targetNodeId,version,type));
+  final RowKeyType targetRowKeyType=new RowKeyType(targetNodeId,type,sourceNodeId,edgeShardStrategy.getWriteShard(targetNodeId,version,type,sourceNodeId.getType()));
   final DirectedEdge targetEdge=new DirectedEdge(sourceNodeId,version);
   final EdgeRowKey edgeRowKey=new EdgeRowKey(sourceNodeId,type,targetNodeId);
   op.doWrite(GRAPH_SOURCE_NODE_EDGES,sourceRowKey,sourceEdge);

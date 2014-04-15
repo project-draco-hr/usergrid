@@ -11,8 +11,8 @@
   final String subType="subType";
   final long timeservicetime=System.currentTimeMillis();
   when(timeService.getCurrentTime()).thenReturn(timeservicetime);
-  final UUID futureShard=UUIDGenerator.newTimeUUID(timeservicetime + graphFig.getShardCacheTimeout() * 2);
-  when(edgeSeriesSerialization.getEdgeMetaData(same(scope),same(nodeId),any(UUID.class),eq(1),same(type),same(subType))).thenReturn(Arrays.asList(futureShard).iterator());
+  final long futureShard=timeservicetime + graphFig.getShardCacheTimeout() * 2;
+  when(edgeSeriesSerialization.getEdgeMetaData(same(scope),same(nodeId),any(Long.class),eq(1),same(type),same(subType))).thenReturn(Arrays.asList(futureShard).iterator());
   final boolean result=approximation.auditMaxShard(scope,nodeId,type,subType);
   assertFalse("No shard allocated",result);
 }
