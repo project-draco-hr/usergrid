@@ -1,7 +1,5 @@
 {
-  final long time=1l;
   final long timeout=5;
-  final long extentedTimeout=50;
   final int queueSize=100;
   String queueName="testTimeout" + UUID.randomUUID();
   AWSCredentials awsCredentials=new BasicAWSCredentials(System.getProperty("accessKey"),System.getProperty("secretKey"));
@@ -25,9 +23,6 @@
       assertEquals(timeout,asynchronousMessage.getTimeout());
     }
     Collection<AsynchronousMessage<TestEvent>> results=queue.take(100,timeout);
-    final long firstTime=time + timeout;
-    final int takeSize=100;
-    final int iterations=queueSize;
     assertEquals("Time elapsed",100,results.size());
     Iterator<AsynchronousMessage<TestEvent>> eventIterator=results.iterator();
     while (eventIterator.hasNext()) {
