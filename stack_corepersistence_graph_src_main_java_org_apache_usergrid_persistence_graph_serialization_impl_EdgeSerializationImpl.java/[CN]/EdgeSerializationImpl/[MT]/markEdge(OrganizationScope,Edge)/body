@@ -1,10 +1,12 @@
 {
   final MutationBatch batch=keyspace.prepareMutationBatch().withConsistencyLevel(cassandraConfig.getWriteCL());
   doWrite(scope,edge,new RowOp<RowKey>(){
-    @Override public void doWrite(    final MultiTennantColumnFamily<OrganizationScope,RowKey,DirectedEdge> columnFamily,    final RowKey rowKey,    final DirectedEdge edge){
+    @Override public void writeEdge(    final MultiTennantColumnFamily<OrganizationScope,RowKey,DirectedEdge> columnFamily,    final RowKey rowKey,    final DirectedEdge edge){
       batch.withRow(columnFamily,ScopedRowKey.fromKey(scope,rowKey)).putColumn(edge,true);
     }
-    @Override public void doWrite(    final MultiTennantColumnFamily<OrganizationScope,EdgeRowKey,UUID> columnFamily,    final EdgeRowKey rowKey,    final UUID version){
+    @Override public void countEdge(    final Id rowId,    final long shardId,    final String... types){
+    }
+    @Override public void writeVersion(    final MultiTennantColumnFamily<OrganizationScope,EdgeRowKey,UUID> columnFamily,    final EdgeRowKey rowKey,    final UUID version){
       batch.withRow(columnFamily,ScopedRowKey.fromKey(scope,rowKey)).putColumn(version,true);
     }
   }
