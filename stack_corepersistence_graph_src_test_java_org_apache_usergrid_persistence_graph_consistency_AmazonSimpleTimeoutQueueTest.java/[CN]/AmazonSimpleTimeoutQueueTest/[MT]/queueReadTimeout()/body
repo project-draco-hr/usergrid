@@ -1,5 +1,5 @@
 {
-  final long timeout=5;
+  final long timeout=1;
   final int queueSize=100;
   String queueName="testTimeout" + UUID.randomUUID();
   AWSCredentials awsCredentials=new BasicAWSCredentials(System.getProperty("accessKey"),System.getProperty("secretKey"));
@@ -22,7 +22,12 @@
       assertEquals(event,asynchronousMessage.getEvent());
       assertEquals(timeout,asynchronousMessage.getTimeout());
     }
-    Collection<AsynchronousMessage<TestEvent>> results=queue.take(100,timeout);
+    Thread.sleep(1000);
+    Collection<AsynchronousMessage<TestEvent>> results=queue.take(10,50);
+    long currentTimeMillis=System.currentTimeMillis();
+    while (results.size() != 100 || !has10SecondsPassed(currentTimeMillis)) {
+      results.addAll(queue.take(100,50));
+    }
     assertEquals("Time elapsed",100,results.size());
     Iterator<AsynchronousMessage<TestEvent>> eventIterator=results.iterator();
     while (eventIterator.hasNext()) {
@@ -31,7 +36,10 @@
       assertTrue(removed);
     }
   }
-  finally {
+ catch (  InterruptedException e) {
+    e.printStackTrace();
+  }
+ finally {
     sqsAsyncClient.deleteQueue(queueName);
   }
 }

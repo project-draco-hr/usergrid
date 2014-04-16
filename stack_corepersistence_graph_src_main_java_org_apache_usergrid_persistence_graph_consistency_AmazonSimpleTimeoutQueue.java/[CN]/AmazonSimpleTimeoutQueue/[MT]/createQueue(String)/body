@@ -1,8 +1,9 @@
 {
   AWSCredentials awsCredentials=new BasicAWSCredentials(System.getProperty("accessKey"),System.getProperty("secretKey"));
   CreateQueueRequest createQueueRequest=new CreateQueueRequest(name);
+  createQueueRequest.addAttributesEntry(VisibilityTimeoutAttr,"1");
   AmazonSQSAsyncClient sqsAsyncClient=new AmazonSQSAsyncClient(awsCredentials);
-  CreateQueueResult createQueueResult=sqsAsyncClient.createQueue(name);
+  CreateQueueResult createQueueResult=sqsAsyncClient.createQueue(createQueueRequest);
   this.queueEndpoint=createQueueResult.getQueueUrl();
-  System.out.println("Created a new queue.  Queue url: " + queueEndpoint);
+  logger.debug("Created a new queue.  Queue url: " + queueEndpoint);
 }

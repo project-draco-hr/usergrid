@@ -4,19 +4,19 @@
   SimpleAsynchronousMessage<T> asynchronousMessage=new SimpleAsynchronousMessage<T>(event,timeout);
   SendMessageResult sendMessageResult=null;
   if (!(event instanceof Serializable)) {
-    return null;
+    throw new RuntimeException(event.getClass().getName() + " is not serializable!");
   }
   SendMessageRequest sendMessageRequest=null;
   try {
     sendMessageRequest=new SendMessageRequest(getQueueEndpoint(),mapper.writeValueAsString(asynchronousMessage));
     sendMessageRequest.setDelaySeconds((int)timeout);
-    sendMessageResult=sqsAsyncClient.sendMessage(sendMessageRequest);
+    sqsAsyncClient.sendMessage(sendMessageRequest);
   }
  catch (  JsonProcessingException e) {
-    sqsAsyncClient.deleteQueue("test");
-    e.printStackTrace();
-    return null;
+    logger.error("Couldn't serialize the following event: " + event.toString());
+    throw new RuntimeException(e.getMessage());
   }
   ;
+  logger.debug("Finished adding " + asynchronousMessage.toString() + " to the following queue: "+ queueEndpoint);
   return asynchronousMessage;
 }
