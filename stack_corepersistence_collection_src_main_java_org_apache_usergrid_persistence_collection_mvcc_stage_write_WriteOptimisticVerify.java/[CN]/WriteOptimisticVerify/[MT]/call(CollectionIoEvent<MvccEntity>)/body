@@ -7,7 +7,6 @@
     List<MvccLogEntry> versions=logEntryStrat.load(collectionScope,entity.getId(),entity.getVersion(),2);
     if (versions.size() > 1 && versions.get(1).getStage().ordinal() < Stage.COMMITTED.ordinal()) {
       log.debug("Conflict writing entity id {} version {}",entity.getId().toString(),entity.getVersion().toString());
-      logEntryStrat.delete(collectionScope,entity.getId(),entity.getVersion());
       throw new WriteOptimisticVerifyException(entity,collectionScope,"Change conflict, not first writer");
     }
   }

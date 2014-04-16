@@ -8,24 +8,25 @@
   List<MvccLogEntry> logEntries=new ArrayList<MvccLogEntry>();
   logEntries.add(new MvccLogEntryImpl(entity.getId(),UUIDGenerator.newTimeUUID(),Stage.ACTIVE));
   logEntries.add(new MvccLogEntryImpl(entity.getId(),UUIDGenerator.newTimeUUID(),Stage.ACTIVE));
-  MvccLogEntrySerializationStrategy conflictLog=mock(MvccLogEntrySerializationStrategy.class);
-  when(conflictLog.load(scope,entity.getId(),entity.getVersion(),2)).thenReturn(logEntries);
+  MvccLogEntrySerializationStrategy mvccLog=mock(MvccLogEntrySerializationStrategy.class);
+  when(mvccLog.load(scope,entity.getId(),entity.getVersion(),2)).thenReturn(logEntries);
   UniqueValueSerializationStrategy uvstrat=mock(UniqueValueSerializationStrategy.class);
   UniqueValue uv1=new UniqueValueImpl(scope,entity.getField("name"),entity.getId(),entity.getVersion());
   UniqueValue uv2=new UniqueValueImpl(scope,entity.getField("identifier"),entity.getId(),entity.getVersion());
   MutationBatch mb=mock(MutationBatch.class);
   when(uvstrat.delete(uv1)).thenReturn(mb);
   when(uvstrat.delete(uv2)).thenReturn(mb);
-  Injector injector=Guice.createInjector(new TestCollectionModule());
   final MvccEntity mvccEntity=fromEntity(entity);
   boolean conflictDetected=false;
-  WriteOptimisticVerify newStage=new WriteOptimisticVerify(conflictLog,uvstrat);
+  WriteOptimisticVerify newStage=new WriteOptimisticVerify(mvccLog);
+  RollbackAction rollbackAction=new RollbackAction(mvccLog,uvstrat);
   try {
     newStage.call(new CollectionIoEvent<MvccEntity>(scope,mvccEntity));
   }
  catch (  WriteOptimisticVerifyException e) {
     log.info("Error",e);
     conflictDetected=true;
+    rollbackAction.call(e);
   }
   assertTrue(conflictDetected);
   verify(uvstrat,times(1)).delete(uv1);
