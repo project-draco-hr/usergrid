@@ -1,11 +1,11 @@
 {
-  final EdgeSeriesSerialization edgeSeriesSerialization=mock(EdgeSeriesSerialization.class);
-  final EdgeSeriesCounterSerialization edgeSeriesCounterSerialization=mock(EdgeSeriesCounterSerialization.class);
+  final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
+  final EdgeShardCounterSerialization edgeShardCounterSerialization=mock(EdgeShardCounterSerialization.class);
   final TimeService timeService=mock(TimeService.class);
   final Keyspace keyspace=mock(Keyspace.class);
   final MutationBatch batch=mock(MutationBatch.class);
   when(keyspace.prepareMutationBatch()).thenReturn(batch);
-  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeSeriesSerialization,edgeSeriesCounterSerialization,timeService,graphFig,keyspace);
+  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeShardCounterSerialization,timeService,graphFig,keyspace);
   final Id nodeId=createId("test");
   final String type="type";
   final String subType="subType";
@@ -17,10 +17,10 @@
   final long futureShard2=futureTime + 10000;
   final long futureShard3=futureShard2 + 10000;
   final int pageSize=100;
-  when(edgeSeriesSerialization.getEdgeMetaData(same(scope),same(nodeId),any(Long.class),eq(pageSize),same(type),same(subType))).thenReturn(Arrays.asList(futureShard3,futureShard2,futureShard1,0l).iterator());
+  when(edgeShardSerialization.getEdgeMetaData(same(scope),same(nodeId),any(Optional.class),same(type),same(subType))).thenReturn(Arrays.asList(futureShard3,futureShard2,futureShard1,0l).iterator());
   ArgumentCaptor<Long> newLongValue=ArgumentCaptor.forClass(Long.class);
-  when(edgeSeriesSerialization.removeEdgeMeta(same(scope),same(nodeId),newLongValue.capture(),same(type),same(subType))).thenReturn(mock(MutationBatch.class));
-  final Iterator<Long> result=approximation.getShards(scope,nodeId,Long.MAX_VALUE,pageSize,type,subType);
+  when(edgeShardSerialization.removeEdgeMeta(same(scope),same(nodeId),newLongValue.capture(),same(type),same(subType))).thenReturn(mock(MutationBatch.class));
+  final Iterator<Long> result=approximation.getShards(scope,nodeId,Optional.<Long>absent(),type,subType);
   assertTrue("Shards present",result.hasNext());
   assertEquals("Only single next shard returned",futureShard1,result.next().longValue());
   assertTrue("Shards present",result.hasNext());

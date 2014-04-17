@@ -1,0 +1,29 @@
+{
+  final GraphFig graphFig=getFigMock();
+  final NodeShardAllocation allocation=mock(NodeShardAllocation.class);
+  final Id id=createId("test");
+  final String edgeType="edge";
+  final String otherIdType="type";
+  final long min=0;
+  final long mid=10000;
+  final long max=20000;
+  NodeShardCache cache=new NodeShardCacheImpl(allocation,graphFig);
+  when(allocation.getShards(same(scope),same(id),any(Optional.class),same(edgeType),same(otherIdType))).thenReturn(Arrays.asList(min,mid,max).iterator());
+  long slice=cache.getSlice(scope,id,new UUID(0,min),edgeType,otherIdType);
+  assertEquals(min,slice);
+  slice=cache.getSlice(scope,id,new UUID(0,mid),edgeType,otherIdType);
+  assertEquals(mid,slice);
+  slice=cache.getSlice(scope,id,new UUID(0,max),edgeType,otherIdType);
+  assertEquals(max,slice);
+  slice=cache.getSlice(scope,id,new UUID(0,min + 1),edgeType,otherIdType);
+  assertEquals(min,slice);
+  slice=cache.getSlice(scope,id,new UUID(0,mid - 1),edgeType,otherIdType);
+  assertEquals(min,slice);
+  slice=cache.getSlice(scope,id,new UUID(0,mid + 1),edgeType,otherIdType);
+  assertEquals(mid,slice);
+  slice=cache.getSlice(scope,id,new UUID(0,max - 1),edgeType,otherIdType);
+  assertEquals(mid,slice);
+  slice=cache.getSlice(scope,id,new UUID(0,max),edgeType,otherIdType);
+  assertEquals(max,slice);
+  verify(allocation).auditMaxShard(scope,id,edgeType,otherIdType);
+}

@@ -7,7 +7,8 @@
   UUID newTime=UUIDGenerator.newTimeUUID();
   final long min=0;
   NodeShardCache cache=new NodeShardCacheImpl(allocation,graphFig);
-  when(allocation.getShards(same(scope),same(id),eq(Long.MAX_VALUE),any(Integer.class),same(edgeType),same(otherIdType))).thenReturn(Collections.singletonList(min).iterator());
+  final Optional max=Optional.absent();
+  when(allocation.getShards(same(scope),same(id),same(max),same(edgeType),same(otherIdType))).thenReturn(Collections.singletonList(min).iterator());
   long slice=cache.getSlice(scope,id,newTime,edgeType,otherIdType);
   assertEquals(min,slice);
   verify(allocation).auditMaxShard(scope,id,edgeType,otherIdType);
