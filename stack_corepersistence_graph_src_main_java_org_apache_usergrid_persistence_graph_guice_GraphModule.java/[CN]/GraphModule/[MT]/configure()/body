@@ -7,8 +7,10 @@
   bind(CassandraConfig.class).to(CassandraConfigImpl.class);
   install(new FactoryModuleBuilder().implement(GraphManager.class,GraphManagerImpl.class).build(GraphManagerFactory.class));
   Multibinder<Migration> migrationBinding=Multibinder.newSetBinder(binder(),Migration.class);
-  migrationBinding.addBinding().to(EdgeMetadataSerializationImpl.class);
-  migrationBinding.addBinding().to(NodeSerializationImpl.class);
+  migrationBinding.addBinding().to(Key.get(NodeSerialization.class));
+  migrationBinding.addBinding().to(Key.get(EdgeMetadataSerialization.class));
+  migrationBinding.addBinding().to(Key.get(EdgeSerialization.class,PermanentStorage.class));
+  migrationBinding.addBinding().to(Key.get(EdgeSerialization.class,CommitLog.class));
   bind(NodeShardAllocation.class).to(NodeShardAllocationImpl.class);
   bind(NodeShardApproximation.class).to(NodeShardApproximationImpl.class);
   bind(NodeShardCache.class).to(NodeShardCacheImpl.class);
