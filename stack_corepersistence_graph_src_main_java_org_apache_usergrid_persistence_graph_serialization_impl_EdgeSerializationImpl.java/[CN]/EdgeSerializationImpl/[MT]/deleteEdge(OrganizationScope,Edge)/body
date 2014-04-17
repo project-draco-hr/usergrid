@@ -1,11 +1,13 @@
 {
+  ValidationUtils.validateOrganizationScope(scope);
+  EdgeUtils.validateEdge(edge);
   final MutationBatch batch=keyspace.prepareMutationBatch().withConsistencyLevel(cassandraConfig.getWriteCL());
   doWrite(scope,edge,new RowOp<RowKey>(){
     @Override public void writeEdge(    final MultiTennantColumnFamily<OrganizationScope,RowKey,DirectedEdge> columnFamily,    final RowKey rowKey,    final DirectedEdge edge){
       batch.withRow(columnFamily,ScopedRowKey.fromKey(scope,rowKey)).deleteColumn(edge);
     }
     @Override public void countEdge(    final Id rowId,    final long shardId,    final String... types){
-      edgeShardStrategy.increment(batch,scope,rowId,shardId,-11,types);
+      edgeShardStrategy.increment(scope,rowId,shardId,-1,types);
     }
     @Override public void writeVersion(    final MultiTennantColumnFamily<OrganizationScope,EdgeRowKey,UUID> columnFamily,    final EdgeRowKey rowKey,    final UUID version){
       batch.withRow(columnFamily,ScopedRowKey.fromKey(scope,rowKey)).deleteColumn(version);

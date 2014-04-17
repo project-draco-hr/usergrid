@@ -12,10 +12,10 @@
         Observable<Integer> search=serialization.loadEdges(scope,node,edgeType,subType,version).subscribeOn(Schedulers.io()).take(1).count().doOnNext(new Action1<Integer>(){
           @Override public void call(          final Integer count){
             if (count != 0) {
-              LOG.debug("Found edge with nodeId {}, type {}, and subtype {}. Not removing subtype. ",node,edgeType,subType);
+              LOG.debug("Found edge with nodeId {}, type {}, " + "and subtype {}. Not removing subtype. ",node,edgeType,subType);
               return;
             }
-            LOG.debug("No edges with nodeId {}, type {}, and subtype {}. Removing subtype.",node,edgeType,subType);
+            LOG.debug("No edges with nodeId {}, type {}, " + "and subtype {}. Removing subtype.",node,edgeType,subType);
             batch.mergeShallow(serialization.removeEdgeSubType(scope,node,edgeType,subType,version));
           }
         }
