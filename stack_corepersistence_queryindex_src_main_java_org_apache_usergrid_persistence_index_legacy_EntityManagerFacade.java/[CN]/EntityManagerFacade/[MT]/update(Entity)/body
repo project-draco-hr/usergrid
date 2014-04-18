@@ -2,7 +2,7 @@
   String type=entity.getId().getType();
   CollectionScope scope=new CollectionScopeImpl(orgScope.getOrganization(),appScope.getOwner(),type);
   EntityCollectionManager ecm=getManager(scope);
-  EntityCollectionIndex eci=getIndex(scope);
+  EntityIndex eci=getIndex(scope);
   final String collectionName;
   if (type.endsWith("y")) {
     collectionName=type.substring(0,type.length() - 1) + "ies";
@@ -12,5 +12,5 @@
   }
   typesByCollectionNames.put(collectionName,type);
   entity=ecm.write(entity).toBlockingObservable().last();
-  eci.index(entity);
+  eci.index(scope,entity);
 }

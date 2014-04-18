@@ -29,10 +29,10 @@
   person=peopleMgr.write(person).toBlockingObservable().last();
   assertNotNull(person.getId());
   assertNotNull(person.getId().getUuid());
-  EntityConnectionIndex personLikesIndex=ecif.createConnectionIndex(person,"likes",orgScope,appScope);
-  personLikesIndex.indexConnection(muffin,muffinScope);
+  EntityIndex personLikesIndex=ecif.createEntityIndex(orgScope,appScope);
+  personLikesIndex.indexConnection(person,"likes",muffin,muffinScope);
   personLikesIndex.refresh();
-  Results likes=personLikesIndex.searchConnections(Query.fromQL("select *"));
+  Results likes=personLikesIndex.searchConnections(person,"likes",Query.fromQL("select *"));
   assertEquals(1,likes.size());
   assertEquals("Blueberry",likes.getEntities().get(0).getField("flavor").getValue());
 }
