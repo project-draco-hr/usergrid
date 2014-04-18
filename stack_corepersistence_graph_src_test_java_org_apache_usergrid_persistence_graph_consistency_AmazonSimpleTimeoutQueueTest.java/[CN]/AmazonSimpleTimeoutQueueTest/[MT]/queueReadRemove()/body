@@ -18,15 +18,20 @@
     assertNotNull(asynchronousMessage);
     assertEquals(event,asynchronousMessage.getEvent());
     assertEquals(timeout,asynchronousMessage.getTimeout());
-    Collection<AsynchronousMessage<TestEvent>> results=queue.take(100,timeout);
     try {
       Thread.sleep(1000);
     }
  catch (    InterruptedException e) {
       e.printStackTrace();
     }
-    results=queue.take(100,extentedTimeout);
+    Collection<AsynchronousMessage<TestEvent>> results=queue.take(100,timeout);
     assertEquals("Time elapsed",1,results.size());
+    try {
+      Thread.sleep(1000);
+    }
+ catch (    InterruptedException e) {
+      e.printStackTrace();
+    }
     Iterator<AsynchronousMessage<TestEvent>> events=results.iterator();
     AsynchronousMessage<TestEvent> message=events.next();
     assertTrue(event.equals(message.getEvent()));
