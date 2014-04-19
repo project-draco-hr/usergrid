@@ -1,0 +1,51 @@
+{
+  int entitiesToCreate=123;
+  File f=null;
+  try {
+    f=new File("exportOneOrganization.json");
+  }
+ catch (  Exception e) {
+  }
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  em.createApplicationCollection("newOrg");
+  Map<String,Object> userProperties=null;
+  Entity[] entity;
+  entity=new Entity[entitiesToCreate];
+  for (int i=0; i < entitiesToCreate; i++) {
+    userProperties=new LinkedHashMap<String,Object>();
+    userProperties.put("username","billybob" + i);
+    userProperties.put("email","test" + i + "@anuff.com");
+    entity[i]=em.create("newOrg",userProperties);
+  }
+  S3Export s3Export=new MockS3ExportImpl("exportOneOrganization.json");
+  ExportService exportService=setup.getExportService();
+  HashMap<String,Object> payload=payloadBuilder();
+  OrganizationInfo orgMade=null;
+  ApplicationInfo appMade=null;
+  for (int i=0; i < 100; i++) {
+    orgMade=setup.getMgmtSvc().createOrganization("superboss" + i,adminUser,true);
+    appMade=setup.getMgmtSvc().createApplication(orgMade.getUuid(),"superapp" + i);
+    EntityManager customMaker=setup.getEmf().getEntityManager(appMade.getId());
+    customMaker.createApplicationCollection("superappCol" + i);
+    Map<String,Object> entityLevelProperties=null;
+    Entity[] entNotCopied;
+    entNotCopied=new Entity[entitiesToCreate];
+    for (int index=0; index < 20; index++) {
+      entityLevelProperties=new LinkedHashMap<String,Object>();
+      entityLevelProperties.put("username","bobso" + index);
+      entityLevelProperties.put("email","derp" + index + "@anuff.com");
+      entNotCopied[index]=customMaker.create("superappCol",entityLevelProperties);
+    }
+  }
+  payload.put("organizationId",orgMade.getUuid());
+  payload.put("applicationId",appMade.getId());
+  UUID exportUUID=exportService.schedule(payload);
+  JobData jobData=jobDataCreator(payload,exportUUID,s3Export);
+  JobExecution jobExecution=mock(JobExecution.class);
+  when(jobExecution.getJobData()).thenReturn(jobData);
+  exportService.doExport(jobExecution);
+  JSONParser parser=new JSONParser();
+  org.json.simple.JSONArray a=(org.json.simple.JSONArray)parser.parse(new FileReader(f));
+  assertEquals(23,a.size());
+  f.deleteOnExit();
+}
