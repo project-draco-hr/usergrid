@@ -3,40 +3,26 @@
     CollectionRuntimeException cre=(CollectionRuntimeException)t;
     final Entity entity=cre.getEntity();
     final CollectionScope scope=cre.getCollectionScope();
-    List<Observable<FieldDeleteResult>> results=new ArrayList<Observable<FieldDeleteResult>>();
-    int uniqueFieldCount=0;
+    MutationBatch rollbackMb=null;
     for (    final Field field : entity.getFields()) {
       if (field.isUnique()) {
-        uniqueFieldCount++;
-        Observable<FieldDeleteResult> result=Observable.from(field).subscribeOn(scheduler).map(new Func1<Field,FieldDeleteResult>(){
-          @Override public FieldDeleteResult call(          Field field){
-            UniqueValue toDelete=new UniqueValueImpl(scope,field,entity.getId(),entity.getVersion());
-            MutationBatch mb=uniqueValueStrat.delete(toDelete);
-            try {
-              mb.execute();
-            }
- catch (            ConnectionException ex) {
-              throw new WriteUniqueVerifyException(entity,scope,"Rollback error deleting unique value " + field.toString(),ex);
-            }
-            return new FieldDeleteResult(field.getName());
-          }
+        UniqueValue toDelete=new UniqueValueImpl(scope,field,entity.getId(),entity.getVersion());
+        MutationBatch deleteMb=uniqueValueStrat.delete(toDelete);
+        if (rollbackMb == null) {
+          rollbackMb=deleteMb;
         }
-);
-        results.add(result);
+ else {
+          rollbackMb.mergeShallow(deleteMb);
+        }
       }
     }
-    if (uniqueFieldCount > 0) {
-      final FuncN<Boolean> zipFunction=new FuncN<Boolean>(){
-        @Override public Boolean call(        final Object... args){
-          for (          Object resultObj : args) {
-            FieldDeleteResult result=(FieldDeleteResult)resultObj;
-            log.debug("Rollback deleted unique value from entity: " + "{} version: {} name: {}",new String[]{entity.getId().toString(),entity.getVersion().toString(),result.getName()});
-          }
-          return true;
-        }
+    if (rollbackMb != null) {
+      try {
+        rollbackMb.execute();
       }
-;
-      Observable.zip(results,zipFunction).toBlockingObservable().last();
+ catch (      ConnectionException ex) {
+        throw new RuntimeException("Error rolling back changes",ex);
+      }
     }
     logEntryStrat.delete(scope,entity.getId(),entity.getVersion());
   }
