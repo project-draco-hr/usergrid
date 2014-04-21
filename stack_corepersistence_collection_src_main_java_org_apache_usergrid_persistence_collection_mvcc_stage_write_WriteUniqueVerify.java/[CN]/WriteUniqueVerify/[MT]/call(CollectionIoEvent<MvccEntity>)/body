@@ -2,7 +2,7 @@
   ValidationUtils.verifyMvccEntityWithEntity(ioevent.getEvent());
   final Entity entity=ioevent.getEvent().getEntity().get();
   final List<Observable<FieldUniquenessResult>> fields=new ArrayList<Observable<FieldUniquenessResult>>();
-  for (  Field field : entity.getFields()) {
+  for (  final Field field : entity.getFields()) {
     if (field.isUnique()) {
       Observable<FieldUniquenessResult> result=Observable.from(field).subscribeOn(Schedulers.io()).map(new Func1<Field,FieldUniquenessResult>(){
         @Override public FieldUniquenessResult call(        Field field){
@@ -12,14 +12,14 @@
             mb.execute();
           }
  catch (          ConnectionException ex) {
-            throw new CollectionRuntimeException("Error writing unique value " + field.toString(),ex);
+            throw new WriteUniqueVerifyException(entity,ioevent.getEntityCollection(),"Error writing unique value " + field.toString(),ex);
           }
           UniqueValue loaded;
           try {
             loaded=uniqueValueStrat.load(ioevent.getEntityCollection(),field);
           }
  catch (          ConnectionException ex) {
-            throw new CollectionRuntimeException(ex);
+            throw new WriteUniqueVerifyException(entity,ioevent.getEntityCollection(),"Error verifying write",ex);
           }
           return new FieldUniquenessResult(field,loaded.equals(written));
         }
@@ -33,12 +33,16 @@
   }
   final FuncN<CollectionIoEvent<MvccEntity>> zipFunction=new FuncN<CollectionIoEvent<MvccEntity>>(){
     @Override public CollectionIoEvent<MvccEntity> call(    final Object... args){
+      Map<String,Field> uniquenessVioloations=new HashMap<String,Field>();
       for (      Object resultObj : args) {
         FieldUniquenessResult result=(FieldUniquenessResult)resultObj;
         if (!result.isUnique()) {
           Field field=result.getField();
-          throw new CollectionRuntimeException("Duplicate field value " + field.getName() + " = "+ field.getValue().toString());
+          uniquenessVioloations.put(field.getName(),field);
         }
+      }
+      if (!uniquenessVioloations.isEmpty()) {
+        throw new WriteUniqueVerifyException(entity,ioevent.getEntityCollection(),uniquenessVioloations);
       }
       return ioevent;
     }
