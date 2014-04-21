@@ -1,0 +1,30 @@
+{
+  Id orgId=new SimpleId("organization");
+  OrganizationScope orgScope=new OrganizationScopeImpl(orgId);
+  Id appId=new SimpleId("application");
+  CollectionScope appScope=new CollectionScopeImpl(orgId,appId,"test-app");
+  CollectionScope scope=new CollectionScopeImpl(appId,orgId,"contacts");
+  EntityIndex entityIndex=cif.createEntityIndex(orgScope,appScope);
+  EntityCollectionManager entityManager=cmf.createCollectionManager(scope);
+  InputStream is=this.getClass().getResourceAsStream("/sample-large.json");
+  ObjectMapper mapper=new ObjectMapper();
+  List<Object> sampleJson=mapper.readValue(is,new TypeReference<List<Object>>(){
+  }
+);
+  int count=0;
+  StopWatch timer=new StopWatch();
+  timer.start();
+  for (  Object o : sampleJson) {
+    Map<String,Object> item=(Map<String,Object>)o;
+    Entity entity=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),scope.getName()));
+    entity=EntityMapUtils.fromMap(entity,item);
+    EntityUtils.setVersion(entity,UUIDGenerator.newTimeUUID());
+    entity=entityManager.write(entity).toBlockingObservable().last();
+    entityIndex.index(scope,entity);
+    count++;
+  }
+  timer.stop();
+  log.info("Total time to index {} entries {}ms, average {}ms/entry",count,timer.getTime(),timer.getTime() / count);
+  entityIndex.refresh();
+  testQueries(entityIndex,scope);
+}

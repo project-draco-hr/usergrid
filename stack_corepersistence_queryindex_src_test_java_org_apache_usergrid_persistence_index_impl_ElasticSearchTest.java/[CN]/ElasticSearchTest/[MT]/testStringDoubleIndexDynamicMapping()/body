@@ -4,7 +4,7 @@
   String index=RandomStringUtils.randomAlphanumeric(20).toLowerCase();
   String type="testtype";
   admin.indices().prepareCreate(index).execute().actionGet();
-  XContentBuilder mxcb=EsEntityCollectionIndex.createDoubleStringIndexMapping(jsonBuilder(),type);
+  XContentBuilder mxcb=EsEntityIndexImpl.createDoubleStringIndexMapping(jsonBuilder(),type);
   PutMappingResponse pmr=admin.indices().preparePutMapping(index).setType(type).setSource(mxcb).execute().actionGet();
   indexSampleData(type,client,index);
   testQuery(client,index,type,QueryBuilders.termQuery("name","Orr Byers"),1);

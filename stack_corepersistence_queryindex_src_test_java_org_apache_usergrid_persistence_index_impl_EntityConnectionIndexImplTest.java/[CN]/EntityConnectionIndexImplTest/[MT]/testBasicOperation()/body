@@ -1,0 +1,38 @@
+{
+  Id orgId=new SimpleId("organization");
+  OrganizationScope orgScope=new OrganizationScopeImpl(orgId);
+  Id appId=new SimpleId("application");
+  CollectionScope appScope=new CollectionScopeImpl(orgId,appId,"test-app");
+  CollectionScope muffinScope=new CollectionScopeImpl(appId,orgId,"muffins");
+  Entity muffin=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),muffinScope.getName()));
+  muffin=EntityMapUtils.fromMap(muffin,new HashMap<String,Object>(){
+{
+      put("size","Large");
+      put("flavor","Blueberry");
+    }
+  }
+);
+  EntityUtils.setVersion(muffin,UUIDGenerator.newTimeUUID());
+  EntityCollectionManager muffinMgr=ecmf.createCollectionManager(muffinScope);
+  muffin=muffinMgr.write(muffin).toBlockingObservable().last();
+  CollectionScope peopleScope=new CollectionScopeImpl(appId,orgId,"people");
+  Entity person=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),peopleScope.getName()));
+  person=EntityMapUtils.fromMap(person,new HashMap<String,Object>(){
+{
+      put("name","Dave");
+      put("hometown","Chapel Hill");
+    }
+  }
+);
+  EntityUtils.setVersion(person,UUIDGenerator.newTimeUUID());
+  EntityCollectionManager peopleMgr=ecmf.createCollectionManager(peopleScope);
+  person=peopleMgr.write(person).toBlockingObservable().last();
+  assertNotNull(person.getId());
+  assertNotNull(person.getId().getUuid());
+  EntityIndex personLikesIndex=ecif.createEntityIndex(orgScope,appScope);
+  personLikesIndex.indexConnection(person,"likes",muffin,muffinScope);
+  personLikesIndex.refresh();
+  Results likes=personLikesIndex.searchConnections(person,"likes",Query.fromQL("select *"));
+  assertEquals(1,likes.size());
+  assertEquals("Blueberry",likes.getEntities().get(0).getField("flavor").getValue());
+}

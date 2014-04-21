@@ -1,0 +1,23 @@
+{
+  AdminClient admin=client.admin();
+  if (!admin.indices().typesExists(new TypesExistsRequest(new String[]{indexName},typeName)).actionGet().isExists()) {
+    try {
+      XContentBuilder mxcb=EsEntityIndexImpl.createDoubleStringIndexMapping(jsonBuilder(),typeName);
+      PutMappingResponse pmr=admin.indices().preparePutMapping(indexName).setType(typeName).setSource(mxcb).execute().actionGet();
+      if (!admin.indices().typesExists(new TypesExistsRequest(new String[]{indexName},typeName)).actionGet().isExists()) {
+        throw new RuntimeException("Type does not exist in index: " + typeName);
+      }
+      GetMappingsResponse gmr=admin.indices().prepareGetMappings(indexName).addTypes(typeName).execute().actionGet();
+      if (gmr.getMappings().isEmpty()) {
+        throw new RuntimeException("Zero mappings exist for type: " + typeName);
+      }
+      log.debug("Created new type mapping");
+      log.debug("   Scope organization: " + orgScope.getOrganization());
+      log.debug("   Scope application: " + appScope.getOwner());
+      log.debug("   Type name: " + typeName);
+    }
+ catch (    IOException ex) {
+      throw new RuntimeException("Error adding mapping for type " + typeName,ex);
+    }
+  }
+}
