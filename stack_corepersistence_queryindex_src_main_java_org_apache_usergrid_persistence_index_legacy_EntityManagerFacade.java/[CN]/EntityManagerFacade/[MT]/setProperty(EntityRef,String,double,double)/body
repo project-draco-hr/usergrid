@@ -2,9 +2,9 @@
   String type=entityRef.getId().getType();
   CollectionScope scope=new CollectionScopeImpl(orgScope.getOrganization(),appScope.getOwner(),type);
   EntityCollectionManager ecm=getManager(scope);
-  EntityCollectionIndex eci=getIndex(scope);
+  EntityIndex eci=getIndex(scope);
   Entity entity=ecm.load(entityRef.getId()).toBlockingObservable().last();
   entity.setField(new LocationField(fieldName,new Location(lat,lon)));
   entity=ecm.write(entity).toBlockingObservable().last();
-  eci.index(entity);
+  eci.index(scope,entity);
 }

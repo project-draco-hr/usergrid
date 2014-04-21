@@ -1,6 +1,6 @@
 {
   EntityCollectionManager ecm=ecmf.createCollectionManager(orgAppScope.scope);
-  EntityCollectionIndex eci=ecif.createCollectionIndex(orgAppScope.orgScope,orgAppScope.appScope,orgAppScope.scope);
+  EntityIndex eci=ecif.createEntityIndex(orgAppScope.orgScope,orgAppScope.appScope);
   FileReader fr;
   try {
     fr=new FileReader("../../resources/finefoods.txt");
@@ -19,7 +19,7 @@
       try {
         if (s.trim().equals("")) {
           ecm.write(current).toBlockingObservable().last();
-          eci.index(current);
+          eci.index(orgAppScope.scope,current);
           if (maxEntities < 20) {
             log.info("Index written for {}",current.getId());
             log.info("---");
