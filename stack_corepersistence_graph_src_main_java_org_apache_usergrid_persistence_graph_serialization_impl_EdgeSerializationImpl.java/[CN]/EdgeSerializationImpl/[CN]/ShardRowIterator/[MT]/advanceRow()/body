@@ -2,6 +2,6 @@
   final RangeBuilder rangeBuilder=new RangeBuilder().setLimit(cassandraConfig.getScanPageSize());
   searcher.setRange(rangeBuilder);
   final ScopedRowKey<OrganizationScope,R> rowKey=searcher.next();
-  RowQuery<ScopedRowKey<OrganizationScope,R>,DirectedEdge> query=keyspace.prepareQuery(cf).setConsistencyLevel(cassandraConfig.getReadCL()).getKey(rowKey).autoPaginate(true).withColumnRange(rangeBuilder.build());
-  currentColumnIterator=new ColumnNameIterator<DirectedEdge,MarkedEdge>(query,searcher,searcher.hasPage(),graphFig.getReadTimeout());
+  RowQuery<ScopedRowKey<OrganizationScope,R>,C> query=keyspace.prepareQuery(cf).setConsistencyLevel(cassandraConfig.getReadCL()).getKey(rowKey).autoPaginate(true).withColumnRange(rangeBuilder.build());
+  currentColumnIterator=new ColumnNameIterator<C,T>(query,searcher,searcher.hasPage(),graphFig.getReadTimeout());
 }

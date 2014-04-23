@@ -3,6 +3,7 @@
   ValidationUtils.verifyIdentity(node);
   Preconditions.checkNotNull(edgeType,"edge type is required");
   Preconditions.checkNotNull(version,"version is required");
+  Preconditions.checkNotNull(serialization,"serialization is required");
   Observable<Integer> deleteCounts=serialization.loadEdgeSubTypes(scope,node,edgeType,version).buffer(graphFig.getRepairConcurrentSize()).flatMap(new Func1<List<String>,Observable<Integer>>(){
     @Override public Observable<Integer> call(    final List<String> types){
       final MutationBatch batch=keyspace.prepareMutationBatch();

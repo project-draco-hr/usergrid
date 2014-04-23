@@ -1,0 +1,10 @@
+{
+  final int completed=completedCount.incrementAndGet();
+  if (completed == innerSubscribers.size()) {
+    log.trace("Completing Observable.  Draining elements from the subscribers",innerSubscribers.size());
+    while (!subscriber.isUnsubscribed() && !drained()) {
+      next();
+    }
+    subscriber.onCompleted();
+  }
+}

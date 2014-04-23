@@ -5,7 +5,10 @@
   final String sourceType=edgeType.getIdType();
   final String type=edgeType.getType();
   final UUID maxVersion=edgeType.getMaxVersion();
-  final EdgeSearcher<RowKeyType> searcher=new EdgeSearcher<RowKeyType>(scope,maxVersion,edgeType.last(),edgeShardStrategy.getReadShards(scope,targetId,maxVersion,type,sourceType)){
+  final EdgeSearcher<RowKeyType,DirectedEdge,MarkedEdge> searcher=new EdgeSearcher<RowKeyType,DirectedEdge,MarkedEdge>(scope,maxVersion,edgeType.last(),edgeShardStrategy.getReadShards(scope,targetId,maxVersion,type,sourceType)){
+    @Override protected Serializer<DirectedEdge> getSerializer(){
+      return EDGE_SERIALIZER;
+    }
     @Override protected RowKeyType generateRowKey(    final long shard){
       return new RowKeyType(targetId,type,sourceType,shard);
     }

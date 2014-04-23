@@ -1,0 +1,26 @@
+{
+  if (!readyToProduce()) {
+    return;
+  }
+synchronized (this) {
+    while (true) {
+      InnerObserver<T> maxObserver=null;
+      for (      InnerObserver<T> inner : innerSubscribers) {
+        if (inner.drained) {
+          continue;
+        }
+        final T current=inner.peek();
+        if (current == null) {
+          return;
+        }
+        if (maxObserver == null || (current != null && comparator.compare(current,maxObserver.peek()) > 0)) {
+          maxObserver=inner;
+        }
+      }
+      if (maxObserver == null) {
+        return;
+      }
+      subscriber.onNext(maxObserver.pop());
+    }
+  }
+}

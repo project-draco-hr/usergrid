@@ -4,7 +4,10 @@
   final Id targetId=edgeType.getNode();
   final String type=edgeType.getType();
   final UUID maxVersion=edgeType.getMaxVersion();
-  final EdgeSearcher<RowKey> searcher=new EdgeSearcher<RowKey>(scope,maxVersion,edgeType.last(),edgeShardStrategy.getReadShards(scope,targetId,maxVersion,type)){
+  final EdgeSearcher<RowKey,DirectedEdge,MarkedEdge> searcher=new EdgeSearcher<RowKey,DirectedEdge,MarkedEdge>(scope,maxVersion,edgeType.last(),edgeShardStrategy.getReadShards(scope,targetId,maxVersion,type)){
+    @Override protected Serializer<DirectedEdge> getSerializer(){
+      return EDGE_SERIALIZER;
+    }
     @Override protected RowKey generateRowKey(    long shard){
       return new RowKey(targetId,type,shard);
     }

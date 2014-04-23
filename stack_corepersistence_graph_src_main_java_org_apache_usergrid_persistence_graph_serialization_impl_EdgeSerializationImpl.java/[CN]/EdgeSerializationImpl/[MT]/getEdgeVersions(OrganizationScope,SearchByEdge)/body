@@ -5,25 +5,27 @@
   final Id sourceId=search.sourceNode();
   final String type=search.getType();
   final UUID maxVersion=search.getMaxVersion();
-  final EdgeSearcher<RowKey> searcher=new EdgeSearcher<RowKey>(scope,maxVersion,search.last(),edgeShardStrategy.getReadShards(scope,sourceId,maxVersion,type)){
+  final EdgeSearcher<EdgeRowKey,UUID,MarkedEdge> searcher=new EdgeSearcher<EdgeRowKey,UUID,MarkedEdge>(scope,maxVersion,search.last(),edgeShardStrategy.getReadShards(scope,sourceId,maxVersion,type)){
+    @Override protected Serializer<UUID> getSerializer(){
+      return UUID_SERIALIZER;
+    }
     @Override public void setRange(    final RangeBuilder builder){
       if (last.isPresent()) {
         super.setRange(builder);
         return;
       }
-      final DirectedEdge last=new DirectedEdge(targetId,maxVersion);
-      builder.setStart(last,EDGE_SERIALIZER);
+      builder.setStart(maxVersion,UUID_SERIALIZER);
     }
-    @Override protected RowKey generateRowKey(    long shard){
-      return new RowKey(sourceId,type,shard);
+    @Override protected EdgeRowKey generateRowKey(    long shard){
+      return new EdgeRowKey(sourceId,type,targetId,shard);
     }
-    @Override protected DirectedEdge getStartColumn(    final Edge last){
-      return new DirectedEdge(last.getTargetNode(),last.getVersion());
+    @Override protected UUID getStartColumn(    final Edge last){
+      return last.getVersion();
     }
-    @Override protected MarkedEdge createEdge(    final DirectedEdge edge,    final boolean marked){
-      return new SimpleMarkedEdge(sourceId,type,edge.id,edge.version,marked);
+    @Override protected MarkedEdge createEdge(    final UUID version,    final boolean marked){
+      return new SimpleMarkedEdge(sourceId,type,targetId,version,marked);
     }
   }
 ;
-  return new ShardRowIterator<>(searcher,GRAPH_SOURCE_NODE_EDGES);
+  return new ShardRowIterator<>(searcher,GRAPH_EDGE_VERSIONS);
 }
