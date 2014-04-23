@@ -1,0 +1,14 @@
+{
+  Query q=Query.fromQL("select *");
+  EntityIndex ei=ecif.createEntityIndex(SYSTEM_ORG_SCOPE,SYSTEM_PROPS_SCOPE);
+  Results results=ei.search(SYSTEM_PROPS_SCOPE,q);
+  if (results.isEmpty()) {
+    return new HashMap<String,String>();
+  }
+  Entity propsEntity=results.iterator().next();
+  Map<String,String> props=new HashMap<String,String>();
+  for (  Field f : propsEntity.getFields()) {
+    props.put(f.getName(),f.getValue().toString());
+  }
+  return props;
+}

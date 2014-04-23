@@ -1,14 +1,3 @@
 {
-  org.apache.usergrid.persistence.model.entity.Entity cpEntity=new org.apache.usergrid.persistence.model.entity.Entity(new SimpleId(UUIDGenerator.newTimeUUID(),entityType));
-  cpEntity=EntityMapUtils.fromMap(cpEntity,properties);
-  cpEntity.setField(new LongField("created",cpEntity.getId().getUuid().timestamp()));
-  cpEntity.setField(new LongField("modified",cpEntity.getId().getUuid().timestamp()));
-  cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
-  eci.index(cpEntity);
-  Entity entity=new DynamicEntity(entityType,cpEntity.getId().getUuid());
-  entity.setUuid(cpEntity.getId().getUuid());
-  Map<String,Object> entityMap=EntityMapUtils.toMap(cpEntity);
-  entity.addProperties(entityMap);
-  typesByUuid.put(entity.getUuid(),entityType);
-  return entity;
+  return create(entityType,null,properties);
 }

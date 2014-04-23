@@ -1,0 +1,17 @@
+{
+  EntityCollectionManager ecm=ecmf.createCollectionManager(SYSTEM_PROPS_SCOPE);
+  EntityIndex ei=ecif.createEntityIndex(SYSTEM_ORG_SCOPE,SYSTEM_PROPS_SCOPE);
+  Query q=Query.fromQL("select *");
+  Results results=ei.search(SYSTEM_PROPS_SCOPE,q);
+  Entity propsEntity=results.iterator().next();
+  if (propsEntity == null) {
+    return false;
+  }
+  if (propsEntity.getField(name) == null) {
+    return false;
+  }
+  propsEntity.removeField(name);
+  propsEntity=ecm.write(propsEntity).toBlockingObservable().last();
+  ei.index(SYSTEM_PROPS_SCOPE,propsEntity);
+  return true;
+}

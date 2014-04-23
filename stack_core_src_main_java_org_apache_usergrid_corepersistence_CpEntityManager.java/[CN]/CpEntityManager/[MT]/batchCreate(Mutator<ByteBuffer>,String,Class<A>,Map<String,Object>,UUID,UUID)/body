@@ -1,3 +1,113 @@
 {
-  throw new UnsupportedOperationException("Not supported yet.");
+  String eType=Schema.normalizeEntityType(entityType);
+  Schema schema=getDefaultSchema();
+  boolean is_application=TYPE_APPLICATION.equals(eType);
+  if (((applicationId == null) || applicationId.equals(UUIDUtils.ZERO_UUID)) && !is_application) {
+    return null;
+  }
+  long timestamp=getTimestampInMicros(timestampUuid);
+  UUID itemId=UUIDUtils.newTimeUUID();
+  if (is_application) {
+    itemId=applicationId;
+  }
+  if (importId != null) {
+    itemId=importId;
+  }
+  boolean emptyPropertyMap=false;
+  if (properties == null) {
+    properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
+  }
+  if (properties.isEmpty()) {
+    emptyPropertyMap=true;
+  }
+  if (importId != null) {
+    if (isTimeBased(importId)) {
+      timestamp=UUIDUtils.getTimestampInMicros(importId);
+    }
+ else     if (properties.get(PROPERTY_CREATED) != null) {
+      timestamp=getLong(properties.get(PROPERTY_CREATED)) * 1000;
+    }
+  }
+  if (entityClass == null) {
+    entityClass=(Class<A>)Schema.getDefaultSchema().getEntityClass(entityType);
+  }
+  Set<String> required=schema.getRequiredProperties(entityType);
+  if (required != null) {
+    for (    String p : required) {
+      if (!PROPERTY_UUID.equals(p) && !PROPERTY_TYPE.equals(p) && !PROPERTY_CREATED.equals(p)&& !PROPERTY_MODIFIED.equals(p)) {
+        Object v=properties.get(p);
+        if (schema.isPropertyTimestamp(entityType,p)) {
+          if (v == null) {
+            properties.put(p,timestamp / 1000);
+          }
+ else {
+            long ts=getLong(v);
+            if (ts <= 0) {
+              properties.put(p,timestamp / 1000);
+            }
+          }
+          continue;
+        }
+        if (v == null) {
+          throw new RequiredPropertyNotFoundException(entityType,p);
+        }
+ else         if ((v instanceof String) && isBlank((String)v)) {
+          throw new RequiredPropertyNotFoundException(entityType,p);
+        }
+      }
+    }
+  }
+  String collectionName=Schema.defaultCollectionName(eType);
+  CollectionInfo collection=null;
+  if (!is_application) {
+  }
+  if (emptyPropertyMap) {
+    return null;
+  }
+  properties.put(PROPERTY_UUID,itemId);
+  properties.put(PROPERTY_TYPE,Schema.normalizeEntityType(entityType,false));
+  if (importId != null) {
+    if (properties.get(PROPERTY_CREATED) == null) {
+      properties.put(PROPERTY_CREATED,timestamp / 1000);
+    }
+    if (properties.get(PROPERTY_MODIFIED) == null) {
+      properties.put(PROPERTY_MODIFIED,timestamp / 1000);
+    }
+  }
+ else {
+    properties.put(PROPERTY_CREATED,timestamp / 1000);
+    properties.put(PROPERTY_MODIFIED,timestamp / 1000);
+  }
+  if (properties.containsKey(PROPERTY_TIMESTAMP)) {
+    long ts=getLong(properties.get(PROPERTY_TIMESTAMP));
+    if (ts <= 0) {
+      properties.put(PROPERTY_TIMESTAMP,timestamp / 1000);
+    }
+  }
+  A entity=EntityFactory.newEntity(itemId,eType,entityClass);
+  logger.info("Entity created of type {}",entity.getClass().getName());
+  if (Event.ENTITY_TYPE.equals(eType)) {
+    Event event=(Event)entity.toTypedEntity();
+    for (    String prop_name : properties.keySet()) {
+      Object propertyValue=properties.get(prop_name);
+      if (propertyValue != null) {
+        event.setProperty(prop_name,propertyValue);
+      }
+    }
+    return entity;
+  }
+  org.apache.usergrid.persistence.model.entity.Entity cpEntity=new org.apache.usergrid.persistence.model.entity.Entity(new SimpleId(itemId,entityType));
+  cpEntity=EntityMapUtils.fromMap(cpEntity,properties);
+  OrganizationScope organizationScope=emf.getOrganizationScope(applicationId);
+  CollectionScope applicationScope=emf.getApplicationScope(applicationId);
+  CollectionScope collectionScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),collectionName);
+  EntityCollectionManager ecm=ecmf.createCollectionManager(collectionScope);
+  EntityIndex ei=eif.createEntityIndex(organizationScope,applicationScope);
+  logger.debug("Writing entity {} type {} to {}",new String[]{cpEntity.getId().getUuid().toString(),entity.getType(),collectionName});
+  cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
+  ei.index(collectionScope,cpEntity);
+  entity.setUuid(cpEntity.getId().getUuid());
+  Map<String,Object> entityMap=EntityMapUtils.toMap(cpEntity);
+  entity.addProperties(entityMap);
+  return entity;
 }

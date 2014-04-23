@@ -1,0 +1,10 @@
+{
+  Query q=Query.fromQL(PROPERTY_UUID + " = '" + applicationId.toString()+ "'");
+  EntityIndex ei=ecif.createEntityIndex(SYSTEM_ORG_SCOPE,SYSTEM_APPS_SCOPE);
+  org.apache.usergrid.persistence.index.query.Results results=ei.search(SYSTEM_APPS_SCOPE,q);
+  if (results.isEmpty()) {
+    return null;
+  }
+  Entity appEntity=results.iterator().next();
+  return new OrganizationScopeImpl(new SimpleId(((UUID)(appEntity.getField("organizationUuid")).getValue()),"organization"));
+}
