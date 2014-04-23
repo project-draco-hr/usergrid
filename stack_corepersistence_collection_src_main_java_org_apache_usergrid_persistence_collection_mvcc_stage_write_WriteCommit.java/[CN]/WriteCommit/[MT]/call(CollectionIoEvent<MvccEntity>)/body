@@ -1,16 +1,16 @@
 {
-  final MvccEntity entity=ioEvent.getEvent();
-  ValidationUtils.verifyMvccEntityWithEntity(entity);
-  final Id entityId=entity.getId();
-  final UUID version=entity.getVersion();
+  final MvccEntity mvccEntity=ioEvent.getEvent();
+  ValidationUtils.verifyMvccEntityWithEntity(mvccEntity);
+  final Id entityId=mvccEntity.getId();
+  final UUID version=mvccEntity.getVersion();
   final CollectionScope collectionScope=ioEvent.getEntityCollection();
-  final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,org.apache.usergrid.persistence.collection.mvcc.entity.Stage.COMMITTED);
+  final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,Stage.COMMITTED);
   MutationBatch logMutation=logEntryStrat.write(collectionScope,startEntry);
-  MutationBatch entityMutation=entityStrat.write(collectionScope,entity);
+  MutationBatch entityMutation=entityStrat.write(collectionScope,mvccEntity);
   logMutation.mergeShallow(entityMutation);
-  for (  Field field : entity.getEntity().get().getFields()) {
+  for (  Field field : mvccEntity.getEntity().get().getFields()) {
     if (field.isUnique()) {
-      UniqueValue written=new UniqueValueImpl(ioEvent.getEntityCollection(),field,entity.getId(),entity.getVersion());
+      UniqueValue written=new UniqueValueImpl(ioEvent.getEntityCollection(),field,mvccEntity.getId(),mvccEntity.getVersion());
       MutationBatch mb=uniqueValueStrat.write(written);
       logMutation.mergeShallow(mb);
     }
@@ -20,7 +20,7 @@
   }
  catch (  ConnectionException e) {
     LOG.error("Failed to execute write asynchronously ",e);
-    throw new CollectionRuntimeException("Failed to execute write asynchronously ",e);
+    throw new WriteCommitException(mvccEntity.getEntity().get(),collectionScope,"Failed to execute write asynchronously ",e);
   }
-  return entity.getEntity().get();
+  return mvccEntity.getEntity().get();
 }
