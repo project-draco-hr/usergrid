@@ -1,2 +1,13 @@
 {
+  String collectionName=Schema.defaultCollectionName(entity.getType());
+  OrganizationScope organizationScope=emf.getOrganizationScope(applicationId);
+  CollectionScope applicationScope=emf.getApplicationScope(applicationId);
+  CollectionScope collectionScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),collectionName);
+  EntityCollectionManager ecm=ecmf.createCollectionManager(collectionScope);
+  EntityIndex ei=eif.createEntityIndex(organizationScope,applicationScope);
+  Id entityId=new SimpleId(entity.getUuid(),entity.getType());
+  org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(entityId).toBlockingObservable().last();
+  cpEntity=EntityMapUtils.fromMap(cpEntity,entity.getProperties());
+  cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
+  ei.index(collectionScope,cpEntity);
 }

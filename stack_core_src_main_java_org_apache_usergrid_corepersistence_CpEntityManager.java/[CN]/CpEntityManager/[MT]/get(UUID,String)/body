@@ -6,6 +6,9 @@
   EntityCollectionManager ecm=ecmf.createCollectionManager(collectionScope);
   logger.debug("Loading entity {} type {} to {}",new String[]{entityId.toString(),type,collectionName});
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(id).toBlockingObservable().last();
+  if (cpEntity == null) {
+    return null;
+  }
   Entity entity=new DynamicEntity(type,cpEntity.getId().getUuid());
   entity.setUuid(cpEntity.getId().getUuid());
   Map<String,Object> entityMap=EntityMapUtils.toMap(cpEntity);
