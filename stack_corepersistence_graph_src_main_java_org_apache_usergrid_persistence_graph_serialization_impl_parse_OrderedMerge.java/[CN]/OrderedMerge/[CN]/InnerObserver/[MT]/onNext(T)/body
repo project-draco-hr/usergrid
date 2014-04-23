@@ -1,5 +1,11 @@
 {
   log.trace("Received {}",a);
+  try {
+    this.semaphore.acquire();
+  }
+ catch (  InterruptedException e) {
+    onError(e);
+  }
   if (items.size() == maxQueueSize) {
     RuntimeException e=new RuntimeException("The maximum queue size of " + maxQueueSize + " has been reached");
     onError(e);
