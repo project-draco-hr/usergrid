@@ -85,7 +85,6 @@
     }
   }
   A entity=EntityFactory.newEntity(itemId,eType,entityClass);
-  logger.info("Entity created of type {}",entity.getClass().getName());
   if (Event.ENTITY_TYPE.equals(eType)) {
     Event event=(Event)entity.toTypedEntity();
     for (    String prop_name : properties.keySet()) {
@@ -103,7 +102,6 @@
   CollectionScope collectionScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),collectionName);
   EntityCollectionManager ecm=ecmf.createCollectionManager(collectionScope);
   EntityIndex ei=eif.createEntityIndex(organizationScope,applicationScope);
-  logger.debug("Writing entity {} type {} to {}",new String[]{cpEntity.getId().getUuid().toString(),entity.getType(),collectionName});
   cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
   ei.index(collectionScope,cpEntity);
   entity.setUuid(cpEntity.getId().getUuid());

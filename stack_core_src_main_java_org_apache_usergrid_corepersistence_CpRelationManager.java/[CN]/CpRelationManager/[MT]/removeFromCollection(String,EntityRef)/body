@@ -1,0 +1,10 @@
+{
+  CollectionScope memberScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),Schema.defaultCollectionName(memberRef.getType()));
+  EntityCollectionManager memberMgr=ecmf.createCollectionManager(memberScope);
+  org.apache.usergrid.persistence.model.entity.Entity memberEntity=memberMgr.load(new SimpleId(memberRef.getUuid(),memberRef.getType())).toBlockingObservable().last();
+  EntityIndex ei=eif.createEntityIndex(organizationScope,applicationScope);
+  ei.deindexConnection(cpHeadEntity.getId(),collName + COLLECTION_SUFFIX,memberEntity);
+  Edge edge=new SimpleMarkedEdge(cpHeadEntity.getId(),collName + COLLECTION_SUFFIX,memberEntity.getId(),UUIDGenerator.newTimeUUID(),false);
+  GraphManager gm=gmf.createEdgeManager(organizationScope);
+  gm.deleteEdge(edge).toBlockingObservable().last();
+}

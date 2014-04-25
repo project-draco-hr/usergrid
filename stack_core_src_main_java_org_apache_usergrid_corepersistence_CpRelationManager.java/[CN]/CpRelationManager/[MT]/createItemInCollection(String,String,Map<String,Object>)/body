@@ -1,0 +1,21 @@
+{
+  if (headEntity.getUuid().equals(applicationId)) {
+    if (itemType.equals(TYPE_ENTITY)) {
+      itemType=singularize(collName);
+    }
+    return em.create(itemType,properties);
+  }
+  CollectionInfo collection=getDefaultSchema().getCollection(headEntity.getType(),collName);
+  if ((collection != null) && !collection.getType().equals(itemType)) {
+    return null;
+  }
+  properties=getDefaultSchema().cleanUpdatedProperties(itemType,properties,true);
+  Entity itemEntity=em.create(itemType,properties);
+  if (itemEntity != null) {
+    addToCollection(collName,itemEntity);
+    if (collection.getLinkedCollection() != null) {
+      getRelationManager(itemEntity).addToCollection(collection.getLinkedCollection(),getHeadEntity());
+    }
+  }
+  return itemEntity;
+}

@@ -1,0 +1,23 @@
+{
+  Map<EntityRef,Set<String>> results=new LinkedHashMap<EntityRef,Set<String>>();
+  GraphManager gm=gmf.createEdgeManager(organizationScope);
+  Observable<Edge> edges=gm.loadEdgesToTarget(new SimpleSearchByEdgeType(cpHeadEntity.getId(),"contains",cpHeadEntity.getVersion(),null));
+  Iterator<Edge> iter=edges.toBlockingObservable().getIterator();
+  while (iter.hasNext()) {
+    Edge edge=iter.next();
+    if (!edge.getType().endsWith(COLLECTION_SUFFIX)) {
+      continue;
+    }
+    String collName=edge.getType().substring(0,edge.getType().indexOf(COLLECTION_SUFFIX));
+    CollectionScope collScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),collName);
+    EntityCollectionManager ecm=ecmf.createCollectionManager(collScope);
+    org.apache.usergrid.persistence.model.entity.Entity container=ecm.load(edge.getSourceNode()).toBlockingObservable().last();
+    EntityRef eref=new SimpleEntityRef(container.getId().getType(),container.getId().getUuid());
+    addMapSet(results,eref,edge.getType());
+  }
+  EntityRef applicationRef=new SimpleEntityRef(TYPE_APPLICATION,applicationId);
+  if (!results.containsKey(applicationRef)) {
+    addMapSet(results,applicationRef,defaultCollectionName(headEntity.getType()));
+  }
+  return results;
+}

@@ -1,0 +1,11 @@
+{
+  headEntity=em.validate(headEntity);
+  connectedEntityRef=em.validate(connectedEntityRef);
+  ConnectionRefImpl connection=new ConnectionRefImpl(headEntity,connectionType,connectedEntityRef);
+  CollectionScope targetScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),Schema.defaultCollectionName(connectedEntityRef.getType()));
+  EntityCollectionManager targetEcm=ecmf.createCollectionManager(targetScope);
+  org.apache.usergrid.persistence.model.entity.Entity targetEntity=targetEcm.load(new SimpleId(connectedEntityRef.getUuid(),connectedEntityRef.getType())).toBlockingObservable().last();
+  EntityIndex ei=eif.createEntityIndex(organizationScope,applicationScope);
+  ei.indexConnection(cpHeadEntity,connectionType,targetEntity,targetScope);
+  return connection;
+}

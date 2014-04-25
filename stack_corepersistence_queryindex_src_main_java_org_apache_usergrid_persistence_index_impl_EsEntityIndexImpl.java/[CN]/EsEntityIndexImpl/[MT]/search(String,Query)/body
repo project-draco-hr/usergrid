@@ -1,8 +1,11 @@
 {
   QueryBuilder qb=query.createQueryBuilder();
+  log.debug("Search");
+  log.debug("    Index Name:  " + this.indexName);
+  log.debug("    Target Type: " + typeName);
+  log.debug("    Query:       " + qb.toString());
   SearchResponse searchResponse;
   if (query.getCursor() == null) {
-    log.debug("Executing query query: {} ",qb.toString());
     SearchRequestBuilder srb=client.prepareSearch(indexName).setTypes(typeName).setScroll(cursorTimeout + "m").setQuery(qb);
     FilterBuilder fb=query.createFilterBuilder();
     if (fb != null) {
