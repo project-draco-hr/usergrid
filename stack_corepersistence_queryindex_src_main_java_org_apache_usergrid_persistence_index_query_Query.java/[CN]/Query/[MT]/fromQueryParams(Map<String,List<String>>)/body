@@ -1,6 +1,5 @@
 {
   Query q=null;
-  List<Id> identifiers=null;
   String ql=Query.queryStrFrom(params);
   String type=first(params.get("type"));
   Boolean reversed=firstBoolean(params.get("reversed"));
@@ -12,17 +11,6 @@
   Long startTime=firstLong(params.get("start_time"));
   Long finishTime=firstLong(params.get("end_time"));
   Boolean pad=firstBoolean(params.get("pad"));
-  for (  Entry<String,List<String>> param : params.entrySet()) {
-    Id identifier=null;
-    if ((param.getValue() == null) || (param.getValue().size() == 0)) {
-      if (identifier != null) {
-        if (identifiers == null) {
-          identifiers=new ArrayList<Id>();
-        }
-        identifiers.add(identifier);
-      }
-    }
-  }
   if (ql != null) {
     q=Query.fromQL(decode(ql));
   }
@@ -75,10 +63,6 @@
   if (pad != null) {
     q=newQueryIfNull(q);
     q.setPad(pad);
-  }
-  if (identifiers != null) {
-    q=newQueryIfNull(q);
-    q.setIdentifiers(identifiers);
   }
   if (reversed != null) {
     q=newQueryIfNull(q);
