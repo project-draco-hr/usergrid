@@ -1,0 +1,26 @@
+{
+  List<Integer> expected=Arrays.asList(0,1,2,3,4,5);
+  Observable<Integer> ints=Observable.from(expected);
+  Observable<Integer> ordered=OrderedMerge.orderedMerge(new IntegerComparator(),10,ints);
+  final CountDownLatch latch=new CountDownLatch(1);
+  final List<Integer> results=new ArrayList();
+  ordered.subscribe(new Subscriber<Integer>(){
+    @Override public void onCompleted(){
+      latch.countDown();
+    }
+    @Override public void onError(    final Throwable e){
+      e.printStackTrace();
+      fail("An error was thrown ");
+    }
+    @Override public void onNext(    final Integer integer){
+      log.info("onNext invoked with {}",integer);
+      results.add(integer);
+    }
+  }
+);
+  latch.await();
+  assertEquals(expected.size(),results.size());
+  for (int i=0; i < expected.size(); i++) {
+    assertEquals("Same element expected",expected.get(i),results.get(i));
+  }
+}

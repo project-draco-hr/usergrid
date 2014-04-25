@@ -1,0 +1,10 @@
+{
+  final RangeBuilder rangeBuilder=new RangeBuilder().setLimit(cassandraConfig.getScanPageSize());
+  if (start.isPresent()) {
+    rangeBuilder.setStart(start.get());
+  }
+  final EdgeRowKey key=new EdgeRowKey(nodeId,types);
+  final ScopedRowKey rowKey=ScopedRowKey.fromKey(scope,key);
+  final RowQuery<ScopedRowKey<OrganizationScope,EdgeRowKey>,Long> query=keyspace.prepareQuery(EDGE_SHARDS).setConsistencyLevel(cassandraConfig.getReadCL()).getKey(rowKey).autoPaginate(true).withColumnRange(rangeBuilder.build());
+  return new ColumnNameIterator<>(query,COLUMN_PARSER,false,graphFig.getReadTimeout());
+}

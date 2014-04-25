@@ -1,0 +1,16 @@
+{
+  final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
+  final EdgeShardCounterSerialization edgeShardCounterSerialization=mock(EdgeShardCounterSerialization.class);
+  final TimeService timeService=mock(TimeService.class);
+  final Keyspace keyspace=mock(Keyspace.class);
+  final MutationBatch batch=mock(MutationBatch.class);
+  when(keyspace.prepareMutationBatch()).thenReturn(batch);
+  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeShardCounterSerialization,timeService,graphFig,keyspace);
+  final Id nodeId=createId("test");
+  final String type="type";
+  final String subType="subType";
+  when(edgeShardSerialization.getEdgeMetaData(same(scope),same(nodeId),any(Optional.class),same(type),same(subType))).thenReturn(Collections.<Long>emptyList().iterator());
+  final Iterator<Long> result=approximation.getShards(scope,nodeId,Optional.<Long>absent(),type,subType);
+  assertEquals("0 shard allocated",0l,result.next().longValue());
+  assertFalse("No shard allocated",result.hasNext());
+}

@@ -1,0 +1,15 @@
+{
+  final GraphFig graphFig=getFigMock();
+  final NodeShardAllocation allocation=mock(NodeShardAllocation.class);
+  final Id id=createId("test");
+  final String edgeType="edge";
+  final String otherIdType="type";
+  UUID newTime=UUIDGenerator.newTimeUUID();
+  final long min=0;
+  NodeShardCache cache=new NodeShardCacheImpl(allocation,graphFig);
+  final Optional max=Optional.absent();
+  when(allocation.getShards(same(scope),same(id),same(max),same(edgeType),same(otherIdType))).thenReturn(Collections.singletonList(min).iterator());
+  long slice=cache.getSlice(scope,id,newTime,edgeType,otherIdType);
+  assertEquals(min,slice);
+  verify(allocation).auditMaxShard(scope,id,edgeType,otherIdType);
+}

@@ -1,0 +1,11 @@
+{
+  ValidationUtils.validateOrganizationScope(scope);
+  ValidationUtils.verifyIdentity(nodeId);
+  Preconditions.checkArgument(shard > -1,"shard must be greater than -1");
+  Preconditions.checkNotNull(types);
+  final EdgeRowKey key=new EdgeRowKey(nodeId,types);
+  final ScopedRowKey rowKey=ScopedRowKey.fromKey(scope,key);
+  final MutationBatch batch=keyspace.prepareMutationBatch();
+  batch.withRow(EDGE_SHARDS,rowKey).deleteColumn(shard);
+  return batch;
+}

@@ -1,0 +1,18 @@
+{
+  ValidationUtils.validateOrganizationScope(scope);
+  ValidationUtils.verifyIdentity(nodeId);
+  Preconditions.checkArgument(shardId > -1,"shardId must be greater than -1");
+  Preconditions.checkNotNull(types);
+  final EdgeRowKey key=new EdgeRowKey(nodeId,types);
+  final ScopedRowKey rowKey=ScopedRowKey.fromKey(scope,key);
+  try {
+    OperationResult<Column<Long>> column=keyspace.prepareQuery(EDGE_SHARD_COUNTS).getKey(rowKey).getColumn(shardId).execute();
+    return column.getResult().getLongValue();
+  }
+ catch (  NotFoundException nfe) {
+    return 0;
+  }
+catch (  ConnectionException e) {
+    throw new RuntimeException("An error occurred connecting to cassandra",e);
+  }
+}

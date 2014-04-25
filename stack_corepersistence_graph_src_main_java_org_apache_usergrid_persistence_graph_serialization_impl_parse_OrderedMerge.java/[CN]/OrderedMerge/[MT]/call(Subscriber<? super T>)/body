@@ -1,0 +1,15 @@
+{
+  CompositeSubscription csub=new CompositeSubscription();
+  SubscriberCoordinator coordinator=new SubscriberCoordinator(comparator,outerOperation);
+  InnerObserver<T>[] innerObservers=new InnerObserver[observables.length];
+  for (int i=0; i < observables.length; i++) {
+    final InnerObserver<T> inner=new InnerObserver<T>(coordinator,maxBufferSize);
+    coordinator.add(inner);
+    innerObservers[i]=inner;
+  }
+  for (int i=0; i < observables.length; i++) {
+    Subscription subscription=observables[i].subscribe(innerObservers[i]);
+    csub.add(subscription);
+    outerOperation.add(csub);
+  }
+}

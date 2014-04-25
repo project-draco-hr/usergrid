@@ -1,0 +1,30 @@
+{
+  final NodeShardApproximation approximation=new NodeShardApproximationImpl(graphFig);
+  final int increments=1000000;
+  final int workers=100;
+  final Id id=createId("test");
+  final String type="type";
+  final String type2="subType";
+  final AtomicLong shardIdGenerator=new AtomicLong();
+  ExecutorService executor=Executors.newFixedThreadPool(workers);
+  List<Future<Long>> futures=new ArrayList<>(workers);
+  for (int i=0; i < workers; i++) {
+    final Future<Long> future=executor.submit(new Callable<Long>(){
+      @Override public Long call() throws Exception {
+        final long shardId=shardIdGenerator.incrementAndGet();
+        long count=approximation.getCount(scope,id,shardId,type,type2);
+        assertEquals(0,count);
+        for (int i=0; i < increments; i++) {
+          approximation.increment(scope,id,shardId,1,type,type2);
+        }
+        return approximation.getCount(scope,id,shardId,type,type2);
+      }
+    }
+);
+    futures.add(future);
+  }
+  for (  Future<Long> future : futures) {
+    final long value=future.get().longValue();
+    assertEquals(increments,value);
+  }
+}

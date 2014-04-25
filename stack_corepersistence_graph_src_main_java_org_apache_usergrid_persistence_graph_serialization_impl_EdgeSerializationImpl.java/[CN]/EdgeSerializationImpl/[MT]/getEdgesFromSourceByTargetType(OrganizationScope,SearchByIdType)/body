@@ -5,9 +5,12 @@
   final String type=edgeType.getType();
   final String targetType=edgeType.getIdType();
   final UUID maxVersion=edgeType.getMaxVersion();
-  return getEdges(GRAPH_SOURCE_NODE_TARGET_TYPE,new EdgeSearcher<RowKeyType>(scope,maxVersion,edgeType.last()){
-    @Override protected RowKeyType generateRowKey(){
-      return new RowKeyType(targetId,type,targetType);
+  final EdgeSearcher<RowKeyType,DirectedEdge,MarkedEdge> searcher=new EdgeSearcher<RowKeyType,DirectedEdge,MarkedEdge>(scope,maxVersion,edgeType.last(),edgeShardStrategy.getReadShards(scope,targetId,maxVersion,type,targetType)){
+    @Override protected Serializer<DirectedEdge> getSerializer(){
+      return EDGE_SERIALIZER;
+    }
+    @Override protected RowKeyType generateRowKey(    long shard){
+      return new RowKeyType(targetId,type,targetType,shard);
     }
     @Override protected DirectedEdge getStartColumn(    final Edge last){
       return new DirectedEdge(last.getTargetNode(),last.getVersion());
@@ -16,5 +19,6 @@
       return new SimpleMarkedEdge(targetId,type,edge.id,edge.version,marked);
     }
   }
-);
+;
+  return new ShardRowIterator(searcher,sourceNodeTargetTypeCf);
 }

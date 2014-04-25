@@ -1,0 +1,15 @@
+{
+  Observable<MarkedEdge> commitLog=Observable.create(new ObservableIterator<MarkedEdge>("getEdgesToTargetBySourceTypeCommitLog"){
+    @Override protected Iterator<MarkedEdge> getIterator(){
+      return commitLogSerialization.getEdgesToTargetBySourceType(scope,edgeType);
+    }
+  }
+);
+  Observable<MarkedEdge> permanent=Observable.create(new ObservableIterator<MarkedEdge>("getEdgesToTargetBySourceTypeStorage"){
+    @Override protected Iterator<MarkedEdge> getIterator(){
+      return permanentSerialization.getEdgesToTargetBySourceType(scope,edgeType);
+    }
+  }
+);
+  return OrderedMerge.orderedMerge(EdgeComparator.INSTANCE,cassandraConfig.getScanPageSize() / 2,commitLog,permanent).distinctUntilChanged();
+}

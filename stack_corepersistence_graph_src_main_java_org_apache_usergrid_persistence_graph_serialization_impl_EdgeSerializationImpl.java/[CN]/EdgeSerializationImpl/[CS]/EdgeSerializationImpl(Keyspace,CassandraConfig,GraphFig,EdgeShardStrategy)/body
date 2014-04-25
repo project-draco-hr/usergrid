@@ -1,0 +1,18 @@
+{
+  checkNotNull("keyspace required",keyspace);
+  checkNotNull("cassandraConfig required",cassandraConfig);
+  checkNotNull("graphFig required",graphFig);
+  checkNotNull("sourceNodeCfName required",edgeShardStrategy.getSourceNodeCfName());
+  checkNotNull("targetNodeCfName required",edgeShardStrategy.getTargetNodeCfName());
+  checkNotNull("sourceNodeTargetTypeCfName required",edgeShardStrategy.getSourceNodeTargetTypeCfName());
+  checkNotNull("targetNodeSourceTypeCfName required",edgeShardStrategy.getTargetNodeSourceTypeCfName());
+  this.keyspace=keyspace;
+  this.cassandraConfig=cassandraConfig;
+  this.graphFig=graphFig;
+  this.edgeShardStrategy=edgeShardStrategy;
+  sourceNodeEdgesCf=new MultiTennantColumnFamily<OrganizationScope,RowKey,DirectedEdge>(edgeShardStrategy.getSourceNodeCfName(),new OrganizationScopedRowKeySerializer<RowKey>(ROW_SERIALIZER),EDGE_SERIALIZER);
+  targetNodeEdgesCf=new MultiTennantColumnFamily<OrganizationScope,RowKey,DirectedEdge>(edgeShardStrategy.getTargetNodeCfName(),new OrganizationScopedRowKeySerializer<RowKey>(ROW_SERIALIZER),EDGE_SERIALIZER);
+  sourceNodeTargetTypeCf=new MultiTennantColumnFamily<OrganizationScope,RowKeyType,DirectedEdge>(edgeShardStrategy.getSourceNodeTargetTypeCfName(),new OrganizationScopedRowKeySerializer<RowKeyType>(ROW_TYPE_SERIALIZER),EDGE_SERIALIZER);
+  targetNodeSourceTypeCf=new MultiTennantColumnFamily<OrganizationScope,RowKeyType,DirectedEdge>(edgeShardStrategy.getTargetNodeSourceTypeCfName(),new OrganizationScopedRowKeySerializer<RowKeyType>(ROW_TYPE_SERIALIZER),EDGE_SERIALIZER);
+  graphEdgeVersionsCf=new MultiTennantColumnFamily<OrganizationScope,EdgeRowKey,UUID>(edgeShardStrategy.getGraphEdgeVersions(),new OrganizationScopedRowKeySerializer<EdgeRowKey>(EDGE_ROW_KEY_SERIALIZER),UUID_SERIALIZER);
+}
