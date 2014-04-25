@@ -1,4 +1,7 @@
 {
+  if (wrapper == null) {
+    return null;
+  }
   CompositeBuilder builder=Composites.newCompositeBuilder();
   builder.addBytes(VERSION);
   if (!wrapper.entity.isPresent()) {
@@ -11,6 +14,11 @@
  else {
     builder.addBytes(STATE_PARTIAL);
   }
-  builder.addBytes(SER.toByteBuffer(wrapper.entity.get()));
+  try {
+    builder.addBytes(mapper.writeValueAsBytes(wrapper.entity.get()));
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(e.getMessage());
+  }
   return builder.build();
 }

@@ -1,8 +1,10 @@
 {
-  Id appId=new SimpleId("testGeo");
-  Id orgId=new SimpleId("testSamePointPaging");
-  EntityManagerFacade em=new EntityManagerFacade(orgId,appId,cmf,cif);
-  assertNotNull(em);
+  Id orgId=new SimpleId("organization");
+  OrganizationScope orgScope=new OrganizationScopeImpl(orgId);
+  Id appId=new SimpleId("application");
+  CollectionScope appScope=new CollectionScopeImpl(orgId,appId,"test-app");
+  CollectionScope scope=new CollectionScopeImpl(appId,orgId,"locations");
+  EntityManagerFacade em=new EntityManagerFacade(orgScope,appScope,cmf,cif);
   int numEntities=10;
   for (int i=0; i < numEntities; i++) {
     Map<String,Object> data=new HashMap<String,Object>(2);
