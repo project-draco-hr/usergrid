@@ -3,6 +3,7 @@
   ValidationUtils.verifyIdentity(node);
   Preconditions.checkNotNull(edgeType,"edge type is required");
   Preconditions.checkNotNull(version,"version is required");
+  Preconditions.checkNotNull(serialization,"serialization is required");
   Observable<Integer> deleteCounts=serialization.loadEdgeSubTypes(scope,node,edgeType,version).buffer(graphFig.getRepairConcurrentSize()).flatMap(new Func1<List<String>,Observable<Integer>>(){
     @Override public Observable<Integer> call(    final List<String> types){
       final MutationBatch batch=keyspace.prepareMutationBatch();
@@ -12,10 +13,10 @@
         Observable<Integer> search=serialization.loadEdges(scope,node,edgeType,subType,version).subscribeOn(Schedulers.io()).take(1).count().doOnNext(new Action1<Integer>(){
           @Override public void call(          final Integer count){
             if (count != 0) {
-              LOG.debug("Found edge with nodeId {}, type {}, and subtype {}. Not removing subtype. ",node,edgeType,subType);
+              LOG.debug("Found edge with nodeId {}, type {}, " + "and subtype {}. Not removing subtype. ",node,edgeType,subType);
               return;
             }
-            LOG.debug("No edges with nodeId {}, type {}, and subtype {}. Removing subtype.",node,edgeType,subType);
+            LOG.debug("No edges with nodeId {}, type {}, " + "and subtype {}. Removing subtype.",node,edgeType,subType);
             batch.mergeShallow(serialization.removeEdgeSubType(scope,node,edgeType,subType,version));
           }
         }

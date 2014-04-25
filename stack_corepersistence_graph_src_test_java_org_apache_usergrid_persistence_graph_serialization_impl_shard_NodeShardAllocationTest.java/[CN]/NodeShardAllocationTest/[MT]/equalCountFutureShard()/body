@@ -1,0 +1,24 @@
+{
+  final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
+  final EdgeShardCounterSerialization edgeShardCounterSerialization=mock(EdgeShardCounterSerialization.class);
+  final TimeService timeService=mock(TimeService.class);
+  final Keyspace keyspace=mock(Keyspace.class);
+  final MutationBatch batch=mock(MutationBatch.class);
+  when(keyspace.prepareMutationBatch()).thenReturn(batch);
+  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeShardCounterSerialization,timeService,graphFig,keyspace);
+  final Id nodeId=createId("test");
+  final String type="type";
+  final String subType="subType";
+  final long timeservicetime=System.currentTimeMillis();
+  when(timeService.getCurrentTime()).thenReturn(timeservicetime);
+  when(edgeShardSerialization.getEdgeMetaData(same(scope),same(nodeId),any(Optional.class),same(type),same(subType))).thenReturn(Arrays.asList(0l).iterator());
+  final long shardCount=graphFig.getShardSize();
+  when(edgeShardCounterSerialization.getCount(same(scope),same(nodeId),eq(0l),same(type),same(subType))).thenReturn(shardCount);
+  ArgumentCaptor<Long> newUUIDValue=ArgumentCaptor.forClass(Long.class);
+  when(edgeShardSerialization.writeEdgeMeta(same(scope),same(nodeId),newUUIDValue.capture(),same(type),same(subType))).thenReturn(mock(MutationBatch.class));
+  final boolean result=approximation.auditMaxShard(scope,nodeId,type,subType);
+  assertTrue("Shard allocated",result);
+  final long expectedTime=timeservicetime + 2 * graphFig.getShardCacheTimeout();
+  final long savedTimestamp=newUUIDValue.getValue();
+  assertEquals("Expected at 2x timeout generated",expectedTime,savedTimestamp);
+}

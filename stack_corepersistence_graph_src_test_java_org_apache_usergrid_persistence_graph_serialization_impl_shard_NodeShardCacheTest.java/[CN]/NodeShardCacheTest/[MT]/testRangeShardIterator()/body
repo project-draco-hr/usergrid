@@ -1,0 +1,21 @@
+{
+  final GraphFig graphFig=getFigMock();
+  final NodeShardAllocation allocation=mock(NodeShardAllocation.class);
+  final Id id=createId("test");
+  final String edgeType="edge";
+  final String otherIdType="type";
+  final long min=1;
+  final long mid=100;
+  final long max=200;
+  NodeShardCache cache=new NodeShardCacheImpl(allocation,graphFig);
+  when(allocation.getShards(same(scope),same(id),any(Optional.class),same(edgeType),same(otherIdType))).thenReturn(Arrays.asList(min,mid,max).iterator());
+  Iterator<Long> slice=cache.getVersions(scope,id,EdgeTestUtils.setTimestamp(max),edgeType,otherIdType);
+  assertEquals(max,slice.next().longValue());
+  assertEquals(mid,slice.next().longValue());
+  assertEquals(min,slice.next().longValue());
+  slice=cache.getVersions(scope,id,EdgeTestUtils.setTimestamp(mid),edgeType,otherIdType);
+  assertEquals(mid,slice.next().longValue());
+  assertEquals(min,slice.next().longValue());
+  slice=cache.getVersions(scope,id,EdgeTestUtils.setTimestamp(min),edgeType,otherIdType);
+  assertEquals(min,slice.next().longValue());
+}

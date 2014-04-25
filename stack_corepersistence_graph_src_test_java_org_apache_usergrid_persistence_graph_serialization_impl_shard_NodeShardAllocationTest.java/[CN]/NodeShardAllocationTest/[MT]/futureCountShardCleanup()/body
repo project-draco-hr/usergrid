@@ -1,0 +1,33 @@
+{
+  final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
+  final EdgeShardCounterSerialization edgeShardCounterSerialization=mock(EdgeShardCounterSerialization.class);
+  final TimeService timeService=mock(TimeService.class);
+  final Keyspace keyspace=mock(Keyspace.class);
+  final MutationBatch batch=mock(MutationBatch.class);
+  when(keyspace.prepareMutationBatch()).thenReturn(batch);
+  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeShardCounterSerialization,timeService,graphFig,keyspace);
+  final Id nodeId=createId("test");
+  final String type="type";
+  final String subType="subType";
+  final long timeservicetime=System.currentTimeMillis();
+  when(timeService.getCurrentTime()).thenReturn(timeservicetime);
+  assertTrue("Shard cache mocked",graphFig.getShardCacheTimeout() > 0);
+  final long futureTime=timeService.getCurrentTime() + 2 * graphFig.getShardCacheTimeout();
+  final long futureShard1=futureTime - 1;
+  final long futureShard2=futureTime + 10000;
+  final long futureShard3=futureShard2 + 10000;
+  final int pageSize=100;
+  when(edgeShardSerialization.getEdgeMetaData(same(scope),same(nodeId),any(Optional.class),same(type),same(subType))).thenReturn(Arrays.asList(futureShard3,futureShard2,futureShard1,0l).iterator());
+  ArgumentCaptor<Long> newLongValue=ArgumentCaptor.forClass(Long.class);
+  when(edgeShardSerialization.removeEdgeMeta(same(scope),same(nodeId),newLongValue.capture(),same(type),same(subType))).thenReturn(mock(MutationBatch.class));
+  final Iterator<Long> result=approximation.getShards(scope,nodeId,Optional.<Long>absent(),type,subType);
+  assertTrue("Shards present",result.hasNext());
+  assertEquals("Only single next shard returned",futureShard1,result.next().longValue());
+  assertTrue("Shards present",result.hasNext());
+  assertEquals("Previous shard present",0l,result.next().longValue());
+  assertFalse("No shards left",result.hasNext());
+  List<Long> values=newLongValue.getAllValues();
+  assertEquals("2 values removed",2,values.size());
+  assertEquals("Deleted Max Future",futureShard3,values.get(0).longValue());
+  assertEquals("Deleted Next Future",futureShard2,values.get(1).longValue());
+}

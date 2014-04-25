@@ -1,0 +1,12 @@
+{
+  return getEdgeVersions(scope,edge,serialization).take(1).map(new Func1<MarkedEdge,MarkedEdge>(){
+    @Override public MarkedEdge call(    final MarkedEdge markedEdge){
+      if (edge.equals(markedEdge)) {
+        final MutationBatch commitLog=serialization.deleteEdge(scope,edge);
+        batch.mergeShallow(commitLog);
+      }
+      return markedEdge;
+    }
+  }
+);
+}

@@ -1,12 +1,12 @@
 {
-  Map<String,String> keyspaceProps=new HashMap<String,String>();
-  for (  Map.Entry<Object,Object> entry : props.entrySet()) {
-    final String key=entry.getKey().toString();
-    if (!key.startsWith(fig.getKeyByMethod("getStrategyOptions"))) {
-      continue;
-    }
-    final String optionKey=key.substring(fig.getKeyByMethod("getStrategyOptions").length() + 1);
-    keyspaceProps.put(optionKey,entry.getValue().toString());
+  ImmutableMap.Builder<String,Object> keyspaceProps=ImmutableMap.<String,Object>builder();
+  String optionString=fig.getStrategyOptions();
+  if (optionString == null) {
+    return keyspaceProps;
+  }
+  for (  String key : optionString.split(",")) {
+    final String[] options=key.split(":");
+    keyspaceProps.put(options[0],options[1]);
   }
   return keyspaceProps;
 }

@@ -1,0 +1,20 @@
+{
+  final Id now=createId("test");
+  final long slice1=1000l;
+  final long slice2=slice1 * 2;
+  final long slice3=slice2 * 2;
+  String[] types={"edgeType","subType"};
+  MutationBatch batch=edgeShardSerialization.writeEdgeMeta(scope,now,slice1,types);
+  batch.mergeShallow(edgeShardSerialization.writeEdgeMeta(scope,now,slice2,types));
+  batch.mergeShallow(edgeShardSerialization.writeEdgeMeta(scope,now,slice3,types));
+  batch.execute();
+  Iterator<Long> results=edgeShardSerialization.getEdgeMetaData(scope,now,Optional.<Long>absent(),types);
+  assertEquals(slice3,results.next().longValue());
+  assertEquals(slice2,results.next().longValue());
+  assertEquals(slice1,results.next().longValue());
+  assertFalse(results.hasNext());
+  results=edgeShardSerialization.getEdgeMetaData(scope,now,Optional.of(slice2),types);
+  assertEquals(slice2,results.next().longValue());
+  assertEquals(slice1,results.next().longValue());
+  assertFalse(results.hasNext());
+}

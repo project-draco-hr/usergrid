@@ -1,0 +1,15 @@
+{
+  final CacheKey key=new CacheKey(scope,nodeId,edgeType);
+  CacheEntry entry;
+  try {
+    entry=this.graphs.get(key);
+  }
+ catch (  ExecutionException e) {
+    throw new RuntimeException("Unable to load shard key for graph",e);
+  }
+  final Long shardId=entry.getShardId(time.timestamp());
+  if (shardId != null) {
+    return shardId;
+  }
+  throw new RuntimeException("No time UUID shard was found and could not allocate one");
+}
