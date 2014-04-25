@@ -1,0 +1,20 @@
+{
+  byte[] uuidBytes=new byte[16];
+  EthernetAddress _ethernetAddress=EthernetAddress.constructMulticastAddress();
+  _ethernetAddress.toByteArray(uuidBytes,10);
+  int clockSeq=timer.getClockSequence();
+  uuidBytes[UUIDUtil.BYTE_OFFSET_CLOCK_SEQUENCE]=(byte)(clockSeq >> 8);
+  uuidBytes[UUIDUtil.BYTE_OFFSET_CLOCK_SEQUENCE + 1]=(byte)clockSeq;
+  long l2=gatherLong(uuidBytes,8);
+  long _uuidL2=UUIDUtil.initUUIDSecondLong(l2);
+  final long rawTimestamp=timestamp;
+  int clockHi=(int)(rawTimestamp >>> 32);
+  int clockLo=(int)rawTimestamp;
+  int midhi=(clockHi << 16) | (clockHi >>> 16);
+  midhi&=~0xF000;
+  midhi|=0x1000;
+  long midhiL=(long)midhi;
+  midhiL=((midhiL << 32) >>> 32);
+  long l1=(((long)clockLo) << 32) | midhiL;
+  return new UUID(l1,_uuidL2);
+}
