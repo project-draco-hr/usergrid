@@ -3,7 +3,6 @@
   final int size=100;
   final int expected=size - 1;
   final CountDownLatch latch=new CountDownLatch(size);
-  final Multiset<String> set=HashMultiset.create();
   final Observable<String> observable=Observable.from(input).observeOn(Schedulers.io());
   Observable<Integer> thing=observable.mapMany(new Func1<String,Observable<Integer>>(){
     @Override public Observable<Integer> call(    final String s){
@@ -16,7 +15,6 @@
           @Override public Integer call(          final String s){
             final String threadName=Thread.currentThread().getName();
             logger.info("Invoking parallel task in thread {}",threadName);
-            set.add(threadName);
             latch.countDown();
             try {
               latch.await();
@@ -47,8 +45,4 @@
 );
   final Integer last=thing.toBlockingObservable().last();
   assertEquals(expected,last.intValue());
-  assertEquals(size,set.size());
-  for (  String entry : set.elementSet()) {
-    assertEquals(1,set.count(entry));
-  }
 }
