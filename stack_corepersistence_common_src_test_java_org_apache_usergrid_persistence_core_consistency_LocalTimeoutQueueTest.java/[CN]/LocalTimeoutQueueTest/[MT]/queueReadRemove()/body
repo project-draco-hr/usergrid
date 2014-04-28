@@ -1,8 +1,8 @@
 {
-  TimeService timeService=mock(TimeService.class);
+  TimeService timeService=Mockito.mock(TimeService.class);
   final long time=1000l;
   final long timeout=1000;
-  when(timeService.getCurrentTime()).thenReturn(time);
+  Mockito.when(timeService.getCurrentTime()).thenReturn(time);
   TimeoutQueue<TestEvent> queue=new LocalTimeoutQueue<TestEvent>(timeService);
   final TestEvent event=new TestEvent();
   AsynchronousMessage<TestEvent> asynchronousMessage=queue.queue(event,timeout);
@@ -12,7 +12,7 @@
   Collection<AsynchronousMessage<TestEvent>> results=queue.take(100,timeout);
   assertEquals("Time not yet elapsed",0,results.size());
   final long firstTime=time + timeout;
-  when(timeService.getCurrentTime()).thenReturn(firstTime);
+  Mockito.when(timeService.getCurrentTime()).thenReturn(firstTime);
   results=queue.take(100,timeout);
   assertEquals("Time elapsed",1,results.size());
   Iterator<AsynchronousMessage<TestEvent>> events=results.iterator();
@@ -20,7 +20,7 @@
   assertEquals(event,message.getEvent());
   assertEquals(firstTime + timeout,message.getTimeout());
   queue.remove(message);
-  when(timeService.getCurrentTime()).thenReturn(firstTime * 20);
+  Mockito.when(timeService.getCurrentTime()).thenReturn(firstTime * 20);
   results=queue.take(100,timeout);
   assertEquals("Queue now empty",0,results.size());
 }
