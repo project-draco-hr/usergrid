@@ -1,9 +1,10 @@
 {
-  install(new CoreModule());
+  install(new CommonModule());
   install(new GuicyFigModule(GraphFig.class));
   bind(EdgeMetadataSerialization.class).to(EdgeMetadataSerializationImpl.class);
   bind(NodeSerialization.class).to(NodeSerializationImpl.class);
   bind(CassandraConfig.class).to(CassandraConfigImpl.class);
+  bind(TimeService.class).to(TimeServiceImpl.class);
   install(new FactoryModuleBuilder().implement(GraphManager.class,GraphManagerImpl.class).build(GraphManagerFactory.class));
   bind(NodeShardAllocation.class).to(NodeShardAllocationImpl.class);
   bind(NodeShardApproximation.class).to(NodeShardApproximationImpl.class);
@@ -12,9 +13,6 @@
   bind(MergedEdgeReader.class).to(MergedEdgeReaderImpl.class);
   bind(EdgeShardCounterSerialization.class).to(EdgeShardCounterSerializationImpl.class);
   bind(TimeoutQueue.class).to(LocalTimeoutQueue.class);
-  bind(AsyncProcessor.class).annotatedWith(EdgeDelete.class).to(AsyncProcessorImpl.class);
-  bind(AsyncProcessor.class).annotatedWith(NodeDelete.class).to(AsyncProcessorImpl.class);
-  bind(AsyncProcessor.class).annotatedWith(EdgeWrite.class).to(AsyncProcessorImpl.class);
   bind(EdgeMetaRepair.class).to(EdgeMetaRepairImpl.class);
   bind(EdgeDeleteRepair.class).to(EdgeDeleteRepairImpl.class);
   Multibinder<Migration> migrationBinding=Multibinder.newSetBinder(binder(),Migration.class);
