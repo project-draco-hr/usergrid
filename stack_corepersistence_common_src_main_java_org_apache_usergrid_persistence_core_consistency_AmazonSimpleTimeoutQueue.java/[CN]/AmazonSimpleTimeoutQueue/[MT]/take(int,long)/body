@@ -1,0 +1,31 @@
+{
+  AWSCredentials awsCredentials=new BasicAWSCredentials(System.getProperty("accessKey"),System.getProperty("secretKey"));
+  AmazonSQSAsyncClient sqsAsyncClient=new AmazonSQSAsyncClient(awsCredentials);
+  ReceiveMessageRequest receiveMessageRequest=new ReceiveMessageRequest(getQueueEndpoint());
+  receiveMessageRequest.setVisibilityTimeout((int)timeout);
+  receiveMessageRequest.setMaxNumberOfMessages(MaxNumberOfMessages);
+  Collection<AsynchronousMessage<T>> asynchronousMessageCollection;
+  asynchronousMessageCollection=new ArrayList<>();
+  for (int index=0; index < (maxSize / 10 + 1); index++) {
+    ReceiveMessageResult receiveMessageResult=sqsAsyncClient.receiveMessage(receiveMessageRequest);
+    List<Message> messageList=receiveMessageResult.getMessages();
+    if (messageList.size() != 0) {
+      try {
+        for (int j=0; j < messageList.size(); j++) {
+          SimpleAsynchronousMessage<T> simpleAsynchronousMessage=mapper.readValue(messageList.get(j).getBody(),SimpleAsynchronousMessage.class);
+          AmazonSimpleQueueMessage<T> amazonSimpleQueueMessage=new AmazonSimpleQueueMessage<T>(simpleAsynchronousMessage.getEvent(),simpleAsynchronousMessage.getTimeout(),messageList.get(j).getMessageId(),messageList.get(j).getReceiptHandle());
+          asynchronousMessageCollection.add(amazonSimpleQueueMessage);
+        }
+      }
+ catch (      IOException e) {
+        e.printStackTrace();
+        return null;
+      }
+    }
+ else {
+      break;
+    }
+  }
+  logger.debug("Took " + asynchronousMessageCollection.size() + " queue elements.");
+  return asynchronousMessageCollection;
+}
