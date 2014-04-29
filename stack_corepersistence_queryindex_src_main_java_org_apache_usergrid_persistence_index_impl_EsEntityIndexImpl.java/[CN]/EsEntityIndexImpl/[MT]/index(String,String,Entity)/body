@@ -1,7 +1,7 @@
 {
   log.debug("Indexing entity:  " + entity.getId().toString());
   log.debug("    Index Name:   " + this.indexName);
-  log.debug("    Entity Scope: " + entityScope);
+  log.debug("    ES Type:      " + estype);
   log.debug("    Target Scope: " + targetScope);
   ValidationUtils.verifyEntityWrite(entity);
   initType(targetScope);
@@ -13,9 +13,9 @@
   Map<String,Object> entityAsMap=EsEntityIndexImpl.entityToMap(entity);
   entityAsMap.put("created",entity.getId().getUuid().timestamp());
   entityAsMap.put("updated",entity.getVersion().timestamp());
-  entityAsMap.put(COLLECTION_SCOPE_FIELDNAME,entityScope);
+  entityAsMap.put(COLLECTION_SCOPE_FIELDNAME,targetScope);
   String indexId=EsEntityIndexImpl.this.createIndexDocId(entity);
-  IndexRequestBuilder irb=client.prepareIndex(indexName,targetScope,indexId).setSource(entityAsMap).setRefresh(refresh);
+  IndexRequestBuilder irb=client.prepareIndex(indexName,estype,indexId).setSource(entityAsMap).setRefresh(refresh);
   irb.execute().actionGet();
   if (log.isDebugEnabled()) {
     timer.stop();

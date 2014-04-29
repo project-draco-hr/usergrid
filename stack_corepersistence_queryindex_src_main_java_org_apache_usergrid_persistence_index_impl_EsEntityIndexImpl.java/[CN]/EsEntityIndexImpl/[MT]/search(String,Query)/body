@@ -1,12 +1,12 @@
 {
   QueryBuilder qb=query.createQueryBuilder();
   log.debug("Search");
-  log.debug("    Index Name:  " + this.indexName);
-  log.debug("    Target Type: " + typeName);
-  log.debug("    Query:       " + qb.toString());
+  log.debug("    Index Name: " + this.indexName);
+  log.debug("    ES Type:    " + estype);
+  log.debug("    Query:      " + qb.toString());
   SearchResponse searchResponse;
   if (query.getCursor() == null) {
-    SearchRequestBuilder srb=client.prepareSearch(indexName).setTypes(typeName).setScroll(cursorTimeout + "m").setQuery(qb);
+    SearchRequestBuilder srb=client.prepareSearch(indexName).setTypes(estype).setScroll(cursorTimeout + "m").setQuery(qb);
     FilterBuilder fb=query.createFilterBuilder();
     if (fb != null) {
       log.debug("   Filter: {} ",fb.toString());
@@ -22,6 +22,7 @@
         order=SortOrder.DESC;
       }
       srb.addSort(sp.getPropertyName(),order);
+      log.debug("   Sort: {} order by {}",sp.getPropertyName(),order.toString());
     }
     searchResponse=srb.execute().actionGet();
   }
