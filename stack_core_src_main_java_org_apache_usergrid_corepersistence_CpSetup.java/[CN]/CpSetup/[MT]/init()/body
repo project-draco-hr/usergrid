@@ -1,6 +1,7 @@
 {
   cass.init();
   try {
+    logger.info("Loading Core Persistence properties");
     ConfigurationManager.loadCascadedPropertiesFromResources("corepersistence");
     Properties testProps=new Properties(){
 {
@@ -14,7 +15,7 @@
  catch (  IOException e) {
     throw new RuntimeException("Cannot do much without properly loading our configuration.",e);
   }
-  Injector injector=Guice.createInjector(new GuiceModule());
+  Injector injector=CpSetup.getInjector();
   MigrationManager m=injector.getInstance(MigrationManager.class);
   try {
     m.migrate();
