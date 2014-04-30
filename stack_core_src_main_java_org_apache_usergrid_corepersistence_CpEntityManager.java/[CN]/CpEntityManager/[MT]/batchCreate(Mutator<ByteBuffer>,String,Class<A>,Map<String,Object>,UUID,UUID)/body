@@ -59,8 +59,6 @@
   }
   String collectionName=Schema.defaultCollectionName(eType);
   CollectionInfo collection=null;
-  if (!is_application) {
-  }
   if (emptyPropertyMap) {
     return null;
   }
@@ -107,5 +105,8 @@
   entity.setUuid(cpEntity.getId().getUuid());
   Map<String,Object> entityMap=EntityMapUtils.toMap(cpEntity);
   entity.addProperties(entityMap);
+  if (!is_application) {
+    getRelationManager(getApplication()).addToCollection(collectionName,entity);
+  }
   return entity;
 }
