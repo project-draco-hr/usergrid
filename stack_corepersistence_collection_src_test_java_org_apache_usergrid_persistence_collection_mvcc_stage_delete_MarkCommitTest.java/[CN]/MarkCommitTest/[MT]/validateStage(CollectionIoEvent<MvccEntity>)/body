@@ -3,9 +3,11 @@
   final MutationBatch logMutation=mock(MutationBatch.class);
   final ConsistencyFig consistencyFig=mock(ConsistencyFig.class);
   final AsyncProcessor<MvccEntityEvent<MvccEntity>> processor=mock(AsyncProcessor.class);
-  when(logStrategy.write(any(CollectionScope.class),any(MvccLogEntry.class))).thenReturn(logMutation);
+  final SimpleAsynchronousMessage<MvccEntityEvent<MvccEntity>> message=mock(SimpleAsynchronousMessage.class);
   final MvccEntitySerializationStrategy mvccEntityStrategy=mock(MvccEntitySerializationStrategy.class);
   final MutationBatch entityMutation=mock(MutationBatch.class);
+  when(logStrategy.write(any(CollectionScope.class),any(MvccLogEntry.class))).thenReturn(logMutation);
   when(mvccEntityStrategy.write(any(CollectionScope.class),any(MvccEntity.class))).thenReturn(entityMutation);
+  when(processor.setVerification(any(MvccEntityEvent.class),any(long.class))).thenReturn(message);
   new MarkCommit(logStrategy,mvccEntityStrategy,processor,consistencyFig).call(event);
 }

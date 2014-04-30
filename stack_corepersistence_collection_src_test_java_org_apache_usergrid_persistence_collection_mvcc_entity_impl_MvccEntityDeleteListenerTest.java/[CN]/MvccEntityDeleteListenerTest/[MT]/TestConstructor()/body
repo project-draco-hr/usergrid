@@ -1,0 +1,14 @@
+{
+  CollectionScope scope=mock(CollectionScope.class);
+  UUID id=UUID.randomUUID();
+  MvccEntity entity=mock(MvccEntity.class);
+  Id entityId=new SimpleId(id,"test");
+  when(entity.getId()).thenReturn(entityId);
+  when(entity.getVersion()).thenReturn(id);
+  MvccEntityEvent<MvccEntity> entityEvent=new MvccEntityEvent<MvccEntity>(scope,id,entity);
+  MutationBatch batch=mock(MutationBatch.class);
+  when(mvccEntitySerializationStrategy.delete(scope,entityId,id)).thenReturn(batch);
+  Observable<MvccEntityEvent<MvccEntity>> observable=listener.receive(entityEvent);
+  MvccEntityEvent<MvccEntity> entityEventReturned=observable.toBlockingObservable().last();
+  assertEquals(entityEvent,entityEventReturned);
+}
