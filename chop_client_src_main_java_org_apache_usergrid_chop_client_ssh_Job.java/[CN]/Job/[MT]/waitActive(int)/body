@@ -1,16 +1,22 @@
 {
-  LOG.info("Waiting maximum {} msecs for SSH port of {} to get active",timeout,hostURL);
+  LOG.info("Waiting maximum {} msecs for SSH port of {} to get active",timeout,value.getPublicIpAddress());
   long startTime=System.currentTimeMillis();
   while (System.currentTimeMillis() - startTime < timeout) {
     Socket s=null;
     try {
       s=new Socket();
       s.setReuseAddress(true);
-      SocketAddress sa=new InetSocketAddress(hostURL,port);
+      SocketAddress sa=new InetSocketAddress(value.getPublicIpAddress(),22);
       s.connect(sa,2000);
+      LOG.info("Port 22 of {} got opened",value.getPublicIpAddress());
       return true;
     }
  catch (    Exception e) {
+      try {
+        Thread.sleep(1000);
+      }
+ catch (      InterruptedException ee) {
+      }
     }
  finally {
       if (s != null) {

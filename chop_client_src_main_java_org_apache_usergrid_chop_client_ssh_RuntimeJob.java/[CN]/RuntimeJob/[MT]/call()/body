@@ -1,0 +1,13 @@
+{
+  ResponseInfo response=new ResponseInfo(value.getPublicIpAddress());
+  boolean success=waitActive(SESSION_CONNECT_TIMEOUT);
+  if (!success) {
+    LOG.warn("Port 22 of {} did not open in time",value.getPublicIpAddress());
+  }
+  for (  Command command : commands) {
+    String cmdString=getCommand(command);
+    LOG.info("Executing {} on {}",cmdString,value.getPublicIpAddress());
+    execute(cmdString,response);
+  }
+  return response;
+}
