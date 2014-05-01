@@ -1,0 +1,28 @@
+{
+  String dataDir;
+  InputStream in=EmbeddedUtils.class.getClassLoader().getResourceAsStream("EmbeddedUtils.properties");
+  if (in != null) {
+    Properties props=new Properties();
+    try {
+      props.load(in);
+    }
+ catch (    IOException e) {
+      LOG.warn("Failed to load properties file from EmbeddedUtils.properties");
+      dataDir=config.getDataDir();
+    }
+    dataDir=props.getProperty(DATA_DIR_KEY);
+    if (!dataDir.equals(config.getDataDir())) {
+      config.bypass(DATA_DIR_KEY,dataDir);
+    }
+    try {
+      in.close();
+    }
+ catch (    IOException e) {
+      LOG.warn("Failure while trying to close stream");
+    }
+  }
+ else {
+    dataDir=config.getDataDir();
+  }
+  return ImmutableSettings.settingsBuilder().put("path.data",dataDir).build();
+}

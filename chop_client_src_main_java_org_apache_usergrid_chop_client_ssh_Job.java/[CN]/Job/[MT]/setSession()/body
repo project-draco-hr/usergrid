@@ -1,0 +1,14 @@
+{
+  JSch ssh;
+  try {
+    Thread.sleep(30000);
+    ssh=new JSch();
+    ssh.addIdentity(value.getSshKeyFile());
+    session=ssh.getSession(Utils.DEFAULT_USER,value.getPublicIpAddress());
+    session.setConfig("StrictHostKeyChecking","no");
+    session.connect();
+  }
+ catch (  Exception e) {
+    LOG.error("Error while connecting to ssh session of " + value.getPublicIpAddress(),e);
+  }
+}

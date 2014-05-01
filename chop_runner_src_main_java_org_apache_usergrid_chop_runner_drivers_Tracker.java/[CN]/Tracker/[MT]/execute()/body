@@ -1,0 +1,17 @@
+{
+  Preconditions.checkState(isStarted.get(),"Cannot execute a tracker that has not started!");
+  Result result=new JUnitCore().run(testClass);
+  long runTime=result.getRunTime();
+  maxTime=Math.max(maxTime,runTime);
+  minTime=Math.min(minTime,runTime);
+  long timesRun=actualIterations.incrementAndGet();
+  long totalTime=totalRunTime.addAndGet(runTime);
+  totalTestsRun.addAndGet(result.getRunCount());
+  meanTime=totalTime / timesRun;
+  if (!result.wasSuccessful()) {
+    failures.addAndGet(result.getFailureCount());
+    ignores.addAndGet(result.getIgnoreCount());
+  }
+  resultsLog.write(result);
+  return result;
+}

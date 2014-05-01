@@ -1,0 +1,20 @@
+{
+  Class<?> testClass=tracker.getTestClass();
+  jgen.writeStartObject();
+  jgen.writeStringField("testClass",testClass.getCanonicalName());
+  jgen.writeNumberField("startTime",tracker.getStartTime());
+  if (testClass.isAnnotationPresent(TimeChop.class)) {
+    jgen.writeStringField("chopType","TimeChop");
+    jgen.writeObjectField("chopParameters",testClass.getAnnotation(TimeChop.class));
+  }
+ else   if (tracker.getTestClass().isAnnotationPresent(IterationChop.class)) {
+    jgen.writeStringField("chopType","IterationChop");
+    jgen.writeObjectField("chopParameters",testClass.getAnnotation(IterationChop.class));
+  }
+ else {
+    throw new IllegalStateException("Supplied testClass " + testClass.getCanonicalName() + "has no chop annotation.");
+  }
+  jgen.writeFieldName("runResults");
+  jgen.writeStartArray();
+  jgen.flush();
+}

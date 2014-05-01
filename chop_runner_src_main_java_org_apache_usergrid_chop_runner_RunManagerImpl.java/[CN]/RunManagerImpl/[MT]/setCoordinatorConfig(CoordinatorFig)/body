@@ -1,0 +1,13 @@
+{
+  this.coordinatorFig=coordinatorFig;
+  try {
+    endpoint=new URL(coordinatorFig.getEndpoint());
+  }
+ catch (  MalformedURLException e) {
+    LOG.error("Failed to parse URL for coordinator",e);
+  }
+  if (!CertUtils.isTrusted(endpoint.getHost())) {
+    CertUtils.preparations(endpoint.getHost(),endpoint.getPort());
+  }
+  Preconditions.checkState(CertUtils.isTrusted(endpoint.getHost()),"coordinator must be trusted");
+}

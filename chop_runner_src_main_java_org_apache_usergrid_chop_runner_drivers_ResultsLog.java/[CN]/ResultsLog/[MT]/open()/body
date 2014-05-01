@@ -1,0 +1,16 @@
+{
+synchronized (isOpen) {
+    if (isOpen.compareAndSet(false,true)) {
+      resultCount.set(0);
+      JsonFactory factory=new JsonFactory();
+      jgen=factory.createGenerator(new File(resultsFile.get()),JsonEncoding.UTF8);
+      if (prettyPrint.get()) {
+        jgen.useDefaultPrettyPrinter();
+      }
+      jgen.setCodec(new ObjectMapper());
+      setupJsonStream();
+      thread=new Thread(this,"ResultLog Writer");
+      thread.start();
+    }
+  }
+}

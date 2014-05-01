@@ -1,0 +1,26 @@
+{
+  File projectFile=new File(getProjectFileToUploadPath());
+  if (!projectFile.exists()) {
+    LOG.warn("It seems as though the project properties file {} does not exist. Creating it and the jar now.",projectFile);
+    RunnerMojo runnerMojo=new RunnerMojo(this);
+    runnerMojo.execute();
+    if (projectFile.exists()) {
+      LOG.info("Jar is generated and project file exists.");
+    }
+ else {
+      throw new MojoExecutionException("Failed to generate the project.properties.");
+    }
+  }
+  Project project;
+  try {
+    Properties props=new Properties();
+    props.load(new FileInputStream(projectFile));
+    ProjectBuilder builder=new ProjectBuilder(props);
+    project=builder.getProject();
+  }
+ catch (  Exception e) {
+    LOG.error("Error accessing project info from local filesystem: {}",getProjectFileToUploadPath(),e);
+    throw new MojoExecutionException("Cannot access local file system based project information: " + getProjectFileToUploadPath(),e);
+  }
+  return project;
+}

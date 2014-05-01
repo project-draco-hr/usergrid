@@ -1,0 +1,23 @@
+{
+  Collection<com.amazonaws.services.ec2.model.Instance> instances=new LinkedList<com.amazonaws.services.ec2.model.Instance>();
+  DescribeInstancesRequest request=new DescribeInstancesRequest();
+  if (name != null) {
+    List<String> valuesT1=new ArrayList<String>();
+    valuesT1.add(name);
+    Filter filter=new Filter("tag:Name",valuesT1);
+    request=request.withFilters(filter);
+  }
+  if (state != null) {
+    List<String> valuesT1=new ArrayList<String>();
+    valuesT1.add(state.toString());
+    Filter filter=new Filter("instance-state-name",valuesT1);
+    request=request.withFilters(filter);
+  }
+  DescribeInstancesResult result=client.describeInstances(request);
+  for (  Reservation reservation : result.getReservations()) {
+    for (    com.amazonaws.services.ec2.model.Instance in : reservation.getInstances()) {
+      instances.add(in);
+    }
+  }
+  return instances;
+}

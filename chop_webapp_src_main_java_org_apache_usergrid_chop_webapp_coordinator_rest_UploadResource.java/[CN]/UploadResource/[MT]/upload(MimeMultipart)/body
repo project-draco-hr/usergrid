@@ -1,0 +1,15 @@
+{
+  try {
+    String filename=multipart.getBodyPart(0).getContent().toString();
+    LOG.warn("FILENAME: " + filename);
+    InputStream in=multipart.getBodyPart(1).getInputStream();
+    File tempDir=new File(chopUiFig.getContextTempDir());
+    String fileLocation=new File(tempDir,filename).getAbsolutePath();
+    CoordinatorUtils.writeToFile(in,fileLocation);
+  }
+ catch (  Exception ex) {
+    LOG.error("upload",ex);
+    return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
+  }
+  return Response.status(Response.Status.CREATED).entity("ok").build();
+}

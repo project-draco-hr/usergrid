@@ -1,0 +1,9 @@
+{
+  BoolQueryBuilder queryBuilder=QueryBuilders.boolQuery().must(termQuery("commitId",commitId.toLowerCase())).must(termQuery("runNumber",runNumber)).must(termQuery("testName",testName.toLowerCase()));
+  SearchResponse response=getRequest(DAO_INDEX_KEY,DAO_TYPE_KEY).setQuery(queryBuilder).setSize(MAX_RESULT_SIZE).execute().actionGet();
+  HashMap<String,Run> runs=new HashMap<String,Run>();
+  for (  SearchHit hit : response.getHits().hits()) {
+    runs.put(hit.getId(),toRun(hit));
+  }
+  return runs;
+}

@@ -1,0 +1,9 @@
+{
+  String groupId=new RunnerGroup(user,commitId,moduleId).getId();
+  SearchResponse response=getRequest(DAO_INDEX_KEY,DAO_TYPE_KEY).setQuery(termQuery("groupId",groupId)).execute().actionGet();
+  ArrayList<Runner> runners=new ArrayList<Runner>();
+  for (  SearchHit hit : response.getHits().hits()) {
+    runners.add(toRunner(hit));
+  }
+  return runners;
+}

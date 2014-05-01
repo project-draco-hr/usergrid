@@ -1,0 +1,12 @@
+{
+  if (ipRules == null || ipRules.size() == 0) {
+    return;
+  }
+  Collection<IpPermission> permissions=new ArrayList<IpPermission>(ipRules.size());
+  for (  IpRule rule : ipRules) {
+    permissions.add(toIpPermission(rule));
+  }
+  RevokeSecurityGroupIngressRequest request=new RevokeSecurityGroupIngressRequest();
+  request=request.withGroupName(name).withIpPermissions(permissions);
+  client.revokeSecurityGroupIngress(request);
+}

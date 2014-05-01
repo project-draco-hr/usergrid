@@ -1,0 +1,18 @@
+{
+  InstanceSpec iSpec=stack.getClusters().get(0).getInstanceSpec();
+  LaunchResult result=manager.launchRunners(stack,iSpec,100000);
+  assertEquals(RUNNER_COUNT,result.getCount());
+  Collection<Instance> instances=manager.getRunnerInstances(stack);
+  assertEquals("Number of launched instances is different than expected",RUNNER_COUNT,instances.size());
+  LOG.info("Instances are successfully launched, now terminating...");
+  Collection<String> instanceIds=new ArrayList<String>(instances.size());
+  for (  Instance i : instances) {
+    instanceIds.add(i.getId());
+  }
+  manager.terminateInstances(instanceIds);
+  boolean terminated=manager.waitUntil(instanceIds,InstanceState.ShuttingDown,100000);
+  if (!terminated) {
+    instances=manager.getRunnerInstances(stack);
+    assertEquals("Some instances could not be terminated! You may need to manually terminate the instances",0,instances.size());
+  }
+}

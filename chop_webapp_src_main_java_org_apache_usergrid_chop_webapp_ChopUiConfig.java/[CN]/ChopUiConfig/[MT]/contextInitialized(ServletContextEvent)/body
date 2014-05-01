@@ -1,0 +1,51 @@
+{
+  context=servletContextEvent.getServletContext();
+  context.setAttribute(Injector.class.getName(),getInjector());
+  Injector injector=getInjector();
+  ElasticSearchFig elasticSearchFig=injector.getInstance(ElasticSearchFig.class);
+  ChopUiFig chopUiFig=injector.getInstance(ChopUiFig.class);
+  ConcurrentCompositeConfiguration ccc=new ConcurrentCompositeConfiguration();
+  Env env=Env.getEnvironment();
+  boolean embedded=false;
+  if (env == Env.ALL) {
+    ConfigurationManager.getDeploymentContext().setDeploymentEnvironment("PROD");
+    LOG.info("Setting environment to: PROD");
+    if (ChopUiJettyRunner.getCommandLine() != null) {
+      CommandLine cl=ChopUiJettyRunner.getCommandLine();
+      if (cl.hasOption('d')) {
+        String dataDir=cl.getOptionValue('d');
+        LOG.info("The -d option is given, replacing data directory with {}",dataDir);
+        elasticSearchFig.bypass(ElasticSearchFig.DATA_DIR_KEY,dataDir);
+      }
+      if (cl.hasOption('e')) {
+        startEmbeddedES(elasticSearchFig);
+      }
+    }
+ else {
+      LOG.warn("ChopUi not started via Launcher - no command line argument processing will take place.");
+    }
+  }
+ else   if (env == Env.UNIT) {
+    LOG.info("Operating in UNIT environment");
+  }
+  try {
+    ConfigurationManager.loadCascadedPropertiesFromResources("chop-ui");
+  }
+ catch (  IOException e) {
+    LOG.warn("Failed to cascade load configuration properties: ",e);
+  }
+  if (LOG.isDebugEnabled()) {
+    Enumeration<String> names=context.getAttributeNames();
+    LOG.debug("Dumping attribute names: ");
+    while (names.hasMoreElements()) {
+      String name=names.nextElement();
+      LOG.debug("attribute {} = {}",name,context.getAttribute(name));
+    }
+  }
+  String contextTempDir=(String)context.getAttribute(CONTEXT_TEMPDIR_KEY);
+  LOG.info("From servlet context: {} = {}",CONTEXT_TEMPDIR_KEY,contextTempDir);
+  if (contextTempDir == null) {
+    LOG.info("From ChopUiFig {} = {}",CONTEXT_TEMPDIR_KEY,chopUiFig.getContextTempDir());
+  }
+  setupStorage();
+}

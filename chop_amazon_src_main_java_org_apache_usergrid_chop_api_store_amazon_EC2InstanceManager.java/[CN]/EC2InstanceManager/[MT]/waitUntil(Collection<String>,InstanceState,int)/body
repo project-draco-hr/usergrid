@@ -1,0 +1,47 @@
+{
+  List<String> instanceIdCopy=new ArrayList<String>(instanceIds);
+  Calendar cal=Calendar.getInstance();
+  cal.setTime(new Date());
+  long startTime=cal.getTimeInMillis();
+  long timePassed;
+  String stateStr;
+  do {
+    DescribeInstancesRequest dis=(new DescribeInstancesRequest()).withInstanceIds(instanceIdCopy);
+    DescribeInstancesResult disresult=client.describeInstances(dis);
+    Reservation reservation=disresult.getReservations().iterator().next();
+    for (    com.amazonaws.services.ec2.model.Instance in : reservation.getInstances()) {
+      stateStr=in.getState().getName();
+      LOG.info("{} is {}",in.getInstanceId(),in.getState().getName());
+      if (state == InstanceState.ShuttingDown) {
+        if (stateStr.equals(state.toString()) || stateStr.equals(InstanceState.Terminated.toString())) {
+          instanceIdCopy.remove(in.getInstanceId());
+        }
+      }
+ else       if (state == InstanceState.Pending) {
+        if (stateStr.equals(state.toString()) || stateStr.equals(InstanceState.Running.toString())) {
+          instanceIdCopy.remove(in.getInstanceId());
+        }
+      }
+ else       if (state == InstanceState.Stopping) {
+        if (stateStr.equals(state.toString()) || stateStr.equals(InstanceState.Stopped.toString())) {
+          instanceIdCopy.remove(in.getInstanceId());
+        }
+      }
+ else {
+        if (in.getState().getName().equals(state.toString())) {
+          instanceIdCopy.remove(in.getInstanceId());
+        }
+      }
+    }
+    cal.setTime(new Date());
+    timePassed=cal.getTimeInMillis() - startTime;
+    try {
+      Thread.sleep(SLEEP_LENGTH);
+    }
+ catch (    InterruptedException e) {
+      LOG.warn("Thread interrupted while sleeping",e);
+    }
+  }
+ while (timePassed < timeout && instanceIdCopy.size() > 0);
+  return (timePassed < timeout);
+}

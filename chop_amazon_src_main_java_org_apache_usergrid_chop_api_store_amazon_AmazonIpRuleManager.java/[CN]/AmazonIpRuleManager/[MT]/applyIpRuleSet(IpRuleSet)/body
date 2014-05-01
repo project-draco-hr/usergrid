@@ -1,0 +1,17 @@
+{
+  if (exists(ruleSet.getName())) {
+    Collection<IpRule> inbound=getRules(ruleSet.getName(),true);
+    Collection<IpRule> outbound=getRules(ruleSet.getName(),false);
+    deleteRules(ruleSet.getName(),inbound);
+    deleteRules(ruleSet.getName(),outbound);
+  }
+ else {
+    createRuleSet(ruleSet.getName());
+  }
+  for (  IpRule rule : ruleSet.getInboundRules()) {
+    addRules(ruleSet.getName(),rule.getIpRanges(),rule.getIpProtocol(),rule.getFromPort(),rule.getToPort());
+  }
+  for (  IpRule rule : ruleSet.getOutboundRules()) {
+    addRules(ruleSet.getName(),rule.getIpRanges(),rule.getIpProtocol(),rule.getFromPort(),rule.getToPort());
+  }
+}
