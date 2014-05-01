@@ -14,23 +14,23 @@
   Entity game2=em.create("game",properties);
   assertNotNull(game2);
   em.refreshIndex();
-  Query query=Query.fromQL("select * where keywords contains 'test' AND keywords contains 'random'");
+  Query query=Query.fromQL("select * where keywords contains 'test' " + "AND keywords contains 'random' order by title desc");
   Results r=em.searchCollection(em.getApplicationRef(),"games",query);
   assertEquals(1,r.size());
-  query=Query.fromQL("select * where keywords contains 'random' AND keywords contains 'blah'");
+  query=Query.fromQL("select * where keywords contains 'random' " + "AND keywords contains 'blah' order by title desc");
   r=em.searchCollection(em.getApplicationRef(),"games",query);
   assertEquals(0,r.size());
-  query=Query.fromQL("select * where keywords contains 'test' AND keywords contains 'test'");
+  query=Query.fromQL("select * where keywords contains 'test' " + "AND keywords contains 'test' order by title desc");
   r=em.searchCollection(em.getApplicationRef(),"games",query);
   assertEquals(2,r.size());
   Entity returned=r.getEntities().get(0);
   assertEquals(game1.getUuid(),returned.getUuid());
   returned=r.getEntities().get(1);
   assertEquals(game2.getUuid(),returned.getUuid());
-  query=Query.fromQL("select * where keywords contains 'test' AND keywords contains 'foobar'");
+  query=Query.fromQL("select * where keywords contains 'test' " + "AND keywords contains 'foobar' order by title desc");
   r=em.searchCollection(em.getApplicationRef(),"games",query);
   assertEquals(0,r.size());
-  query=Query.fromQL("select * where keywords contains 'foobar' AND keywords contains 'test'");
+  query=Query.fromQL("select * where keywords contains 'foobar' " + "AND keywords contains 'test' order by title desc");
   r=em.searchCollection(em.getApplicationRef(),"games",query);
   assertEquals(0,r.size());
 }

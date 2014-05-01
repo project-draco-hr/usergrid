@@ -93,14 +93,20 @@
     }
     return entity;
   }
-  org.apache.usergrid.persistence.model.entity.Entity cpEntity=new org.apache.usergrid.persistence.model.entity.Entity(new SimpleId(itemId,entityType));
-  cpEntity=EntityMapUtils.fromMap(cpEntity,properties);
+  org.apache.usergrid.persistence.model.entity.Entity cpEntity=entityToCpEntity(entity);
   OrganizationScope organizationScope=emf.getOrganizationScope(applicationId);
   CollectionScope applicationScope=emf.getApplicationScope(applicationId);
   CollectionScope collectionScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),collectionName);
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   EntityIndex ei=managerCache.getEntityIndex(organizationScope,applicationScope);
-  cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
+  try {
+    cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
+  }
+ catch (  WriteUniqueVerifyException wuve) {
+    Map<String,Field> violiations=wuve.getVioliations();
+    Field conflict=violiations.get(violiations.keySet().iterator().next());
+    throw new DuplicateUniquePropertyExistsException(entity.getType(),conflict.getName(),conflict.getValue());
+  }
   ei.index(collectionScope,cpEntity);
   entity.setUuid(cpEntity.getId().getUuid());
   Map<String,Object> entityMap=EntityMapUtils.toMap(cpEntity);
