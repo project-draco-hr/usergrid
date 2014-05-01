@@ -1,0 +1,26 @@
+{
+  LOG.info("Waiting maximum {} msecs for SSH port of {} to get active",timeout,hostURL);
+  long startTime=System.currentTimeMillis();
+  while (System.currentTimeMillis() - startTime < timeout) {
+    Socket s=null;
+    try {
+      s=new Socket();
+      s.setReuseAddress(true);
+      SocketAddress sa=new InetSocketAddress(hostURL,port);
+      s.connect(sa,2000);
+      return true;
+    }
+ catch (    Exception e) {
+    }
+ finally {
+      if (s != null) {
+        try {
+          s.close();
+        }
+ catch (        IOException e) {
+        }
+      }
+    }
+  }
+  return false;
+}

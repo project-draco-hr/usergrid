@@ -1,0 +1,20 @@
+{
+  try {
+    final URI uri=URI.create(endpoint);
+    javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(new javax.net.ssl.HostnameVerifier(){
+      public boolean verify(      String hostname,      javax.net.ssl.SSLSession sslSession){
+        return hostname.equals(uri.getHost());
+      }
+    }
+);
+    if (certStorePassphrase == null) {
+      ChopUtils.installCert(uri.getHost(),uri.getPort(),null);
+    }
+ else {
+      ChopUtils.installCert(uri.getHost(),uri.getPort(),certStorePassphrase.toCharArray());
+    }
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+}

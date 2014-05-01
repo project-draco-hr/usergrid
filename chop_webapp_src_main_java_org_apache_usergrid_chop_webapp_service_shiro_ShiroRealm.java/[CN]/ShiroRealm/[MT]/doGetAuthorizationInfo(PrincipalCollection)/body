@@ -1,0 +1,20 @@
+{
+  try {
+    if (principals == null) {
+      throw new AuthorizationException("PrincipalCollection method argument cannot be null.");
+    }
+    Collection<String> principalsList=principals.byType(String.class);
+    if (principalsList.isEmpty()) {
+      throw new AuthorizationException("Empty principals list!");
+    }
+    String username=(String)principals.getPrimaryPrincipal();
+    Set<String> roles=new HashSet<String>();
+    roles.add("role1");
+    LOG.info(String.format("Authorizing user %s with roles %s",username,roles));
+    return new SimpleAuthorizationInfo(roles);
+  }
+ catch (  Exception e) {
+    LOG.error("Error while authorizing",e);
+    throw new AuthorizationException("Authorization failed",e);
+  }
+}

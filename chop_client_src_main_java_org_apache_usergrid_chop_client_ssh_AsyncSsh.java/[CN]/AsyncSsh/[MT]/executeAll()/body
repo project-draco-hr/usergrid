@@ -1,0 +1,14 @@
+{
+  Collection<Job> jobs=new HashSet<Job>(sshValues.size());
+  for (  SshValues sshValue : sshValues) {
+    jobs.add(new Job(commands,sshValue));
+  }
+  ExecutorService service=Executors.newFixedThreadPool(sshValues.size() + 1);
+  List<Future<ResponseInfo>> futureResponses=service.invokeAll(jobs);
+  service.shutdown();
+  Collection<ResponseInfo> responses=new ArrayList<ResponseInfo>(sshValues.size());
+  for (  Future<ResponseInfo> response : futureResponses) {
+    responses.add(response.get());
+  }
+  return responses;
+}

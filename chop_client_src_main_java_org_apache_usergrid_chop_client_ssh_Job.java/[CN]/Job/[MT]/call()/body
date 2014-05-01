@@ -1,0 +1,18 @@
+{
+  ResponseInfo response=new ResponseInfo(value.getPublicIpAddress());
+  String message;
+  if (session == null) {
+    message="Could not open ssh session for " + value.getPublicIpAddress();
+    response.addErrorMessage(message);
+    return response;
+  }
+  for (  Command command : commands) {
+    if (command instanceof SCPCommand) {
+      executeScp((SCPCommand)command,session,response);
+    }
+ else     if (command instanceof SSHCommand) {
+      executeSsh((SSHCommand)command,session,response);
+    }
+  }
+  return response;
+}

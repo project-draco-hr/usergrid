@@ -1,0 +1,24 @@
+{
+  State state=controller.getState();
+  BaseResult result=new BaseResult();
+  result.setState(state);
+  result.setMessage(state.getMessage(signal));
+  result.setProject(project);
+  result.setEndpoint(endpoint);
+  if (inTestMode) {
+    result.setStatus(true);
+    result.setMessage(getTestMessage());
+    LOG.info(getTestMessage());
+    return Response.ok(result).build();
+  }
+  if (state.accepts(signal)) {
+    controller.send(signal);
+    result.setState(controller.getState());
+    result.setStatus(true);
+    LOG.info(result.getMessage());
+    return Response.ok(result).build();
+  }
+  result.setStatus(false);
+  LOG.warn(result.getMessage());
+  return Response.status(Response.Status.CONFLICT).entity(result).build();
+}

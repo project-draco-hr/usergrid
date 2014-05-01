@@ -1,0 +1,16 @@
+{
+  CoordinatedStack coordinatedStack;
+  coordinatedStack=getCoordinatedStack(stack,user,commit,module);
+  if (coordinatedStack != null) {
+    LOG.info("Stack is already registered");
+    return coordinatedStack;
+  }
+  LOG.info("Registering & Starting setup stack thread...");
+  coordinatedStack=new CoordinatedStack(stack,user,commit,module,runnerCount);
+  coordinatedStack.setSetupState(SetupStackState.SettingUp);
+  registeredStacks.put(coordinatedStack.hashCode(),coordinatedStack);
+  SetupStackThread setupThread=new SetupStackThread(coordinatedStack,lock);
+  setupStackThreads.put(coordinatedStack,setupThread);
+  setupThread.call();
+  return coordinatedStack;
+}

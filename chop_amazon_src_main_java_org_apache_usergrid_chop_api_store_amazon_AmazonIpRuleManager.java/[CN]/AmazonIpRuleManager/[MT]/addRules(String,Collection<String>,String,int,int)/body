@@ -1,0 +1,12 @@
+{
+  IpPermission ipPermission=new IpPermission();
+  ipPermission.withIpRanges(ipRanges).withIpProtocol(protocol).withFromPort(fromPort).withToPort(toPort);
+  try {
+    AuthorizeSecurityGroupIngressRequest request=new AuthorizeSecurityGroupIngressRequest();
+    request=request.withGroupName(name).withIpPermissions(ipPermission);
+    client.authorizeSecurityGroupIngress(request);
+  }
+ catch (  Exception e) {
+    LOG.error("Error whilt adding rule to security group: {}",name,e);
+  }
+}
