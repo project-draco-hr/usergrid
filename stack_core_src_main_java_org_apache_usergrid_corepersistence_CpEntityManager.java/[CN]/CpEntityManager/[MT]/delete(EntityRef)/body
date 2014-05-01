@@ -3,8 +3,8 @@
   OrganizationScope organizationScope=emf.getOrganizationScope(applicationId);
   CollectionScope applicationScope=emf.getApplicationScope(applicationId);
   CollectionScope collectionScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),collectionName);
-  EntityCollectionManager ecm=ecmf.createCollectionManager(collectionScope);
-  EntityIndex ei=eif.createEntityIndex(organizationScope,applicationScope);
+  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
+  EntityIndex ei=managerCache.getEntityIndex(organizationScope,applicationScope);
   Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
   org.apache.usergrid.persistence.model.entity.Entity entity=ecm.load(entityId).toBlockingObservable().last();
   if (entity != null) {

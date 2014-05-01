@@ -1,6 +1,6 @@
 {
   Map<EntityRef,Set<String>> results=new LinkedHashMap<EntityRef,Set<String>>();
-  GraphManager gm=gmf.createEdgeManager(organizationScope);
+  GraphManager gm=managerCache.getGraphManager(organizationScope);
   Iterator<String> edgeTypes=gm.getEdgeTypesToTarget(new SimpleSearchEdgeType(cpHeadEntity.getId(),null)).toBlockingObservable().getIterator();
   while (edgeTypes.hasNext()) {
     String edgeType=edgeTypes.next();
@@ -13,7 +13,7 @@
       }
       String collName=edge.getType().substring(0,edge.getType().indexOf(COLLECTION_SUFFIX));
       CollectionScope collScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),Schema.defaultCollectionName(edge.getSourceNode().getType()));
-      EntityCollectionManager ecm=ecmf.createCollectionManager(collScope);
+      EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collScope);
       org.apache.usergrid.persistence.model.entity.Entity container=ecm.load(edge.getSourceNode()).toBlockingObservable().last();
       EntityRef eref=new SimpleEntityRef(container.getId().getType(),container.getId().getUuid());
       String cEdgeType=edge.getType();

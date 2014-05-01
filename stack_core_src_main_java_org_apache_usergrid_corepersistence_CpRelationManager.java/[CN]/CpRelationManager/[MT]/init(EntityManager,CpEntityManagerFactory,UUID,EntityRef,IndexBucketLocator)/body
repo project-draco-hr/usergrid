@@ -4,13 +4,13 @@
   Assert.notNull(headEntity,"Head entity cannot be null");
   Assert.notNull(headEntity.getUuid(),"Head entity uuid cannot be null");
   this.em=em;
-  this.emf=emf;
   this.applicationId=applicationId;
   this.headEntity=headEntity;
-  organizationScope=emf.getOrganizationScope(applicationId);
-  applicationScope=emf.getApplicationScope(applicationId);
-  headEntityScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),Schema.defaultCollectionName(headEntity.getType()));
-  EntityCollectionManager ecm=ecmf.createCollectionManager(headEntityScope);
-  cpHeadEntity=ecm.load(new SimpleId(headEntity.getUuid(),headEntity.getType())).toBlockingObservable().last();
+  this.managerCache=emf.getManagerCache();
+  this.organizationScope=emf.getOrganizationScope(applicationId);
+  this.applicationScope=emf.getApplicationScope(applicationId);
+  this.headEntityScope=new CollectionScopeImpl(this.applicationScope.getOrganization(),this.applicationScope.getOwner(),Schema.defaultCollectionName(headEntity.getType()));
+  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(headEntityScope);
+  this.cpHeadEntity=ecm.load(new SimpleId(headEntity.getUuid(),headEntity.getType())).toBlockingObservable().last();
   return this;
 }

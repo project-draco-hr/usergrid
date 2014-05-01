@@ -9,8 +9,8 @@
     orgUuid=orgInfoEntity.getId().getUuid();
     orgInfoEntity.setField(new StringField(PROPERTY_NAME,name));
     orgInfoEntity.setField(new UUIDField(PROPERTY_UUID,orgUuid));
-    EntityCollectionManager ecm=ecmf.createCollectionManager(SYSTEM_ORGS_SCOPE);
-    EntityIndex eci=ecif.createEntityIndex(SYSTEM_ORG_SCOPE,SYSTEM_ORGS_SCOPE);
+    EntityCollectionManager ecm=getManagerCache().getEntityCollectionManager(SYSTEM_ORGS_SCOPE);
+    EntityIndex eci=getManagerCache().getEntityIndex(SYSTEM_ORG_SCOPE,SYSTEM_ORGS_SCOPE);
     orgInfoEntity=ecm.write(orgInfoEntity).toBlockingObservable().last();
     eci.index(SYSTEM_ORGS_SCOPE,orgInfoEntity);
     eci.refresh();
@@ -24,8 +24,8 @@
   appInfoEntity.setField(new UUIDField(PROPERTY_UUID,applicationId));
   appInfoEntity.setField(new UUIDField("organizationUuid",orgUuid));
 {
-    EntityCollectionManager ecm=ecmf.createCollectionManager(SYSTEM_APPS_SCOPE);
-    EntityIndex eci=ecif.createEntityIndex(SYSTEM_ORG_SCOPE,SYSTEM_APPS_SCOPE);
+    EntityCollectionManager ecm=getManagerCache().getEntityCollectionManager(SYSTEM_APPS_SCOPE);
+    EntityIndex eci=getManagerCache().getEntityIndex(SYSTEM_ORG_SCOPE,SYSTEM_APPS_SCOPE);
     appInfoEntity=ecm.write(appInfoEntity).toBlockingObservable().last();
     eci.index(SYSTEM_APPS_SCOPE,appInfoEntity);
     eci.refresh();

@@ -3,8 +3,8 @@
   OrganizationScope organizationScope=emf.getOrganizationScope(applicationId);
   CollectionScope applicationScope=emf.getApplicationScope(applicationId);
   CollectionScope collectionScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),collectionName);
-  EntityCollectionManager ecm=ecmf.createCollectionManager(collectionScope);
-  EntityIndex ei=eif.createEntityIndex(organizationScope,applicationScope);
+  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
+  EntityIndex ei=managerCache.getEntityIndex(organizationScope,applicationScope);
   Id entityId=new SimpleId(entity.getUuid(),entity.getType());
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(entityId).toBlockingObservable().last();
   cpEntity=EntityMapUtils.fromMap(cpEntity,entity.getProperties());
@@ -19,7 +19,7 @@
       Set<String> collections=collectionsByUuid.get(uuid);
       for (      String collection : collections) {
         CollectionScope ownerScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),Schema.defaultCollectionName(ownerType));
-        EntityCollectionManager ownerEcm=ecmf.createCollectionManager(ownerScope);
+        EntityCollectionManager ownerEcm=managerCache.getEntityCollectionManager(ownerScope);
         org.apache.usergrid.persistence.model.entity.Entity cpOwner=ownerEcm.load(new SimpleId(uuid,ownerType)).toBlockingObservable().last();
         ei.indexConnection(cpOwner,collection + CpRelationManager.COLLECTION_SUFFIX,cpEntity,collectionScope);
       }

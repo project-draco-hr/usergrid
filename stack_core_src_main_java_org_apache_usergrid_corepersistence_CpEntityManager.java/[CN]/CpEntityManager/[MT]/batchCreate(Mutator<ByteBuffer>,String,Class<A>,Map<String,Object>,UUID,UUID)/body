@@ -98,8 +98,8 @@
   OrganizationScope organizationScope=emf.getOrganizationScope(applicationId);
   CollectionScope applicationScope=emf.getApplicationScope(applicationId);
   CollectionScope collectionScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),collectionName);
-  EntityCollectionManager ecm=ecmf.createCollectionManager(collectionScope);
-  EntityIndex ei=eif.createEntityIndex(organizationScope,applicationScope);
+  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
+  EntityIndex ei=managerCache.getEntityIndex(organizationScope,applicationScope);
   cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
   ei.index(collectionScope,cpEntity);
   entity.setUuid(cpEntity.getId().getUuid());
