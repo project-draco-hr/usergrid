@@ -1,0 +1,30 @@
+{
+  String message;
+  Process process=null;
+  try {
+    process=Runtime.getRuntime().exec(command);
+    process.getOutputStream();
+    BufferedReader reader=new BufferedReader(new InputStreamReader(process.getInputStream()));
+    while ((message=reader.readLine()) != null) {
+      response.addMessage(message);
+      LOG.info("Message: {} at: {}",message,value.getPublicIpAddress());
+    }
+    reader.close();
+    reader=new BufferedReader(new InputStreamReader(process.getErrorStream()));
+    while ((message=reader.readLine()) != null) {
+      response.addMessage(message);
+      LOG.info("ErrMessage: {} at: {}",message,value.getPublicIpAddress());
+    }
+    reader.close();
+  }
+ catch (  IOException e) {
+    message="Error while sending ssh command to " + value.getPublicIpAddress();
+    LOG.warn(message,e);
+    response.addErrorMessage(message);
+  }
+ finally {
+    if (process != null) {
+      process.destroy();
+    }
+  }
+}
