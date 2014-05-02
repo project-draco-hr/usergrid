@@ -1,0 +1,21 @@
+{
+  Collection<ResponseInfo> responses;
+  try {
+    AsyncSsh asyncSsh=new AsyncSsh(sshValues,commands);
+    responses=asyncSsh.executeAll();
+  }
+ catch (  InterruptedException e) {
+    LOG.error("Interrupted while trying to execute SSH command",e);
+    return false;
+  }
+catch (  ExecutionException e) {
+    LOG.error("Error while executing ssh commands",e);
+    return false;
+  }
+  for (  ResponseInfo response : responses) {
+    if (!response.isSuccessful()) {
+      return false;
+    }
+  }
+  return true;
+}

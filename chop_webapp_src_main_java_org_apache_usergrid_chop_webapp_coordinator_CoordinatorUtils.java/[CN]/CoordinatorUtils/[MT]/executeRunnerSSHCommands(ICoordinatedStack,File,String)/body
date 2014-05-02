@@ -1,0 +1,16 @@
+{
+  Collection<SshValues> sshValues=new HashSet<SshValues>(stack.getRunnerCount());
+  StringBuilder sb=new StringBuilder();
+  Collection<Command> commands=new ArrayList<Command>();
+  LOG.info("Deploying and starting runner.jar to runner instances of {}",stack.getName());
+  for (  Instance instance : stack.getRunnerInstances()) {
+    sshValues.add(new InstanceValues(instance,keyFile));
+  }
+  sb.append("/home/").append(Utils.DEFAULT_USER).append("/").append(runnerJar.getName());
+  String destFile=sb.toString();
+  commands.add(new SCPCommand(runnerJar.getAbsolutePath(),destFile));
+  sb=new StringBuilder();
+  sb.append("nohup /usr/bin/java -jar ").append(destFile).append(" > /home/ubuntu/chop-runner.log 2>&1 &");
+  commands.add(new SSHCommand(sb.toString()));
+  return executeSSHCommands(sshValues,commands);
+}
