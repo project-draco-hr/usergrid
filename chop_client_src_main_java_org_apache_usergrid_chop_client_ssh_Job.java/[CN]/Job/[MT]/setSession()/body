@@ -1,5 +1,9 @@
 {
   JSch ssh;
+  boolean success=waitActive(SESSION_CONNECT_TIMEOUT);
+  if (!success) {
+    LOG.warn("Port 22 of {} did not open in time",value.getPublicIpAddress());
+  }
   try {
     Thread.sleep(30000);
     ssh=new JSch();
@@ -10,5 +14,6 @@
   }
  catch (  Exception e) {
     LOG.error("Error while connecting to ssh session of " + value.getPublicIpAddress(),e);
+    session=null;
   }
 }

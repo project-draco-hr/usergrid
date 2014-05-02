@@ -13,6 +13,7 @@
   ipRuleManager.setDataCenter(stack.getDataCenter());
   ipRuleManager.applyIpRuleSet(stack.getIpRuleSet());
   for (  ICoordinatedCluster cluster : stack.getClusters()) {
+    LOG.info("Starting setting up cluster {}...",cluster.getName());
     keyFile=providerParams.getKeys().get(cluster.getInstanceSpec().getKeyName());
     if (keyFile == null) {
       errorMessage="No key found with name " + cluster.getInstanceSpec().getKeyName() + " for cluster "+ cluster.getName();
@@ -35,7 +36,7 @@
     }
     boolean success=false;
     try {
-      success=CoordinatorUtils.executeSSHCommands(cluster,runnerJar,keyFile);
+      success=CoordinatorUtils.executeClusterSSHCommands(cluster,runnerJar,keyFile);
     }
  catch (    Exception e) {
       LOG.warn("Error while executing SSH commands",e);
@@ -46,11 +47,9 @@
       stack.setSetupState(SetupStackState.SetupFailed);
       return null;
     }
+    LOG.info("Cluster {} is ready, moving on...",cluster.getName());
   }
-  Map<String,String> keys=providerParams.getKeys();
-  String key=providerParams.getKeyName().trim();
-  keyFile=keys.get(key);
-  LOG.warn("Key name: {}, key file: {}",key,keyFile);
+  LOG.info("Starting setting up runner instances...");
   keyFile=providerParams.getKeys().get(providerParams.getKeyName());
   if (keyFile == null) {
     errorMessage="No key found with name " + providerParams.getKeyName() + " for runners";
@@ -69,11 +68,26 @@
   BasicInstanceSpec runnerSpec=new BasicInstanceSpec();
   runnerSpec.setImageId(providerParams.getImageId());
   runnerSpec.setType(providerParams.getInstanceType());
-  runnerSpec.setKeyName(keyFile);
+  runnerSpec.setKeyName(providerParams.getKeyName());
   LaunchResult result=instanceManager.launchRunners(stack,runnerSpec,chopUiFig.getLaunchClusterTimeout());
   for (  Instance instance : result.getInstances()) {
+    launchedInstances.add(instance.getId());
     stack.addRunnerInstance(instance);
   }
+  boolean success=false;
+  try {
+    success=CoordinatorUtils.executeRunnerSSHCommands(stack,runnerJar,keyFile);
+  }
+ catch (  Exception e) {
+    LOG.warn("Error while executing SSH commands",e);
+  }
+  if (!success) {
+    errorMessage="SSH commands have failed, will not continue";
+    instanceManager.terminateInstances(launchedInstances);
+    stack.setSetupState(SetupStackState.SetupFailed);
+    return null;
+  }
   stack.setSetupState(SetupStackState.SetUp);
+  LOG.info("Stack {} is set up and ready...",stack.getName());
   return stack;
 }
