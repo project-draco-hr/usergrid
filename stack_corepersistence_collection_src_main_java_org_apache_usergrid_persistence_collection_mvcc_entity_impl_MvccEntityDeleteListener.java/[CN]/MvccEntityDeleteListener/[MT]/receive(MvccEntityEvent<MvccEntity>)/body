@@ -1,14 +1,17 @@
 {
   final MvccEntity entity=entityEvent.getData();
-  return Observable.from(entity).map(new Func1<MvccEntity,MvccEntityEvent<MvccEntity>>(){
-    @Override public MvccEntityEvent<MvccEntity> call(    MvccEntity mvccEntity){
+  return Observable.from(entity).map(new Func1<MvccEntity,MutationBatch>(){
+    @Override public MutationBatch call(    MvccEntity mvccEntity){
+      return entityMetadataSerialization.delete(entityEvent.getCollectionScope(),entity.getId(),entity.getVersion());
+    }
+  }
+).map(new Func1<MutationBatch,MvccEntityEvent<MvccEntity>>(){
+    @Override public MvccEntityEvent<MvccEntity> call(    final MutationBatch mutationBatch){
       try {
-        entityMetadataSerialization.delete(entityEvent.getCollectionScope(),entity.getId(),entity.getVersion()).execute();
-        LOG.info("Successfully deleted entity",entity);
+        mutationBatch.execute();
       }
  catch (      ConnectionException e) {
-        LOG.error("Unable to delete entity from listener",entity);
-        throw new RuntimeException("Unable to delete entity - " + entity,e);
+        throw new RuntimeException("Unable to execute mutation",e);
       }
       return entityEvent;
     }
