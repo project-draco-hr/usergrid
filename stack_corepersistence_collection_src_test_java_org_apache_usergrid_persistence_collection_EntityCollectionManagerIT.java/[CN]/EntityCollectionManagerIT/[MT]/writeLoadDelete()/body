@@ -5,11 +5,12 @@
   Observable<Entity> observable=manager.write(newEntity);
   Entity createReturned=observable.toBlockingObservable().lastOrDefault(null);
   assertNotNull("Id was assigned",createReturned.getId());
+  UUID version=createReturned.getVersion();
   Observable<Entity> loadObservable=manager.load(createReturned.getId());
   Entity loadReturned=loadObservable.toBlockingObservable().lastOrDefault(null);
   assertEquals("Same value",createReturned,loadReturned);
   manager.delete(createReturned.getId()).toBlockingObservable().last();
   loadObservable=manager.load(createReturned.getId());
   loadReturned=loadObservable.toBlockingObservable().lastOrDefault(null);
-  assertNull("Entity was deleted",loadReturned);
+  assertTrue("Entity was deleted",loadReturned == null || loadReturned.getVersion() != version);
 }
