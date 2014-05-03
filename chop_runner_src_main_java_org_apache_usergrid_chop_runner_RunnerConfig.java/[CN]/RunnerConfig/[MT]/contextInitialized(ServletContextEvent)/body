@@ -56,22 +56,14 @@
     project.bypass(Project.PROJECT_VERSION_KEY,"1.0.0-SNAPSHOT");
   }
   if (runner.getHostname() != null && project.getLoadKey() != null) {
-    final RunnerRegistry registry=getInjector().getInstance(RunnerRegistry.class);
     if (env != Env.TEST && env != Env.UNIT) {
-      registry.register(runner);
-      registered=true;
-      Runtime.getRuntime().addShutdownHook(new Thread(new Runnable(){
+      Thread registryThread=new Thread(new Runnable(){
         @Override public void run(){
-          if (registered) {
-            System.err.println("Premature shutdown, attempting to unregister this runner.");
-            registry.unregister(runner);
-            LOG.info("Unregistering runner on shutdownx: {}",runner.getHostname());
-            registered=false;
-          }
+          registerRunner();
         }
       }
-));
-      LOG.info("Registered runner information in coordinator registry.");
+);
+      registryThread.start();
     }
  else {
       LOG.warn("Env = {} so we are not registering this runner.",env);
