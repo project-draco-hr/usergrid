@@ -1,8 +1,15 @@
 {
-  String runId=multipart.getBodyPart(RestParams.RUN_ID).getContent().toString();
-  LOG.debug("extracted {} = {}",RestParams.RUN_ID,runId);
-  InputStream in=multipart.getBodyPart(RestParams.CONTENT).getInputStream();
-  JSONObject object=(JSONObject)new JSONParser().parse(new InputStreamReader(in));
+  if (inTestMode(testMode)) {
+    LOG.info("Calling /upload/results in test mode ...");
+    LOG.info("{} is {}",RUNNER_HOSTNAME,runnerHostName);
+    LOG.info("{} is {}",TEST_CLASS,testClass);
+    LOG.info("{} is {}",RUN_ID,runId);
+    return Response.status(Response.Status.CREATED).entity(SUCCESSFUL_TEST_MESSAGE).build();
+  }
+ else {
+    LOG.info("/upload/results called ...");
+  }
+  JSONObject object=(JSONObject)new JSONParser().parse(new InputStreamReader(resultsFileInputStream));
   JSONArray runResults=(JSONArray)object.get("runResults");
   Iterator<JSONObject> iterator=runResults.iterator();
   while (iterator.hasNext()) {

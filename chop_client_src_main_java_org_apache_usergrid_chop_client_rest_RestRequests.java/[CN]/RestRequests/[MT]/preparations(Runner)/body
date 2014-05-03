@@ -1,6 +1,12 @@
 {
   Preconditions.checkNotNull(runner,"The runner parameter cannot be null.");
   Preconditions.checkNotNull(runner.getHostname(),"The runner parameter's hostname property cannot be null.");
+  javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(new javax.net.ssl.HostnameVerifier(){
+    public boolean verify(    String hostname,    javax.net.ssl.SSLSession sslSession){
+      return hostname.equals(runner.getHostname());
+    }
+  }
+);
   if (!ChopUtils.isTrusted(runner)) {
     try {
       ChopUtils.installRunnerKey(null,runner);
