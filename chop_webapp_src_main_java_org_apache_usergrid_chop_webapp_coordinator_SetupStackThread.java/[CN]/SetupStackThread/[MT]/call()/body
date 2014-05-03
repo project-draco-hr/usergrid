@@ -20,6 +20,7 @@
       LOG.warn(errorMessage + ", aborting and terminating launched instances...");
       instanceManager.terminateInstances(launchedInstances);
       stack.setSetupState(SetupStackState.SetupFailed);
+      stack.notifyAll();
       return null;
     }
     if (!(new File(keyFile)).exists()) {
@@ -27,6 +28,7 @@
       LOG.warn(errorMessage + ", aborting and terminating launched instances...");
       instanceManager.terminateInstances(launchedInstances);
       stack.setSetupState(SetupStackState.SetupFailed);
+      stack.notifyAll();
       return null;
     }
     LaunchResult result=instanceManager.launchCluster(stack,cluster,chopUiFig.getLaunchClusterTimeout());
@@ -45,6 +47,7 @@
       errorMessage="SSH commands have failed, will not continue";
       instanceManager.terminateInstances(launchedInstances);
       stack.setSetupState(SetupStackState.SetupFailed);
+      stack.notifyAll();
       return null;
     }
     LOG.info("Cluster {} is ready, moving on...",cluster.getName());
@@ -56,6 +59,7 @@
     LOG.warn(errorMessage + ", aborting and terminating launched instances...");
     instanceManager.terminateInstances(launchedInstances);
     stack.setSetupState(SetupStackState.SetupFailed);
+    stack.notifyAll();
     return null;
   }
   if (!(new File(keyFile)).exists()) {
@@ -63,6 +67,7 @@
     LOG.warn(errorMessage + ", aborting and terminating launched instances...");
     instanceManager.terminateInstances(launchedInstances);
     stack.setSetupState(SetupStackState.SetupFailed);
+    stack.notifyAll();
     return null;
   }
   BasicInstanceSpec runnerSpec=new BasicInstanceSpec();
@@ -85,9 +90,11 @@
     errorMessage="SSH commands have failed, will not continue";
     instanceManager.terminateInstances(launchedInstances);
     stack.setSetupState(SetupStackState.SetupFailed);
+    stack.notifyAll();
     return null;
   }
   stack.setSetupState(SetupStackState.SetUp);
   LOG.info("Stack {} is set up and ready...",stack.getName());
+  stack.notifyAll();
   return stack;
 }
