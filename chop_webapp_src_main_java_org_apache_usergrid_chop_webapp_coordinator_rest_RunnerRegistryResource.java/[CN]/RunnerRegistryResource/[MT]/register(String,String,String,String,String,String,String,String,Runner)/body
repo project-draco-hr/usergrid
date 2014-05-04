@@ -8,13 +8,14 @@
   Preconditions.checkNotNull(groupId,"The 'groupId' request parameter MUST NOT be null.");
   Preconditions.checkNotNull(version,"The 'version' request parameter MUST NOT be null.");
   Preconditions.checkNotNull(version,"The 'testPackageBase' request parameter MUST NOT be null.");
-  Preconditions.checkNotNull(commitId,"The commitId cannot be null.");
-  Preconditions.checkNotNull(runner,"The runner cannot be null.");
+  Preconditions.checkNotNull(commitId,"The 'commitId' request parameter MUST NOT be null.");
+  Preconditions.checkNotNull(vcsRepoUrl,"The 'vcsRepoUrl' request parameter MUST NOT be null.");
+  Preconditions.checkNotNull(runner,"The 'runner' request parameter MUST NOT be null.");
   String moduleId=BasicModule.createId(groupId,artifactId,version);
   Module module=moduleDao.get(moduleId);
   if (module == null) {
     LOG.warn("Module {} does not exist for runner {}. Creating and storing it ...",groupId + "." + artifactId+ "-"+ version,runner);
-    module=new BasicModule(groupId,artifactId,version,commitId,testPackageBase);
+    module=new BasicModule(groupId,artifactId,version,vcsRepoUrl,testPackageBase);
     moduleDao.save(module);
   }
   LOG.info("Calling /runners/register with commitId = {} and runner = {}",commitId,runner);
