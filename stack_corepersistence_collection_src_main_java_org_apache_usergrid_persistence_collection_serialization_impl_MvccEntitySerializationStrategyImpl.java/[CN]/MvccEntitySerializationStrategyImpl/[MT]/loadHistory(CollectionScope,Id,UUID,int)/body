@@ -4,16 +4,5 @@
   Preconditions.checkNotNull(version,"version is required");
   Preconditions.checkArgument(fetchSize > 0,"max Size must be greater than 0");
   RowQuery<ScopedRowKey<CollectionScope,Id>,UUID> query=keyspace.prepareQuery(CF_ENTITY_DATA).getKey(ScopedRowKey.fromKey(collectionScope,entityId)).withColumnRange(null,version,false,fetchSize);
-  ColumnList<UUID> columns=null;
-  try {
-    columns=query.execute().getResult();
-  }
- catch (  ConnectionException e) {
-    throw new CollectionRuntimeException(null,collectionScope,"An error occurred connecting to cassandra",e);
-  }
-  List<MvccEntity> results=new ArrayList<MvccEntity>(columns.size());
-  for (  Column<UUID> col : columns) {
-    results.add(getEntity(entityId,col));
-  }
-  return results.iterator();
+  return new ColumnNameIterator(query,new MvccColumnParser(entityId),false);
 }
