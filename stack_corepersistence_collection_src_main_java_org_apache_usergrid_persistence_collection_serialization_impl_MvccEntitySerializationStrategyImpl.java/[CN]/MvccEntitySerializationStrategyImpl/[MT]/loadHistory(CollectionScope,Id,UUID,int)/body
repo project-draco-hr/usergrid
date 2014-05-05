@@ -3,7 +3,7 @@
   Preconditions.checkNotNull(entityId,"entity id is required");
   Preconditions.checkNotNull(version,"version is required");
   Preconditions.checkArgument(fetchSize > 0,"max Size must be greater than 0");
-  RowQuery<ScopedRowKey<CollectionScope,Id>,UUID> query=keyspace.prepareQuery(CF_ENTITY_DATA).getKey(ScopedRowKey.fromKey(collectionScope,entityId)).withColumnRange(version,null,false,fetchSize);
+  RowQuery<ScopedRowKey<CollectionScope,Id>,UUID> query=keyspace.prepareQuery(CF_ENTITY_DATA).getKey(ScopedRowKey.fromKey(collectionScope,entityId)).withColumnRange(null,version,false,fetchSize);
   ColumnList<UUID> columns=null;
   try {
     columns=query.execute().getResult();

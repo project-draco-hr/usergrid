@@ -7,8 +7,11 @@
   when(entity.getVersion()).thenReturn(id);
   MvccEntityEvent<MvccEntity> entityEvent=new MvccEntityEvent<MvccEntity>(scope,id,entity);
   MutationBatch batch=mock(MutationBatch.class);
+  ArrayList<MvccEntity> entityList=new ArrayList<MvccEntity>();
+  entityList.add(entity);
   when(mvccEntitySerializationStrategy.delete(scope,entityId,id)).thenReturn(batch);
-  Observable<MvccEntityEvent<MvccEntity>> observable=listener.receive(entityEvent);
-  MvccEntityEvent<MvccEntity> entityEventReturned=observable.toBlockingObservable().last();
-  assertEquals(entityEvent,entityEventReturned);
+  when(mvccEntitySerializationStrategy.loadHistory(scope,entityId,id,1000)).thenReturn(entityList.iterator());
+  Observable<MvccEntity> observable=listener.receive(entityEvent);
+  MvccEntity entityEventReturned=observable.toBlockingObservable().last();
+  assertEquals(entity,entityEventReturned);
 }

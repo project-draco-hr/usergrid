@@ -20,7 +20,7 @@
   Observable<Entity> o3=manager.write(e3);
   e3=o3.toBlockingObservable().lastOrDefault(null);
 {
-    List<MvccEntity> versions=mvccEntitySerializationStrategy.load(context,e1.getId(),e3.getVersion(),10);
+    Iterator<MvccEntity> versions=mvccEntitySerializationStrategy.load(context,e1.getId(),e3.getVersion(),10);
     ChangeLogGeneratorImpl instance=new ChangeLogGeneratorImpl();
     List<ChangeLogEntry> result=instance.getChangeLog(versions,e3.getVersion());
     for (    ChangeLogEntry cle : result) {
@@ -49,7 +49,7 @@
     Assert.assertEquals("name1",result.get(5).getField().getValue());
   }
 {
-    List<MvccEntity> versions=mvccEntitySerializationStrategy.load(context,e1.getId(),e3.getVersion(),10);
+    Iterator<MvccEntity> versions=mvccEntitySerializationStrategy.load(context,e1.getId(),e3.getVersion(),10);
     ChangeLogGeneratorImpl instance=new ChangeLogGeneratorImpl();
     List<ChangeLogEntry> result=instance.getChangeLog(versions,e2.getVersion());
     for (    ChangeLogEntry cle : result) {
