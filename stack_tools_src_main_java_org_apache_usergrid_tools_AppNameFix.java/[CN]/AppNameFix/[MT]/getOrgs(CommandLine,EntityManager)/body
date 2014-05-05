@@ -1,0 +1,20 @@
+{
+  String optionValue=line.getOptionValue(ORGANIZATION_ARG);
+  if (optionValue == null) {
+    return managementService.getOrganizations();
+  }
+  UUID id=UUIDUtils.tryExtractUUID(optionValue);
+  OrganizationInfo org;
+  if (id != null) {
+    org=managementService.getOrganizationByUuid(id);
+  }
+ else {
+    org=managementService.getOrganizationByName(optionValue);
+  }
+  if (org == null) {
+    throw new NullPointerException(String.format("Org with identifier %s does not exist",optionValue));
+  }
+  Map<UUID,String> entries=new HashMap<UUID,String>();
+  entries.put(org.getUuid(),org.getName());
+  return entries;
+}
