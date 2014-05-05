@@ -1,6 +1,21 @@
 {
+  long timestamp=getTimestampInMicros(timestampUuid);
   if (elementCoValue == null) {
     elementCoValue=new byte[0];
   }
-  throw new UnsupportedOperationException("Not supported yet.");
+  boolean entityHasDictionary=getDefaultSchema().hasDictionary(entity.getType(),dictionaryName);
+  ApplicationCF dictionary_cf=entityHasDictionary ? ENTITY_DICTIONARIES : ENTITY_COMPOSITE_DICTIONARIES;
+  if (elementValue != null) {
+    if (!removeFromDictionary) {
+      elementCoValue=toStorableBinaryValue(elementCoValue,!entityHasDictionary);
+      addInsertToMutator(batch,dictionary_cf,key(entity.getUuid(),dictionaryName),entityHasDictionary ? elementValue : asList(elementValue),elementCoValue,timestamp);
+      if (!entityHasDictionary) {
+        addInsertToMutator(batch,ENTITY_DICTIONARIES,key(entity.getUuid(),DICTIONARY_SETS),dictionaryName,null,timestamp);
+      }
+    }
+ else {
+      addDeleteToMutator(batch,dictionary_cf,key(entity.getUuid(),dictionaryName),entityHasDictionary ? elementValue : asList(elementValue),timestamp);
+    }
+  }
+  return batch;
 }
