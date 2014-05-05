@@ -1,0 +1,38 @@
+{
+  if (passphrase == null) {
+    passphrase="changeit".toCharArray();
+  }
+  File file;
+  if (certStore != null) {
+    file=certStore;
+  }
+ else {
+    file=new File("jssecacerts");
+  }
+  if (!file.isFile()) {
+    char SEP=File.separatorChar;
+    File dir=new File(System.getProperty("java.home") + SEP + "lib"+ SEP+ "security");
+    file=new File(dir,"jssecacerts");
+    if (!file.isFile()) {
+      file=new File(dir,"cacerts");
+    }
+  }
+  certStore=file;
+  LOG.debug("Loading KeyStore {}",file);
+  InputStream in=new FileInputStream(file);
+  KeyStore ks=KeyStore.getInstance(KeyStore.getDefaultType());
+  ks.load(in,passphrase);
+  in.close();
+  CertificateFactory cf=CertificateFactory.getInstance("X.509");
+  Certificate cert=cf.generateCertificate(getCertificateStream());
+  for (  String hostname : hostnames) {
+    ks.setCertificateEntry(hostname,cert);
+    LOG.debug("Added certificate to keystore 'jssecacerts' using alias '" + hostname + "'");
+  }
+  OutputStream out=new FileOutputStream("jssecacerts");
+  ks.store(out,passphrase);
+  out.close();
+synchronized (lock) {
+    Collections.addAll(trustedHosts,hostnames);
+  }
+}

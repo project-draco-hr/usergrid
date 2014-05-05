@@ -1,0 +1,23 @@
+{
+synchronized (isOpen) {
+    while (isOpen.get() || !buffer.isEmpty()) {
+      try {
+        Result result=buffer.pollLast(waitTime.get(),TimeUnit.MILLISECONDS);
+        if (result != null) {
+          resultCount.incrementAndGet();
+          jgen.writeObject(result);
+        }
+      }
+ catch (      InterruptedException e) {
+        LOG.error("ResultLog thread interrupted.",e);
+      }
+catch (      JsonProcessingException e) {
+        LOG.error("Failed to generate the JSON for a result.",e);
+      }
+catch (      IOException e) {
+        LOG.error("Failed to write JSON to output stream for a result",e);
+      }
+    }
+    isOpen.notifyAll();
+  }
+}

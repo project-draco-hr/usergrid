@@ -1,0 +1,34 @@
+{
+  User chopUser=userDao.get(user);
+  if (chopUser == null) {
+    LOG.warn("No such user: {}",user);
+    return null;
+  }
+  File runnerJar=CoordinatorUtils.getRunnerJar(chopUiFig.getContextPath(),user,groupId,artifactId,version,commitId);
+  if (!runnerJar.exists()) {
+    LOG.warn("No runner jars have been found by these parameters, deploy first");
+    return null;
+  }
+  Stack stack=CoordinatorUtils.getStackFromRunnerJar(runnerJar);
+  if (stack == null) {
+    LOG.warn("Could not read stack from runner.jar's resources");
+    return null;
+  }
+  Module module=moduleDao.get(BasicModule.createId(groupId,artifactId,version));
+  if (module == null) {
+    LOG.warn("No registered modules found by {}" + groupId + ":"+ artifactId+ ":"+ version);
+    return null;
+  }
+  Commit commit=null;
+  for (  Commit c : commitDao.getByModule(module.getId())) {
+    if (commitId.equals(c.getId())) {
+      commit=c;
+      break;
+    }
+  }
+  if (commit == null) {
+    LOG.warn("Commit with id {} is not found",commitId);
+    return null;
+  }
+  return getCoordinatedStack(stack,chopUser,commit,module);
+}

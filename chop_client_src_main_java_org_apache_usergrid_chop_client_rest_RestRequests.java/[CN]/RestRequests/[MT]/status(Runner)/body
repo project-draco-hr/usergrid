@@ -1,0 +1,12 @@
+{
+  preparations(runner);
+  try {
+    return newStatusOp(runner).execute(Result.class);
+  }
+ catch (  ClientHandlerException e) {
+    if (e.getCause() instanceof SSLHandshakeException && e.getCause().toString().contains("PKIX path building failed")) {
+      return newStatusOp(runner).execute(Result.class);
+    }
+  }
+  throw new RuntimeException("If we got here then the retry also failed.");
+}

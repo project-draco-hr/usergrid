@@ -1,0 +1,15 @@
+{
+  Project project=runner1.getFirstContextListener().getProject();
+  LOG.info("runner1 project commit id = {}",project.getVcsVersion());
+  LOG.info("runner1 project module artifact id = {}",project.getArtifactId());
+  LOG.info("runner1 project module group id = {}",project.getGroupId());
+  LOG.info("runner1 project module version = {}",project.getVersion());
+  List<Runner> runnerList=webapp.newTestParams().setEndpoint(RunnerRegistryResource.ENDPOINT).newWebResource(null).queryParam(RestParams.COMMIT_ID,project.getVcsVersion()).queryParam(RestParams.MODULE_ARTIFACTID,project.getArtifactId()).queryParam(RestParams.MODULE_GROUPID,project.getGroupId()).queryParam(RestParams.MODULE_VERSION,project.getVersion()).queryParam(RestParams.USERNAME,CoordinatorFig.USERNAME_DEFAULT).queryParam(RestParams.PASSWORD,CoordinatorFig.PASSWORD_DEFAULT).path("/list").type(MediaType.APPLICATION_JSON_TYPE).accept(MediaType.APPLICATION_JSON_TYPE).get(new GenericType<List<Runner>>(){
+  }
+);
+  assertNotNull(runnerList);
+  LOG.info("Got {} runners.",runnerList.size());
+  for (  Runner runner : runnerList) {
+    LOG.info("runner = {}",runner);
+  }
+}

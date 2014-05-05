@@ -3,7 +3,7 @@
   return HystrixGraphObservable.user(Observable.from(edge).subscribeOn(Schedulers.io()).map(new Func1<Edge,Edge>(){
     @Override public Edge call(    final Edge edge){
       final MutationBatch edgeMutation=commitLogSerialization.markEdge(scope,edge);
-      final AsynchronousMessage<Edge> event=edgeDeleteAsyncProcessor.setVerification(edge,getTimeout());
+      final AsynchronousMessage<EdgeEvent<Edge>> event=edgeDeleteAsyncProcessor.setVerification(new EdgeEvent<>(scope,edge.getVersion(),edge),getTimeout());
       try {
         edgeMutation.execute();
       }

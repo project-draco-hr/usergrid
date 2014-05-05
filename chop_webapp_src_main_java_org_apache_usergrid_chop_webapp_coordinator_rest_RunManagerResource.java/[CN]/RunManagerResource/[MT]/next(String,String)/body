@@ -1,0 +1,22 @@
+{
+  int next;
+  if (inTestMode(testMode)) {
+    LOG.info("Calling /run/next in test mode ...");
+    return Response.ok(0).build();
+  }
+  LOG.info("Calling /run/next ...");
+  Preconditions.checkNotNull(commitId,"The commitId should not be null.");
+  try {
+    next=runDao.getNextRunNumber(commitId);
+  }
+ catch (  IndexMissingException e) {
+    LOG.warn("Got an index missing exception while looking up the next run number.");
+    return Response.ok(0).build();
+  }
+catch (  Exception e) {
+    LOG.error("Failed to get the next run number for commitId = " + commitId,e);
+    return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+  }
+  LOG.info("Next run number to return is {}",next);
+  return Response.ok(next).build();
+}

@@ -1,0 +1,21 @@
+{
+  File source=getRunnerFile();
+  try {
+    if (!source.exists()) {
+      return false;
+    }
+    File extractedConfigPropFile=new File(getExtractedRunnerPath(),PROJECT_FILE);
+    if (extractedConfigPropFile.exists()) {
+      Properties props=new Properties();
+      FileInputStream inputStream=new FileInputStream(extractedConfigPropFile);
+      props.load(inputStream);
+      inputStream.close();
+      String commitId=Utils.getLastCommitUuid(Utils.getGitConfigFolder(getProjectBaseDirectory()));
+      return (!failIfCommitNecessary) || commitId.equals(props.getProperty(Project.GIT_UUID_KEY));
+    }
+  }
+ catch (  Exception e) {
+    LOG.error("Error while trying to find out if runner file is ready to deploy",e);
+  }
+  return false;
+}

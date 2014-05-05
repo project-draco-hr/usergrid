@@ -1,0 +1,14 @@
+{
+  Preconditions.checkState(isRunning() || isComplete(),"Cannot block on a driver that is not running: state = " + state);
+synchronized (lock) {
+    if (state == State.RUNNING) {
+      try {
+        lock.wait(timeout);
+      }
+ catch (      InterruptedException e) {
+        LOG.warn("Awe snap, someone woke me up early!");
+      }
+    }
+    return state == State.RUNNING;
+  }
+}

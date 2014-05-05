@@ -1,0 +1,19 @@
+{
+  DescribeSecurityGroupsRequest request=new DescribeSecurityGroupsRequest().withGroupNames(name);
+  DescribeSecurityGroupsResult result=client.describeSecurityGroups(request);
+  if (result.getSecurityGroups().size() != 1) {
+    return null;
+  }
+  Collection<IpRule> ipRules=new ArrayList<IpRule>();
+  List<IpPermission> permissions;
+  if (inbound) {
+    permissions=result.getSecurityGroups().get(0).getIpPermissions();
+  }
+ else {
+    permissions=result.getSecurityGroups().get(0).getIpPermissionsEgress();
+  }
+  for (  IpPermission permission : permissions) {
+    ipRules.add(toIpRule(permission));
+  }
+  return ipRules;
+}

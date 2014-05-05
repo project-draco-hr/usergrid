@@ -1,0 +1,11 @@
+{
+  projectPath=forceNoSlashOnDir(projectPath);
+  while (!FileUtils.fileExists(projectPath + File.separator + ".git")) {
+    int lastSlashIndex=projectPath.lastIndexOf(File.separator);
+    if (lastSlashIndex < 1) {
+      throw new MojoExecutionException("There are no local git repository associated with this project");
+    }
+    projectPath=projectPath.substring(0,lastSlashIndex);
+  }
+  return projectPath + File.separator + ".git";
+}

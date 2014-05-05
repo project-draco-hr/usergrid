@@ -1,0 +1,10 @@
+{
+  SearchResponse response=getRequest(DAO_INDEX_KEY,DAO_TYPE_KEY).setSize(MAX_RESULT_SIZE).execute().actionGet();
+  LOG.debug("response: {}",response);
+  SearchHit hits[]=response.getHits().hits();
+  ArrayList<ProviderParams> list=new ArrayList<ProviderParams>();
+  for (  SearchHit hit : hits) {
+    list.add(toProviderParams(hit));
+  }
+  return list;
+}

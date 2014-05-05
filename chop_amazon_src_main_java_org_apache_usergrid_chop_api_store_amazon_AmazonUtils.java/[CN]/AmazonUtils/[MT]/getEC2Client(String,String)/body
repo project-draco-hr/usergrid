@@ -1,0 +1,15 @@
+{
+  AWSCredentialsProvider provider;
+  if (accessKey != null && secretKey != null) {
+    AWSCredentials credentials=new BasicAWSCredentials(accessKey,secretKey);
+    provider=new StaticCredentialsProvider(credentials);
+  }
+ else {
+    provider=new DefaultAWSCredentialsProviderChain();
+  }
+  AmazonEC2Client client=new AmazonEC2Client(provider);
+  ClientConfiguration configuration=new ClientConfiguration();
+  configuration.setProtocol(Protocol.HTTPS);
+  client.setConfiguration(configuration);
+  return client;
+}

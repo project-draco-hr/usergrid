@@ -12,9 +12,12 @@
   bind(EdgeShardSerialization.class).to(EdgeShardSerializationImpl.class);
   bind(MergedEdgeReader.class).to(MergedEdgeReaderImpl.class);
   bind(EdgeShardCounterSerialization.class).to(EdgeShardCounterSerializationImpl.class);
-  bind(TimeoutQueue.class).to(LocalTimeoutQueue.class);
   bind(EdgeMetaRepair.class).to(EdgeMetaRepairImpl.class);
   bind(EdgeDeleteRepair.class).to(EdgeDeleteRepairImpl.class);
+  Multibinder<MessageListener> messageListenerMultibinder=Multibinder.newSetBinder(binder(),MessageListener.class);
+  messageListenerMultibinder.addBinding().toProvider(EdgeWriteListenerProvider.class).asEagerSingleton();
+  messageListenerMultibinder.addBinding().toProvider(EdgeDeleteListenerProvider.class).asEagerSingleton();
+  messageListenerMultibinder.addBinding().toProvider(NodeDeleteListenerProvider.class).asEagerSingleton();
   Multibinder<Migration> migrationBinding=Multibinder.newSetBinder(binder(),Migration.class);
   migrationBinding.addBinding().to(Key.get(NodeSerialization.class));
   migrationBinding.addBinding().to(Key.get(EdgeMetadataSerialization.class));

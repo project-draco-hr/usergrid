@@ -1,0 +1,29 @@
+{
+  if (inTestMode(testMode)) {
+    LOG.info("Calling /runners/register in test mode ...");
+    return Response.ok(false).build();
+  }
+  Preconditions.checkNotNull(user,"The 'user' request parameter MUST NOT be null.");
+  Preconditions.checkNotNull(artifactId,"The 'artifactId' request parameter MUST NOT be null.");
+  Preconditions.checkNotNull(groupId,"The 'groupId' request parameter MUST NOT be null.");
+  Preconditions.checkNotNull(version,"The 'version' request parameter MUST NOT be null.");
+  Preconditions.checkNotNull(version,"The 'testPackageBase' request parameter MUST NOT be null.");
+  Preconditions.checkNotNull(commitId,"The commitId cannot be null.");
+  Preconditions.checkNotNull(runner,"The runner cannot be null.");
+  String moduleId=BasicModule.createId(groupId,artifactId,version);
+  Module module=moduleDao.get(moduleId);
+  if (module == null) {
+    LOG.warn("Module {} does not exist for runner {}. Creating and storing it ...",groupId + "." + artifactId+ "-"+ version,runner);
+    module=new BasicModule(groupId,artifactId,version,commitId,testPackageBase);
+    moduleDao.save(module);
+  }
+  LOG.info("Calling /runners/register with commitId = {} and runner = {}",commitId,runner);
+  if (runnerDao.save(runner,user,commitId,moduleId)) {
+    LOG.info("registered runner {} for commit {}",runner.getHostname(),commitId);
+    return Response.ok(true).build();
+  }
+ else {
+    LOG.warn("failed to register runner {}",runner.getHostname());
+    return Response.ok(false).build();
+  }
+}

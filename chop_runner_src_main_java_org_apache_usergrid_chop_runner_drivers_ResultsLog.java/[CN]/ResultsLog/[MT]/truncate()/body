@@ -1,0 +1,12 @@
+{
+  if (isOpen.get()) {
+    throw new IOException("Cannot truncate while log is open for writing. Close the log then truncate.");
+  }
+synchronized (isOpen) {
+    File results=new File(resultsFile.get());
+    FileChannel channel=new FileOutputStream(results,true).getChannel();
+    channel.truncate(0);
+    channel.close();
+    resultCount.set(0);
+  }
+}
