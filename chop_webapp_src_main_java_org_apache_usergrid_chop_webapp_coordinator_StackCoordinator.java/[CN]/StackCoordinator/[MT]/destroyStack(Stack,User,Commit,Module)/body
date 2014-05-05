@@ -1,0 +1,20 @@
+{
+  CoordinatedStack coordinatedStack=getCoordinatedStack(stack,user,commit,module);
+  if (coordinatedStack == null || coordinatedStack.getSetupState() == SetupStackState.NotFound) {
+    LOG.info("No such stack was found.");
+    return;
+  }
+synchronized (coordinatedStack) {
+    if (coordinatedStack.getSetupState() != SetupStackState.SetUp) {
+      LOG.info("Stack is in {} state, will not destroy.",coordinatedStack.getSetupState().toString());
+      return;
+    }
+    LOG.info("Starting to destroy stack instances of {}...",stack.getName());
+    coordinatedStack.setSetupState(SetupStackState.Destroying);
+    StackDestroyer destroyer=new StackDestroyer(coordinatedStack);
+    destroyer.destroy();
+    registeredStacks.remove(coordinatedStack.hashCode());
+    setupStackThreads.remove(coordinatedStack);
+    coordinatedStack.notifyAll();
+  }
+}
