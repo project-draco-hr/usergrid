@@ -1,3 +1,15 @@
 {
-  throw new UnsupportedOperationException("Not supported yet.");
+  if (elementName == null) {
+    return;
+  }
+  Entity entity=get(entityRef.getUuid(),entityRef.getType());
+  if (!(elementName instanceof String)) {
+    throw new IllegalArgumentException("Element name must be a string");
+  }
+  Map<String,Object> dictionary=entity.getDynamicProperties();
+  Map<String,Object> props=(TreeMap)dictionary.get(dictionaryName);
+  props.remove(elementName);
+  dictionary.put(dictionaryName,props);
+  entity.addProperties(dictionary);
+  update(entity);
 }
