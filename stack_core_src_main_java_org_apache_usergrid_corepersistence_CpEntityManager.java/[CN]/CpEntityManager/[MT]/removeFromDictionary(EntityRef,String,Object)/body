@@ -7,7 +7,9 @@
     throw new IllegalArgumentException("Element name must be a string");
   }
   Map<String,Object> dictionary=entity.getDynamicProperties();
-  dictionary.remove(dictionaryName);
-  entity.getDynamicProperties().clear();
+  Map<String,Object> properties=(Map<String,Object>)dictionary.get(dictionaryName);
+  properties.remove(elementName);
+  dictionary.put(dictionaryName,properties);
+  entity.setProperties(dictionary);
   update(entity);
 }
