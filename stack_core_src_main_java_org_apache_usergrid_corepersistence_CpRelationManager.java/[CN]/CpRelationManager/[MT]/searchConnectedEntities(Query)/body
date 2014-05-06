@@ -1,3 +1,34 @@
 {
-  throw new UnsupportedOperationException("Not supported yet.");
+  if (query == null) {
+    query=new Query();
+  }
+  headEntity=em.validate(headEntity);
+  org.apache.usergrid.persistence.index.query.Query cpQuery=createCpQuery(query);
+  EntityIndex ei=managerCache.getEntityIndex(organizationScope,applicationScope);
+  logger.debug("Searching connections from head-entity scope {}:{}:{}",new String[]{headEntityScope.getOrganization().toString(),headEntityScope.getOwner().toString(),applicationScope.getName()});
+  List<String> connectionTypes=new ArrayList<String>();
+  if (query.getConnectionType() != null) {
+    connectionTypes.add(query.getConnectionType());
+  }
+ else {
+    GraphManager gm=managerCache.getGraphManager(organizationScope);
+    Observable<String> types=gm.getEdgeTypesFromSource(new SimpleSearchEdgeType(cpHeadEntity.getId(),null));
+    Iterator<String> iter=types.toBlockingObservable().getIterator();
+    while (iter.hasNext()) {
+      connectionTypes.add(iter.next());
+    }
+  }
+  org.apache.usergrid.persistence.index.query.Results cpResults=ei.searchConnections(cpHeadEntity,connectionTypes,cpQuery);
+  if (cpResults.isEmpty()) {
+    Results results=new Results();
+    return results;
+  }
+  List<Entity> entities=new ArrayList<Entity>();
+  for (  org.apache.usergrid.persistence.model.entity.Entity e : cpResults.getEntities()) {
+    Entity entity=EntityFactory.newEntity(e.getId().getUuid(),e.getField("type").getValue().toString());
+    Map<String,Object> entityMap=EntityMapUtils.toMap(e);
+    entity.addProperties(entityMap);
+    entities.add(entity);
+  }
+  return Results.fromEntities(entities);
 }

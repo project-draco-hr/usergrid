@@ -7,7 +7,7 @@
   EntityIndex ei=managerCache.getEntityIndex(organizationScope,applicationScope);
   Id entityId=new SimpleId(entity.getUuid(),entity.getType());
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(entityId).toBlockingObservable().last();
-  cpEntity=EntityMapUtils.fromMap(cpEntity,entity.getProperties());
+  cpEntity=CpEntityMapUtils.fromMap(cpEntity,entity.getProperties(),entity.getType(),true);
   cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
   ei.index(collectionScope,cpEntity);
   RelationManager rm=getRelationManager(entity);
