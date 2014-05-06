@@ -3,10 +3,17 @@
   UUID uuid=UUID.randomUUID();
   Id entityId=new SimpleId(uuid,"test");
   Entity entity=new Entity(entityId);
+  Results results=mock(Results.class);
+  List<Entity> entities=new ArrayList<>();
+  entities.add(entity);
+  when(serializationFig.getBufferSize()).thenReturn(10);
+  when(serializationFig.getHistorySize()).thenReturn(20);
+  when(results.getEntities()).thenReturn(entities);
+  when(entityIndex.getEntityVersions(uuid,scope)).thenReturn(results);
   MvccEntity mvccEntity=new MvccEntityImpl(entityId,uuid,MvccEntity.Status.COMPLETE,entity);
   MvccEntityEvent<MvccEntity> event=new MvccEntityEvent<MvccEntity>(scope,uuid,mvccEntity);
   Observable<MvccEntity> o=esEntityIndexDeleteListener.receive(event);
   MvccEntity testEntity=o.toBlockingObservable().last();
-  assertEquals(testEntity,mvccEntity);
+  assertEquals(testEntity.getId(),mvccEntity.getId());
   verify(entityIndex).deindex(scope,entity);
 }

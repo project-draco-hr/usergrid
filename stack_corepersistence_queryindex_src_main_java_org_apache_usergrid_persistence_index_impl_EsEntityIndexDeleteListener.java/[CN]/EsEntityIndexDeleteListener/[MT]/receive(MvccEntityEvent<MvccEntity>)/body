@@ -1,10 +1,25 @@
 {
-  return Observable.from(event).subscribeOn(Schedulers.io()).map(new Func1<MvccEntityEvent<MvccEntity>,MvccEntity>(){
-    @Override public MvccEntity call(    MvccEntityEvent<MvccEntity> mvccEntityMvccEntityEvent){
-      MvccEntity mvccEntity=mvccEntityMvccEntityEvent.getData();
-      Optional<Entity> entity=mvccEntity.getEntity();
-      entityIndex.deindex(mvccEntityMvccEntityEvent.getCollectionScope(),entity.get());
-      return mvccEntity;
+  return Observable.create(new ObservableIterator<MvccEntity>("deleteEsIndexVersions"){
+    @Override protected Iterator<MvccEntity> getIterator(){
+      Results results=entityIndex.getEntityVersions(event.getVersion(),event.getCollectionScope());
+      Iterator<MvccEntity> iterator=Collections.emptyListIterator();
+      if (results != null) {
+        List<Entity> entities=results.getEntities();
+        List<MvccEntity> mvccEntities=new ArrayList<>();
+        for (        Entity entity : entities) {
+          mvccEntities.add((MvccEntity)new EsMvccEntityImpl(entity));
+        }
+        iterator=mvccEntities.iterator();
+      }
+      return iterator;
+    }
+  }
+).subscribeOn(Schedulers.io()).buffer(serializationFig.getBufferSize()).flatMap(new Func1<List<MvccEntity>,Observable<MvccEntity>>(){
+    @Override public Observable<MvccEntity> call(    List<MvccEntity> entities){
+      for (      MvccEntity entity : entities) {
+        entityIndex.deindex(event.getCollectionScope(),entity.getEntity().get());
+      }
+      return Observable.from(entities);
     }
   }
 );
