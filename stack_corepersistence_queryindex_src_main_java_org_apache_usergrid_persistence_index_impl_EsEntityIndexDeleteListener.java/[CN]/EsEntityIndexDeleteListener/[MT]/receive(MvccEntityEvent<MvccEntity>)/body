@@ -1,0 +1,11 @@
+{
+  return Observable.from(event).subscribeOn(Schedulers.io()).map(new Func1<MvccEntityEvent<MvccEntity>,MvccEntity>(){
+    @Override public MvccEntity call(    MvccEntityEvent<MvccEntity> mvccEntityMvccEntityEvent){
+      MvccEntity mvccEntity=mvccEntityMvccEntityEvent.getData();
+      Optional<Entity> entity=mvccEntity.getEntity();
+      entityIndex.deindex(mvccEntityMvccEntityEvent.getCollectionScope(),entity.get());
+      return mvccEntity;
+    }
+  }
+);
+}

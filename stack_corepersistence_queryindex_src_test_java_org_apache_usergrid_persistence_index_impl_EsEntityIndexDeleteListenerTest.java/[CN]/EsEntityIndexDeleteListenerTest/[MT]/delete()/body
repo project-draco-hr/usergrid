@@ -1,0 +1,12 @@
+{
+  CollectionScope scope=mock(CollectionScope.class);
+  UUID uuid=UUID.randomUUID();
+  Id entityId=new SimpleId(uuid,"test");
+  Entity entity=new Entity(entityId);
+  MvccEntity mvccEntity=new MvccEntityImpl(entityId,uuid,MvccEntity.Status.COMPLETE,entity);
+  MvccEntityEvent<MvccEntity> event=new MvccEntityEvent<MvccEntity>(scope,uuid,mvccEntity);
+  Observable<MvccEntity> o=esEntityIndexDeleteListener.receive(event);
+  MvccEntity testEntity=o.toBlockingObservable().last();
+  assertEquals(testEntity,mvccEntity);
+  verify(entityIndex).deindex(scope,entity);
+}
