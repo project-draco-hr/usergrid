@@ -1,0 +1,80 @@
+{
+  Channel channel=null;
+  FileInputStream fis=null;
+  OutputStream out=null;
+  InputStream in=null;
+  String message;
+  try {
+    String exec="scp -t " + command.getDestinationFilePath();
+    channel=session.openChannel("exec");
+    ((ChannelExec)channel).setCommand(exec);
+    out=channel.getOutputStream();
+    in=channel.getInputStream();
+    channel.connect();
+    if ((message=Utils.checkAck(in)) != null) {
+      response.addErrorMessage(message);
+      return;
+    }
+    File srcFile=new File(command.getSourceFilePath());
+    StringBuilder sb=new StringBuilder();
+    String fileMode=PosixFilePermissions.toString(Files.getPosixFilePermissions(srcFile.toPath()));
+    long filesize=srcFile.length();
+    exec=sb.append("C0").append(Utils.convertToNumericalForm(fileMode)).append(" ").append(filesize).append(" ").append(srcFile.getName()).append("\n").toString();
+    out.write(exec.getBytes());
+    out.flush();
+    if ((message=Utils.checkAck(in)) != null) {
+      response.addErrorMessage(message);
+      return;
+    }
+    fis=new FileInputStream(command.getSourceFilePath());
+    byte[] buf=new byte[1024];
+    while (true) {
+      int len=fis.read(buf,0,buf.length);
+      if (len <= 0) {
+        break;
+      }
+      out.write(buf,0,len);
+    }
+    buf[0]=0;
+    out.write(buf,0,1);
+    out.flush();
+    if ((message=Utils.checkAck(in)) != null) {
+      response.addErrorMessage(message);
+    }
+  }
+ catch (  Exception e) {
+    message="Error while sending file to " + value.getPublicIpAddress();
+    LOG.warn(message,e);
+    response.addErrorMessage(message);
+  }
+ finally {
+    try {
+      if (in != null) {
+        in.close();
+      }
+    }
+ catch (    Exception e) {
+    }
+    try {
+      if (out != null) {
+        out.close();
+      }
+    }
+ catch (    Exception e) {
+    }
+    try {
+      if (fis != null) {
+        fis.close();
+      }
+    }
+ catch (    Exception e) {
+    }
+    try {
+      if (channel != null) {
+        channel.disconnect();
+      }
+    }
+ catch (    Exception e) {
+    }
+  }
+}

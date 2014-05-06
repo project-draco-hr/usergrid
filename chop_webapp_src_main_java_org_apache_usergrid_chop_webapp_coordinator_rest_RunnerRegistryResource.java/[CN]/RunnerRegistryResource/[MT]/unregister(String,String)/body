@@ -1,0 +1,22 @@
+{
+  if (inTestMode(testMode)) {
+    LOG.info("Calling /runners/unregister ...");
+    return Response.ok(false).build();
+  }
+  Preconditions.checkNotNull(runnerUrl,"The 'runnerUrl' MUST NOT be null.");
+  LOG.info("Calling /runners/unregister ...");
+  try {
+    if (runnerDao.delete(runnerUrl)) {
+      LOG.info("unregistered runner {}",runnerUrl);
+      return Response.ok(true).build();
+    }
+ else {
+      LOG.warn("failed to unregister runner {}",runnerUrl);
+      return Response.ok(false).build();
+    }
+  }
+ catch (  IndexMissingException e) {
+    LOG.warn("Got missing index exception so returning false for unregister operation.");
+    return Response.ok(false).build();
+  }
+}

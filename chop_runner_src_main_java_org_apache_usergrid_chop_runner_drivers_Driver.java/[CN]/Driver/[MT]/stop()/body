@@ -1,0 +1,21 @@
+{
+  Preconditions.checkState(isRunning(),"Cannot stop driver that is not running.");
+synchronized (lock) {
+    if (state == State.RUNNING) {
+      state=state.next(Signal.STOP);
+      executorService.shutdown();
+      try {
+        if (!executorService.awaitTermination(timeout,TimeUnit.MILLISECONDS)) {
+          executorService.shutdownNow();
+        }
+      }
+ catch (      InterruptedException e) {
+        LOG.warn("Awe snap! Someone woke me up early!");
+      }
+ finally {
+        tracker.stop();
+        lock.notifyAll();
+      }
+    }
+  }
+}

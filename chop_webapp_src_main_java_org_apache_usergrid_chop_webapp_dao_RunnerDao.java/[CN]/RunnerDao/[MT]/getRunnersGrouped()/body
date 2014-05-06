@@ -1,0 +1,18 @@
+{
+  SearchResponse response=getRequest(DAO_INDEX_KEY,DAO_TYPE_KEY).execute().actionGet();
+  LOG.debug("response: {}",response);
+  HashMap<RunnerGroup,List<Runner>> runnerGroups=new HashMap<RunnerGroup,List<Runner>>();
+  for (  SearchHit hit : response.getHits().hits()) {
+    RunnerGroup group=getGroup(hit);
+    if (group.isNull()) {
+      continue;
+    }
+    List<Runner> runners=runnerGroups.get(group);
+    if (runners == null) {
+      runners=new ArrayList<Runner>();
+      runnerGroups.put(group,runners);
+    }
+    runners.add(toRunner(hit));
+  }
+  return runnerGroups;
+}

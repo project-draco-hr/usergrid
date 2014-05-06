@@ -1,0 +1,10 @@
+{
+  Map<String,Run> runs=runDao.getMap(params.getCommitId(),params.getRunNumber(),params.getTestName());
+  Map<Run,List<RunResult>> runResults=runResultDao.getMap(runs);
+  Map<String,Collection<Value>> runnerValues=GroupByRunner.group(runResults);
+  Map<String,Collection<Value>> filteredRunnerValues=PercentileFilter.filter(runnerValues,params.getPercentile());
+  filteredRunnerValues=FailureFilter.filter(filteredRunnerValues,params.getFailureType());
+  List<Series> series=SeriesBuilder.toSeriesStaticX(filteredRunnerValues);
+  series.add(new Series("AVG",SeriesBuilder.toPoints(IterationsAverage.calc(filteredRunnerValues),1)));
+  return new Chart(series);
+}

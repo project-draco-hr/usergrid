@@ -1,0 +1,21 @@
+{
+  Injector injector=Guice.createInjector(new AmazonModule());
+  amazonFig=injector.getInstance(AmazonFig.class);
+  String accessKey=amazonFig.getAwsAccessKey();
+  String secretKey=amazonFig.getAwsSecretKey();
+  if (accessKey == null || accessKey.equals("${aws.access.key}") || accessKey.isEmpty() || secretKey == null || secretKey.equals("${aws.secret.key}") || secretKey.isEmpty()) {
+    LOG.warn("EC2InstanceManagerTest tests are not run, " + "Provided AWS secret or access key values are invalid or no values are provided");
+  }
+ else {
+    ipRuleSet=new BasicIpRuleSet();
+    ipRuleSet.setName("test-" + UUID.randomUUID().toString());
+    BasicIpRule ipRule=new BasicIpRule();
+    ipRule.withFromPort(8443).withToPort(8443).withIpProtocol("tcp").withIpRanges("0.0.0.0/32");
+    ipRuleSet.addInboundRule(ipRule);
+    ipRule=new BasicIpRule();
+    ipRule.withFromPort(80).withToPort(8080).withIpProtocol("udp").withIpRanges("0.0.0.0/32");
+    ipRuleSet.addInboundRule(ipRule);
+    manager=injector.getInstance(AmazonIpRuleManager.class);
+    manager.setDataCenter("us-east-1a");
+  }
+}

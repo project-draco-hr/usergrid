@@ -1,0 +1,79 @@
+{
+  String gitConfigDirectory=Utils.getGitConfigFolder(getProjectBaseDirectory());
+  String commitId=Utils.getLastCommitUuid(gitConfigDirectory);
+  if (failIfCommitNecessary && Utils.isCommitNecessary(gitConfigDirectory)) {
+    String failMsg="There are modified sources, commit changes before calling the plugin or set " + "failIfCommitNecessary parameter as false in your plugin configuration field inside the pom.xml";
+    throw new MojoExecutionException(failMsg);
+  }
+  try {
+    String timeStamp=Utils.getTimestamp(new Date());
+    String runnerJarPath=getRunnerInLocalRepo();
+    String extractedRunnerPath=getExtractedRunnerPath();
+    if (FileUtils.fileExists(extractedRunnerPath)) {
+      FileUtils.cleanDirectory(extractedRunnerPath);
+    }
+ else {
+      FileUtils.mkdir(extractedRunnerPath);
+    }
+    Utils.extractJar(new File(runnerJarPath),extractedRunnerPath);
+    File libPathFile=new File(extractedRunnerPath);
+    String projectTestOutputJar=getProjectTestOutputJarPath();
+    if (!FileUtils.fileExists(projectTestOutputJar)) {
+      throw new MojoExecutionException("Project Test Jar could not be found. Make sure you use 'test-jar'" + " goal of the 'maven-jar-plugin' in your project's pom");
+    }
+    FileUtils.copyFileToDirectory(new File(getProjectOutputJarPath()),libPathFile);
+    FileUtils.copyFileToDirectory(new File(projectTestOutputJar),libPathFile);
+    Utils.copyArtifactsTo(this.project,extractedRunnerPath);
+    Utils.copyResourcesTo(this.project,extractedRunnerPath);
+    InputStream inputStream;
+    Properties prop=new Properties();
+    String configPropertiesFilePath=extractedRunnerPath + "project.properties";
+    if (FileUtils.fileExists(configPropertiesFilePath)) {
+      inputStream=new FileInputStream(configPropertiesFilePath);
+      prop.load(inputStream);
+      inputStream.close();
+    }
+    if (getClass().getResource("project.properties") != null) {
+      inputStream=getClass().getResourceAsStream("project.properties");
+      Properties propCurrent=new Properties();
+      propCurrent.load(inputStream);
+      inputStream.close();
+      String key;
+      while (propCurrent.propertyNames().hasMoreElements()) {
+        key=propCurrent.propertyNames().nextElement().toString();
+        prop.setProperty(key,propCurrent.getProperty(key));
+      }
+    }
+    String gitUrl=Utils.getGitRemoteUrl(gitConfigDirectory);
+    String md5=Utils.getMD5(timeStamp,commitId);
+    prop.setProperty(Project.GIT_UUID_KEY,commitId);
+    prop.setProperty(Project.GIT_URL_KEY,gitUrl);
+    prop.setProperty(Project.CREATE_TIMESTAMP_KEY,timeStamp);
+    prop.setProperty(Project.GROUP_ID_KEY,this.project.getGroupId());
+    prop.setProperty(Project.ARTIFACT_ID_KEY,this.project.getArtifactId());
+    prop.setProperty(Project.PROJECT_VERSION_KEY,this.project.getVersion());
+    prop.setProperty(Project.TEST_PACKAGE_BASE,testPackageBase);
+    prop.setProperty(Project.MD5_KEY,md5);
+    prop.setProperty(CoordinatorFig.USERNAME,username);
+    prop.setProperty(CoordinatorFig.PASSWORD,password);
+    prop.setProperty(CoordinatorFig.ENDPOINT,endpoint);
+    String uuid=commitId.substring(0,CHARS_OF_UUID / 2) + commitId.substring(commitId.length() - CHARS_OF_UUID / 2);
+    prop.setProperty(Project.LOAD_KEY,TESTS_PATH + '/' + uuid+ '/'+ RUNNER_JAR);
+    prop.setProperty(Project.LOAD_TIME_KEY,String.valueOf(System.currentTimeMillis()));
+    prop.setProperty(Project.CHOP_VERSION_KEY,plugin.getVersion());
+    FileUtils.mkdir(configPropertiesFilePath.substring(0,configPropertiesFilePath.lastIndexOf('/')));
+    FileWriter writer=new FileWriter(configPropertiesFilePath);
+    prop.store(writer,"Generated with chop:runner");
+    String finalPath=getRunnerFile().getAbsolutePath();
+    File finalFile=new File(finalPath);
+    Utils.archiveWar(finalFile,extractedRunnerPath);
+    projectHelper.attachArtifact(project,finalFile,"chop");
+  }
+ catch (  MojoExecutionException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    e.printStackTrace();
+    throw new MojoExecutionException("Error while executing plugin",e);
+  }
+}

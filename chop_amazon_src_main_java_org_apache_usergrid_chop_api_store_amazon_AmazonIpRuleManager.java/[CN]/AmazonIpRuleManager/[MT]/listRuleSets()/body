@@ -1,0 +1,16 @@
+{
+  DescribeSecurityGroupsRequest request=new DescribeSecurityGroupsRequest();
+  DescribeSecurityGroupsResult result=null;
+  try {
+    result=client.describeSecurityGroups(request);
+  }
+ catch (  Exception e) {
+    LOG.warn("Error while getting security groups",e);
+    return new LinkedList<String>();
+  }
+  Collection<String> groups=new ArrayList<String>();
+  for (  SecurityGroup group : result.getSecurityGroups()) {
+    groups.add(group.getGroupName());
+  }
+  return groups;
+}

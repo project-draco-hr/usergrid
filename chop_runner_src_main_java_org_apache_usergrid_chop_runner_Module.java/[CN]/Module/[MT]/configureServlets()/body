@@ -1,0 +1,17 @@
+{
+  install(new GuicyFigModule(ServletFig.class,CoordinatorFig.class));
+  install(new ChopClientModule());
+  bind(GuiceContainer.class);
+  bind(JacksonJsonProvider.class).asEagerSingleton();
+  bind(IController.class).to(Controller.class);
+  bind(RunnerRegistry.class).to(RunnerRegistryImpl.class);
+  bind(RunManager.class).to(RunManagerImpl.class);
+  bind(ResetResource.class);
+  bind(StopResource.class);
+  bind(StartResource.class);
+  bind(StatsResource.class);
+  bind(StatusResource.class);
+  Map<String,String> params=new HashMap<String,String>();
+  params.put(PACKAGES_KEY,getClass().getPackage().toString());
+  serve("/*").with(GuiceContainer.class,params);
+}

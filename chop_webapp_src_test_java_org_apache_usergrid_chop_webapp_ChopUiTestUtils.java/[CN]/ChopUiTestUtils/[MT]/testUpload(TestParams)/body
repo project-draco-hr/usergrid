@@ -1,0 +1,19 @@
+{
+  FormDataMultiPart part=new FormDataMultiPart();
+  part.field(RestParams.COMMIT_ID,QUERY_PARAMS.get(RestParams.COMMIT_ID));
+  part.field(RestParams.MODULE_GROUPID,QUERY_PARAMS.get(RestParams.MODULE_GROUPID));
+  part.field(RestParams.MODULE_ARTIFACTID,QUERY_PARAMS.get(RestParams.MODULE_ARTIFACTID));
+  part.field(RestParams.MODULE_VERSION,QUERY_PARAMS.get(RestParams.MODULE_VERSION));
+  part.field(RestParams.USERNAME,QUERY_PARAMS.get(RestParams.USERNAME));
+  part.field(RestParams.VCS_REPO_URL,"ssh://git@stash.safehaus.org:7999/chop/main.git");
+  part.field(RestParams.TEST_PACKAGE,QUERY_PARAMS.get(RestParams.TEST_PACKAGE));
+  part.field(RestParams.MD5,"d7d4829506f6cb8c0ab2da9cb1daca02");
+  File tmpFile=File.createTempFile("runner","jar");
+  FileInputStream in=new FileInputStream(tmpFile);
+  FormDataBodyPart body=new FormDataBodyPart(RestParams.CONTENT,in,MediaType.APPLICATION_OCTET_STREAM_TYPE);
+  part.bodyPart(body);
+  ClientResponse response=testParams.addQueryParameters(QUERY_PARAMS).setEndpoint(UploadResource.ENDPOINT).newWebResource().path("/runner").type(MediaType.MULTIPART_FORM_DATA).accept(MediaType.TEXT_PLAIN).post(ClientResponse.class,part);
+  assertEquals(Response.Status.CREATED.getStatusCode(),response.getStatus());
+  assertEquals(UploadResource.SUCCESSFUL_TEST_MESSAGE,response.getEntity(String.class));
+  tmpFile.delete();
+}
