@@ -1,0 +1,5 @@
+{
+  String groupId=new RunnerGroup(user,commitId,moduleId).getId();
+  IndexResponse response=elasticSearchClient.getClient().prepareIndex(DAO_INDEX_KEY,DAO_TYPE_KEY,runner.getUrl()).setRefresh(true).setSource(jsonBuilder().startObject().field("groupId",groupId).field("ipv4Address",runner.getIpv4Address()).field("hostname",runner.getHostname()).field("serverPort",runner.getServerPort()).field("url",runner.getUrl()).field("tempDir",runner.getTempDir()).field("user",user).field("commitId",commitId).field("moduleId",moduleId).endObject()).execute().actionGet();
+  return response.isCreated();
+}

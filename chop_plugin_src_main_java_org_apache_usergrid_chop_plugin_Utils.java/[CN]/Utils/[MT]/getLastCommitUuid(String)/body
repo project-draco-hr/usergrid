@@ -1,0 +1,17 @@
+{
+  try {
+    Repository repo=new RepositoryBuilder().setGitDir(new File(gitConfigFolder)).readEnvironment().findGitDir().build();
+    RevWalk walk=new RevWalk(repo);
+    ObjectId head=repo.resolve("HEAD");
+    if (head != null) {
+      RevCommit lastCommit=walk.parseCommit(head);
+      return lastCommit.getId().getName();
+    }
+ else {
+      return "nocommit";
+    }
+  }
+ catch (  Exception e) {
+    throw new MojoExecutionException("Error trying to get the last git commit uuid",e);
+  }
+}

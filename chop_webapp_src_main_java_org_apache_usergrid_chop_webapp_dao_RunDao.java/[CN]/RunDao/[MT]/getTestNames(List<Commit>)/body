@@ -1,0 +1,9 @@
+{
+  String commitIds=StringUtils.join(commits,' ');
+  SearchResponse response=getRequest(DAO_INDEX_KEY,DAO_TYPE_KEY).setQuery(multiMatchQuery(commitIds,"commitId")).setSize(MAX_RESULT_SIZE).execute().actionGet();
+  HashSet<String> names=new HashSet<String>();
+  for (  SearchHit hit : response.getHits().hits()) {
+    names.add(Util.getString(hit.getSource(),"testName"));
+  }
+  return names;
+}

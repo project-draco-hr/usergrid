@@ -2,7 +2,18 @@
   Map<String,Object> entityMap=new HashMap<String,Object>();
   for (  Object f : entity.getFields().toArray()) {
     Field field=(Field)f;
-    if (f instanceof ListField || f instanceof ArrayField) {
+    if (f instanceof ListField) {
+      List list=(List)field.getValue();
+      entityMap.put(field.getName(),new ArrayList(processCollectionForMap(list)));
+      if (!list.isEmpty()) {
+        if (list.get(0) instanceof String) {
+          Joiner joiner=Joiner.on(" ").skipNulls();
+          String joined=joiner.join(list);
+          entityMap.put(field.getName() + ANALYZED_SUFFIX,new ArrayList(processCollectionForMap(list)));
+        }
+      }
+    }
+ else     if (f instanceof ArrayField) {
       List list=(List)field.getValue();
       entityMap.put(field.getName(),new ArrayList(processCollectionForMap(list)));
     }

@@ -3,7 +3,7 @@
     @Override public Id call(    final Id id){
       final UUID deleteTime=UUIDGenerator.newTimeUUID();
       final MutationBatch nodeMutation=nodeSerialization.mark(scope,id,deleteTime);
-      final AsynchronousMessage<Id> event=nodeDeleteAsyncProcessor.setVerification(node,getTimeout());
+      final AsynchronousMessage<EdgeEvent<Id>> event=nodeDeleteAsyncProcessor.setVerification(new EdgeEvent<>(scope,deleteTime,node),getTimeout());
       try {
         nodeMutation.execute();
       }

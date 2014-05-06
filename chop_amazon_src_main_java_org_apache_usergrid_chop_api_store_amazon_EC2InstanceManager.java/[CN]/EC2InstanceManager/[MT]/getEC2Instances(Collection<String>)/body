@@ -1,0 +1,15 @@
+{
+  if (instanceIds == null || instanceIds.size() == 0) {
+    return new ArrayList<com.amazonaws.services.ec2.model.Instance>();
+  }
+  Collection<com.amazonaws.services.ec2.model.Instance> instances=new LinkedList<com.amazonaws.services.ec2.model.Instance>();
+  DescribeInstancesRequest request=new DescribeInstancesRequest();
+  request=request.withInstanceIds(instanceIds);
+  DescribeInstancesResult result=client.describeInstances(request);
+  for (  Reservation reservation : result.getReservations()) {
+    for (    com.amazonaws.services.ec2.model.Instance in : reservation.getInstances()) {
+      instances.add(in);
+    }
+  }
+  return instances;
+}

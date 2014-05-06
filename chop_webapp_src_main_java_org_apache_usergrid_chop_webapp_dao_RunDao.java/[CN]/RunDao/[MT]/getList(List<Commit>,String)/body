@@ -1,0 +1,8 @@
+{
+  String commitIds=concatIds(commits);
+  LOG.info("commitIds: {}; testName: {}",commitIds,testName);
+  SearchResponse response=getRequest(DAO_INDEX_KEY,DAO_TYPE_KEY).setQuery(multiMatchQuery(commitIds,"commitId")).setQuery(termQuery("testName",testName.toLowerCase())).setSize(MAX_RESULT_SIZE).execute().actionGet();
+  List<Run> runs=toList(response);
+  LOG.info("runs found: {}",runs.size());
+  return runs;
+}

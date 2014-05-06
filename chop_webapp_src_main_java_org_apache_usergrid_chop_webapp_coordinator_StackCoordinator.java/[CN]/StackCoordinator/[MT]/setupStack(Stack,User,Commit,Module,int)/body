@@ -1,0 +1,21 @@
+{
+  CoordinatedStack coordinatedStack=getCoordinatedStack(stack,user,commit,module);
+  if (coordinatedStack != null) {
+    LOG.info("Stack {} is already registered",stack.getName());
+    if (coordinatedStack.getSetupState() == SetupStackState.SetUp) {
+      return coordinatedStack;
+    }
+  }
+ else {
+    coordinatedStack=new CoordinatedStack(stack,user,commit,module,runnerCount);
+  }
+  LOG.info("Starting setup stack thread of {}...",stack.getName());
+synchronized (coordinatedStack) {
+    coordinatedStack.setSetupState(SetupStackState.SettingUp);
+    registeredStacks.put(coordinatedStack.hashCode(),coordinatedStack);
+    SetupStackThread setupThread=new SetupStackThread(coordinatedStack);
+    setupStackThreads.put(coordinatedStack,setupThread);
+    service.submit(setupThread);
+  }
+  return coordinatedStack;
+}

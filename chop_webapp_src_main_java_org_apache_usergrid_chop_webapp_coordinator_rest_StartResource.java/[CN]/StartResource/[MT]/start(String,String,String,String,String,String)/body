@@ -1,0 +1,21 @@
+{
+  if (inTestMode(testMode)) {
+    LOG.info("Calling /start in test mode ...");
+    LOG.info("  Commit Id: {}",commitId);
+    LOG.info("  Group Id: {}",groupId);
+    LOG.info("  Artifact Id: {}",artifactId);
+    LOG.info("  Version: {}",version);
+    LOG.info("  User: {}",user);
+  }
+ else {
+    LOG.info("Calling /start");
+  }
+  SetupStackState status=stackCoordinator.stackStatus(commitId,artifactId,groupId,version,user);
+  if (inTestMode(testMode)) {
+    return Response.status(Response.Status.CREATED).entity(status).type(MediaType.APPLICATION_JSON).build();
+  }
+  if (!status.equals(SetupStackState.SetUp)) {
+    return Response.status(Response.Status.OK).entity("Stack is " + status.toString() + ", cannot start tests.").type(MediaType.APPLICATION_JSON).build();
+  }
+  return Response.status(Response.Status.CREATED).entity("Started chop tests").type(MediaType.APPLICATION_JSON).build();
+}
