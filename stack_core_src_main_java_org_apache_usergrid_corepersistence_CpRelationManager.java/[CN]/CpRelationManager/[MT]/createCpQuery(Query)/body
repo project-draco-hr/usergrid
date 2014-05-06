@@ -19,6 +19,14 @@
     org.apache.usergrid.persistence.index.query.Query.SortPredicate newsp=new org.apache.usergrid.persistence.index.query.Query.SortPredicate(sp.getPropertyName(),newdir);
     cpQuery.addSort(newsp);
   }
+  if (cpQuery.isReversed()) {
+    org.apache.usergrid.persistence.index.query.Query.SortPredicate newsp=new org.apache.usergrid.persistence.index.query.Query.SortPredicate(PROPERTY_CREATED,org.apache.usergrid.persistence.index.query.Query.SortDirection.DESCENDING);
+    cpQuery.addSort(newsp);
+  }
+  if (cpQuery.getSortPredicates().isEmpty()) {
+    org.apache.usergrid.persistence.index.query.Query.SortPredicate newsp=new org.apache.usergrid.persistence.index.query.Query.SortPredicate(PROPERTY_CREATED,org.apache.usergrid.persistence.index.query.Query.SortDirection.ASCENDING);
+    cpQuery.addSort(newsp);
+  }
   List<org.apache.usergrid.persistence.query.tree.Operand> filterClauses=query.getFilterClauses();
   for (  Operand oldop : filterClauses) {
     if (oldop instanceof org.apache.usergrid.persistence.query.tree.ContainsOperand) {

@@ -17,11 +17,11 @@
     Map<UUID,Set<String>> collectionsByUuid=owners.get(ownerType);
     for (    UUID uuid : collectionsByUuid.keySet()) {
       Set<String> collections=collectionsByUuid.get(uuid);
-      for (      String collection : collections) {
+      for (      String coll : collections) {
         CollectionScope ownerScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),Schema.defaultCollectionName(ownerType));
         EntityCollectionManager ownerEcm=managerCache.getEntityCollectionManager(ownerScope);
         org.apache.usergrid.persistence.model.entity.Entity cpOwner=ownerEcm.load(new SimpleId(uuid,ownerType)).toBlockingObservable().last();
-        ei.indexConnection(cpOwner,collection + CpRelationManager.COLLECTION_SUFFIX,cpEntity,collectionScope);
+        ei.indexConnection(cpOwner,coll + CpRelationManager.COLLECTION_SUFFIX,cpEntity,collectionScope);
       }
     }
   }
