@@ -1,24 +1,24 @@
 {
   ByteBuffer tokenUUID=bytebuffer(tokenInfo.getUuid());
   Keyspace ko=cassandra.getSystemKeyspace();
-  Mutator<ByteBuffer> m=createMutator(ko,BUFF_SER);
+  Mutator<ByteBuffer> m=createMutator(ko,be);
   int ttl=calcTokenTime(tokenInfo.getDuration());
-  m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_UUID,bytebuffer(tokenInfo.getUuid()),ttl,STR_SER,BUFF_SER));
-  m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_TYPE,bytebuffer(tokenInfo.getType()),ttl,STR_SER,BUFF_SER));
-  m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_CREATED,bytebuffer(tokenInfo.getCreated()),ttl,STR_SER,BUFF_SER));
-  m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_ACCESSED,bytebuffer(tokenInfo.getAccessed()),ttl,STR_SER,BUFF_SER));
-  m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_INACTIVE,bytebuffer(tokenInfo.getInactive()),ttl,STR_SER,BUFF_SER));
-  m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_DURATION,bytebuffer(tokenInfo.getDuration()),ttl,STR_SER,BUFF_SER));
+  m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_UUID,bytebuffer(tokenInfo.getUuid()),ttl,se,be));
+  m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_TYPE,bytebuffer(tokenInfo.getType()),ttl,se,be));
+  m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_CREATED,bytebuffer(tokenInfo.getCreated()),ttl,se,be));
+  m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_ACCESSED,bytebuffer(tokenInfo.getAccessed()),ttl,se,be));
+  m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_INACTIVE,bytebuffer(tokenInfo.getInactive()),ttl,se,be));
+  m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_DURATION,bytebuffer(tokenInfo.getDuration()),ttl,se,be));
   if (tokenInfo.getPrincipal() != null) {
     AuthPrincipalInfo principalInfo=tokenInfo.getPrincipal();
-    m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_PRINCIPAL_TYPE,bytebuffer(principalInfo.getType().toString().toLowerCase()),ttl,STR_SER,BUFF_SER));
-    m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_ENTITY,bytebuffer(principalInfo.getUuid()),ttl,STR_SER,BUFF_SER));
-    m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_APPLICATION,bytebuffer(principalInfo.getApplicationId()),ttl,STR_SER,BUFF_SER));
+    m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_PRINCIPAL_TYPE,bytebuffer(principalInfo.getType().toString().toLowerCase()),ttl,se,be));
+    m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_ENTITY,bytebuffer(principalInfo.getUuid()),ttl,se,be));
+    m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_APPLICATION,bytebuffer(principalInfo.getApplicationId()),ttl,se,be));
     ByteBuffer rowKey=principalKey(principalInfo);
-    m.addInsertion(rowKey,PRINCIPAL_TOKEN_CF,createColumn(tokenUUID,HOLDER,ttl,BUFF_SER,BUFF_SER));
+    m.addInsertion(rowKey,PRINCIPAL_TOKEN_CF,createColumn(tokenUUID,HOLDER,ttl,be,be));
   }
   if (tokenInfo.getState() != null) {
-    m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_STATE,JsonUtils.toByteBuffer(tokenInfo.getState()),ttl,STR_SER,BUFF_SER));
+    m.addInsertion(tokenUUID,TOKENS_CF,createColumn(TOKEN_STATE,JsonUtils.toByteBuffer(tokenInfo.getState()),ttl,se,be));
   }
   m.execute();
 }
