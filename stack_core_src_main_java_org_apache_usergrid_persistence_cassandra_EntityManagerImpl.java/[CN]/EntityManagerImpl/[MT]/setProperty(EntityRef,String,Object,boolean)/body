@@ -4,7 +4,7 @@
   }
   DynamicEntity entity=loadPartialEntity(entityRef.getUuid(),propertyName);
   UUID timestampUuid=newTimeUUID();
-  Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
+  Mutator<ByteBuffer> batch=CountingMutator.createFlushingMutator(cass.getApplicationKeyspace(applicationId),be);
   propertyValue=getDefaultSchema().validateEntityPropertyValue(entity.getType(),propertyName,propertyValue);
   entity.setProperty(propertyName,propertyValue);
   batch=batchSetProperty(batch,entity,propertyName,propertyValue,override,false,timestampUuid);

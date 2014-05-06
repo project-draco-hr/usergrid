@@ -4,7 +4,7 @@
   }
   EntityRef entity=getRef(entityRef.getUuid());
   UUID timestampUuid=newTimeUUID();
-  Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
+  Mutator<ByteBuffer> batch=CountingMutator.createFlushingMutator(cass.getApplicationKeyspace(applicationId),be);
   for (  Map.Entry<?,?> elementValue : elementValues.entrySet()) {
     batch=batchUpdateDictionary(batch,entity,dictionaryName,elementValue.getKey(),elementValue.getValue(),false,timestampUuid);
   }

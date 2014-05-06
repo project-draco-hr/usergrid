@@ -1,6 +1,6 @@
 {
   Keyspace ko=cass.getApplicationKeyspace(em.getApplicationId());
-  Mutator<ByteBuffer> m=createMutator(ko,ByteBufferSerializer.get());
+  Mutator<ByteBuffer> m=CountingMutator.createFlushingMutator(ko,ByteBufferSerializer.get());
   batchRemoveLocationFromCollectionIndex(m,em.getIndexBucketLocator(),em.getApplicationId(),key(owner.getUuid(),collectionName,propertyName),location);
   batchExecute(m,CassandraService.RETRY_COUNT);
 }

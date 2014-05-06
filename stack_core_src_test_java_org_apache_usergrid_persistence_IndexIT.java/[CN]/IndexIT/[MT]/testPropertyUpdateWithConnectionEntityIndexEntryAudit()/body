@@ -35,7 +35,7 @@
   CassandraService cass=CoreITSuite.cassandraResource.getBean(CassandraService.class);
   ByteBufferSerializer buf=ByteBufferSerializer.get();
   Keyspace ko=cass.getApplicationKeyspace(applicationId);
-  Mutator<ByteBuffer> m=createMutator(ko,buf);
+  Mutator<ByteBuffer> m=CountingMutator.createFlushingMutator(ko,buf);
   IndexUpdate update=impl.batchStartIndexUpdate(m,entity1Ref,"status","ignore",UUIDUtils.newTimeUUID(),false,false,true,false);
   int count=0;
   IndexEntry lastMatch=null;
