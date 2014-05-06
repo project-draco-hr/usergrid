@@ -1,20 +1,24 @@
 {
   final MvccEntity entity=entityEvent.getData();
-  return Observable.create(new ObservableIterator<MvccEntity>("getEdgesToTarget"){
+  return Observable.create(new ObservableIterator<MvccEntity>("deleteEntities"){
     @Override protected Iterator<MvccEntity> getIterator(){
-      Iterator<MvccEntity> iterator=entityMetadataSerialization.loadHistory(entityEvent.getCollectionScope(),entity.getId(),entity.getVersion(),100);
+      Iterator<MvccEntity> iterator=entityMetadataSerialization.loadHistory(entityEvent.getCollectionScope(),entity.getId(),entity.getVersion(),serializationFig.getHistorySize());
       return iterator;
     }
   }
-).subscribeOn(Schedulers.io()).map(new Func1<MvccEntity,MvccEntity>(){
-    @Override public MvccEntity call(    MvccEntity mvccEntity){
+).subscribeOn(Schedulers.io()).buffer(serializationFig.getBufferSize()).flatMap(new Func1<List<MvccEntity>,Observable<MvccEntity>>(){
+    @Override public Observable<MvccEntity> call(    List<MvccEntity> mvccEntities){
+      MutationBatch mutationBatch=keyspace.prepareMutationBatch();
+      for (      MvccEntity mvccEntity : mvccEntities) {
+        mutationBatch.mergeShallow(entityMetadataSerialization.delete(entityEvent.getCollectionScope(),mvccEntity.getId(),mvccEntity.getVersion()));
+      }
       try {
-        entityMetadataSerialization.delete(entityEvent.getCollectionScope(),mvccEntity.getId(),mvccEntity.getVersion()).execute();
+        mutationBatch.execute();
       }
  catch (      ConnectionException e) {
         throw new RuntimeException("Unable to execute mutation",e);
       }
-      return mvccEntity;
+      return Observable.from(mvccEntities);
     }
   }
 );
