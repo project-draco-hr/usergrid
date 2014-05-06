@@ -1,7 +1,8 @@
 {
   startSpring();
   EntityManager rootEm=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
-  for (  Entry<UUID,String> org : managementService.getOrganizations().entrySet()) {
+  final Map<UUID,String> orgs=getOrgs(line,rootEm);
+  for (  Entry<UUID,String> org : orgs.entrySet()) {
     for (    Entry<UUID,String> app : managementService.getApplicationsForOrganization(org.getKey()).entrySet()) {
       Application application=rootEm.get(app.getKey(),Application.class);
       if (application == null) {
