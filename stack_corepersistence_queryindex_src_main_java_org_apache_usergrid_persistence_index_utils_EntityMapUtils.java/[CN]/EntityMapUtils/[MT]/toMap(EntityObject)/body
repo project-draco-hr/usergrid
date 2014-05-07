@@ -1,5 +1,5 @@
 {
-  Map<String,Object> entityMap=new HashMap<String,Object>();
+  Map<String,Object> entityMap=new TreeMap<String,Object>();
   for (  Object f : entity.getFields().toArray()) {
     Field field=(Field)f;
     if (f instanceof ListField || f instanceof ArrayField) {
@@ -24,6 +24,19 @@
       locMap.put("lat",locField.getValue().getLatitude());
       locMap.put("lon",locField.getValue().getLongtitude());
       entityMap.put(field.getName() + GEO_SUFFIX,locMap);
+    }
+ else     if (f instanceof ByteBufferField) {
+      ByteBufferField byteBufferField=(ByteBufferField)f;
+      ByteBuffer byteBuffer=byteBufferField.getValue();
+      byte[] serilizedObj=byteBuffer.array();
+      Object o;
+      try {
+        o=objectMapper.readValue(serilizedObj,byteBufferField.getClassinfo());
+      }
+ catch (      IOException e) {
+        throw new RuntimeException("Can't deserialize object ",e);
+      }
+      entityMap.put(byteBufferField.getName(),o);
     }
  else {
       entityMap.put(field.getName(),field.getValue());
