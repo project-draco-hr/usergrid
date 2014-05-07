@@ -1,25 +1,3 @@
 {
-  if (started) {
-    return;
-  }
-synchronized (mutex) {
-    if (started) {
-      return;
-    }
-    File dataDir=Files.createTempDir();
-    dataDir.deleteOnExit();
-    if (dataDir.exists()) {
-      FileUtils.deleteRecursive(dataDir);
-    }
-    try {
-      LOG.info("Starting cassandra");
-      cass=new EmbeddedCassandra(dataDir,"Usergrid",cassandraFig.getThriftPort(),AvailablePortFinder.getNextAvailable());
-      cass.start();
-      LOG.info("Cassandra boostrapped");
-      started=true;
-    }
- catch (    IOException e) {
-      throw new RuntimeException("Unable to start cassandra",e);
-    }
-  }
+  startCassandra();
 }
