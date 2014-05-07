@@ -7,10 +7,17 @@
   final Id entityId=TestEntityGenerator.generateId();
   final CollectionIoEvent<Id> entityIoEvent=new CollectionIoEvent<Id>(collection,entityId);
   final Entity entity=TestEntityGenerator.generateEntity(entityId,loadVersion);
-  final MvccEntity mvccEntity=TestEntityGenerator.fromEntity(entity);
-  final List<MvccEntity> results=Lists.newArrayList(mvccEntity);
+  entity.setField(new StringField("derp","noderp"));
+  final MvccEntity completeMvccEntity=TestEntityGenerator.fromEntityStatus(entity,MvccEntity.Status.COMPLETE);
+  final Entity entity2=TestEntityGenerator.generateEntity(entityId,UUIDGenerator.newTimeUUID());
+  entity2.setField(new StringField("derp","noderp"));
+  entity2.setField(new StringField("merple","nomerple"));
+  final MvccEntity partialMvccEntity=TestEntityGenerator.fromEntityStatus(entity2,MvccEntity.Status.PARTIAL);
+  final List<MvccEntity> results=Lists.newArrayList(completeMvccEntity);
+  results.add(partialMvccEntity);
   when(serializationStrategy.load(collection,entityId,loadVersion,5)).thenReturn(results);
   Load load=new Load(uuidService,serializationStrategy);
   Entity loaded=load.call(entityIoEvent);
-  assertSame("Same entity was loaded",entity,loaded);
+  assertNotNull(loaded.getField("derp"));
+  assertNotNull(loaded.getField("merple"));
 }

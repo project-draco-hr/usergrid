@@ -1,0 +1,28 @@
+{
+  final CollectionScope collection=mock(CollectionScope.class);
+  final UUIDService uuidService=mock(UUIDService.class);
+  final MvccEntitySerializationStrategy serializationStrategy=mock(MvccEntitySerializationStrategy.class);
+  final UUID loadVersion=UUIDGenerator.newTimeUUID();
+  when(uuidService.newTimeUUID()).thenReturn(loadVersion);
+  final Id entityId=TestEntityGenerator.generateId();
+  final CollectionIoEvent<Id> entityIoEvent=new CollectionIoEvent<Id>(collection,entityId);
+  final Entity entity=TestEntityGenerator.generateEntity(entityId,loadVersion);
+  entity.setField(new StringField("derp","noderp"));
+  entity.setField(new StringField("derple","somemerple"));
+  final MvccEntity completeMvccEntity=TestEntityGenerator.fromEntityStatus(entity,MvccEntity.Status.COMPLETE);
+  final Entity entity2=TestEntityGenerator.generateEntity(entityId,UUIDGenerator.newTimeUUID());
+  entity2.setField(new StringField("derple","somemerple"));
+  final MvccEntity partialMvccEntity=TestEntityGenerator.fromEntityStatus(entity2,MvccEntity.Status.PARTIAL);
+  final Entity entity3=TestEntityGenerator.generateEntity(entityId,UUIDGenerator.newTimeUUID());
+  entity3.setField(new StringField("derp","noderp"));
+  entity3.setField(new StringField("derple","somemerple"));
+  final MvccEntity partialMvccEntity2=TestEntityGenerator.fromEntityStatus(entity3,MvccEntity.Status.PARTIAL);
+  final List<MvccEntity> results=Lists.newArrayList(completeMvccEntity);
+  results.add(partialMvccEntity);
+  results.add(partialMvccEntity2);
+  when(serializationStrategy.load(collection,entityId,loadVersion,5)).thenReturn(results);
+  Load load=new Load(uuidService,serializationStrategy);
+  Entity loaded=load.call(entityIoEvent);
+  assertNotNull(loaded.getField("derp"));
+  assertNotNull(loaded.getField("derple"));
+}
