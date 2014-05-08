@@ -1,4 +1,5 @@
 {
+  final int MAX_ENTITIES=100;
   Id orgId=new SimpleId("organization");
   OrganizationScope orgScope=new OrganizationScopeImpl(orgId);
   Id appId=new SimpleId("application");
@@ -21,7 +22,9 @@
     EntityUtils.setVersion(entity,UUIDGenerator.newTimeUUID());
     entity=entityManager.write(entity).toBlockingObservable().last();
     entityIndex.index(scope,entity);
-    count++;
+    if (count++ > MAX_ENTITIES) {
+      break;
+    }
   }
   timer.stop();
   log.info("Total time to index {} entries {}ms, average {}ms/entry",new Object[]{count,timer.getTime(),timer.getTime() / count});
