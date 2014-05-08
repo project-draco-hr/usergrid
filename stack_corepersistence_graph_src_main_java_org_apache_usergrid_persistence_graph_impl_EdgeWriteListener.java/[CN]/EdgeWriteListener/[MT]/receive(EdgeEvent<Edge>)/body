@@ -1,14 +1,19 @@
 {
   final Edge writtenEdge=write.getData();
   final OrganizationScope scope=write.getOrganizationScope();
-  final UUID writeVersion=write.getVersion();
+  final UUID now=UUIDGenerator.newTimeUUID();
   return Observable.create(new ObservableIterator<MarkedEdge>("getEdgeVersions"){
     @Override protected Iterator<MarkedEdge> getIterator(){
-      return commitLog.getEdgeVersions(scope,new SimpleSearchByEdge(writtenEdge.getSourceNode(),writtenEdge.getType(),writtenEdge.getTargetNode(),writeVersion,null));
+      return commitLog.getEdgeVersions(scope,new SimpleSearchByEdge(writtenEdge.getSourceNode(),writtenEdge.getType(),writtenEdge.getTargetNode(),now,null));
     }
   }
-).buffer(graphFig.getScanPageSize()).flatMap(new Func1<List<MarkedEdge>,Observable<MarkedEdge>>(){
-    @Override public Observable<MarkedEdge> call(    final List<MarkedEdge> markedEdges){
+).takeWhile(new Func1<MarkedEdge,Boolean>(){
+    @Override public Boolean call(    final MarkedEdge markedEdge){
+      return UUIDComparator.staticCompare(writtenEdge.getVersion(),markedEdge.getVersion()) < 0;
+    }
+  }
+).buffer(graphFig.getScanPageSize()).map(new Func1<List<MarkedEdge>,EdgeEvent<Edge>>(){
+    @Override public EdgeEvent<Edge> call(    final List<MarkedEdge> markedEdges){
       final MutationBatch storageWriteBatch=keyspace.prepareMutationBatch();
       final MutationBatch commitlogCleanBatch=keyspace.prepareMutationBatch();
       for (      MarkedEdge edge : markedEdges) {
@@ -27,8 +32,8 @@
  catch (      ConnectionException e) {
         throw new RuntimeException("unable to execute mutation",e);
       }
-      return Observable.from(markedEdges);
+      return write;
     }
   }
-).count();
+);
 }
