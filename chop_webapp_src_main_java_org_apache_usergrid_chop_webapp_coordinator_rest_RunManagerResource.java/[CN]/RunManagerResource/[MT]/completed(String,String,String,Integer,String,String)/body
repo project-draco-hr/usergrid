@@ -1,0 +1,16 @@
+{
+  LOG.warn("Calling completed ...");
+  if (inTestMode(testMode)) {
+    LOG.info("Calling /run/completed in test mode ...");
+    LOG.info("{} is {}",RUNNER_HOSTNAME,runnerHost);
+    LOG.info("{} is {}",COMMIT_ID,commitId);
+    LOG.info("{} is {}",RUN_NUMBER,runNumber);
+    LOG.info("{} is {}",TEST_CLASS,testClass);
+    return Response.status(Response.Status.CREATED).entity("TRUE").build();
+  }
+ else {
+    LOG.info("/run/completed called ...");
+  }
+  Map<String,Run> otherRuns=runDao.getMap(commitId,runNumber,testClass);
+  return Response.status(Response.Status.CREATED).entity("FALSE").build();
+}
