@@ -3,10 +3,10 @@
   EdgeSerialization storage=mock(EdgeSerialization.class);
   final Id targetId=createId("target");
   final String type="test";
-  MarkedEdge commitLogEdge1=createEdge(createId("source"),type,targetId,UUIDGenerator.newTimeUUID(),false);
-  MarkedEdge storageEdge1=createEdge(commitLogEdge1.getSourceNode(),type,commitLogEdge1.getTargetNode(),commitLogEdge1.getVersion(),true);
-  MarkedEdge commitLogEdge2=createEdge(createId("source"),type,targetId,UUIDGenerator.newTimeUUID(),false);
-  MarkedEdge storageEdge2=createEdge(commitLogEdge2.getSourceNode(),type,commitLogEdge2.getTargetNode(),commitLogEdge2.getVersion(),true);
+  MarkedEdge commitLogEdge1=createEdge(createId("source"),type,targetId,UUIDGenerator.newTimeUUID(),true);
+  MarkedEdge storageEdge1=createEdge(commitLogEdge1.getSourceNode(),type,commitLogEdge1.getTargetNode(),commitLogEdge1.getVersion(),false);
+  MarkedEdge commitLogEdge2=createEdge(createId("source"),type,targetId,UUIDGenerator.newTimeUUID(),true);
+  MarkedEdge storageEdge2=createEdge(commitLogEdge2.getSourceNode(),type,commitLogEdge2.getTargetNode(),commitLogEdge2.getVersion(),false);
   assertTrue(UUIDComparator.staticCompare(commitLogEdge1.getVersion(),storageEdge1.getVersion()) == 0);
   assertTrue(UUIDComparator.staticCompare(commitLogEdge2.getVersion(),storageEdge2.getVersion()) == 0);
   SearchByEdgeType searchByEdgeType=createSearchByEdge(targetId,type,UUIDGenerator.newTimeUUID(),null);
@@ -14,7 +14,7 @@
   when(storage.getEdgesToTarget(scope,searchByEdgeType)).thenReturn(Arrays.asList(storageEdge2,storageEdge1).iterator());
   MergedEdgeReader read=new MergedEdgeReaderImpl(commitLog,storage,config);
   Iterator<MarkedEdge> marked=read.getEdgesToTarget(scope,searchByEdgeType).toBlockingObservable().getIterator();
-  assertEquals(storageEdge2,marked.next());
-  assertEquals(storageEdge1,marked.next());
+  assertEquals(commitLogEdge2,marked.next());
+  assertEquals(commitLogEdge1,marked.next());
   assertFalse(marked.hasNext());
 }
