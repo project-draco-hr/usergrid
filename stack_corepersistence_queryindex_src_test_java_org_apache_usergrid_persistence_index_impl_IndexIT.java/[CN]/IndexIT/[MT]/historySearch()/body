@@ -1,5 +1,9 @@
 {
-  QueueListenerHelper helper=new QueueListenerHelper(entityDelete,2,0);
+  Id orgId=new SimpleId("organization");
+  OrganizationScope orgScope=new OrganizationScopeImpl(orgId);
+  Id appId=new SimpleId("application");
+  CollectionScope appScope=new CollectionScopeImpl(orgId,appId,"test-app");
+  EntityManagerFacade em=new EntityManagerFacade(orgScope,appScope,cmf,cif);
   String middleName="middleName" + UUIDUtils.newTimeUUID();
   Map<String,Object> properties=new LinkedHashMap<String,Object>();
   properties.put("username","edanuff");
@@ -13,16 +17,6 @@
   user.setField(new StringField("address3","apt 508"));
   em.update(user);
   em.refreshIndex();
-  user=em.get(user.getId());
-  em.delete(user).toBlockingObservable().last();
-  try {
-    helper.awaitWithoutErrors(10,TimeUnit.SECONDS);
-  }
- catch (  Throwable e) {
-    throw new Exception(e);
-  }
-  Query query=new Query();
-  query.addEqualityFilter("username","edanuff");
-  Results r=em.searchCollection(em.getApplicationRef(),"users",query);
-  assertTrue(r.size() == 0);
+  EntityIndex ei=cif.createEntityIndex(orgScope,appScope);
+  ei.getEntityVersions(user.getId(),user.getVersion(),appScope);
 }

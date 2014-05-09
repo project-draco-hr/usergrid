@@ -6,12 +6,13 @@
     timer=new StopWatch();
     timer.start();
   }
+  String indexId=EsEntityIndexImpl.this.createIndexDocId(entity);
   Map<String,Object> entityAsMap=EsEntityIndexImpl.entityToMap(entity);
   entityAsMap.put("created",entity.getId().getUuid().timestamp());
   entityAsMap.put("updated",entity.getVersion().timestamp());
   entityAsMap.put(COLLECTION_SCOPE_FIELDNAME,collScopeTypeName);
   entityAsMap.put(VERSION_FIELDNAME,entity.getVersion().timestamp());
-  String indexId=EsEntityIndexImpl.this.createIndexDocId(entity);
+  entityAsMap.put(ENTITYID_FIELDNAME,entity.getId().getUuid());
   IndexRequestBuilder irb=client.prepareIndex(indexName,connScopeTypeName,indexId).setSource(entityAsMap).setRefresh(refresh);
   irb.execute().actionGet();
   if (log.isDebugEnabled()) {
