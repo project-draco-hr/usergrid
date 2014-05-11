@@ -1,21 +1,55 @@
 {
   if (inTestMode(testMode)) {
     LOG.info("Calling /start in test mode ...");
-    LOG.info("  Commit Id: {}",commitId);
-    LOG.info("  Group Id: {}",groupId);
-    LOG.info("  Artifact Id: {}",artifactId);
-    LOG.info("  Version: {}",version);
-    LOG.info("  User: {}",user);
   }
  else {
     LOG.info("Calling /start");
   }
+  LOG.info("  Commit Id: {}",commitId);
+  LOG.info("  Group Id: {}",groupId);
+  LOG.info("  Artifact Id: {}",artifactId);
+  LOG.info("  Version: {}",version);
+  LOG.info("  User: {}",user);
   SetupStackState status=stackCoordinator.stackStatus(commitId,artifactId,groupId,version,user);
   if (inTestMode(testMode)) {
     return Response.status(Response.Status.CREATED).entity(status).type(MediaType.APPLICATION_JSON).build();
   }
   if (!status.equals(SetupStackState.SetUp)) {
     return Response.status(Response.Status.OK).entity("Stack is " + status.toString() + ", cannot start tests.").type(MediaType.APPLICATION_JSON).build();
+  }
+  LOG.info("Stack is set up, checking runner states...");
+  String moduleId=BasicModule.createId(groupId,artifactId,version);
+  Collection<Runner> runners=runnerCoordinator.getRunners(user,commitId,moduleId);
+  Map<Runner,State> states=runnerCoordinator.getStates(runners);
+  int notReady=0;
+  StringBuilder sb=new StringBuilder();
+  sb.append("Cannot start tests.\n");
+  for (  Runner runner : runners) {
+    State state=states.get(runner);
+    if (state != State.READY) {
+      notReady++;
+      sb.append("Runner at ").append(runner.getUrl()).append(" is in ").append(state).append(" state.\n");
+    }
+  }
+  if (notReady > 0) {
+    sb.append(notReady).append(" out of ").append(runners.size()).append(" are not ready.");
+    return Response.status(Response.Status.OK).entity(sb.toString()).type(MediaType.APPLICATION_JSON).build();
+  }
+  LOG.info("Runners are all ready, sending start signal...");
+  states=runnerCoordinator.start(runners);
+  int notStarted=0;
+  sb=new StringBuilder();
+  sb.append("Could not start all tests.\n");
+  for (  Runner runner : runners) {
+    State state=states.get(runner);
+    if (state != State.RUNNING) {
+      notStarted++;
+      sb.append("Runner at ").append(runner.getUrl()).append(" is in ").append(state).append(" state.\n");
+    }
+  }
+  if (notStarted > 0) {
+    sb.append(notStarted).append(" out of ").append(" could not be started.");
+    return Response.status(Response.Status.OK).entity(sb.toString()).type(MediaType.APPLICATION_JSON).build();
   }
   return Response.status(Response.Status.CREATED).entity("Started chop tests").type(MediaType.APPLICATION_JSON).build();
 }

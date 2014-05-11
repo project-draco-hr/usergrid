@@ -18,13 +18,12 @@
     module=new BasicModule(groupId,artifactId,version,vcsRepoUrl,testPackageBase);
     moduleDao.save(module);
   }
-  LOG.info("Calling /runners/register with commitId = {} and runner = {}",commitId,runner);
-  if (runnerDao.save(runner,user,commitId,moduleId)) {
-    LOG.info("registered runner {} for commit {}",runner.getHostname(),commitId);
-    return Response.ok(true).build();
+  boolean result=runnerCoordinator.register(user,commitId,moduleId,runner);
+  if (result) {
+    LOG.info("Registered runner at {} for commit {}",runner.getUrl(),commitId);
   }
  else {
-    LOG.warn("failed to register runner {}",runner.getHostname());
-    return Response.ok(false).build();
+    LOG.warn("Failed to register runner at {}",runner.getUrl());
   }
+  return Response.ok(result).build();
 }
