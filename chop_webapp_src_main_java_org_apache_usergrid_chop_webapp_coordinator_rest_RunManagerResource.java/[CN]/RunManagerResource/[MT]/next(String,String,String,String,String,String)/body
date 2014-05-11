@@ -7,13 +7,7 @@
   LOG.info("Calling /run/next ...");
   Preconditions.checkNotNull(commitId,"The commitId should not be null.");
   try {
-    List<Runner> runners=runnerDao.getRunners(username,commitId,BasicModule.createId(groupId,artifactId,version));
-    LOG.info("Commit id: {}",commitId);
-    LOG.info("Got {} runners for user: {}",runners.size(),BasicModule.createId(groupId,artifactId,version));
-    for (    Runner runner : runners) {
-      LOG.info("Runner {}",runner.getUrl());
-    }
-    next=runDao.getNextRunNumber(runners,commitId);
+    next=runDao.getNextRunNumber(commitId);
   }
  catch (  IndexMissingException e) {
     LOG.warn("Got an index missing exception while looking up the next run number.");

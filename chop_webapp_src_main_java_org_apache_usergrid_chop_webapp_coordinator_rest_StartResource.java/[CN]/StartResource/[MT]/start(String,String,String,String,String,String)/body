@@ -36,7 +36,7 @@
     return Response.status(Response.Status.OK).entity(sb.toString()).type(MediaType.APPLICATION_JSON).build();
   }
   LOG.info("Runners are all ready, sending start signal...");
-  states=runnerCoordinator.start(runners);
+  states=runnerCoordinator.start(user,commitId,moduleId);
   int notStarted=0;
   sb=new StringBuilder();
   sb.append("Could not start all tests.\n");
@@ -48,7 +48,7 @@
     }
   }
   if (notStarted > 0) {
-    sb.append(notStarted).append(" out of ").append(" could not be started.");
+    sb.append(notStarted).append(" out of ").append(runners.size()).append(" could not be started.");
     return Response.status(Response.Status.OK).entity(sb.toString()).type(MediaType.APPLICATION_JSON).build();
   }
   return Response.status(Response.Status.CREATED).entity("Started chop tests").type(MediaType.APPLICATION_JSON).build();

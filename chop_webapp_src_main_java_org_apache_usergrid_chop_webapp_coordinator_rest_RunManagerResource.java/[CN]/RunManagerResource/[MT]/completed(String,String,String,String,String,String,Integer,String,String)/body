@@ -13,8 +13,8 @@
   }
   LOG.info("/run/completed called ...");
   String moduleId=BasicModule.createId(groupId,artifactId,version);
-  int totalRunnerCount=runnerDao.getRunners(username,commitId,moduleId).size();
-  Collection<Run> runs=runDao.getMap(commitId,runNumber,testClass).values();
-  Boolean allFinished=runs.size() == totalRunnerCount;
+  Collection<Runner> runners=runnerDao.getRunners(username,commitId,moduleId);
+  Collection<Run> runs=runDao.getMap(commitId,runNumber,testClass,runners).values();
+  Boolean allFinished=runs.size() == runners.size();
   return Response.status(Response.Status.CREATED).entity(allFinished).build();
 }
