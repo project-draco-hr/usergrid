@@ -9,12 +9,12 @@
   }
   long now=currentTimeMillis();
   long maxTokenTtl=getMaxTtl(TokenCategory.getFromBase64String(token),tokenInfo.getPrincipal());
-  Mutator<UUID> batch=createMutator(cassandra.getSystemKeyspace(),UUIDSerializer.get());
-  HColumn<String,Long> col=createColumn(TOKEN_ACCESSED,now,calcTokenTime(tokenInfo.getExpiration(maxTokenTtl)),StringSerializer.get(),LongSerializer.get());
+  Mutator<UUID> batch=createMutator(cassandra.getSystemKeyspace(),ue);
+  HColumn<String,Long> col=createColumn(TOKEN_ACCESSED,now,calcTokenTime(tokenInfo.getExpiration(maxTokenTtl)),se,le);
   batch.addInsertion(uuid,TOKENS_CF,col);
   long inactive=now - tokenInfo.getAccessed();
   if (inactive > tokenInfo.getInactive()) {
-    col=createColumn(TOKEN_INACTIVE,inactive,calcTokenTime(tokenInfo.getExpiration(maxTokenTtl)),StringSerializer.get(),LongSerializer.get());
+    col=createColumn(TOKEN_INACTIVE,inactive,calcTokenTime(tokenInfo.getExpiration(maxTokenTtl)),se,le);
     batch.addInsertion(uuid,TOKENS_CF,col);
     tokenInfo.setInactive(inactive);
   }

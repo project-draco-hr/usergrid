@@ -38,13 +38,13 @@
       searchedCells.addAll(curGeocells);
       for (      HColumn<ByteBuffer,ByteBuffer> column : queryResults) {
         DynamicComposite composite=DynamicComposite.fromByteBuffer(column.getName());
-        UUID uuid=composite.get(0,UUIDSerializer.get());
+        UUID uuid=composite.get(0,ue);
         lastReturned=uuid;
-        String type=composite.get(1,StringSerializer.get());
-        UUID timestampUuid=composite.get(2,UUIDSerializer.get());
+        String type=composite.get(1,se);
+        UUID timestampUuid=composite.get(2,ue);
         composite=DynamicComposite.fromByteBuffer(column.getValue());
-        Double latitude=composite.get(0,DoubleSerializer.get());
-        Double longitude=composite.get(1,DoubleSerializer.get());
+        Double latitude=composite.get(0,de);
+        Double longitude=composite.get(1,de);
         EntityLocationRef entityLocation=new EntityLocationRef(type,uuid,timestampUuid,latitude,longitude);
         double distance=entityLocation.calcDistance(searchPoint);
         if (distance < minDistance || (maxDistance != 0 && distance > maxDistance) || (minMatch != null && COMP.compare(entityLocation,minMatch) <= 0)) {
