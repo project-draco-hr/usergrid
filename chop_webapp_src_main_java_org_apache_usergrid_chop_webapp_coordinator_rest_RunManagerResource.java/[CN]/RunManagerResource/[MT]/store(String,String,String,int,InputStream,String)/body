@@ -1,0 +1,38 @@
+{
+  if (inTestMode(testMode)) {
+    LOG.info("Calling /run/store in test mode ...");
+    LOG.info("{} is {}",RUNNER_HOSTNAME,runnerHostName);
+    LOG.info("{} is {}",COMMIT_ID,commitId);
+    LOG.info("{} is {}",RUN_ID,runId);
+    LOG.info("{} is {}",RUN_NUMBER,runNumber);
+    return Response.status(Response.Status.CREATED).entity(SUCCESSFUL_TEST_MESSAGE).build();
+  }
+  LOG.info("/run/store called ...");
+  String message;
+  JSONObject object=(JSONObject)new JSONParser().parse(new InputStreamReader(resultsFileInputStream));
+  String testClass=Util.getString(object,"testClass");
+  BasicRun run=new BasicRun(runId,commitId,runnerHostName,runNumber,testClass);
+  run.copyJson(object);
+  if (runDao.save(run)) {
+    LOG.info("Created new Run {} ",run);
+  }
+ else {
+    message="Failed to create new Run";
+    LOG.warn(message);
+    throw new IllegalStateException(message);
+  }
+  JSONArray runResults=(JSONArray)object.get("runResults");
+  Iterator<JSONObject> iterator=runResults.iterator();
+  while (iterator.hasNext()) {
+    JSONObject jsonResult=iterator.next();
+    int failureCount=Util.getInt(jsonResult,"failureCount");
+    BasicRunResult runResult=new BasicRunResult(runId,Util.getInt(jsonResult,"runCount"),Util.getInt(jsonResult,"runTime"),Util.getInt(jsonResult,"ignoreCount"),failureCount);
+    if (failureCount != 0) {
+      runResult.setFailures(Util.getString(jsonResult,"failures"));
+    }
+    if (runResultDao.save(runResult)) {
+      LOG.info("Saved run result: {}",runResult);
+    }
+  }
+  return Response.status(Response.Status.CREATED).entity("TRUE").build();
+}

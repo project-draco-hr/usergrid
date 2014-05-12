@@ -1,0 +1,20 @@
+{
+  Map<Runner,State> states=new HashMap<Runner,State>(runners.size());
+  for (  Runner runner : runners) {
+    trustRunner(runner.getUrl());
+    DefaultClientConfig clientConfig=new DefaultClientConfig();
+    Client client=Client.create(clientConfig);
+    LOG.info("Runner to get state: {}",runner.getUrl());
+    WebResource resource=client.resource(runner.getUrl()).path(Runner.STATUS_GET);
+    BaseResult response=resource.type(MediaType.APPLICATION_JSON).get(BaseResult.class);
+    if (!response.getStatus()) {
+      LOG.warn("Could not get the state of Runner at {}",runner.getUrl());
+      LOG.warn(response.getMessage());
+      states.put(runner,null);
+    }
+ else {
+      states.put(runner,response.getState());
+    }
+  }
+  return states;
+}

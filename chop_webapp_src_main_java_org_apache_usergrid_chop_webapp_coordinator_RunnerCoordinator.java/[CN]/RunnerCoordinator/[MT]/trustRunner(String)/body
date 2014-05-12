@@ -1,0 +1,13 @@
+{
+  final URI uri=URI.create(runnerUrl);
+  javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(new javax.net.ssl.HostnameVerifier(){
+    public boolean verify(    String hostname,    javax.net.ssl.SSLSession sslSession){
+      return hostname.equals(uri.getHost());
+    }
+  }
+);
+  if (!CertUtils.isTrusted(uri.getHost())) {
+    CertUtils.preparations(uri.getHost(),uri.getPort());
+  }
+  Preconditions.checkState(CertUtils.isTrusted(uri.getHost()),"coordinator must be trusted");
+}
