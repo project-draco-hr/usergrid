@@ -1,9 +1,10 @@
 {
-  List<Runner> runnerList=Collections.emptyList();
+  Collection<Runner> runnerList=Collections.emptyList();
   if (inTestMode(testMode)) {
     LOG.info("Calling /runners/list in test mode ...");
     return Response.ok(runnerList).build();
   }
+  LOG.info("Calling /runners/list");
   Preconditions.checkNotNull(user,"The 'user' request parameter MUST NOT be null.");
   Preconditions.checkNotNull(artifactId,"The 'artifactId' request parameter MUST NOT be null.");
   Preconditions.checkNotNull(groupId,"The 'groupId' request parameter MUST NOT be null.");
@@ -15,13 +16,6 @@
     LOG.warn("Returning empty runner list for request associated with non-existent module: {}",groupId + "." + artifactId+ "-"+ version);
     return Response.ok(runnerList).build();
   }
-  LOG.info("Calling /runners/list for commitId {} on module {}",commitId,moduleId);
-  try {
-    runnerList=runnerDao.getRunners(user,commitId,inStore.getId());
-  }
- catch (  IndexMissingException e) {
-    LOG.warn("Got a missing index exception. Returning empty list of Runners.");
-  }
-  Runner[] runners=new Runner[runnerList.size()];
-  return Response.status(Response.Status.CREATED).entity(runnerList.toArray(runners)).build();
+  runnerList=runnerCoordinator.getRunners(user,commitId,moduleId);
+  return Response.status(Response.Status.CREATED).entity(runnerList).build();
 }
