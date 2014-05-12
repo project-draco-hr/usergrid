@@ -4,12 +4,12 @@
       return commitLogSerialization.getEdgesFromSourceByTargetType(scope,edgeType);
     }
   }
-);
+).subscribeOn(Schedulers.io());
   Observable<MarkedEdge> permanent=Observable.create(new ObservableIterator<MarkedEdge>("getEdgesFromSourceByTargetTypeStorage"){
     @Override protected Iterator<MarkedEdge> getIterator(){
       return permanentSerialization.getEdgesFromSourceByTargetType(scope,edgeType);
     }
   }
-);
-  return OrderedMerge.orderedMerge(SourceEdgeComparator.INSTANCE,cassandraConfig.getScanPageSize() / 2,commitLog,permanent).distinctUntilChanged();
+).subscribeOn(Schedulers.io());
+  return OrderedMerge.orderedMerge(SourceEdgeComparator.INSTANCE,cassandraConfig.getScanPageSize() / 2,commitLog,permanent).distinctUntilChanged().doOnNext(RX_LOG);
 }

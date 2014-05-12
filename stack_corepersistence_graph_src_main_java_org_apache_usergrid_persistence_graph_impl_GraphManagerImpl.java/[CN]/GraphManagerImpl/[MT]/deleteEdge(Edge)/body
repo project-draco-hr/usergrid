@@ -5,6 +5,7 @@
       final MutationBatch edgeMutation=commitLogSerialization.markEdge(scope,edge);
       final AsynchronousMessage<EdgeEvent<Edge>> event=edgeDeleteAsyncProcessor.setVerification(new EdgeEvent<>(scope,edge.getVersion(),edge),getTimeout());
       try {
+        LOG.debug("Marking edge {} as deleted to commit log",edge);
         edgeMutation.execute();
       }
  catch (      ConnectionException e) {
