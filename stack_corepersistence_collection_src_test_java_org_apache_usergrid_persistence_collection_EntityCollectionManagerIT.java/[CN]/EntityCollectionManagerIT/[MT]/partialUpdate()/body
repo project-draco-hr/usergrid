@@ -1,17 +1,22 @@
 {
+  StringField testField1=new StringField("testField","value");
+  StringField addedField=new StringField("testFud","NEWPARTIALUPDATEZOMG");
   CollectionScope context=new CollectionScopeImpl(new SimpleId("organization"),new SimpleId("testUpdate"),"testUpdate");
-  Entity newEntity=new Entity(new SimpleId("testUpdate"));
-  newEntity.setField(new StringField("testField","value"));
+  Entity oldEntity=new Entity(new SimpleId("testUpdate"));
+  oldEntity.setField(new StringField("testField","value"));
   EntityCollectionManager manager=factory.createCollectionManager(context);
-  Observable<Entity> observable=manager.write(newEntity);
+  Observable<Entity> observable=manager.write(oldEntity);
   Entity returned=observable.toBlockingObservable().lastOrDefault(null);
   assertNotNull("Returned has a uuid",returned.getId());
   assertNotNull("Version exists");
-  newEntity.setField(new StringField("testFud","NEWPARTIALUPDATEZOMG"));
-  observable=manager.update(newEntity.getId());
-  returned=observable.toBlockingObservable().lastOrDefault(null);
+  oldEntity.getFields().remove(testField1);
+  oldEntity.setField(addedField);
+  observable=manager.update(oldEntity);
+  returned=observable.toBlockingObservable().last();
   assertNotNull("Returned has a uuid",returned.getId());
-  assertEquals(newEntity.getField("testField"),returned.getField("testField"));
-  assertEquals(newEntity.getField("testFud"),returned.getField("testFud"));
-  assertNotNull("Version exists");
+  assertEquals(oldEntity.getField("testFud"),returned.getField("testFud"));
+  Observable<Entity> newEntityObs=manager.load(oldEntity.getId());
+  Entity newEntity=newEntityObs.toBlockingObservable().last();
+  assertNotNull("Returned has a uuid",returned.getId());
+  assertEquals(addedField,newEntity.getField("testFud"));
 }
