@@ -8,11 +8,10 @@
   Observable<Entity> observable=manager.write(oldEntity);
   Entity returned=observable.toBlockingObservable().lastOrDefault(null);
   assertNotNull("Returned has a uuid",returned.getId());
-  assertNotNull("Version exists");
   oldEntity.getFields().remove(testField1);
   oldEntity.setField(addedField);
   observable=manager.update(oldEntity);
-  returned=observable.toBlockingObservable().last();
+  returned=observable.toBlockingObservable().lastOrDefault(null);
   assertNotNull("Returned has a uuid",returned.getId());
   assertEquals(oldEntity.getField("testFud"),returned.getField("testFud"));
   Observable<Entity> newEntityObs=manager.load(oldEntity.getId());
