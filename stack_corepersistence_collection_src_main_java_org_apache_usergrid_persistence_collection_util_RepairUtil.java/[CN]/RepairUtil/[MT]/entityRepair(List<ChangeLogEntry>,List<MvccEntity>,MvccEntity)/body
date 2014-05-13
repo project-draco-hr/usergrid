@@ -1,9 +1,9 @@
 {
   int changeLogIndex=0;
-  for (int index=0; index < results.size(); index++) {
+  for (  MvccEntity result : results) {
     while (changeLogIndex != changeLogEntryList.size()) {
       ChangeLogEntry changeLogEntry=changeLogEntryList.get(changeLogIndex);
-      if (results.get(index).getId().equals(changeLogEntry.getEntryId())) {
+      if (result.getId().equals(changeLogEntry.getEntryId())) {
         ChangeLogEntry.ChangeType changeType=changeLogEntry.getChangeType();
         if (changeType.toString().equals("PROPERTY_DELETE")) {
           completedEntity.getEntity().get().getFields().remove(changeLogEntry.getField());
@@ -13,7 +13,9 @@
         }
         changeLogIndex++;
       }
- else       break;
+ else {
+        break;
+      }
     }
   }
   if (!completedEntity.getEntity().isPresent()) {
