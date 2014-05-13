@@ -1,4 +1,5 @@
 {
+  LOG.debug("testPagingWithGetNextResults");
   UUID applicationId=setup.createApplication("testOrganization","pagingWithBoundsCriteria2");
   assertNotNull(applicationId);
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
@@ -13,10 +14,9 @@
   }
   em.refreshIndex();
   int pageSize=10;
-  Query query=new Query();
+  Query query=Query.fromQL("select * where index >= 10 and index <= 29");
   query.setLimit(pageSize);
-  query.addFilter("index >= 10");
-  query.addFilter("index <= 29");
+  query.addSort(new Query.SortPredicate("index",Query.SortDirection.ASCENDING));
   Results r=em.searchCollection(em.getApplicationRef(),"pages",query);
   for (int i=1; i < 3; i++) {
     LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));

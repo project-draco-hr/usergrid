@@ -10,8 +10,14 @@
   this.cursorTimeout=config.getQueryCursorTimeout();
   AdminClient admin=client.admin();
   try {
-    admin.indices().prepareCreate(indexName).execute().actionGet();
-    log.debug("Created new index: " + indexName);
+    CreateIndexResponse r=admin.indices().prepareCreate(indexName).execute().actionGet();
+    log.debug("Created new Index Name [{}] ACK=[{}]",indexName,r.isAcknowledged());
+    client.admin().indices().prepareRefresh(indexName).execute().actionGet();
+    try {
+      Thread.sleep(500);
+    }
+ catch (    InterruptedException ex) {
+    }
   }
  catch (  IndexAlreadyExistsException ignored) {
   }
