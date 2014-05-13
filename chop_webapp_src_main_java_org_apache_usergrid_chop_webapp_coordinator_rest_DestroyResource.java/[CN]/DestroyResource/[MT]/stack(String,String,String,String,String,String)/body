@@ -17,6 +17,13 @@
   if (!status.equals(SetupStackState.SetUp)) {
     return Response.status(Response.Status.OK).entity("Stack is " + status.toString() + ", will not destroy.").type(MediaType.APPLICATION_JSON).build();
   }
+  String moduleId=BasicModule.createId(groupId,artifactId,version);
+  Collection<Runner> runners=runnerCoordinator.getRunners(user,commitId,moduleId);
+  for (  Runner runner : runners) {
+    if (!runnerCoordinator.unregister(runner.getUrl())) {
+      LOG.warn("Could not unregister runner at {}.",runner.getUrl());
+    }
+  }
   stackCoordinator.destroyStack(commitId,artifactId,groupId,version,user);
   return Response.status(Response.Status.CREATED).entity("Destroyed the stack").type(MediaType.APPLICATION_JSON).build();
 }
