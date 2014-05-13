@@ -1,21 +1,21 @@
 {
-  GraphManager em=emf.createEdgeManager(scope);
+  GraphManager gm=getHelper(emf.createEdgeManager(scope));
   final Id targetId=createId("target");
   Edge edge1=createEdge(createId("source"),"test",targetId);
-  em.writeEdge(edge1).toBlockingObservable().last();
+  gm.writeEdge(edge1).toBlockingObservable().last();
   Edge edge2=createEdge(createId("source"),"test",targetId);
-  em.writeEdge(edge2).toBlockingObservable().last();
+  gm.writeEdge(edge2).toBlockingObservable().last();
   Edge edge3=createEdge(createId("source"),"test",targetId);
-  em.writeEdge(edge3).toBlockingObservable().last();
+  gm.writeEdge(edge3).toBlockingObservable().last();
   SearchByEdgeType search=createSearchByEdge(edge1.getTargetNode(),edge1.getType(),edge3.getVersion(),null);
-  Observable<Edge> edges=em.loadEdgesToTarget(search);
+  Observable<Edge> edges=gm.loadEdgesToTarget(search);
   Iterator<Edge> returned=edges.toBlockingObservable().getIterator();
   assertEquals("Correct edge returned",edge3,returned.next());
   assertEquals("Correct edge returned",edge2,returned.next());
   assertEquals("Correct edge returned",edge1,returned.next());
   assertFalse("No more edges",returned.hasNext());
   search=createSearchByEdge(edge1.getTargetNode(),edge1.getType(),edge3.getVersion(),edge2);
-  edges=em.loadEdgesToTarget(search);
+  edges=gm.loadEdgesToTarget(search);
   returned=edges.toBlockingObservable().getIterator();
   assertEquals("Paged correctly",edge1,returned.next());
   assertFalse("End of stream",returned.hasNext());

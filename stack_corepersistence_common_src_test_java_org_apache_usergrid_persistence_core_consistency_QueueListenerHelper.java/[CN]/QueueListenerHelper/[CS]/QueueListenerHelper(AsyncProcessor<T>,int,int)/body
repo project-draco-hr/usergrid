@@ -1,0 +1,20 @@
+{
+  successLatch=new CountDownLatch(expectedSuccess);
+  exceptionLatch=new CountDownLatch(expectedException);
+  successResults=new ArrayList<>(expectedSuccess);
+  errorResults=new ArrayList<>(expectedException);
+  processor.addCompleteListener(new CompleteListener<T>(){
+    @Override public void onComplete(    final AsynchronousMessage<T> event){
+      successResults.add(event);
+      successLatch.countDown();
+    }
+  }
+);
+  processor.addErrorListener(new ErrorListener<T>(){
+    @Override public void onError(    final AsynchronousMessage<T> event,    final Throwable t){
+      errorResults.add(new ErrorResult<T>(event,t));
+      exceptionLatch.countDown();
+    }
+  }
+);
+}
