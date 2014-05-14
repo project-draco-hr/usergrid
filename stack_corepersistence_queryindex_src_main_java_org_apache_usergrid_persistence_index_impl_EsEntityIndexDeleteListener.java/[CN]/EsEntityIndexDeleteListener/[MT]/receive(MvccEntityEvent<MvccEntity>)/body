@@ -1,4 +1,7 @@
 {
+  CollectionScope collectionScope=event.getCollectionScope();
+  CollectionScope appScope=new CollectionScopeImpl(collectionScope.getOrganization(),collectionScope.getOwner(),collectionScope.getName());
+  final EntityIndex entityIndex=entityIndexFactory.createEntityIndex(collectionScope,appScope);
   return Observable.create(new ObservableIterator<MvccEntity>("deleteEsIndexVersions"){
     @Override protected Iterator<MvccEntity> getIterator(){
       Results results=entityIndex.getEntityVersions(event.getData().getId(),event.getCollectionScope());

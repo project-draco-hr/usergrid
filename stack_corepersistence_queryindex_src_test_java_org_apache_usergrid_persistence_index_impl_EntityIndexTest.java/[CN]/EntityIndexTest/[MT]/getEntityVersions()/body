@@ -1,0 +1,41 @@
+{
+  Id orgId=new SimpleId("organization");
+  OrganizationScope orgScope=new OrganizationScopeImpl(orgId);
+  Id appId=new SimpleId("application");
+  CollectionScope appScope=new CollectionScopeImpl(orgId,appId,"test-app");
+  CollectionScope scope=new CollectionScopeImpl(appId,orgId,"user");
+  EntityIndex entityIndex=cif.createEntityIndex(orgScope,appScope);
+  EntityCollectionManager entityManager=cmf.createCollectionManager(scope);
+  final String middleName="middleName" + UUIDUtils.newTimeUUID();
+  Map<String,Object> properties=new LinkedHashMap<String,Object>();
+  properties.put("username","edanuff");
+  properties.put("email","ed@anuff.com");
+  properties.put("middlename",middleName);
+  Map entityMap=new HashMap(){
+{
+      put("username","edanuff");
+      put("email","ed@anuff.com");
+      put("middlename",middleName);
+    }
+  }
+;
+  Entity user=EntityMapUtils.fromMap(entityMap);
+  EntityUtils.setId(user,new SimpleId("edanuff"));
+  user=entityManager.write(user).toBlockingObservable().last();
+  entityIndex.index(scope,user);
+  user.setField(new StringField("address1","1782 address st"));
+  user=entityManager.write(user).toBlockingObservable().last();
+  entityIndex.index(scope,user);
+  user.setField(new StringField("address2","apt 508"));
+  user=entityManager.write(user).toBlockingObservable().last();
+  entityIndex.index(scope,user);
+  user.setField(new StringField("address3","apt 508"));
+  user=entityManager.write(user).toBlockingObservable().last();
+  entityIndex.index(scope,user);
+  entityIndex.refresh();
+  Results results=entityIndex.getEntityVersions(user.getId(),scope);
+  List<Entity> entities=results.getEntities(true);
+  assertEquals(entities.size(),4);
+  assertEquals(entities.get(0).getId(),user.getId());
+  assertEquals(entities.get(3).getVersion(),user.getVersion());
+}
