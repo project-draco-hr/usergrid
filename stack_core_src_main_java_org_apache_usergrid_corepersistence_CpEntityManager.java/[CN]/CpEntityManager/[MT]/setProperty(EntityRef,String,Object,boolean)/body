@@ -1,3 +1,10 @@
 {
-  throw new UnsupportedOperationException("Not supported yet.");
+  if ((propertyValue instanceof String) && ((String)propertyValue).equals("")) {
+    propertyValue=null;
+  }
+  Entity entity=get(entityRef);
+  propertyValue=getDefaultSchema().validateEntityPropertyValue(entity.getType(),propertyName,propertyValue);
+  entity.setProperty(propertyName,propertyValue);
+  entity.setProperty(PROPERTY_MODIFIED,getTimestampInMillis(newTimeUUID()));
+  update(entity);
 }
