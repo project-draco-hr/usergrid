@@ -1,0 +1,13 @@
+{
+  List<HColumn<String,String>> results=cass.getAllColumns(cass.getApplicationKeyspace(applicationId),ENTITY_DICTIONARIES,key,se,se);
+  Set<String> indexes=new TreeSet<String>();
+  if (results != null) {
+    for (    HColumn<String,String> column : results) {
+      String propertyName=column.getName();
+      if (!propertyName.endsWith(".keywords")) {
+        indexes.add(column.getName());
+      }
+    }
+  }
+  return indexes;
+}

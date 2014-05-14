@@ -1,32 +1,73 @@
 {
   Map<String,Object> config=(Map<String,Object>)jobExecution.getJobData().getProperty("exportInfo");
+  Object s3PlaceHolder=jobExecution.getJobData().getProperty("s3Export");
+  S3Export s3Export=null;
   if (config == null) {
     logger.error("Export Information passed through is null");
     return;
   }
   UUID exportId=(UUID)jobExecution.getJobData().getProperty(EXPORT_ID);
-  if (config.get("applicationId") == null) {
-    logger.error("Export Information application uuid is null");
-    return;
-  }
-  EntityManager em=emf.getEntityManager((UUID)config.get("applicationId"));
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
   Export export=em.get(exportId,Export.class);
   export.setState(Export.State.STARTED);
   em.update(export);
-  if (config.get("collectionName") == null) {
-    if (config.get("organizationId") == null) {
-      logger.error("No organization could be found");
+  try {
+    if (s3PlaceHolder != null) {
+      s3Export=(S3Export)s3PlaceHolder;
+    }
+ else {
+      s3Export=new S3ExportImpl();
+    }
+  }
+ catch (  Exception e) {
+    logger.error("S3Export doesn't exist");
+    export.setErrorMessage(e.getMessage());
+    export.setState(Export.State.FAILED);
+    em.update(export);
+    return;
+  }
+  if (config.get("organizationId") == null) {
+    logger.error("No organization could be found");
+    export.setState(Export.State.FAILED);
+    em.update(export);
+    return;
+  }
+ else   if (config.get("applicationId") == null) {
+    try {
+      exportApplicationsFromOrg((UUID)config.get("organizationId"),config,jobExecution,s3Export);
+    }
+ catch (    Exception e) {
+      export.setErrorMessage(e.getMessage());
       export.setState(Export.State.FAILED);
       em.update(export);
       return;
     }
-    exportApplicationsForOrg((UUID)config.get("organizationId"),config,jobExecution);
+  }
+ else   if (config.get("collectionName") == null) {
+    try {
+      exportApplicationFromOrg((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution,s3Export);
+    }
+ catch (    Exception e) {
+      export.setErrorMessage(e.getMessage());
+      export.setState(Export.State.FAILED);
+      em.update(export);
+      return;
+    }
   }
  else {
     try {
-      exportApplicationForOrg((UUID)config.get("organizationId"),config,jobExecution);
+      try {
+        exportCollectionFromOrgApp((UUID)config.get("applicationId"),config,jobExecution,s3Export);
+      }
+ catch (      Exception e) {
+        export.setErrorMessage(e.getMessage());
+        export.setState(Export.State.FAILED);
+        em.update(export);
+        return;
+      }
     }
  catch (    Exception e) {
+      export.setErrorMessage(e.getMessage());
       export.setState(Export.State.FAILED);
       em.update(export);
       return;

@@ -1,0 +1,47 @@
+{
+  EntityManager em=emf.getEntityManager(applicationUUID);
+  Map<String,Object> metadata=em.getApplicationCollectionMetadata();
+  long starting_time=System.currentTimeMillis();
+  File ephemeral=new File("tempExport" + UUID.randomUUID());
+  ephemeral.deleteOnExit();
+  JsonGenerator jg=getJsonGenerator(ephemeral);
+  jg.writeStartArray();
+  for (  String collectionName : metadata.keySet()) {
+    if (collectionName.equals("exports")) {
+      continue;
+    }
+    if ((config.get("collectionName") == null) || collectionName.equals(config.get("collectionName"))) {
+      Query query=null;
+      if (config.get("query") == null) {
+        query=new Query();
+      }
+ else {
+        try {
+          query=Query.fromQL((String)config.get("query"));
+        }
+ catch (        Exception e) {
+          export.setErrorMessage(e.getMessage());
+        }
+      }
+      query.setLimit(MAX_ENTITY_FETCH);
+      query.setResultsLevel(Results.Level.ALL_PROPERTIES);
+      query.setCollection(collectionName);
+      Results entities=em.searchCollection(em.getApplicationRef(),collectionName,query);
+      PagingResultsIterator itr=new PagingResultsIterator(entities);
+      for (      Object e : itr) {
+        starting_time=checkTimeDelta(starting_time,jobExecution);
+        Entity entity=(Entity)e;
+        jg.writeStartObject();
+        jg.writeFieldName("Metadata");
+        jg.writeObject(entity);
+        saveCollectionMembers(jg,em,(String)config.get("collectionName"),entity);
+        jg.writeEndObject();
+        jg.flush();
+      }
+    }
+  }
+  jg.writeEndArray();
+  jg.flush();
+  jg.close();
+  return ephemeral;
+}
