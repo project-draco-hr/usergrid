@@ -8,6 +8,13 @@
   Edge edge2=createEdge(sourceId,"test",targetId2,UUIDGenerator.newTimeUUID());
   gm.writeEdge(edge2).toBlockingObservable().singleOrDefault(null);
   final UUID maxVersion=UUIDGenerator.newTimeUUID();
+  assertTrue(UUIDComparator.staticCompare(maxVersion,edge2.getVersion()) > 0);
+  assertTrue(UUIDComparator.staticCompare(maxVersion,edge1.getVersion()) > 0);
+  ByteBuffer edge1Buff=UUIDSerializer.get().toByteBuffer(edge1.getVersion());
+  ByteBuffer edge2Buff=UUIDSerializer.get().toByteBuffer(edge2.getVersion());
+  ByteBuffer maxBuff=UUIDSerializer.get().toByteBuffer(maxVersion);
+  assertTrue(UUIDType.instance.compare(maxBuff.duplicate(),edge1Buff.duplicate()) > 0);
+  assertTrue(UUIDType.instance.compare(maxBuff.duplicate(),edge2Buff.duplicate()) > 0);
   Observable<Edge> edges=gm.loadEdgesFromSource(createSearchByEdge(edge1.getSourceNode(),edge1.getType(),maxVersion,null));
   Iterator<Edge> results=edges.toBlockingObservable().getIterator();
   System.out.println("\n\n\n\n\n\n\n\n\n\n");
