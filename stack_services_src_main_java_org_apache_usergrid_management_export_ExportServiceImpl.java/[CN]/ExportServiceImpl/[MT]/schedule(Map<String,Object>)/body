@@ -1,15 +1,16 @@
 {
+  ApplicationInfo defaultExportApp=null;
   if (config == null) {
     logger.error("export information cannot be null");
     return null;
   }
-  if (config.get("applicationId") == null) {
-    logger.error("application information from export info could not be found");
-    return null;
-  }
   EntityManager em=null;
   try {
-    em=emf.getEntityManager((UUID)config.get("applicationId"));
+    em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+    Set<String> collections=em.getApplicationCollections();
+    if (!collections.contains("exports")) {
+      em.createApplicationCollection("exports");
+    }
   }
  catch (  Exception e) {
     logger.error("application doesn't exist within the current context");

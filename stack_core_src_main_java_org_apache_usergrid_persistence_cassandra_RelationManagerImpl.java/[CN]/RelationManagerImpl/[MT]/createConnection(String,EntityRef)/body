@@ -1,6 +1,9 @@
 {
   headEntity=em.validate(headEntity);
   connectedEntityRef=em.validate(connectedEntityRef);
+  if (connectedEntityRef == null) {
+    throw new EntityNotFoundException("The UUID of the connected entity was not found");
+  }
   ConnectionRefImpl connection=new ConnectionRefImpl(headEntity,connectionType,connectedEntityRef);
   updateEntityConnection(false,connection);
   return connection;
