@@ -3,8 +3,5 @@
   ConnectionPoolConfiguration connectionPoolConfiguration=new ConnectionPoolConfigurationImpl("UsergridConnectionPool").setPort(cassandraConfig.getThriftPort()).setMaxConnsPerHost(cassandraConfig.getConnections()).setSeeds(cassandraConfig.getHosts()).setSocketTimeout(cassandraConfig.getTimeout());
   AstyanaxContext<Keyspace> context=new AstyanaxContext.Builder().forCluster(cassandraConfig.getClusterName()).forKeyspace(cassandraConfig.getKeyspaceName()).withAstyanaxConfiguration(config).withConnectionPoolConfiguration(connectionPoolConfiguration).withConnectionPoolMonitor(new Slf4jConnectionPoolMonitorImpl()).buildKeyspace(ThriftFamilyFactory.getInstance());
   context.start();
-synchronized (contexts) {
-    contexts.add(context);
-  }
   return context.getClient();
 }

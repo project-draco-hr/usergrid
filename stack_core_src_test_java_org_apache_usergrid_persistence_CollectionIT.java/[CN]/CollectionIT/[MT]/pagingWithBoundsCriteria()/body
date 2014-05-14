@@ -1,4 +1,5 @@
 {
+  LOG.debug("pagingWithBoundsCriteria");
   UUID applicationId=setup.createApplication("testOrganization","pagingWithBoundsCriteria");
   assertNotNull(applicationId);
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
@@ -11,11 +12,11 @@
     Entity created=em.create("page",properties);
     entityIds.add(created.getUuid());
   }
+  em.refreshIndex();
   int pageSize=10;
-  Query query=new Query();
+  Query query=Query.fromQL("select * where index >= 10 and index <= 29");
   query.setLimit(pageSize);
-  query.addFilter("index >= 10");
-  query.addFilter("index <= 29");
+  query.addSort(new Query.SortPredicate("index",Query.SortDirection.ASCENDING));
   Results r=null;
   for (int i=1; i < 3; i++) {
     r=em.searchCollection(em.getApplicationRef(),"pages",query);

@@ -1,4 +1,5 @@
 {
+  LOG.debug("testNotQueryAnd");
   UUID applicationId=setup.createApplication("testOrganization","testNotQueryAnd");
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
   Map<String,Object> location=new LinkedHashMap<String,Object>();
@@ -13,6 +14,7 @@
   properties.put("Flag","requested");
   properties.put("Recipient",recipient);
   em.create("loveobject",properties);
+  em.refreshIndex();
   location=new LinkedHashMap<String,Object>();
   location.put("Place","Via Pietro Maroncelli, 48, 62012 Santa Maria Apparente Province of Macerata, Italy");
   location.put("Longitude",13.693080199999999);
@@ -25,6 +27,7 @@
   properties.put("Flag","requested");
   properties.put("Recipient",recipient);
   em.create("loveobject",properties);
+  em.refreshIndex();
   String s="select * where Flag = 'requested' and NOT Recipient.Username = 'fb_536692245' order by created asc";
   Query query=Query.fromQL(s);
   Results r=em.searchCollection(em.getApplicationRef(),"loveobjects",query);

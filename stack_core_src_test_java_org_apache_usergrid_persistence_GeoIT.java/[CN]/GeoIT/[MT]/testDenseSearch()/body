@@ -19,22 +19,25 @@
     data.put("location",location);
     em.create("store",data);
   }
-  float lattitude=48.38626f;
+  em.refreshIndex();
+  float latitude=48.38626f;
   float longtitude=9.94175f;
   int distance=1000;
   int limit=8;
-  QuerySlice slice=new QuerySlice("location",0);
-  GeoIterator itr=new GeoIterator(new CollectionGeoSearch(em,setup.getIbl(),setup.getCassSvc(),em.getApplicationRef(),"stores"),limit,slice,"location",new Point(lattitude,longtitude),distance);
-  assertFalse(itr.hasNext());
-  List<String> cells=itr.getLastCellsSearched();
-  assertEquals(1,cells.size());
-  assertEquals(4,cells.get(0).length());
-  long startTime=System.currentTimeMillis();
-  Query query=new Query();
-  query.addFilter("location within 1000 of 48.38626, 9.94175");
-  query.setLimit(8);
-  Results results=em.searchCollection(em.getApplicationRef(),"stores",query);
-  assertEquals(0,results.size());
-  long endTime=System.currentTimeMillis();
-  LOG.info("Runtime took {} milliseconds to search",endTime - startTime);
+{
+    Query query=Query.fromQL("select * where location within " + distance + " of "+ longtitude+ ", "+ latitude);
+    Results results=em.searchCollection(em.getApplicationRef(),"stores",query);
+    assertFalse(results.isEmpty());
+    assertEquals(1,results.size());
+  }
+{
+    long startTime=System.currentTimeMillis();
+    Query query=new Query();
+    query.addFilter("location within 1000 of 48.38626, 9.94175");
+    query.setLimit(limit);
+    Results results=em.searchCollection(em.getApplicationRef(),"stores",query);
+    assertEquals(0,results.size());
+    long endTime=System.currentTimeMillis();
+    LOG.info("Runtime took {} milliseconds to search",endTime - startTime);
+  }
 }

@@ -1,0 +1,16 @@
+{
+  app.put("name","foo");
+  Entity foo=app.testRequest(ServiceAction.POST,1,"foos").getEntity();
+  assertNotNull(foo);
+  app.clear();
+  app.put("name","bar");
+  Entity bar=app.testRequest(ServiceAction.POST,1,"bars").getEntity();
+  assertNotNull(bar);
+  app.testRequest(ServiceAction.POST,1,"foos","foo","bars",bar.getUuid());
+  try {
+    app.testRequest(ServiceAction.POST,1,"foos","foo","bars","bar");
+    Assert.fail();
+  }
+ catch (  EntityNotFoundException e) {
+  }
+}

@@ -1,0 +1,28 @@
+{
+  String collectionName=Schema.defaultCollectionName(entity.getType());
+  OrganizationScope organizationScope=emf.getOrganizationScope(applicationId);
+  CollectionScope applicationScope=emf.getApplicationScope(applicationId);
+  CollectionScope collectionScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),collectionName);
+  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
+  EntityIndex ei=managerCache.getEntityIndex(organizationScope,applicationScope);
+  Id entityId=new SimpleId(entity.getUuid(),entity.getType());
+  org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(entityId).toBlockingObservable().last();
+  cpEntity=CpEntityMapUtils.fromMap(cpEntity,entity.getProperties(),entity.getType(),true);
+  cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
+  ei.index(collectionScope,cpEntity);
+  RelationManager rm=getRelationManager(entity);
+  Map<String,Map<UUID,Set<String>>> owners=rm.getOwners();
+  logger.debug("Updating indexes of all {} collections owning the entity",owners.keySet().size());
+  for (  String ownerType : owners.keySet()) {
+    Map<UUID,Set<String>> collectionsByUuid=owners.get(ownerType);
+    for (    UUID uuid : collectionsByUuid.keySet()) {
+      Set<String> collections=collectionsByUuid.get(uuid);
+      for (      String coll : collections) {
+        CollectionScope ownerScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),Schema.defaultCollectionName(ownerType));
+        EntityCollectionManager ownerEcm=managerCache.getEntityCollectionManager(ownerScope);
+        org.apache.usergrid.persistence.model.entity.Entity cpOwner=ownerEcm.load(new SimpleId(uuid,ownerType)).toBlockingObservable().last();
+        ei.indexConnection(cpOwner,coll + CpRelationManager.COLLECTION_SUFFIX,cpEntity,collectionScope);
+      }
+    }
+  }
+}

@@ -1,4 +1,5 @@
 {
+  LOG.debug("userFirstNameSearch");
   UUID applicationId=setup.createApplication("testOrganization","testFirstName");
   assertNotNull(applicationId);
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
@@ -10,15 +11,17 @@
   properties.put("firstname",firstName);
   Entity user=em.create("user",properties);
   assertNotNull(user);
+  em.refreshIndex();
   Query query=new Query();
   query.addEqualityFilter("firstname",firstName);
   Results r=em.searchCollection(em.getApplicationRef(),"users",query);
   assertTrue(r.size() > 0);
   Entity returned=r.getEntities().get(0);
   assertEquals(user.getUuid(),returned.getUuid());
-  String newFirstName="firstName" + UUIDUtils.newTimeUUID();
+  String newFirstName="firstName" + UUIDUtils.newTimeUUID() + "_new";
   user.setProperty("firstname",newFirstName);
   em.update(user);
+  em.refreshIndex();
   query=new Query();
   query.addEqualityFilter("firstname",firstName);
   r=em.searchCollection(em.getApplicationRef(),"users",query);

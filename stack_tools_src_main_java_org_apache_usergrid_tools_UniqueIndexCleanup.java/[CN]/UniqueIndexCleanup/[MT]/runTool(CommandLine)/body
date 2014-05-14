@@ -26,6 +26,7 @@
         logger.info("Auditing {} entities for collection {} in app {}",new Object[]{ids.size(),collectionName,app.getValue()});
         for (        ScanColumn col : ids) {
           final UUID id=col.getUUID();
+          String type=getDefaultSchema().getCollectionType("application",collectionName);
           boolean reIndex=false;
           Mutator<ByteBuffer> m=createMutator(ko,be);
           try {
@@ -54,7 +55,7 @@
               }
             }
             if (reIndex) {
-              Entity entity=em.get(id);
+              Entity entity=em.get(id,type);
               if (entity == null) {
                 logger.warn("Entity with id {} did not exist in app {}",id,applicationId);
                 m.execute();

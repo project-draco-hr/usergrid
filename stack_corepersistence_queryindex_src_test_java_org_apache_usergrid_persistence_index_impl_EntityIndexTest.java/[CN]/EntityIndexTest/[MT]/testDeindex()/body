@@ -14,16 +14,16 @@
     }
   }
 ;
-  Entity entity=EntityBuilder.fromMap(scope.getName(),entityMap);
+  Entity entity=EntityMapUtils.fromMap(entityMap);
   EntityUtils.setId(entity,new SimpleId("fastcar"));
   entity=entityManager.write(entity).toBlockingObservable().last();
   entityIndex.index(scope,entity);
   entityIndex.refresh();
   Results results=entityIndex.search(scope,Query.fromQL("name contains 'Ferrari*'"));
-  assertEquals(1,results.getEntities().size());
+  assertEquals(1,results.size());
   entityManager.delete(entity.getId());
   entityIndex.deindex(scope,entity);
   entityIndex.refresh();
   results=entityIndex.search(scope,Query.fromQL("name contains 'Ferrari*'"));
-  assertEquals(0,results.getEntities().size());
+  assertEquals(0,results.size());
 }

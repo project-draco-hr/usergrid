@@ -1,0 +1,24 @@
+{
+  if (elementName == null) {
+    return;
+  }
+  if (elementValue == null) {
+    elementValue=new byte[0];
+  }
+  Entity entity=get(entityRef.getUuid(),entityRef.getType());
+  if (!(elementName instanceof String)) {
+    throw new IllegalArgumentException("Element name must be a string");
+  }
+  if (!(elementValue instanceof Serializable)) {
+    throw new IllegalArgumentException("Element Value must be serializable.");
+  }
+  Map<String,Object> dictionary=entity.getDynamicProperties();
+  Map<String,Object> props=(TreeMap)dictionary.get(dictionaryName);
+  if (props == null) {
+    props=new TreeMap();
+  }
+  props.put((String)elementName,elementValue);
+  dictionary.put(dictionaryName,props);
+  entity.addProperties(dictionary);
+  update(entity);
+}

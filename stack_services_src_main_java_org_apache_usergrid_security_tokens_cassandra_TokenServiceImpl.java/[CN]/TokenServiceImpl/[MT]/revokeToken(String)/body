@@ -8,9 +8,9 @@
     return;
   }
   UUID tokenId=info.getUuid();
-  Mutator<ByteBuffer> batch=createMutator(cassandra.getSystemKeyspace(),BUFF_SER);
+  Mutator<ByteBuffer> batch=createMutator(cassandra.getSystemKeyspace(),be);
   if (info.getPrincipal() != null) {
-    batch.addDeletion(principalKey(info.getPrincipal()),PRINCIPAL_TOKEN_CF,bytebuffer(tokenId),BUFF_SER);
+    batch.addDeletion(principalKey(info.getPrincipal()),PRINCIPAL_TOKEN_CF,bytebuffer(tokenId),be);
   }
   batch.addDeletion(bytebuffer(tokenId),TOKENS_CF);
   batch.execute();

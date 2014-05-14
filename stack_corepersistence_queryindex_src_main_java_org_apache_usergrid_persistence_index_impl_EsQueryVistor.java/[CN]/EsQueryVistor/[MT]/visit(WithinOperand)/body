@@ -3,6 +3,9 @@
   float lat=op.getLatitude().getFloatValue();
   float lon=op.getLongitude().getFloatValue();
   float distance=op.getDistance().getFloatValue();
-  FilterBuilder fb=FilterBuilders.geoDistanceFilter(name + EsEntityIndexImpl.GEO_SUFFIX).lat(lat).lon(lon).distance(distance,DistanceUnit.METERS);
+  if (!name.endsWith(EsEntityIndexImpl.GEO_SUFFIX)) {
+    name+=EsEntityIndexImpl.GEO_SUFFIX;
+  }
+  FilterBuilder fb=FilterBuilders.geoDistanceFilter(name).lat(lat).lon(lon).distance(distance,DistanceUnit.METERS);
   filterBuilders.add(fb);
 }
