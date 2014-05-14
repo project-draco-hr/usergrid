@@ -1,3 +1,10 @@
 {
-  throw new UnsupportedOperationException("Not supported yet.");
+  Entity entity=get(entityRef);
+  if (entity == null) {
+    logger.warn("Entity {}/{} not found ",entityRef.getUuid(),entityRef.getType());
+    return null;
+  }
+  A ret=EntityFactory.newEntity(entityRef.getUuid(),entityRef.getType(),entityClass);
+  ret.setProperties(entity.getProperties());
+  return ret;
 }
