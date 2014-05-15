@@ -5,7 +5,7 @@
     logger.info(application.getValue() + " : " + application.getKey());
     JsonGenerator jg=getJsonGenerator(createOutputFile("application",application.getValue()));
     EntityManager rootEm=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
-    Entity appEntity=rootEm.get(application.getKey(),"application");
+    Entity appEntity=rootEm.get(new SimpleEntityRef("application",application.getKey()));
     Map<String,Object> dictionaries=new HashMap<String,Object>();
     for (    String dictionary : rootEm.getDictionaries(appEntity)) {
       Map<Object,Object> dict=rootEm.getDictionaryAsMap(appEntity,dictionary);
@@ -15,7 +15,7 @@
       dictionaries.put(dictionary,dict);
     }
     EntityManager em=emf.getEntityManager(application.getKey());
-    Entity nsEntity=em.get(application.getKey(),"application");
+    Entity nsEntity=em.get(new SimpleEntityRef("application",application.getKey()));
     Set<String> collections=em.getApplicationCollections();
     Map<String,Long> entityCounters=em.getApplicationCounters();
     nsEntity.setMetadata("organization",organization);

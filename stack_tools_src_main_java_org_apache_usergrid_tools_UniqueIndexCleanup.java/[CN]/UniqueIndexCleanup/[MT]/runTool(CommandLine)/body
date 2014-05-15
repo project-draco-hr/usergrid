@@ -44,18 +44,18 @@
                 setEqualityFlag(existingEntryFinish,ComponentEquality.GREATER_THAN_EQUAL);
                 List<HColumn<ByteBuffer,ByteBuffer>> entries=cass.getColumns(ko,ENTITY_INDEX_ENTRIES,id,existingEntryStart,existingEntryFinish,INDEX_ENTRY_LIST_COUNT,false);
                 if (entries.size() == 0) {
-                  logger.info("Could not find reference to value '{}' for property '{}' on entity " + "{} in collection {}. " + " Forcing reindex",new Object[]{propValue,prop,id,collectionName});
+                  logger.info("Could not find reference to value '{}' property '{}'" + " on entity {} in collection {}. " + " Forcing reindex",new Object[]{propValue,prop,id,collectionName});
                   addDeleteToMutator(m,ENTITY_INDEX,rowKey,index.getName().duplicate(),timestamp);
                   reIndex=true;
                 }
                 if (entries.size() > 1) {
-                  logger.info("Found more than 1 entity referencing unique index for property '{}' " + "with value " + "'{}'",prop,propValue);
+                  logger.info("Found more than 1 entity referencing unique index " + "for property '{}' with value " + "'{}'",prop,propValue);
                   reIndex=true;
                 }
               }
             }
             if (reIndex) {
-              Entity entity=em.get(id,type);
+              Entity entity=em.get(new SimpleEntityRef(type,id));
               if (entity == null) {
                 logger.warn("Entity with id {} did not exist in app {}",id,applicationId);
                 m.execute();
