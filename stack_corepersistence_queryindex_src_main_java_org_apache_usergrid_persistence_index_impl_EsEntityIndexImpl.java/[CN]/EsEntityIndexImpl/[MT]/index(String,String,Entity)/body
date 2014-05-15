@@ -11,10 +11,8 @@
     timer.start();
   }
   Map<String,Object> entityAsMap=EsEntityIndexImpl.entityToMap(entity);
-  entityAsMap.put("created",entity.getId().getUuid().timestamp());
-  entityAsMap.put("updated",entity.getVersion().timestamp());
-  entityAsMap.put(ENTITYID_FIELDNAME,entity.getId().getUuid().toString());
   entityAsMap.put(COLLECTION_SCOPE_FIELDNAME,targetScope);
+  entityAsMap.put(ENTITYID_FIELDNAME,entity.getId().getUuid().toString());
   log.debug("Indexing entity: " + entityAsMap);
   String indexId=EsEntityIndexImpl.this.createIndexDocId(entity);
   IndexRequestBuilder irb=client.prepareIndex(indexName,estype,indexId).setSource(entityAsMap).setRefresh(refresh);
