@@ -1,0 +1,27 @@
+{
+  return Observable.just(edge).flatMap(new Func1<MarkedEdge,Observable<? extends MarkedEdge>>(){
+    @Override public Observable<? extends MarkedEdge> call(    final MarkedEdge edge){
+      return getEdgeVersions(scope,edge,commitLogSerialization).take(1).doOnNext(new Action1<MarkedEdge>(){
+        @Override public void call(        final MarkedEdge markedEdge){
+          if (edge.equals(markedEdge)) {
+            LOG.info("Removing edge {} ",edge);
+            try {
+              storageSerialization.deleteEdge(scope,edge).execute();
+            }
+ catch (            ConnectionException e) {
+              throw new RuntimeException("Unable to remove edge from storage",e);
+            }
+            try {
+              commitLogSerialization.deleteEdge(scope,edge).execute();
+            }
+ catch (            ConnectionException e) {
+              throw new RuntimeException("Unable to remove edge from commitlog",e);
+            }
+          }
+        }
+      }
+);
+    }
+  }
+);
+}

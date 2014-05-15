@@ -1,9 +1,10 @@
 {
   EdgeUtils.validateEdge(edge);
-  return HystrixGraphObservable.user(Observable.from(edge).subscribeOn(Schedulers.io()).map(new Func1<Edge,Edge>(){
-    @Override public Edge call(    final Edge edge){
-      final MutationBatch edgeMutation=commitLogSerialization.markEdge(scope,edge);
-      final AsynchronousMessage<EdgeEvent<Edge>> event=edgeDeleteAsyncProcessor.setVerification(new EdgeEvent<>(scope,edge.getVersion(),edge),getTimeout());
+  final MarkedEdge markedEdge=new SimpleMarkedEdge(edge,true);
+  return HystrixGraphObservable.user(Observable.from(markedEdge).subscribeOn(Schedulers.io()).map(new Func1<MarkedEdge,Edge>(){
+    @Override public Edge call(    final MarkedEdge edge){
+      final MutationBatch edgeMutation=commitLogSerialization.writeEdge(scope,edge);
+      final AsynchronousMessage<EdgeEvent<MarkedEdge>> event=edgeDeleteAsyncProcessor.setVerification(new EdgeEvent<>(scope,edge.getVersion(),edge),getTimeout());
       try {
         LOG.debug("Marking edge {} as deleted to commit log",edge);
         edgeMutation.execute();

@@ -1,6 +1,6 @@
 {
-  MarkedEdge first=createEdge("source","edge","target");
-  MarkedEdge second=createEdge(first.getSourceNode(),first.getType(),createId("target"),first.getVersion());
-  int compare=MergedEdgeReaderImpl.SourceEdgeComparator.INSTANCE.compare(first,second);
+  MergedEdgeReaderImpl.SourceAwareMarkedEdge first=new MergedEdgeReaderImpl.SourceAwareMarkedEdge(createEdge("source","edge","target"),edgeSerialization);
+  MergedEdgeReaderImpl.SourceAwareMarkedEdge second=new MergedEdgeReaderImpl.SourceAwareMarkedEdge(createEdge(first.edge.getSourceNode(),first.edge.getType(),createId("target"),first.edge.getVersion()),edgeSerialization);
+  int compare=new MergedEdgeReaderImpl.SourceEdgeComparator(edgeSerialization).compare(first,second);
   assertTrue("Second node has new target",compare < 0);
 }
