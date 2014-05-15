@@ -29,7 +29,8 @@
   addDeleteToMutator(batch,ENTITY_ID_SETS,collections_key,entity.getUuid(),timestamp);
   addDeleteToMutator(batch,ENTITY_COMPOSITE_DICTIONARIES,key(entity.getUuid(),Schema.DICTIONARY_CONTAINER_ENTITIES),asList(headEntity.getType(),collectionName,headEntity.getUuid()),timestamp);
   if (!headEntity.getType().equalsIgnoreCase(TYPE_APPLICATION) && !Schema.isAssociatedEntityType(entity.getType())) {
-    em.deleteEntity(new SimpleCollectionRef(headEntity,collectionName,entity).getUuid());
+    CollectionRef cref=new SimpleCollectionRef(headEntity,collectionName,entity);
+    em.delete(new SimpleEntityRef(cref.getType(),cref.getUuid()));
   }
   return batch;
 }

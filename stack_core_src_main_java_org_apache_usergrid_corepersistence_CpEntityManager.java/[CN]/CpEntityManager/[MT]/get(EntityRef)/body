@@ -1,3 +1,15 @@
 {
-  return get(entityRef.getUuid(),entityRef.getType());
+  Id id=new SimpleId(entityRef.getUuid(),entityRef.getType());
+  String collectionName=Schema.defaultCollectionName(entityRef.getType());
+  CollectionScope collectionScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),collectionName);
+  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
+  org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(id).toBlockingObservable().last();
+  if (cpEntity == null) {
+    return null;
+  }
+  Entity entity=new DynamicEntity(entityRef.getType(),cpEntity.getId().getUuid());
+  entity.setUuid(cpEntity.getId().getUuid());
+  Map<String,Object> entityMap=CpEntityMapUtils.toMap(cpEntity);
+  entity.addProperties(entityMap);
+  return entity;
 }
