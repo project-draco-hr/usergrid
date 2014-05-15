@@ -10,7 +10,7 @@
       final List<Observable<Integer>> checks=new ArrayList<Observable<Integer>>(types.size());
       for (      final String subType : types) {
         LOG.debug("Checking for edges with nodeId {}, type {}, and subtype {}",node,edgeType,subType);
-        Observable<Integer> search=serialization.loadEdges(scope,node,edgeType,subType,version).subscribeOn(Schedulers.io()).take(1).count().doOnNext(new Action1<Integer>(){
+        Observable<Integer> search=serialization.loadEdges(scope,node,edgeType,subType,version).doOnNext(RX_LOG).take(1).count().doOnNext(new Action1<Integer>(){
           @Override public void call(          final Integer count){
             if (count != 0) {
               LOG.debug("Found edge with nodeId {}, type {}, " + "and subtype {}. Not removing subtype. ",node,edgeType,subType);

@@ -1,10 +1,10 @@
 {
-  Edge edge=createEdge("source","test","target");
-  storageEdgeSerialization.writeEdge(scope,edge).execute();
+  MarkedEdge edge=createEdge("source","test","target");
+  storageEdgeSerialization.writeEdge(scope,edge,UUIDGenerator.newTimeUUID()).execute();
   edgeMetadataSerialization.writeEdge(scope,edge).execute();
   int value=edgeMetaRepair.repairSources(scope,edge.getSourceNode(),edge.getType(),edge.getVersion()).toBlockingObservable().single();
   assertEquals("No subtypes removed, edge exists",1,value);
-  storageEdgeSerialization.deleteEdge(scope,edge).execute();
+  storageEdgeSerialization.deleteEdge(scope,edge,UUIDGenerator.newTimeUUID()).execute();
   value=edgeMetaRepair.repairSources(scope,edge.getSourceNode(),edge.getType(),edge.getVersion()).toBlockingObservable().single();
   assertEquals("Single subtype should be removed",0,value);
   Iterator<String> edgeTypes=edgeMetadataSerialization.getEdgeTypesFromSource(scope,new SimpleSearchEdgeType(edge.getSourceNode(),null));
