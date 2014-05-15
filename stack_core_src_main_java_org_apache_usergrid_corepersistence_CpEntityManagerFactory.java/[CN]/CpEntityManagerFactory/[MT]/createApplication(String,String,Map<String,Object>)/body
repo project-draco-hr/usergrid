@@ -1,0 +1,11 @@
+{
+  String appName=buildAppName(orgName,name);
+  UUID applicationId=lookupApplication(appName);
+  if (applicationId != null) {
+    throw new ApplicationAlreadyExistsException(name);
+  }
+  applicationId=UUIDGenerator.newTimeUUID();
+  logger.debug("New application id " + applicationId.toString());
+  initializeApplication(orgName,applicationId,appName,properties);
+  return applicationId;
+}

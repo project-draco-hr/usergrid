@@ -1,0 +1,19 @@
+{
+  Map<Runner,State> states=new HashMap<Runner,State>(runners.size());
+  for (  Runner runner : runners) {
+    trustRunner(runner.getUrl());
+    DefaultClientConfig clientConfig=new DefaultClientConfig();
+    Client client=Client.create(clientConfig);
+    WebResource resource=client.resource(runner.getUrl()).path(Runner.RESET_POST);
+    BaseResult response=resource.type(MediaType.APPLICATION_JSON).post(BaseResult.class);
+    if (!response.getStatus()) {
+      LOG.warn("Tests at runner {} could not be reset.",runner.getUrl());
+      LOG.warn(response.getMessage());
+      states.put(runner,null);
+    }
+ else {
+      states.put(runner,response.getState());
+    }
+  }
+  return states;
+}

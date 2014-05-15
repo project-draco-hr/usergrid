@@ -1,0 +1,20 @@
+{
+  LOG.info("\n===RunDaoTest.getMapWithRunners===\n");
+  Collection<Runner> twoRunners=new ArrayList<Runner>();
+  Collection<List<Runner>> runners=ESSuiteTest.runnerDao.getRunnersGrouped().values();
+  for (  List<Runner> runnerList : runners) {
+    for (    Runner runner : runnerList) {
+      if (runner.getHostname().equals(ESSuiteTest.RUNNER_HOSTNAME_1) || runner.getHostname().equals(ESSuiteTest.RUNNER_HOSTNAME_2)) {
+        twoRunners.add(runner);
+      }
+    }
+  }
+  assertEquals(2,twoRunners.size());
+  Map<String,Run> runs=ESSuiteTest.runDao.getMap(ESSuiteTest.COMMIT_ID_1,2,ESSuiteTest.TEST_NAME_2,twoRunners);
+  assertEquals(2,runs.size());
+  for (  String runId : runs.keySet()) {
+    LOG.info("{}: {}",runId,runs.get(runId));
+    assertTrue(runId.equals(ESSuiteTest.RUN_ID_6) || runId.equals(ESSuiteTest.RUN_ID_7));
+    assertEquals(122,runs.get(runId).getTotalTestsRun());
+  }
+}

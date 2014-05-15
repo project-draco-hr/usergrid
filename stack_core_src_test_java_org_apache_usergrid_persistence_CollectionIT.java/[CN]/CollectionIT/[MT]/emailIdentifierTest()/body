@@ -1,4 +1,5 @@
 {
+  LOG.debug("emailIdentifierTest");
   UUID applicationId=setup.createApplication("testOrganization","emailIdentifierTest");
   assertNotNull(applicationId);
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
@@ -13,6 +14,7 @@
   user2.setEmail("foobar2@usergrid.org");
   Entity createUser2=em.create(user2);
   assertNotNull(createUser2);
+  em.refreshIndex();
   Query query=new Query();
   query.addIdentifier(Identifier.fromEmail("foobar@usergrid.org"));
   Results r=em.searchCollection(em.getApplicationRef(),"users",query);

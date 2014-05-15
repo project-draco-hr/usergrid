@@ -1,0 +1,29 @@
+{
+  Field field=null;
+  Map<String,Object> m=(Map<String,Object>)value;
+  if (m.size() == 2) {
+    Double lat=null;
+    Double lon=null;
+    try {
+      if (m.get("latitude") != null && m.get("longitude") != null) {
+        lat=Double.parseDouble(m.get("latitude").toString());
+        lon=Double.parseDouble(m.get("longitude").toString());
+      }
+ else       if (m.get("lat") != null && m.get("lon") != null) {
+        lat=Double.parseDouble(m.get("lat").toString());
+        lon=Double.parseDouble(m.get("lon").toString());
+      }
+    }
+ catch (    NumberFormatException ignored) {
+    }
+    if (lat != null && lon != null) {
+      field=new LocationField(fieldName,new Location(lat,lon));
+    }
+  }
+  if (field == null) {
+    entity.setField(new EntityObjectField(fieldName,fromMap((Map<String,Object>)value,entityType,false)));
+  }
+ else {
+    entity.setField(field);
+  }
+}

@@ -16,7 +16,7 @@
   assertEquals("should be ten entities",10,things.size());
   i=0;
   for (  Entity entity : things) {
-    Entity thing=em.get(entity.getUuid());
+    Entity thing=em.get(new SimpleEntityRef("thing",entity.getUuid()));
     assertNotNull("thing should not be null",thing);
     assertFalse("thing id not valid",thing.getUuid().equals(new UUID(0,0)));
     assertEquals("name not expected value","thing" + i,thing.getProperty("name"));
@@ -25,7 +25,7 @@
   List<UUID> ids=new ArrayList<UUID>();
   for (  Entity entity : things) {
     ids.add(entity.getUuid());
-    Entity en=em.get(entity.getUuid());
+    Entity en=em.get(new SimpleEntityRef("thing",entity.getUuid()));
     String type=en.getType();
     assertEquals("type not expected value","thing",type);
     Object property=en.getProperty("name");
@@ -35,7 +35,7 @@
     assertEquals("number of properties wrong",5,properties.size());
   }
   i=0;
-  Results results=em.get(ids,Results.Level.CORE_PROPERTIES);
+  Results results=em.getEntities(ids,"thing");
   for (  Entity thing : results) {
     assertNotNull("thing should not be null",thing);
     assertFalse("thing id not valid",thing.getUuid().equals(new UUID(0,0)));

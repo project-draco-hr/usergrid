@@ -1,0 +1,30 @@
+{
+  Results results=null;
+  if (query.getLevel().equals(Level.IDS)) {
+    List<UUID> ids=new ArrayList<UUID>();
+    for (    Id id : cpResults.getIds()) {
+      ids.add(id.getUuid());
+    }
+    results=Results.fromIdList(ids);
+  }
+ else   if (query.getLevel().equals(Level.REFS)) {
+    List<EntityRef> entityRefs=new ArrayList<EntityRef>();
+    for (    Id id : cpResults.getIds()) {
+      entityRefs.add(new SimpleEntityRef(id.getType(),id.getUuid()));
+    }
+    results=Results.fromRefList(entityRefs);
+  }
+ else {
+    List<Entity> entities=new ArrayList<Entity>();
+    for (    org.apache.usergrid.persistence.model.entity.Entity e : cpResults.getEntities()) {
+      Entity entity=EntityFactory.newEntity(e.getId().getUuid(),e.getField("type").getValue().toString());
+      Map<String,Object> entityMap=CpEntityMapUtils.toMap(e);
+      entity.addProperties(entityMap);
+      entities.add(entity);
+    }
+    results=Results.fromEntities(entities);
+  }
+  results.setCursor(cpResults.getCursor());
+  results.setQueryProcessor(new CpQueryProcessor(em,headEntity,collName));
+  return results;
+}

@@ -1,0 +1,10 @@
+{
+  Query q=Query.fromQL("select *");
+  EntityIndex ei=getManagerCache().getEntityIndex(SYSTEM_ORG_SCOPE,SYSTEM_APPS_SCOPE);
+  Results results=ei.search(SYSTEM_APPS_SCOPE,q);
+  Map<String,UUID> appMap=new HashMap<String,UUID>();
+  for (  Entity e : results.getEntities()) {
+    appMap.put((String)e.getField(PROPERTY_NAME).getValue(),(UUID)e.getField(PROPERTY_UUID).getValue());
+  }
+  return appMap;
+}

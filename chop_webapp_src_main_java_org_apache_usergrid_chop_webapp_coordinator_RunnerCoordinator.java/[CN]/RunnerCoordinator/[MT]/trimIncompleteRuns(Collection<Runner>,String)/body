@@ -1,0 +1,12 @@
+{
+  for (  Runner runner : runners) {
+    Integer lastRunNumber=lastRunNumbers.get(runner);
+    List<Run> runs=runDao.getRuns(runner.getHostname(),commitId);
+    for (    Run run : runs) {
+      if (run.getRunNumber() == lastRunNumber) {
+        LOG.info("Removing incomplete Run {}",run);
+        runDao.delete(run);
+      }
+    }
+  }
+}

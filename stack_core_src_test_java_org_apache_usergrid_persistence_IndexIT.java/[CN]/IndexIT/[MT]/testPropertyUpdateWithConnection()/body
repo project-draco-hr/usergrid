@@ -10,6 +10,7 @@
   Entity entity1Ref=em.create("names",entity1);
   Entity entity2Ref=em.create("names",entity2);
   em.createConnection(entity2Ref,"connecting",entity1Ref);
+  em.refreshIndex();
   Query query=Query.fromQL("select * where status = 'pickled'");
   Results r=em.searchCollection(em.getApplicationRef(),"names",query);
   assertEquals(1,r.size());
@@ -19,6 +20,7 @@
   assertEquals(entity1Ref.getUuid(),r.getEntity().getUuid());
   entity1Ref.setProperty("status","herring");
   em.update(entity1Ref);
+  em.refreshIndex();
   query=Query.fromQL("select * where status = 'pickled'");
   r=em.searchCollection(em.getApplicationRef(),"names",query);
   assertEquals(0,r.size());

@@ -2,7 +2,7 @@
   Preconditions.checkNotNull(field,"field is required");
   ColumnList<EntityVersion> result;
   try {
-    result=keyspace.prepareQuery(CF_UNIQUE_VALUES).getKey(ScopedRowKey.fromKey(colScope,field)).execute().getResult();
+    result=keyspace.prepareQuery(CF_UNIQUE_VALUES).getKey(ScopedRowKey.fromKey(colScope,field)).withColumnRange(new RangeBuilder().setLimit(1).build()).execute().getResult();
   }
  catch (  NotFoundException nfe) {
     return null;

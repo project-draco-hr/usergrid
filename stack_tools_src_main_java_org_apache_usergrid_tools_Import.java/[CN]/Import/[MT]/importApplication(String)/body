@@ -30,7 +30,7 @@
   @SuppressWarnings("unchecked") Map<String,Object> dictionaries=(Map<String,Object>)application.getMetadata("dictionaries");
   if (dictionaries != null) {
     EntityManager rootEm=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
-    Entity appEntity=rootEm.get(appId);
+    Entity appEntity=rootEm.get(new SimpleEntityRef("application",appId));
     for (    Entry<String,Object> dictionary : dictionaries.entrySet()) {
       @SuppressWarnings("unchecked") Map<Object,Object> value=(Map<Object,Object>)dictionary.getValue();
       em.addMapToDictionary(appEntity,dictionary.getKey(),value);
@@ -51,8 +51,8 @@
       logger.error("Unable to create entity.  It appears to be a duplicate",de);
       continue;
     }
-    if (em.get(uuid) == null) {
-      logger.error("Holy hell, we wrote an entity and it's missing.  Entity Id was {} and type is {}",uuid,type);
+    if (em.get(new SimpleEntityRef(type,uuid)) == null) {
+      logger.error("Holy hell, we wrote an entity and it's missing.  " + "Entity Id was {} and type is {}",uuid,type);
       System.exit(1);
     }
     logger.info("Counts {}",JsonUtils.mapToFormattedJsonString(em.getApplicationCounters()));
