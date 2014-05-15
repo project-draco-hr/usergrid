@@ -1,7 +1,8 @@
 {
   ValidationUtils.validateOrganizationScope(scope);
   EdgeUtils.validateEdge(markedEdge);
-  final MutationBatch batch=keyspace.prepareMutationBatch().withConsistencyLevel(cassandraConfig.getWriteCL());
+  ValidationUtils.verifyTimeUuid(timestamp,"timestamp");
+  final MutationBatch batch=keyspace.prepareMutationBatch().withConsistencyLevel(cassandraConfig.getWriteCL()).withTimestamp(timestamp.timestamp());
   final boolean isDeleted=markedEdge.isDeleted();
   doWrite(scope,markedEdge,new RowOp<RowKey>(){
     @Override public void writeEdge(    final MultiTennantColumnFamily<OrganizationScope,RowKey,DirectedEdge> columnFamily,    final RowKey rowKey,    final DirectedEdge edge){

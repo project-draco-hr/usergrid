@@ -1,2 +1,33 @@
 {
+  ColumnFamily<String,String> cf=new ColumnFamily<>("test",StringSerializer.get(),StringSerializer.get());
+  if (keyspace.describeKeyspace().getColumnFamily("test") == null) {
+    keyspace.createColumnFamily(cf,new HashMap<String,Object>());
+  }
+  final String rowKey="test";
+  final String colName="colName" + UUID.randomUUID();
+  final long timestamp=100l;
+  MutationBatch batch=keyspace.prepareMutationBatch().withConsistencyLevel(ConsistencyLevel.CL_QUORUM).setTimestamp(timestamp);
+  batch.withRow(cf,rowKey).putColumn(colName,true);
+  batch.execute();
+  Column<String> column=keyspace.prepareQuery(cf).getKey(rowKey).getColumn(colName).execute().getResult();
+  assertEquals(colName,column.getName());
+  assertTrue(column.getBooleanValue());
+  batch=keyspace.prepareMutationBatch().withConsistencyLevel(ConsistencyLevel.CL_QUORUM).setTimestamp(timestamp);
+  batch.withRow(cf,rowKey).deleteColumn(colName);
+  batch.execute();
+  try {
+    column=keyspace.prepareQuery(cf).getKey(rowKey).getColumn(colName).execute().getResult();
+    fail("I shouldn't return a value");
+  }
+ catch (  NotFoundException nfe) {
+  }
+  batch=keyspace.prepareMutationBatch().withConsistencyLevel(ConsistencyLevel.CL_QUORUM).setTimestamp(timestamp);
+  batch.withRow(cf,rowKey).putColumn(colName,true);
+  batch.execute();
+  try {
+    column=keyspace.prepareQuery(cf).getKey(rowKey).getColumn(colName).execute().getResult();
+    fail("I shouldn't return a value");
+  }
+ catch (  NotFoundException nfe) {
+  }
 }

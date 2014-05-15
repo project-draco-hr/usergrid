@@ -1,26 +1,26 @@
 {
   final Id node=edgeEvent.getData();
   final OrganizationScope scope=edgeEvent.getOrganizationScope();
-  final UUID version=edgeEvent.getVersion();
-  return Observable.from(node).flatMap(new Func1<Id,Observable<MarkedEdge>>(){
-    @Override public Observable<MarkedEdge> call(    final Id node){
-      Optional<UUID> maxVersion=nodeSerialization.getMaxVersion(scope,node);
+  return Observable.from(node).flatMap(new Func1<Id,Observable<Integer>>(){
+    @Override public Observable<Integer> call(    final Id node){
+      final Optional<UUID> maxVersion=nodeSerialization.getMaxVersion(scope,node);
       LOG.debug("Node with id {} has max version of {}",node,maxVersion.orNull());
       if (!maxVersion.isPresent()) {
         return Observable.empty();
       }
-      return doDeletes(node,scope,maxVersion.get());
-    }
-  }
-).count().defaultIfEmpty(0).doOnCompleted(new Action0(){
-    @Override public void call(){
-      try {
-        nodeSerialization.delete(scope,node,version).execute();
+      maxVersion.get();
+      return doDeletes(node,scope,maxVersion.get()).count().doOnCompleted(new Action0(){
+        @Override public void call(){
+          try {
+            nodeSerialization.delete(scope,node,maxVersion.get()).execute();
+          }
+ catch (          ConnectionException e) {
+            throw new RuntimeException("Unable to delete marked graph node " + node,e);
+          }
+        }
       }
- catch (      ConnectionException e) {
-        throw new RuntimeException("Unable to delete marked graph node " + node,e);
-      }
-    }
-  }
 );
+    }
+  }
+).defaultIfEmpty(0);
 }

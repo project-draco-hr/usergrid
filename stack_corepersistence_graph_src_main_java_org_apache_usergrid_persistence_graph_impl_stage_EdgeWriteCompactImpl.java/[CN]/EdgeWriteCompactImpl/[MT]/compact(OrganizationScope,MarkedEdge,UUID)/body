@@ -12,8 +12,8 @@
       final MutationBatch commitlogCleanBatch=keyspace.prepareMutationBatch();
       for (      MarkedEdge edge : markedEdges) {
         LOG.debug("Buffering edge {} to permanent storage and removing from commitlog",edge);
-        storageWriteBatch.mergeShallow(permanentStorage.writeEdge(scope,edge));
-        commitlogCleanBatch.mergeShallow(commitLog.deleteEdge(scope,edge));
+        storageWriteBatch.mergeShallow(permanentStorage.writeEdge(scope,edge,timestamp));
+        commitlogCleanBatch.mergeShallow(commitLog.deleteEdge(scope,edge,timestamp));
       }
       try {
         storageWriteBatch.execute();

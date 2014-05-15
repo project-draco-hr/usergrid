@@ -3,8 +3,9 @@
   final Id sourceId=edge1.getSourceNode();
   final Id targetId=edge1.getTargetNode();
   final MarkedEdge edge2=createEdge(sourceId,"edge2",targetId);
-  serialization.writeEdge(scope,edge1).execute();
-  serialization.writeEdge(scope,edge2).execute();
+  UUID timestamp=UUIDGenerator.newTimeUUID();
+  serialization.writeEdge(scope,edge1,timestamp).execute();
+  serialization.writeEdge(scope,edge2,timestamp).execute();
   UUID now=UUIDGenerator.newTimeUUID();
   Iterator<MarkedEdge> results=serialization.getEdgesFromSource(scope,createSearchByEdge(sourceId,"edge1",now,null));
   assertEquals(edge1,results.next());

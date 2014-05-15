@@ -2,7 +2,7 @@
   final MarkedEdge edge=delete.getData();
   final OrganizationScope scope=delete.getOrganizationScope();
   final UUID maxVersion=edge.getVersion();
-  return edgeDeleteRepair.repair(scope,edge).flatMap(new Func1<MarkedEdge,Observable<Integer>>(){
+  return edgeDeleteRepair.repair(scope,edge,delete.getTimestamp()).flatMap(new Func1<MarkedEdge,Observable<Integer>>(){
     @Override public Observable<Integer> call(    final MarkedEdge markedEdge){
       Observable<Integer> sourceDelete=edgeMetaRepair.repairSources(scope,edge.getSourceNode(),edge.getType(),maxVersion);
       Observable<Integer> targetDelete=edgeMetaRepair.repairTargets(scope,edge.getTargetNode(),edge.getType(),maxVersion);
