@@ -1,3 +1,28 @@
 {
-  testSingleLocation(commitLogEdgeSerialization);
+  final Id sourceId=createId("source");
+  final Id targetId=createId("target");
+  final String edgeType="edge";
+  final MarkedEdge edge1=createMarkedEdge(sourceId,edgeType,targetId);
+  commitLogEdgeSerialization.writeEdge(scope,edge1).execute();
+  final MarkedEdge edge1NotDeleted=createEdge(edge1.getSourceNode(),edgeType,edge1.getTargetNode(),edge1.getVersion(),false);
+  storageEdgeSerialization.writeEdge(scope,edge1NotDeleted).execute();
+  final MarkedEdge edge2=createEdge(sourceId,edgeType,targetId);
+  commitLogEdgeSerialization.writeEdge(scope,edge2).execute();
+  storageEdgeSerialization.writeEdge(scope,edge2).execute();
+  Iterator<MarkedEdge> itr=commitLogEdgeSerialization.getEdgeVersions(scope,new SimpleSearchByEdge(sourceId,edgeType,targetId,UUIDGenerator.newTimeUUID(),null));
+  assertEquals(edge2,itr.next());
+  assertEquals(edge1,itr.next());
+  assertFalse(itr.hasNext());
+  itr=storageEdgeSerialization.getEdgeVersions(scope,new SimpleSearchByEdge(sourceId,edgeType,targetId,UUIDGenerator.newTimeUUID(),null));
+  assertEquals(edge2,itr.next());
+  assertEquals(edge1NotDeleted,itr.next());
+  assertFalse(itr.hasNext());
+  MarkedEdge deleted=edgeDeleteRepair.repair(scope,edge1).toBlockingObservable().single();
+  assertEquals(edge1,deleted);
+  itr=commitLogEdgeSerialization.getEdgeVersions(scope,new SimpleSearchByEdge(sourceId,edgeType,targetId,UUIDGenerator.newTimeUUID(),null));
+  assertEquals(edge2,itr.next());
+  assertFalse(itr.hasNext());
+  itr=storageEdgeSerialization.getEdgeVersions(scope,new SimpleSearchByEdge(sourceId,edgeType,targetId,UUIDGenerator.newTimeUUID(),null));
+  assertEquals(edge2,itr.next());
+  assertFalse(itr.hasNext());
 }

@@ -2,36 +2,14 @@
   final Id node=edgeEvent.getData();
   final OrganizationScope scope=edgeEvent.getOrganizationScope();
   final UUID version=edgeEvent.getVersion();
-  return Observable.from(node).subscribeOn(Schedulers.io()).map(new Func1<Id,Optional<UUID>>(){
-    @Override public Optional<UUID> call(    final Id id){
-      return nodeSerialization.getMaxVersion(scope,node);
-    }
-  }
-).takeWhile(new Func1<Optional<UUID>,Boolean>(){
-    @Override public Boolean call(    final Optional<UUID> uuidOptional){
-      LOG.debug("Node with id {} has max version of {}",node,uuidOptional.orNull());
-      return uuidOptional.isPresent();
-    }
-  }
-).flatMap(new Func1<Optional<UUID>,Observable<MarkedEdge>>(){
-    @Override public Observable<MarkedEdge> call(    final Optional<UUID> uuidOptional){
-      Observable<MarkedEdge> commitLogRemovals=doDeletes(commitLogSerialization,new NodeMutator(){
-        @Override public MutationBatch doDeleteMutation(        final OrganizationScope scope,        final MarkedEdge edge){
-          final MutationBatch commitBatch=commitLogSerialization.deleteEdge(scope,edge);
-          final MutationBatch storageBatch=storageSerialization.deleteEdge(scope,edge);
-          commitBatch.mergeShallow(storageBatch);
-          return commitBatch;
-        }
+  return Observable.from(node).flatMap(new Func1<Id,Observable<MarkedEdge>>(){
+    @Override public Observable<MarkedEdge> call(    final Id node){
+      Optional<UUID> maxVersion=nodeSerialization.getMaxVersion(scope,node);
+      LOG.debug("Node with id {} has max version of {}",node,maxVersion.orNull());
+      if (!maxVersion.isPresent()) {
+        return Observable.empty();
       }
-,node,scope,version);
-      Observable<MarkedEdge> storageRemovals=doDeletes(storageSerialization,new NodeMutator(){
-        @Override public MutationBatch doDeleteMutation(        final OrganizationScope scope,        final MarkedEdge edge){
-          final MutationBatch storageBatch=storageSerialization.deleteEdge(scope,edge);
-          return storageBatch;
-        }
-      }
-,node,scope,version);
-      return Observable.merge(commitLogRemovals,storageRemovals);
+      return doDeletes(node,scope,maxVersion.get());
     }
   }
 ).count().defaultIfEmpty(0).doOnCompleted(new Action0(){

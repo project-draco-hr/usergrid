@@ -1,13 +1,13 @@
 {
   Observable<MarkedEdge> targetEdges=getEdgesTypesToTarget(scope,new SimpleSearchEdgeType(node,null)).subscribeOn(Schedulers.io()).flatMap(new Func1<String,Observable<MarkedEdge>>(){
     @Override public Observable<MarkedEdge> call(    final String edgeType){
-      return getEdgesToTarget(serialization,scope,new SimpleSearchByEdgeType(node,edgeType,version,null));
+      return mergedEdgeReader.getEdgesToTarget(scope,new SimpleSearchByEdgeType(node,edgeType,version,null));
     }
   }
 );
   Observable<MarkedEdge> sourceEdges=getEdgesTypesFromSource(scope,new SimpleSearchEdgeType(node,null)).subscribeOn(Schedulers.io()).flatMap(new Func1<String,Observable<MarkedEdge>>(){
     @Override public Observable<MarkedEdge> call(    final String edgeType){
-      return getEdgesFromSource(serialization,scope,new SimpleSearchByEdgeType(node,edgeType,version,null));
+      return mergedEdgeReader.getEdgesFromSource(scope,new SimpleSearchByEdgeType(node,edgeType,version,null));
     }
   }
 );
@@ -15,11 +15,11 @@
     @Override public Observable<MarkedEdge> call(    final List<MarkedEdge> markedEdges){
       LOG.debug("Batching {} edges for node {} for deletion",markedEdges.size(),node);
       final MutationBatch batch=keyspace.prepareMutationBatch();
-      Set<TargetPair> sourceNodes=new HashSet<TargetPair>(markedEdges.size());
-      Set<TargetPair> targetNodes=new HashSet<TargetPair>(markedEdges.size());
+      Set<TargetPair> sourceNodes=new HashSet<>(markedEdges.size());
+      Set<TargetPair> targetNodes=new HashSet<>(markedEdges.size());
       for (      MarkedEdge edge : markedEdges) {
-        final MutationBatch delete=mutator.doDeleteMutation(scope,edge);
-        batch.mergeShallow(delete);
+        batch.mergeShallow(commitLogSerialization.deleteEdge(scope,edge));
+        batch.mergeShallow(storageSerialization.deleteEdge(scope,edge));
         sourceNodes.add(new TargetPair(edge.getSourceNode(),edge.getType()));
         targetNodes.add(new TargetPair(edge.getTargetNode(),edge.getType()));
       }
@@ -43,7 +43,7 @@
         }
       }
 ).last();
-      return Observable.merge(sourceMetaCleanup,targetMetaCleanup).last().flatMap(new Func1<Integer,Observable<MarkedEdge>>(){
+      return Observable.merge(sourceMetaCleanup,targetMetaCleanup).lastOrDefault(null).flatMap(new Func1<Integer,Observable<MarkedEdge>>(){
         @Override public Observable<MarkedEdge> call(        final Integer integer){
           return Observable.from(markedEdges);
         }
