@@ -5,20 +5,20 @@
   try {
     if (jobStatus == Status.COMPLETED) {
       LOG.info("Job {} is complete id: {}",data.getJobName(),bulkJobExecution.getTransactionId());
-      qm.deleteTransaction(jobQueueName,bulkJobExecution.getTransactionId(),null);
+      getQm().deleteTransaction(jobQueueName,bulkJobExecution.getTransactionId(),null);
       LOG.debug("delete job data {}",data.getUuid());
-      em.delete(data);
+      getEm().delete(data);
     }
  else     if (jobStatus == Status.DEAD) {
       LOG.warn("Job {} is dead.  Removing",data.getJobName());
-      qm.deleteTransaction(jobQueueName,bulkJobExecution.getTransactionId(),null);
-      em.update(data);
+      getQm().deleteTransaction(jobQueueName,bulkJobExecution.getTransactionId(),null);
+      getEm().update(data);
     }
  else {
-      em.update(data);
+      getEm().update(data);
     }
     LOG.info("Updating stats for job {}",data.getJobName());
-    em.update(stat);
+    getEm().update(stat);
   }
  catch (  Exception e) {
     throw new JobRuntimeException(String.format("Unable to delete job data with id %s",data.getUuid()),e);
