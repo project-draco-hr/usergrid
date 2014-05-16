@@ -1,0 +1,28 @@
+{
+  log.debug("Indexing entity:  " + entity.getId().toString());
+  log.debug("    Index Name:   " + this.indexName);
+  log.debug("    ES Type:      " + this.indexType);
+  ValidationUtils.verifyEntityWrite(entity);
+  initType(indexType);
+  StopWatch timer=null;
+  if (log.isDebugEnabled()) {
+    timer=new StopWatch();
+    timer.start();
+  }
+  Map<String,Object> entityAsMap=EsEntityIndexImpl.entityToMap(entity);
+  log.debug("Indexing entity: " + entityAsMap);
+  String indexId=EsEntityIndexImpl.this.createIndexDocId(entity);
+  IndexRequestBuilder irb=client.prepareIndex(indexName,this.indexType,indexId).setSource(entityAsMap).setRefresh(refresh);
+  irb.execute().actionGet();
+  if (log.isDebugEnabled()) {
+    timer.stop();
+    double average=averageIndexTime.get();
+    if (!averageIndexTime.compareAndSet(0,timer.getTime())) {
+      averageIndexTime.compareAndSet(average,(average + timer.getTime()) / 2.0);
+    }
+    long count=indexedCount.addAndGet(1);
+    if (count % 1000 == 0) {
+      log.debug("Indexed {} entities, average time {}ms",count,averageIndexTime.get());
+    }
+  }
+}
