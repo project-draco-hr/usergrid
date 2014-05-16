@@ -2,18 +2,18 @@
   final Id targetId=createId("target");
   final String edgeType="test";
   final int size=graphFig.getRepairConcurrentSize() * 2;
-  Set<Edge> writtenEdges=new HashSet<Edge>();
+  Set<MarkedEdge> writtenEdges=new HashSet<MarkedEdge>();
   for (int i=0; i < size; i++) {
-    Edge edge=createEdge(createId("source" + i),edgeType,targetId);
-    storageEdgeSerialization.writeEdge(scope,edge).execute();
+    MarkedEdge edge=createEdge(createId("source" + i),edgeType,targetId);
+    storageEdgeSerialization.writeEdge(scope,edge,UUIDGenerator.newTimeUUID()).execute();
     edgeMetadataSerialization.writeEdge(scope,edge).execute();
     writtenEdges.add(edge);
   }
   UUID cleanupVersion=UUIDGenerator.newTimeUUID();
   int value=edgeMetaRepair.repairTargets(scope,targetId,edgeType,cleanupVersion).toBlockingObservable().single();
   assertEquals("No subtypes removed, edges exist",size,value);
-  for (  Edge created : writtenEdges) {
-    storageEdgeSerialization.deleteEdge(scope,created).execute();
+  for (  MarkedEdge created : writtenEdges) {
+    storageEdgeSerialization.deleteEdge(scope,created,UUIDGenerator.newTimeUUID()).execute();
   }
   value=edgeMetaRepair.repairTargets(scope,targetId,edgeType,cleanupVersion).toBlockingObservable().last();
   assertEquals("Subtypes removed",0,value);

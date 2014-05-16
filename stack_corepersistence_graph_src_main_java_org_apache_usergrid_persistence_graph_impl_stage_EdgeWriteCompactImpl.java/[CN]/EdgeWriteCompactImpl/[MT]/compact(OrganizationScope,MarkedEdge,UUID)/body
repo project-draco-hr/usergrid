@@ -1,0 +1,36 @@
+{
+  final Edge writtenEdge=edge;
+  final UUID writeVersion=edge.getVersion();
+  return Observable.create(new ObservableIterator<MarkedEdge>("getEdgeVersions"){
+    @Override protected Iterator<MarkedEdge> getIterator(){
+      return commitLog.getEdgeVersions(scope,new SimpleSearchByEdge(writtenEdge.getSourceNode(),writtenEdge.getType(),writtenEdge.getTargetNode(),writeVersion,null));
+    }
+  }
+).buffer(graphFig.getScanPageSize()).flatMap(new Func1<List<MarkedEdge>,Observable<MarkedEdge>>(){
+    @Override public Observable<MarkedEdge> call(    final List<MarkedEdge> markedEdges){
+      final MutationBatch storageWriteBatch=keyspace.prepareMutationBatch();
+      final MutationBatch commitlogCleanBatch=keyspace.prepareMutationBatch();
+      for (      MarkedEdge edge : markedEdges) {
+        LOG.debug("Buffering edge {} to permanent storage and removing from commitlog",edge);
+        storageWriteBatch.mergeShallow(permanentStorage.writeEdge(scope,edge,timestamp));
+        commitlogCleanBatch.mergeShallow(commitLog.deleteEdge(scope,edge,timestamp));
+      }
+      try {
+        storageWriteBatch.execute();
+        LOG.debug("Storage write executed");
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException("unable to execute mutation",e);
+      }
+      try {
+        commitlogCleanBatch.execute();
+        LOG.debug("Commitlog write executed");
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException("unable to execute mutation",e);
+      }
+      return Observable.from(markedEdges);
+    }
+  }
+).count();
+}
