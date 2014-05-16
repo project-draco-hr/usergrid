@@ -9,9 +9,11 @@
   LOG.info("Starting entity create");
   Entity user=em.create("user",properties);
   LOG.info("Entity created");
+  em.refreshIndex();
   LOG.info("Starting entity delete");
   em.delete(user);
   LOG.info("Entity deleted");
+  em.refreshIndex();
   Results r=em.searchCollection(em.getApplicationRef(),"users",new Query().addEqualityFilter("username",name));
   assertEquals(0,r.size());
   properties=new LinkedHashMap<String,Object>();
@@ -20,6 +22,7 @@
   LOG.info("Starting entity create");
   user=em.create("user",properties);
   LOG.info("Entity created");
+  em.refreshIndex();
   r=em.searchCollection(em.getApplicationRef(),"users",new Query().addEqualityFilter("username",name));
   assertEquals(1,r.size());
   assertEquals(user.getUuid(),r.getEntity().getUuid());

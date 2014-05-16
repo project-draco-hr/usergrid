@@ -5,6 +5,7 @@
   int latchValue=failCount + 1;
   job.setLatch(latchValue);
   JobData returned=scheduler.createJob("failureJobExceuction",System.currentTimeMillis(),new JobData());
+  scheduler.refreshIndex();
   boolean waited=getJobListener().blockTilDone(3,(failCount + 2) * sleepTime + 5000L);
   assertTrue("Jobs ran",waited);
   assertTrue(failCount + " failures resulted",getJobListener().getFailureCount() == failCount);
