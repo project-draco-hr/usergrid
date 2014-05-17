@@ -3,9 +3,13 @@
   try {
     File file=keyService.addFile(username,keyNameField.getValue(),fileName);
     outStream=new FileOutputStream(file);
+    Set<PosixFilePermission> permissions=new HashSet<PosixFilePermission>();
+    permissions.add(PosixFilePermission.OWNER_READ);
+    permissions.add(PosixFilePermission.OWNER_WRITE);
+    Files.setPosixFilePermissions(file.toPath(),permissions);
   }
- catch (  FileNotFoundException e) {
-    LOG.error("Error to upload file: ",e);
+ catch (  IOException e) {
+    LOG.error("Error while setting key file permissions.",e);
   }
   return outStream;
 }
