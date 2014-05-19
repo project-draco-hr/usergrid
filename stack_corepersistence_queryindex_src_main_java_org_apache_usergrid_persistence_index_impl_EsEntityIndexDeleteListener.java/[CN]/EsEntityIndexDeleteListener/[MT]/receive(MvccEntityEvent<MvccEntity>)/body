@@ -1,30 +1,23 @@
 {
   CollectionScope collectionScope=event.getCollectionScope();
-  CollectionScope appScope=new CollectionScopeImpl(collectionScope.getOrganization(),collectionScope.getOwner(),collectionScope.getName());
-  final EntityIndex entityIndex=entityIndexFactory.createEntityIndex(collectionScope,appScope);
-  return Observable.create(new ObservableIterator<MvccEntity>("deleteEsIndexVersions"){
-    @Override protected Iterator<MvccEntity> getIterator(){
-      Results results=entityIndex.getEntityVersions(event.getData().getId(),event.getCollectionScope());
-      Iterator<MvccEntity> iterator=Collections.emptyListIterator();
-      if (results != null) {
-        List<Entity> entities=results.getEntities();
-        List<MvccEntity> mvccEntities=new ArrayList<>();
-        for (        Entity entity : entities) {
-          mvccEntities.add(new EsMvccEntityImpl(entity));
-        }
-        iterator=mvccEntities.iterator();
-      }
-      return iterator;
+  IndexScope indexScope=new IndexScopeImpl(collectionScope.getApplication(),collectionScope.getOwner(),collectionScope.getName());
+  final EntityIndex entityIndex=entityIndexFactory.createEntityIndex(indexScope);
+  return Observable.create(new ObservableIterator<CandidateResult>("deleteEsIndexVersions"){
+    @Override protected Iterator<CandidateResult> getIterator(){
+      CandidateResults results=entityIndex.getEntityVersions(event.getData().getId());
+      return results.iterator();
     }
   }
-).subscribeOn(Schedulers.io()).buffer(serializationFig.getBufferSize()).flatMap(new Func1<List<MvccEntity>,Observable<MvccEntity>>(){
-    @Override public Observable<MvccEntity> call(    List<MvccEntity> entities){
-      for (      MvccEntity entity : entities) {
+).subscribeOn(Schedulers.io()).buffer(serializationFig.getBufferSize()).flatMap(new Func1<List<CandidateResult>,Observable<? extends EntityVersion>>(){
+    @Override public Observable<? extends EntityVersion> call(    List<CandidateResult> candidateResults){
+      List<EntityVersion> versions=new ArrayList<>();
+      for (      CandidateResult entity : candidateResults) {
         if (entity.getVersion().timestamp() <= event.getVersion().timestamp()) {
-          entityIndex.deindex(event.getCollectionScope(),entity.getEntity().get());
+          versions.add(entity);
+          entityIndex.deindex(entity.getId(),entity.getVersion());
         }
       }
-      return Observable.from(entities);
+      return Observable.from(versions);
     }
   }
 );

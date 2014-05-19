@@ -5,18 +5,18 @@
   Entity entity=mock(Entity.class);
   when(entity.getVersion()).thenReturn(uuid);
   when(entity.getId()).thenReturn(entityId);
-  when(eif.createEntityIndex(null,null)).thenReturn(entityIndex);
-  Results results=mock(Results.class);
-  List<Entity> entities=new ArrayList<>();
-  entities.add(entity);
+  when(eif.createEntityIndex(null)).thenReturn(entityIndex);
+  CandidateResults results=mock(CandidateResults.class);
+  Iterator<Entity> entities=mock(Iterator.class);
+  when(entities.hasNext()).thenReturn(true);
+  when(entities.next()).thenReturn(entity);
   when(serializationFig.getBufferSize()).thenReturn(10);
   when(serializationFig.getHistorySize()).thenReturn(20);
-  when(results.getEntities()).thenReturn(entities);
-  when(entityIndex.getEntityVersions(entityId,scope)).thenReturn(results);
+  when(entityIndex.getEntityVersions(entityId)).thenReturn(results);
   MvccEntity mvccEntity=new MvccEntityImpl(entityId,uuid,MvccEntity.Status.COMPLETE,entity);
   MvccEntityEvent<MvccEntity> event=new MvccEntityEvent<MvccEntity>(scope,uuid,mvccEntity);
-  Observable<MvccEntity> o=esEntityIndexDeleteListener.receive(event);
-  MvccEntity testEntity=o.toBlockingObservable().last();
+  Observable<EntityVersion> o=esEntityIndexDeleteListener.receive(event);
+  EntityVersion testEntity=o.toBlockingObservable().last();
   assertEquals(testEntity.getId(),mvccEntity.getId());
-  verify(entityIndex).deindex(scope,entity);
+  verify(entityIndex).deindex(entity);
 }
