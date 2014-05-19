@@ -1,0 +1,38 @@
+{
+  String appName=buildAppName(organizationName,name);
+  if (lookupApplication(appName) != null) {
+    throw new ApplicationAlreadyExistsException(appName);
+  }
+  getSetup().setupApplicationKeyspace(applicationId,appName);
+  UUID orgUuid=lookupOrganization(organizationName);
+  if (orgUuid == null) {
+    Entity orgInfoEntity=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),"organization"));
+    orgUuid=orgInfoEntity.getId().getUuid();
+    orgInfoEntity.setField(new StringField(PROPERTY_NAME,name));
+    orgInfoEntity.setField(new UUIDField(PROPERTY_UUID,orgUuid));
+    EntityCollectionManager ecm=getManagerCache().getEntityCollectionManager(SYSTEM_ORGS_SCOPE);
+    EntityIndex eci=getManagerCache().getEntityIndex(SYSTEM_ORG_SCOPE,SYSTEM_ORGS_SCOPE);
+    orgInfoEntity=ecm.write(orgInfoEntity).toBlockingObservable().last();
+    eci.index(SYSTEM_ORGS_SCOPE,orgInfoEntity);
+    eci.refresh();
+  }
+  if (properties == null) {
+    properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
+  }
+  properties.put(PROPERTY_NAME,appName);
+  Entity appInfoEntity=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),"application"));
+  appInfoEntity.setField(new StringField(PROPERTY_NAME,name));
+  appInfoEntity.setField(new UUIDField(PROPERTY_UUID,applicationId));
+  appInfoEntity.setField(new UUIDField("organizationUuid",orgUuid));
+{
+    EntityCollectionManager ecm=getManagerCache().getEntityCollectionManager(SYSTEM_APPS_SCOPE);
+    EntityIndex eci=getManagerCache().getEntityIndex(SYSTEM_ORG_SCOPE,SYSTEM_APPS_SCOPE);
+    appInfoEntity=ecm.write(appInfoEntity).toBlockingObservable().last();
+    eci.index(SYSTEM_APPS_SCOPE,appInfoEntity);
+    eci.refresh();
+  }
+  EntityManager em=getEntityManager(applicationId);
+  em.create(TYPE_APPLICATION,APPLICATION_ENTITY_CLASS,properties);
+  em.resetRoles();
+  return applicationId;
+}

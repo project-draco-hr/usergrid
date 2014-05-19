@@ -16,7 +16,8 @@
   LOG.info("Starting entity create");
   Entity thing2=em.create("thing",properties);
   LOG.info("Entity created");
-  EntityRef appRef=em.getRef(applicationId);
+  EntityRef appRef=em.get(new SimpleEntityRef("application",applicationId));
+  em.refreshIndex();
   Results r=em.getCollection(appRef,"things",null,10,Level.ALL_PROPERTIES,false);
   assertEquals(2,r.size());
   assertEquals(thing1.getUuid(),r.getEntities().get(0).getUuid());

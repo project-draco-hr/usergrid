@@ -1,0 +1,9 @@
+{
+  EntityRef entity=new SimpleEntityRef(type,entityId);
+  Keyspace ko=cass.getApplicationKeyspace(applicationId);
+  Mutator<ByteBuffer> m=createMutator(ko,be);
+  UUID timestampUuid=newTimeUUID();
+  properties.put(PROPERTY_MODIFIED,getTimestampInMillis(timestampUuid));
+  batchUpdateProperties(m,entity,properties,timestampUuid);
+  batchExecute(m,CassandraService.RETRY_COUNT);
+}

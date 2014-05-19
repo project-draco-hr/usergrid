@@ -5,20 +5,20 @@
   this.appScope=appScope;
   this.client=provider.getClient();
   this.ecmFactory=factory;
-  this.indexName=createIndexName(config.getIndexNamePrefix(),orgScope,appScope);
+  this.indexName=createIndexName(config.getIndexPrefix(),orgScope,appScope);
   this.refresh=config.isForcedRefresh();
   this.cursorTimeout=config.getQueryCursorTimeout();
   AdminClient admin=client.admin();
   try {
-    admin.indices().prepareCreate(indexName).execute().actionGet();
-    log.debug("Created new index: " + indexName);
+    CreateIndexResponse r=admin.indices().prepareCreate(indexName).execute().actionGet();
+    log.debug("Created new Index Name [{}] ACK=[{}]",indexName,r.isAcknowledged());
+    client.admin().indices().prepareRefresh(indexName).execute().actionGet();
+    try {
+      Thread.sleep(500);
+    }
+ catch (    InterruptedException ex) {
+    }
   }
- catch (  Exception e) {
-    if (log.isDebugEnabled()) {
-      log.debug("Exception creating index, already exists?",e);
-    }
- else {
-      log.info(e.getMessage());
-    }
+ catch (  IndexAlreadyExistsException ignored) {
   }
 }

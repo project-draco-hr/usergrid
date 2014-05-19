@@ -1,0 +1,23 @@
+{
+  if (query == null) {
+    query=new Query();
+  }
+  headEntity=em.validate(headEntity);
+  org.apache.usergrid.persistence.index.query.Query cpQuery=createCpQuery(query);
+  EntityIndex ei=managerCache.getEntityIndex(organizationScope,applicationScope);
+  logger.debug("Searching connections from head-entity scope {}:{}:{}",new String[]{headEntityScope.getOrganization().toString(),headEntityScope.getOwner().toString(),applicationScope.getName()});
+  List<String> connectionTypes=new ArrayList<String>();
+  if (query.getConnectionType() != null) {
+    connectionTypes.add(query.getConnectionType());
+  }
+ else {
+    GraphManager gm=managerCache.getGraphManager(organizationScope);
+    Observable<String> types=gm.getEdgeTypesFromSource(new SimpleSearchEdgeType(cpHeadEntity.getId(),null));
+    Iterator<String> iter=types.toBlockingObservable().getIterator();
+    while (iter.hasNext()) {
+      connectionTypes.add(iter.next());
+    }
+  }
+  org.apache.usergrid.persistence.index.query.Results cpResults=ei.searchConnections(cpHeadEntity,connectionTypes,cpQuery);
+  return buildResults(query,cpResults,connectionTypes.get(0));
+}

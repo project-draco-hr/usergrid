@@ -27,6 +27,14 @@
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorMessage).build();
     }
   }
+  if (runnerJar.exists()) {
+    if (runnerJar.delete()) {
+      LOG.info("Deleted old runner.jar");
+    }
+ else {
+      LOG.info("Could not delete old runner.jar");
+    }
+  }
   CoordinatorUtils.writeToFile(runnerJarStream,runnerJar.getAbsolutePath());
   Commit commit=null;
   Module module=null;

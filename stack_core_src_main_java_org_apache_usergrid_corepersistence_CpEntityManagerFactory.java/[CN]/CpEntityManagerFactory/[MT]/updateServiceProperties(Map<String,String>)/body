@@ -1,0 +1,19 @@
+{
+  EntityCollectionManager ecm=getManagerCache().getEntityCollectionManager(SYSTEM_PROPS_SCOPE);
+  EntityIndex ei=getManagerCache().getEntityIndex(SYSTEM_ORG_SCOPE,SYSTEM_PROPS_SCOPE);
+  Query q=Query.fromQL("select *");
+  Results results=ei.search(SYSTEM_PROPS_SCOPE,q);
+  Entity propsEntity;
+  if (!results.isEmpty()) {
+    propsEntity=results.iterator().next();
+  }
+ else {
+    propsEntity=new Entity(new SimpleId("properties"));
+  }
+  for (  String key : properties.keySet()) {
+    propsEntity.setField(new StringField(key,properties.get(key)));
+  }
+  propsEntity=ecm.write(propsEntity).toBlockingObservable().last();
+  ei.index(SYSTEM_PROPS_SCOPE,propsEntity);
+  return true;
+}

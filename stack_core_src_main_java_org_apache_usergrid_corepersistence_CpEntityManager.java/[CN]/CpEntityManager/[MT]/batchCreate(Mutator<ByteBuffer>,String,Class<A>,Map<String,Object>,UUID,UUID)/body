@@ -1,0 +1,117 @@
+{
+  String eType=Schema.normalizeEntityType(entityType);
+  Schema schema=getDefaultSchema();
+  boolean is_application=TYPE_APPLICATION.equals(eType);
+  if (((applicationId == null) || applicationId.equals(UUIDUtils.ZERO_UUID)) && !is_application) {
+    return null;
+  }
+  long timestamp=getTimestampInMicros(timestampUuid);
+  UUID itemId=UUIDUtils.newTimeUUID();
+  if (is_application) {
+    itemId=applicationId;
+  }
+  if (importId != null) {
+    itemId=importId;
+  }
+  boolean emptyPropertyMap=false;
+  if (properties == null) {
+    properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
+  }
+  if (properties.isEmpty()) {
+    emptyPropertyMap=true;
+  }
+  if (importId != null) {
+    if (isTimeBased(importId)) {
+      timestamp=UUIDUtils.getTimestampInMicros(importId);
+    }
+ else     if (properties.get(PROPERTY_CREATED) != null) {
+      timestamp=getLong(properties.get(PROPERTY_CREATED)) * 1000;
+    }
+  }
+  if (entityClass == null) {
+    entityClass=(Class<A>)Schema.getDefaultSchema().getEntityClass(entityType);
+  }
+  Set<String> required=schema.getRequiredProperties(entityType);
+  if (required != null) {
+    for (    String p : required) {
+      if (!PROPERTY_UUID.equals(p) && !PROPERTY_TYPE.equals(p) && !PROPERTY_CREATED.equals(p)&& !PROPERTY_MODIFIED.equals(p)) {
+        Object v=properties.get(p);
+        if (schema.isPropertyTimestamp(entityType,p)) {
+          if (v == null) {
+            properties.put(p,timestamp / 1000);
+          }
+ else {
+            long ts=getLong(v);
+            if (ts <= 0) {
+              properties.put(p,timestamp / 1000);
+            }
+          }
+          continue;
+        }
+        if (v == null) {
+          throw new RequiredPropertyNotFoundException(entityType,p);
+        }
+ else         if ((v instanceof String) && isBlank((String)v)) {
+          throw new RequiredPropertyNotFoundException(entityType,p);
+        }
+      }
+    }
+  }
+  String collectionName=Schema.defaultCollectionName(eType);
+  CollectionInfo collection=null;
+  if (emptyPropertyMap) {
+    return null;
+  }
+  properties.put(PROPERTY_UUID,itemId);
+  properties.put(PROPERTY_TYPE,Schema.normalizeEntityType(entityType,false));
+  if (importId != null) {
+    if (properties.get(PROPERTY_CREATED) == null) {
+      properties.put(PROPERTY_CREATED,(long)(timestamp / 1000));
+    }
+    if (properties.get(PROPERTY_MODIFIED) == null) {
+      properties.put(PROPERTY_MODIFIED,(long)(timestamp / 1000));
+    }
+  }
+ else {
+    properties.put(PROPERTY_CREATED,(long)(timestamp / 1000));
+    properties.put(PROPERTY_MODIFIED,(long)(timestamp / 1000));
+  }
+  if (properties.containsKey(PROPERTY_TIMESTAMP)) {
+    long ts=getLong(properties.get(PROPERTY_TIMESTAMP));
+    if (ts <= 0) {
+      properties.put(PROPERTY_TIMESTAMP,(long)(timestamp / 1000));
+    }
+  }
+  A entity=EntityFactory.newEntity(itemId,eType,entityClass);
+  entity.addProperties(properties);
+  if (Event.ENTITY_TYPE.equals(eType)) {
+    Event event=(Event)entity.toTypedEntity();
+    for (    String prop_name : properties.keySet()) {
+      Object propertyValue=properties.get(prop_name);
+      if (propertyValue != null) {
+        event.setProperty(prop_name,propertyValue);
+      }
+    }
+    return entity;
+  }
+  org.apache.usergrid.persistence.model.entity.Entity cpEntity=entityToCpEntity(entity);
+  CollectionScope collectionScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),collectionName);
+  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
+  EntityIndex ei=managerCache.getEntityIndex(organizationScope,applicationScope);
+  try {
+    cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
+  }
+ catch (  WriteUniqueVerifyException wuve) {
+    Map<String,Field> violiations=wuve.getVioliations();
+    Field conflict=violiations.get(violiations.keySet().iterator().next());
+    throw new DuplicateUniquePropertyExistsException(entity.getType(),conflict.getName(),conflict.getValue());
+  }
+  ei.index(collectionScope,cpEntity);
+  entity.setUuid(cpEntity.getId().getUuid());
+  Map<String,Object> entityMap=CpEntityMapUtils.toMap(cpEntity);
+  entity.addProperties(entityMap);
+  if (!is_application) {
+    getRelationManager(getApplication()).addToCollection(collectionName,entity);
+  }
+  return entity;
+}

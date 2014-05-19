@@ -10,7 +10,8 @@
     properties.put("name",name);
     em.create("item",properties);
   }
-  Query query=Query.fromQL("name < 'delta'");
+  em.refreshIndex();
+  Query query=Query.fromQL("name < 'delta' order by name asc");
   Results r=em.searchCollection(em.getApplicationRef(),"items",query);
   LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   int i=0;
@@ -19,7 +20,7 @@
     i++;
   }
   assertEquals(3,i);
-  query=Query.fromQL("name <= 'delta'");
+  query=Query.fromQL("name <= 'delta' order by name asc");
   r=em.searchCollection(em.getApplicationRef(),"items",query);
   LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   i=0;
@@ -28,7 +29,7 @@
     i++;
   }
   assertEquals(4,i);
-  query=Query.fromQL("name <= 'foxtrot' and name > 'bravo'");
+  query=Query.fromQL("name <= 'foxtrot' and name > 'bravo' order by name asc");
   r=em.searchCollection(em.getApplicationRef(),"items",query);
   LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   i=2;
@@ -37,7 +38,7 @@
     i++;
   }
   assertEquals(6,i);
-  query=Query.fromQL("name < 'foxtrot' and name > 'bravo'");
+  query=Query.fromQL("name < 'foxtrot' and name > 'bravo' order by name asc");
   r=em.searchCollection(em.getApplicationRef(),"items",query);
   LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   i=2;
@@ -46,7 +47,7 @@
     i++;
   }
   assertEquals(5,i);
-  query=Query.fromQL("name < 'foxtrot' and name >= 'bravo'");
+  query=Query.fromQL("name < 'foxtrot' and name >= 'bravo' order by name asc");
   r=em.searchCollection(em.getApplicationRef(),"items",query);
   LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   i=1;
@@ -55,7 +56,7 @@
     i++;
   }
   assertEquals(5,i);
-  query=Query.fromQL("name <= 'foxtrot' and name >= 'bravo'");
+  query=Query.fromQL("name <= 'foxtrot' and name >= 'bravo' order by name asc");
   r=em.searchCollection(em.getApplicationRef(),"items",query);
   LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   i=1;

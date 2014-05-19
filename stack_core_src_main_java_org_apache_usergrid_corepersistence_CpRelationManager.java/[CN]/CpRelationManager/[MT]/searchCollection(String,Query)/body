@@ -1,0 +1,14 @@
+{
+  if (query == null) {
+    query=new Query();
+  }
+  headEntity=em.validate(headEntity);
+  CollectionInfo collection=getDefaultSchema().getCollection(headEntity.getType(),collName);
+  query.setEntityType(collection.getType());
+  org.apache.usergrid.persistence.index.query.Query cpQuery=createCpQuery(query);
+  EntityIndex ei=managerCache.getEntityIndex(organizationScope,applicationScope);
+  logger.debug("Searching collection {}",collName);
+  logger.debug("Searching head entity scope {}:{}:{}",new String[]{headEntityScope.getOrganization().toString(),headEntityScope.getOwner().toString(),applicationScope.getName()});
+  org.apache.usergrid.persistence.index.query.Results cpResults=ei.searchConnections(cpHeadEntity,collName + COLLECTION_SUFFIX,cpQuery);
+  return buildResults(query,cpResults,collName);
+}

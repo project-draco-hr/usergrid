@@ -3,15 +3,15 @@
   JobStat stat=execution.getJobStats();
   try {
     if (execution.getStatus() == Status.DEAD) {
-      qm.deleteTransaction(jobQueueName,execution.getTransactionId(),null);
-      em.update(data);
-      em.update(stat);
+      getQm().deleteTransaction(jobQueueName,execution.getTransactionId(),null);
+      getEm().update(data);
+      getEm().update(stat);
       return;
     }
     scheduleJob(execution.getJobName(),System.currentTimeMillis() + delay,data.getUuid(),stat.getUuid());
-    qm.deleteTransaction(jobQueueName,execution.getTransactionId(),null);
-    em.update(data);
-    em.update(stat);
+    getQm().deleteTransaction(jobQueueName,execution.getTransactionId(),null);
+    getEm().update(data);
+    getEm().update(stat);
   }
  catch (  Exception e) {
     throw new JobRuntimeException(String.format("Unable to delete job data with id %s",data.getUuid()),e);

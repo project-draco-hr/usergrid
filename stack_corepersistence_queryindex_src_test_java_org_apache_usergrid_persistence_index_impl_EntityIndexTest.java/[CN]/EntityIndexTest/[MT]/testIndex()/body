@@ -1,4 +1,5 @@
 {
+  final int MAX_ENTITIES=100;
   Id orgId=new SimpleId("organization");
   OrganizationScope orgScope=new OrganizationScopeImpl(orgId);
   Id appId=new SimpleId("application");
@@ -17,11 +18,13 @@
   for (  Object o : sampleJson) {
     Map<String,Object> item=(Map<String,Object>)o;
     Entity entity=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),scope.getName()));
-    entity=EntityBuilder.fromMap(scope.getName(),entity,item);
+    entity=EntityIndexMapUtils.fromMap(entity,item);
     EntityUtils.setVersion(entity,UUIDGenerator.newTimeUUID());
     entity=entityManager.write(entity).toBlockingObservable().last();
     entityIndex.index(scope,entity);
-    count++;
+    if (count++ > MAX_ENTITIES) {
+      break;
+    }
   }
   timer.stop();
   log.info("Total time to index {} entries {}ms, average {}ms/entry",new Object[]{count,timer.getTime(),timer.getTime() / count});

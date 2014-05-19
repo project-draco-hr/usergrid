@@ -13,7 +13,14 @@
     Filter filter=new Filter("instance-state-name",valuesT1);
     request=request.withFilters(filter);
   }
-  DescribeInstancesResult result=client.describeInstances(request);
+  DescribeInstancesResult result=null;
+  try {
+    result=client.describeInstances(request);
+  }
+ catch (  Exception e) {
+    LOG.error("Error while getting instance information from AWS.",e);
+    return Collections.EMPTY_LIST;
+  }
   for (  Reservation reservation : result.getReservations()) {
     for (    com.amazonaws.services.ec2.model.Instance in : reservation.getInstances()) {
       instances.add(in);

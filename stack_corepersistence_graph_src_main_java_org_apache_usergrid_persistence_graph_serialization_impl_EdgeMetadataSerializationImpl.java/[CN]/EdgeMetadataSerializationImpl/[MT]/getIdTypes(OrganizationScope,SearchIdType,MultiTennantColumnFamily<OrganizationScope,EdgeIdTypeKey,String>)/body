@@ -2,7 +2,7 @@
   ValidationUtils.validateOrganizationScope(scope);
   EdgeUtils.validateSearchEdgeIdType(search);
   final ScopedRowKey<OrganizationScope,EdgeIdTypeKey> sourceTypeKey=new ScopedRowKey<OrganizationScope,EdgeIdTypeKey>(scope,new EdgeIdTypeKey(search.getNode(),search.getEdgeType()));
-  final ByteBufferRange searchRange=new RangeBuilder().setLimit(cassandraConfig.getScanPageSize()).setStart(search.getLast().or("")).build();
+  final ByteBufferRange searchRange=new RangeBuilder().setLimit(graphFig.getScanPageSize()).setStart(search.getLast().or("")).build();
   RowQuery<ScopedRowKey<OrganizationScope,EdgeIdTypeKey>,String> query=keyspace.prepareQuery(cf).getKey(sourceTypeKey).autoPaginate(true).withColumnRange(searchRange);
   return new ColumnNameIterator<String,String>(query,PARSER,search.getLast().isPresent());
 }

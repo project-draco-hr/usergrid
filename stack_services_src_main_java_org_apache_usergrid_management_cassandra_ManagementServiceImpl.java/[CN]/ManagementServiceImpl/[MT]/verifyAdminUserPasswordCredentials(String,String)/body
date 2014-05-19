@@ -1,14 +1,14 @@
 {
   UserInfo userInfo=null;
-  User user=findUserEntity(MANAGEMENT_APPLICATION_ID,name);
+  User user=findUserEntity(smf.getManagementAppId(),name);
   if (user == null) {
     return null;
   }
-  if (verify(MANAGEMENT_APPLICATION_ID,user.getUuid(),password)) {
-    userInfo=getUserInfo(MANAGEMENT_APPLICATION_ID,user);
-    boolean userIsSuperAdmin=StringUtils.equals(getProperty(PROPERTIES_SYSADMIN_LOGIN_EMAIL),userInfo.getEmail());
-    boolean testUserEnabled=getBooleanProperty(PROPERTIES_SETUP_TEST_ACCOUNT);
-    boolean userIsTestUser=!testUserEnabled ? false : StringUtils.equals(getProperty(PROPERTIES_SYSADMIN_LOGIN_EMAIL),userInfo.getEmail());
+  if (verify(smf.getManagementAppId(),user.getUuid(),password)) {
+    userInfo=getUserInfo(smf.getManagementAppId(),user);
+    boolean userIsSuperAdmin=properties.getSuperUser().isEnabled() && properties.getSuperUser().getEmail().equals(userInfo.getEmail());
+    boolean testUserEnabled=parseBoolean(properties.getProperty(PROPERTIES_SETUP_TEST_ACCOUNT));
+    boolean userIsTestUser=testUserEnabled && properties.getProperty(PROPERTIES_SYSADMIN_LOGIN_EMAIL).equals(userInfo.getEmail());
     if (!userIsSuperAdmin && !userIsTestUser) {
       if (!userInfo.isConfirmed() && newAdminUsersRequireConfirmation()) {
         throw new UnconfirmedAdminUserException();
