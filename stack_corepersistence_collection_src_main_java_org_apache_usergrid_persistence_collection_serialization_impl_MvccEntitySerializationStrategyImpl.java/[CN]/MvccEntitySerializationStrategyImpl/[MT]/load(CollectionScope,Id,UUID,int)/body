@@ -2,17 +2,7 @@
   Preconditions.checkNotNull(collectionScope,"collectionScope is required");
   Preconditions.checkNotNull(entityId,"entity id is required");
   Preconditions.checkNotNull(version,"version is required");
-  Preconditions.checkArgument(maxSize > 0,"max Size must be greater than 0");
-  ColumnList<UUID> columns=null;
-  try {
-    columns=keyspace.prepareQuery(CF_ENTITY_DATA).getKey(ScopedRowKey.fromKey(collectionScope,entityId)).withColumnRange(version,null,false,maxSize).execute().getResult();
-  }
- catch (  ConnectionException e) {
-    throw new CollectionRuntimeException(null,collectionScope,"An error occurred connecting to cassandra",e);
-  }
-  List<MvccEntity> results=new ArrayList<MvccEntity>(columns.size());
-  for (  Column<UUID> col : columns) {
-    results.add(getEntity(entityId,col));
-  }
-  return results;
+  Preconditions.checkArgument(fetchSize > 0,"max Size must be greater than 0");
+  RowQuery<ScopedRowKey<CollectionScope,Id>,UUID> query=keyspace.prepareQuery(CF_ENTITY_DATA).getKey(ScopedRowKey.fromKey(collectionScope,entityId)).withColumnRange(version,null,false,fetchSize);
+  return new ColumnNameIterator(query,new MvccColumnParser(entityId),false);
 }
