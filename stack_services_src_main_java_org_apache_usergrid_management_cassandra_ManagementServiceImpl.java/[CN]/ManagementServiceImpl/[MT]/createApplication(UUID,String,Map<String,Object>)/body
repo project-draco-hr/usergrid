@@ -7,10 +7,10 @@
   }
   OrganizationInfo organizationInfo=getOrganizationByUuid(organizationId);
   UUID applicationId=emf.createApplication(organizationInfo.getName(),applicationName,properties);
-  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  EntityManager em=emf.getEntityManager(smf.getManagementAppId());
   properties.put("name",buildAppName(applicationName,organizationInfo));
   Entity applicationEntity=em.create(applicationId,APPLICATION_INFO,properties);
-  writeUserToken(MANAGEMENT_APPLICATION_ID,applicationEntity,encryptionService.plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.APPLICATION),null,MANAGEMENT_APPLICATION_ID));
+  writeUserToken(smf.getManagementAppId(),applicationEntity,encryptionService.plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.APPLICATION),null,smf.getManagementAppId()));
   addApplicationToOrganization(organizationId,applicationId);
   UserInfo user=null;
   try {

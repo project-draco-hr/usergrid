@@ -1,10 +1,9 @@
 {
-  Id orgId=new SimpleId("organization");
-  OrganizationScope orgScope=new OrganizationScopeImpl(orgId);
   Id appId=new SimpleId("application");
-  CollectionScope appScope=new CollectionScopeImpl(orgId,appId,"test-app");
-  CollectionScope scope=new CollectionScopeImpl(appId,orgId,"user");
-  EntityIndex ei=cif.createEntityIndex(orgScope,appScope);
+  Id ownerId=new SimpleId("owner");
+  IndexScope appScope=new IndexScopeImpl(appId,ownerId,"user");
+  CollectionScope scope=new CollectionScopeImpl(appId,ownerId,"user");
+  EntityIndex ei=cif.createEntityIndex(appScope);
   EntityCollectionManager em=cmf.createCollectionManager(scope);
   QueueListenerHelper helper=new QueueListenerHelper(entityDelete,2,0);
   final String middleName="middleName" + UUIDUtils.newTimeUUID();
@@ -19,16 +18,16 @@
   Entity user=EntityIndexMapUtils.fromMap(entityMap);
   EntityUtils.setId(user,new SimpleId("edanuff"));
   user=em.write(user).toBlockingObservable().last();
-  ei.index(scope,user);
+  ei.index(user);
   user.setField(new StringField("address1","1782 address st"));
   user=em.write(user).toBlockingObservable().last();
-  ei.index(scope,user);
+  ei.index(user);
   user.setField(new StringField("address2","apt 508"));
   user=em.write(user).toBlockingObservable().last();
-  ei.index(scope,user);
+  ei.index(user);
   user.setField(new StringField("address3","apt 508"));
   user=em.write(user).toBlockingObservable().last();
-  ei.index(scope,user);
+  ei.index(user);
   ei.refresh();
   user=em.load(user.getId()).toBlockingObservable().last();
   em.delete(user.getId()).toBlockingObservable().last();
@@ -40,6 +39,6 @@
   }
   Query query=new Query();
   query.addEqualityFilter("username","edanuff");
-  Results r=ei.search(scope,query);
+  CandidateResults r=ei.search(query);
   assertTrue(r.size() == 0);
 }
