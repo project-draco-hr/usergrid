@@ -6,7 +6,7 @@
   MvccEntity mvccEntity=iter.next();
   final Optional<Entity> targetVersion=mvccEntity.getEntity();
   List<MvccEntity> partialEntities=new ArrayList<>();
-  if (!targetVersion.isPresent() && mvccEntity.getStatus() == MvccEntity.Status.DELETED) {
+  if (!targetVersion.isPresent() && (mvccEntity.getStatus() == MvccEntity.Status.DELETED || mvccEntity.getStatus() == MvccEntity.Status.COMPLETE)) {
     return null;
   }
   if (mvccEntity.getStatus() == MvccEntity.Status.COMPLETE) {

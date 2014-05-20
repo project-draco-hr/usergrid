@@ -2,6 +2,7 @@
   final CollectionScope collection=mock(CollectionScope.class);
   final UUIDService uuidService=mock(UUIDService.class);
   final MvccEntitySerializationStrategy serializationStrategy=mock(MvccEntitySerializationStrategy.class);
+  final ChangeLogGenerator changeLogGenerator=new ChangeLogGeneratorImpl();
   final UUID loadVersion=UUIDGenerator.newTimeUUID();
   when(uuidService.newTimeUUID()).thenReturn(loadVersion);
   final Id entityId=TestEntityGenerator.generateId();
@@ -15,7 +16,6 @@
   final MvccEntity partialMvccEntity=TestEntityGenerator.fromEntityStatus(entity2,MvccEntity.Status.PARTIAL);
   final List<MvccEntity> results=Lists.newArrayList(partialMvccEntity);
   results.add(completeMvccEntity);
-  when(uuidService.newTimeUUID()).thenReturn(loadVersion);
   when(serializationStrategy.load(collection,entityId,loadVersion,1)).thenReturn(results.iterator());
   Load load=new Load(uuidService,serializationStrategy);
   Entity loaded=load.call(entityIoEvent);
