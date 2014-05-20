@@ -3,6 +3,9 @@
   MvccEntity mvccEntity=ioevent.getEvent();
   final Entity entity=mvccEntity.getEntity().get();
   CollectionScope collectionScope=ioevent.getEntityCollection();
+  if (entity.getVersion() == null) {
+    return ioevent;
+  }
   try {
     List<MvccLogEntry> versions=logEntryStrat.load(collectionScope,entity.getId(),entity.getVersion(),2);
     if (versions.size() > 1 && versions.get(1).getStage().ordinal() < Stage.COMMITTED.ordinal()) {

@@ -5,12 +5,6 @@
   Preconditions.checkNotNull(entityId,"The entity id is required to be set for an update operation");
   Preconditions.checkNotNull(entityId.getUuid(),"The entity id uuid is required to be set for an update operation");
   Preconditions.checkNotNull(entityId.getType(),"The entity id type required to be set for an update operation");
-  if (entity.getVersion() != null) {
-  }
- else {
-    final UUID version=uuidService.newTimeUUID();
-    EntityUtils.setVersion(entity,version);
-  }
   CollectionIoEvent<Entity> writeData=new CollectionIoEvent<Entity>(collectionScope,entity);
   Observable<CollectionIoEvent<MvccEntity>> observable=stageRunner(writeData,writeUpdate);
   return observable.doOnNext(new Action1<CollectionIoEvent<MvccEntity>>(){
