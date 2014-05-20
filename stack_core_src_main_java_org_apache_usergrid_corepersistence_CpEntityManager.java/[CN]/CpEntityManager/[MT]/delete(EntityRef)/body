@@ -1,8 +1,9 @@
 {
   String collectionName=Schema.defaultCollectionName(entityRef.getType());
-  CollectionScope collectionScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),collectionName);
+  CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),collectionName);
+  IndexScope defaultIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),entityRef.getType());
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
-  EntityIndex ei=managerCache.getEntityIndex(organizationScope,applicationScope);
+  EntityIndex entityIndex=managerCache.getEntityIndex(defaultIndexScope);
   Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
   org.apache.usergrid.persistence.model.entity.Entity entity=ecm.load(entityId).toBlockingObservable().last();
   if (entity != null) {
@@ -14,14 +15,13 @@
       for (      UUID uuid : collectionsByUuid.keySet()) {
         Set<String> collections=collectionsByUuid.get(uuid);
         for (        String coll : collections) {
-          CollectionScope ownerScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),Schema.defaultCollectionName(ownerType));
-          EntityCollectionManager ownerEcm=managerCache.getEntityCollectionManager(ownerScope);
-          org.apache.usergrid.persistence.model.entity.Entity cpOwner=ownerEcm.load(new SimpleId(uuid,ownerType)).toBlockingObservable().last();
-          ei.deindexConnection(cpOwner.getId(),coll + CpRelationManager.COLLECTION_SUFFIX,entity);
+          IndexScope indexScope=new IndexScopeImpl(appScope.getApplication(),new SimpleId(uuid,ownerType),coll + CpRelationManager.COLLECTION_SUFFIX);
+          EntityIndex ei=managerCache.getEntityIndex(indexScope);
+          ei.deindex(entity);
         }
       }
     }
-    ei.deindex(collectionScope,entity);
+    entityIndex.deindex(entity);
     ecm.delete(entityId).toBlockingObservable().last();
   }
 }
