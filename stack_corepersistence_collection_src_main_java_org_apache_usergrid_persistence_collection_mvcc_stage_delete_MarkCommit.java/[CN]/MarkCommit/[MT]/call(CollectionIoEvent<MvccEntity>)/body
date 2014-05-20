@@ -8,6 +8,7 @@
   MutationBatch logMutation=logStrat.write(collectionScope,startEntry);
   MutationBatch entityMutation=entityStrat.mark(collectionScope,entityId,version);
   logMutation.mergeShallow(entityMutation);
+  final AsynchronousMessage<MvccEntityEvent<MvccEntity>> event=entityEventAsyncProcessor.setVerification(new MvccEntityEvent<MvccEntity>(collectionScope,version,entity),getTimeout());
   try {
     logMutation.execute();
   }
@@ -15,5 +16,6 @@
     LOG.error("Failed to execute write asynchronously ",e);
     throw new CollectionRuntimeException(entity.getEntity().get(),collectionScope,"Failed to execute write asynchronously ",e);
   }
+  entityEventAsyncProcessor.start(event);
   return null;
 }
