@@ -1,11 +1,18 @@
 {
-  RunInstancesRequest runInstancesRequest=new RunInstancesRequest();
-  runInstancesRequest.withImageId(cluster.getInstanceSpec().getImageId()).withInstanceType(cluster.getInstanceSpec().getType()).withMinCount(cluster.getSize()).withMaxCount(cluster.getSize()).withKeyName(cluster.getInstanceSpec().getKeyName()).withSecurityGroups(stack.getIpRuleSet().getName());
-  if (stack.getDataCenter() != null && !stack.getDataCenter().isEmpty()) {
-    runInstancesRequest=runInstancesRequest.withPlacement(new Placement(stack.getDataCenter()));
-    client.setEndpoint(AmazonUtils.getEndpoint(stack.getDataCenter()));
+  RunInstancesResult runInstancesResult=null;
+  try {
+    RunInstancesRequest runInstancesRequest=new RunInstancesRequest();
+    runInstancesRequest.withImageId(cluster.getInstanceSpec().getImageId()).withInstanceType(cluster.getInstanceSpec().getType()).withMinCount(cluster.getSize()).withMaxCount(cluster.getSize()).withKeyName(cluster.getInstanceSpec().getKeyName()).withSecurityGroups(stack.getIpRuleSet().getName());
+    if (stack.getDataCenter() != null && !stack.getDataCenter().isEmpty()) {
+      runInstancesRequest=runInstancesRequest.withPlacement(new Placement(stack.getDataCenter()));
+      client.setEndpoint(AmazonUtils.getEndpoint(stack.getDataCenter()));
+    }
+    runInstancesResult=client.runInstances(runInstancesRequest);
   }
-  RunInstancesResult runInstancesResult=client.runInstances(runInstancesRequest);
+ catch (  Exception e) {
+    LOG.error("Error while launching cluster instances.",e);
+    return new EC2LaunchResult(cluster.getInstanceSpec(),Collections.EMPTY_LIST);
+  }
   LOG.info("Created instances, setting the names now...");
   List<String> instanceIds=new ArrayList<String>(cluster.getSize());
   String instanceNames=getInstanceName(stack,cluster);

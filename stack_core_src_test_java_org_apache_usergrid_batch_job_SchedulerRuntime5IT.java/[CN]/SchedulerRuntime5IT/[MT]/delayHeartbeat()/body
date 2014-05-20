@@ -8,6 +8,7 @@
   JobData returned=scheduler.createJob("delayHeartbeat",System.currentTimeMillis(),new JobData());
   boolean waited=getJobListener().blockTilDone(1,customRetry * (heartbeatCount * 2) + 5000L);
   assertTrue("Job ran to complete",waited);
+  scheduler.refreshIndex();
   JobStat stat=scheduler.getStatsForJob(returned.getJobName(),returned.getUuid());
   assertEquals(1,stat.getTotalAttempts());
   assertEquals(1,stat.getRunCount());

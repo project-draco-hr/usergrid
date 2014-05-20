@@ -1,11 +1,8 @@
 {
-  Id orgId=new SimpleId("organization");
-  OrganizationScope orgScope=new OrganizationScopeImpl(orgId);
   Id appId=new SimpleId("application");
-  CollectionScope appScope=new CollectionScopeImpl(orgId,appId,"test-app");
-  CollectionScope muffinScope=new CollectionScopeImpl(appId,orgId,"muffins");
+  CollectionScope muffinScope=new CollectionScopeImpl(appId,appId,"muffins");
   Entity muffin=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),muffinScope.getName()));
-  muffin=EntityBuilder.fromMap(muffinScope.getName(),muffin,new HashMap<String,Object>(){
+  muffin=EntityIndexMapUtils.fromMap(muffin,new HashMap<String,Object>(){
 {
       put("size","Large");
       put("flavor","Blueberry");
@@ -15,9 +12,9 @@
   EntityUtils.setVersion(muffin,UUIDGenerator.newTimeUUID());
   EntityCollectionManager muffinMgr=ecmf.createCollectionManager(muffinScope);
   muffin=muffinMgr.write(muffin).toBlockingObservable().last();
-  CollectionScope peopleScope=new CollectionScopeImpl(appId,orgId,"people");
+  CollectionScope peopleScope=new CollectionScopeImpl(appId,appId,"people");
   Entity person=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),peopleScope.getName()));
-  person=EntityBuilder.fromMap(peopleScope.getName(),person,new HashMap<String,Object>(){
+  person=EntityIndexMapUtils.fromMap(person,new HashMap<String,Object>(){
 {
       put("name","Dave");
       put("hometown","Chapel Hill");
@@ -29,10 +26,12 @@
   person=peopleMgr.write(person).toBlockingObservable().last();
   assertNotNull(person.getId());
   assertNotNull(person.getId().getUuid());
-  EntityIndex personLikesIndex=ecif.createEntityIndex(orgScope,appScope);
-  personLikesIndex.indexConnection(person,"likes",muffin,muffinScope);
+  IndexScope scope=new IndexScopeImpl(appId,person.getId(),"likes");
+  EntityIndex personLikesIndex=ecif.createEntityIndex(scope);
+  personLikesIndex.index(muffin);
   personLikesIndex.refresh();
-  Results likes=personLikesIndex.searchConnections(person,"likes",Query.fromQL("select *"));
+  CandidateResults likes=personLikesIndex.search(Query.fromQL("select *"));
   assertEquals(1,likes.size());
-  assertEquals("Blueberry",likes.getEntities().get(0).getField("flavor").getValue());
+  EntityResults entityResults=new EntityResults(likes,muffinMgr,UUIDGenerator.newTimeUUID());
+  assertEquals("Blueberry",entityResults.next().getField("flavor").getValue());
 }

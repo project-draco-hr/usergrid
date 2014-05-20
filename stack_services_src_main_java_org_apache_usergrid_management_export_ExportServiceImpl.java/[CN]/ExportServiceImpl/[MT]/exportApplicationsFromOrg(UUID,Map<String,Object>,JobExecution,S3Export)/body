@@ -1,0 +1,13 @@
+{
+  Export export=getExportEntity(jobExecution);
+  String appFileName=null;
+  BiMap<UUID,String> applications=managementService.getApplicationsForOrganization(organizationUUID);
+  for (  Map.Entry<UUID,String> application : applications.entrySet()) {
+    if (application.getValue().equals(managementService.getOrganizationByUuid(organizationUUID).getName() + "/exports")) {
+      continue;
+    }
+    appFileName=prepareOutputFileName("application",application.getValue(),null);
+    File ephemeral=collectionExportAndQuery(application.getKey(),config,export,jobExecution);
+    fileTransfer(export,appFileName,ephemeral,config,s3Export);
+  }
+}

@@ -1,0 +1,51 @@
+{
+  QueryBuilder qb=query.createQueryBuilder();
+  log.debug("Search");
+  log.debug("    Index Name: " + this.indexName);
+  log.debug("    ES Type:    " + this.indexType);
+  log.debug("    Query:      " + qb.toString().replace("\n"," "));
+  SearchResponse searchResponse;
+  if (query.getCursor() == null) {
+    SearchRequestBuilder srb=client.prepareSearch(indexName).setTypes(indexType).setScroll(cursorTimeout + "m").setQuery(qb);
+    FilterBuilder fb=query.createFilterBuilder();
+    if (fb != null) {
+      log.debug("   Filter: {} ",fb.toString());
+      srb=srb.setPostFilter(fb);
+    }
+    srb=srb.setFrom(0).setSize(query.getLimit());
+    for (    Query.SortPredicate sp : query.getSortPredicates()) {
+      final SortOrder order;
+      if (sp.getDirection().equals(Query.SortDirection.ASCENDING)) {
+        order=SortOrder.ASC;
+      }
+ else {
+        order=SortOrder.DESC;
+      }
+      srb.addSort(sp.getPropertyName(),order);
+      log.debug("   Sort: {} order by {}",sp.getPropertyName(),order.toString());
+    }
+    searchResponse=srb.execute().actionGet();
+  }
+ else {
+    log.debug("Executing query with cursor: {} ",query.getCursor());
+    SearchScrollRequestBuilder ssrb=client.prepareSearchScroll(query.getCursor()).setScroll(cursorTimeout + "m");
+    searchResponse=ssrb.execute().actionGet();
+  }
+  SearchHits hits=searchResponse.getHits();
+  log.debug("   Hit count: {} Total hits: {}",hits.getHits().length,hits.getTotalHits());
+  List<CandidateResult> candidates=new ArrayList<CandidateResult>();
+  for (  SearchHit hit : hits.getHits()) {
+    String[] idparts=hit.getId().split(DOC_ID_SEPARATOR_SPLITTER);
+    String id=idparts[0];
+    String type=idparts[1];
+    String version=idparts[2];
+    Id entityId=new SimpleId(UUID.fromString(id),type);
+    candidates.add(new CandidateResult(entityId,UUID.fromString(version)));
+  }
+  CandidateResults candidateResults=new CandidateResults(query,candidates);
+  if (candidates.size() == query.getLimit()) {
+    candidateResults.setCursor(searchResponse.getScrollId());
+    log.debug("   Cursor = " + searchResponse.getScrollId());
+  }
+  return candidateResults;
+}

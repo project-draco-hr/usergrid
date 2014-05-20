@@ -1,0 +1,14 @@
+{
+  final Id orgId=new SimpleId("WriteUniqueVerifyIT");
+  final Id appId=new SimpleId("testNoConflict");
+  final CollectionScope scope=new CollectionScopeImpl(appId,orgId,"fastcars");
+  final EntityCollectionManager entityManager=cmf.createCollectionManager(scope);
+  final Entity entity=TestEntityGenerator.generateEntity();
+  entity.setField(new StringField("name","Porsche 911 GT3",true));
+  entity.setField(new StringField("identifier","911gt3",true));
+  entity.setField(new IntegerField("top_speed_mph",194));
+  entityManager.write(entity).toBlockingObservable().last();
+  Entity entityFetched=entityManager.load(entity.getId()).toBlockingObservable().last();
+  entityFetched.setField(new StringField("foo","baz"));
+  entityManager.write(entityFetched).toBlockingObservable().last();
+}

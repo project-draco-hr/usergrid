@@ -1,0 +1,36 @@
+{
+  final MarkedEdge edge1=createMarkedEdge("source","edge","target");
+  final Id targetId=edge1.getTargetNode();
+  final UUID timestamp1=UUIDGenerator.newTimeUUID();
+  final UUID timestamp2=UUIDGenerator.newTimeUUID();
+  final UUID timestamp3=UUIDGenerator.newTimeUUID();
+  assertTrue(UUIDComparator.staticCompare(timestamp1,timestamp2) < 0);
+  assertTrue(UUIDComparator.staticCompare(timestamp2,timestamp3) < 0);
+  serialization.writeEdge(scope,edge1,timestamp2).execute();
+  UUID now=UUIDGenerator.newTimeUUID();
+  Iterator<MarkedEdge> results=serialization.getEdgesToTarget(scope,createSearchByEdge(targetId,"edge",now,null));
+  assertEquals(edge1,results.next());
+  assertFalse(results.hasNext());
+  Iterator<MarkedEdge> versions=serialization.getEdgeVersions(scope,createGetByEdge(edge1.getSourceNode(),"edge",edge1.getTargetNode(),now,null));
+  assertEquals(edge1,versions.next());
+  assertFalse(versions.hasNext());
+  serialization.deleteEdge(scope,edge1,timestamp1).execute();
+  results=serialization.getEdgesToTarget(scope,createSearchByEdge(targetId,"edge",now,null));
+  assertEquals(edge1,results.next());
+  assertFalse(results.hasNext());
+  versions=serialization.getEdgeVersions(scope,createGetByEdge(edge1.getSourceNode(),"edge",edge1.getTargetNode(),now,null));
+  assertEquals(edge1,versions.next());
+  assertFalse(versions.hasNext());
+  serialization.deleteEdge(scope,edge1,timestamp2).execute();
+  results=serialization.getEdgesToTarget(scope,createSearchByEdge(targetId,"edge",now,null));
+  assertFalse(results.hasNext());
+  versions=serialization.getEdgeVersions(scope,createGetByEdge(edge1.getSourceNode(),"edge",edge1.getTargetNode(),now,null));
+  assertFalse(versions.hasNext());
+  serialization.writeEdge(scope,edge1,timestamp3).execute();
+  results=serialization.getEdgesToTarget(scope,createSearchByEdge(targetId,"edge",now,null));
+  assertEquals(edge1,results.next());
+  assertFalse(results.hasNext());
+  versions=serialization.getEdgeVersions(scope,createGetByEdge(edge1.getSourceNode(),"edge",edge1.getTargetNode(),now,null));
+  assertEquals(edge1,versions.next());
+  assertFalse(versions.hasNext());
+}

@@ -1,0 +1,16 @@
+{
+  EntityIndex ei=getManagerCache().getEntityIndex(SYSTEM_PROPS_INDEX_SCOPE);
+  EntityCollectionManager em=getManagerCache().getEntityCollectionManager(SYSTEM_PROPS_SCOPE);
+  Query q=Query.fromQL("select *");
+  CandidateResults results=ei.search(q);
+  if (results.isEmpty()) {
+    return new HashMap<String,String>();
+  }
+  CandidateResult cr=results.iterator().next();
+  Entity propsEntity=em.load(cr.getId()).toBlockingObservable().last();
+  Map<String,String> props=new HashMap<String,String>();
+  for (  Field f : propsEntity.getFields()) {
+    props.put(f.getName(),f.getValue().toString());
+  }
+  return props;
+}

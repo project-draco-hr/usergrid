@@ -1,0 +1,25 @@
+{
+  Observable<SourceAwareMarkedEdge> commitLog=Observable.create(new ObservableIterator<MarkedEdge>("getEdgesFromSourceByTargetTypeCommitLog"){
+    @Override protected Iterator<MarkedEdge> getIterator(){
+      return commitLogSerialization.getEdgesFromSourceByTargetType(scope,edgeType);
+    }
+  }
+).subscribeOn(Schedulers.io()).map(new Func1<MarkedEdge,SourceAwareMarkedEdge>(){
+    @Override public SourceAwareMarkedEdge call(    final MarkedEdge markedEdge){
+      return new SourceAwareMarkedEdge(markedEdge,commitLogSerialization);
+    }
+  }
+);
+  Observable<SourceAwareMarkedEdge> permanent=Observable.create(new ObservableIterator<MarkedEdge>("getEdgesFromSourceByTargetTypeStorage"){
+    @Override protected Iterator<MarkedEdge> getIterator(){
+      return permanentSerialization.getEdgesFromSourceByTargetType(scope,edgeType);
+    }
+  }
+).subscribeOn(Schedulers.io()).subscribeOn(Schedulers.io()).map(new Func1<MarkedEdge,SourceAwareMarkedEdge>(){
+    @Override public SourceAwareMarkedEdge call(    final MarkedEdge markedEdge){
+      return new SourceAwareMarkedEdge(markedEdge,permanentSerialization);
+    }
+  }
+);
+  return OrderedMerge.orderedMerge(new SourceEdgeComparator(commitLogSerialization),graphFig.getScanPageSize() / 2,commitLog,permanent).map(MAPPER).distinctUntilChanged(EDGE_KEY_SELECTOR).doOnNext(RX_LOG);
+}

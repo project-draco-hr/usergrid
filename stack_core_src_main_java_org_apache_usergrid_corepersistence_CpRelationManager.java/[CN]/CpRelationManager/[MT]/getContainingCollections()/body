@@ -1,0 +1,31 @@
+{
+  Map<EntityRef,Set<String>> results=new LinkedHashMap<EntityRef,Set<String>>();
+  GraphManager gm=managerCache.getGraphManager(applicationScope);
+  Iterator<String> edgeTypes=gm.getEdgeTypesToTarget(new SimpleSearchEdgeType(cpHeadEntity.getId(),null)).toBlockingObservable().getIterator();
+  while (edgeTypes.hasNext()) {
+    String edgeType=edgeTypes.next();
+    Observable<Edge> edges=gm.loadEdgesToTarget(new SimpleSearchByEdgeType(cpHeadEntity.getId(),edgeType,cpHeadEntity.getVersion(),null));
+    Iterator<Edge> iter=edges.toBlockingObservable().getIterator();
+    while (iter.hasNext()) {
+      Edge edge=iter.next();
+      if (!edge.getType().endsWith(COLLECTION_SUFFIX)) {
+        continue;
+      }
+      String collName=edge.getType().substring(0,edge.getType().indexOf(COLLECTION_SUFFIX));
+      CollectionScope collScope=new CollectionScopeImpl(this.applicationScope.getApplication(),this.applicationScope.getApplication(),Schema.defaultCollectionName(edge.getSourceNode().getType()));
+      EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collScope);
+      org.apache.usergrid.persistence.model.entity.Entity container=ecm.load(edge.getSourceNode()).toBlockingObservable().last();
+      EntityRef eref=new SimpleEntityRef(container.getId().getType(),container.getId().getUuid());
+      String cEdgeType=edge.getType();
+      if (cEdgeType.endsWith(COLLECTION_SUFFIX)) {
+        cEdgeType=cEdgeType.substring(0,cEdgeType.indexOf(COLLECTION_SUFFIX));
+      }
+      addMapSet(results,eref,cEdgeType);
+    }
+  }
+  EntityRef applicationRef=new SimpleEntityRef(TYPE_APPLICATION,applicationId);
+  if (!results.containsKey(applicationRef)) {
+    addMapSet(results,applicationRef,defaultCollectionName(headEntity.getType()));
+  }
+  return results;
+}

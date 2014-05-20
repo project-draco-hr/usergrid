@@ -1,4 +1,5 @@
 {
+  LOG.debug("testGroups");
   UUID applicationId=setup.createApplication("testOrganization","testGroups");
   assertNotNull(applicationId);
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
@@ -22,6 +23,7 @@
   properties=new LinkedHashMap<String,Object>();
   properties.put("nickname","ed");
   em.updateProperties(new SimpleCollectionRef(group,"users",user1),properties);
+  em.refreshIndex();
   Results r=em.searchCollection(group,"users",new Query().addEqualityFilter("member.nickname","ed").withResultsLevel(Results.Level.LINKED_PROPERTIES));
   LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   assertEquals(1,r.size());

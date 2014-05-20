@@ -1,4 +1,5 @@
 {
+  LOG.debug("userMiddleNameSearch");
   UUID applicationId=setup.createApplication("testOrganization","testMiddleName");
   assertNotNull(applicationId);
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
@@ -10,6 +11,7 @@
   properties.put("middlename",middleName);
   Entity user=em.create("user",properties);
   assertNotNull(user);
+  em.refreshIndex();
   Query query=new Query();
   query.addEqualityFilter("middlename",middleName);
   Results r=em.searchCollection(em.getApplicationRef(),"users",query);

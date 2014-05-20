@@ -5,6 +5,7 @@
 synchronized (this) {
     while (true) {
       InnerObserver<T> maxObserver=null;
+      T max=null;
       for (      InnerObserver<T> inner : innerSubscribers) {
         if (inner.drained) {
           continue;
@@ -13,13 +14,15 @@ synchronized (this) {
         if (current == null) {
           return;
         }
-        if (maxObserver == null || (current != null && comparator.compare(current,maxObserver.peek()) > 0)) {
+        if (max == null || (current != null && comparator.compare(current,max) > 0)) {
           maxObserver=inner;
+          max=current;
         }
       }
       if (maxObserver == null) {
         return;
       }
+      log.trace("Max element is item {}",max);
       subscriber.onNext(maxObserver.pop());
     }
   }

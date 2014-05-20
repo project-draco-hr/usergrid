@@ -1,4 +1,5 @@
 {
+  LOG.debug("pagingLessThanWithCriteria");
   UUID applicationId=setup.createApplication("testOrganization","pagingLessThanWithCriteria");
   assertNotNull(applicationId);
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
@@ -12,6 +13,7 @@
     entityIds.add(created.getUuid());
   }
   int pageSize=10;
+  em.refreshIndex();
   Query query=new Query();
   query.setLimit(pageSize);
   query.addFilter("index < " + size * 2);

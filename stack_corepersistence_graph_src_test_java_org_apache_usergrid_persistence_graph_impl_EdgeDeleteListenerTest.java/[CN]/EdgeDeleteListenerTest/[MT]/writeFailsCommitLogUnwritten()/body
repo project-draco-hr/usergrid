@@ -1,0 +1,28 @@
+{
+  final Id sourceId=createId("source");
+  final String edgeType="test";
+  final Id targetId=createId("target");
+  MarkedEdge edgeV1=createMarkedEdge(sourceId,edgeType,targetId);
+  EdgeSerialization commitLog=mock(EdgeSerialization.class);
+  EdgeSerialization storage=mock(EdgeSerialization.class);
+  AsyncProcessor<EdgeEvent<MarkedEdge>> edgeProcessor=mock(AsyncProcessor.class);
+  EdgeEvent<MarkedEdge> edgeWriteEvent=new EdgeEvent<>(scope,edgeV1.getVersion(),edgeV1);
+  Keyspace keyspace=mock(Keyspace.class);
+  EdgeWriteCompact compact=new EdgeWriteCompactImpl(commitLog,storage,keyspace,graphFig);
+  EdgeWriteListener listener=new EdgeWriteListener(compact,edgeProcessor);
+  when(commitLog.getEdgeVersions(same(scope),any(SearchByEdge.class))).thenReturn(Collections.singletonList(createEdge(edgeV1.getSourceNode(),edgeV1.getType(),edgeV1.getTargetNode(),edgeV1.getVersion())).iterator());
+  MutationBatch commitLogBatch=mock(MutationBatch.class);
+  MutationBatch storageBatch=mock(MutationBatch.class);
+  when(keyspace.prepareMutationBatch()).thenReturn(commitLogBatch);
+  when(keyspace.prepareMutationBatch()).thenReturn(storageBatch);
+  RuntimeException exception=new RuntimeException("Something nasty happened when mutating");
+  when(storageBatch.execute()).thenThrow(exception);
+  try {
+    listener.receive(edgeWriteEvent).toBlockingObservable().single();
+    fail("I should have thrown an exception");
+  }
+ catch (  RuntimeException re) {
+    assertSame(exception,re);
+  }
+  verify(commitLogBatch,never()).execute();
+}
