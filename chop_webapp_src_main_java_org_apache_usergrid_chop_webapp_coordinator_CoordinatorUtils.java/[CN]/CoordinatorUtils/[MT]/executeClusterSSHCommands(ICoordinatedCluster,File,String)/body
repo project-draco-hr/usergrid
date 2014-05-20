@@ -11,6 +11,14 @@
     String value=cluster.getInstanceSpec().getScriptEnvironment().getProperty(envVar);
     sb.append("export ").append(envVar).append("=\"").append(value).append("\";");
   }
+  StringBuilder ipList=new StringBuilder();
+  StringBuilder hostList=new StringBuilder();
+  for (  Instance temp : cluster.getInstances()) {
+    ipList.append(temp.getPrivateIpAddress()).append(" ");
+    hostList.append(temp.getPublicDnsName()).append(" ");
+  }
+  sb.append("export ").append(cluster.getName().toUpperCase()).append("_ADDRS=\"").append(ipList.substring(0,ipList.toString().length() - 1)).append("\";");
+  sb.append("export ").append(cluster.getName().toUpperCase()).append("_HOSTS=\"").append(hostList.substring(0,hostList.toString().length() - 1)).append("\";");
   String exportVars=sb.toString();
   for (  URL scriptFile : cluster.getInstanceSpec().getSetupScripts()) {
     File file=new File(scriptFile.getPath());
