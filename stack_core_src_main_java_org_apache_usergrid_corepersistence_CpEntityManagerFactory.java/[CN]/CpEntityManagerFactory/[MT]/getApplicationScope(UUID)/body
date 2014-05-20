@@ -1,10 +1,12 @@
 {
   Query q=Query.fromQL(PROPERTY_UUID + " = '" + applicationId.toString()+ "'");
-  EntityIndex ei=getManagerCache().getEntityIndex(SYSTEM_ORG_SCOPE,SYSTEM_APPS_SCOPE);
-  Results results=ei.search(SYSTEM_APPS_SCOPE,q);
+  EntityCollectionManager em=getManagerCache().getEntityCollectionManager(SYSTEM_APPS_SCOPE);
+  EntityIndex ei=getManagerCache().getEntityIndex(SYSTEM_APPS_INDEX_SCOPE);
+  CandidateResults results=ei.search(q);
   if (results.isEmpty()) {
     return null;
   }
-  Entity appEntity=results.iterator().next();
+  CandidateResult candidateResult=results.iterator().next();
+  Entity appEntity=em.load(candidateResult.getEntityId()).toBlockingObservable().last();
   return new CollectionScopeImpl(new SimpleId(((UUID)(appEntity.getField("organizationUuid")).getValue()),"organization"),new SimpleId(appEntity.getId().getUuid(),"application"),appEntity.getField(PROPERTY_NAME).getValue().toString());
 }

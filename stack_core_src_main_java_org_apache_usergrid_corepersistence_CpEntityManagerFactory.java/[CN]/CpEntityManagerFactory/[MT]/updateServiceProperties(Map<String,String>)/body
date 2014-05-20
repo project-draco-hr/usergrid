@@ -1,11 +1,11 @@
 {
-  EntityCollectionManager ecm=getManagerCache().getEntityCollectionManager(SYSTEM_PROPS_SCOPE);
-  EntityIndex ei=getManagerCache().getEntityIndex(SYSTEM_ORG_SCOPE,SYSTEM_PROPS_SCOPE);
+  EntityCollectionManager em=getManagerCache().getEntityCollectionManager(SYSTEM_PROPS_SCOPE);
+  EntityIndex ei=getManagerCache().getEntityIndex(SYSTEM_PROPS_INDEX_SCOPE);
   Query q=Query.fromQL("select *");
-  Results results=ei.search(SYSTEM_PROPS_SCOPE,q);
+  CandidateResults results=ei.search(q);
   Entity propsEntity;
   if (!results.isEmpty()) {
-    propsEntity=results.iterator().next();
+    propsEntity=em.load(results.iterator().next().getEntityId()).toBlockingObservable().last();
   }
  else {
     propsEntity=new Entity(new SimpleId("properties"));
@@ -13,7 +13,7 @@
   for (  String key : properties.keySet()) {
     propsEntity.setField(new StringField(key,properties.get(key)));
   }
-  propsEntity=ecm.write(propsEntity).toBlockingObservable().last();
-  ei.index(SYSTEM_PROPS_SCOPE,propsEntity);
+  propsEntity=em.write(propsEntity).toBlockingObservable().last();
+  ei.index(propsEntity);
   return true;
 }

@@ -2,21 +2,28 @@
   Results results=null;
   if (query.getLevel().equals(Level.IDS)) {
     List<UUID> ids=new ArrayList<UUID>();
-    for (    Id id : cpResults.getIds()) {
-      ids.add(id.getUuid());
+    Iterator<CandidateResult> iter=crs.iterator();
+    while (iter.hasNext()) {
+      ids.add(iter.next().getEntityId().getUuid());
     }
     results=Results.fromIdList(ids);
   }
  else   if (query.getLevel().equals(Level.REFS)) {
     List<EntityRef> entityRefs=new ArrayList<EntityRef>();
-    for (    Id id : cpResults.getIds()) {
+    Iterator<CandidateResult> iter=crs.iterator();
+    while (iter.hasNext()) {
+      Id id=iter.next().getEntityId();
       entityRefs.add(new SimpleEntityRef(id.getType(),id.getUuid()));
     }
     results=Results.fromRefList(entityRefs);
   }
  else {
+    CollectionScope collScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),collName);
+    EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collScope);
     List<Entity> entities=new ArrayList<Entity>();
-    for (    org.apache.usergrid.persistence.model.entity.Entity e : cpResults.getEntities()) {
+    Iterator<CandidateResult> iter=crs.iterator();
+    while (iter.hasNext()) {
+      org.apache.usergrid.persistence.model.entity.Entity e=ecm.load(iter.next().getEntityId()).toBlockingObservable().last();
       Entity entity=EntityFactory.newEntity(e.getId().getUuid(),e.getField("type").getValue().toString());
       Map<String,Object> entityMap=CpEntityMapUtils.toMap(e);
       entity.addProperties(entityMap);
@@ -24,7 +31,7 @@
     }
     results=Results.fromEntities(entities);
   }
-  results.setCursor(cpResults.getCursor());
+  results.setCursor(crs.getCursor());
   results.setQueryProcessor(new CpQueryProcessor(em,headEntity,collName));
   return results;
 }

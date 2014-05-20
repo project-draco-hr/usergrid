@@ -1,0 +1,16 @@
+{
+  RelationManager rm=getRelationManager(entity);
+  Map<String,Map<UUID,Set<String>>> owners=rm.getOwners();
+  logger.debug("Updating indexes of all {} collections owning the entity",owners.keySet().size());
+  for (  String ownerType : owners.keySet()) {
+    Map<UUID,Set<String>> collectionsByUuid=owners.get(ownerType);
+    for (    UUID uuid : collectionsByUuid.keySet()) {
+      Set<String> collections=collectionsByUuid.get(uuid);
+      for (      String coll : collections) {
+        IndexScope indexScope=new IndexScopeImpl(appScope.getApplication(),new SimpleId(uuid,ownerType),coll + CpRelationManager.COLLECTION_SUFFIX);
+        EntityIndex ei=managerCache.getEntityIndex(indexScope);
+        ei.index(cpEntity);
+      }
+    }
+  }
+}
