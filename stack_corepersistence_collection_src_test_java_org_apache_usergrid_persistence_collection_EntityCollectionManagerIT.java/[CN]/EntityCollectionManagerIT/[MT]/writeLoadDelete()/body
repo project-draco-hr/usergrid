@@ -5,6 +5,7 @@
   Observable<Entity> observable=manager.write(newEntity);
   Entity createReturned=observable.toBlockingObservable().lastOrDefault(null);
   assertNotNull("Id was assigned",createReturned.getId());
+  UUID version=createReturned.getVersion();
   Observable<Entity> loadObservable=manager.load(createReturned.getId());
   Entity loadReturned=loadObservable.toBlockingObservable().lastOrDefault(null);
   assertEquals("Same value",createReturned,loadReturned);

@@ -1,0 +1,24 @@
+{
+  ValidationUtils.validateApplicationScope(scope);
+  EdgeUtils.validateSearchByEdgeType(edgeType);
+  final Id targetId=edgeType.getNode();
+  final String sourceType=edgeType.getIdType();
+  final String type=edgeType.getType();
+  final UUID maxVersion=edgeType.getMaxVersion();
+  final EdgeSearcher<RowKeyType,DirectedEdge,MarkedEdge> searcher=new EdgeSearcher<RowKeyType,DirectedEdge,MarkedEdge>(scope,maxVersion,edgeType.last(),edgeShardStrategy.getReadShards(scope,targetId,maxVersion,type,sourceType)){
+    @Override protected Serializer<DirectedEdge> getSerializer(){
+      return EDGE_SERIALIZER;
+    }
+    @Override protected RowKeyType generateRowKey(    final long shard){
+      return new RowKeyType(targetId,type,sourceType,shard);
+    }
+    @Override protected DirectedEdge getStartColumn(    final Edge last){
+      return new DirectedEdge(last.getTargetNode(),last.getVersion());
+    }
+    @Override protected MarkedEdge createEdge(    final DirectedEdge edge,    final boolean marked){
+      return new SimpleMarkedEdge(edge.id,type,targetId,edge.version,marked);
+    }
+  }
+;
+  return new ShardRowIterator<>(searcher,targetNodeSourceTypeCf);
+}

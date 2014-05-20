@@ -8,7 +8,7 @@
   final CollectionIoEvent<Id> entityIoEvent=new CollectionIoEvent<Id>(collection,entityId);
   final Entity entity=TestEntityGenerator.generateEntity(entityId,loadVersion);
   final MvccEntity mvccEntity=TestEntityGenerator.fromEntity(entity);
-  final List<MvccEntity> results=Lists.newArrayList(mvccEntity);
+  final Iterator<MvccEntity> results=Lists.newArrayList(mvccEntity).iterator();
   when(serializationStrategy.load(collection,entityId,loadVersion,5)).thenReturn(results);
   Load load=new Load(uuidService,serializationStrategy);
   Entity loaded=load.call(entityIoEvent);

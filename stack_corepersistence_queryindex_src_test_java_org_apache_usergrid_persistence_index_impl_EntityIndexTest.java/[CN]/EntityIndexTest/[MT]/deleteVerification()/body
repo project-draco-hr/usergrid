@@ -1,0 +1,44 @@
+{
+  Id appId=new SimpleId("application");
+  Id ownerId=new SimpleId("owner");
+  IndexScope appScope=new IndexScopeImpl(appId,ownerId,"user");
+  CollectionScope scope=new CollectionScopeImpl(appId,ownerId,"user");
+  EntityIndex ei=cif.createEntityIndex(appScope);
+  EntityCollectionManager em=cmf.createCollectionManager(scope);
+  QueueListenerHelper helper=new QueueListenerHelper(entityDelete,2,0);
+  final String middleName="middleName" + UUIDUtils.newTimeUUID();
+  Map entityMap=new HashMap(){
+{
+      put("username","edanuff");
+      put("email","ed@anuff.com");
+      put("middlename",middleName);
+    }
+  }
+;
+  Entity user=EntityIndexMapUtils.fromMap(entityMap);
+  EntityUtils.setId(user,new SimpleId("edanuff"));
+  user=em.write(user).toBlockingObservable().last();
+  ei.index(user);
+  user.setField(new StringField("address1","1782 address st"));
+  user=em.write(user).toBlockingObservable().last();
+  ei.index(user);
+  user.setField(new StringField("address2","apt 508"));
+  user=em.write(user).toBlockingObservable().last();
+  ei.index(user);
+  user.setField(new StringField("address3","apt 508"));
+  user=em.write(user).toBlockingObservable().last();
+  ei.index(user);
+  ei.refresh();
+  user=em.load(user.getId()).toBlockingObservable().last();
+  em.delete(user.getId()).toBlockingObservable().last();
+  try {
+    helper.awaitWithoutErrors(10,TimeUnit.SECONDS);
+  }
+ catch (  Throwable e) {
+    throw new Exception(e);
+  }
+  Query query=new Query();
+  query.addEqualityFilter("username","edanuff");
+  CandidateResults r=ei.search(query);
+  assertFalse(r.iterator().hasNext());
+}

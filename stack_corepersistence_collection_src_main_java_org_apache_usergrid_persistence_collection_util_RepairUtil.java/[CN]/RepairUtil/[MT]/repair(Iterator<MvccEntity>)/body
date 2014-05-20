@@ -1,0 +1,28 @@
+{
+  if (!results.hasNext()) {
+    return null;
+  }
+  org.apache.commons.collections4.iterators.PushbackIterator<MvccEntity> iter=new PushbackIterator<>(results);
+  MvccEntity mvccEntity=iter.next();
+  final Optional<Entity> targetVersion=mvccEntity.getEntity();
+  List<MvccEntity> partialEntities=new ArrayList<>();
+  if (!targetVersion.isPresent() && mvccEntity.getStatus() == MvccEntity.Status.DELETED) {
+    return null;
+  }
+  if (mvccEntity.getStatus() == MvccEntity.Status.COMPLETE) {
+    return targetVersion.get();
+  }
+  iter.pushback(mvccEntity);
+  while (iter.hasNext()) {
+    mvccEntity=iter.next();
+    if (mvccEntity.getStatus() == MvccEntity.Status.PARTIAL) {
+      partialEntities.add(mvccEntity);
+    }
+ else {
+      partialEntities.add(mvccEntity);
+      List<ChangeLogEntry> chgPersist=changeLogGenerator.getChangeLog(partialEntities.iterator(),partialEntities.get(0).getVersion());
+      return entityRepair(chgPersist,partialEntities,mvccEntity);
+    }
+  }
+  return null;
+}

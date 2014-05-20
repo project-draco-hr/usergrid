@@ -1,6 +1,7 @@
 {
-  EntityCollectionManager ecm=ecmf.createCollectionManager(orgAppScope.scope);
-  EntityIndex eci=ecif.createEntityIndex(orgAppScope.orgScope,orgAppScope.appScope);
+  CollectionScope collectionScope=new CollectionScopeImpl(indexScope.getApplication(),indexScope.getOwner(),indexScope.getName());
+  EntityCollectionManager ecm=ecmf.createCollectionManager(collectionScope);
+  EntityIndex eci=ecif.createEntityIndex(indexScope);
   FileReader fr;
   try {
     fr=new FileReader("../../resources/finefoods.txt");
@@ -11,15 +12,13 @@
   BufferedReader br=new BufferedReader(fr);
   String s=null;
   Entity current=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),"review"));
-  Id orgId=orgAppScope.scope.getOrganization();
-  Id appId=orgAppScope.scope.getOwner();
   int count=0;
   try {
     while ((s=br.readLine()) != null && count < maxEntities) {
       try {
         if (s.trim().equals("")) {
           ecm.write(current).toBlockingObservable().last();
-          eci.index(orgAppScope.scope,current);
+          eci.index(current);
           if (maxEntities < 20) {
             log.info("Index written for {}",current.getId());
             log.info("---");
@@ -27,7 +26,7 @@
           current=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),"review"));
           count++;
           if (count % 100000 == 0) {
-            log.info("Indexed {} reviews in {} / {} ",new Object[]{count,orgId,appId});
+            log.info("Indexed {} reviews in {} / {} ",new Object[]{count,indexScope.getApplication(),indexScope.getOwner()});
           }
           continue;
         }
