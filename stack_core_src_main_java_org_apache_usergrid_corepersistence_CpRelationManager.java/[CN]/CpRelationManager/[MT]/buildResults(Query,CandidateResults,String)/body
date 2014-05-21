@@ -18,12 +18,30 @@
     results=Results.fromRefList(entityRefs);
   }
  else {
-    CollectionScope collScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),collName);
+    CollectionScope collScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),Schema.defaultCollectionName(query.getEntityType()));
     EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collScope);
-    List<Entity> entities=new ArrayList<Entity>();
+    Map<Id,org.apache.usergrid.persistence.model.entity.Entity> latestVersions=new LinkedHashMap<Id,org.apache.usergrid.persistence.model.entity.Entity>();
     Iterator<CandidateResult> iter=crs.iterator();
     while (iter.hasNext()) {
-      org.apache.usergrid.persistence.model.entity.Entity e=ecm.load(iter.next().getId()).toBlockingObservable().last();
+      CandidateResult cr=iter.next();
+      org.apache.usergrid.persistence.model.entity.Entity e=ecm.load(cr.getId()).toBlockingObservable().last();
+      if (cr.getVersion().compareTo(e.getVersion()) < 0) {
+        logger.debug("Stale version uuid:{} type:{} v:{}",new Object[]{cr.getId().getUuid(),cr.getId().getType(),cr.getVersion()});
+        continue;
+      }
+      org.apache.usergrid.persistence.model.entity.Entity alreadySeen=latestVersions.get(e.getId());
+      if (alreadySeen == null) {
+        latestVersions.put(e.getId(),e);
+      }
+ else {
+        if (e.getVersion().compareTo(alreadySeen.getVersion()) > 0) {
+          latestVersions.put(e.getId(),e);
+        }
+      }
+    }
+    List<Entity> entities=new ArrayList<Entity>();
+    for (    Id id : latestVersions.keySet()) {
+      org.apache.usergrid.persistence.model.entity.Entity e=latestVersions.get(id);
       Entity entity=EntityFactory.newEntity(e.getId().getUuid(),e.getField("type").getValue().toString());
       Map<String,Object> entityMap=CpEntityMapUtils.toMap(e);
       entity.addProperties(entityMap);
