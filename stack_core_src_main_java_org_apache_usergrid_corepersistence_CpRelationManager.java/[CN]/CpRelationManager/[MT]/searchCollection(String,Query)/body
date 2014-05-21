@@ -5,11 +5,10 @@
   headEntity=em.validate(headEntity);
   CollectionInfo collection=getDefaultSchema().getCollection(headEntity.getType(),collName);
   query.setEntityType(collection.getType());
-  org.apache.usergrid.persistence.index.query.Query cpQuery=createCpQuery(query);
   IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),collName + COLLECTION_SUFFIX);
   EntityIndex ei=managerCache.getEntityIndex(indexScope);
   logger.debug("Searching collection {}",collName);
   logger.debug("Searching head entity scope {}:{}:{}",new String[]{headEntityScope.getApplication().toString(),headEntityScope.getOwner().toString(),collName});
-  CandidateResults crs=ei.search(cpQuery);
+  CandidateResults crs=ei.search(addIdentifiers(query));
   return buildResults(query,crs,collName);
 }

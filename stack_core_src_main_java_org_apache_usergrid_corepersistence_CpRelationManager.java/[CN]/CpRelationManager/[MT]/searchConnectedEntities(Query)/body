@@ -3,7 +3,6 @@
     query=new Query();
   }
   headEntity=em.validate(headEntity);
-  org.apache.usergrid.persistence.index.query.Query cpQuery=createCpQuery(query);
   IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),ALL_TYPES);
   EntityIndex ei=managerCache.getEntityIndex(indexScope);
   logger.debug("Searching connections from all-targets scope {}:{}:{}",new String[]{indexScope.getApplication().toString(),indexScope.getOwner().toString(),indexScope.getName()});
@@ -19,6 +18,6 @@
       connectionTypes.add(iter.next());
     }
   }
-  CandidateResults crs=ei.search(cpQuery);
-  return buildResults(query,crs,connectionTypes.get(0));
+  CandidateResults crs=ei.search(addIdentifiers(query));
+  return buildResults(query,crs,query.getConnectionType());
 }

@@ -1,0 +1,20 @@
+{
+  if (query.getRootOperand() == null) {
+    if (query.containsSingleNameOrEmailIdentifier()) {
+      Identifier ident=query.getSingleIdentifier();
+      if (query.getEntityType().equals(User.ENTITY_TYPE) && ident.isEmail()) {
+        org.apache.usergrid.persistence.index.query.Query newQuery=org.apache.usergrid.persistence.index.query.Query.fromQL("select * where email='" + query.getSingleNameOrEmailIdentifier() + "'");
+        query.setRootOperand(newQuery.getRootOperand());
+      }
+ else {
+        org.apache.usergrid.persistence.index.query.Query newQuery=org.apache.usergrid.persistence.index.query.Query.fromQL("select * where name='" + query.getSingleNameOrEmailIdentifier() + "'");
+        query.setRootOperand(newQuery.getRootOperand());
+      }
+    }
+ else     if (query.containsSingleUuidIdentifier()) {
+      org.apache.usergrid.persistence.index.query.Query newQuery=org.apache.usergrid.persistence.index.query.Query.fromQL("select * where uuid='" + query.getSingleUuidIdentifier() + "'");
+      query.setRootOperand(newQuery.getRootOperand());
+    }
+  }
+  return query;
+}
