@@ -6,7 +6,7 @@
   final SimpleId id=new SimpleId("test");
   final UUID version=UUIDGenerator.newTimeUUID();
   for (  Stage stage : Stage.values()) {
-    MvccLogEntry saved=new MvccLogEntryImpl(id,version,stage);
+    MvccLogEntry saved=new MvccLogEntryImpl(id,version,stage,MvccLogEntry.Status.COMPLETE);
     logEntryStrategy.write(context,saved).execute();
     MvccLogEntry returned=logEntryStrategy.load(context,id,version);
     assertNotNull("Returned value should not be null",returned);
