@@ -1,0 +1,11 @@
+{
+  ValidationUtils.validateApplicationScope(scope);
+  ValidationUtils.verifyIdentity(nodeId);
+  Preconditions.checkArgument(shard > -1,"shardId must be greater than -1");
+  Preconditions.checkNotNull(types);
+  final EdgeRowKey key=new EdgeRowKey(nodeId,types);
+  final ScopedRowKey rowKey=ScopedRowKey.fromKey(scope,key);
+  final MutationBatch batch=keyspace.prepareMutationBatch();
+  batch.withRow(EDGE_SHARDS,rowKey).putColumn(shard,HOLDER);
+  return batch;
+}

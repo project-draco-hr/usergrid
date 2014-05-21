@@ -1,0 +1,15 @@
+{
+  ValidationUtils.validateApplicationScope(scope);
+  ValidationUtils.verifyIdentity(node);
+  ColumnFamilyQuery<ScopedRowKey<ApplicationScope,Id>,Boolean> query=keyspace.prepareQuery(GRAPH_DELETE).setConsistencyLevel(fig.getReadCL());
+  try {
+    Column<Boolean> result=query.getKey(ScopedRowKey.fromKey(scope,node)).getColumn(COLUMN_NAME).execute().getResult();
+    return Optional.of(result.getUUIDValue());
+  }
+ catch (  NotFoundException e) {
+    return Optional.absent();
+  }
+catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to connect to casandra",e);
+  }
+}

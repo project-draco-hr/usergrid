@@ -1,13 +1,17 @@
 {
-  CollectionScope memberScope=new CollectionScopeImpl(applicationScope.getOrganization(),applicationScope.getOwner(),Schema.defaultCollectionName(memberRef.getType()));
+  CollectionScope memberScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),Schema.defaultCollectionName(memberRef.getType()));
   EntityCollectionManager memberMgr=managerCache.getEntityCollectionManager(memberScope);
   org.apache.usergrid.persistence.model.entity.Entity memberEntity=memberMgr.load(new SimpleId(memberRef.getUuid(),memberRef.getType())).toBlockingObservable().last();
+  if (memberEntity == null) {
+    throw new RuntimeException("Unable to load entity uuid=" + memberRef.getUuid() + " type="+ memberRef.getType());
+  }
   Edge edge=new SimpleMarkedEdge(cpHeadEntity.getId(),collName + COLLECTION_SUFFIX,memberEntity.getId(),UUIDGenerator.newTimeUUID(),false);
-  GraphManager gm=managerCache.getGraphManager(organizationScope);
+  GraphManager gm=managerCache.getGraphManager(applicationScope);
   gm.writeEdge(edge).toBlockingObservable().last();
-  EntityIndex ei=managerCache.getEntityIndex(organizationScope,applicationScope);
-  ei.indexConnection(cpHeadEntity,collName + COLLECTION_SUFFIX,memberEntity,memberScope);
+  IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),collName + COLLECTION_SUFFIX);
+  EntityIndex ei=managerCache.getEntityIndex(indexScope);
+  ei.index(memberEntity);
   logger.debug("Added entity {}:{} to collection {}",new String[]{memberRef.getUuid().toString(),memberRef.getType(),collName});
-  logger.debug("With head entity scope is {}:{}:{}",new String[]{headEntityScope.getOrganization().toString(),headEntityScope.getOwner().toString(),applicationScope.getName()});
+  logger.debug("With head entity scope is {}:{}:{}",new String[]{headEntityScope.getApplication().toString(),headEntityScope.getOwner().toString(),headEntityScope.getName()});
   return em.get(memberRef);
 }

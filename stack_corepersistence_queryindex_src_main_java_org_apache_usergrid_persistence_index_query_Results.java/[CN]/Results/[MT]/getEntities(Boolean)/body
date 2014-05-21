@@ -1,0 +1,15 @@
+{
+  if (entities == null) {
+    entities=new ArrayList<Entity>();
+    EntityCollectionManager ecm=null;
+    for (    CandidateResult candidate : candidates) {
+      Entity entity=ecm.load(candidate.getId()).toBlockingObservable().last();
+      if (!takeAllVersions && candidate.getVersion().compareTo(entity.getVersion()) == -1) {
+        log.debug("   Stale hit {} version {}",entity.getId(),entity.getVersion());
+        continue;
+      }
+      entities.add(entity);
+    }
+  }
+  return Collections.unmodifiableList(entities);
+}

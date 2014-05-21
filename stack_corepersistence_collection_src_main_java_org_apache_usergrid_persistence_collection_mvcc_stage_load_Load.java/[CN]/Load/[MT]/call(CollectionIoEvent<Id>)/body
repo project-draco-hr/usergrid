@@ -3,11 +3,12 @@
   ValidationUtils.verifyIdentity(entityId);
   final CollectionScope collectionScope=idIoEvent.getEntityCollection();
   final UUID versionMax=uuidService.newTimeUUID();
-  List<MvccEntity> results=entitySerializationStrategy.load(collectionScope,entityId,versionMax,1);
-  if (results.size() != 1) {
+  Iterator<MvccEntity> results=entitySerializationStrategy.load(collectionScope,entityId,versionMax,1);
+  if (!results.hasNext()) {
     return null;
   }
-  final Optional<Entity> targetVersion=results.get(0).getEntity();
+  MvccEntity mvccEntity=results.next();
+  final Optional<Entity> targetVersion=mvccEntity.getEntity();
   if (!targetVersion.isPresent()) {
     return null;
   }

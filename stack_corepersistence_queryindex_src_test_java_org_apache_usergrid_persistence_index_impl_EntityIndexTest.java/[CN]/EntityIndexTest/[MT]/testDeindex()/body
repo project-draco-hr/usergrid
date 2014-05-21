@@ -1,11 +1,9 @@
 {
-  Id orgId=new SimpleId("organization");
-  OrganizationScope orgScope=new OrganizationScopeImpl(orgId);
   Id appId=new SimpleId("application");
-  CollectionScope appScope=new CollectionScopeImpl(orgId,appId,"test-app");
-  CollectionScope scope=new CollectionScopeImpl(appId,orgId,"fastcars");
-  EntityIndex entityIndex=cif.createEntityIndex(orgScope,appScope);
-  EntityCollectionManager entityManager=cmf.createCollectionManager(scope);
+  CollectionScope collectionScope=new CollectionScopeImpl(appId,appId,"fastcars");
+  IndexScope indexScope=new IndexScopeImpl(appId,appId,"fastcars");
+  EntityIndex entityIndex=cif.createEntityIndex(indexScope);
+  EntityCollectionManager entityManager=cmf.createCollectionManager(collectionScope);
   Map entityMap=new HashMap(){
 {
       put("name","Ferrari 212 Inter");
@@ -17,13 +15,13 @@
   Entity entity=EntityIndexMapUtils.fromMap(entityMap);
   EntityUtils.setId(entity,new SimpleId("fastcar"));
   entity=entityManager.write(entity).toBlockingObservable().last();
-  entityIndex.index(scope,entity);
+  entityIndex.index(entity);
   entityIndex.refresh();
-  Results results=entityIndex.search(scope,Query.fromQL("name contains 'Ferrari*'"));
-  assertEquals(1,results.size());
+  CandidateResults candidateResults=entityIndex.search(Query.fromQL("name contains 'Ferrari*'"));
+  assertEquals(1,candidateResults.size());
   entityManager.delete(entity.getId());
-  entityIndex.deindex(scope,entity);
+  entityIndex.deindex(entity);
   entityIndex.refresh();
-  results=entityIndex.search(scope,Query.fromQL("name contains 'Ferrari*'"));
-  assertEquals(0,results.size());
+  candidateResults=entityIndex.search(Query.fromQL("name contains 'Ferrari*'"));
+  assertEquals(0,candidateResults.size());
 }
