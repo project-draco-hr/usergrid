@@ -7,9 +7,8 @@
   if (cpEntity == null) {
     return null;
   }
-  Entity entity=new DynamicEntity(entityRef.getType(),cpEntity.getId().getUuid());
-  entity.setUuid(cpEntity.getId().getUuid());
-  Map<String,Object> entityMap=CpEntityMapUtils.toMap(cpEntity);
-  entity.addProperties(entityMap);
+  Class clazz=Schema.getDefaultSchema().getEntityClass(entityRef.getType());
+  Entity entity=EntityFactory.newEntity(entityRef.getUuid(),entityRef.getType(),clazz);
+  entity.setProperties(CpEntityMapUtils.toMap(cpEntity));
   return entity;
 }

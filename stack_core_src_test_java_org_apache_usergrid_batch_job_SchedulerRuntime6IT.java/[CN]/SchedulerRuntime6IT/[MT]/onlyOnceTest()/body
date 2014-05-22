@@ -11,6 +11,7 @@
   boolean waited=getJobListener().blockTilDone(1,customRetry * numberOfRuns * 2 + 5000L);
   assertTrue("Job ran twice",waited);
   job.setLatch(numberOfRuns);
+  scheduler.refreshIndex();
   JobStat stat=scheduler.getStatsForJob(returned.getJobName(),returned.getUuid());
   assertNotNull(stat);
   assertEquals(numberOfRuns,stat.getTotalAttempts());
