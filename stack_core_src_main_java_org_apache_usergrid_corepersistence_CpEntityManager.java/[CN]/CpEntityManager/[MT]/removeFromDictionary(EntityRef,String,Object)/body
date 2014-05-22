@@ -2,14 +2,9 @@
   if (elementName == null) {
     return;
   }
-  Entity entity=get(entityRef);
-  if (!(elementName instanceof String)) {
-    throw new IllegalArgumentException("Element name must be a string");
-  }
-  Map<String,Object> dictionary=entity.getDynamicProperties();
-  Map<String,Object> properties=(Map<String,Object>)dictionary.get(dictionaryName);
-  properties.remove(elementName);
-  dictionary.put(dictionaryName,properties);
-  entity.setProperties(dictionary);
-  update(entity);
+  EntityRef entity=get(entityRef);
+  UUID timestampUuid=newTimeUUID();
+  Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
+  batch=batchUpdateDictionary(batch,entity,dictionaryName,elementName,true,timestampUuid);
+  batchExecute(batch,CassandraService.RETRY_COUNT);
 }
