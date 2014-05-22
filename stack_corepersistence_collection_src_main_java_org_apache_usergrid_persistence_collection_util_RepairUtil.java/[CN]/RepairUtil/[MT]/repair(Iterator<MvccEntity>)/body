@@ -15,13 +15,23 @@
   iter.pushback(mvccEntity);
   while (iter.hasNext()) {
     mvccEntity=iter.next();
+    partialEntities.add(mvccEntity);
     if (mvccEntity.getStatus() == MvccEntity.Status.PARTIAL) {
-      partialEntities.add(mvccEntity);
+      continue;
     }
  else {
-      partialEntities.add(mvccEntity);
-      List<ChangeLogEntry> chgPersist=changeLogGenerator.getChangeLog(partialEntities.iterator(),partialEntities.get(0).getVersion());
-      return entityRepair(chgPersist,partialEntities,mvccEntity);
+      Collections.reverse(partialEntities);
+      List<ChangeLogEntry> chgPersist=new ArrayList<>();
+      List<MvccEntity> subEntList=new ArrayList<>();
+      for (int chg=1; chg <= partialEntities.size() - 1; chg++) {
+        subEntList.clear();
+        chgPersist.clear();
+        subEntList.add(mvccEntity);
+        subEntList.add(partialEntities.get(chg));
+        chgPersist.addAll(changeLogGenerator.getChangeLog(subEntList.iterator(),subEntList.get(subEntList.size() - 1).getVersion()));
+        mvccEntity=entityRepair(chgPersist,subEntList,mvccEntity);
+      }
+      return mvccEntity.getEntity().get();
     }
   }
   return null;
