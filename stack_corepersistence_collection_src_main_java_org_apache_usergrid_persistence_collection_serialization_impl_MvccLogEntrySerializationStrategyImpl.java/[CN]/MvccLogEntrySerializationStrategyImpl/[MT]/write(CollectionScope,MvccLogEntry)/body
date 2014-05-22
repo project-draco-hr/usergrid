@@ -3,13 +3,14 @@
   Preconditions.checkNotNull(entry,"entry is required");
   final Stage stage=entry.getStage();
   final UUID colName=entry.getVersion();
+  final StageStatus stageStatus=new StageStatus(stage,entry.getStatus());
   return doWrite(collectionScope,entry.getEntityId(),entry.getVersion(),new RowOp(){
     @Override public void doOp(    final ColumnListMutation<UUID> colMutation){
       if (stage.isTransient()) {
-        colMutation.putColumn(colName,stage,SER,fig.getTimeout());
+        colMutation.putColumn(colName,stageStatus,SER,fig.getTimeout());
         return;
       }
-      colMutation.putColumn(colName,stage,SER,null);
+      colMutation.putColumn(colName,stageStatus,SER,null);
     }
   }
 );
