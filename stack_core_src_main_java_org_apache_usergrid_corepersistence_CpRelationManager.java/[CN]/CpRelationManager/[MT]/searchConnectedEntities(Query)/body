@@ -5,19 +5,8 @@
   headEntity=em.validate(headEntity);
   IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),ALL_TYPES);
   EntityIndex ei=managerCache.getEntityIndex(indexScope);
-  logger.debug("Searching connections from all-targets scope {}:{}:{}",new String[]{indexScope.getApplication().toString(),indexScope.getOwner().toString(),indexScope.getName()});
-  List<String> connectionTypes=new ArrayList<String>();
-  if (query.getConnectionType() != null) {
-    connectionTypes.add(query.getConnectionType());
-  }
- else {
-    GraphManager gm=managerCache.getGraphManager(applicationScope);
-    Observable<String> types=gm.getEdgeTypesFromSource(new SimpleSearchEdgeType(cpHeadEntity.getId(),null));
-    Iterator<String> iter=types.toBlockingObservable().getIterator();
-    while (iter.hasNext()) {
-      connectionTypes.add(iter.next());
-    }
-  }
-  CandidateResults crs=ei.search(addIdentifiers(query));
+  logger.debug("Searching connections from all-types scope {}:{}:{}",new String[]{indexScope.getApplication().toString(),indexScope.getOwner().toString(),indexScope.getName()});
+  query=adjustQuery(query);
+  CandidateResults crs=ei.search(query);
   return buildResults(query,crs,query.getConnectionType());
 }
