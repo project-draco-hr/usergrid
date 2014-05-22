@@ -9,13 +9,13 @@
     Entity created=em.create("user",properties);
     users.add(created);
   }
-  List<UUID> deviceIds=new ArrayList<UUID>();
+  List<EntityRef> deviceRefs=new ArrayList<EntityRef>();
   for (  Entity user : users) {
     for (int i=0; i < 5; i++) {
       Map<String,Object> properties=new LinkedHashMap<String,Object>();
       properties.put("index",i);
       Entity created=em.create("device",properties);
-      deviceIds.add(created.getUuid());
+      deviceRefs.add(created);
       em.addToCollection(user,"devices",created);
     }
   }
@@ -42,7 +42,7 @@
   deviceQuery.setLimit(pageSize);
   deviceQuery.addFilter("index >= 2");
   int expectedDeviceQuerySize=3;
-  PathQuery<UUID> usersPQ=new PathQuery<UUID>(em.getApplicationRef(),userQuery);
+  PathQuery<EntityRef> usersPQ=new PathQuery<EntityRef>(em.getApplicationRef(),userQuery);
   PathQuery<Entity> devicesPQ=usersPQ.chain(deviceQuery);
   HashSet set=new HashSet(expectedUserQuerySize * expectedDeviceQuerySize);
   Iterator<Entity> i=devicesPQ.iterator(em);
