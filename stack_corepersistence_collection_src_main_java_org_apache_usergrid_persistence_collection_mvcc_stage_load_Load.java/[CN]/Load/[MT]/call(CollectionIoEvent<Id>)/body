@@ -4,5 +4,8 @@
   final CollectionScope collectionScope=idIoEvent.getEntityCollection();
   final UUID versionMax=uuidService.newTimeUUID();
   Iterator<MvccEntity> results=entitySerializationStrategy.load(collectionScope,entityId,versionMax,1);
-  return RepairUtil.repair(results);
+  MvccEntity repairedEntity=RepairUtil.repair(results);
+  if (repairedEntity == null)   return null;
+  entitySerializationStrategy.write(collectionScope,repairedEntity);
+  return repairedEntity.getEntity().get();
 }

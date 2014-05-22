@@ -10,7 +10,7 @@
     return null;
   }
   if (mvccEntity.getStatus() == MvccEntity.Status.COMPLETE) {
-    return targetVersion.get();
+    return mvccEntity;
   }
   iter.pushback(mvccEntity);
   while (iter.hasNext()) {
@@ -31,7 +31,7 @@
         chgPersist.addAll(changeLogGenerator.getChangeLog(subEntList.iterator(),subEntList.get(subEntList.size() - 1).getVersion()));
         mvccEntity=entityRepair(chgPersist,subEntList,mvccEntity);
       }
-      return mvccEntity.getEntity().get();
+      return mvccEntity;
     }
   }
   return null;
