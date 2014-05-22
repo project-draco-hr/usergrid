@@ -7,7 +7,7 @@
       final MutationBatch mutation=edgeMetadataSerialization.writeEdge(scope,edge);
       final MutationBatch edgeMutation=commitLogSerialization.writeEdge(scope,edge,timestamp);
       mutation.mergeShallow(edgeMutation);
-      final AsynchronousMessage<EdgeEvent<MarkedEdge>> event=edgeWriteAsyncProcessor.setVerification(new EdgeEvent<>(scope,timestamp,edge),getTimeout());
+      final AsynchronousMessage<EdgeWriteEvent> event=edgeWriteAsyncProcessor.setVerification(new EdgeWriteEvent(scope,timestamp,edge),getTimeout());
       try {
         LOG.debug("Writing edge {} to metadata and commit log",edge);
         mutation.execute();

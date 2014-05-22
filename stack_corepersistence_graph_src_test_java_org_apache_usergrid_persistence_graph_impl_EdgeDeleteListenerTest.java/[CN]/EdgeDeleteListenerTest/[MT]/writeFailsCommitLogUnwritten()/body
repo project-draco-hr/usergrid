@@ -5,8 +5,10 @@
   MarkedEdge edgeV1=createMarkedEdge(sourceId,edgeType,targetId);
   EdgeSerialization commitLog=mock(EdgeSerialization.class);
   EdgeSerialization storage=mock(EdgeSerialization.class);
-  AsyncProcessor<EdgeEvent<MarkedEdge>> edgeProcessor=mock(AsyncProcessor.class);
-  EdgeEvent<MarkedEdge> edgeWriteEvent=new EdgeEvent<>(scope,edgeV1.getVersion(),edgeV1);
+  AsyncProcessorFactory edgeProcessor=mock(AsyncProcessorFactory.class);
+  AsyncProcessor<EdgeWriteEvent> processor=mock(AsyncProcessor.class);
+  when(edgeProcessor.getProcessor(EdgeWriteEvent.class)).thenReturn(processor);
+  EdgeWriteEvent edgeWriteEvent=new EdgeWriteEvent(scope,edgeV1.getVersion(),edgeV1);
   Keyspace keyspace=mock(Keyspace.class);
   EdgeWriteCompact compact=new EdgeWriteCompactImpl(commitLog,storage,keyspace,graphFig);
   EdgeWriteListener listener=new EdgeWriteListener(compact,edgeProcessor);

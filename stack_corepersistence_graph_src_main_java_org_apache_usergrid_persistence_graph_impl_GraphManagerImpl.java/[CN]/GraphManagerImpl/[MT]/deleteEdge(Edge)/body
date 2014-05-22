@@ -5,7 +5,7 @@
     @Override public Edge call(    final MarkedEdge edge){
       final UUID timestamp=UUIDGenerator.newTimeUUID();
       final MutationBatch edgeMutation=commitLogSerialization.writeEdge(scope,edge,timestamp);
-      final AsynchronousMessage<EdgeEvent<MarkedEdge>> event=edgeDeleteAsyncProcessor.setVerification(new EdgeEvent<>(scope,timestamp,edge),getTimeout());
+      final AsynchronousMessage<EdgeDeleteEvent> event=edgeDeleteAsyncProcessor.setVerification(new EdgeDeleteEvent(scope,timestamp,edge),getTimeout());
       try {
         LOG.debug("Marking edge {} as deleted to commit log",edge);
         edgeMutation.execute();
