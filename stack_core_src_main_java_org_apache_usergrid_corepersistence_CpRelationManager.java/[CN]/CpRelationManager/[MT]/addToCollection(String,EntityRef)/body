@@ -8,9 +8,12 @@
   Edge edge=new SimpleMarkedEdge(cpHeadEntity.getId(),collName + COLLECTION_SUFFIX,memberEntity.getId(),UUIDGenerator.newTimeUUID(),false);
   GraphManager gm=managerCache.getGraphManager(applicationScope);
   gm.writeEdge(edge).toBlockingObservable().last();
-  IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),collName + COLLECTION_SUFFIX);
-  EntityIndex ei=managerCache.getEntityIndex(indexScope);
-  ei.index(memberEntity);
+  IndexScope collectionIndexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),collName + COLLECTION_SUFFIX);
+  EntityIndex collectionIndex=managerCache.getEntityIndex(collectionIndexScope);
+  collectionIndex.index(memberEntity);
+  IndexScope allCollectionsIndexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),ALL_TYPES);
+  EntityIndex allCollectionIndex=managerCache.getEntityIndex(allCollectionsIndexScope);
+  allCollectionIndex.index(memberEntity);
   logger.debug("Added entity {}:{} to collection {}",new String[]{memberRef.getUuid().toString(),memberRef.getType(),collName});
   logger.debug("With head entity scope is {}:{}:{}",new String[]{headEntityScope.getApplication().toString(),headEntityScope.getOwner().toString(),headEntityScope.getName()});
   return em.get(memberRef);
