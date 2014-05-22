@@ -1,0 +1,13 @@
+{
+  if (head != null) {
+    return new PagingResultsIterator(getHeadResults(em),Level.REFS);
+  }
+ else {
+    Query q=query;
+    if (query.getResultsLevel() != Level.REFS) {
+      q=new Query(q);
+      q.setResultsLevel(Level.REFS);
+    }
+    return new MultiQueryIterator(em,source.refIterator(em),q);
+  }
+}
