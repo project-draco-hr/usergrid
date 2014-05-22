@@ -4,7 +4,7 @@
   final Id entityId=entity.getId();
   final UUID version=entity.getVersion();
   final CollectionScope collectionScope=idIoEvent.getEntityCollection();
-  final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,org.apache.usergrid.persistence.collection.mvcc.entity.Stage.COMMITTED);
+  final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,Stage.COMMITTED,MvccLogEntry.State.DELETED);
   MutationBatch logMutation=logStrat.write(collectionScope,startEntry);
   MutationBatch entityMutation=entityStrat.mark(collectionScope,entityId,version);
   logMutation.mergeShallow(entityMutation);
