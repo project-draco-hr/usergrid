@@ -1,6 +1,9 @@
 {
   Query q=null;
-  String ql=Query.queryStrFrom(params);
+  CounterResolution resolution=null;
+  List<Identifier> identifiers=null;
+  List<CounterFilterPredicate> counterFilters=null;
+  String ql=QueryUtils.queryStrFrom(params);
   String type=first(params.get("type"));
   Boolean reversed=firstBoolean(params.get("reversed"));
   String connection=first(params.get("connection"));
@@ -10,11 +13,30 @@
   List<String> permissions=params.get("permission");
   Long startTime=firstLong(params.get("start_time"));
   Long finishTime=firstLong(params.get("end_time"));
+  List<String> l=params.get("resolution");
+  if (!isEmpty(l)) {
+    resolution=CounterResolution.fromString(l.get(0));
+  }
+  l=params.get("counter");
+  if (!isEmpty(l)) {
+    counterFilters=CounterFilterPredicate.fromList(l);
+  }
   Boolean pad=firstBoolean(params.get("pad"));
+  for (  Entry<String,List<String>> param : params.entrySet()) {
+    Identifier identifier=Identifier.from(param.getKey());
+    if ((param.getValue() == null) || (param.getValue().size() == 0) || identifier.isUUID()) {
+      if (identifier != null) {
+        if (identifiers == null) {
+          identifiers=new ArrayList<Identifier>();
+        }
+        identifiers.add(identifier);
+      }
+    }
+  }
   if (ql != null) {
     q=Query.fromQL(decode(ql));
   }
-  List<String> l=params.get("filter");
+  l=params.get("filter");
   if (!isEmpty(l)) {
     q=newQueryIfNull(q);
     for (    String s : l) {
@@ -60,9 +82,21 @@
     q=newQueryIfNull(q);
     q.setFinishTime(finishTime);
   }
+  if (resolution != null) {
+    q=newQueryIfNull(q);
+    q.setResolution(resolution);
+  }
+  if (counterFilters != null) {
+    q=newQueryIfNull(q);
+    q.setCounterFilters(counterFilters);
+  }
   if (pad != null) {
     q=newQueryIfNull(q);
     q.setPad(pad);
+  }
+  if (identifiers != null) {
+    q=newQueryIfNull(q);
+    q.setIdentifiers(identifiers);
   }
   if (reversed != null) {
     q=newQueryIfNull(q);
