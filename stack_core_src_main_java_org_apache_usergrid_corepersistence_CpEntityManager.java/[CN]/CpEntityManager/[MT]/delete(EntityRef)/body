@@ -1,9 +1,7 @@
 {
   String collectionName=Schema.defaultCollectionName(entityRef.getType());
   CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),collectionName);
-  IndexScope defaultIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),entityRef.getType());
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
-  EntityIndex entityIndex=managerCache.getEntityIndex(defaultIndexScope);
   Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
   org.apache.usergrid.persistence.model.entity.Entity entity=ecm.load(entityId).toBlockingObservable().last();
   if (entity != null) {
@@ -21,6 +19,8 @@
         }
       }
     }
+    IndexScope defaultIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),collectionName + CpRelationManager.COLLECTION_SUFFIX);
+    EntityIndex entityIndex=managerCache.getEntityIndex(defaultIndexScope);
     entityIndex.deindex(entity);
     ecm.delete(entityId).toBlockingObservable().last();
   }
