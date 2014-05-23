@@ -18,7 +18,7 @@
   when(serializationFig.getHistorySize()).thenReturn(20);
   when(entityIndex.getEntityVersions(entityId)).thenReturn(results);
   MvccEntity mvccEntity=new MvccEntityImpl(entityId,uuid,MvccEntity.Status.COMPLETE,mock(Entity.class));
-  MvccEntityEvent<MvccEntity> event=new MvccEntityEvent<MvccEntity>(scope,uuid,mvccEntity);
+  MvccEntityDeleteEvent event=new MvccEntityDeleteEvent(scope,uuid,mvccEntity);
   Observable<EntityVersion> o=esEntityIndexDeleteListener.receive(event);
   EntityVersion testEntity=o.toBlockingObservable().last();
   assertEquals(testEntity.getId(),mvccEntity.getId());

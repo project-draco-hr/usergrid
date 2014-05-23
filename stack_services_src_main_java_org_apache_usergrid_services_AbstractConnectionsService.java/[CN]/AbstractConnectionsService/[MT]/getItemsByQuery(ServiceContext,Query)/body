@@ -18,7 +18,7 @@
     return new ServiceResults(null,context,Type.CONNECTION,Results.fromEntity(entity),null,null);
   }
   int count=query.getLimit();
-  Results.Level level=Results.Level.REFS;
+  Level level=Level.REFS;
   if (!context.moreParameters()) {
     count=Query.MAX_LIMIT;
     level=Level.ALL_PROPERTIES;
@@ -27,7 +27,7 @@
     }
   }
   if (context.getRequest().isReturnsTree()) {
-    level=Results.Level.ALL_PROPERTIES;
+    level=Level.ALL_PROPERTIES;
   }
   query.setLimit(query.getLimit(count));
   query.setResultsLevel(level);
@@ -38,7 +38,7 @@
       return null;
     }
  else {
-      r=em.getConnectingEntities(context.getOwner().getUuid(),query.getConnectionType(),query.getEntityType(),level,query.getLimit());
+      r=em.getConnectingEntities(new SimpleEntityRef(context.getOwner().getType(),context.getOwner().getUuid()),query.getConnectionType(),query.getEntityType(),level,query.getLimit());
     }
   }
  else {

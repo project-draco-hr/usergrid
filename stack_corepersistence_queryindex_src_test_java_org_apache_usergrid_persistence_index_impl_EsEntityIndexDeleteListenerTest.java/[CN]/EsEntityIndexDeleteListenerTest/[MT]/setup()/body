@@ -2,7 +2,8 @@
   this.entityIndex=mock(EntityIndex.class);
   serializationFig=mock(SerializationFig.class);
   this.eif=mock(EntityIndexFactory.class);
-  AsyncProcessor<MvccEntityEvent<MvccEntity>> entityDelete=mock(AsyncProcessor.class);
-  EntityCollectionManager collectionManager=mock(EntityCollectionManager.class);
-  this.esEntityIndexDeleteListener=new EsEntityIndexDeleteListener(eif,entityDelete,serializationFig,collectionManager);
+  AsyncProcessor<MvccEntityDeleteEvent> entityDelete=mock(AsyncProcessor.class);
+  AsyncProcessorFactory asyncProcessorFactory=mock(AsyncProcessorFactory.class);
+  when(asyncProcessorFactory.getProcessor(MvccEntityDeleteEvent.class)).thenReturn(entityDelete);
+  this.esEntityIndexDeleteListener=new EsEntityIndexDeleteListener(eif,asyncProcessorFactory,serializationFig);
 }

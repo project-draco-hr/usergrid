@@ -10,8 +10,6 @@
   }
 );
   EntityUtils.setVersion(muffin,UUIDGenerator.newTimeUUID());
-  EntityCollectionManager muffinMgr=ecmf.createCollectionManager(muffinScope);
-  muffin=muffinMgr.write(muffin).toBlockingObservable().last();
   CollectionScope peopleScope=new CollectionScopeImpl(appId,appId,"people");
   Entity person=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),peopleScope.getName()));
   person=EntityIndexMapUtils.fromMap(person,new HashMap<String,Object>(){
@@ -22,8 +20,6 @@
   }
 );
   EntityUtils.setVersion(person,UUIDGenerator.newTimeUUID());
-  EntityCollectionManager peopleMgr=ecmf.createCollectionManager(peopleScope);
-  person=peopleMgr.write(person).toBlockingObservable().last();
   assertNotNull(person.getId());
   assertNotNull(person.getId().getUuid());
   IndexScope scope=new IndexScopeImpl(appId,person.getId(),"likes");
@@ -32,6 +28,5 @@
   personLikesIndex.refresh();
   CandidateResults likes=personLikesIndex.search(Query.fromQL("select *"));
   assertEquals(1,likes.size());
-  EntityResults entityResults=new EntityResults(likes,muffinMgr,UUIDGenerator.newTimeUUID());
-  assertEquals("Blueberry",entityResults.next().getField("flavor").getValue());
+  assertEquals(muffin.getId(),likes.get(0).getId());
 }

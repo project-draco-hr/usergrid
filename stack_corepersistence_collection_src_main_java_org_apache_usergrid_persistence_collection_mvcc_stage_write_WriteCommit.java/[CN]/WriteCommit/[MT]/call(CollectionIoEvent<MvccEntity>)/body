@@ -7,7 +7,7 @@
   EntityUtils.setVersion(mvccEntity.getEntity().get(),version);
   MvccValidationUtils.verifyMvccEntityWithEntity(ioEvent.getEvent());
   ValidationUtils.verifyTimeUuid(ioEvent.getEvent().getVersion(),"version");
-  final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,Stage.COMMITTED);
+  final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,Stage.COMMITTED,MvccLogEntry.State.COMPLETE);
   MutationBatch logMutation=logEntryStrat.write(collectionScope,startEntry);
   MutationBatch entityMutation=entityStrat.write(collectionScope,mvccEntity);
   logMutation.mergeShallow(entityMutation);

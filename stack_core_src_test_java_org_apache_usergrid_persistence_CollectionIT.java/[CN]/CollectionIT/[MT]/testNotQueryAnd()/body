@@ -28,12 +28,10 @@
   properties.put("Recipient",recipient);
   em.create("loveobject",properties);
   em.refreshIndex();
-  String s="select * where Flag = 'requested' and NOT Recipient.Username = 'fb_536692245' order by created asc";
+  String s="select * where Flag = 'requested' and NOT Recipient.Username " + "= 'fb_536692245' order by created asc";
   Query query=Query.fromQL(s);
   Results r=em.searchCollection(em.getApplicationRef(),"loveobjects",query);
   assertTrue(r.size() == 1);
   String username=(String)((Map)r.getEntities().get(0).getProperty("Recipient")).get("Username");
-  List<Object> sr=query.getSelectionResults(r);
-  assertTrue(sr.size() == 1);
   assertEquals("fb_100000787138041",username);
 }
