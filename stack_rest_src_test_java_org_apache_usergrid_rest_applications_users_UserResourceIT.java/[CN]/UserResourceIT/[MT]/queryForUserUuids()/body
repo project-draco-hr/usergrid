@@ -1,0 +1,13 @@
+{
+  UserRepo.INSTANCE.load(resource(),access_token);
+  Status status=null;
+  String ql="uuid = " + UserRepo.INSTANCE.getByUserName("user1");
+  JsonNode node=resource().path("/test-organization/test-app/users").queryParam("ql",ql).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  Map<String,String> payload=hashMap("name","Austin").map("state","TX");
+  node=resource().path("/test-organization/test-app/curts").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+  UUID userId=UUID.fromString(node.get("entities").get(0).get("uuid").asText());
+  assertNotNull(userId);
+  ql="uuid = " + userId;
+  node=resource().path("/test-organization/test-app/curts").queryParam("ql",ql).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  assertNotNull(node.get("entities").get(0).get("uuid"));
+}
