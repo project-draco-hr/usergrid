@@ -4,14 +4,14 @@
   final Id targetId=edgev1.getTargetNode();
   final MarkedEdge edgev2=createEdge(sourceId,"edge1",targetId);
   final MarkedEdge diffTarget=createEdge(sourceId,"edge1",createId("newTarget"));
-  assertTrue("Edge version 1 has lower time uuid",UUIDComparator.staticCompare(edgev1.getTimestamp(),edgev2.getTimestamp()) < 0);
+  assertTrue("Edge version 1 has lower time uuid",Long.compare(edgev1.getTimestamp(),edgev2.getTimestamp()) < 0);
   final MarkedEdge edgeType2V1=createEdge(sourceId,"edge2",targetId);
   final UUID timestamp=UUIDGenerator.newTimeUUID();
   serialization.writeEdge(scope,edgev1,timestamp).execute();
   serialization.writeEdge(scope,edgev2,timestamp).execute();
   serialization.writeEdge(scope,edgeType2V1,timestamp).execute();
   serialization.writeEdge(scope,diffTarget,timestamp).execute();
-  final UUID now=UUIDGenerator.newTimeUUID();
+  final long now=System.currentTimeMillis();
   SearchByEdge search=createGetByEdge(sourceId,"edge1",targetId,now,null);
   Iterator<MarkedEdge> results=serialization.getEdgeVersions(scope,search);
   assertEquals(edgev2,results.next());

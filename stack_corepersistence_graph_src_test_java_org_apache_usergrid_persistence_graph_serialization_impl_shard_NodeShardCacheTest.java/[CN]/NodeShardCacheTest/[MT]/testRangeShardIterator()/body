@@ -9,13 +9,13 @@
   final long max=200;
   NodeShardCache cache=new NodeShardCacheImpl(allocation,graphFig);
   when(allocation.getShards(same(scope),same(id),any(Optional.class),same(edgeType),same(otherIdType))).thenReturn(Arrays.asList(min,mid,max).iterator());
-  Iterator<Long> slice=cache.getVersions(scope,id,EdgeTestUtils.setTimestamp(max),edgeType,otherIdType);
+  Iterator<Long> slice=cache.getVersions(scope,id,max,edgeType,otherIdType);
   assertEquals(max,slice.next().longValue());
   assertEquals(mid,slice.next().longValue());
   assertEquals(min,slice.next().longValue());
-  slice=cache.getVersions(scope,id,EdgeTestUtils.setTimestamp(mid),edgeType,otherIdType);
+  slice=cache.getVersions(scope,id,mid,edgeType,otherIdType);
   assertEquals(mid,slice.next().longValue());
   assertEquals(min,slice.next().longValue());
-  slice=cache.getVersions(scope,id,EdgeTestUtils.setTimestamp(min),edgeType,otherIdType);
+  slice=cache.getVersions(scope,id,min,edgeType,otherIdType);
   assertEquals(min,slice.next().longValue());
 }

@@ -7,10 +7,10 @@
   MarkedEdge storageEdge1=createEdge(sourceId,type,createId("target2"));
   MarkedEdge commitLogEdge2=createEdge(sourceId,type,createId("target3"));
   MarkedEdge storageEdge2=createEdge(sourceId,type,createId("target4"));
-  assertTrue(UUIDComparator.staticCompare(commitLogEdge1.getTimestamp(),storageEdge1.getTimestamp()) < 0);
-  assertTrue(UUIDComparator.staticCompare(storageEdge1.getTimestamp(),commitLogEdge2.getTimestamp()) < 0);
-  assertTrue(UUIDComparator.staticCompare(commitLogEdge2.getTimestamp(),storageEdge2.getTimestamp()) < 0);
-  SearchByEdgeType searchByEdgeType=createSearchByEdge(sourceId,type,UUIDGenerator.newTimeUUID(),null);
+  assertTrue(Long.compare(commitLogEdge1.getTimestamp(),storageEdge1.getTimestamp()) < 0);
+  assertTrue(Long.compare(storageEdge1.getTimestamp(),commitLogEdge2.getTimestamp()) < 0);
+  assertTrue(Long.compare(commitLogEdge2.getTimestamp(),storageEdge2.getTimestamp()) < 0);
+  SearchByEdgeType searchByEdgeType=createSearchByEdge(sourceId,type,System.currentTimeMillis(),null);
   when(commitLog.getEdgesFromSource(scope,searchByEdgeType)).thenReturn(Arrays.asList(commitLogEdge2,commitLogEdge1).iterator());
   when(storage.getEdgesFromSource(scope,searchByEdgeType)).thenReturn(Arrays.asList(storageEdge2,storageEdge1).iterator());
   MergedEdgeReader read=new MergedEdgeReaderImpl(commitLog,storage,config);

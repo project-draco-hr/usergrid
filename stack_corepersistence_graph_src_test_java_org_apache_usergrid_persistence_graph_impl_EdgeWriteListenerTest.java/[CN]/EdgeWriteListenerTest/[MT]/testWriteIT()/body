@@ -12,7 +12,7 @@
   EdgeWriteEvent edgeWriteEvent=new EdgeWriteEvent(scope,UUIDGenerator.newTimeUUID(),edgeV3);
   Integer returned=edgeWriteListener.receive(edgeWriteEvent).toBlockingObservable().single();
   assertEquals(3,returned.intValue());
-  UUID now=UUIDGenerator.newTimeUUID();
+  long now=System.currentTimeMillis();
   Iterator<MarkedEdge> edges=commitLogEdgeSerialization.getEdgeVersions(scope,createGetByEdge(sourceId,edgeType,targetId,now,null));
   assertFalse("No edges exist",edges.hasNext());
   edges=commitLogEdgeSerialization.getEdgesFromSource(scope,createSearchByEdge(sourceId,edgeType,now,null));

@@ -9,7 +9,7 @@
   MarkedEdge edge3=createEdge(sourceId,"test",createId("target3"));
   storageEdgeSerialization.writeEdge(scope,edge3,UUIDGenerator.newTimeUUID()).execute();
   edgeMetadataSerialization.writeEdge(scope,edge3).execute();
-  UUID cleanupVersion=UUIDGenerator.newTimeUUID();
+  long cleanupVersion=System.currentTimeMillis();
   int value=edgeMetaRepair.repairSources(scope,edge1.getSourceNode(),edge1.getType(),cleanupVersion).toBlockingObservable().single();
   assertEquals("No subtypes removed, edges exist",3,value);
   storageEdgeSerialization.deleteEdge(scope,edge1,UUIDGenerator.newTimeUUID()).execute();

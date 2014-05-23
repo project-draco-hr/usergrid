@@ -1,0 +1,15 @@
+{
+  final CacheKey key=new CacheKey(scope,nodeId,edgeType);
+  CacheEntry entry;
+  try {
+    entry=this.graphs.get(key);
+  }
+ catch (  ExecutionException e) {
+    throw new RuntimeException("Unable to load shard key for graph",e);
+  }
+  Iterator<Long> iterator=entry.getShards(maxTimestamp);
+  if (iterator == null) {
+    return Collections.<Long>emptyList().iterator();
+  }
+  return iterator;
+}

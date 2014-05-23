@@ -1,9 +1,9 @@
 {
   final Edge writtenEdge=edge;
-  final UUID writeVersion=edge.getTimestamp();
+  final long timestamp=edge.getTimestamp();
   return Observable.create(new ObservableIterator<MarkedEdge>("getEdgeVersions"){
     @Override protected Iterator<MarkedEdge> getIterator(){
-      return commitLog.getEdgeVersions(scope,new SimpleSearchByEdge(writtenEdge.getSourceNode(),writtenEdge.getType(),writtenEdge.getTargetNode(),writeVersion,null));
+      return commitLog.getEdgeVersions(scope,new SimpleSearchByEdge(writtenEdge.getSourceNode(),writtenEdge.getType(),writtenEdge.getTargetNode(),timestamp,null));
     }
   }
 ).buffer(graphFig.getScanPageSize()).flatMap(new Func1<List<MarkedEdge>,Observable<MarkedEdge>>(){
@@ -12,8 +12,8 @@
       final MutationBatch commitlogCleanBatch=keyspace.prepareMutationBatch();
       for (      MarkedEdge edge : markedEdges) {
         LOG.debug("Buffering edge {} to permanent storage and removing from commitlog",edge);
-        storageWriteBatch.mergeShallow(permanentStorage.writeEdge(scope,edge,timestamp));
-        commitlogCleanBatch.mergeShallow(commitLog.deleteEdge(scope,edge,timestamp));
+        storageWriteBatch.mergeShallow(permanentStorage.writeEdge(scope,edge,operationTimestamp));
+        commitlogCleanBatch.mergeShallow(commitLog.deleteEdge(scope,edge,operationTimestamp));
       }
       try {
         storageWriteBatch.execute();
