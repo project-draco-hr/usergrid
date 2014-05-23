@@ -3,11 +3,11 @@
   ;
   Edge edge=createEdge("source","test","target");
   gm.writeEdge(edge).toBlockingObservable().last();
-  SearchByIdType search=createSearchByEdgeAndId(edge.getTargetNode(),edge.getType(),edge.getVersion(),edge.getSourceNode().getType(),null);
+  SearchByIdType search=createSearchByEdgeAndId(edge.getTargetNode(),edge.getType(),edge.getTimestamp(),edge.getSourceNode().getType(),null);
   Observable<Edge> edges=gm.loadEdgesToTargetByType(search);
   Edge returned=edges.toBlockingObservable().single();
   assertEquals("Correct edge returned",edge,returned);
-  search=createSearchByEdgeAndId(edge.getTargetNode(),edge.getType(),edge.getVersion(),edge.getSourceNode().getType() + "invalid",null);
+  search=createSearchByEdgeAndId(edge.getTargetNode(),edge.getType(),edge.getTimestamp(),edge.getSourceNode().getType() + "invalid",null);
   edges=gm.loadEdgesToTargetByType(search);
   returned=edges.toBlockingObservable().singleOrDefault(null);
   assertNull("Invalid type should not be returned",returned);

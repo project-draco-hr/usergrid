@@ -4,7 +4,7 @@
   final Id targetId=edgev1.getTargetNode();
   final MarkedEdge edgev2=createEdge(sourceId,"edge1",targetId);
   final MarkedEdge diffTarget=createEdge(sourceId,"edge1",createId("newTarget"));
-  assertTrue("Edge version 1 has lower time uuid",UUIDComparator.staticCompare(edgev1.getVersion(),edgev2.getVersion()) < 0);
+  assertTrue("Edge version 1 has lower time uuid",UUIDComparator.staticCompare(edgev1.getTimestamp(),edgev2.getTimestamp()) < 0);
   final MarkedEdge edgeType2V1=createEdge(sourceId,"edge2",targetId);
   final UUID timestamp=UUIDGenerator.newTimeUUID();
   serialization.writeEdge(scope,edgev1,timestamp).execute();
@@ -17,7 +17,7 @@
   assertEquals(edgev2,results.next());
   assertEquals(edgev1,results.next());
   assertFalse("No results should be returned",results.hasNext());
-  search=createGetByEdge(sourceId,"edge1",targetId,edgev1.getVersion(),null);
+  search=createGetByEdge(sourceId,"edge1",targetId,edgev1.getTimestamp(),null);
   results=serialization.getEdgeVersions(scope,search);
   assertEquals(edgev1,results.next());
   assertFalse("Max version was honored",results.hasNext());
