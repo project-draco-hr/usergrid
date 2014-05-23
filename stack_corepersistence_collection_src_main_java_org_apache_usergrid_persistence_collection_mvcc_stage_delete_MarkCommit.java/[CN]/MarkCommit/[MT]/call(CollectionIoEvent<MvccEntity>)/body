@@ -5,10 +5,41 @@
   final UUID version=entity.getVersion();
   final CollectionScope collectionScope=idIoEvent.getEntityCollection();
   final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,Stage.COMMITTED,MvccLogEntry.State.DELETED);
-  MutationBatch logMutation=logStrat.write(collectionScope,startEntry);
+  final MutationBatch logMutation=logStrat.write(collectionScope,startEntry);
   MutationBatch entityMutation=entityStrat.mark(collectionScope,entityId,version);
   logMutation.mergeShallow(entityMutation);
   final AsynchronousMessage<MvccEntityDeleteEvent> event=entityEventAsyncProcessor.setVerification(new MvccEntityDeleteEvent(collectionScope,version,entity),getTimeout());
+  Observable<List<Field>> deleteFieldsObservable=Observable.create(new ObservableIterator<Field>("deleteColumns"){
+    @Override protected Iterator<Field> getIterator(){
+      Iterator<MvccEntity> entities=entityStrat.load(collectionScope,entityId,entity.getVersion(),1);
+      Iterator<Field> fieldIterator=Collections.emptyIterator();
+      if (entities.hasNext()) {
+        Optional<Entity> oe=entities.next().getEntity();
+        if (oe.isPresent()) {
+          fieldIterator=oe.get().getFields().iterator();
+        }
+      }
+      return fieldIterator;
+    }
+  }
+).buffer(serializationFig.getBufferSize()).map(new Func1<List<Field>,List<Field>>(){
+    @Override public List<Field> call(    List<Field> fields){
+      for (      Field field : fields) {
+        try {
+          UniqueValue value=uniqueValueStrat.load(collectionScope,field);
+          if (value != null) {
+            logMutation.mergeShallow(uniqueValueStrat.delete(value));
+          }
+        }
+ catch (        ConnectionException ce) {
+          LOG.error("Failed to delete Unique Value",ce);
+        }
+      }
+      return fields;
+    }
+  }
+);
+  deleteFieldsObservable.toBlockingObservable().last();
   try {
     logMutation.execute();
   }
