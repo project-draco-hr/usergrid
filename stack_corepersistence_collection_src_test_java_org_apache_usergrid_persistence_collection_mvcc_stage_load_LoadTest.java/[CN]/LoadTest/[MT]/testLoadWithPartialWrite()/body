@@ -16,8 +16,17 @@
   final List<MvccEntity> results=Lists.newArrayList(partialMvccEntity);
   results.add(completeMvccEntity);
   when(serializationStrategy.load(collection,entityId,loadVersion,1)).thenReturn(results.iterator());
+  final MutationBatch batch=mock(MutationBatch.class);
+  ArgumentCaptor<MvccEntity> writtenEntityArg=ArgumentCaptor.forClass(MvccEntity.class);
+  when(serializationStrategy.write(same(collection),writtenEntityArg.capture())).thenReturn(batch);
   Load load=new Load(uuidService,serializationStrategy);
   Entity loaded=load.call(entityIoEvent);
   assertNotNull(loaded.getField("derp"));
-  assertNotNull(loaded.getField("merple"));
+  assertNull(loaded.getField("derple"));
+  verify(batch).execute();
+  MvccEntity writtenEntity=writtenEntityArg.getValue();
+  assertSame(loaded,writtenEntity.getEntity().get());
+  assertNotNull(writtenEntity);
+  assertNotNull(writtenEntity.getEntity().get().getField("derp"));
+  assertNull(writtenEntity.getEntity().get().getField("derple"));
 }

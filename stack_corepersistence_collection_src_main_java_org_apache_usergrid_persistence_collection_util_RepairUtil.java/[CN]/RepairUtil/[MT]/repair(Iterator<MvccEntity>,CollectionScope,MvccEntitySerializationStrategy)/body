@@ -2,8 +2,7 @@
   if (!results.hasNext()) {
     return null;
   }
-  org.apache.commons.collections4.iterators.PushbackIterator<MvccEntity> iter=new PushbackIterator<>(results);
-  MvccEntity mvccEntity=iter.next();
+  MvccEntity mvccEntity=results.next();
   final Optional<Entity> targetVersion=mvccEntity.getEntity();
   List<MvccEntity> partialEntities=new ArrayList<>();
   if (!targetVersion.isPresent() && (mvccEntity.getStatus() == MvccEntity.Status.DELETED || mvccEntity.getStatus() == MvccEntity.Status.COMPLETE)) {
@@ -12,9 +11,9 @@
   if (mvccEntity.getStatus() == MvccEntity.Status.COMPLETE) {
     return mvccEntity;
   }
-  iter.pushback(mvccEntity);
-  while (iter.hasNext()) {
-    mvccEntity=iter.next();
+  partialEntities.add(mvccEntity);
+  while (results.hasNext()) {
+    mvccEntity=results.next();
     partialEntities.add(mvccEntity);
     if (mvccEntity.getStatus() == MvccEntity.Status.PARTIAL) {
       continue;
@@ -23,13 +22,13 @@
       Collections.reverse(partialEntities);
       List<ChangeLogEntry> chgPersist=new ArrayList<>();
       List<MvccEntity> subEntList=new ArrayList<>();
-      for (int chg=1; chg <= partialEntities.size() - 1; chg++) {
-        subEntList.clear();
-        chgPersist.clear();
-        subEntList.add(mvccEntity);
-        subEntList.add(partialEntities.get(chg));
-        chgPersist.addAll(changeLogGenerator.getChangeLog(subEntList.iterator(),subEntList.get(subEntList.size() - 1).getVersion()));
-        mvccEntity=entityRepair(chgPersist,subEntList,mvccEntity);
+      chgPersist=changeLogGenerator.getChangeLog(partialEntities.iterator(),partialEntities.get(partialEntities.size() - 1).getVersion());
+      mvccEntity=entityRepair(chgPersist,partialEntities,mvccEntity);
+      try {
+        entitySerializationStrategy.write(collectionScope,mvccEntity).execute();
+      }
+ catch (      Exception e) {
+        throw new RuntimeException("Couldn't rewrite repaired entity",e);
       }
       return mvccEntity;
     }
