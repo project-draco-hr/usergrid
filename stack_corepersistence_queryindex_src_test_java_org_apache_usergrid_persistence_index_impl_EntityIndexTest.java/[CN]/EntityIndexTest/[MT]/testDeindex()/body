@@ -1,9 +1,7 @@
 {
   Id appId=new SimpleId("application");
-  CollectionScope collectionScope=new CollectionScopeImpl(appId,appId,"fastcars");
   IndexScope indexScope=new IndexScopeImpl(appId,appId,"fastcars");
   EntityIndex entityIndex=cif.createEntityIndex(indexScope);
-  EntityCollectionManager entityManager=cmf.createCollectionManager(collectionScope);
   Map entityMap=new HashMap(){
 {
       put("name","Ferrari 212 Inter");
@@ -14,12 +12,11 @@
 ;
   Entity entity=EntityIndexMapUtils.fromMap(entityMap);
   EntityUtils.setId(entity,new SimpleId("fastcar"));
-  entity=entityManager.write(entity).toBlockingObservable().last();
+  EntityUtils.setVersion(entity,UUIDGenerator.newTimeUUID());
   entityIndex.index(entity);
   entityIndex.refresh();
   CandidateResults candidateResults=entityIndex.search(Query.fromQL("name contains 'Ferrari*'"));
   assertEquals(1,candidateResults.size());
-  entityManager.delete(entity.getId());
   entityIndex.deindex(entity);
   entityIndex.refresh();
   candidateResults=entityIndex.search(Query.fromQL("name contains 'Ferrari*'"));

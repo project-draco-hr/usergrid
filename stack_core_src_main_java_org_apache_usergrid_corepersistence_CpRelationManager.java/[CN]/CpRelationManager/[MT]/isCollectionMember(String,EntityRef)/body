@@ -1,13 +1,6 @@
 {
   Id entityId=new SimpleId(entity.getUuid(),entity.getType());
   GraphManager gm=managerCache.getGraphManager(applicationScope);
-  Observable<Edge> edges=gm.loadEdgesToTarget(new SimpleSearchByEdgeType(entityId,collName,cpHeadEntity.getVersion(),null));
-  Iterator<Edge> iter=edges.toBlockingObservable().getIterator();
-  while (iter.hasNext()) {
-    Edge edge=iter.next();
-    if (edge.getSourceNode().equals(cpHeadEntity.getId())) {
-      return true;
-    }
-  }
-  return false;
+  Observable<Edge> edges=gm.loadEdgeVersions(new SimpleSearchByEdge(new SimpleId(headEntity.getUuid(),headEntity.getType()),collName,entityId,UUIDGenerator.newTimeUUID(),null));
+  return edges.toBlockingObservable().firstOrDefault(null) != null;
 }

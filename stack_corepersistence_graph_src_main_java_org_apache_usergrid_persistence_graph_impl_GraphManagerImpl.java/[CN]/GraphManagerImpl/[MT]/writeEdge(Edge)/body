@@ -1,13 +1,13 @@
 {
   EdgeUtils.validateEdge(edge);
   final MarkedEdge markedEdge=new SimpleMarkedEdge(edge,false);
-  return HystrixGraphObservable.user(Observable.from(markedEdge).subscribeOn(Schedulers.io()).map(new Func1<MarkedEdge,Edge>(){
+  return HystrixObservable.user(Observable.from(markedEdge).subscribeOn(Schedulers.io()).map(new Func1<MarkedEdge,Edge>(){
     @Override public Edge call(    final MarkedEdge edge){
       final UUID timestamp=UUIDGenerator.newTimeUUID();
       final MutationBatch mutation=edgeMetadataSerialization.writeEdge(scope,edge);
       final MutationBatch edgeMutation=commitLogSerialization.writeEdge(scope,edge,timestamp);
       mutation.mergeShallow(edgeMutation);
-      final AsynchronousMessage<EdgeEvent<MarkedEdge>> event=edgeWriteAsyncProcessor.setVerification(new EdgeEvent<>(scope,timestamp,edge),getTimeout());
+      final AsynchronousMessage<EdgeWriteEvent> event=edgeWriteAsyncProcessor.setVerification(new EdgeWriteEvent(scope,timestamp,edge),getTimeout());
       try {
         LOG.debug("Writing edge {} to metadata and commit log",edge);
         mutation.execute();

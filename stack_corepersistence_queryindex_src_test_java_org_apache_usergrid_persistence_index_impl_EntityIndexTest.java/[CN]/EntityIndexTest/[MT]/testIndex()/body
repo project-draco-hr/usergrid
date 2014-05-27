@@ -2,9 +2,7 @@
   final int MAX_ENTITIES=100;
   Id appId=new SimpleId("application");
   IndexScope indexScope=new IndexScopeImpl(appId,appId,"things");
-  CollectionScope collectionScope=new CollectionScopeImpl(appId,appId,"things");
   EntityIndex entityIndex=cif.createEntityIndex(indexScope);
-  EntityCollectionManager entityManager=cmf.createCollectionManager(collectionScope);
   InputStream is=this.getClass().getResourceAsStream("/sample-large.json");
   ObjectMapper mapper=new ObjectMapper();
   List<Object> sampleJson=mapper.readValue(is,new TypeReference<List<Object>>(){
@@ -15,10 +13,9 @@
   timer.start();
   for (  Object o : sampleJson) {
     Map<String,Object> item=(Map<String,Object>)o;
-    Entity entity=new Entity(collectionScope.getName());
+    Entity entity=new Entity(indexScope.getName());
     entity=EntityIndexMapUtils.fromMap(entity,item);
     EntityUtils.setVersion(entity,UUIDGenerator.newTimeUUID());
-    entity=entityManager.write(entity).toBlockingObservable().last();
     entityIndex.index(entity);
     if (count++ > MAX_ENTITIES) {
       break;

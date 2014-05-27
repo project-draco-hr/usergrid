@@ -4,7 +4,6 @@
   IndexScope indexScope=new IndexScopeImpl(appId,ownerId,"user");
   CollectionScope scope=new CollectionScopeImpl(appId,ownerId,"user");
   EntityIndex entityIndex=cif.createEntityIndex(indexScope);
-  EntityCollectionManager entityManager=cmf.createCollectionManager(scope);
   final String middleName="middleName" + UUIDUtils.newTimeUUID();
   Map<String,Object> properties=new LinkedHashMap<String,Object>();
   properties.put("username","edanuff");
@@ -20,24 +19,17 @@
 ;
   Entity user=EntityIndexMapUtils.fromMap(entityMap);
   EntityUtils.setId(user,new SimpleId("edanuff"));
-  user=entityManager.write(user).toBlockingObservable().last();
+  EntityUtils.setVersion(user,UUIDGenerator.newTimeUUID());
   entityIndex.index(user);
   user.setField(new StringField("address1","1782 address st"));
-  user=entityManager.write(user).toBlockingObservable().last();
   entityIndex.index(user);
   user.setField(new StringField("address2","apt 508"));
-  user=entityManager.write(user).toBlockingObservable().last();
   entityIndex.index(user);
   user.setField(new StringField("address3","apt 508"));
-  user=entityManager.write(user).toBlockingObservable().last();
   entityIndex.index(user);
   entityIndex.refresh();
   CandidateResults results=entityIndex.getEntityVersions(user.getId());
-  EntityResults entityResults=new EntityResults(results,entityManager,user.getVersion());
-  Iterator<Entity> entities=entityResults.iterator();
-  assertEquals(entities.hasNext(),true);
-  assertEquals(entities.next().getId(),user.getId());
-  entities.next();
-  entities.next();
-  assertEquals(entities.next().getVersion(),user.getVersion());
+  assertEquals(1,results.size());
+  assertEquals(results.get(0).getId(),user.getId());
+  assertEquals(results.get(0).getVersion(),user.getVersion());
 }
