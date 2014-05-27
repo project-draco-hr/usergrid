@@ -8,11 +8,13 @@
   this.applicationId=applicationId;
   this.headEntity=headEntity;
   this.managerCache=emf.getManagerCache();
+  this.indexBucketLocator=indexBucketLocator;
   String collectionName=Schema.defaultCollectionName(headEntity.getType());
   this.applicationScope=emf.getApplicationScope(applicationId);
   this.headEntityScope=new CollectionScopeImpl(this.applicationScope.getApplication(),this.applicationScope.getApplication(),collectionName + COLLECTION_SUFFIX);
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(headEntityScope);
   this.cpHeadEntity=ecm.load(new SimpleId(headEntity.getUuid(),headEntity.getType())).toBlockingObservable().last();
   Assert.notNull(cpHeadEntity,"cpHeadEntity cannot be null");
+  this.cass=em.getCass();
   return this;
 }

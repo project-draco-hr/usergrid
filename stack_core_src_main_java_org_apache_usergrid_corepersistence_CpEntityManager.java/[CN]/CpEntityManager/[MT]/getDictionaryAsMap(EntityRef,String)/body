@@ -1,5 +1,36 @@
 {
-  Entity entity=get(entityRef);
-  Map<Object,Object> dictionary=(TreeMap)entity.getProperty(dictionaryName);
+  entity=validate(entity);
+  Map<Object,Object> dictionary=new LinkedHashMap<Object,Object>();
+  ApplicationCF dictionaryCf=null;
+  boolean entityHasDictionary=getDefaultSchema().hasDictionary(entity.getType(),dictionaryName);
+  if (entityHasDictionary) {
+    dictionaryCf=ENTITY_DICTIONARIES;
+  }
+ else {
+    dictionaryCf=ENTITY_COMPOSITE_DICTIONARIES;
+  }
+  Class<?> setType=getDefaultSchema().getDictionaryKeyType(entity.getType(),dictionaryName);
+  Class<?> setCoType=getDefaultSchema().getDictionaryValueType(entity.getType(),dictionaryName);
+  boolean coTypeIsBasic=ClassUtils.isBasicType(setCoType);
+  List<HColumn<ByteBuffer,ByteBuffer>> results=cass.getAllColumns(cass.getApplicationKeyspace(applicationId),dictionaryCf,key(entity.getUuid(),dictionaryName),be,be);
+  for (  HColumn<ByteBuffer,ByteBuffer> result : results) {
+    Object name=null;
+    if (entityHasDictionary) {
+      name=object(setType,result.getName());
+    }
+ else {
+      name=CompositeUtils.deserialize(result.getName());
+    }
+    Object value=null;
+    if (entityHasDictionary && coTypeIsBasic) {
+      value=object(setCoType,result.getValue());
+    }
+ else     if (result.getValue().remaining() > 0) {
+      value=Schema.deserializePropertyValueFromJsonBinary(result.getValue().slice(),setCoType);
+    }
+    if (name != null) {
+      dictionary.put(name,value);
+    }
+  }
   return dictionary;
 }
