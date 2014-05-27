@@ -3,9 +3,8 @@
     return null;
   }
   MvccEntity mvccEntity=results.next();
-  final Optional<Entity> targetVersion=mvccEntity.getEntity();
   List<MvccEntity> partialEntities=new ArrayList<>();
-  if (!targetVersion.isPresent() && (mvccEntity.getStatus() == MvccEntity.Status.DELETED || mvccEntity.getStatus() == MvccEntity.Status.COMPLETE)) {
+  if (!mvccEntity.getEntity().isPresent() && (mvccEntity.getStatus() == MvccEntity.Status.DELETED || mvccEntity.getStatus() == MvccEntity.Status.COMPLETE)) {
     return null;
   }
   if (mvccEntity.getStatus() == MvccEntity.Status.COMPLETE) {
@@ -15,22 +14,8 @@
   while (results.hasNext()) {
     mvccEntity=results.next();
     partialEntities.add(mvccEntity);
-    if (mvccEntity.getStatus() == MvccEntity.Status.PARTIAL) {
-      continue;
-    }
- else {
-      Collections.reverse(partialEntities);
-      List<ChangeLogEntry> chgPersist=new ArrayList<>();
-      List<MvccEntity> subEntList=new ArrayList<>();
-      chgPersist=changeLogGenerator.getChangeLog(partialEntities.iterator(),partialEntities.get(partialEntities.size() - 1).getVersion());
-      mvccEntity=entityRepair(chgPersist,partialEntities,mvccEntity);
-      try {
-        entitySerializationStrategy.write(collectionScope,mvccEntity).execute();
-      }
- catch (      Exception e) {
-        throw new RuntimeException("Couldn't rewrite repaired entity",e);
-      }
-      return mvccEntity;
+    if (mvccEntity.getStatus() != MvccEntity.Status.PARTIAL) {
+      return repairAndWrite(partialEntities,mvccEntity,entitySerializationStrategy,collectionScope);
     }
   }
   return null;
