@@ -1,0 +1,36 @@
+{
+  logger.debug("batchUpdateCollectionIndex");
+  Entity indexedEntity=indexUpdate.getEntity();
+  String bucketId=indexBucketLocator.getBucket(applicationId,IndexBucketLocator.IndexType.COLLECTION,indexedEntity.getUuid(),indexedEntity.getType(),indexUpdate.getEntryName());
+  Object index_name=null;
+  Object index_key=null;
+  for (  IndexUpdate.IndexEntry entry : indexUpdate.getPrevEntries()) {
+    if (entry.getValue() != null) {
+      index_name=key(owner.getUuid(),collectionName,entry.getPath());
+      index_key=key(index_name,bucketId);
+      addDeleteToMutator(indexUpdate.getBatch(),ENTITY_INDEX,index_key,entry.getIndexComposite(),indexUpdate.getTimestamp());
+      if ("location.coordinates".equals(entry.getPath())) {
+        EntityLocationRef loc=new EntityLocationRef(indexUpdate.getEntity(),entry.getTimestampUuid(),entry.getValue().toString());
+        batchRemoveLocationFromCollectionIndex(indexUpdate.getBatch(),indexBucketLocator,applicationId,index_name,loc);
+      }
+    }
+ else {
+      logger.error("Unexpected condition - deserialized property value is null");
+    }
+  }
+  if ((indexUpdate.getNewEntries().size() > 0) && (!indexUpdate.isMultiValue() || (indexUpdate.isMultiValue() && !indexUpdate.isRemoveListEntry()))) {
+    for (    IndexUpdate.IndexEntry indexEntry : indexUpdate.getNewEntries()) {
+      index_name=key(owner.getUuid(),collectionName,indexEntry.getPath());
+      index_key=key(index_name,bucketId);
+      addInsertToMutator(indexUpdate.getBatch(),ENTITY_INDEX,index_key,indexEntry.getIndexComposite(),null,indexUpdate.getTimestamp());
+      if ("location.coordinates".equals(indexEntry.getPath())) {
+        EntityLocationRef loc=new EntityLocationRef(indexUpdate.getEntity(),indexEntry.getTimestampUuid(),indexEntry.getValue().toString());
+        batchStoreLocationInCollectionIndex(indexUpdate.getBatch(),indexBucketLocator,applicationId,index_name,indexedEntity.getUuid(),loc);
+      }
+    }
+  }
+  for (  String index : indexUpdate.getIndexesSet()) {
+    addInsertToMutator(indexUpdate.getBatch(),ENTITY_DICTIONARIES,key(owner.getUuid(),collectionName,Schema.DICTIONARY_INDEXES),index,null,indexUpdate.getTimestamp());
+  }
+  return indexUpdate;
+}
