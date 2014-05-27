@@ -1,3 +1,29 @@
 {
-  throw new UnsupportedOperationException("Not supported yet.");
+  start=resolution.round(start);
+  finish=resolution.round(finish);
+  long expected_time=start;
+  Keyspace ko=cass.getApplicationKeyspace(applicationId);
+  SliceCounterQuery<String,Long> q=createCounterSliceQuery(ko,se,le);
+  q.setColumnFamily(APPLICATION_AGGREGATE_COUNTERS.toString());
+  q.setRange(start,finish,false,ALL_COUNT);
+  QueryResult<CounterSlice<Long>> r=q.setKey(counterUtils.getAggregateCounterRow(counterName,userId,groupId,queueId,category,resolution)).execute();
+  List<AggregateCounter> counters=new ArrayList<AggregateCounter>();
+  for (  HCounterColumn<Long> column : r.get().getColumns()) {
+    AggregateCounter count=new AggregateCounter(column.getName(),column.getValue());
+    if (pad && !(resolution == CounterResolution.ALL)) {
+      while (count.getTimestamp() != expected_time) {
+        counters.add(new AggregateCounter(expected_time,0));
+        expected_time=resolution.next(expected_time);
+      }
+      expected_time=resolution.next(expected_time);
+    }
+    counters.add(count);
+  }
+  if (pad && !(resolution == CounterResolution.ALL)) {
+    while (expected_time <= finish) {
+      counters.add(new AggregateCounter(expected_time,0));
+      expected_time=resolution.next(expected_time);
+    }
+  }
+  return Results.fromCounters(new AggregateCounterSet(counterName,userId,groupId,category,counters));
 }
