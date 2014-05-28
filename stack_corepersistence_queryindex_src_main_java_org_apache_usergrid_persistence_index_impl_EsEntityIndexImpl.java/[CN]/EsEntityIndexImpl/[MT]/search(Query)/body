@@ -1,9 +1,8 @@
 {
   QueryBuilder qb=query.createQueryBuilder();
-  log.debug("Search");
-  log.debug("    Index Name: " + this.indexName);
-  log.debug("    ES Type:    " + this.indexType);
-  log.debug("    Query:      " + qb.toString().replace("\n"," "));
+  if (log.isDebugEnabled()) {
+    log.debug("Searching index {}\n   type {}\n   query {}",new Object[]{this.indexName,this.indexType,qb.toString().replace("\n"," ")});
+  }
   SearchResponse searchResponse;
   if (query.getCursor() == null) {
     SearchRequestBuilder srb=client.prepareSearch(indexName).setTypes(indexType).setScroll(cursorTimeout + "m").setQuery(qb);

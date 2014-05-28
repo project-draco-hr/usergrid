@@ -1,11 +1,14 @@
 {
-  CollectionScope memberScope=new CollectionScopeImpl(this.applicationScope.getApplication(),this.applicationScope.getApplication(),Schema.defaultCollectionName(memberRef.getType()) + COLLECTION_SUFFIX);
+  CollectionScope memberScope=new CollectionScopeImpl(this.applicationScope.getApplication(),this.applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(memberRef.getType()));
   EntityCollectionManager memberMgr=managerCache.getEntityCollectionManager(memberScope);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Loading entity to remove from collection " + "{}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{memberRef.getType(),memberRef.getUuid(),memberScope.getApplication(),memberScope.getOwner(),memberScope.getName()});
+  }
   org.apache.usergrid.persistence.model.entity.Entity memberEntity=memberMgr.load(new SimpleId(memberRef.getUuid(),memberRef.getType())).toBlockingObservable().last();
-  IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),collName + COLLECTION_SUFFIX);
+  IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),CpEntityManager.getCollectionScopeNameFromCollectionName(collName));
   EntityIndex ei=managerCache.getEntityIndex(indexScope);
   ei.deindex(memberEntity);
-  Edge edge=new SimpleMarkedEdge(cpHeadEntity.getId(),collName + COLLECTION_SUFFIX,memberEntity.getId(),UUIDGenerator.newTimeUUID(),false);
+  Edge edge=new SimpleMarkedEdge(cpHeadEntity.getId(),getEdgeTypeFromCollectionName(collName),memberEntity.getId(),UUIDGenerator.newTimeUUID(),false);
   GraphManager gm=managerCache.getGraphManager(applicationScope);
   gm.deleteEdge(edge).toBlockingObservable().last();
 }

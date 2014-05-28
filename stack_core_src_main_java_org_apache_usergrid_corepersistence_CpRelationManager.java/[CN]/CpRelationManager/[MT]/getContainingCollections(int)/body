@@ -8,15 +8,15 @@
     Iterator<Edge> iter=edges.toBlockingObservable().getIterator();
     while (iter.hasNext()) {
       Edge edge=iter.next();
-      if (!edge.getType().endsWith(COLLECTION_SUFFIX)) {
+      if (!isConnectionEdgeType(edge.getType())) {
         continue;
       }
       EntityRef eref=new SimpleEntityRef(edge.getSourceNode().getType(),edge.getSourceNode().getUuid());
-      String cEdgeType=edge.getType();
-      if (cEdgeType.endsWith(COLLECTION_SUFFIX)) {
-        cEdgeType=cEdgeType.substring(0,cEdgeType.indexOf(COLLECTION_SUFFIX));
+      String connectionName=null;
+      if (isConnectionEdgeType(edge.getType())) {
+        connectionName=getConnectionName(edge.getType());
       }
-      addMapSet(results,eref,cEdgeType);
+      addMapSet(results,eref,connectionName);
     }
     if (limit > 0 && results.keySet().size() >= limit) {
       break;
@@ -24,7 +24,7 @@
   }
   EntityRef applicationRef=new SimpleEntityRef(TYPE_APPLICATION,applicationId);
   if (!results.containsKey(applicationRef)) {
-    addMapSet(results,applicationRef,defaultCollectionName(headEntity.getType()));
+    addMapSet(results,applicationRef,CpEntityManager.getCollectionScopeNameFromEntityType(headEntity.getType()));
   }
   return results;
 }

@@ -104,7 +104,10 @@
     return entity;
   }
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=entityToCpEntity(entity);
-  CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),collectionName);
+  CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),getCollectionScopeNameFromEntityType(eType));
+  if (logger.isDebugEnabled()) {
+    logger.debug("Writing entity {}:{} into scope\n   app {}\n   owner {}\n   name {}",new Object[]{entity.getType(),entity.getUuid(),collectionScope.getApplication(),collectionScope.getOwner(),collectionScope.getName()});
+  }
   IndexScope defaultIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),entity.getType());
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   EntityIndex ei=managerCache.getEntityIndex(defaultIndexScope);
@@ -112,16 +115,21 @@
     cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
   }
  catch (  WriteUniqueVerifyException wuve) {
-    Map<String,Field> violiations=wuve.getVioliations();
-    Field conflict=violiations.get(violiations.keySet().iterator().next());
-    throw new DuplicateUniquePropertyExistsException(entity.getType(),conflict.getName(),conflict.getValue());
+    handleWriteUniqueVerifyException(entity,wuve);
+  }
+catch (  HystrixRuntimeException hre) {
+    if (hre.getCause() instanceof WriteUniqueVerifyException) {
+      WriteUniqueVerifyException wuve=(WriteUniqueVerifyException)hre.getCause();
+      handleWriteUniqueVerifyException(entity,wuve);
+    }
   }
   ei.index(cpEntity);
   entity.setUuid(cpEntity.getId().getUuid());
   Map<String,Object> entityMap=CpEntityMapUtils.toMap(cpEntity);
   entity.addProperties(entityMap);
   if (!is_application) {
-    getRelationManager(getApplication()).addToCollection(collectionName,entity);
+    String collectionName2=Schema.defaultCollectionName(eType);
+    getRelationManager(getApplication()).addToCollection(collectionName2,entity);
   }
   return entity;
 }
