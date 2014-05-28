@@ -94,7 +94,7 @@
     return entity;
   }
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=entityToCpEntity(entity);
-  CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),getCollectionScopeName(eType));
+  CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),getCollectionScopeNameFromEntityType(eType));
   if (logger.isDebugEnabled()) {
     logger.debug("Writing entity {}:{} into scope\n   app {}\n   owner {}\n   name {}",new Object[]{entity.getType(),entity.getUuid(),collectionScope.getApplication(),collectionScope.getOwner(),collectionScope.getName()});
   }
@@ -105,9 +105,13 @@
     cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
   }
  catch (  WriteUniqueVerifyException wuve) {
-    Map<String,Field> violiations=wuve.getVioliations();
-    Field conflict=violiations.get(violiations.keySet().iterator().next());
-    throw new DuplicateUniquePropertyExistsException(entity.getType(),conflict.getName(),conflict.getValue());
+    handleWriteUniqueVerifyException(entity,wuve);
+  }
+catch (  HystrixRuntimeException hre) {
+    if (hre.getCause() instanceof WriteUniqueVerifyException) {
+      WriteUniqueVerifyException wuve=(WriteUniqueVerifyException)hre.getCause();
+      handleWriteUniqueVerifyException(entity,wuve);
+    }
   }
   ei.index(cpEntity);
   entity.setUuid(cpEntity.getId().getUuid());

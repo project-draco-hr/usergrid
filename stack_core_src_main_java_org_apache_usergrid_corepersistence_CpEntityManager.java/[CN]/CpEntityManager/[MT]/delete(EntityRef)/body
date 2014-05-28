@@ -1,5 +1,5 @@
 {
-  CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),getCollectionScopeName(entityRef.getType()));
+  CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),getCollectionScopeNameFromEntityType(entityRef.getType()));
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
   org.apache.usergrid.persistence.model.entity.Entity entity=ecm.load(entityId).toBlockingObservable().last();
@@ -10,15 +10,15 @@
     for (    String ownerType : owners.keySet()) {
       Map<UUID,Set<String>> collectionsByUuid=owners.get(ownerType);
       for (      UUID uuid : collectionsByUuid.keySet()) {
-        Set<String> collections=collectionsByUuid.get(uuid);
-        for (        String coll : collections) {
-          IndexScope indexScope=new IndexScopeImpl(appScope.getApplication(),new SimpleId(uuid,ownerType),coll + COLLECTION_SUFFIX);
+        Set<String> collectionNames=collectionsByUuid.get(uuid);
+        for (        String coll : collectionNames) {
+          IndexScope indexScope=new IndexScopeImpl(appScope.getApplication(),new SimpleId(uuid,ownerType),coll);
           EntityIndex ei=managerCache.getEntityIndex(indexScope);
           ei.deindex(entity);
         }
       }
     }
-    IndexScope defaultIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),getCollectionScopeName(entityRef.getType()));
+    IndexScope defaultIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),getCollectionScopeNameFromEntityType(entityRef.getType()));
     EntityIndex entityIndex=managerCache.getEntityIndex(defaultIndexScope);
     entityIndex.deindex(entity);
     ecm.delete(entityId).toBlockingObservable().last();
