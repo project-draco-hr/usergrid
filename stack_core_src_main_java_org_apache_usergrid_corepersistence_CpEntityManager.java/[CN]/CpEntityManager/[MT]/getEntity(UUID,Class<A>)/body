@@ -1,13 +1,18 @@
 {
   String type=getDefaultSchema().getEntityType(entityClass);
   Id id=new SimpleId(entityId,type);
-  String collectionName=Schema.defaultCollectionName(type);
+  String collectionName=getCollectionScopeName(type);
   CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),collectionName);
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Loading entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{id.getType(),id.getUuid(),collectionScope.getApplication(),collectionScope.getOwner(),collectionScope.getName()});
+  }
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(id).toBlockingObservable().last();
   if (cpEntity == null) {
+    logger.debug("   entity null");
     return null;
   }
+  logger.debug("   entity found");
   A entity=EntityFactory.newEntity(entityId,type,entityClass);
   entity.setProperties(CpEntityMapUtils.toMap(cpEntity));
   return entity;

@@ -18,8 +18,11 @@
     results=Results.fromRefList(entityRefs);
   }
  else {
-    CollectionScope collScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),Schema.defaultCollectionName(query.getEntityType()) + COLLECTION_SUFFIX);
+    CollectionScope collScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeName(query.getEntityType()));
     EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collScope);
+    if (logger.isDebugEnabled()) {
+      logger.debug("Loading entities from scope\n   app {}\n   owner {}\n   name {}",new Object[]{collScope.getApplication(),collScope.getOwner(),collScope.getName()});
+    }
     Map<Id,org.apache.usergrid.persistence.model.entity.Entity> latestVersions=new LinkedHashMap<Id,org.apache.usergrid.persistence.model.entity.Entity>();
     Iterator<CandidateResult> iter=crs.iterator();
     while (iter.hasNext()) {

@@ -2,13 +2,16 @@
   headEntity=em.validate(headEntity);
   connectedEntityRef=em.validate(connectedEntityRef);
   ConnectionRefImpl connection=new ConnectionRefImpl(headEntity,connectionType,connectedEntityRef);
-  CollectionScope targetScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),Schema.defaultCollectionName(connectedEntityRef.getType()) + COLLECTION_SUFFIX);
+  CollectionScope targetScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeName(connectedEntityRef.getType()));
   EntityCollectionManager targetEcm=managerCache.getEntityCollectionManager(targetScope);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Loading connection target entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{connectedEntityRef.getType(),connectedEntityRef.getUuid(),targetScope.getApplication(),targetScope.getOwner(),targetScope.getName()});
+  }
   org.apache.usergrid.persistence.model.entity.Entity targetEntity=targetEcm.load(new SimpleId(connectedEntityRef.getUuid(),connectedEntityRef.getType())).toBlockingObservable().last();
   Edge edge=new SimpleMarkedEdge(cpHeadEntity.getId(),connectionType,targetEntity.getId(),UUIDGenerator.newTimeUUID(),false);
   GraphManager gm=managerCache.getGraphManager(applicationScope);
   gm.writeEdge(edge).toBlockingObservable().last();
-  IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),connectionType + COLLECTION_SUFFIX);
+  IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),CpEntityManager.getCollectionScopeName(connectionType));
   EntityIndex ei=managerCache.getEntityIndex(indexScope);
   ei.index(targetEntity);
   IndexScope allTypesIndexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),ALL_TYPES);
