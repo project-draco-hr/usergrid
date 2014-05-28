@@ -1,7 +1,17 @@
 {
   UUID timestampUuid=newTimeUUID();
   Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
-  batchCreateRole(batch,null,roleName,roleTitle,inactivity,null,timestampUuid);
+  long timestamp=getTimestampInMicros(timestampUuid);
+  Map<String,Object> properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
+  properties.put(PROPERTY_TYPE,Role.ENTITY_TYPE);
+  properties.put(PROPERTY_NAME,roleName);
+  properties.put("roleName",roleName);
+  properties.put("title",roleTitle);
+  properties.put(PROPERTY_INACTIVITY,inactivity);
+  batchCreate(batch,Role.ENTITY_TYPE,null,properties,UUIDGenerator.newTimeUUID(),timestampUuid);
+  addInsertToMutator(batch,ENTITY_DICTIONARIES,key(applicationId,Schema.DICTIONARY_ROLENAMES),roleName,roleTitle,timestamp);
+  addInsertToMutator(batch,ENTITY_DICTIONARIES,key(applicationId,Schema.DICTIONARY_ROLETIMES),roleName,inactivity,timestamp);
+  addInsertToMutator(batch,ENTITY_DICTIONARIES,key(applicationId,DICTIONARY_SETS),Schema.DICTIONARY_ROLENAMES,null,timestamp);
   batchExecute(batch,CassandraService.RETRY_COUNT);
   return get(roleRef(roleName));
 }
