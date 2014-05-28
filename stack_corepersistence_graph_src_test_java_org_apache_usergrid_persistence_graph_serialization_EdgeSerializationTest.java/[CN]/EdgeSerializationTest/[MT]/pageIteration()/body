@@ -3,15 +3,15 @@
   final Id sourceId=createId("source");
   final String type="edge";
   Set<Edge> edges=new HashSet<Edge>(size);
-  final UUID timestamp=UUIDGenerator.newTimeUUID();
+  long timestamp=0;
   for (int i=0; i < size; i++) {
-    final MarkedEdge edge=createEdge(sourceId,type,createId("target"));
-    serialization.writeEdge(scope,edge,timestamp).execute();
+    final MarkedEdge edge=createEdge(sourceId,type,createId("target"),timestamp);
+    serialization.writeEdge(scope,edge,UUIDGenerator.newTimeUUID()).execute();
     edges.add(edge);
+    timestamp++;
   }
-  long now=System.currentTimeMillis();
-  Iterator<MarkedEdge> results=serialization.getEdgesFromSource(scope,createSearchByEdge(sourceId,type,now,null));
-  for (  MarkedEdge edge : new IterableWrapper<MarkedEdge>(results)) {
+  Iterator<MarkedEdge> results=serialization.getEdgesFromSource(scope,createSearchByEdge(sourceId,type,timestamp,null));
+  for (  MarkedEdge edge : new IterableWrapper<>(results)) {
     assertTrue("Removed edge from write set",edges.remove(edge));
   }
   assertEquals("All edges were returned",0,edges.size());

@@ -3,10 +3,14 @@
   EdgeSerialization storage=mock(EdgeSerialization.class);
   final Id sourceId=createId("source");
   final String type="test";
-  MarkedEdge commitLogEdge1=createEdge(sourceId,type,createId("target1"));
-  MarkedEdge storageEdge1=createEdge(sourceId,type,createId("target2"));
-  MarkedEdge commitLogEdge2=createEdge(sourceId,type,createId("target3"));
-  MarkedEdge storageEdge2=createEdge(sourceId,type,createId("target4"));
+  final long timestamp1=1000l;
+  final long timestamp2=timestamp1 + 100l;
+  final long timestamp3=timestamp2 + 100l;
+  final long timestamp4=timestamp3 + 100l;
+  MarkedEdge commitLogEdge1=createEdge(sourceId,type,createId("target1"),timestamp1);
+  MarkedEdge storageEdge1=createEdge(sourceId,type,createId("target2"),timestamp2);
+  MarkedEdge commitLogEdge2=createEdge(sourceId,type,createId("target3"),timestamp3);
+  MarkedEdge storageEdge2=createEdge(sourceId,type,createId("target4"),timestamp4);
   assertTrue(Long.compare(commitLogEdge1.getTimestamp(),storageEdge1.getTimestamp()) < 0);
   assertTrue(Long.compare(storageEdge1.getTimestamp(),commitLogEdge2.getTimestamp()) < 0);
   assertTrue(Long.compare(commitLogEdge2.getTimestamp(),storageEdge2.getTimestamp()) < 0);

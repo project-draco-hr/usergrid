@@ -4,10 +4,14 @@
   final Id sourceId=createId("source");
   final String type="test";
   final String targetIdType="target";
-  MarkedEdge commitLogEdge1=createEdge(sourceId,type,createId(targetIdType));
-  MarkedEdge storageEdge1=createEdge(sourceId,type,createId(targetIdType));
-  MarkedEdge commitLogEdge2=createEdge(sourceId,type,createId(targetIdType));
-  MarkedEdge storageEdge2=createEdge(sourceId,type,createId(targetIdType));
+  final long timestamp1=1000l;
+  final long timestamp2=timestamp1 + 100l;
+  final long timestamp3=timestamp2 + 100l;
+  final long timestamp4=timestamp3 + 100l;
+  MarkedEdge commitLogEdge1=createEdge(sourceId,type,createId(targetIdType),timestamp1);
+  MarkedEdge storageEdge1=createEdge(sourceId,type,createId(targetIdType),timestamp2);
+  MarkedEdge commitLogEdge2=createEdge(sourceId,type,createId(targetIdType),timestamp3);
+  MarkedEdge storageEdge2=createEdge(sourceId,type,createId(targetIdType),timestamp4);
   assertTrue(Long.compare(commitLogEdge1.getTimestamp(),storageEdge1.getTimestamp()) < 0);
   assertTrue(Long.compare(storageEdge1.getTimestamp(),commitLogEdge2.getTimestamp()) < 0);
   assertTrue(Long.compare(commitLogEdge2.getTimestamp(),storageEdge2.getTimestamp()) < 0);

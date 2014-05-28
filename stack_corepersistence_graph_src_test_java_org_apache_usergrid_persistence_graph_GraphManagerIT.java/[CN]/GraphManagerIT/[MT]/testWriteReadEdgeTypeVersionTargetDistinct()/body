@@ -1,14 +1,13 @@
 {
   GraphManager gm=getHelper(emf.createEdgeManager(scope));
-  ;
-  final long earlyVersion=System.currentTimeMillis();
-  Edge edge1=createEdge("source","test","target");
+  final long earlyVersion=10000l;
+  Edge edge1=createEdge("source","test","target",earlyVersion + 1);
   final Id sourceId=edge1.getSourceNode();
   final Id targetId=edge1.getTargetNode();
   gm.writeEdge(edge1).toBlockingObservable().last();
-  Edge edge2=createEdge(sourceId,edge1.getType(),targetId);
+  Edge edge2=createEdge(sourceId,edge1.getType(),targetId,earlyVersion + 2);
   gm.writeEdge(edge2).toBlockingObservable().last();
-  Edge edge3=createEdge(sourceId,edge1.getType(),targetId);
+  Edge edge3=createEdge(sourceId,edge1.getType(),targetId,earlyVersion + 3);
   gm.writeEdge(edge3).toBlockingObservable().last();
   SearchByEdgeType search=createSearchByEdge(edge1.getTargetNode(),edge1.getType(),edge3.getTimestamp(),null);
   Observable<Edge> edges=gm.loadEdgesToTarget(search);
