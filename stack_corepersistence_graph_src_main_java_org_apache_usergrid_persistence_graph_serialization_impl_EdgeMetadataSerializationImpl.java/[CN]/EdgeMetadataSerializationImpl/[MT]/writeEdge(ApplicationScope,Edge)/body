@@ -4,7 +4,7 @@
   final Id source=edge.getSourceNode();
   final Id target=edge.getTargetNode();
   final String edgeType=edge.getType();
-  final long timestamp=CassUtils.getTimestamp(edge.getVersion());
+  final long timestamp=edge.getTimestamp();
   final MutationBatch batch=keyspace.prepareMutationBatch().withConsistencyLevel(cassandraConfig.getWriteCL()).withTimestamp(timestamp);
   final ScopedRowKey<ApplicationScope,Id> sourceKey=new ScopedRowKey<ApplicationScope,Id>(scope,source);
   batch.withRow(CF_SOURCE_EDGE_TYPES,sourceKey).putColumn(edgeType,HOLDER);
