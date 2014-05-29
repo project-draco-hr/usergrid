@@ -1,3 +1,26 @@
 {
-  throw new UnsupportedOperationException("Not supported yet.");
+  if (identifier == null) {
+    return null;
+  }
+  if (identifier.isUUID()) {
+    return new SimpleEntityRef("user",identifier.getUUID());
+  }
+  if (identifier.isName()) {
+    return this.getAlias(new SimpleEntityRef("application",applicationId),"user",identifier.getName());
+  }
+  if (identifier.isEmail()) {
+    Query query=new Query();
+    query.setEntityType("user");
+    query.addEqualityFilter("email",identifier.getEmail());
+    query.setLimit(1);
+    query.setResultsLevel(REFS);
+    Results r=getRelationManager(ref(applicationId)).searchCollection("users",query);
+    if (r != null && r.getRef() != null) {
+      return r.getRef();
+    }
+ else {
+      return this.getAlias(new SimpleEntityRef("application",applicationId),"user",identifier.getEmail());
+    }
+  }
+  return null;
 }
