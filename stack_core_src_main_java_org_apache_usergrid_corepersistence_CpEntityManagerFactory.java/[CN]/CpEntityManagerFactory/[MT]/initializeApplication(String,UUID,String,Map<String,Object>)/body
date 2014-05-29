@@ -6,7 +6,7 @@
   getSetup().setupApplicationKeyspace(applicationId,appName);
   UUID orgUuid=lookupOrganization(organizationName);
   if (orgUuid == null) {
-    Entity orgInfoEntity=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),"organization"));
+    Entity orgInfoEntity=new Entity(generateOrgId(UUIDGenerator.newTimeUUID()));
     orgUuid=orgInfoEntity.getId().getUuid();
     long timestamp=System.currentTimeMillis();
     orgInfoEntity.setField(new LongField(PROPERTY_CREATED,(long)(timestamp / 1000)));
@@ -22,7 +22,7 @@
     properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
   }
   properties.put(PROPERTY_NAME,appName);
-  Entity appInfoEntity=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),"application"));
+  Entity appInfoEntity=new Entity(generateApplicationId(UUIDGenerator.newTimeUUID()));
   long timestamp=System.currentTimeMillis();
   appInfoEntity.setField(new LongField(PROPERTY_CREATED,(long)(timestamp / 1000)));
   appInfoEntity.setField(new StringField(PROPERTY_NAME,name));
