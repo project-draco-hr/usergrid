@@ -1,3 +1,8 @@
 {
-  throw new UnsupportedOperationException("Not supported yet.");
+  roleName=roleName.toLowerCase();
+  permission=permission.toLowerCase();
+  long timestamp=cass.createTimestamp();
+  Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
+  addInsertToMutator(batch,ApplicationCF.ENTITY_DICTIONARIES,getRolePermissionsKey(roleName),permission,ByteBuffer.allocate(0),timestamp);
+  batchExecute(batch,CassandraService.RETRY_COUNT);
 }
