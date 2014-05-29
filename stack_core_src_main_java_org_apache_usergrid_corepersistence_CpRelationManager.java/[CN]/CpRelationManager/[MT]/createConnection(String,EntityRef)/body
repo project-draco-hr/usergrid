@@ -8,7 +8,7 @@
     logger.debug("Loading connection target entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{connectedEntityRef.getType(),connectedEntityRef.getUuid(),targetScope.getApplication(),targetScope.getOwner(),targetScope.getName()});
   }
   org.apache.usergrid.persistence.model.entity.Entity targetEntity=targetEcm.load(new SimpleId(connectedEntityRef.getUuid(),connectedEntityRef.getType())).toBlockingObservable().last();
-  Edge edge=new SimpleMarkedEdge(cpHeadEntity.getId(),connectionType,targetEntity.getId(),UUIDGenerator.newTimeUUID().timestamp(),false);
+  Edge edge=new SimpleEdge(cpHeadEntity.getId(),connectionType,targetEntity.getId(),System.currentTimeMillis());
   GraphManager gm=managerCache.getGraphManager(applicationScope);
   gm.writeEdge(edge).toBlockingObservable().last();
   IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),CpEntityManager.getCollectionScopeNameFromEntityType(connectionType));

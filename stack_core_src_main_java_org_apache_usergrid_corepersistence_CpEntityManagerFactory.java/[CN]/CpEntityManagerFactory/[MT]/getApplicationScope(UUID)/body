@@ -1,12 +1,4 @@
 {
-  Query q=Query.fromQL(PROPERTY_UUID + " = '" + applicationId.toString()+ "'");
-  EntityCollectionManager em=getManagerCache().getEntityCollectionManager(SYSTEM_APP_SCOPE);
-  EntityIndex ei=getManagerCache().getEntityIndex(SYSTEM_APPS_INDEX_SCOPE);
-  CandidateResults results=ei.search(q);
-  if (results.isEmpty()) {
-    return null;
-  }
-  CandidateResult candidateResult=results.iterator().next();
-  Entity appEntity=em.load(candidateResult.getId()).toBlockingObservable().last();
-  return new ApplicationScopeImpl(new SimpleId(appEntity.getId().getUuid(),"application"));
+  final ApplicationScopeImpl scope=new ApplicationScopeImpl(generateApplicationId(applicationId));
+  return scope;
 }
