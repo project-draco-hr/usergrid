@@ -9,14 +9,10 @@
       newClient=node.client();
     }
  else {
-      Settings settings=ImmutableSettings.settingsBuilder().put("cluster.name",fig.getClusterName()).put("client.transport.ignore_cluster_name",true).put("client.transport.ping_timeout",2000).put("client.transport.nodes_sampler_interval",100).build();
-      log.info("Creating ElasticSearch client with settings: " + settings.getAsMap());
-      TransportClient transportClient=new TransportClient(settings);
-      for (      String host : fig.getHosts().split(",")) {
-        transportClient.addTransportAddress(new InetSocketTransportAddress(host.trim(),fig.getPort()));
-        log.info("   Added transport for ElasticSearch host {}:{}",host.trim(),fig.getPort());
-      }
-      newClient=transportClient;
+      final String hosts=fig.getHosts();
+      Settings settings=ImmutableSettings.settingsBuilder().put("client.transport.ping_timeout",2000).put("client.transport.nodes_sampler_interval",100).put("http.enabled",false).put("discovery.zen.ping.unicast.hosts",hosts).build();
+      Node node=NodeBuilder.nodeBuilder().settings(settings).clusterName(fig.getClusterName()).client(true).node();
+      newClient=node.client();
     }
     client=newClient;
   }

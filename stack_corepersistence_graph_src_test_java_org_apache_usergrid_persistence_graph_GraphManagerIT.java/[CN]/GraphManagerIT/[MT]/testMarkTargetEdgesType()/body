@@ -3,11 +3,11 @@
   Id sourceId1=new SimpleId("source");
   Id sourceId2=new SimpleId("source2");
   Id targetId=new SimpleId("target");
-  Edge edge1=createEdge(sourceId1,"test",targetId,UUIDGenerator.newTimeUUID());
+  Edge edge1=createEdge(sourceId1,"test",targetId,System.currentTimeMillis());
   gm.writeEdge(edge1).toBlockingObservable().last();
-  Edge edge2=createEdge(sourceId2,"test",targetId,UUIDGenerator.newTimeUUID());
+  Edge edge2=createEdge(sourceId2,"test",targetId,System.currentTimeMillis());
   gm.writeEdge(edge2).toBlockingObservable().last();
-  final UUID maxVersion=UUIDGenerator.newTimeUUID();
+  final long maxVersion=System.currentTimeMillis();
   Observable<Edge> edges=gm.loadEdgesToTargetByType(createSearchByEdgeAndId(targetId,edge1.getType(),maxVersion,sourceId1.getType(),null));
   Iterator<Edge> results=edges.toBlockingObservable().getIterator();
   assertEquals("Edges correct",edge1,results.next());

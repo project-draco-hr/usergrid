@@ -4,8 +4,8 @@
   final Id targetId=edgeType.getNode();
   final String type=edgeType.getType();
   final String targetType=edgeType.getIdType();
-  final UUID maxVersion=edgeType.getMaxVersion();
-  final EdgeSearcher<RowKeyType,DirectedEdge,MarkedEdge> searcher=new EdgeSearcher<RowKeyType,DirectedEdge,MarkedEdge>(scope,maxVersion,edgeType.last(),edgeShardStrategy.getReadShards(scope,targetId,maxVersion,type,targetType)){
+  final long maxTimestamp=edgeType.getMaxTimestamp();
+  final EdgeSearcher<RowKeyType,DirectedEdge,MarkedEdge> searcher=new EdgeSearcher<RowKeyType,DirectedEdge,MarkedEdge>(scope,maxTimestamp,edgeType.last(),edgeShardStrategy.getReadShards(scope,targetId,maxTimestamp,type,targetType)){
     @Override protected Serializer<DirectedEdge> getSerializer(){
       return EDGE_SERIALIZER;
     }
@@ -13,10 +13,10 @@
       return new RowKeyType(targetId,type,targetType,shard);
     }
     @Override protected DirectedEdge getStartColumn(    final Edge last){
-      return new DirectedEdge(last.getTargetNode(),last.getVersion());
+      return new DirectedEdge(last.getTargetNode(),last.getTimestamp());
     }
     @Override protected MarkedEdge createEdge(    final DirectedEdge edge,    final boolean marked){
-      return new SimpleMarkedEdge(targetId,type,edge.id,edge.version,marked);
+      return new SimpleMarkedEdge(targetId,type,edge.id,edge.timestamp,marked);
     }
   }
 ;

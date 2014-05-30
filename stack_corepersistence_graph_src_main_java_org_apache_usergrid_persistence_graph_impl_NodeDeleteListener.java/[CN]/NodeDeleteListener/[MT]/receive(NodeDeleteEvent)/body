@@ -1,15 +1,14 @@
 {
-  final Id node=edgeEvent.getData();
-  final ApplicationScope scope=edgeEvent.getApplicationScope();
+  final Id node=nodeDeleteEvent.getData();
+  final ApplicationScope scope=nodeDeleteEvent.getApplicationScope();
   return Observable.from(node).flatMap(new Func1<Id,Observable<Integer>>(){
     @Override public Observable<Integer> call(    final Id node){
-      final Optional<UUID> maxVersion=nodeSerialization.getMaxVersion(scope,node);
+      final Optional<Long> maxVersion=nodeSerialization.getMaxVersion(scope,node);
       LOG.debug("Node with id {} has max version of {}",node,maxVersion.orNull());
       if (!maxVersion.isPresent()) {
         return Observable.empty();
       }
-      maxVersion.get();
-      return doDeletes(node,scope,maxVersion.get()).count().doOnCompleted(new Action0(){
+      return doDeletes(node,scope,maxVersion.get(),nodeDeleteEvent.getTimestamp()).count().doOnCompleted(new Action0(){
         @Override public void call(){
           try {
             nodeSerialization.delete(scope,node,maxVersion.get()).execute();
