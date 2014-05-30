@@ -58,16 +58,7 @@
     }
   }
   String collectionName=Schema.defaultCollectionName(eType);
-  String bucketId=indexBucketLocator.getBucket(applicationId,IndexBucketLocator.IndexType.COLLECTION,itemId,collectionName);
-  Object collection_key=key(applicationId,Schema.DICTIONARY_COLLECTIONS,collectionName,bucketId);
   CollectionInfo collection=null;
-  if (!is_application) {
-    if (!emptyPropertyMap) {
-      addInsertToMutator(ignored,ENTITY_ID_SETS,collection_key,itemId,null,timestamp);
-    }
-    addInsertToMutator(ignored,ENTITY_DICTIONARIES,key(applicationId,Schema.DICTIONARY_COLLECTIONS),collectionName,null,timestamp);
-    addInsertToMutator(ignored,ENTITY_COMPOSITE_DICTIONARIES,key(itemId,Schema.DICTIONARY_CONTAINER_ENTITIES),asList(TYPE_APPLICATION,collectionName,applicationId),null,timestamp);
-  }
   if (emptyPropertyMap) {
     return null;
   }
@@ -101,6 +92,7 @@
         event.setProperty(prop_name,propertyValue);
       }
     }
+    incrementEntityCollection("events",timestamp);
     return entity;
   }
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=entityToCpEntity(entity);
@@ -130,6 +122,7 @@ catch (  HystrixRuntimeException hre) {
   if (!is_application) {
     String collectionName2=Schema.defaultCollectionName(eType);
     getRelationManager(getApplication()).addToCollection(collectionName2,entity);
+    incrementEntityCollection(collectionName2,timestamp);
   }
   return entity;
 }
