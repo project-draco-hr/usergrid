@@ -3,7 +3,7 @@
   Preconditions.checkNotNull(nodeIds,"nodeIds cannot be null");
   final ColumnFamilyQuery<ScopedRowKey<ApplicationScope,Id>,Boolean> query=keyspace.prepareQuery(GRAPH_DELETE).setConsistencyLevel(fig.getReadCL());
   final List<ScopedRowKey<ApplicationScope,Id>> keys=new ArrayList<ScopedRowKey<ApplicationScope,Id>>(nodeIds.size());
-  final Map<Id,UUID> versions=new HashMap<Id,UUID>(nodeIds.size());
+  final Map<Id,Long> versions=new HashMap<>(nodeIds.size());
   for (  final Edge edge : nodeIds) {
     keys.add(ScopedRowKey.fromKey(scope,edge.getSourceNode()));
     keys.add(ScopedRowKey.fromKey(scope,edge.getTargetNode()));
@@ -13,7 +13,7 @@
     for (    Row<ScopedRowKey<ApplicationScope,Id>,Boolean> row : results) {
       Column<Boolean> column=row.getColumns().getColumnByName(COLUMN_NAME);
       if (column != null) {
-        versions.put(row.getKey().getKey(),column.getUUIDValue());
+        versions.put(row.getKey().getKey(),column.getLongValue());
       }
     }
   }

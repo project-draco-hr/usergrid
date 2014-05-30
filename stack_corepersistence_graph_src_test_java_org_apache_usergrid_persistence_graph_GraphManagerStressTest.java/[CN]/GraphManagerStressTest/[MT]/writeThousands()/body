@@ -7,12 +7,12 @@
       return edge;
     }
     @Override public Observable<Edge> doSearch(    final GraphManager manager){
-      final UUID uuid=UUIDGenerator.newTimeUUID();
+      final long timestamp=System.currentTimeMillis();
       return Observable.create(new Observable.OnSubscribe<Edge>(){
         @Override public void call(        final Subscriber<? super Edge> subscriber){
           try {
             for (            Id sourceId : sourceIds) {
-              final Iterable<Edge> edges=manager.loadEdgesFromSource(new SimpleSearchByEdgeType(sourceId,"test",uuid,null)).toBlockingObservable().toIterable();
+              final Iterable<Edge> edges=manager.loadEdgesFromSource(new SimpleSearchByEdgeType(sourceId,"test",timestamp,null)).toBlockingObservable().toIterable();
               for (              Edge edge : edges) {
                 log.debug("Firing on next for edge {}",edge);
                 subscriber.onNext(edge);
