@@ -1,0 +1,13 @@
+{
+  List<ElasticSearchNode> nodeList=new ArrayList<ElasticSearchNode>();
+  String result=getHTTPResult("/_nodes");
+  Gson gson=new Gson();
+  ElasticSearchNodeResponse response=gson.fromJson(result,ElasticSearchNodeResponse.class);
+  Map<String,ElasticSearchNode> nodes=response.getNodes();
+  for (  Map.Entry<String,ElasticSearchNode> entry : nodes.entrySet()) {
+    LOG.debug("Adding node {}",entry.getValue());
+    nodeList.add(entry.getValue());
+  }
+  setNodeList(nodeList);
+  return nodeList;
+}
