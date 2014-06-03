@@ -2,23 +2,9 @@
   if (elementName == null) {
     return;
   }
-  if (elementValue == null) {
-    elementValue=new byte[0];
-  }
-  Entity entity=get(entityRef);
-  if (!(elementName instanceof String)) {
-    throw new IllegalArgumentException("Element name must be a string");
-  }
-  if (!(elementValue instanceof Serializable)) {
-    throw new IllegalArgumentException("Element Value must be serializable.");
-  }
-  Map<String,Object> dictionary=entity.getDynamicProperties();
-  Map<String,Object> props=(TreeMap)dictionary.get(dictionaryName);
-  if (props == null) {
-    props=new TreeMap();
-  }
-  props.put((String)elementName,elementValue);
-  dictionary.put(dictionaryName,props);
-  entity.addProperties(dictionary);
-  update(entity);
+  EntityRef entity=get(entityRef);
+  UUID timestampUuid=newTimeUUID();
+  Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
+  batch=batchUpdateDictionary(batch,entity,dictionaryName,elementName,elementValue,false,timestampUuid);
+  batchExecute(batch,CassandraService.RETRY_COUNT);
 }

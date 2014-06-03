@@ -1,0 +1,31 @@
+{
+  URL url=null;
+  try {
+    url=new URL("http://" + getHost() + ":"+ getHttpPort()+ query);
+  }
+ catch (  MalformedURLException e) {
+    e.printStackTrace();
+    LOG.error("Failed to create url {}",url,e);
+  }
+  if (url != null) {
+    try {
+      HttpURLConnection con=(HttpURLConnection)url.openConnection();
+      con.setRequestMethod("GET");
+      int responseCode=con.getResponseCode();
+      LOG.debug("Response Code : " + responseCode);
+      BufferedReader in=new BufferedReader(new InputStreamReader(con.getInputStream()));
+      String inputLine;
+      StringBuilder response=new StringBuilder();
+      while ((inputLine=in.readLine()) != null) {
+        response.append(inputLine);
+      }
+      in.close();
+      return response.toString();
+    }
+ catch (    IOException e) {
+      e.printStackTrace();
+      LOG.error("Failed to get the result for {}",url,e);
+    }
+  }
+  return null;
+}

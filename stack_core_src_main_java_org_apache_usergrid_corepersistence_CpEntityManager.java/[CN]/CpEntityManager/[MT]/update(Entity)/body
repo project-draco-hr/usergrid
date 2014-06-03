@@ -1,13 +1,23 @@
 {
-  String collectionName=Schema.defaultCollectionName(entity.getType());
-  CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),collectionName);
+  CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),getCollectionScopeNameFromEntityType(entity.getType()));
   IndexScope indexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),entity.getType());
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   EntityIndex ei=managerCache.getEntityIndex(indexScope);
   Id entityId=new SimpleId(entity.getUuid(),entity.getType());
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(entityId).toBlockingObservable().last();
   cpEntity=CpEntityMapUtils.fromMap(cpEntity,entity.getProperties(),entity.getType(),true);
-  cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
+  try {
+    cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
+  }
+ catch (  WriteUniqueVerifyException wuve) {
+    handleWriteUniqueVerifyException(entity,wuve);
+  }
+catch (  HystrixRuntimeException hre) {
+    if (hre.getCause() instanceof WriteUniqueVerifyException) {
+      WriteUniqueVerifyException wuve=(WriteUniqueVerifyException)hre.getCause();
+      handleWriteUniqueVerifyException(entity,wuve);
+    }
+  }
   ei.index(cpEntity);
   updateEntityIndexes(entity,cpEntity);
 }

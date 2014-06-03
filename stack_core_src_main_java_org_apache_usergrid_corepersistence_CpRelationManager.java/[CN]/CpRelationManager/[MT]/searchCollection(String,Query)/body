@@ -4,10 +4,9 @@
   }
   headEntity=em.validate(headEntity);
   CollectionInfo collection=getDefaultSchema().getCollection(headEntity.getType(),collName);
-  IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),collName + COLLECTION_SUFFIX);
+  IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),CpEntityManager.getCollectionScopeNameFromCollectionName(collName));
   EntityIndex ei=managerCache.getEntityIndex(indexScope);
-  logger.debug("Searching collection {}",collName);
-  logger.debug("Searching head entity scope {}:{}:{}",new String[]{headEntityScope.getApplication().toString(),headEntityScope.getOwner().toString(),collName});
+  logger.debug("Searching scope {}:{}:{}",new String[]{indexScope.getApplication().toString(),indexScope.getOwner().toString(),indexScope.getName()});
   query.setEntityType(collection.getType());
   query=adjustQuery(query);
   CandidateResults crs=ei.search(query);

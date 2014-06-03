@@ -3,18 +3,18 @@
   EdgeUtils.validateEdge(edge);
   final Id sourceNodeId=edge.getSourceNode();
   final Id targetNodeId=edge.getTargetNode();
-  final UUID version=edge.getVersion();
+  final long timestamp=edge.getTimestamp();
   final String type=edge.getType();
-  final RowKey sourceRowKey=new RowKey(sourceNodeId,type,edgeShardStrategy.getWriteShard(scope,sourceNodeId,version,type));
-  final RowKeyType sourceRowKeyType=new RowKeyType(sourceNodeId,type,targetNodeId,edgeShardStrategy.getWriteShard(scope,sourceNodeId,version,type,targetNodeId.getType()));
-  final DirectedEdge sourceEdge=new DirectedEdge(targetNodeId,version);
-  final RowKey targetRowKey=new RowKey(targetNodeId,type,edgeShardStrategy.getWriteShard(scope,targetNodeId,version,type));
-  final RowKeyType targetRowKeyType=new RowKeyType(targetNodeId,type,sourceNodeId,edgeShardStrategy.getWriteShard(scope,targetNodeId,version,type,sourceNodeId.getType()));
-  final DirectedEdge targetEdge=new DirectedEdge(sourceNodeId,version);
-  final EdgeRowKey edgeRowKey=new EdgeRowKey(sourceNodeId,type,targetNodeId,edgeShardStrategy.getWriteShard(scope,sourceNodeId,version,type,targetNodeId.getUuid().toString(),targetNodeId.getType()));
+  final RowKey sourceRowKey=new RowKey(sourceNodeId,type,edgeShardStrategy.getWriteShard(scope,sourceNodeId,timestamp,type));
+  final RowKeyType sourceRowKeyType=new RowKeyType(sourceNodeId,type,targetNodeId,edgeShardStrategy.getWriteShard(scope,sourceNodeId,timestamp,type,targetNodeId.getType()));
+  final DirectedEdge sourceEdge=new DirectedEdge(targetNodeId,timestamp);
+  final RowKey targetRowKey=new RowKey(targetNodeId,type,edgeShardStrategy.getWriteShard(scope,targetNodeId,timestamp,type));
+  final RowKeyType targetRowKeyType=new RowKeyType(targetNodeId,type,sourceNodeId,edgeShardStrategy.getWriteShard(scope,targetNodeId,timestamp,type,sourceNodeId.getType()));
+  final DirectedEdge targetEdge=new DirectedEdge(sourceNodeId,timestamp);
+  final EdgeRowKey edgeRowKey=new EdgeRowKey(sourceNodeId,type,targetNodeId,edgeShardStrategy.getWriteShard(scope,sourceNodeId,timestamp,type,targetNodeId.getUuid().toString(),targetNodeId.getType()));
   op.writeEdge(sourceNodeEdgesCf,sourceRowKey,sourceEdge);
   op.writeEdge(sourceNodeTargetTypeCf,sourceRowKeyType,sourceEdge);
   op.writeEdge(targetNodeEdgesCf,targetRowKey,targetEdge);
   op.writeEdge(targetNodeSourceTypeCf,targetRowKeyType,targetEdge);
-  op.writeVersion(graphEdgeVersionsCf,edgeRowKey,version);
+  op.writeVersion(graphEdgeVersionsCf,edgeRowKey,timestamp);
 }

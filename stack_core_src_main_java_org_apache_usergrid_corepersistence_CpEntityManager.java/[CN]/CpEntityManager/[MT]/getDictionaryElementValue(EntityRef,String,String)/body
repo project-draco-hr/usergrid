@@ -1,5 +1,26 @@
 {
-  Entity entity=get(entityRef);
-  Map<String,Object> dictionary=(Map<String,Object>)entity.getProperty(dictionaryName);
-  return dictionary.get(elementName);
+  Object value=null;
+  ApplicationCF dictionaryCf=null;
+  boolean entityHasDictionary=getDefaultSchema().hasDictionary(entity.getType(),dictionaryName);
+  if (entityHasDictionary) {
+    dictionaryCf=ENTITY_DICTIONARIES;
+  }
+ else {
+    dictionaryCf=ENTITY_COMPOSITE_DICTIONARIES;
+  }
+  Class<?> dictionaryCoType=getDefaultSchema().getDictionaryValueType(entity.getType(),dictionaryName);
+  boolean coTypeIsBasic=ClassUtils.isBasicType(dictionaryCoType);
+  HColumn<ByteBuffer,ByteBuffer> result=cass.getColumn(cass.getApplicationKeyspace(applicationId),dictionaryCf,key(entity.getUuid(),dictionaryName),entityHasDictionary ? bytebuffer(elementName) : DynamicComposite.toByteBuffer(elementName),be,be);
+  if (result != null) {
+    if (entityHasDictionary && coTypeIsBasic) {
+      value=object(dictionaryCoType,result.getValue());
+    }
+ else     if (result.getValue().remaining() > 0) {
+      value=Schema.deserializePropertyValueFromJsonBinary(result.getValue().slice(),dictionaryCoType);
+    }
+  }
+ else {
+    logger.info("Results of CpEntityManagerImpl.getDictionaryElementValue is null");
+  }
+  return value;
 }

@@ -1,14 +1,14 @@
 {
-  final UUID edgeVersion=edge.getVersion();
-  if (edge.isDeleted() || UUIDComparator.staticCompare(edgeVersion,maxVersion) > 0) {
+  final long edgeTimestamp=edge.getTimestamp();
+  if (edge.isDeleted() || Long.compare(edgeTimestamp,maxTimestamp) > 0) {
     return false;
   }
-  final UUID sourceVersion=markCache.get(edge.getSourceNode());
-  if (sourceVersion != null && UUIDComparator.staticCompare(edgeVersion,sourceVersion) < 1) {
+  final Long sourceTimestamp=markCache.get(edge.getSourceNode());
+  if (sourceTimestamp != null && Long.compare(edgeTimestamp,sourceTimestamp) < 1) {
     return false;
   }
-  final UUID targetVersion=markCache.get(edge.getTargetNode());
-  if (targetVersion != null && UUIDComparator.staticCompare(edgeVersion,targetVersion) < 1) {
+  final Long targetTimestamp=markCache.get(edge.getTargetNode());
+  if (targetTimestamp != null && Long.compare(edgeTimestamp,targetTimestamp) < 1) {
     return false;
   }
   return true;

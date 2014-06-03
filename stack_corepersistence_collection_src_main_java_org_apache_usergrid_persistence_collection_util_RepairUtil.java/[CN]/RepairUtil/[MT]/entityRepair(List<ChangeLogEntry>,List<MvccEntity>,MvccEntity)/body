@@ -1,0 +1,25 @@
+{
+  int changeLogIndex=0;
+  for (  MvccEntity result : results) {
+    while (changeLogIndex != changeLogEntryList.size()) {
+      ChangeLogEntry changeLogEntry=changeLogEntryList.get(changeLogIndex);
+      if (result.getId().equals(changeLogEntry.getEntryId())) {
+        ChangeLogEntry.ChangeType changeType=changeLogEntry.getChangeType();
+        if (changeType.equals(ChangeLogEntry.ChangeType.PROPERTY_DELETE)) {
+          completedEntity.getEntity().get().getFields().remove(changeLogEntry.getField());
+        }
+ else         if (changeType.equals(ChangeLogEntry.ChangeType.PROPERTY_WRITE)) {
+          completedEntity.getEntity().get().setField(changeLogEntry.getField());
+        }
+        changeLogIndex++;
+      }
+ else {
+        break;
+      }
+    }
+  }
+  if (!completedEntity.getEntity().isPresent()) {
+    return null;
+  }
+  return completedEntity;
+}

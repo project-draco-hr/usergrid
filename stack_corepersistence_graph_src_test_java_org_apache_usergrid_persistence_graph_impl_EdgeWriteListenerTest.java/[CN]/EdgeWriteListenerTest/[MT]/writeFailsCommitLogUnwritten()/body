@@ -8,11 +8,11 @@
   AsyncProcessorFactory edgeProcessor=mock(AsyncProcessorFactory.class);
   AsyncProcessor<EdgeWriteEvent> processor=mock(AsyncProcessor.class);
   when(edgeProcessor.getProcessor(EdgeWriteEvent.class)).thenReturn(processor);
-  EdgeWriteEvent edgeWriteEvent=new EdgeWriteEvent(scope,edgeV1.getVersion(),edgeV1);
+  EdgeWriteEvent edgeWriteEvent=new EdgeWriteEvent(scope,UUIDGenerator.newTimeUUID(),edgeV1);
   Keyspace keyspace=mock(Keyspace.class);
   EdgeWriteCompact compact=new EdgeWriteCompactImpl(commitLog,storage,keyspace,graphFig);
   EdgeWriteListener listener=new EdgeWriteListener(compact,edgeProcessor);
-  when(commitLog.getEdgeVersions(same(scope),any(SearchByEdge.class))).thenReturn(Collections.singletonList(createEdge(edgeV1.getSourceNode(),edgeV1.getType(),edgeV1.getTargetNode(),edgeV1.getVersion())).iterator());
+  when(commitLog.getEdgeVersions(same(scope),any(SearchByEdge.class))).thenReturn(Collections.singletonList(createEdge(edgeV1.getSourceNode(),edgeV1.getType(),edgeV1.getTargetNode(),edgeV1.getTimestamp())).iterator());
   MutationBatch commitLogBatch=mock(MutationBatch.class);
   MutationBatch storageBatch=mock(MutationBatch.class);
   when(keyspace.prepareMutationBatch()).thenReturn(commitLogBatch);

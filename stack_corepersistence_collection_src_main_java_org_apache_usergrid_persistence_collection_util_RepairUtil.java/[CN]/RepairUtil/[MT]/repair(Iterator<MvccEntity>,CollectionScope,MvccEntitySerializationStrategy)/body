@@ -1,0 +1,22 @@
+{
+  if (!results.hasNext()) {
+    return null;
+  }
+  MvccEntity mvccEntity=results.next();
+  List<MvccEntity> partialEntities=new ArrayList<>();
+  if (!mvccEntity.getEntity().isPresent() && (mvccEntity.getStatus() == MvccEntity.Status.DELETED || mvccEntity.getStatus() == MvccEntity.Status.COMPLETE)) {
+    return null;
+  }
+  if (mvccEntity.getStatus() == MvccEntity.Status.COMPLETE) {
+    return mvccEntity;
+  }
+  partialEntities.add(mvccEntity);
+  while (results.hasNext()) {
+    mvccEntity=results.next();
+    partialEntities.add(mvccEntity);
+    if (mvccEntity.getStatus() != MvccEntity.Status.PARTIAL) {
+      return repairAndWrite(partialEntities,mvccEntity,entitySerializationStrategy,collectionScope);
+    }
+  }
+  return null;
+}
