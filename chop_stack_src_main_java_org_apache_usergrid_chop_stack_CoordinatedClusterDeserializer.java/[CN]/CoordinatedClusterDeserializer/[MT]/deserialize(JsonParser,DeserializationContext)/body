@@ -1,0 +1,36 @@
+{
+  String tmp=jp.getText();
+  validate(jp,tmp,"{");
+  jp.nextToken();
+  tmp=jp.getText();
+  BasicCluster delegate=new BasicCluster();
+  CoordinatedCluster cluster=new CoordinatedCluster(delegate);
+  while (jp.hasCurrentToken()) {
+    tmp=jp.getText();
+    if (tmp.equals(CoordinatedClusterSerializer.NAME)) {
+      jp.nextToken();
+      delegate.setName(jp.getText());
+    }
+ else     if (tmp.equals(CoordinatedClusterSerializer.SIZE)) {
+      jp.nextToken();
+      delegate.setSize(jp.getIntValue());
+    }
+ else     if (tmp.equals(CoordinatedClusterSerializer.INSTANCE_SPEC)) {
+      jp.nextToken();
+      delegate.setInstanceSpec(jp.readValuesAs(InstanceSpec.class).next());
+    }
+ else     if (tmp.equals(CoordinatedClusterSerializer.INSTANCES)) {
+      jp.nextToken();
+      jp.nextToken();
+      Iterator<Instance> iterator=jp.readValuesAs(Instance.class);
+      while (iterator.hasNext()) {
+        cluster.add(iterator.next());
+      }
+    }
+    jp.nextToken();
+    if (jp.getText().equals("}")) {
+      break;
+    }
+  }
+  return cluster;
+}
