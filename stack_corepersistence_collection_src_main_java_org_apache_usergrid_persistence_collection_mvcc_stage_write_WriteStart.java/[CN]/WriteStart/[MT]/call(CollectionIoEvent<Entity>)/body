@@ -2,19 +2,22 @@
 {
     final Entity entity=ioEvent.getEvent();
     final CollectionScope collectionScope=ioEvent.getEntityCollection();
-    ValidationUtils.verifyEntityWrite(entity);
     final Id entityId=entity.getId();
-    final UUID version=entity.getVersion();
-    final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,org.apache.usergrid.persistence.collection.mvcc.entity.Stage.ACTIVE);
+    final UUID version=UUIDGenerator.newTimeUUID();
+    final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,org.apache.usergrid.persistence.collection.mvcc.entity.Stage.ACTIVE,MvccLogEntry.State.COMPLETE);
     MutationBatch write=logStrategy.write(collectionScope,startEntry);
+    final MvccEntityImpl nextStage=new MvccEntityImpl(entityId,version,status,entity);
     try {
       write.execute();
     }
  catch (    ConnectionException e) {
       LOG.error("Failed to execute write ",e);
-      throw new WriteStartException(entity,collectionScope,"Failed to execute write ",e);
+      throw new WriteStartException(nextStage,collectionScope,"Failed to execute write ",e);
     }
-    final MvccEntityImpl nextStage=new MvccEntityImpl(entityId,version,MvccEntity.Status.COMPLETE,entity);
+catch (    NullPointerException e) {
+      LOG.error("Failed to execute write ",e);
+      throw new WriteStartException(nextStage,collectionScope,"Failed to execute write",e);
+    }
     return new CollectionIoEvent<MvccEntity>(collectionScope,nextStage);
   }
 }

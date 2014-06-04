@@ -32,8 +32,10 @@
   roles=em.getGroupRoles(group.getUuid());
   assertEquals("proper number of group roles not set",1,roles.size());
   dump("group roles",roles);
+  em.refreshIndex();
   em.addUserToGroupRole(user.getUuid(),group.getUuid(),"admin");
-  Results r=em.getUsersInGroupRole(group.getUuid(),"admin",Results.Level.ALL_PROPERTIES);
+  em.refreshIndex();
+  Results r=em.getUsersInGroupRole(group.getUuid(),"admin",Level.ALL_PROPERTIES);
   assertEquals("proper number of users in group role not set",1,r.size());
   dump("entities",r.getEntities());
   em.grantRolePermission("admin","users:access:*");

@@ -7,7 +7,11 @@
     for (    UUID uuid : collectionsByUuid.keySet()) {
       Set<String> collections=collectionsByUuid.get(uuid);
       for (      String coll : collections) {
-        IndexScope indexScope=new IndexScopeImpl(appScope.getApplication(),new SimpleId(uuid,ownerType),coll + CpRelationManager.COLLECTION_SUFFIX);
+        if (coll.trim().isEmpty()) {
+          logger.warn("Ignoring empty collection name for owner {}:{}",uuid,ownerType);
+          break;
+        }
+        IndexScope indexScope=new IndexScopeImpl(appScope.getApplication(),new SimpleId(uuid,ownerType),getCollectionScopeNameFromCollectionName(coll));
         EntityIndex ei=managerCache.getEntityIndex(indexScope);
         ei.index(cpEntity);
       }

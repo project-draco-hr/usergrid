@@ -1,15 +1,19 @@
 {
   Id id=new SimpleId(entityRef.getUuid(),entityRef.getType());
-  String collectionName=Schema.defaultCollectionName(entityRef.getType());
+  String collectionName=getCollectionScopeNameFromEntityType(entityRef.getType());
   CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),collectionName);
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Loading entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{id.getType(),id.getUuid(),collectionScope.getApplication(),collectionScope.getOwner(),collectionScope.getName()});
+  }
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(id).toBlockingObservable().last();
   if (cpEntity == null) {
+    logger.debug("   entity null");
     return null;
   }
-  Entity entity=new DynamicEntity(entityRef.getType(),cpEntity.getId().getUuid());
-  entity.setUuid(cpEntity.getId().getUuid());
-  Map<String,Object> entityMap=CpEntityMapUtils.toMap(cpEntity);
-  entity.addProperties(entityMap);
+  logger.debug("   entity found");
+  Class clazz=Schema.getDefaultSchema().getEntityClass(entityRef.getType());
+  Entity entity=EntityFactory.newEntity(entityRef.getUuid(),entityRef.getType(),clazz);
+  entity.setProperties(CpEntityMapUtils.toMap(cpEntity));
   return entity;
 }

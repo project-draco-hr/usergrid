@@ -1,0 +1,17 @@
+{
+  final BasicInstanceSpec spec=new BasicInstanceSpec();
+  spec.setKeyName("TestKeyPair");
+  spec.setImageId("ami-2131231");
+  spec.setType("t1.micro");
+  spec.setScriptEnvProperty("JAVA_HOME","/user/lib/jvm/default");
+  spec.addSetupScript(new URL("file://./install_cassandra.sh"));
+  BasicCluster delegate=new BasicCluster();
+  delegate.setInstanceSpec(spec);
+  delegate.setName("TestCluster");
+  delegate.setSize(2);
+  Instance i1=new BasicInstance("i-37b10467",spec,InstanceState.Running,"ip-172-31-23-194.ec2.internal","ec2-54-209-172-50.compute-1.amazonaws.com","172.31.23.194","54.209.172.50");
+  Instance i2=new BasicInstance("i-a281c0f2",spec,InstanceState.Running,"ip-172-31-18-20.ec2.internal","ec2-54-207-172-40.compute-1.amazonaws.com","172.31.18.20","54.207.172.40");
+  cluster=new CoordinatedCluster(delegate);
+  cluster.add(i1);
+  cluster.add(i2);
+}

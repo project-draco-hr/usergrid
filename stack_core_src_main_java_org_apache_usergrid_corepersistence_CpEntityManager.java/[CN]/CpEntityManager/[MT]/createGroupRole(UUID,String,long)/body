@@ -1,3 +1,10 @@
 {
-  throw new UnsupportedOperationException("Not supported yet.");
+  String batchRoleName=StringUtils.stringOrSubstringAfterLast(roleName.toLowerCase(),':');
+  String roleTitle=batchRoleName;
+  String propertyName=groupId + ":" + batchRoleName;
+  Map<String,Object> properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
+  properties.put("group",groupId);
+  Entity entity=batchCreateRole(roleName,roleTitle,inactivity,propertyName,groupId,properties);
+  getRelationManager(new SimpleEntityRef(Group.ENTITY_TYPE,groupId)).addToCollection(COLLECTION_ROLES,entity);
+  return entity;
 }

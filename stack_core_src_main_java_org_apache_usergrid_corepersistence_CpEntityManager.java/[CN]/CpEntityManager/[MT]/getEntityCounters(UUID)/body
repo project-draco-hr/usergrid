@@ -1,3 +1,12 @@
 {
-  throw new UnsupportedOperationException("Not supported yet.");
+  Map<String,Long> counters=new HashMap<String,Long>();
+  Keyspace ko=cass.getApplicationKeyspace(applicationId);
+  SliceCounterQuery<UUID,String> q=createCounterSliceQuery(ko,ue,se);
+  q.setColumnFamily(ENTITY_COUNTERS.toString());
+  q.setRange(null,null,false,ALL_COUNT);
+  QueryResult<CounterSlice<String>> r=q.setKey(entityId).execute();
+  for (  HCounterColumn<String> column : r.get().getColumns()) {
+    counters.put(column.getName(),column.getValue());
+  }
+  return counters;
 }

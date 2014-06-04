@@ -14,7 +14,8 @@
   Entity secondUserEntity=em.create(second);
   assertNotNull(secondUserEntity);
   em.createConnection(firstUserEntity,"likes",secondUserEntity);
-  Results r=em.getConnectedEntities(firstUserEntity.getUuid(),"likes",null,Level.IDS);
+  em.refreshIndex();
+  Results r=em.getConnectedEntities(firstUserEntity,"likes",null,Level.IDS);
   List<ConnectionRef> connections=r.getConnections();
   assertNotNull(connections);
   assertEquals(1,connections.size());

@@ -1,0 +1,17 @@
+{
+  AsyncProcessor<T> processor=(AsyncProcessor<T>)instances.get(eventClass);
+  if (processor != null) {
+    return processor;
+  }
+synchronized (this) {
+    processor=(AsyncProcessor<T>)instances.get(eventClass);
+    if (processor != null) {
+      return processor;
+    }
+    TimeoutQueue queue=queueFactory.getQueue(eventClass);
+    AsyncProcessorImpl newProcessor=new AsyncProcessorImpl(queue,consistencyFig);
+    instances.put(eventClass,newProcessor);
+    newProcessor.start();
+    return newProcessor;
+  }
+}

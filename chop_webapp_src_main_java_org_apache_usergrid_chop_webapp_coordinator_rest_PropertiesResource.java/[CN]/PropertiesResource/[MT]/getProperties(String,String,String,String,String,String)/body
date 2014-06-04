@@ -1,0 +1,17 @@
+{
+  if (inTestMode(testMode)) {
+    LOG.info("Calling /properties in test mode...");
+    return Response.ok(new ArrayList<ICoordinatedCluster>()).build();
+  }
+  LOG.info("Calling /properties...");
+  CoordinatedStack stack=coordinator.findCoordinatedStack(commitId,artifactId,groupId,version,user);
+  if (stack == null) {
+    LOG.info("No stack could be found that matches given parameters");
+    return Response.ok().entity(new ArrayList<ICoordinatedCluster>()).build();
+  }
+ else   if (stack.getSetupState() != SetupStackState.SetUp) {
+    LOG.info("Stack's setup state is: " + stack.getSetupState());
+    return Response.ok().entity(new ArrayList<ICoordinatedCluster>()).build();
+  }
+  return Response.ok(stack.getClusters()).build();
+}

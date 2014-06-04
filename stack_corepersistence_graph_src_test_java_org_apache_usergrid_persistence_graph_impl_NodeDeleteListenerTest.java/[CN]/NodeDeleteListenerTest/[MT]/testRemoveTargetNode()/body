@@ -5,12 +5,13 @@
   assertEquals(edge,last);
   Id sourceNode=edge.getSourceNode();
   Id targetNode=edge.getTargetNode();
-  UUID deleteVersion=UUIDGenerator.newTimeUUID();
-  nodeSerialization.mark(scope,targetNode,deleteVersion).execute();
-  EdgeEvent<Id> deleteEvent=new EdgeEvent<Id>(scope,deleteVersion,targetNode);
+  UUID deleteEventTimestamp=UUIDGenerator.newTimeUUID();
+  long deleteTimestamp=System.currentTimeMillis();
+  nodeSerialization.mark(scope,targetNode,deleteTimestamp).execute();
+  NodeDeleteEvent deleteEvent=new NodeDeleteEvent(scope,deleteEventTimestamp,deleteTimestamp,targetNode);
   int count=deleteListener.receive(deleteEvent).toBlockingObservable().last();
   assertEquals(1,count);
-  UUID now=UUIDGenerator.newTimeUUID();
+  long now=System.currentTimeMillis();
   Iterator<MarkedEdge> returned=edgeSerialization.getEdgesFromSource(scope,createSearchByEdge(sourceNode,edge.getType(),now,null));
   assertFalse("No source should be returned",returned.hasNext());
   returned=edgeSerialization.getEdgesToTarget(scope,createSearchByEdge(targetNode,edge.getType(),now,null));

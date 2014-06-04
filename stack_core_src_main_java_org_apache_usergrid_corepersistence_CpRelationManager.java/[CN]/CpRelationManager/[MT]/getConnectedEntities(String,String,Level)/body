@@ -1,0 +1,24 @@
+{
+  Results raw=null;
+  Query query=new Query();
+  query.setConnectionType(connectionType);
+  query.setEntityType(connectedEntityType);
+  if (connectionType == null) {
+    raw=searchConnectedEntities(query);
+  }
+ else {
+    headEntity=em.validate(headEntity);
+    IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),CpEntityManager.getConnectionScopeName(connectionType));
+    EntityIndex ei=managerCache.getEntityIndex(indexScope);
+    logger.debug("Searching connections from all-types scope {}:{}:{}",new String[]{indexScope.getApplication().toString(),indexScope.getOwner().toString(),indexScope.getName()});
+    query=adjustQuery(query);
+    CandidateResults crs=ei.search(query);
+    raw=buildResults(query,crs,query.getConnectionType());
+  }
+  List<ConnectionRef> crefs=new ArrayList<ConnectionRef>();
+  for (  Entity e : raw.getEntities()) {
+    ConnectionRef cref=new ConnectionRefImpl(headEntity,connectionType,e);
+    crefs.add(cref);
+  }
+  return Results.fromConnections(crefs);
+}

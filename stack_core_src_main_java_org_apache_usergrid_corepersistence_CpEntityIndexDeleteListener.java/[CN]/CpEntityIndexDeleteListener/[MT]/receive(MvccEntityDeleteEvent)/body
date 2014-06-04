@@ -1,0 +1,24 @@
+{
+  CollectionScope collectionScope=event.getCollectionScope();
+  IndexScope indexScope=new IndexScopeImpl(collectionScope.getApplication(),collectionScope.getOwner(),collectionScope.getName());
+  final EntityIndex entityIndex=entityIndexFactory.createEntityIndex(indexScope);
+  return Observable.create(new ObservableIterator<CandidateResult>("deleteEsIndexVersions"){
+    @Override protected Iterator<CandidateResult> getIterator(){
+      CandidateResults results=entityIndex.getEntityVersions(event.getEntity().getId());
+      return results.iterator();
+    }
+  }
+).subscribeOn(Schedulers.io()).buffer(serializationFig.getBufferSize()).flatMap(new Func1<List<CandidateResult>,Observable<? extends EntityVersion>>(){
+    @Override public Observable<? extends EntityVersion> call(    List<CandidateResult> candidateResults){
+      List<EntityVersion> versions=new ArrayList<>();
+      for (      CandidateResult entity : candidateResults) {
+        if (entity.getVersion().timestamp() <= event.getVersion().timestamp()) {
+          versions.add(entity);
+          entityIndex.deindex(entity.getId(),entity.getVersion());
+        }
+      }
+      return Observable.from(versions);
+    }
+  }
+);
+}
