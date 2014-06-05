@@ -12,7 +12,7 @@
  catch (      ConnectionException e) {
         throw new RuntimeException("Unable to connect to cassandra",e);
       }
-      HystrixObservable.async(edgeDeleteListener.receive(scope,markedEdge,timestamp)).subscribe(edgeWriteSubcriber,Schedulers.io());
+      HystrixObservable.async(edgeDeleteListener.receive(scope,markedEdge,timestamp)).subscribeOn(Schedulers.io()).subscribe(edgeDeleteSubcriber);
       return edge;
     }
   }
