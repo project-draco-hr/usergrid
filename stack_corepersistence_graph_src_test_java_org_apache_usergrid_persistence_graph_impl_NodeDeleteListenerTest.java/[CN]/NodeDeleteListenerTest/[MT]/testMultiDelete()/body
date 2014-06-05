@@ -25,8 +25,7 @@
   log.info("Saved {} target edges",targetCount);
   long deleteVersion=Long.MAX_VALUE;
   nodeSerialization.mark(scope,toDelete,deleteVersion).execute();
-  NodeDeleteEvent deleteEvent=new NodeDeleteEvent(scope,UUIDGenerator.newTimeUUID(),deleteVersion,toDelete);
-  int count=deleteListener.receive(deleteEvent).toBlockingObservable().last();
+  int count=deleteListener.receive(scope,toDelete,UUIDGenerator.newTimeUUID()).toBlockingObservable().last();
   assertEquals(edgeCount,count);
   long now=System.currentTimeMillis();
   Iterator<MarkedEdge> returned=edgeSerialization.getEdgesToTarget(scope,createSearchByEdge(toDelete,edgeType,now,null));

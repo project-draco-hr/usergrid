@@ -16,12 +16,9 @@
   edgeMetadataSerialization.writeEdge(scope,edgeV1).execute();
   edgeMetadataSerialization.writeEdge(scope,edgeV2).execute();
   edgeMetadataSerialization.writeEdge(scope,edgeV3).execute();
-  EdgeDeleteEvent returned=edgeDeleteListener.receive(new EdgeDeleteEvent(scope,UUIDGenerator.newTimeUUID(),edgeV2)).toBlockingObservable().single();
-  assertEquals(edgeV2,returned.getData());
-  returned=edgeDeleteListener.receive(new EdgeDeleteEvent(scope,UUIDGenerator.newTimeUUID(),edgeV1)).toBlockingObservable().single();
-  assertEquals(edgeV1,returned.getData());
-  returned=edgeDeleteListener.receive(new EdgeDeleteEvent(scope,UUIDGenerator.newTimeUUID(),edgeV3)).toBlockingObservable().single();
-  assertEquals(edgeV3,returned.getData());
+  edgeDeleteListener.receive(scope,edgeV2,UUIDGenerator.newTimeUUID()).toBlockingObservable().single();
+  edgeDeleteListener.receive(scope,edgeV1,UUIDGenerator.newTimeUUID()).toBlockingObservable().single();
+  edgeDeleteListener.receive(scope,edgeV3,UUIDGenerator.newTimeUUID()).toBlockingObservable().single();
   long now=System.currentTimeMillis();
   Iterator<MarkedEdge> edges=commitLogEdgeSerialization.getEdgeVersions(scope,createGetByEdge(sourceId,edgeType,targetId,now,null));
   assertFalse(edges.hasNext());

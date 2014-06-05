@@ -12,9 +12,7 @@
   storageEdgeSerialization.writeEdge(scope,edgeV1,UUIDGenerator.newTimeUUID()).execute();
   storageEdgeSerialization.writeEdge(scope,edgeV2,UUIDGenerator.newTimeUUID()).execute();
   storageEdgeSerialization.writeEdge(scope,edgeV3,UUIDGenerator.newTimeUUID()).execute();
-  EdgeDeleteEvent edgeDeleteEvent=new EdgeDeleteEvent(scope,UUIDGenerator.newTimeUUID(),edgeV3);
-  EdgeDeleteEvent returned=edgeDeleteListener.receive(edgeDeleteEvent).toBlockingObservable().single();
-  assertEquals(edgeV3,returned.getData());
+  edgeDeleteListener.receive(scope,edgeV3,UUIDGenerator.newTimeUUID()).toBlockingObservable().single();
   long now=System.currentTimeMillis();
   Iterator<MarkedEdge> edges=commitLogEdgeSerialization.getEdgeVersions(scope,createGetByEdge(sourceId,edgeType,targetId,now,null));
   assertEquals(edgeV2,edges.next());

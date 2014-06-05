@@ -4,10 +4,7 @@
   Edge last=em.writeEdge(edge).toBlockingObservable().last();
   assertEquals(edge,last);
   Id sourceNode=edge.getSourceNode();
-  Id targetNode=edge.getTargetNode();
   UUID eventTime=UUIDGenerator.newTimeUUID();
-  long now=System.currentTimeMillis();
-  NodeDeleteEvent deleteEvent=new NodeDeleteEvent(scope,eventTime,now,sourceNode);
-  int count=deleteListener.receive(deleteEvent).toBlockingObservable().last();
+  int count=deleteListener.receive(scope,sourceNode,eventTime).toBlockingObservable().last();
   assertEquals("Mark was not set, no delete should be executed",0,count);
 }

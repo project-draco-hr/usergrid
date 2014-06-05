@@ -8,8 +8,7 @@
   UUID deleteEventTimestamp=UUIDGenerator.newTimeUUID();
   long timestamp=System.currentTimeMillis();
   nodeSerialization.mark(scope,sourceNode,timestamp).execute();
-  NodeDeleteEvent deleteEvent=new NodeDeleteEvent(scope,deleteEventTimestamp,timestamp,sourceNode);
-  int count=deleteListener.receive(deleteEvent).toBlockingObservable().last();
+  int count=deleteListener.receive(scope,sourceNode,deleteEventTimestamp).toBlockingObservable().last();
   assertEquals(1,count);
   long now=System.currentTimeMillis();
   Iterator<MarkedEdge> returned=edgeSerialization.getEdgesFromSource(scope,createSearchByEdge(sourceNode,edge.getType(),now,null));

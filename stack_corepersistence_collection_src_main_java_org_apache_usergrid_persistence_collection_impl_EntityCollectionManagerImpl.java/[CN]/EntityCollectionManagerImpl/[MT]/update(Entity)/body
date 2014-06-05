@@ -2,20 +2,13 @@
   log.debug("Starting update process");
   Preconditions.checkNotNull(entity,"Entity is required in the new stage of the mvcc write");
   final Id entityId=entity.getId();
-  Preconditions.checkNotNull(entityId,"The entity id is required to be set for an update operation");
-  Preconditions.checkNotNull(entityId.getUuid(),"The entity id uuid is required to be set for an update operation");
-  Preconditions.checkNotNull(entityId.getType(),"The entity id type required to be set for an update operation");
+  ValidationUtils.verifyIdentity(entityId);
   CollectionIoEvent<Entity> writeData=new CollectionIoEvent<Entity>(collectionScope,entity);
   Observable<CollectionIoEvent<MvccEntity>> observable=stageRunner(writeData,writeUpdate);
-  return observable.doOnNext(new Action1<CollectionIoEvent<MvccEntity>>(){
-    @Override public void call(    final CollectionIoEvent<MvccEntity> mvccEntityCollectionIoEvent){
-    }
-  }
-).map(writeCommit).doOnNext(new Action1<Entity>(){
+  return observable.map(writeCommit).doOnNext(new Action1<Entity>(){
     @Override public void call(    final Entity entity){
       log.debug("sending entity to the queue");
-      final AsynchronousMessage<EntityUpdateEvent> event=entityUpdate.setVerification(new EntityUpdateEvent(collectionScope,entityId),20);
-      entityUpdate.start(event);
+      HystrixObservable.async(Observable.from(new CollectionIoEvent<Id>(collectionScope,entityId)).map(load).subscribeOn(Schedulers.io())).subscribe();
     }
   }
 ).doOnError(rollback);

@@ -1,43 +1,20 @@
 {
   final ComittedGraphTestHelper helper=new ComittedGraphTestHelper(gm);
-  edgeDelete.addCompleteListener(new CompleteListener<EdgeDeleteEvent>(){
-    @Override public void onComplete(    final AsynchronousMessage<EdgeDeleteEvent> event){
+  GraphManagerImpl gmi=(GraphManagerImpl)gm;
+  Observer<Integer> subscriber=new Observer<Integer>(){
+    @Override public void onCompleted(){
       helper.complete();
     }
-  }
-);
-  edgeDelete.addErrorListener(new ErrorListener<EdgeDeleteEvent>(){
-    @Override public void onError(    final AsynchronousMessage<EdgeDeleteEvent> event,    final Throwable t){
+    @Override public void onError(    final Throwable e){
       helper.complete();
       helper.error();
     }
-  }
-);
-  nodeDelete.addCompleteListener(new CompleteListener<NodeDeleteEvent>(){
-    @Override public void onComplete(    final AsynchronousMessage<NodeDeleteEvent> event){
-      helper.complete();
+    @Override public void onNext(    final Integer integer){
     }
   }
-);
-  nodeDelete.addErrorListener(new ErrorListener<NodeDeleteEvent>(){
-    @Override public void onError(    final AsynchronousMessage<NodeDeleteEvent> event,    final Throwable t){
-      helper.complete();
-      helper.error();
-    }
-  }
-);
-  edgeWrite.addCompleteListener(new CompleteListener<EdgeWriteEvent>(){
-    @Override public void onComplete(    final AsynchronousMessage<EdgeWriteEvent> event){
-      helper.complete();
-    }
-  }
-);
-  edgeWrite.addErrorListener(new ErrorListener<EdgeWriteEvent>(){
-    @Override public void onError(    final AsynchronousMessage<EdgeWriteEvent> event,    final Throwable t){
-      helper.complete();
-      helper.error();
-    }
-  }
-);
+;
+  gmi.setEdgeDeleteSubcriber(subscriber);
+  gmi.setEdgeWriteSubcriber(subscriber);
+  gmi.setNodeDelete(subscriber);
   return helper;
 }
