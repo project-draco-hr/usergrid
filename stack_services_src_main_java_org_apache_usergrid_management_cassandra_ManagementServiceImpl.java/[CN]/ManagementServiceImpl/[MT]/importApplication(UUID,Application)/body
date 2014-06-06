@@ -3,8 +3,8 @@
   UUID applicationId=emf.importApplication(organization.getName(),application.getUuid(),application.getName(),application.getProperties());
   EntityManager em=emf.getEntityManager(smf.getManagementAppId());
   properties.setProperty("name",buildAppName(application.getName(),organization));
-  Entity app=em.create(applicationId,APPLICATION_INFO,application.getProperties());
-  writeUserToken(smf.getManagementAppId(),app,encryptionService.plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.APPLICATION),null,applicationId));
-  addApplicationToOrganization(organizationId,applicationId);
+  Entity appInfo=em.create(applicationId,APPLICATION_INFO,application.getProperties());
+  writeUserToken(smf.getManagementAppId(),appInfo,encryptionService.plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.APPLICATION),null,applicationId));
+  addApplicationToOrganization(organizationId,applicationId,appInfo);
   return applicationId;
 }

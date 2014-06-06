@@ -13,12 +13,8 @@
   if (importId != null) {
     itemId=importId;
   }
-  boolean emptyPropertyMap=false;
   if (properties == null) {
     properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
-  }
-  if (properties.isEmpty()) {
-    emptyPropertyMap=true;
   }
   if (importId != null) {
     if (isTimeBased(importId)) {
@@ -57,7 +53,7 @@
       }
     }
   }
-  if (emptyPropertyMap) {
+  if (properties.isEmpty()) {
     return null;
   }
   properties.put(PROPERTY_UUID,itemId);
@@ -95,12 +91,10 @@
   }
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=entityToCpEntity(entity);
   CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),getCollectionScopeNameFromEntityType(eType));
+  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   if (logger.isDebugEnabled()) {
     logger.debug("Writing entity {}:{} into scope\n   app {}\n   owner {}\n   name {}",new Object[]{entity.getType(),entity.getUuid(),collectionScope.getApplication(),collectionScope.getOwner(),collectionScope.getName()});
   }
-  IndexScope defaultIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),entity.getType());
-  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
-  EntityIndex ei=managerCache.getEntityIndex(defaultIndexScope);
   try {
     cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
   }
@@ -113,14 +107,16 @@ catch (  HystrixRuntimeException hre) {
       handleWriteUniqueVerifyException(entity,wuve);
     }
   }
+  IndexScope defaultIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),entity.getType());
+  EntityIndex ei=managerCache.getEntityIndex(defaultIndexScope);
   ei.index(cpEntity);
   entity.setUuid(cpEntity.getId().getUuid());
   Map<String,Object> entityMap=CpEntityMapUtils.toMap(cpEntity);
   entity.addProperties(entityMap);
   if (!is_application) {
-    String collectionName2=Schema.defaultCollectionName(eType);
-    getRelationManager(getApplication()).addToCollection(collectionName2,entity);
-    incrementEntityCollection(collectionName2,timestamp);
+    String collectionName=Schema.defaultCollectionName(eType);
+    getRelationManager(getApplication()).addToCollection(collectionName,entity);
+    incrementEntityCollection(collectionName,timestamp);
   }
   return entity;
 }
