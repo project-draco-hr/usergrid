@@ -1,14 +1,14 @@
 {
   GraphManager em=emf.createEdgeManager(scope);
   Edge edge=createEdge("source","test","target");
-  Edge last=em.writeEdge(edge).toBlockingObservable().last();
+  Edge last=em.writeEdge(edge).toBlocking().last();
   assertEquals(edge,last);
   Id sourceNode=edge.getSourceNode();
   Id targetNode=edge.getTargetNode();
   UUID deleteEventTimestamp=UUIDGenerator.newTimeUUID();
   long timestamp=System.currentTimeMillis();
   nodeSerialization.mark(scope,sourceNode,timestamp).execute();
-  int count=deleteListener.receive(scope,sourceNode,deleteEventTimestamp).toBlockingObservable().last();
+  int count=deleteListener.receive(scope,sourceNode,deleteEventTimestamp).toBlocking().last();
   assertEquals(1,count);
   long now=System.currentTimeMillis();
   Iterator<MarkedEdge> returned=edgeSerialization.getEdgesFromSource(scope,createSearchByEdge(sourceNode,edge.getType(),now,null));

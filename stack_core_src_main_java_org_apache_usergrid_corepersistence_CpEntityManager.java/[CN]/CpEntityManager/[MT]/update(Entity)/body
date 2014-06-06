@@ -4,10 +4,10 @@
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   EntityIndex ei=managerCache.getEntityIndex(indexScope);
   Id entityId=new SimpleId(entity.getUuid(),entity.getType());
-  org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(entityId).toBlockingObservable().last();
+  org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(entityId).toBlocking().last();
   cpEntity=CpEntityMapUtils.fromMap(cpEntity,entity.getProperties(),entity.getType(),true);
   try {
-    cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
+    cpEntity=ecm.write(cpEntity).toBlocking().last();
   }
  catch (  WriteUniqueVerifyException wuve) {
     handleWriteUniqueVerifyException(entity,wuve);

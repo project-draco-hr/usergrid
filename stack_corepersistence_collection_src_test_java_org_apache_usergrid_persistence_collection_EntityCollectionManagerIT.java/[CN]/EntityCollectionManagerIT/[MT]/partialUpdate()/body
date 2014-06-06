@@ -6,16 +6,16 @@
   oldEntity.setField(new StringField("testField","value"));
   EntityCollectionManager manager=factory.createCollectionManager(context);
   Observable<Entity> observable=manager.write(oldEntity);
-  Entity returned=observable.toBlockingObservable().lastOrDefault(null);
+  Entity returned=observable.toBlocking().lastOrDefault(null);
   assertNotNull("Returned has a uuid",returned.getId());
   oldEntity.getFields().remove(testField1);
   oldEntity.setField(addedField);
   observable=manager.update(oldEntity);
-  Entity updateReturned=observable.toBlockingObservable().lastOrDefault(null);
+  Entity updateReturned=observable.toBlocking().lastOrDefault(null);
   assertNotNull("Returned has a uuid",returned.getId());
   assertEquals(oldEntity.getField("testFud"),returned.getField("testFud"));
   Observable<Entity> newEntityObs=manager.load(updateReturned.getId());
-  Entity newEntity=newEntityObs.toBlockingObservable().last();
+  Entity newEntity=newEntityObs.toBlocking().last();
   assertNotNull("Returned has a uuid",returned.getId());
   assertEquals(addedField,newEntity.getField("testFud"));
 }
