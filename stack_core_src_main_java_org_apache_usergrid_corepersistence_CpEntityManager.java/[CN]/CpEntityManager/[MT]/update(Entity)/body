@@ -4,6 +4,9 @@
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   EntityIndex ei=managerCache.getEntityIndex(indexScope);
   Id entityId=new SimpleId(entity.getUuid(),entity.getType());
+  if (logger.isDebugEnabled()) {
+    logger.debug("Updating entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{entityId.getType(),entityId.getUuid(),collectionScope.getApplication(),collectionScope.getOwner(),collectionScope.getName()});
+  }
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(entityId).toBlockingObservable().last();
   cpEntity=CpEntityMapUtils.fromMap(cpEntity,entity.getProperties(),entity.getType(),true);
   try {
