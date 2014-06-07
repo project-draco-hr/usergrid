@@ -1,3 +1,24 @@
 {
-  throw new UnsupportedOperationException("Not supported yet.");
+  Keyspace ko=cass.getApplicationKeyspace(applicationId);
+  Mutator<ByteBuffer> m=createMutator(ko,be);
+  batchUpdateEntityConnection(m,true,(ConnectionRefImpl)connectionRef,UUIDGenerator.newTimeUUID());
+  batchExecute(m,CassandraService.RETRY_COUNT);
+  EntityRef connectingEntityRef=connectionRef.getConnectingEntity();
+  EntityRef connectedEntityRef=connectionRef.getConnectedEntity();
+  String connectionType=connectionRef.getConnectedEntity().getConnectionType();
+  CollectionScope targetScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(connectedEntityRef.getType()));
+  EntityCollectionManager targetEcm=managerCache.getEntityCollectionManager(targetScope);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Deleting connection '{}' from source entity {}:{} \n" + "   to target entity {}:{}" + "   from scope\n      app {}\n      owner {}\n      name {}",new Object[]{connectionType,connectingEntityRef.getType(),connectingEntityRef.getUuid(),connectedEntityRef.getType(),connectedEntityRef.getUuid(),targetScope.getApplication(),targetScope.getOwner(),targetScope.getName()});
+  }
+  org.apache.usergrid.persistence.model.entity.Entity targetEntity=targetEcm.load(new SimpleId(connectedEntityRef.getUuid(),connectedEntityRef.getType())).toBlockingObservable().last();
+  Edge edge=new SimpleEdge(cpHeadEntity.getId(),connectionType,targetEntity.getId(),System.currentTimeMillis());
+  GraphManager gm=managerCache.getGraphManager(applicationScope);
+  gm.deleteEdge(edge).toBlockingObservable().last();
+  IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),CpEntityManager.getConnectionScopeName(targetEntity.getId().getType(),connectionType));
+  EntityIndex ei=managerCache.getEntityIndex(indexScope);
+  ei.deindex(targetEntity);
+  IndexScope allTypesIndexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),ALL_TYPES);
+  EntityIndex aei=managerCache.getEntityIndex(allTypesIndexScope);
+  aei.deindex(targetEntity);
 }

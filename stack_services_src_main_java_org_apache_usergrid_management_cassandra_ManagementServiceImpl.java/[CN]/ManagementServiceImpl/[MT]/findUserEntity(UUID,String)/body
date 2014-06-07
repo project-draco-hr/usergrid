@@ -1,28 +1,29 @@
 {
   User user=null;
-  if (UUIDUtils.isUUID(identifier)) {
+  if (UUIDUtils.isUUID(identifierString)) {
     try {
-      Entity entity=getUserEntityByIdentifier(applicationId,Identifier.fromUUID(UUID.fromString(identifier)));
+      Entity entity=getUserEntityByIdentifier(applicationId,Identifier.fromUUID(UUID.fromString(identifierString)));
       if (entity != null) {
         user=(User)entity.toTypedEntity();
-        logger.info("Found user {} as a UUID",identifier);
+        logger.info("Found user {} as a UUID",identifierString);
       }
     }
  catch (    Exception e) {
-      logger.warn("Unable to get user " + identifier + " as a UUID, trying username...");
+      logger.warn("Unable to get user " + identifierString + " as a UUID, trying username...");
     }
     return user;
   }
-  Identifier id=Identifier.from(identifier);
+  Identifier identifier=Identifier.from(identifierString);
   try {
-    Entity entity=getUserEntityByIdentifier(applicationId,id);
+    Entity entity=getUserEntityByIdentifier(applicationId,identifier);
     if (entity != null) {
       user=(User)entity.toTypedEntity();
-      logger.info("Found user {} as an {}",identifier,id.getType());
+      logger.info("Found user {} as an {}",identifierString,identifier.getType());
     }
   }
  catch (  Exception e) {
-    logger.warn("Unable to get user {} as a {}",identifier,id.getType());
+    logger.warn("Unable to get user {} as a {}",identifierString,identifier.getType());
+    logger.warn("Exception",e);
   }
   if (user != null) {
     return user;
