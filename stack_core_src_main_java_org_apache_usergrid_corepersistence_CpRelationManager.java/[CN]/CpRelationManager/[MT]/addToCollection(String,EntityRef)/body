@@ -1,12 +1,12 @@
 {
-  CollectionScope memberScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(memberRef.getType()));
+  CollectionScope memberScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(itemRef.getType()));
   EntityCollectionManager memberMgr=managerCache.getEntityCollectionManager(memberScope);
   if (logger.isDebugEnabled()) {
-    logger.debug("Loading member entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{memberRef.getType(),memberRef.getUuid(),memberScope.getApplication(),memberScope.getOwner(),memberScope.getName()});
+    logger.debug("Loading member entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{itemRef.getType(),itemRef.getUuid(),memberScope.getApplication(),memberScope.getOwner(),memberScope.getName()});
   }
-  org.apache.usergrid.persistence.model.entity.Entity memberEntity=memberMgr.load(new SimpleId(memberRef.getUuid(),memberRef.getType())).toBlockingObservable().last();
+  org.apache.usergrid.persistence.model.entity.Entity memberEntity=memberMgr.load(new SimpleId(itemRef.getUuid(),itemRef.getType())).toBlockingObservable().last();
   if (memberEntity == null) {
-    throw new RuntimeException("Unable to load entity uuid=" + memberRef.getUuid() + " type="+ memberRef.getType());
+    throw new RuntimeException("Unable to load entity uuid=" + itemRef.getUuid() + " type="+ itemRef.getType());
   }
   Edge edge=new SimpleEdge(cpHeadEntity.getId(),getEdgeTypeFromCollectionName(collName),memberEntity.getId(),memberEntity.getId().getUuid().timestamp());
   GraphManager gm=managerCache.getGraphManager(applicationScope);
@@ -17,7 +17,7 @@
   IndexScope allCollectionsIndexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),ALL_TYPES);
   EntityIndex allCollectionIndex=managerCache.getEntityIndex(allCollectionsIndexScope);
   allCollectionIndex.index(memberEntity);
-  logger.debug("Added entity {}:{} to collection {}",new String[]{memberRef.getUuid().toString(),memberRef.getType(),collName});
+  logger.debug("Added entity {}:{} to collection {}",new String[]{itemRef.getUuid().toString(),itemRef.getType(),collName});
   logger.debug("With head entity scope is {}:{}:{}",new String[]{headEntityScope.getApplication().toString(),headEntityScope.getOwner().toString(),headEntityScope.getName()});
-  return em.get(memberRef);
+  return em.get(itemRef);
 }

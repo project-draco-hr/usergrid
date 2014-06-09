@@ -9,16 +9,16 @@
   CollectionScope targetScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(connectedEntityRef.getType()));
   EntityCollectionManager targetEcm=managerCache.getEntityCollectionManager(targetScope);
   if (logger.isDebugEnabled()) {
-    logger.debug("Deleting connection '{}' from source entity {}:{} \n" + "   to target entity {}:{}" + "   from scope\n      app {}\n      owner {}\n      name {}",new Object[]{connectionType,connectingEntityRef.getType(),connectingEntityRef.getUuid(),connectedEntityRef.getType(),connectedEntityRef.getUuid(),targetScope.getApplication(),targetScope.getOwner(),targetScope.getName()});
+    logger.debug("Deleting connection '{}' from source {}:{} \n   to target {}:{}",new Object[]{connectionType,connectingEntityRef.getType(),connectingEntityRef.getUuid(),connectedEntityRef.getType(),connectedEntityRef.getUuid()});
   }
   org.apache.usergrid.persistence.model.entity.Entity targetEntity=targetEcm.load(new SimpleId(connectedEntityRef.getUuid(),connectedEntityRef.getType())).toBlockingObservable().last();
-  Edge edge=new SimpleEdge(cpHeadEntity.getId(),connectionType,targetEntity.getId(),System.currentTimeMillis());
+  Edge edge=new SimpleEdge(new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),connectionType,targetEntity.getId(),System.currentTimeMillis());
   GraphManager gm=managerCache.getGraphManager(applicationScope);
   gm.deleteEdge(edge).toBlockingObservable().last();
-  IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),CpEntityManager.getConnectionScopeName(targetEntity.getId().getType(),connectionType));
+  IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),CpEntityManager.getConnectionScopeName(targetEntity.getId().getType(),connectionType));
   EntityIndex ei=managerCache.getEntityIndex(indexScope);
   ei.deindex(targetEntity);
-  IndexScope allTypesIndexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),ALL_TYPES);
+  IndexScope allTypesIndexScope=new IndexScopeImpl(applicationScope.getApplication(),new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),ALL_TYPES);
   EntityIndex aei=managerCache.getEntityIndex(allTypesIndexScope);
   aei.deindex(targetEntity);
 }

@@ -1,14 +1,38 @@
 {
-  CollectionScope memberScope=new CollectionScopeImpl(this.applicationScope.getApplication(),this.applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(memberRef.getType()));
+  if (headEntity.getUuid().equals(applicationId)) {
+    if (collName.equals(COLLECTION_ROLES)) {
+      Entity itemEntity=em.get(itemRef);
+      if (itemEntity != null) {
+        RoleRef roleRef=SimpleRoleRef.forRoleEntity(itemEntity);
+        em.deleteRole(roleRef.getApplicationRoleName());
+        return;
+      }
+      em.delete(itemEntity);
+      return;
+    }
+    em.delete(itemRef);
+    return;
+  }
+  CollectionScope memberScope=new CollectionScopeImpl(this.applicationScope.getApplication(),this.applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(itemRef.getType()));
   EntityCollectionManager memberMgr=managerCache.getEntityCollectionManager(memberScope);
   if (logger.isDebugEnabled()) {
-    logger.debug("Loading entity to remove from collection " + "{}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{memberRef.getType(),memberRef.getUuid(),memberScope.getApplication(),memberScope.getOwner(),memberScope.getName()});
+    logger.debug("Loading entity to remove from collection " + "{}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{itemRef.getType(),itemRef.getUuid(),memberScope.getApplication(),memberScope.getOwner(),memberScope.getName()});
   }
-  org.apache.usergrid.persistence.model.entity.Entity memberEntity=memberMgr.load(new SimpleId(memberRef.getUuid(),memberRef.getType())).toBlockingObservable().last();
+  org.apache.usergrid.persistence.model.entity.Entity memberEntity=memberMgr.load(new SimpleId(itemRef.getUuid(),itemRef.getType())).toBlockingObservable().last();
   IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),CpEntityManager.getCollectionScopeNameFromCollectionName(collName));
   EntityIndex ei=managerCache.getEntityIndex(indexScope);
   ei.deindex(memberEntity);
   Edge edge=new SimpleEdge(cpHeadEntity.getId(),getEdgeTypeFromCollectionName(collName),memberEntity.getId(),memberEntity.getId().getUuid().timestamp());
   GraphManager gm=managerCache.getGraphManager(applicationScope);
   gm.deleteEdge(edge).toBlockingObservable().last();
+  if (headEntity.getType().equals(Group.ENTITY_TYPE)) {
+    if (collName.equals(COLLECTION_ROLES)) {
+      String path=(String)((Entity)itemRef).getMetadata("path");
+      if (path.startsWith("/roles/")) {
+        Entity itemEntity=em.get(new SimpleEntityRef(memberEntity.getId().getType(),memberEntity.getId().getUuid()));
+        RoleRef roleRef=SimpleRoleRef.forRoleEntity(itemEntity);
+        em.deleteRole(roleRef.getApplicationRoleName());
+      }
+    }
+  }
 }
