@@ -33,7 +33,17 @@
     LOG.error("Error Message: {}",resp.getEntity(String.class));
     throw new MojoExecutionException("Setup plugin goal has failed");
   }
-  LOG.info("====== Response from the coordinator ======");
-  LOG.info(resp.getEntity(String.class));
-  LOG.info("===========================================");
+  String responseMessage=resp.getEntity(String.class);
+  if (responseMessage.equals(SetupStackState.JarNotFound.getMessage())) {
+    LOG.info("No runner jar found, deploying now...");
+    DeployMojo deployMojo=new DeployMojo(this);
+    deployMojo.finalName=this.finalName;
+    deployMojo.execute();
+    this.execute();
+  }
+ else {
+    LOG.info("====== Response from the coordinator ======");
+    LOG.info(responseMessage);
+    LOG.info("===========================================");
+  }
 }
