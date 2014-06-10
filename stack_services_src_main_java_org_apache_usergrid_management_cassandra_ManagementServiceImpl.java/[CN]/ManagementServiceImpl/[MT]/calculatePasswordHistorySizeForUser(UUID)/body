@@ -1,11 +1,15 @@
 {
+  logger.debug("calculatePasswordHistorySizeForUser " + userId.toString());
   int size=0;
   EntityManager em=emf.getEntityManager(smf.getManagementAppId());
   Results orgResults=em.getCollection(new SimpleEntityRef(User.ENTITY_TYPE,userId),"groups",null,10000,Level.REFS,false);
+  logger.debug("    orgResults.size() = " + orgResults.size());
   for (  EntityRef orgRef : orgResults.getRefs()) {
     Map properties=em.getDictionaryAsMap(orgRef,ORGANIZATION_PROPERTIES_DICTIONARY);
     if (properties != null) {
-      size=Math.max(new OrganizationInfo(null,null,properties).getPasswordHistorySize(),size);
+      OrganizationInfo orgInfo=new OrganizationInfo(null,null,properties);
+      logger.debug("    orgInfo.getPasswordHistorySize() = " + orgInfo.getPasswordHistorySize());
+      size=Math.max(orgInfo.getPasswordHistorySize(),size);
     }
   }
   return size;
