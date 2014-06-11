@@ -1,7 +1,8 @@
 {
   Map<EntityRef,Set<String>> results=new LinkedHashMap<EntityRef,Set<String>>();
   GraphManager gm=managerCache.getGraphManager(applicationScope);
-  Iterator<String> edgeTypes=gm.getEdgeTypesToTarget(new SimpleSearchEdgeType(cpHeadEntity.getId(),containingEntityType,null)).toBlockingObservable().getIterator();
+  Iterator<String> edgeTypes=gm.getEdgeTypesToTarget(new SimpleSearchEdgeType(cpHeadEntity.getId(),null,null)).toBlockingObservable().getIterator();
+  logger.debug("getContainingCollections(): Searching for edges to target {}:{} found: {}",new Object[]{cpHeadEntity.getId().getType(),cpHeadEntity.getId().getUuid(),edgeTypes.hasNext()});
   while (edgeTypes.hasNext()) {
     String edgeType=edgeTypes.next();
     Observable<Edge> edges=gm.loadEdgesToTarget(new SimpleSearchByEdgeType(cpHeadEntity.getId(),edgeType,Long.MAX_VALUE,null));
@@ -9,6 +10,9 @@
     while (iter.hasNext()) {
       Edge edge=iter.next();
       if (!isConnectionEdgeType(edge.getType())) {
+        continue;
+      }
+      if (containingEntityType != null && !containingEntityType.equals(edge.getSourceNode().getType())) {
         continue;
       }
       EntityRef eref=new SimpleEntityRef(edge.getSourceNode().getType(),edge.getSourceNode().getUuid());
@@ -22,9 +26,9 @@
       break;
     }
   }
-  EntityRef applicationRef=new SimpleEntityRef(TYPE_APPLICATION,applicationId);
-  if (!results.containsKey(applicationRef)) {
-    if (containingEntityType != null && !containingEntityType.equals(applicationRef.getType())) {
+  if (containingEntityType == null) {
+    EntityRef applicationRef=new SimpleEntityRef(TYPE_APPLICATION,applicationId);
+    if (!results.containsKey(applicationRef)) {
       addMapSet(results,applicationRef,CpEntityManager.getCollectionScopeNameFromEntityType(headEntity.getType()));
     }
   }
