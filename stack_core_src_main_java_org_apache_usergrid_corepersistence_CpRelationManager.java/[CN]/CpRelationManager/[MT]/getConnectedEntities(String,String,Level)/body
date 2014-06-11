@@ -22,6 +22,14 @@
     CandidateResults crs=ei.search(query);
     raw=buildResults(query,crs,query.getConnectionType());
   }
+  if (Level.ALL_PROPERTIES.equals(level)) {
+    List<Entity> entities=new ArrayList<Entity>();
+    for (    EntityRef ref : raw.getEntities()) {
+      Entity entity=em.get(ref);
+      entities.add(entity);
+    }
+    return Results.fromEntities(entities);
+  }
   List<ConnectionRef> crefs=new ArrayList<ConnectionRef>();
   for (  Entity e : raw.getEntities()) {
     ConnectionRef cref=new ConnectionRefImpl(headEntity,connectionType,e);

@@ -16,14 +16,19 @@
   if (memberEntity == null) {
     throw new RuntimeException("Unable to load entity uuid=" + itemRef.getUuid() + " type="+ itemRef.getType());
   }
-  Edge edge=new SimpleEdge(cpHeadEntity.getId(),getEdgeTypeFromCollectionName(collName),memberEntity.getId(),memberEntity.getId().getUuid().timestamp());
+  String edgeType=getEdgeTypeFromCollectionName(collName,memberEntity.getId().getType());
+  logger.debug("createCollection(): Creating edge type {} from {}:{} to {}:{}",new Object[]{edgeType,headEntity.getType(),headEntity.getUuid(),itemRef.getType(),itemRef.getUuid()});
+  Edge edge=new SimpleEdge(cpHeadEntity.getId(),getEdgeTypeFromCollectionName(collName,memberEntity.getId().getType()),memberEntity.getId(),memberEntity.getId().getUuid().timestamp());
   GraphManager gm=managerCache.getGraphManager(applicationScope);
   gm.writeEdge(edge).toBlockingObservable().last();
   IndexScope collectionIndexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),CpEntityManager.getCollectionScopeNameFromCollectionName(collName));
   EntityIndex collectionIndex=managerCache.getEntityIndex(collectionIndexScope);
   collectionIndex.index(memberEntity);
-  IndexScope allCollectionsIndexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),ALL_TYPES);
-  EntityIndex allCollectionIndex=managerCache.getEntityIndex(allCollectionsIndexScope);
+  IndexScope entityAllTypesScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),ALL_TYPES);
+  EntityIndex entityAllCollectionIndex=managerCache.getEntityIndex(entityAllTypesScope);
+  entityAllCollectionIndex.index(memberEntity);
+  IndexScope appAllTypesScope=new IndexScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),ALL_TYPES);
+  EntityIndex allCollectionIndex=managerCache.getEntityIndex(appAllTypesScope);
   allCollectionIndex.index(memberEntity);
   logger.debug("Added entity {}:{} to collection {}",new String[]{itemRef.getUuid().toString(),itemRef.getType(),collName});
   logger.debug("With head entity scope is {}:{}:{}",new String[]{headEntityScope.getApplication().toString(),headEntityScope.getOwner().toString(),headEntityScope.getName()});
