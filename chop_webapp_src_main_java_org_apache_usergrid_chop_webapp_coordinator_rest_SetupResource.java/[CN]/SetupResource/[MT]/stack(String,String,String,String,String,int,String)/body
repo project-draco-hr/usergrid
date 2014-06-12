@@ -15,8 +15,8 @@
   if (inTestMode(testMode)) {
     return Response.status(Response.Status.CREATED).entity(status).type(MediaType.APPLICATION_JSON).build();
   }
-  if (status.equals(SetupStackState.NotFound)) {
-    return Response.status(Response.Status.OK).entity("No runner jars found with given parameters, deploy first").type(MediaType.APPLICATION_JSON).build();
+  if (status.equals(SetupStackState.JarNotFound)) {
+    return Response.status(Response.Status.OK).entity(SetupStackState.JarNotFound.getMessage()).type(MediaType.APPLICATION_JSON).build();
   }
   if (status.equals(SetupStackState.SetupFailed)) {
     String message="";
@@ -25,18 +25,12 @@
     if (setupStackThread != null) {
       message=setupStackThread.getErrorMessage();
     }
-    message="Stack was registered, however its setup failed. Call setup again to restart. Error message: " + message;
+    message=SetupStackState.SetupFailed.getMessage() + " Error message: " + message;
     stackCoordinator.removeFailedStack(stack);
     return Response.status(Response.Status.OK).entity(message).type(MediaType.APPLICATION_JSON).build();
   }
-  if (status.equals(SetupStackState.Destroying)) {
-    return Response.status(Response.Status.OK).entity("Currently being destroyed. Wait until it is finished to set up again...").type(MediaType.APPLICATION_JSON).build();
-  }
-  if (status.equals(SetupStackState.SettingUp)) {
-    return Response.status(Response.Status.OK).entity("Already being set up").type(MediaType.APPLICATION_JSON).build();
-  }
-  if (status.equals(SetupStackState.SetUp)) {
-    return Response.status(Response.Status.OK).entity("Already set up").type(MediaType.APPLICATION_JSON).build();
+  if (!status.equals(SetupStackState.NotSetUp)) {
+    return Response.status(Response.Status.OK).entity(status.getMessage()).type(MediaType.APPLICATION_JSON).build();
   }
   stackCoordinator.setupStack(commitId,artifactId,groupId,version,user,runnerCount);
   return Response.status(Response.Status.CREATED).entity("Started setting up the stack").type(MediaType.APPLICATION_JSON).build();
