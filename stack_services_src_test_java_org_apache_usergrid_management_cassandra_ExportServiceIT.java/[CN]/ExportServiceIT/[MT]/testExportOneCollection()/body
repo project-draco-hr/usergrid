@@ -8,7 +8,6 @@
   }
   f.deleteOnExit();
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
-  em.createApplicationCollection("qt");
   Map<String,Object> userProperties=null;
   Entity[] entity;
   entity=new Entity[entitiesToCreate];
@@ -16,14 +15,14 @@
     userProperties=new LinkedHashMap<String,Object>();
     userProperties.put("username","billybob" + i);
     userProperties.put("email","test" + i + "@anuff.com");
-    entity[i]=em.create("qts",userProperties);
+    entity[i]=em.create("qtsMagics",userProperties);
   }
   S3Export s3Export=new MockS3ExportImpl("exportOneCollection.json");
   ExportService exportService=setup.getExportService();
   HashMap<String,Object> payload=payloadBuilder();
   payload.put("organizationId",organization.getUuid());
   payload.put("applicationId",applicationId);
-  payload.put("collectionName","qts");
+  payload.put("collectionName","qtsMagics");
   UUID exportUUID=exportService.schedule(payload);
   JobData jobData=jobDataCreator(payload,exportUUID,s3Export);
   JobExecution jobExecution=mock(JobExecution.class);
