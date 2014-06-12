@@ -1,0 +1,28 @@
+{
+  Map<EntityRef,Set<String>> results=new LinkedHashMap<EntityRef,Set<String>>();
+  GraphManager gm=managerCache.getGraphManager(applicationScope);
+  Iterator<String> edgeTypes=gm.getEdgeTypesToTarget(new SimpleSearchEdgeType(cpHeadEntity.getId(),edgeType,null)).toBlockingObservable().getIterator();
+  logger.debug("getContainers(): " + "Searched for edges of type {}\n   to target {}:{}\n   in scope {}\n   found: {}",new Object[]{edgeType,cpHeadEntity.getId().getType(),cpHeadEntity.getId().getUuid(),applicationScope.getApplication(),edgeTypes.hasNext()});
+  while (edgeTypes.hasNext()) {
+    String etype=edgeTypes.next();
+    Observable<Edge> edges=gm.loadEdgesToTarget(new SimpleSearchByEdgeType(cpHeadEntity.getId(),etype,Long.MAX_VALUE,null));
+    Iterator<Edge> iter=edges.toBlockingObservable().getIterator();
+    while (iter.hasNext()) {
+      Edge edge=iter.next();
+      if (fromEntityType != null && !fromEntityType.equals(edge.getSourceNode().getType())) {
+        logger.debug("Ignoring edge from entity type {}",edge.getSourceNode().getType());
+        continue;
+      }
+      EntityRef eref=new SimpleEntityRef(edge.getSourceNode().getType(),edge.getSourceNode().getUuid());
+      String connectionName=null;
+      if (isConnectionEdgeType(edge.getType())) {
+        connectionName=getConnectionName(edge.getType());
+      }
+      addMapSet(results,eref,connectionName);
+    }
+    if (limit > 0 && results.keySet().size() >= limit) {
+      break;
+    }
+  }
+  return results;
+}
