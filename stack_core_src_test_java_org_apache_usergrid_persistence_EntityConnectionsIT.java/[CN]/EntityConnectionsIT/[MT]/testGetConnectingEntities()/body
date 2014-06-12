@@ -15,6 +15,10 @@
   assertNotNull(wilmaEntity);
   em.createConnection(fredEntity,"likes",wilmaEntity);
   em.refreshIndex();
-  assertEquals(1,em.getConnectedEntities(fredEntity,"likes",null,Level.IDS).connections.size());
-  assertEquals(1,em.getConnectingEntities(wilmaEntity,"likes","user",Level.ALL_PROPERTIES).size());
+  Results res=em.getConnectingEntities(wilmaEntity,"likes",null,Level.ALL_PROPERTIES);
+  assertEquals(1,res.size());
+  assertEquals("user",res.getEntity().getType());
+  res=em.getConnectingEntities(wilmaEntity,"likes","user",Level.ALL_PROPERTIES);
+  assertEquals(1,res.size());
+  assertEquals("user",res.getEntity().getType());
 }
