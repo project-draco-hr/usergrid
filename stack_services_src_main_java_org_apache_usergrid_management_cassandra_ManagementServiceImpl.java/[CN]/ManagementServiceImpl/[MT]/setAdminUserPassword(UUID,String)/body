@@ -4,6 +4,7 @@
   }
   EntityManager em=emf.getEntityManager(smf.getManagementAppId());
   User user=em.get(userId,User.class);
+  em.refreshIndex();
   CredentialsInfo newCredentials=encryptionService.defaultEncryptedCredentials(newPassword,user.getUuid(),smf.getManagementAppId());
   int passwordHistorySize=calculatePasswordHistorySizeForUser(user.getUuid());
   Map<String,CredentialsInfo> credsMap=cast(em.getDictionaryAsMap(user,CREDENTIALS_HISTORY));

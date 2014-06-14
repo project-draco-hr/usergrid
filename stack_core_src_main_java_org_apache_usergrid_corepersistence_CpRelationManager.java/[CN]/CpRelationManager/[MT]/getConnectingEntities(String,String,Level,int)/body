@@ -1,5 +1,6 @@
 {
-  Map<EntityRef,Set<String>> containers=getContainingCollections(count);
+  String edgeType=CpRelationManager.getEdgeTypeFromConnectionType(connType,headEntity.getType());
+  Map<EntityRef,Set<String>> containers=getContainers(count,edgeType,fromEntityType);
   if (Level.REFS.equals(level)) {
     List<EntityRef> refList=new ArrayList<EntityRef>(containers.keySet());
     return Results.fromRefList(refList);
@@ -14,6 +15,7 @@
   List<Entity> entities=new ArrayList<Entity>();
   for (  EntityRef ref : containers.keySet()) {
     Entity entity=em.get(ref);
+    logger.debug("   Found connecting entity: " + entity.getProperties());
     entities.add(entity);
   }
   return Results.fromEntities(entities);

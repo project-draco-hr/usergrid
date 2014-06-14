@@ -6,6 +6,9 @@
   CpQueryFilterParser parser=new CpQueryFilterParser(tokens);
   Query query=parser.ql().query;
   QueryProcessor processor=new QueryProcessorImpl(query,null,null,null);
+  if (!(processor.getEntityManager() instanceof EntityManagerImpl)) {
+    return;
+  }
   SliceNode node=(SliceNode)processor.getFirstNode();
   Iterator<QuerySlice> slices=node.getAllSlices().iterator();
   QuerySlice slice=slices.next();

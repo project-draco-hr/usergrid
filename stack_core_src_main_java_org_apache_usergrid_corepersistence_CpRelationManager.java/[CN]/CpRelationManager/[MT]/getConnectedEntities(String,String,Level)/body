@@ -8,12 +8,27 @@
   }
  else {
     headEntity=em.validate(headEntity);
-    IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),CpEntityManager.getConnectionScopeName(connectedEntityType,connectionType));
+    String scopeName=null;
+    if (connectedEntityType != null) {
+      scopeName=CpEntityManager.getConnectionScopeName(connectedEntityType,connectionType);
+    }
+ else {
+      scopeName=ALL_TYPES;
+    }
+    IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),scopeName);
     EntityIndex ei=managerCache.getEntityIndex(indexScope);
-    logger.debug("Searching connections from scope {}:{}:{}",new String[]{indexScope.getApplication().toString(),indexScope.getOwner().toString(),indexScope.getName()});
+    logger.debug("Searching connected entities from scope {}:{}:{}",new String[]{indexScope.getApplication().toString(),indexScope.getOwner().toString(),indexScope.getName()});
     query=adjustQuery(query);
     CandidateResults crs=ei.search(query);
     raw=buildResults(query,crs,query.getConnectionType());
+  }
+  if (Level.ALL_PROPERTIES.equals(level)) {
+    List<Entity> entities=new ArrayList<Entity>();
+    for (    EntityRef ref : raw.getEntities()) {
+      Entity entity=em.get(ref);
+      entities.add(entity);
+    }
+    return Results.fromEntities(entities);
   }
   List<ConnectionRef> crefs=new ArrayList<ConnectionRef>();
   for (  Entity e : raw.getEntities()) {
