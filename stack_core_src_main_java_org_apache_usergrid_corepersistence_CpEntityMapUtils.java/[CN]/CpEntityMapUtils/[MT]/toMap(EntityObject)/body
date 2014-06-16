@@ -24,18 +24,17 @@
       locMap.put("lon",locField.getValue().getLongtitude());
       entityMap.put(field.getName(),field.getValue());
     }
- else     if (f instanceof ByteBufferField) {
-      ByteBufferField byteBufferField=(ByteBufferField)f;
-      ByteBuffer byteBuffer=byteBufferField.getValue();
-      byte[] serilizedObj=byteBuffer.array();
+ else     if (f instanceof ByteArrayField) {
+      ByteArrayField bf=(ByteArrayField)f;
+      byte[] serilizedObj=bf.getValue();
       Object o;
       try {
-        o=objectMapper.readValue(serilizedObj,byteBufferField.getClassinfo());
+        o=objectMapper.readValue(serilizedObj,bf.getClassinfo());
       }
  catch (      IOException e) {
         throw new RuntimeException("Can't deserialize object ",e);
       }
-      entityMap.put(byteBufferField.getName(),o);
+      entityMap.put(bf.getName(),o);
     }
  else {
       entityMap.put(field.getName(),field.getValue());
