@@ -30,7 +30,7 @@
       applicationSet.put(application.getId(),application.getName());
     }
  else     if (principal instanceof AdminUserPrincipal) {
-      UserInfo user=principal.getUser();
+      UserInfo user=((AdminUserPrincipal)principal).getUser();
       if (superUserEnabled && (superUser != null) && superUser.equals(user.getUsername())) {
         role(info,principal,ROLE_SERVICE_ADMIN);
         role(info,principal,ROLE_ORGANIZATION_ADMIN);
@@ -73,7 +73,7 @@
  else     if (principal instanceof ApplicationUserPrincipal) {
       role(info,principal,ROLE_APPLICATION_USER);
       UUID applicationId=((ApplicationUserPrincipal)principal).getApplicationId();
-      AccessTokenCredentials tokenCredentials=principal.getAccessTokenCredentials();
+      AccessTokenCredentials tokenCredentials=((ApplicationUserPrincipal)principal).getAccessTokenCredentials();
       TokenInfo token=null;
       if (tokenCredentials != null) {
         try {
@@ -100,7 +100,7 @@
  catch (      Exception e) {
         logger.error("Unable to get user default role permissions",e);
       }
-      UserInfo user=principal.getUser();
+      UserInfo user=((ApplicationUserPrincipal)principal).getUser();
       try {
         Set<String> permissions=em.getUserPermissions(user.getUuid());
         grant(info,principal,applicationId,permissions);
