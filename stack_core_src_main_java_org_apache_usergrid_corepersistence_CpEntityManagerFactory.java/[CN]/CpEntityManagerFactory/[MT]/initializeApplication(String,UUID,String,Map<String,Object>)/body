@@ -22,11 +22,11 @@
     properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
   }
   properties.put(PROPERTY_NAME,appName);
-  Entity appInfoEntity=new Entity(generateApplicationId(UUIDGenerator.newTimeUUID()));
+  Entity appInfoEntity=new Entity(generateApplicationId(applicationId));
   long timestamp=System.currentTimeMillis();
   appInfoEntity.setField(new LongField(PROPERTY_CREATED,(long)(timestamp / 1000)));
   appInfoEntity.setField(new StringField(PROPERTY_NAME,name));
-  appInfoEntity.setField(new UUIDField(PROPERTY_UUID,applicationId));
+  appInfoEntity.setField(new UUIDField("applicationUuid",applicationId));
   appInfoEntity.setField(new UUIDField("organizationUuid",orgUuid));
 {
     EntityCollectionManager ecm=getManagerCache().getEntityCollectionManager(SYSTEM_APP_SCOPE);
@@ -36,7 +36,8 @@
     eci.refresh();
   }
   EntityManager em=getEntityManager(applicationId);
-  em.create(TYPE_APPLICATION,APPLICATION_ENTITY_CLASS,properties);
+  em.create(applicationId,TYPE_APPLICATION,properties);
   em.resetRoles();
+  em.refreshIndex();
   return applicationId;
 }

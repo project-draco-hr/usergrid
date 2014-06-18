@@ -9,15 +9,12 @@
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(id).toBlockingObservable().last();
   if (cpEntity == null) {
     if (logger.isDebugEnabled()) {
-      logger.debug("Loading entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{id.getType(),id.getUuid(),collectionScope.getApplication(),collectionScope.getOwner(),collectionScope.getName()});
+      logger.debug("FAILED to load entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{id.getType(),id.getUuid(),collectionScope.getApplication(),collectionScope.getOwner(),collectionScope.getName()});
     }
     return null;
   }
   Class clazz=Schema.getDefaultSchema().getEntityClass(entityRef.getType());
   Entity entity=EntityFactory.newEntity(entityRef.getUuid(),entityRef.getType(),clazz);
   entity.setProperties(CpEntityMapUtils.toMap(cpEntity));
-  if (entityRef.getType().equals("group")) {
-    logger.debug("Reading Group " + entity.getProperties());
-  }
   return entity;
 }
