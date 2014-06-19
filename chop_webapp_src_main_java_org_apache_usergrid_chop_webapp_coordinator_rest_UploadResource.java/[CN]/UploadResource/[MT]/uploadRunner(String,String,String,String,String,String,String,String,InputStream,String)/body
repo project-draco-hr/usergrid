@@ -13,7 +13,6 @@
   LOG.debug("extracted {} = {}",RestParams.VCS_REPO_URL,vcsRepoUrl);
   LOG.debug("extracted {} = {}",RestParams.TEST_PACKAGE,testPackage);
   LOG.debug("extracted {} = {}",RestParams.MD5,md5);
-  LOG.debug("extracted {} = {}",RestParams.MD5SUM,md5Sum);
   if (inTestMode(testMode)) {
     return Response.status(Response.Status.CREATED).entity(SUCCESSFUL_TEST_MESSAGE).type(MediaType.TEXT_PLAIN).build();
   }
@@ -29,16 +28,11 @@
     }
   }
   if (runnerJar.exists()) {
-    if (isMD5SumsEqual(runnerJar,md5Sum)) {
-      return Response.status(Response.Status.OK).entity(SetupStackState.JarAlreadyDeployed.getMessage()).build();
+    if (runnerJar.delete()) {
+      LOG.info("Deleted old runner.jar");
     }
  else {
-      if (runnerJar.delete()) {
-        LOG.info("Deleted old runner.jar");
-      }
- else {
-        LOG.info("Could not delete old runner.jar");
-      }
+      LOG.info("Could not delete old runner.jar");
     }
   }
   CoordinatorUtils.writeToFile(runnerJarStream,runnerJar.getAbsolutePath());
