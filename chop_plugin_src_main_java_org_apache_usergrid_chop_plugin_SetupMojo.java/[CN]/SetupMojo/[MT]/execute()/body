@@ -1,13 +1,7 @@
 {
   initCertStore();
-  if (!isReadyToDeploy()) {
-    LOG.info("{} is NOT present, calling chop:runner goal now...",RUNNER_JAR);
-    RunnerMojo runnerMojo=new RunnerMojo(this);
-    runnerMojo.execute();
-  }
-  if (!isReadyToDeploy()) {
-    throw new MojoExecutionException("Runner file was not ready and chop:runner failed");
-  }
+  DeployMojo deployMojo=new DeployMojo(this);
+  deployMojo.execute();
   Properties props=new Properties();
   try {
     File extractedConfigPropFile=new File(getExtractedRunnerPath(),PROJECT_FILE);
@@ -34,15 +28,7 @@
     throw new MojoExecutionException("Setup plugin goal has failed");
   }
   String responseMessage=resp.getEntity(String.class);
-  if (responseMessage.equals(SetupStackState.JarNotFound.getMessage())) {
-    LOG.info("No runner jar found, deploying now...");
-    DeployMojo deployMojo=new DeployMojo(this);
-    deployMojo.execute();
-    this.execute();
-  }
- else {
-    LOG.info("====== Response from the coordinator ======");
-    LOG.info(responseMessage);
-    LOG.info("===========================================");
-  }
+  LOG.info("====== Response from the coordinator ======");
+  LOG.info(responseMessage);
+  LOG.info("===========================================");
 }
