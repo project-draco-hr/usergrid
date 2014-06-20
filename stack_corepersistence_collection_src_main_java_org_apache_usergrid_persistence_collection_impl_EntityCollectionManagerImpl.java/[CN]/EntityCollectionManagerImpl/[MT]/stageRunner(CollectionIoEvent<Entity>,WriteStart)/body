@@ -3,12 +3,7 @@
     @Override public Observable<CollectionIoEvent<MvccEntity>> call(    final CollectionIoEvent<MvccEntity> mvccEntityCollectionIoEvent){
       Observable<CollectionIoEvent<MvccEntity>> unique=Observable.from(mvccEntityCollectionIoEvent).subscribeOn(Schedulers.io()).flatMap(writeVerifyUnique);
       Observable<CollectionIoEvent<MvccEntity>> optimistic=Observable.from(mvccEntityCollectionIoEvent).subscribeOn(Schedulers.io()).map(writeOptimisticVerify);
-      return Observable.zip(unique,optimistic,new Func2<CollectionIoEvent<MvccEntity>,CollectionIoEvent<MvccEntity>,CollectionIoEvent<MvccEntity>>(){
-        @Override public CollectionIoEvent<MvccEntity> call(        final CollectionIoEvent<MvccEntity> mvccEntityCollectionIoEvent,        final CollectionIoEvent<MvccEntity> mvccEntityCollectionIoEvent2){
-          return mvccEntityCollectionIoEvent;
-        }
-      }
-);
+      return Observable.merge(unique,optimistic).last();
     }
   }
 );

@@ -1,25 +1,25 @@
 {
   GraphManager gm=getHelper(emf.createEdgeManager(scope));
   Edge edge=createEdge("source","test","target");
-  gm.writeEdge(edge).toBlockingObservable().last();
+  gm.writeEdge(edge).toBlocking().last();
   SearchByEdgeType search=createSearchByEdge(edge.getSourceNode(),edge.getType(),edge.getTimestamp(),null);
   Observable<Edge> edges=gm.loadEdgesFromSource(search);
-  Edge returned=edges.toBlockingObservable().single();
+  Edge returned=edges.toBlocking().single();
   assertEquals("Correct edge returned",edge,returned);
   SearchByIdType searchById=createSearchByEdgeAndId(edge.getSourceNode(),edge.getType(),edge.getTimestamp(),edge.getTargetNode().getType(),null);
   edges=gm.loadEdgesFromSourceByType(searchById);
-  returned=edges.toBlockingObservable().single();
+  returned=edges.toBlocking().single();
   assertEquals("Correct edge returned",edge,returned);
   final SearchByEdge searchByEdge=createGetByEdge(edge.getSourceNode(),edge.getType(),edge.getTargetNode(),edge.getTimestamp(),null);
-  returned=gm.loadEdgeVersions(searchByEdge).toBlockingObservable().single();
+  returned=gm.loadEdgeVersions(searchByEdge).toBlocking().single();
   assertEquals("Correct edge returned",edge,returned);
-  returned=gm.deleteEdge(edge).toBlockingObservable().last();
+  returned=gm.deleteEdge(edge).toBlocking().last();
   edges=gm.loadEdgesFromSource(search);
-  returned=edges.toBlockingObservable().singleOrDefault(null);
+  returned=edges.toBlocking().singleOrDefault(null);
   assertNull("No edge returned",returned);
   edges=gm.loadEdgesFromSourceByType(searchById);
-  returned=edges.toBlockingObservable().singleOrDefault(null);
+  returned=edges.toBlocking().singleOrDefault(null);
   assertNull("No edge returned",returned);
-  returned=gm.loadEdgeVersions(searchByEdge).toBlockingObservable().singleOrDefault(null);
+  returned=gm.loadEdgeVersions(searchByEdge).toBlocking().singleOrDefault(null);
   assertNull("No edge returned",returned);
 }
