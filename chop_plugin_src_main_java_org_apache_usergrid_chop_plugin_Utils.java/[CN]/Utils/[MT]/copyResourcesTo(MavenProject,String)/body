@@ -9,8 +9,8 @@
     if (!(res instanceof Resource)) {
       continue;
     }
+    Resource resource=(Resource)res;
     try {
-      Resource resource=(Resource)res;
       File baseDir=new File(resource.getDirectory());
       includes=resource.getIncludes().toString().replace("[","").replace("]","").replace(" ","");
       excludes=resource.getExcludes().toString().replace("[","").replace("]","").replace(" ","");
@@ -21,8 +21,10 @@
         FileUtils.copyFileToDirectory(resourceFile,targetFolderFile);
       }
     }
- catch (    IOException e) {
-      LOG.warn("Error while trying to copy resource files",e);
+ catch (    Exception e) {
+      String path=resource.getDirectory();
+      path=path.substring(0,path.lastIndexOf("/"));
+      LOG.info("Error while trying to copy resource files. There is no resource folder under {} folder.",path);
     }
   }
 }
