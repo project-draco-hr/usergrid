@@ -14,6 +14,9 @@
   this.indexBucketLocator=indexBucketLocator;
   this.headEntityScope=new CollectionScopeImpl(this.applicationScope.getApplication(),this.applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(headEntity.getType()));
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(headEntityScope);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Loading head entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{headEntity.getType(),headEntity.getUuid(),headEntityScope.getApplication(),headEntityScope.getOwner(),headEntityScope.getName()});
+  }
   this.cpHeadEntity=ecm.load(new SimpleId(headEntity.getUuid(),headEntity.getType())).toBlockingObservable().last();
   Assert.notNull(cpHeadEntity,"cpHeadEntity cannot be null");
   return this;

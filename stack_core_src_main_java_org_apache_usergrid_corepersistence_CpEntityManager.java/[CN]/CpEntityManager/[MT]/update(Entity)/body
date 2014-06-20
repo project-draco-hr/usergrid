@@ -1,13 +1,17 @@
 {
   CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),getCollectionScopeNameFromEntityType(entity.getType()));
-  IndexScope indexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),entity.getType());
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
-  EntityIndex ei=managerCache.getEntityIndex(indexScope);
   Id entityId=new SimpleId(entity.getUuid(),entity.getType());
-  org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(entityId).toBlocking().last();
+  if (logger.isDebugEnabled()) {
+    logger.debug("Updating entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{entityId.getType(),entityId.getUuid(),collectionScope.getApplication(),collectionScope.getOwner(),collectionScope.getName()});
+  }
+  if (!UUIDUtils.isTimeBased(entityId.getUuid())) {
+    throw new IllegalArgumentException("Entity Id " + entityId.getType() + ":"+ entityId.getUuid()+ " uuid not time based");
+  }
+  org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(entityId).toBlockingObservable().last();
   cpEntity=CpEntityMapUtils.fromMap(cpEntity,entity.getProperties(),entity.getType(),true);
   try {
-    cpEntity=ecm.write(cpEntity).toBlocking().last();
+    cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
   }
  catch (  WriteUniqueVerifyException wuve) {
     handleWriteUniqueVerifyException(entity,wuve);
@@ -18,6 +22,11 @@ catch (  HystrixRuntimeException hre) {
       handleWriteUniqueVerifyException(entity,wuve);
     }
   }
+  IndexScope indexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),entity.getType());
+  EntityIndex ei=managerCache.getEntityIndex(indexScope);
   ei.index(cpEntity);
+  IndexScope allTypesIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),ALL_TYPES);
+  EntityIndex aei=managerCache.getEntityIndex(allTypesIndexScope);
+  aei.index(cpEntity);
   updateEntityIndexes(entity,cpEntity);
 }

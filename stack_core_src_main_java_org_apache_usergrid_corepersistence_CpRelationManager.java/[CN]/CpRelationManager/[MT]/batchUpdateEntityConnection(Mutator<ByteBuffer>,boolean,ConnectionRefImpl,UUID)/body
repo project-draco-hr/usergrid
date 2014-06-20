@@ -1,0 +1,37 @@
+{
+  long timestamp=getTimestampInMicros(timestampUuid);
+  Entity connectedEntity=em.get(new SimpleEntityRef(connection.getConnectedEntityType(),connection.getConnectedEntityId()));
+  if (connectedEntity == null) {
+    return batch;
+  }
+  if (disconnect) {
+    addDeleteToMutator(batch,ENTITY_COMPOSITE_DICTIONARIES,key(connection.getConnectingEntityId(),DICTIONARY_CONNECTED_ENTITIES,connection.getConnectionType()),asList(connection.getConnectedEntityId(),connection.getConnectedEntityType()),timestamp);
+    addDeleteToMutator(batch,ENTITY_COMPOSITE_DICTIONARIES,key(connection.getConnectedEntityId(),DICTIONARY_CONNECTING_ENTITIES,connection.getConnectionType()),asList(connection.getConnectingEntityId(),connection.getConnectingEntityType()),timestamp);
+    if (!moreThanOneOutboundConnection(connection.getConnectingEntity(),connection.getConnectionType())) {
+      addDeleteToMutator(batch,ENTITY_DICTIONARIES,key(connection.getConnectingEntityId(),DICTIONARY_CONNECTED_TYPES),connection.getConnectionType(),timestamp);
+    }
+    if (!moreThanOneInboundConnection(connection.getConnectingEntity(),connection.getConnectionType())) {
+      addDeleteToMutator(batch,ENTITY_DICTIONARIES,key(connection.getConnectedEntityId(),DICTIONARY_CONNECTING_TYPES),connection.getConnectionType(),timestamp);
+    }
+  }
+ else {
+    addInsertToMutator(batch,ENTITY_COMPOSITE_DICTIONARIES,key(connection.getConnectingEntityId(),DICTIONARY_CONNECTED_ENTITIES,connection.getConnectionType()),asList(connection.getConnectedEntityId(),connection.getConnectedEntityType()),timestamp,timestamp);
+    addInsertToMutator(batch,ENTITY_COMPOSITE_DICTIONARIES,key(connection.getConnectedEntityId(),DICTIONARY_CONNECTING_ENTITIES,connection.getConnectionType()),asList(connection.getConnectingEntityId(),connection.getConnectingEntityType()),timestamp,timestamp);
+    addInsertToMutator(batch,ENTITY_DICTIONARIES,key(connection.getConnectingEntityId(),DICTIONARY_CONNECTED_TYPES),connection.getConnectionType(),null,timestamp);
+    addInsertToMutator(batch,ENTITY_DICTIONARIES,key(connection.getConnectedEntityId(),DICTIONARY_CONNECTING_TYPES),connection.getConnectionType(),null,timestamp);
+  }
+  Set<String> dictionaryNames=em.getDictionaryNames(connectedEntity);
+  Schema schema=getDefaultSchema();
+  for (  String dictionaryName : dictionaryNames) {
+    boolean has_dictionary=schema.hasDictionary(connectedEntity.getType(),dictionaryName);
+    boolean dictionary_indexed=schema.isDictionaryIndexedInConnections(connectedEntity.getType(),dictionaryName);
+    if (dictionary_indexed || !has_dictionary) {
+      Set<Object> elementValues=em.getDictionaryAsSet(connectedEntity,dictionaryName);
+      for (      Object elementValue : elementValues) {
+        IndexUpdate indexUpdate=batchStartIndexUpdate(batch,connectedEntity,dictionaryName,elementValue,timestampUuid,has_dictionary,true,disconnect,false);
+        batchUpdateConnectionIndex(indexUpdate,connection);
+      }
+    }
+  }
+  return batch;
+}

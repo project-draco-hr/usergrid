@@ -1,0 +1,24 @@
+{
+  InputStream stream;
+  URL inputURL;
+  Properties props=new Properties();
+  String runnerJarProjectPropertiesFile="jar:file:" + coordinatorRunnerJarPath + "!/"+ PROJECT_FILE;
+  if (runnerJarProjectPropertiesFile.startsWith("jar:")) {
+    try {
+      inputURL=new URL(runnerJarProjectPropertiesFile);
+      JarURLConnection conn=(JarURLConnection)inputURL.openConnection();
+      stream=conn.getInputStream();
+      InputStreamReader reader=new InputStreamReader(stream);
+      props.load(reader);
+      stream.close();
+    }
+ catch (    MalformedURLException e) {
+      LOG.error("Malformed URL provided:",e);
+    }
+catch (    IOException e) {
+      LOG.error("Error while reading the file:",e);
+    }
+  }
+  String coordinatorJarMd5=props.getProperty(Project.MD5_KEY);
+  return coordinatorJarMd5;
+}

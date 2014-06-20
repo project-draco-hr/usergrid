@@ -1,0 +1,22 @@
+{
+  if ((entityRef == null) || (entityRef.getUuid() == null)) {
+    return null;
+  }
+  if ((entityRef.getType() == null) || verify) {
+    UUID entityId=entityRef.getUuid();
+    String entityType=entityRef.getType();
+    try {
+      get(entityRef).getType();
+    }
+ catch (    Exception e) {
+      logger.error("Unable to load entity " + entityRef.getType() + ":"+ entityRef.getUuid(),e);
+    }
+    if (entityRef == null) {
+      throw new EntityNotFoundException("Entity " + entityId.toString() + " cannot be verified");
+    }
+    if ((entityType != null) && !entityType.equalsIgnoreCase(entityRef.getType())) {
+      throw new UnexpectedEntityTypeException("Entity " + entityId + " is not the expected type, expected "+ entityType+ ", found "+ entityRef.getType());
+    }
+  }
+  return entityRef;
+}

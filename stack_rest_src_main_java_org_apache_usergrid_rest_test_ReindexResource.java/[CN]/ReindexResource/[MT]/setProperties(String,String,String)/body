@@ -1,0 +1,17 @@
+{
+  Properties props=management.getProperties();
+  String testProp=(String)props.get("usergrid.test");
+  if (testProp == null || !Boolean.parseBoolean(testProp)) {
+    throw new UnsupportedOperationException();
+  }
+  UUID appId;
+  if (orgName != null && appName != null) {
+    appId=emf.lookupApplication(orgName + "/" + appName);
+  }
+ else {
+    appId=UUID.fromString(appIdString);
+  }
+  EntityManager em=emf.getEntityManager(appId);
+  em.refreshIndex();
+  return Response.created(null).build();
+}

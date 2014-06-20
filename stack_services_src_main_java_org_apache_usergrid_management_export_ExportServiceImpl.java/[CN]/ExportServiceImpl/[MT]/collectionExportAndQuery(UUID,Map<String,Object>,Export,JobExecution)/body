@@ -7,10 +7,11 @@
   JsonGenerator jg=getJsonGenerator(ephemeral);
   jg.writeStartArray();
   for (  String collectionName : metadata.keySet()) {
+    collectionName=collectionName.substring(0,collectionName.indexOf("|"));
     if (collectionName.equals("exports")) {
       continue;
     }
-    if ((config.get("collectionName") == null) || collectionName.equals(config.get("collectionName"))) {
+    if ((config.get("collectionName") == null) || collectionName.equalsIgnoreCase((String)config.get("collectionName"))) {
       Query query=null;
       if (config.get("query") == null) {
         query=new Query();

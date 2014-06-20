@@ -20,6 +20,7 @@
     userProperties.put("email","test" + i + "@anuff.com");
     entity[i]=em.create("users",userProperties);
   }
+  em.refreshIndex();
   em.createConnection(em.get(new SimpleEntityRef("user",entity[0].getUuid())),"Vibrations",em.get(new SimpleEntityRef("user",entity[1].getUuid())));
   em.createConnection(em.get(new SimpleEntityRef("user",entity[1].getUuid())),"Vibrations",em.get(new SimpleEntityRef("user",entity[0].getUuid())));
   UUID exportUUID=exportService.schedule(payload);
@@ -38,9 +39,7 @@
       break;
     }
   }
-  if (indexApp >= a.size()) {
-    assert(false);
-  }
+  assertTrue("Uuid was not found in exported files. ",indexApp < a.size());
   org.json.simple.JSONObject objEnt=(org.json.simple.JSONObject)a.get(indexApp);
   org.json.simple.JSONObject objConnections=(org.json.simple.JSONObject)objEnt.get("connections");
   assertNotNull(objConnections);

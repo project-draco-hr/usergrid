@@ -2,7 +2,13 @@
   String name=op.getProperty().getValue();
   Object value=op.getLiteral().getValue();
   if (value instanceof String) {
-    value=((String)value).toLowerCase();
+    String svalue=(String)value;
+    if (svalue.indexOf("*") != -1) {
+      name=addAnayzedSuffix(name);
+      stack.push(QueryBuilders.regexpQuery(name,svalue));
+      return;
+    }
+    value=svalue.toLowerCase();
   }
   stack.push(QueryBuilders.termQuery(name,value));
 }

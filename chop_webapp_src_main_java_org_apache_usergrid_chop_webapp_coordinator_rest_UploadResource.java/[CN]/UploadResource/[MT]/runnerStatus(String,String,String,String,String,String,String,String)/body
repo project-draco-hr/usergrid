@@ -1,0 +1,17 @@
+{
+  if (inTestMode(testMode)) {
+    LOG.info("Calling /upload/status in test mode ...");
+  }
+ else {
+    LOG.info("Calling /upload/status");
+  }
+  File runnerJar=CoordinatorUtils.getRunnerJar(chopUiFig.getContextPath(),username,groupId,artifactId,version,commitId);
+  SetupStackState status=stackCoordinator.stackStatus(commitId,artifactId,groupId,version,username);
+  if (runnerJar.exists()) {
+    String coordinatorRunnerJarMd5=getCoordinatorJarMd5(runnerJar.getAbsolutePath());
+    if (isMD5SumsEqual(coordinatorRunnerJarMd5,md5)) {
+      return Response.status(Response.Status.OK).entity(status.getMessage()).build();
+    }
+  }
+  return Response.status(Response.Status.OK).entity(SetupStackState.JarNotFound.getMessage()).build();
+}
