@@ -1,3 +1,19 @@
 {
-  throw new UnsupportedOperationException("Not supported yet.");
+  Set<String> collections=getApplicationCollections();
+  Map<String,Long> counts=getApplicationCounters();
+  Map<String,Object> metadata=new HashMap<String,Object>();
+  if (collections != null) {
+    for (    String collectionName : collections) {
+      if (!Schema.isAssociatedEntityType(collectionName)) {
+        Long count=counts.get(APPLICATION_COLLECTION + collectionName);
+        Map<String,Object> entry=new HashMap<String,Object>();
+        entry.put("count",count != null ? count : 0);
+        entry.put("type",singularize(collectionName));
+        entry.put("name",collectionName);
+        entry.put("title",capitalize(collectionName));
+        metadata.put(collectionName,entry);
+      }
+    }
+  }
+  return metadata;
 }
