@@ -3,15 +3,15 @@
   Entity newEntity=new Entity(new SimpleId("test"));
   EntityCollectionManager manager=factory.createCollectionManager(collectionScope1);
   Observable<Entity> observable=manager.write(newEntity);
-  Entity createReturned=observable.toBlockingObservable().lastOrDefault(null);
+  Entity createReturned=observable.toBlocking().lastOrDefault(null);
   assertNotNull("Id was assigned",createReturned.getId());
   assertNotNull("Version was assigned",createReturned.getVersion());
   Observable<Entity> loadObservable=manager.load(createReturned.getId());
-  Entity loadReturned=loadObservable.toBlockingObservable().lastOrDefault(null);
+  Entity loadReturned=loadObservable.toBlocking().lastOrDefault(null);
   assertEquals("Same value",createReturned,loadReturned);
   CollectionScope collectionScope2=new CollectionScopeImpl(collectionScope1.getApplication(),new SimpleId("test2"),collectionScope1.getName());
   EntityCollectionManager manager2=factory.createCollectionManager(collectionScope2);
-  Entity loaded=manager2.load(createReturned.getId()).toBlockingObservable().lastOrDefault(null);
+  Entity loaded=manager2.load(createReturned.getId()).toBlocking().lastOrDefault(null);
   assertNull("CollectionScope works correctly",loaded);
   CollectionScope collectionScope3=new CollectionScopeImpl(new SimpleId("organization2"),collectionScope1.getOwner(),collectionScope1.getName());
   assertNotNull(collectionScope3);

@@ -5,18 +5,18 @@
   Id targetId1target2=new SimpleId("type1target2");
   Id targetId2=new SimpleId("type2target2");
   Edge testTargetEdge=createEdge(sourceId,"test",targetId1target1,System.currentTimeMillis());
-  gm.writeEdge(testTargetEdge).toBlockingObservable().singleOrDefault(null);
+  gm.writeEdge(testTargetEdge).toBlocking().singleOrDefault(null);
   Edge testTarget2Edge=createEdge(sourceId,"test",targetId1target2,System.currentTimeMillis());
-  gm.writeEdge(testTarget2Edge).toBlockingObservable().singleOrDefault(null);
+  gm.writeEdge(testTarget2Edge).toBlocking().singleOrDefault(null);
   Edge test2TargetEdge=createEdge(sourceId,"test",targetId2,System.currentTimeMillis());
-  gm.writeEdge(test2TargetEdge).toBlockingObservable().singleOrDefault(null);
+  gm.writeEdge(test2TargetEdge).toBlocking().singleOrDefault(null);
   Observable<String> edges=gm.getIdTypesFromSource(new SimpleSearchIdType(testTargetEdge.getSourceNode(),"test","type1",null));
-  Iterator<String> results=edges.toBlockingObservable().getIterator();
+  Iterator<String> results=edges.toBlocking().getIterator();
   assertEquals("Types correct",targetId1target1.getType(),results.next());
   assertEquals("Types correct",targetId1target2.getType(),results.next());
   assertFalse("No results",results.hasNext());
   edges=gm.getIdTypesFromSource(new SimpleSearchIdType(testTargetEdge.getSourceNode(),"test","type2",null));
-  results=edges.toBlockingObservable().getIterator();
+  results=edges.toBlocking().getIterator();
   assertEquals("Types correct",targetId2.getType(),results.next());
   assertFalse("No results",results.hasNext());
 }
