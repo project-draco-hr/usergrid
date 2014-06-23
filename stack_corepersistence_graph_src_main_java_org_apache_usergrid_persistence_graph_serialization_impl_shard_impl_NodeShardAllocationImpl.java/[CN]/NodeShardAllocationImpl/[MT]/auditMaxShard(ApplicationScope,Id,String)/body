@@ -1,13 +1,9 @@
 {
-  final long now=timeService.getCurrentTime();
   final Iterator<Long> maxShards=getShards(scope,nodeId,Optional.<Long>absent(),edgeType);
   if (!maxShards.hasNext()) {
     return false;
   }
   final long maxShard=maxShards.next();
-  if (maxShard > now) {
-    return false;
-  }
   final long count=edgeShardCounterSerialization.getCount(scope,nodeId,maxShard,edgeType);
   if (count < graphFig.getShardSize()) {
     return false;
@@ -17,7 +13,7 @@
     this.edgeShardSerialization.writeEdgeMeta(scope,nodeId,newShardTime,edgeType).execute();
   }
  catch (  ConnectionException e) {
-    throw new RuntimeException("Unable to write the new edge metadata");
+    throw new GraphRuntimeException("Unable to write the new edge metadata");
   }
   return true;
 }
