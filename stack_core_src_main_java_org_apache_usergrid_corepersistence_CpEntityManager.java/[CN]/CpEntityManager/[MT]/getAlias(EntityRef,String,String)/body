@@ -2,13 +2,14 @@
   Assert.notNull(ownerRef,"ownerRef is required");
   Assert.notNull(collectionType,"collectionType is required");
   Assert.notNull(aliasValue,"aliasValue is required");
+  logger.debug("getAlias() for collection type {} alias {}",collectionType,aliasValue);
   String collName=Schema.defaultCollectionName(collectionType);
   Map<String,EntityRef> results=getAlias(ownerRef,collName,Collections.singletonList(aliasValue));
   if (results == null || results.size() == 0) {
     return null;
   }
   if (results.size() > 1) {
-    logger.warn("More than 1 entity with Owner id '{}' of type '{}' and alias '{}' exists. " + " This is a duplicate alias, and needs audited",new Object[]{ownerRef,collectionType,aliasValue});
+    logger.warn("More than 1 entity with Owner id '{}' of type '{}' " + "and alias '{}' exists. This is a duplicate alias, and needs audited",new Object[]{ownerRef,collectionType,aliasValue});
   }
   return results.get(aliasValue);
 }

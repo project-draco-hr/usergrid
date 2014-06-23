@@ -9,6 +9,7 @@
   user.setUsername(username);
   EntityManager em=setup.getEmf().getEntityManager(appId);
   User storedUser=em.create(user);
+  em.refreshIndex();
   UUID userId=storedUser.getUuid();
   CredentialsInfo info=new CredentialsInfo();
   info.setRecoverable(false);
@@ -25,6 +26,7 @@
   assertEquals(userId,authedUser.getUuid());
   String newPassword="test2";
   setup.getMgmtSvc().setAppUserPassword(appId,userId,password,newPassword);
+  em.refreshIndex();
   authedUser=setup.getMgmtSvc().verifyAppUserPasswordCredentials(appId,username,newPassword);
   assertEquals(userId,authedUser.getUuid());
 }

@@ -1,0 +1,18 @@
+{
+  final GraphManager gm=emf.createEdgeManager(scope);
+  Id sourceId1=new SimpleId("source1");
+  Id sourceId2=new SimpleId("source2");
+  Id targetId1=new SimpleId("target");
+  Edge testTargetEdge=createEdge(sourceId1,"test",targetId1,System.currentTimeMillis());
+  gm.writeEdge(testTargetEdge).toBlockingObservable().singleOrDefault(null);
+  Edge testTarget2Edge=createEdge(sourceId2,"edgeType1",targetId1,System.currentTimeMillis());
+  gm.writeEdge(testTarget2Edge).toBlockingObservable().singleOrDefault(null);
+  Edge test2TargetEdge=createEdge(sourceId1,"edgeType1",targetId1,System.currentTimeMillis());
+  gm.writeEdge(test2TargetEdge).toBlockingObservable().singleOrDefault(null);
+  Edge test3TargetEdge=createEdge(sourceId1,"edgeType2",targetId1,System.currentTimeMillis());
+  gm.writeEdge(test3TargetEdge).toBlockingObservable().singleOrDefault(null);
+  int count=gm.getEdgeTypesToTarget(new SimpleSearchEdgeType(targetId1,null,null)).count().toBlockingObservable().last();
+  assertEquals(3,count);
+  count=gm.getEdgeTypesToTarget(new SimpleSearchEdgeType(targetId1,"edgeType",null)).count().toBlockingObservable().last();
+  assertEquals(2,count);
+}

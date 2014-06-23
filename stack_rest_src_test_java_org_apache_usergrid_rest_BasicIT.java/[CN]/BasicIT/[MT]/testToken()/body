@@ -84,9 +84,12 @@
   Map<String,String> payload=hashMap("email","ed.anuff@gmail.com").map("username","ed.anuff").map("name","Ed Anuff").map("password","sesame").map("pin","1234");
   node=resource().path("/test-organization/test-app/users").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
   logNode(node);
+  assertNotNull(node.get("entities"));
+  assertNotNull(node.get("entities").get(0));
+  assertNotNull(node.get("entities").get(0).get("username"));
   assertEquals("ed.anuff",node.get("entities").get(0).get("username").getTextValue());
   payload=hashMap("foo","bar");
-  node=resource().path("/test-organization/test-app/devices/" + UUID.randomUUID()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(JsonNode.class,payload);
+  node=resource().path("/test-organization/test-app/devices/" + UUIDGenerator.newTimeUUID()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(JsonNode.class,payload);
   logNode(node);
   payload=hashMap("foo","bar");
   err_thrown=false;

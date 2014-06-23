@@ -10,12 +10,12 @@
     writtenEdges.add(edge);
   }
   long cleanupVersion=System.currentTimeMillis();
-  int value=edgeMetaRepair.repairSources(scope,sourceId,edgeType,cleanupVersion).toBlockingObservable().single();
+  int value=edgeMetaRepair.repairSources(scope,sourceId,edgeType,cleanupVersion).toBlocking().single();
   assertEquals("No subtypes removed, edges exist",size,value);
   for (  MarkedEdge created : writtenEdges) {
     storageEdgeSerialization.deleteEdge(scope,created,UUIDGenerator.newTimeUUID()).execute();
   }
-  value=edgeMetaRepair.repairSources(scope,sourceId,edgeType,cleanupVersion).toBlockingObservable().single();
+  value=edgeMetaRepair.repairSources(scope,sourceId,edgeType,cleanupVersion).toBlocking().single();
   assertEquals("Subtypes removed",0,value);
   Iterator<String> edgeTypes=edgeMetadataSerialization.getEdgeTypesFromSource(scope,new SimpleSearchEdgeType(sourceId,null,null));
   assertFalse("No edge types exist",edgeTypes.hasNext());
