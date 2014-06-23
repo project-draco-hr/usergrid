@@ -1,3 +1,8 @@
 {
-  return HystrixObservable.user(mergedEdgeReader.getEdgesFromSource(scope,search).buffer(graphFig.getScanPageSize()).flatMap(new EdgeBufferFilter(search.getMaxTimestamp())).cast(Edge.class));
+  return HystrixObservable.user(Observable.create(new ObservableIterator<MarkedEdge>("getEdgeTypesFromSource"){
+    @Override protected Iterator<MarkedEdge> getIterator(){
+      return storageEdgeSerialization.getEdgesFromSource(scope,search);
+    }
+  }
+).buffer(graphFig.getScanPageSize()).flatMap(new EdgeBufferFilter(search.getMaxTimestamp())).cast(Edge.class));
 }
