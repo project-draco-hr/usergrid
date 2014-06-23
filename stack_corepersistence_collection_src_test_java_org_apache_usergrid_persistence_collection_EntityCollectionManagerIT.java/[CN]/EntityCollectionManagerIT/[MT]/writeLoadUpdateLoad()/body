@@ -4,16 +4,16 @@
   newEntity.setField(new IntegerField("counter",1));
   EntityCollectionManager manager=factory.createCollectionManager(context);
   Observable<Entity> observable=manager.write(newEntity);
-  Entity createReturned=observable.toBlockingObservable().lastOrDefault(null);
+  Entity createReturned=observable.toBlocking().lastOrDefault(null);
   assertNotNull("Id was assigned",createReturned.getId());
   Observable<Entity> loadObservable=manager.load(createReturned.getId());
-  Entity loadReturned=loadObservable.toBlockingObservable().lastOrDefault(null);
+  Entity loadReturned=loadObservable.toBlocking().lastOrDefault(null);
   assertEquals("Same value",createReturned,loadReturned);
   assertEquals("Field value correct",createReturned.getField("counter"),loadReturned.getField("counter"));
   createReturned.setField(new IntegerField("counter",2));
-  manager.write(createReturned).toBlockingObservable().lastOrDefault(null);
+  manager.write(createReturned).toBlocking().lastOrDefault(null);
   loadObservable=manager.load(createReturned.getId());
-  loadReturned=loadObservable.toBlockingObservable().lastOrDefault(null);
+  loadReturned=loadObservable.toBlocking().lastOrDefault(null);
   assertEquals("Same value",createReturned,loadReturned);
   assertEquals("Field value correct",createReturned.getField("counter"),loadReturned.getField("counter"));
 }
