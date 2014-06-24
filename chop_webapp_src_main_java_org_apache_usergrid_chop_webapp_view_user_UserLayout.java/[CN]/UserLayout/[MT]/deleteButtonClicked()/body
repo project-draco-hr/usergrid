@@ -1,4 +1,12 @@
 {
+  if (UserListWindow.getSelectedUser().equals(ShiroRealm.getDefaultUser())) {
+    Notification.show("Error","Default admin user cannot be deleted",Notification.Type.ERROR_MESSAGE);
+    return;
+  }
+  if (!ShiroRealm.isAuthenticatedUserAdmin()) {
+    Notification.show("Error","Only an admin can delete a user",Notification.Type.ERROR_MESSAGE);
+    return;
+  }
   userDao.delete(username);
   close();
   Notification.show("Success","User deleted successfully",Notification.Type.HUMANIZED_MESSAGE);
