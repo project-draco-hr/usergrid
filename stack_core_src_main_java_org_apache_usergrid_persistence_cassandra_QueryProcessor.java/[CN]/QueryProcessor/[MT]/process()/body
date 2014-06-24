@@ -1,14 +1,14 @@
 {
-  int opCount=0;
+  sliceCount=0;
   if (rootOperand != null) {
     TreeEvaluator visitor=new TreeEvaluator();
     rootOperand.visit(visitor);
     rootNode=visitor.getRootNode();
-    opCount=visitor.getSliceCount();
+    sliceCount=rootNode.getCount();
   }
   if (sorts.size() > 0) {
-    OrderByNode order=generateSorts(opCount);
-    opCount+=order.getFirstPredicate().getAllSlices().size();
+    OrderByNode order=generateSorts(sliceCount);
+    sliceCount+=order.getCount();
     rootNode=order;
   }
   if (rootNode == null) {
@@ -33,11 +33,5 @@
       }
       rootNode=allNode;
     }
-  }
-  if (opCount > 1) {
-    pageSizeHint=PAGE_SIZE;
-  }
- else {
-    pageSizeHint=Math.min(size,PAGE_SIZE);
   }
 }
