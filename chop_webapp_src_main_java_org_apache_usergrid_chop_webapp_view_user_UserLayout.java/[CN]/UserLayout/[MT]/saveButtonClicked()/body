@@ -14,7 +14,7 @@
     return;
   }
   try {
-    if (!UserListWindow.isCreateButtonClicked()) {
+    if (UserListWindow.getSelectedUser() != null) {
       userDao.delete(UserListWindow.getSelectedUser());
       userDao.save(new User(username,password));
       BasicProviderParams newProviderParams=new BasicProviderParams(username,instanceTypeField.getValue(),accessKeyField.getValue(),secretKeyField.getValue(),imageField.getValue(),keyPairNameField.getValue());
@@ -27,8 +27,11 @@
       Notification.show("Success","User information updated successfully",Notification.Type.HUMANIZED_MESSAGE);
     }
  else {
+      if (userDao.get(username) != null) {
+        Notification.show("Error","The username " + username + " already exists!",Notification.Type.ERROR_MESSAGE);
+        return;
+      }
       doSaveUser(username,password);
-      UserListWindow.setCreateButtonClicked(false);
     }
   }
  catch (  Exception e) {
