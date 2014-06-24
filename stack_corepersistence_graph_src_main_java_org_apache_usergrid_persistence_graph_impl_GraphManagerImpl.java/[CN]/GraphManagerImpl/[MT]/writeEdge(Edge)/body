@@ -1,7 +1,7 @@
 {
   EdgeUtils.validateEdge(edge);
   final MarkedEdge markedEdge=new SimpleMarkedEdge(edge,false);
-  return HystrixObservable.user(Observable.from(markedEdge).subscribeOn(Schedulers.io()).map(new Func1<MarkedEdge,Edge>(){
+  return Observable.from(markedEdge).subscribeOn(Schedulers.io()).map(new Func1<MarkedEdge,Edge>(){
     @Override public Edge call(    final MarkedEdge edge){
       final UUID timestamp=UUIDGenerator.newTimeUUID();
       final MutationBatch mutation=edgeMetadataSerialization.writeEdge(scope,edge);
@@ -14,9 +14,9 @@
  catch (      ConnectionException e) {
         throw new RuntimeException("Unable to connect to cassandra",e);
       }
-      HystrixObservable.async(edgeWriteCompact.compact(scope,edge,timestamp)).subscribeOn(Schedulers.io()).subscribe(edgeWriteSubcriber);
+      edgeWriteCompact.compact(scope,edge,timestamp).subscribeOn(Schedulers.io()).subscribe(edgeWriteSubcriber);
       return edge;
     }
   }
-));
+);
 }
