@@ -1,0 +1,13 @@
+{
+  String queryString="select * where X = 'Foo'";
+  ANTLRStringStream in=new ANTLRStringStream(queryString);
+  QueryFilterLexer lexer=new QueryFilterLexer(in);
+  TokenRewriteStream tokens=new TokenRewriteStream(lexer);
+  QueryFilterParser parser=new QueryFilterParser(tokens);
+  final int limit=105;
+  Query query=parser.ql().query;
+  query.setLimit(limit);
+  QueryProcessor processor=new QueryProcessor(query,null,null,null);
+  SliceNode node=(SliceNode)processor.getFirstNode();
+  assertEquals(limit,processor.getPageSizeHint(node));
+}
