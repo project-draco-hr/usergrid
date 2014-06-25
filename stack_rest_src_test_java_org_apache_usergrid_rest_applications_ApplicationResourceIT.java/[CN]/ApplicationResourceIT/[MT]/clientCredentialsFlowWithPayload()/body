@@ -6,7 +6,7 @@
   payload.add("grant_type","client_credentials");
   payload.add("client_id",clientId);
   payload.add("client_secret",clientSecret);
-  JsonNode node=resource().path("/test-organization/test-app/token").type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).accept(MediaType.APPLICATION_JSON).post(JsonNode.class,payload);
-  assertNotNull("It has access_token.",node.get("access_token").getTextValue());
-  assertNotNull("It has expires_in.",node.get("expires_in").getIntValue());
+  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/token").type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).accept(MediaType.APPLICATION_JSON).post(String.class,payload));
+  assertNotNull("It has access_token.",node.get("access_token").textValue());
+  assertNotNull("It has expires_in.",node.get("expires_in").intValue());
 }

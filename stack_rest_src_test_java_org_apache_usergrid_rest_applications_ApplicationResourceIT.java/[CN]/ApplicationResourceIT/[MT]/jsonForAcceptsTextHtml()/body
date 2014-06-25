@@ -2,6 +2,6 @@
   ApplicationInfo app=setup.getMgmtSvc().getApplicationInfo("test-organization/test-app");
   String clientId=setup.getMgmtSvc().getClientIdForApplication(app.getId());
   String clientSecret=setup.getMgmtSvc().getClientSecretForApplication(app.getId());
-  JsonNode node=resource().path("/test-organization/test-app").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.TEXT_HTML).get(JsonNode.class);
+  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.TEXT_HTML).get(String.class));
   assertNotNull(node.get("entities"));
 }
