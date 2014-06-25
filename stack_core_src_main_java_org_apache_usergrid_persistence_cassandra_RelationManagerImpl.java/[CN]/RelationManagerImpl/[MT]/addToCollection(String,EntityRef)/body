@@ -8,7 +8,7 @@
     return null;
   }
   UUID timestampUuid=newTimeUUID();
-  Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
+  Mutator<ByteBuffer> batch=CountingMutator.createFlushingMutator(cass.getApplicationKeyspace(applicationId),be);
   batchAddToCollection(batch,collectionName,itemEntity,timestampUuid);
   if (collection.getLinkedCollection() != null) {
     getRelationManager(itemEntity).batchAddToCollection(batch,collection.getLinkedCollection(),getHeadEntity(),timestampUuid);

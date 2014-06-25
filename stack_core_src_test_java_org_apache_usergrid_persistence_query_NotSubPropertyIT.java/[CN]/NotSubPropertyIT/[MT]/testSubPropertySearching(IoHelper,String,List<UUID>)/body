@@ -1,0 +1,20 @@
+{
+  Query query=Query.fromQL(queryString);
+  query.setLimit(PAGE_SIZE);
+  Results results;
+  long start=System.currentTimeMillis();
+  int expectedIndex=0;
+  do {
+    results=io.getResults(query);
+    for (int i=0; i < results.size(); i++, expectedIndex++) {
+      final UUID returned=results.getEntities().get(i).getUuid();
+      final UUID expected=expectedResults.get(expectedIndex);
+      assertEquals("Not returned as excpected",expected,returned);
+    }
+    query.setCursor(results.getCursor());
+  }
+ while (results.getCursor() != null);
+  long stop=System.currentTimeMillis();
+  LOG.info("Query took {} ms to return {} entities",stop - start,expectedResults.size());
+  assertEquals("All names returned",expectedResults.size(),expectedIndex);
+}
