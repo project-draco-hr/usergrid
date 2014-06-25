@@ -4,7 +4,7 @@
     return;
   }
   Keyspace ko=cass.getApplicationKeyspace(applicationId);
-  Mutator<ByteBuffer> m=createMutator(ko,be);
+  Mutator<ByteBuffer> m=CountingMutator.createFlushingMutator(ko,be);
   UUID timestampUuid=newTimeUUID();
   properties.put(PROPERTY_MODIFIED,getTimestampInMillis(timestampUuid));
   batchUpdateProperties(m,entity,properties,timestampUuid);

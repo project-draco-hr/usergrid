@@ -1,7 +1,7 @@
 {
   UUID timestampUuid=newTimeUUID();
   Keyspace ko=cass.getApplicationKeyspace(applicationId);
-  Mutator<ByteBuffer> m=createMutator(ko,be);
+  Mutator<ByteBuffer> m=CountingMutator.createFlushingMutator(ko,be);
   A entity=batchCreate(m,entityType,entityClass,properties,importId,timestampUuid);
   batchExecute(m,CassandraService.RETRY_COUNT);
   return entity;
