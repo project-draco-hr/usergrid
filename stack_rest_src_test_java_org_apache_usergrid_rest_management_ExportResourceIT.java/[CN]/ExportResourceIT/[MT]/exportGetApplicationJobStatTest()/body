@@ -2,15 +2,15 @@
   JsonNode node=null;
   ClientResponse.Status responseStatus=ClientResponse.Status.OK;
   HashMap<String,Object> payload=payloadBuilder();
-  node=resource().path("/management/orgs/test-organization/apps/test-app/export").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+  node=mapper.readTree(resource().path("/management/orgs/test-organization/apps/test-app/export").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
   String uuid=String.valueOf(node.get("Export Entity"));
   uuid=uuid.replaceAll("\"","");
   try {
-    node=resource().path("/management/orgs/test-organization/export/" + uuid).queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+    node=mapper.readTree(resource().path("/management/orgs/test-organization/export/" + uuid).queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   }
  catch (  UniformInterfaceException uie) {
     responseStatus=uie.getResponse().getClientResponseStatus();
   }
   assertEquals(ClientResponse.Status.OK,responseStatus);
-  assertEquals("SCHEDULED",node.get("state").getTextValue());
+  assertEquals("SCHEDULED",node.get("state").textValue());
 }

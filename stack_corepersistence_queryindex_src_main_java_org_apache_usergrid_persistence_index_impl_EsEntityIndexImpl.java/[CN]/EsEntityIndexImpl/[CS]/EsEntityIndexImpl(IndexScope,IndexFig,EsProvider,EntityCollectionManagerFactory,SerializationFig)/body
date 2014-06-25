@@ -1,13 +1,19 @@
 {
   IndexValidationUtils.validateIndexScope(indexScope);
-  this.indexScope=indexScope;
-  this.client=provider.getClient();
-  this.ecmFactory=factory;
-  this.indexName=createIndexName(config.getIndexPrefix(),indexScope);
-  this.indexType=createCollectionScopeTypeName(indexScope);
-  this.serializationFig=serializationFig;
-  this.refresh=config.isForcedRefresh();
-  this.cursorTimeout=config.getQueryCursorTimeout();
+  try {
+    this.indexScope=indexScope;
+    this.client=provider.getClient();
+    this.ecmFactory=factory;
+    this.indexName=createIndexName(config.getIndexPrefix(),indexScope);
+    this.indexType=createCollectionScopeTypeName(indexScope);
+    this.serializationFig=serializationFig;
+    this.refresh=config.isForcedRefresh();
+    this.cursorTimeout=config.getQueryCursorTimeout();
+  }
+ catch (  Exception e) {
+    log.error("Error setting up index",e);
+    throw e;
+  }
   AdminClient admin=client.admin();
   try {
     CreateIndexResponse r=admin.indices().prepareCreate(indexName).execute().actionGet();

@@ -13,7 +13,7 @@
   Map<String,String> perms=new HashMap<String,String>();
   perms.put("permission","get:/stuff/**");
   String path=String.format("/test-organization/test-app/roles/%s/permissions",roleId1);
-  JsonNode node=resource().path(path).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,perms);
+  JsonNode node=mapper.readTree(resource().path(path).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,perms));
   role=new Entity("role");
   role.setProperty("name","connectionQuerybyEmail2");
   response=client.createEntity(role);
@@ -22,29 +22,29 @@
   perms=new HashMap<String,String>();
   perms.put("permission","get:/stuff/**");
   path=String.format("/test-organization/test-app/roles/%s/permissions",roleId2);
-  node=resource().path(path).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,perms);
+  node=mapper.readTree(resource().path(path).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,perms));
   path=String.format("/test-organization/test-app/roles/%s/users/%s",roleId1,userId);
-  node=resource().path(path).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class);
+  node=mapper.readTree(resource().path(path).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class));
   assertEquals(userId.toString(),getEntity(node,0).get("uuid").asText());
   path=String.format("/test-organization/test-app/roles/%s/users/%s",roleId2,userId);
-  node=resource().path(path).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class);
+  node=mapper.readTree(resource().path(path).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class));
   assertEquals(userId.toString(),getEntity(node,0).get("uuid").asText());
   path=String.format("/test-organization/test-app/roles/%s/users",roleId2);
-  node=resource().path(path).queryParam("access_token",access_token).queryParam("ql","select%20*%20where%20username%20=%20'" + email + "'").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  node=mapper.readTree(resource().path(path).queryParam("access_token",access_token).queryParam("ql","select%20*%20where%20username%20=%20'" + email + "'").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   assertEquals(userId.toString(),getEntity(node,0).get("uuid").asText());
   path=String.format("/test-organization/test-app/roles/%s/users",roleId1);
-  node=resource().path(path).queryParam("access_token",access_token).queryParam("ql","select%20*%20where%20username%20=%20'" + email + "'").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  node=mapper.readTree(resource().path(path).queryParam("access_token",access_token).queryParam("ql","select%20*%20where%20username%20=%20'" + email + "'").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   assertEquals(userId.toString(),getEntity(node,0).get("uuid").asText());
   path=String.format("/test-organization/test-app/roles/%s",roleId1);
-  node=resource().path(path).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).delete(JsonNode.class);
+  node=mapper.readTree(resource().path(path).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).delete(String.class));
   path=String.format("/test-organization/test-app/roles/%s/users",roleId1);
   try {
-    node=resource().path(path).queryParam("access_token",access_token).queryParam("ql","select%20*%20where%20username%20=%20'" + email + "'").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+    node=mapper.readTree(resource().path(path).queryParam("access_token",access_token).queryParam("ql","select%20*%20where%20username%20=%20'" + email + "'").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   }
  catch (  UniformInterfaceException e) {
     assertEquals(Status.NOT_FOUND,e.getResponse().getClientResponseStatus());
   }
   path=String.format("/test-organization/test-app/roles/%s/users",roleId2);
-  node=resource().path(path).queryParam("access_token",access_token).queryParam("ql","select%20*%20where%20username%20=%20'" + email + "'").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  node=mapper.readTree(resource().path(path).queryParam("access_token",access_token).queryParam("ql","select%20*%20where%20username%20=%20'" + email + "'").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   assertEquals(userId.toString(),getEntity(node,0).get("uuid").asText());
 }

@@ -24,13 +24,13 @@
     assertFalse("adminUser should not be confirmed yet",adminUserInfo.isConfirmed());
     JsonNode node;
     try {
-      node=resource().path("/management/token").queryParam("grant_type","password").queryParam("username",userName).queryParam("password",passwd).accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
+      node=mapper.readTree(resource().path("/management/token").queryParam("grant_type","password").queryParam("username",userName).queryParam("password",passwd).accept(MediaType.APPLICATION_JSON).get(String.class));
       fail("Unconfirmed users should not be authorized to authenticate.");
     }
  catch (    UniformInterfaceException e) {
-      node=e.getResponse().getEntity(JsonNode.class);
-      assertEquals("invalid_grant",node.get("error").getTextValue());
-      assertEquals("User must be confirmed to authenticate",node.get("error_description").getTextValue());
+      node=mapper.readTree(e.getResponse().getEntity(String.class));
+      assertEquals("invalid_grant",node.get("error").textValue());
+      assertEquals("User must be confirmed to authenticate",node.get("error_description").textValue());
       LOG.info("Unconfirmed user was not authorized to authenticate!");
     }
     List<Message> inbox=Mailbox.get(email);
@@ -47,7 +47,7 @@
     assertEquals("User Account Activated",activation.getSubject());
     client=new MockImapClient("mockserver.com","test-user-46","somepassword");
     client.processMail();
-    node=resource().path("/management/token").queryParam("grant_type","password").queryParam("username",userName).queryParam("password",passwd).accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
+    node=mapper.readTree(resource().path("/management/token").queryParam("grant_type","password").queryParam("username",userName).queryParam("password",passwd).accept(MediaType.APPLICATION_JSON).get(String.class));
     assertNotNull(node);
     LOG.info("Authentication succeeded after confirmation: {}.",node.toString());
   }

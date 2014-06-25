@@ -2,6 +2,6 @@
   OrganizationInfo orgInfo=setup.getMgmtSvc().getOrganizationByName("test-organization");
   String clientId=setup.getMgmtSvc().getClientIdForOrganization(orgInfo.getUuid());
   String clientSecret=setup.getMgmtSvc().getClientSecretForOrganization(orgInfo.getUuid());
-  JsonNode node=resource().path("/test-organization/test-app/users").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/users").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   assertNotNull(node.get("entities"));
 }

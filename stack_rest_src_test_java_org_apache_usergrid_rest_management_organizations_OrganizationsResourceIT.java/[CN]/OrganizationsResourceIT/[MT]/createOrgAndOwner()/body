@@ -9,7 +9,7 @@
     organizationProperties.put("securityLevel",5);
     Map payload=hashMap("email","test-user-1@mockserver.com").map("username","test-user-1").map("name","Test User").map("password","password").map("organization","test-org-1").map("company","Apigee");
     payload.put(OrganizationsResource.ORGANIZATION_PROPERTIES,organizationProperties);
-    JsonNode node=resource().path("/management/organizations").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+    JsonNode node=mapper.readTree(resource().path("/management/organizations").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
     assertNotNull(node);
     ApplicationInfo applicationInfo=setup.getMgmtSvc().getApplicationInfo("test-org-1/sandbox");
     assertNotNull(applicationInfo);
@@ -24,10 +24,10 @@
     assertEquals("Apigee",user.getProperty("company"));
     OrganizationInfo orgInfo=setup.getMgmtSvc().getOrganizationByName("test-org-1");
     assertEquals(5L,orgInfo.getProperties().get("securityLevel"));
-    node=resource().path("/management/organizations/test-org-1").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+    node=mapper.readTree(resource().path("/management/organizations/test-org-1").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
     logNode(node);
     Assert.assertEquals(5,node.get("organization").get(OrganizationsResource.ORGANIZATION_PROPERTIES).get("securityLevel").asInt());
-    node=resource().path("/management/organizations/test-org-1").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+    node=mapper.readTree(resource().path("/management/organizations/test-org-1").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
     Assert.assertEquals(5,node.get("organization").get(OrganizationsResource.ORGANIZATION_PROPERTIES).get("securityLevel").asInt());
   }
   finally {

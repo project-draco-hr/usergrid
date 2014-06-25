@@ -10,7 +10,7 @@
     String testUserPassword=(String)setup.getMgmtSvc().getProperties().get(AccountCreationProps.PROPERTIES_TEST_ACCOUNT_ADMIN_USER_PASSWORD);
     JsonNode node;
     try {
-      node=resource().path("/management/token").queryParam("grant_type","password").queryParam("username",testUserUsername).queryParam("password",testUserPassword).accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
+      node=mapper.readTree(resource().path("/management/token").queryParam("grant_type","password").queryParam("username",testUserUsername).queryParam("password",testUserPassword).accept(MediaType.APPLICATION_JSON).get(String.class));
     }
  catch (    UniformInterfaceException e) {
       fail("Test User should need no confirmation");

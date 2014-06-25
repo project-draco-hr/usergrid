@@ -1,6 +1,13 @@
 {
-  JsonNode node=resource().path("/management/token").queryParam("grant_type","password").queryParam("username",user).queryParam("password",password).accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
-  String mgmToken=node.get("access_token").getTextValue();
+  ObjectMapper mapper=new ObjectMapper();
+  JsonNode node;
+  try {
+    node=mapper.readTree(resource().path("/management/token").queryParam("grant_type","password").queryParam("username",user).queryParam("password",password).accept(MediaType.APPLICATION_JSON).get(String.class));
+  }
+ catch (  IOException ex) {
+    throw new RuntimeException("Unable to parse response",ex);
+  }
+  String mgmToken=node.get("access_token").textValue();
   LOG.info("got mgmt token: {}",mgmToken);
   return mgmToken;
 }

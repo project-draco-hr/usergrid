@@ -1,3 +1,8 @@
 {
-  return jsonMedia(withToken(resource())).delete(JsonNode.class);
+  try {
+    return mapper.readTree(jsonMedia(withToken(resource())).delete(String.class));
+  }
+ catch (  IOException ex) {
+    throw new RuntimeException("Cannot parse JSON data",ex);
+  }
 }

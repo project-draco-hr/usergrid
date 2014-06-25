@@ -1,5 +1,5 @@
 {
-  return HystrixObservable.user(Observable.from(node).subscribeOn(Schedulers.io()).map(new Func1<Id,Id>(){
+  return Observable.from(node).subscribeOn(Schedulers.io()).map(new Func1<Id,Id>(){
     @Override public Id call(    final Id id){
       final UUID eventTimestamp=UUIDGenerator.newTimeUUID();
       final MutationBatch nodeMutation=nodeSerialization.mark(scope,id,timestamp);
@@ -10,9 +10,9 @@
  catch (      ConnectionException e) {
         throw new RuntimeException("Unable to connect to cassandra",e);
       }
-      HystrixObservable.async(nodeDeleteListener.receive(scope,id,eventTimestamp)).subscribeOn(Schedulers.io()).subscribe(nodeDelete);
+      nodeDeleteListener.receive(scope,id,eventTimestamp).subscribeOn(Schedulers.io()).subscribe(nodeDelete);
       return id;
     }
   }
-));
+);
 }

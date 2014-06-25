@@ -16,15 +16,15 @@
     }
     props.put("ordinal",i);
     JsonNode activity=activities.create(props);
-    verifyCreated[i]=activity.findValue("created").getLongValue();
+    verifyCreated[i]=activity.findValue("created").longValue();
     if (i == 18) {
-      created=activity.findValue("created").getLongValue();
+      created=activity.findValue("created").longValue();
     }
   }
   String query="select * where created >= " + created + " or verb = 'stop'";
   JsonNode node=activities.withQuery(query).get();
   for (int index=0; index < 5; index++) {
-    assertEquals(verifyCreated[maxSize - 1 - index],node.get("entities").get(index).get("created").getLongValue());
+    assertEquals(verifyCreated[maxSize - 1 - index],node.get("entities").get(index).get("created").longValue());
   }
   int totalEntitiesContained=activities.countEntities(query);
   assertEquals(5,totalEntitiesContained);

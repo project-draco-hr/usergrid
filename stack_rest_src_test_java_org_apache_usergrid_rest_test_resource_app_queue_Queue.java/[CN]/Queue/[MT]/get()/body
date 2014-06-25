@@ -1,3 +1,8 @@
 {
-  return jsonMedia(withQueueParams(withToken(resource()))).get(JsonNode.class);
+  try {
+    return mapper.readTree(jsonMedia(withQueueParams(withToken(resource()))).get(String.class));
+  }
+ catch (  IOException ex) {
+    throw new RuntimeException("Cannot parse JSON data",ex);
+  }
 }
