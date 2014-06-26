@@ -3,11 +3,11 @@
   String newPassword="foo";
   Map<String,String> data=new HashMap<String,String>();
   data.put("newpassword",newPassword);
-  JsonNode node=resource().path("/management/users/test/password").queryParam("access_token",superToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,data);
+  JsonNode node=mapper.readTree(resource().path("/management/users/test/password").queryParam("access_token",superToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,data));
   assertNull(getError(node));
   String token=mgmtToken("test",newPassword);
   assertNotNull(token);
   data.put("newpassword","test");
-  node=resource().path("/management/users/test/password").queryParam("access_token",superToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,data);
+  node=mapper.readTree(resource().path("/management/users/test/password").queryParam("access_token",superToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,data));
   assertNull(getError(node));
 }

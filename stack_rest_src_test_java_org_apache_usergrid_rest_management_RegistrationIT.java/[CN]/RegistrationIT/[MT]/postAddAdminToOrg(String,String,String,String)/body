@@ -3,7 +3,7 @@
   MultivaluedMap formData=new MultivaluedMapImpl();
   formData.add("email",email);
   formData.add("password",password);
-  node=resource().path("/management/organizations/" + organizationName + "/users").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_FORM_URLENCODED).post(JsonNode.class,formData);
+  node=mapper.readTree(resource().path("/management/organizations/" + organizationName + "/users").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_FORM_URLENCODED).post(String.class,formData));
   assertNotNull(node);
   logNode(node);
   return node;
