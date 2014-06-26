@@ -1,0 +1,13 @@
+{
+  final Counter toFlush;
+  writeLockLock.lock();
+  try {
+    toFlush=currentCounter;
+    currentCounter=new Counter();
+  }
+  finally {
+    writeLockLock.unlock();
+  }
+  MutationBatch batch=nodeShardCounterSerialization.flush(toFlush);
+  HystrixCassandra.asyncMutation(batch);
+}
