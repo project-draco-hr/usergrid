@@ -5,7 +5,7 @@
   ApplicationInfo appInfo=setup.getMgmtSvc().getApplicationInfo("test-organization/test-app");
   String clientId=setup.getMgmtSvc().getClientIdForApplication(appInfo.getId());
   String clientSecret=setup.getMgmtSvc().getClientSecretForApplication(appInfo.getId());
-  JsonNode node=resource().path("/test-organization/test-app/users/test_1/token").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/users/test_1/token").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   String user_token_from_client_credentials=node.get("access_token").asText();
   UUID userId=UUID.fromString(node.get("user").get("uuid").asText());
   setup.getMgmtSvc().activateAppUser(appInfo.getId(),userId);
@@ -13,7 +13,7 @@
   assertNotNull(user_token_from_client_credentials);
   Status status=null;
   try {
-    resource().path("/test-organization/test-app/users/test_1/token").queryParam("access_token","blah").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+    resource().path("/test-organization/test-app/users/test_1/token").queryParam("access_token","blah").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getClientResponseStatus();
@@ -21,7 +21,7 @@
   }
   assertEquals(Status.UNAUTHORIZED,status);
   try {
-    resource().path("/test-organization/test-app/users/test_2/token").queryParam("access_token",user_token_from_client_credentials).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+    resource().path("/test-organization/test-app/users/test_2/token").queryParam("access_token",user_token_from_client_credentials).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getClientResponseStatus();
@@ -29,18 +29,18 @@
   }
   assertEquals(Status.FORBIDDEN,status);
   JsonNode response=null;
-  response=resource().path("/test-organization/test-app/users/test_1").queryParam("access_token",user_token_from_client_credentials).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  response=mapper.readTree(resource().path("/test-organization/test-app/users/test_1").queryParam("access_token",user_token_from_client_credentials).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   assertNotNull(getEntity(response,0));
-  response=resource().path("/test-organization/test-app/users/test_1").queryParam("access_token",user_token_from_java).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  response=mapper.readTree(resource().path("/test-organization/test-app/users/test_1").queryParam("access_token",user_token_from_java).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   assertNotNull(getEntity(response,0));
   setup.getMgmtSvc().deactivateUser(appInfo.getId(),userId);
   try {
-    resource().path("/test-organization/test-app/token").queryParam("grant_type","password").queryParam("username","test_1").queryParam("password","test123").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+    resource().path("/test-organization/test-app/token").queryParam("grant_type","password").queryParam("username","test_1").queryParam("password","test123").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
     fail("request for deactivated user should fail");
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getClientResponseStatus();
-    JsonNode body=uie.getResponse().getEntity(JsonNode.class);
-    assertEquals("user not activated",body.findPath("error_description").getTextValue());
+    JsonNode body=mapper.readTree(uie.getResponse().getEntity(String.class));
+    assertEquals("user not activated",body.findPath("error_description").textValue());
   }
 }

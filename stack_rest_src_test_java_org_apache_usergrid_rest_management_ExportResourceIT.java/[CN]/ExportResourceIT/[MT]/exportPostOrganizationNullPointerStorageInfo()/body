@@ -5,7 +5,7 @@
   HashMap<String,Object> properties=(HashMap<String,Object>)payload.get("properties");
   properties.remove("storage_info");
   try {
-    node=resource().path("/management/orgs/test-organization/export").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+    node=mapper.readTree(resource().path("/management/orgs/test-organization/export").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
   }
  catch (  UniformInterfaceException uie) {
     responseStatus=uie.getResponse().getClientResponseStatus();

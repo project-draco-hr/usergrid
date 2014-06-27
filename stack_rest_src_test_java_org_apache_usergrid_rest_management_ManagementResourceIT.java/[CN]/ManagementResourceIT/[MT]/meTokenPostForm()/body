@@ -3,10 +3,10 @@
   form.add("grant_type","password");
   form.add("username","test@usergrid.com");
   form.add("password","test");
-  JsonNode node=resource().path("/management/me").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).entity(form,MediaType.APPLICATION_FORM_URLENCODED_TYPE).post(JsonNode.class);
+  JsonNode node=mapper.readTree(resource().path("/management/me").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).entity(form,MediaType.APPLICATION_FORM_URLENCODED_TYPE).post(String.class));
   logNode(node);
-  String token=node.get("access_token").getTextValue();
+  String token=node.get("access_token").textValue();
   assertNotNull(token);
-  node=resource().path("/management/me").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
+  node=mapper.readTree(resource().path("/management/me").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).get(String.class));
   logNode(node);
 }

@@ -1,11 +1,11 @@
 {
   Map<String,String> payload=hashMap("summaryOverview","My Summary").map("caltype","personal");
-  JsonNode node=resource().path("/test-organization/test-app/calendarlists").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/calendarlists").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
   UUID id=getEntityId(node,0);
   payload=hashMap("summaryOverview","Your Summary").map("caltype","personal");
-  node=resource().path("/test-organization/test-app/calendarlists").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+  node=mapper.readTree(resource().path("/test-organization/test-app/calendarlists").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
   String query="summaryOverview = 'My Summary'";
-  JsonNode queryResponse=resource().path("/test-organization/test-app/calendarlists").queryParam("access_token",access_token).queryParam("ql",query).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  JsonNode queryResponse=mapper.readTree(resource().path("/test-organization/test-app/calendarlists").queryParam("access_token",access_token).queryParam("ql",query).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   UUID returnedId=getEntityId(queryResponse,0);
   assertEquals(id,returnedId);
   assertEquals(1,queryResponse.get("entities").size());

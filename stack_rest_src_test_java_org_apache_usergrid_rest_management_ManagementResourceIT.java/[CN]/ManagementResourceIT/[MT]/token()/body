@@ -1,14 +1,14 @@
 {
-  JsonNode node=resource().path("/management/token").queryParam("grant_type","password").queryParam("username","test@usergrid.com").queryParam("password","test").accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
+  JsonNode node=mapper.readTree(resource().path("/management/token").queryParam("grant_type","password").queryParam("username","test@usergrid.com").queryParam("password","test").accept(MediaType.APPLICATION_JSON).get(String.class));
   logNode(node);
-  String token=node.get("access_token").getTextValue();
+  String token=node.get("access_token").textValue();
   assertNotNull(token);
   HashMap<String,Object> payload=new HashMap<String,Object>();
   Map<String,Object> properties=new HashMap<String,Object>();
   properties.put("securityLevel",5);
   payload.put(OrganizationsResource.ORGANIZATION_PROPERTIES,properties);
-  node=resource().path("/management/organizations/test-organization").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(JsonNode.class,payload);
-  node=resource().path("/management/token").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
+  node=mapper.readTree(resource().path("/management/organizations/test-organization").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(String.class,payload));
+  node=mapper.readTree(resource().path("/management/token").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).get(String.class));
   logNode(node);
   JsonNode securityLevel=node.findValue("securityLevel");
   assertNotNull(securityLevel);

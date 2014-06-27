@@ -4,9 +4,9 @@
   ApplicationInfo appInfo=setup.getMgmtSvc().createApplication(orgs.getOrganization().getUuid(),params.get("appName"));
   assertNotNull(appInfo);
   String adminToken=setup.getMgmtSvc().getAccessTokenForAdminUser(orgs.getOwner().getUuid(),0);
-  JsonNode node=resource().path(String.format("/%s/%s/roles/default",params.get("orgName"),params.get("appName"))).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).delete(JsonNode.class);
+  JsonNode node=mapper.readTree(resource().path(String.format("/%s/%s/roles/default",params.get("orgName"),params.get("appName"))).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).delete(String.class));
   Map<String,String> data=hashMap("name","reviewer");
-  node=resource().path(String.format("/%s/%s/roles",params.get("orgName"),params.get("appName"))).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,data);
+  node=mapper.readTree(resource().path(String.format("/%s/%s/roles",params.get("orgName"),params.get("appName"))).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,data));
   assertNull(getError(node));
   addPermission(params.get("orgName"),params.get("appName"),adminToken,"reviewer","get,put,post:/reviews/**");
   addPermission(params.get("orgName"),params.get("appName"),adminToken,"reviewer","get,put,post:/users/${user}/**");
@@ -16,34 +16,34 @@
   assertNotNull(userOneId);
   UUID userTwoId=createRoleUser(orgs.getOrganization().getUuid(),appInfo.getId(),adminToken,"wildcardpermusertwo","wildcardpermusertwo@apigee.com");
   assertNotNull(userTwoId);
-  node=resource().path(String.format("/%s/%s/users/%s/roles/reviewer",params.get("orgName"),params.get("appName"),userOneId.toString())).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class);
+  node=mapper.readTree(resource().path(String.format("/%s/%s/users/%s/roles/reviewer",params.get("orgName"),params.get("appName"),userOneId.toString())).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class));
   Map<String,String> book=hashMap("title","Ready Player One").map("author","Earnest Cline");
-  node=resource().path(String.format("/%s/%s/books",params.get("orgName"),params.get("appName"))).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,book);
+  node=mapper.readTree(resource().path(String.format("/%s/%s/books",params.get("orgName"),params.get("appName"))).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,book));
   logNode(node);
-  assertEquals("Ready Player One",getEntity(node,0).get("title").getTextValue());
-  String bookId=getEntity(node,0).get("uuid").getTextValue();
+  assertEquals("Ready Player One",getEntity(node,0).get("title").textValue());
+  String bookId=getEntity(node,0).get("uuid").textValue();
   String userOneToken=setup.getMgmtSvc().getAccessTokenForAppUser(appInfo.getId(),userOneId,0);
   Map<String,String> review=hashMap("heading","Loved It").map("body","80s Awesomeness set in the future");
-  node=resource().path(String.format("/%s/%s/reviews",params.get("orgName"),params.get("appName"))).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,review);
-  String reviewId=getEntity(node,0).get("uuid").getTextValue();
-  node=resource().path(String.format("/%s/%s/users/me/wrote/review/%s",params.get("orgName"),params.get("appName"),reviewId)).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class);
-  node=resource().path(String.format("/%s/%s/users/me/reviewed/books/%s",params.get("orgName"),params.get("appName"),bookId)).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class);
+  node=mapper.readTree(resource().path(String.format("/%s/%s/reviews",params.get("orgName"),params.get("appName"))).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,review));
+  String reviewId=getEntity(node,0).get("uuid").textValue();
+  node=mapper.readTree(resource().path(String.format("/%s/%s/users/me/wrote/review/%s",params.get("orgName"),params.get("appName"),reviewId)).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class));
+  node=mapper.readTree(resource().path(String.format("/%s/%s/users/me/reviewed/books/%s",params.get("orgName"),params.get("appName"),bookId)).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class));
   logNode(node);
-  node=resource().path(String.format("/%s/%s/books/%s/review/%s",params.get("orgName"),params.get("appName"),bookId,reviewId)).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class);
+  node=mapper.readTree(resource().path(String.format("/%s/%s/books/%s/review/%s",params.get("orgName"),params.get("appName"),bookId,reviewId)).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class));
   logNode(node);
   Status status=null;
   try {
-    node=resource().path(String.format("/%s/%s/books",params.get("orgName"),params.get("appName"))).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class);
+    node=mapper.readTree(resource().path(String.format("/%s/%s/books",params.get("orgName"),params.get("appName"))).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class));
     logNode(node);
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getClientResponseStatus();
   }
   assertEquals(Status.UNAUTHORIZED,status);
-  node=resource().path(String.format("/%s/%s/users/me/reviewed/books",params.get("orgName"),params.get("appName"))).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  node=mapper.readTree(resource().path(String.format("/%s/%s/users/me/reviewed/books",params.get("orgName"),params.get("appName"))).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   logNode(node);
-  node=resource().path(String.format("/%s/%s/reviews/%s",params.get("orgName"),params.get("appName"),reviewId)).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  node=mapper.readTree(resource().path(String.format("/%s/%s/reviews/%s",params.get("orgName"),params.get("appName"),reviewId)).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   logNode(node);
-  node=resource().path(String.format("/%s/%s/users/me/wrote",params.get("orgName"),params.get("appName"))).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  node=mapper.readTree(resource().path(String.format("/%s/%s/users/me/wrote",params.get("orgName"),params.get("appName"))).queryParam("access_token",userOneToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   logNode(node);
 }
