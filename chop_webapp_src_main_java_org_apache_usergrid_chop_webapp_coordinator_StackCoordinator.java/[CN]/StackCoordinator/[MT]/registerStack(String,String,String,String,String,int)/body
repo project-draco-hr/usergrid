@@ -1,0 +1,14 @@
+{
+  User chopUser=userDao.get(user);
+  File runnerJar=CoordinatorUtils.getRunnerJar(chopUiFig.getContextPath(),user,groupId,artifactId,version,commitId);
+  Stack stack=CoordinatorUtils.getStackFromRunnerJar(runnerJar);
+  Module module=moduleDao.get(BasicModule.createId(groupId,artifactId,version));
+  Commit commit=null;
+  for (  Commit c : commitDao.getByModule(module.getId())) {
+    if (commitId.equals(c.getId())) {
+      commit=c;
+      break;
+    }
+  }
+  return registerStack(stack,chopUser,commit,module,runnerCount);
+}

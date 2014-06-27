@@ -15,7 +15,7 @@
     return Response.status(Response.Status.CREATED).entity(status).type(MediaType.APPLICATION_JSON).build();
   }
   if (!status.equals(SetupStackState.SetUp)) {
-    return Response.status(Response.Status.OK).entity(SetupStackState.NotSetUp.getStackStateMessage()).type(MediaType.APPLICATION_JSON).build();
+    return Response.status(Response.Status.OK).entity(status.getStackStateMessage()).type(MediaType.APPLICATION_JSON).build();
   }
   LOG.info("Stack is set up, checking runner states...");
   String moduleId=BasicModule.createId(groupId,artifactId,version);
@@ -56,5 +56,6 @@
     sb.append(notStarted).append(" out of ").append(runners.size()).append(" could not be started.");
     return Response.status(Response.Status.OK).entity(sb.toString()).type(MediaType.APPLICATION_JSON).build();
   }
+  stack.setSetupState(SetupStackSignal.START);
   return Response.status(Response.Status.CREATED).entity("Started chop tests").type(MediaType.APPLICATION_JSON).build();
 }

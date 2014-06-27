@@ -10,11 +10,12 @@ synchronized (coordinatedStack) {
       return;
     }
     LOG.info("Starting to destroy stack instances of {}...",stack.getName());
-    coordinatedStack.setSetupState(SetupStackState.Destroying);
+    coordinatedStack.setSetupState(SetupStackSignal.DESTROY);
     StackDestroyer destroyer=new StackDestroyer(coordinatedStack);
     destroyer.destroy();
     registeredStacks.remove(coordinatedStack.hashCode());
     setupStackThreads.remove(coordinatedStack);
+    coordinatedStack.setSetupState(SetupStackSignal.COMPLETE);
     coordinatedStack.notifyAll();
   }
 }

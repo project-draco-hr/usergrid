@@ -19,7 +19,7 @@
       errorMessage="No key found with name " + cluster.getInstanceSpec().getKeyName() + " for cluster "+ cluster.getName();
       LOG.warn(errorMessage + ", aborting and terminating launched instances...");
       instanceManager.terminateInstances(launchedInstances);
-      stack.setSetupState(SetupStackState.SetupFailed);
+      stack.setSetupState(SetupStackSignal.FAIL);
       stack.notifyAll();
       return null;
     }
@@ -27,7 +27,7 @@
       errorMessage="Key file " + keyFile + " for cluster "+ cluster.getName()+ " not found";
       LOG.warn(errorMessage + ", aborting and terminating launched instances...");
       instanceManager.terminateInstances(launchedInstances);
-      stack.setSetupState(SetupStackState.SetupFailed);
+      stack.setSetupState(SetupStackSignal.FAIL);
       stack.notifyAll();
       return null;
     }
@@ -46,7 +46,7 @@
     if (!success) {
       errorMessage="SSH commands have failed, will not continue";
       instanceManager.terminateInstances(launchedInstances);
-      stack.setSetupState(SetupStackState.SetupFailed);
+      stack.setSetupState(SetupStackSignal.FAIL);
       stack.notifyAll();
       return null;
     }
@@ -58,7 +58,7 @@
     errorMessage="No key found with name " + providerParams.getKeyName() + " for runners";
     LOG.warn(errorMessage + ", aborting and terminating launched instances...");
     instanceManager.terminateInstances(launchedInstances);
-    stack.setSetupState(SetupStackState.SetupFailed);
+    stack.setSetupState(SetupStackSignal.FAIL);
     stack.notifyAll();
     return null;
   }
@@ -66,7 +66,7 @@
     errorMessage="Key file " + keyFile + " for runners not found";
     LOG.warn(errorMessage + ", aborting and terminating launched instances...");
     instanceManager.terminateInstances(launchedInstances);
-    stack.setSetupState(SetupStackState.SetupFailed);
+    stack.setSetupState(SetupStackSignal.FAIL);
     stack.notifyAll();
     return null;
   }
@@ -89,11 +89,11 @@
   if (!success) {
     errorMessage="SSH commands have failed, will not continue";
     instanceManager.terminateInstances(launchedInstances);
-    stack.setSetupState(SetupStackState.SetupFailed);
+    stack.setSetupState(SetupStackSignal.FAIL);
     stack.notifyAll();
     return null;
   }
-  stack.setSetupState(SetupStackState.SetUp);
+  stack.setSetupState(SetupStackSignal.COMPLETE);
   LOG.info("Stack {} is set up and ready...",stack.getName());
   stack.notifyAll();
   return stack;
