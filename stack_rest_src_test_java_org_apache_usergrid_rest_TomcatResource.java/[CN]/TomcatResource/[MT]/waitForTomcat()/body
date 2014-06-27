@@ -1,0 +1,17 @@
+{
+  int count=0;
+  while (count++ < 60) {
+    try {
+      Thread.sleep(1000);
+      Client c=Client.create();
+      WebResource wr=c.resource("http://localhost:" + port + "/status");
+      wr.get(String.class);
+      log.info("Tomcat is started.");
+      break;
+    }
+ catch (    Exception e) {
+      log.info("Cannot connect: " + e.getMessage());
+    }
+    throw new RuntimeException("Tomcat process never started.");
+  }
+}
