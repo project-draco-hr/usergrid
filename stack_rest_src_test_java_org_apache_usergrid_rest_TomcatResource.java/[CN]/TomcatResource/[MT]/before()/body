@@ -1,18 +1,16 @@
 {
-  if (tomcat != null) {
+  if (started) {
     return;
   }
 synchronized (mutex) {
-    if (tomcat != null) {
+    if (started) {
       return;
     }
-    File dataDir=Files.createTempDir();
-    dataDir.deleteOnExit();
     port=AvailablePortFinder.getNextAvailable(9998 + RandomUtils.nextInt(10));
-    tomcat=new Tomcat();
-    tomcat.setBaseDir(dataDir.getAbsolutePath());
-    tomcat.setPort(port);
-    tomcat.addWebapp(CONTEXT,new File(getWebAppsPath()).getAbsolutePath());
-    tomcat.start();
+    String propDirPath=createPropDir();
+    createPropertyFiles(propDirPath);
+    process=startTomcatProcess(propDirPath);
+    waitForTomcat();
+    started=true;
   }
 }

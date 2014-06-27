@@ -1,0 +1,17 @@
+{
+  String webappsPath=args[0];
+  int port=Integer.parseInt(args[1]);
+  File dataDir=Files.createTempDir();
+  dataDir.deleteOnExit();
+  Tomcat tomcat=new Tomcat();
+  tomcat.setBaseDir(dataDir.getAbsolutePath());
+  tomcat.setPort(port);
+  tomcat.addWebapp("/",new File(webappsPath).getAbsolutePath());
+  log.info("-----------------------------------------------------------------");
+  log.info("Starting Tomcat port {} dir {}",port,webappsPath);
+  log.info("-----------------------------------------------------------------");
+  tomcat.start();
+  while (true) {
+    Thread.sleep(1000);
+  }
+}

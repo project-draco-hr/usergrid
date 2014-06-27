@@ -1,0 +1,39 @@
+{
+  String javaHome=(String)System.getenv("JAVA_HOME");
+  ProcessBuilder pb=new ProcessBuilder(javaHome + "/bin/java","org.apache.usergrid.TomcatMain","src/main/webapp",port + "");
+  String classpath=System.getProperty("java.class.path");
+  List<String> path=new ArrayList<String>();
+  String parts[]=classpath.split(File.pathSeparator);
+  for (  String part : parts) {
+    if (part.endsWith("test-classes")) {
+      continue;
+    }
+    path.add(part);
+  }
+  path.add(propDirPath);
+  String newClasspath=StringUtils.join(path,File.pathSeparator);
+  Map<String,String> env=pb.environment();
+  StringBuilder sb=new StringBuilder();
+  sb.append(newClasspath);
+  env.put("CLASSPATH",sb.toString());
+  pb.redirectErrorStream(true);
+  final Process p=pb.start();
+  log.debug("Started Tomcat process with classpath = " + newClasspath);
+  new Thread(new Runnable(){
+    @Override public void run(){
+      BufferedReader br=new BufferedReader(new InputStreamReader(p.getInputStream()));
+      String line=null;
+      try {
+        while ((line=br.readLine()) != null) {
+          log.info(line);
+        }
+      }
+ catch (      IOException ex) {
+        log.error("Error reading from Tomcat process",ex);
+        return;
+      }
+    }
+  }
+).start();
+  return p;
+}
