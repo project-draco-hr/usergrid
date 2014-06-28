@@ -1,0 +1,12 @@
+{
+  LOG.info("USERNAME: {}",username);
+  LOG.info("MODULE_GROUPID: {}",groupId);
+  LOG.info("MODULE_ARTIFACTID: {}",artifactId);
+  LOG.info("MODULE_VERSION: {}",version);
+  LOG.info("COMMIT_ID: {}",commitId);
+  CoordinatedStack stack=stackCoordinator.findCoordinatedStack(commitId,artifactId,groupId,version,username);
+  if (stack.getSetupState().accepts(SetupStackSignal.COMPLETE)) {
+    stack.setSetupState(SetupStackSignal.COMPLETE);
+  }
+  return Response.status(Response.Status.OK).entity(stack.getSetupState()).build();
+}
