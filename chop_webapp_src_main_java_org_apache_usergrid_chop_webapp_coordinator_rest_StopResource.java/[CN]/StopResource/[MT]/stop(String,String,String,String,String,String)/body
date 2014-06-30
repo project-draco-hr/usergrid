@@ -14,7 +14,7 @@
   if (inTestMode(testMode)) {
     return Response.status(Response.Status.CREATED).entity(status).type(MediaType.APPLICATION_JSON).build();
   }
-  if (!status.equals(SetupStackState.Running)) {
+  if (!status.equals(SetupStackState.SetUp)) {
     return Response.status(Response.Status.OK).entity("Stack is " + status.toString() + ", cannot stop tests.").type(MediaType.APPLICATION_JSON).build();
   }
   LOG.info("Stack is set up, checking runner states...");
@@ -51,7 +51,5 @@
     sb.append(notStopped).append(" out of ").append(runningRunners.size()).append(" running runners could not be stopped.");
     return Response.status(Response.Status.OK).entity(sb.toString()).type(MediaType.APPLICATION_JSON).build();
   }
-  CoordinatedStack stack=stackCoordinator.findCoordinatedStack(commitId,artifactId,groupId,version,user);
-  stack.setSetupState(SetupStackSignal.STOP);
   return Response.status(Response.Status.CREATED).entity("All running runners have been stopped.").type(MediaType.APPLICATION_JSON).build();
 }
