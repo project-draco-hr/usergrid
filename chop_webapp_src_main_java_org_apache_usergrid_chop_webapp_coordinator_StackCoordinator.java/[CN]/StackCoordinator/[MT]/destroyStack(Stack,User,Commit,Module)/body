@@ -5,16 +5,17 @@
     return;
   }
 synchronized (coordinatedStack) {
-    if (coordinatedStack.getSetupState() != SetupStackState.SetUp) {
+    if (!coordinatedStack.getSetupState().accepts(SetupStackSignal.DESTROY)) {
       LOG.info("Stack is in {} state, will not destroy.",coordinatedStack.getSetupState().toString());
       return;
     }
     LOG.info("Starting to destroy stack instances of {}...",stack.getName());
-    coordinatedStack.setSetupState(SetupStackState.Destroying);
+    coordinatedStack.setSetupState(SetupStackSignal.DESTROY);
     StackDestroyer destroyer=new StackDestroyer(coordinatedStack);
     destroyer.destroy();
     registeredStacks.remove(coordinatedStack.hashCode());
     setupStackThreads.remove(coordinatedStack);
+    coordinatedStack.setSetupState(SetupStackSignal.COMPLETE);
     coordinatedStack.notifyAll();
   }
 }
