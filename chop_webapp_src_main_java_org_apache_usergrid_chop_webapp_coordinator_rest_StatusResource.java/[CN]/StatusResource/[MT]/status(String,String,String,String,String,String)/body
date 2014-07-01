@@ -1,0 +1,15 @@
+{
+  if (inTestMode(testMode)) {
+    LOG.info("Calling /status in test mode ...");
+    LOG.info("  Commit Id: {}",commitId);
+    LOG.info("  Group Id: {}",groupId);
+    LOG.info("  Artifact Id: {}",artifactId);
+    LOG.info("  Version: {}",version);
+    LOG.info("  User: {}",user);
+  }
+ else {
+    LOG.info("Calling /status");
+  }
+  SetupStackState status=stackCoordinator.stackStatus(commitId,artifactId,groupId,version,user);
+  return Response.status(Response.Status.CREATED).entity("Current state: " + status).type(MediaType.APPLICATION_JSON).build();
+}
