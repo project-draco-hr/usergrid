@@ -1,0 +1,18 @@
+{
+  final long delta=10000;
+  Shard firstShard=new Shard(1000,10000,false);
+  Shard secondShard=new Shard(999,9000,false);
+  Shard compactedShard1=new Shard(900,8000,true);
+  ShardEntryGroup shardEntryGroup=new ShardEntryGroup(delta);
+  boolean result=shardEntryGroup.addShard(firstShard);
+  assertTrue("Shard added",result);
+  result=shardEntryGroup.addShard(secondShard);
+  assertTrue(" Shard added",result);
+  result=shardEntryGroup.addShard(compactedShard1);
+  assertTrue("Shard added",result);
+  Collection<Shard> readShards=shardEntryGroup.getReadShards();
+  assertEquals("Shard size correct",3,readShards.size());
+  assertTrue("First shard present",readShards.contains(firstShard));
+  assertTrue("Second shard present",readShards.contains(firstShard));
+  assertTrue("Third shard present",readShards.contains(firstShard));
+}

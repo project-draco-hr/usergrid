@@ -1,0 +1,22 @@
+{
+  ValidationUtils.validateApplicationScope(scope);
+  GraphValidation.validateEdge(markedEdge);
+  ValidationUtils.verifyTimeUuid(timestamp,"timestamp");
+  final MutationBatch batch=keyspace.prepareMutationBatch().withConsistencyLevel(cassandraConfig.getWriteCL()).withTimestamp(timestamp.timestamp());
+  final boolean isDeleted=markedEdge.isDeleted();
+  doWrite(columnFamilies,scope,markedEdge,new RowOp<RowKey>(){
+    @Override public void writeEdge(    final MultiTennantColumnFamily<ApplicationScope,RowKey,DirectedEdge> columnFamily,    final RowKey rowKey,    final DirectedEdge edge){
+      batch.withRow(columnFamily,ScopedRowKey.fromKey(scope,rowKey)).putColumn(edge,isDeleted);
+    }
+    @Override public void countEdge(    final Shard shard,    final DirectedEdgeMeta directedEdgeMeta){
+      if (!isDeleted) {
+        writeEdgeShardStrategy.increment(scope,shard,1,directedEdgeMeta);
+      }
+    }
+    @Override public void writeVersion(    final MultiTennantColumnFamily<ApplicationScope,EdgeRowKey,Long> columnFamily,    final EdgeRowKey rowKey,    final long timestamp){
+      batch.withRow(columnFamily,ScopedRowKey.fromKey(scope,rowKey)).putColumn(timestamp,isDeleted);
+    }
+  }
+);
+  return batch;
+}

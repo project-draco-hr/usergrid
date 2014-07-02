@@ -1,0 +1,15 @@
+{
+  final CacheKey key=notification.getKey();
+  final CacheEntry entry=notification.getValue();
+  Iterator<ShardEntryGroup> groups=entry.getShards(Long.MAX_VALUE);
+  while (groups.hasNext()) {
+    ShardEntryGroup group=groups.next();
+    if (!group.isCompactionPending()) {
+      LOG.debug("No compaction pending, checking max shard on expiration");
+      nodeShardAllocation.auditShard(key.scope,group,key.directedEdgeMeta);
+      continue;
+    }
+    if (group.shouldCompact(timeservice.getCurrentTime())) {
+    }
+  }
+}

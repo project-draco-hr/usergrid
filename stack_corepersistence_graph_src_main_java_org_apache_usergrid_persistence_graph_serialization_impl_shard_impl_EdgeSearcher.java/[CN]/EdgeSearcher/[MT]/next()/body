@@ -1,0 +1,9 @@
+{
+  Collection<Shard> readShards=shards.next().getReadShards();
+  List<ScopedRowKey<ApplicationScope,R>> rowKeys=new ArrayList<>(readShards.size());
+  for (  Shard shard : readShards) {
+    final ScopedRowKey<ApplicationScope,R> rowKey=ScopedRowKey.fromKey(scope,generateRowKey(shard.getShardIndex()));
+    rowKeys.add(rowKey);
+  }
+  return rowKeys;
+}

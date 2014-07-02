@@ -1,16 +1,27 @@
 {
   final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
+  final EdgeColumnFamilies edgeColumnFamilies=mock(EdgeColumnFamilies.class);
+  final ShardedEdgeSerialization shardedEdgeSerialization=mock(ShardedEdgeSerialization.class);
   final NodeShardApproximation nodeShardApproximation=mock(NodeShardApproximation.class);
   final TimeService timeService=mock(TimeService.class);
-  final Keyspace keyspace=mock(Keyspace.class);
+  when(timeService.getCurrentTime()).thenReturn(10000l);
   final MutationBatch batch=mock(MutationBatch.class);
-  when(keyspace.prepareMutationBatch()).thenReturn(batch);
-  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,nodeShardApproximation,timeService,graphFig);
+  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeColumnFamilies,shardedEdgeSerialization,nodeShardApproximation,timeService,graphFig);
   final Id nodeId=createId("test");
   final String type="type";
   final String subType="subType";
-  when(edgeShardSerialization.getEdgeMetaData(same(scope),same(nodeId),any(Optional.class),same(type),same(subType))).thenReturn(Collections.<Long>emptyList().iterator());
-  final Iterator<Long> result=approximation.getShards(scope,nodeId,Optional.<Long>absent(),type,subType);
-  assertEquals("0 shard allocated",0l,result.next().longValue());
-  assertFalse("No shard allocated",result.hasNext());
+  final DirectedEdgeMeta directedEdgeMeta=DirectedEdgeMeta.fromTargetNodeSourceType(nodeId,type,subType);
+  when(edgeShardSerialization.getShardMetaData(same(scope),any(Optional.class),same(directedEdgeMeta))).thenReturn(Collections.<Shard>emptyList().iterator());
+  ArgumentCaptor<Shard> shardArgumentCaptor=ArgumentCaptor.forClass(Shard.class);
+  when(edgeShardSerialization.writeShardMeta(same(scope),shardArgumentCaptor.capture(),same(directedEdgeMeta))).thenReturn(batch);
+  final Iterator<ShardEntryGroup> result=approximation.getShards(scope,Optional.<Shard>absent(),directedEdgeMeta);
+  ShardEntryGroup shardEntryGroup=result.next();
+  final Shard rootShard=new Shard(0,0,true);
+  assertEquals("Shard size expected",1,shardEntryGroup.entrySize());
+  assertEquals("Root shard was persisted",rootShard,shardArgumentCaptor.getValue());
+  Collection<Shard> writeShards=shardEntryGroup.getWriteShards(timeService.getCurrentTime());
+  Collection<Shard> readShards=shardEntryGroup.getReadShards();
+  assertTrue("root shard allocated",writeShards.contains(rootShard));
+  assertTrue("root shard allocated",readShards.contains(rootShard));
+  assertFalse("No other shard group allocated",result.hasNext());
 }

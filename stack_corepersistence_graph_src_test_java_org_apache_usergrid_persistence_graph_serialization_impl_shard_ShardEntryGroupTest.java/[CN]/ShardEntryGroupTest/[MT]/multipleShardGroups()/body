@@ -1,0 +1,19 @@
+{
+  final long delta=10000;
+  Shard firstShard=new Shard(1000,10000,false);
+  Shard secondShard=new Shard(999,9000,false);
+  Shard compactedShard1=new Shard(900,8000,true);
+  Shard compactedShard2=new Shard(800,7000,true);
+  ShardEntryGroup shardEntryGroup=new ShardEntryGroup(delta);
+  boolean result=shardEntryGroup.addShard(firstShard);
+  assertTrue("Shard added",result);
+  result=shardEntryGroup.addShard(secondShard);
+  assertTrue(" Shard added",result);
+  result=shardEntryGroup.addShard(compactedShard1);
+  assertTrue("Shard added",result);
+  result=shardEntryGroup.addShard(compactedShard2);
+  assertFalse("Shouldn't add since it's compacted",result);
+  ShardEntryGroup secondGroup=new ShardEntryGroup(delta);
+  result=secondGroup.addShard(compactedShard2);
+  assertTrue("Added successfully",result);
+}

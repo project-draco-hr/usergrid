@@ -1,0 +1,32 @@
+{
+  final long delta=10000;
+  Shard firstShard=new Shard(1000,10000,false);
+  Shard secondShard=new Shard(999,9000,false);
+  Shard compactedShard=new Shard(900,8000,true);
+  ShardEntryGroup shardEntryGroup=new ShardEntryGroup(delta);
+  boolean result=shardEntryGroup.addShard(firstShard);
+  assertTrue("Shard added",result);
+  result=shardEntryGroup.addShard(secondShard);
+  assertTrue(" Shard added",result);
+  result=shardEntryGroup.addShard(compactedShard);
+  assertTrue("Shard added",result);
+  Collection<Shard> writeShards=shardEntryGroup.getWriteShards(firstShard.getCreatedTime() + delta);
+  assertEquals("Shard size correct",3,writeShards.size());
+  assertTrue("First shard present",writeShards.contains(firstShard));
+  assertTrue("Second shard present",writeShards.contains(secondShard));
+  assertTrue("Third shard present",writeShards.contains(compactedShard));
+  writeShards=shardEntryGroup.getWriteShards(secondShard.getCreatedTime() + delta);
+  assertEquals("Shard size correct",3,writeShards.size());
+  assertTrue("First shard present",writeShards.contains(firstShard));
+  assertTrue("Second shard present",writeShards.contains(secondShard));
+  assertTrue("Third shard present",writeShards.contains(compactedShard));
+  writeShards=shardEntryGroup.getWriteShards(secondShard.getCreatedTime() + 1 + delta);
+  assertEquals("Shard size correct",3,writeShards.size());
+  assertTrue("First shard present",writeShards.contains(firstShard));
+  assertTrue("Second shard present",writeShards.contains(secondShard));
+  assertTrue("Third shard present",writeShards.contains(compactedShard));
+  assertEquals("Compaction target correct",secondShard,shardEntryGroup.getCompactionTarget());
+  writeShards=shardEntryGroup.getWriteShards(firstShard.getCreatedTime() + 1 + delta);
+  assertEquals("Shard size correct",1,writeShards.size());
+  assertTrue("Second shard present",writeShards.contains(secondShard));
+}

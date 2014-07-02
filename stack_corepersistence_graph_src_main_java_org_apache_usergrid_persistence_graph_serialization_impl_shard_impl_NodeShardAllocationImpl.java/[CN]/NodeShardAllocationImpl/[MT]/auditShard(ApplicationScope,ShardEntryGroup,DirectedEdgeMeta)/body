@@ -1,0 +1,35 @@
+{
+  ValidationUtils.validateApplicationScope(scope);
+  GraphValidation.validateShardEntryGroup(shardEntryGroup);
+  GraphValidation.validateDirectedEdgeMeta(directedEdgeMeta);
+  Preconditions.checkNotNull(shardEntryGroup,"shardEntryGroup cannot be null");
+  if (shardEntryGroup.isCompactionPending()) {
+    return false;
+  }
+  if (shardEntryGroup.entrySize() != 1) {
+    return false;
+  }
+  final Shard shard=shardEntryGroup.getMinShard();
+  if (shard.getCreatedTime() >= getMinTime()) {
+    return false;
+  }
+  final long count=nodeShardApproximation.getCount(scope,shard,directedEdgeMeta);
+  if (count < graphFig.getShardSize()) {
+    return false;
+  }
+  final Iterator<MarkedEdge> edges=directedEdgeMeta.loadEdges(shardedEdgeSerialization,edgeColumnFamilies,scope,shardEntryGroup,Long.MAX_VALUE);
+  if (!edges.hasNext()) {
+    LOG.warn("Tried to allocate a new shard for edge meta data {}, " + "but no max value could be found in that row",directedEdgeMeta);
+    return false;
+  }
+  MarkedEdge marked=edges.next();
+  final long createTimestamp=timeService.getCurrentTime();
+  final Shard newShard=new Shard(marked.getTimestamp(),createTimestamp,false);
+  try {
+    this.edgeShardSerialization.writeShardMeta(scope,newShard,directedEdgeMeta).execute();
+  }
+ catch (  ConnectionException e) {
+    throw new GraphRuntimeException("Unable to write the new edge metadata");
+  }
+  return true;
+}

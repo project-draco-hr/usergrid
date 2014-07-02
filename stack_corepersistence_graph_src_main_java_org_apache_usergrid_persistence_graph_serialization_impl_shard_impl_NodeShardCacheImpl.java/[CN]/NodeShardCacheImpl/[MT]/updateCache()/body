@@ -1,9 +1,3 @@
 {
-  this.graphs=CacheBuilder.newBuilder().maximumSize(graphFig.getShardCacheSize()).expireAfterWrite(graphFig.getShardCacheSize(),TimeUnit.MILLISECONDS).build(new CacheLoader<CacheKey,CacheEntry>(){
-    @Override public CacheEntry load(    final CacheKey key) throws Exception {
-      final Iterator<Long> edges=nodeShardAllocation.getShards(key.scope,key.id,Optional.<Long>absent(),key.types);
-      return new CacheEntry(edges);
-    }
-  }
-);
+  this.graphs=CacheBuilder.newBuilder().expireAfterWrite(graphFig.getShardCacheSize(),TimeUnit.MILLISECONDS).removalListener(new ShardRemovalListener()).maximumWeight(MAX_WEIGHT_PER_ELEMENT * graphFig.getShardCacheSize()).weigher(new ShardWeigher()).build(new ShardCacheLoader());
 }

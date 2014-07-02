@@ -1,0 +1,31 @@
+{
+  final GraphFig graphFig=mock(GraphFig.class);
+  final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
+  final EdgeColumnFamilies edgeColumnFamilies=mock(EdgeColumnFamilies.class);
+  final ShardedEdgeSerialization shardedEdgeSerialization=mock(ShardedEdgeSerialization.class);
+  final NodeShardApproximation nodeShardApproximation=mock(NodeShardApproximation.class);
+  final TimeService timeService=mock(TimeService.class);
+  final long time=100000l;
+  when(timeService.getCurrentTime()).thenReturn(time);
+  final long cacheTimeout=30000l;
+  when(graphFig.getShardCacheTimeout()).thenReturn(30000l);
+  final long tooSmallDelta=(long)((cacheTimeout * 2) * .99);
+  when(graphFig.getShardMinDelta()).thenReturn(tooSmallDelta);
+  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeColumnFamilies,shardedEdgeSerialization,nodeShardApproximation,timeService,graphFig);
+  try {
+    approximation.getMinTime();
+    fail("Should have thrown a GraphRuntimeException");
+  }
+ catch (  GraphRuntimeException gre) {
+  }
+  final long minDelta=cacheTimeout * 2;
+  when(graphFig.getShardMinDelta()).thenReturn(minDelta);
+  long returned=approximation.getMinTime();
+  long expectedReturned=time - minDelta;
+  assertEquals(expectedReturned,returned);
+  final long delta=cacheTimeout * 4;
+  when(graphFig.getShardMinDelta()).thenReturn(delta);
+  returned=approximation.getMinTime();
+  expectedReturned=time - delta;
+  assertEquals(expectedReturned,returned);
+}

@@ -1,0 +1,13 @@
+{
+  final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
+  final EdgeColumnFamilies edgeColumnFamilies=mock(EdgeColumnFamilies.class);
+  final ShardedEdgeSerialization shardedEdgeSerialization=mock(ShardedEdgeSerialization.class);
+  final NodeShardApproximation nodeShardCounterSerialization=mock(NodeShardApproximation.class);
+  final TimeService timeService=mock(TimeService.class);
+  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeColumnFamilies,shardedEdgeSerialization,nodeShardCounterSerialization,timeService,graphFig);
+  final long timeservicetime=System.currentTimeMillis();
+  when(timeService.getCurrentTime()).thenReturn(timeservicetime);
+  final long expected=timeservicetime - 2 * graphFig.getShardCacheTimeout();
+  final long returned=approximation.getMinTime();
+  assertEquals("Correct time was returned",expected,returned);
+}

@@ -4,9 +4,8 @@
   for (  Map.Entry<ShardKey,AtomicLong> entry : counter.getEntries()) {
     final ShardKey key=entry.getKey();
     final long value=entry.getValue().get();
-    final EdgeRowKey edgeRowKey=new EdgeRowKey(key.getNodeId(),key.getEdgeTypes());
-    final ScopedRowKey rowKey=ScopedRowKey.fromKey(key.getScope(),edgeRowKey);
-    batch.withRow(EDGE_SHARD_COUNTS,rowKey).incrementCounterColumn(key.getShardId(),value);
+    final ScopedRowKey rowKey=ScopedRowKey.fromKey(key.scope,key);
+    batch.withRow(EDGE_SHARD_COUNTS,rowKey).incrementCounterColumn(true,value);
   }
   return batch;
 }
