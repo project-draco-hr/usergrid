@@ -1,0 +1,12 @@
+{
+  AtomicLong counter=counts.get(key);
+  if (counter == null) {
+    counter=new AtomicLong();
+    AtomicLong existingCounter=counts.putIfAbsent(key,counter);
+    if (existingCounter != null) {
+      counter=existingCounter;
+    }
+  }
+  counter.addAndGet(count);
+  invokeCounter.incrementAndGet();
+}

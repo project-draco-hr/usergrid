@@ -1,0 +1,15 @@
+{
+  final ShardKey key=new ShardKey(scope,nodeId,shardId,edgeType);
+  readLock.lock();
+  long count;
+  try {
+    count=currentCounter.get(key);
+    if (flushPending != null) {
+      count+=flushPending.get(key);
+    }
+  }
+  finally {
+    readLock.unlock();
+  }
+  return count + nodeShardCounterSerialization.getCount(key);
+}

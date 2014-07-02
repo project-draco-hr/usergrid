@@ -9,7 +9,9 @@
       batch.withRow(columnFamily,ScopedRowKey.fromKey(scope,rowKey)).putColumn(edge,isDeleted);
     }
     @Override public void countEdge(    final Id rowId,    final long shardId,    final String... types){
-      edgeShardStrategy.increment(scope,rowId,shardId,1l,types);
+      if (!isDeleted) {
+        edgeShardStrategy.increment(scope,rowId,shardId,1l,types);
+      }
     }
     @Override public void writeVersion(    final MultiTennantColumnFamily<ApplicationScope,EdgeRowKey,Long> columnFamily,    final EdgeRowKey rowKey,    final long timestamp){
       batch.withRow(columnFamily,ScopedRowKey.fromKey(scope,rowKey)).putColumn(timestamp,isDeleted);

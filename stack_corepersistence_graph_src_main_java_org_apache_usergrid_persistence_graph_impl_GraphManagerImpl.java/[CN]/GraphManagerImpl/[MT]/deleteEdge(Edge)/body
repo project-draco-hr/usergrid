@@ -4,7 +4,7 @@
   return Observable.from(markedEdge).subscribeOn(Schedulers.io()).map(new Func1<MarkedEdge,Edge>(){
     @Override public Edge call(    final MarkedEdge edge){
       final UUID timestamp=UUIDGenerator.newTimeUUID();
-      final MutationBatch edgeMutation=commitLogSerialization.writeEdge(scope,edge,timestamp);
+      final MutationBatch edgeMutation=storageEdgeSerialization.writeEdge(scope,edge,timestamp);
       try {
         LOG.debug("Marking edge {} as deleted to commit log",edge);
         edgeMutation.execute();
