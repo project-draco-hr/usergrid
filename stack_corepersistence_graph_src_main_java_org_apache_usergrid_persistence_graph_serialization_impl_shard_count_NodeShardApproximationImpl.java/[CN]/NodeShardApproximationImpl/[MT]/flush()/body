@@ -1,23 +1,29 @@
 {
-  final Counter toFlush;
   writeLockLock.lock();
   try {
-    toFlush=currentCounter;
+    flushPending=currentCounter;
     currentCounter=new Counter();
   }
   finally {
     writeLockLock.unlock();
   }
-  final MutationBatch batch=nodeShardCounterSerialization.flush(toFlush);
+  final MutationBatch batch=nodeShardCounterSerialization.flush(flushPending);
   new HystrixCommand(HystrixCassandra.ASYNC_GROUP){
     @Override protected Void run() throws Exception {
       batch.execute();
       return null;
     }
     @Override protected Object getFallback(){
-      currentCounter.merge(toFlush);
+      currentCounter.merge(flushPending);
       return null;
     }
   }
 .execute();
+  writeLockLock.lock();
+  try {
+    flushPending=null;
+  }
+  finally {
+    writeLockLock.unlock();
+  }
 }

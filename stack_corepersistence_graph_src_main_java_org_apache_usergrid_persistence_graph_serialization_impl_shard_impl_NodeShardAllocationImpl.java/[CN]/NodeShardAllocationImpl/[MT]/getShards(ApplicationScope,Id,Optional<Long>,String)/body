@@ -1,32 +1,6 @@
 {
   final Iterator<Long> existingShards=edgeShardSerialization.getEdgeMetaData(scope,nodeId,maxShardId,edgeTypes);
   final PushbackIterator<Long> pushbackIterator=new PushbackIterator(existingShards);
-  final long now=timeService.getCurrentTime();
-  final List<Long> futures=new ArrayList<Long>();
-  while (pushbackIterator.hasNext()) {
-    final Long value=pushbackIterator.next();
-    if (now >= value) {
-      pushbackIterator.pushback(value);
-      break;
-    }
-    futures.add(value);
-  }
-  MutationBatch cleanup=keyspace.prepareMutationBatch();
-  for (int i=0; i < futures.size() - 1; i++) {
-    final long toRemove=futures.get(i);
-    final MutationBatch batch=edgeShardSerialization.removeEdgeMeta(scope,nodeId,toRemove,edgeTypes);
-    cleanup.mergeShallow(batch);
-  }
-  try {
-    cleanup.execute();
-  }
- catch (  ConnectionException e) {
-    throw new GraphRuntimeException("Unable to remove future shards, mutation error",e);
-  }
-  final int futuresSize=futures.size();
-  if (futuresSize > 0) {
-    pushbackIterator.pushback(futures.get(futuresSize - 1));
-  }
   if (!pushbackIterator.hasNext()) {
     pushbackIterator.pushback(0l);
   }
