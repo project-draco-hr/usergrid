@@ -5,17 +5,25 @@
   CollectionScope targetScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(connectedEntityRef.getType()));
   EntityCollectionManager targetEcm=managerCache.getEntityCollectionManager(targetScope);
   if (logger.isDebugEnabled()) {
-    logger.debug("Loading connection target entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{connectedEntityRef.getType(),connectedEntityRef.getUuid(),targetScope.getApplication(),targetScope.getOwner(),targetScope.getName()});
+    logger.debug("createConnection(): " + "Indexing connection type '{}'\n   from source {}:{}]\n" + "   to target {}:{}\n   from scope\n   app {}\n   owner {}\n   name {}",new Object[]{connectionType,headEntity.getType(),headEntity.getUuid(),connectedEntityRef.getType(),connectedEntityRef.getUuid(),targetScope.getApplication(),targetScope.getOwner(),targetScope.getName()});
   }
   org.apache.usergrid.persistence.model.entity.Entity targetEntity=targetEcm.load(new SimpleId(connectedEntityRef.getUuid(),connectedEntityRef.getType())).toBlockingObservable().last();
-  Edge edge=new SimpleEdge(cpHeadEntity.getId(),connectionType,targetEntity.getId(),System.currentTimeMillis());
+  String edgeType=CpRelationManager.getEdgeTypeFromConnectionType(connectionType,connectedEntityRef.getType());
+  if (logger.isDebugEnabled()) {
+    logger.debug("createConnection(): " + "Creating edge type {} \n   from {}:{}\n   to {}:{}\n   in scope {}",new Object[]{edgeType,headEntity.getType(),headEntity.getUuid(),connectedEntityRef.getType(),connectedEntityRef.getUuid(),applicationScope.getApplication()});
+  }
+  Edge edge=new SimpleEdge(cpHeadEntity.getId(),edgeType,targetEntity.getId(),System.currentTimeMillis());
   GraphManager gm=managerCache.getGraphManager(applicationScope);
   gm.writeEdge(edge).toBlockingObservable().last();
-  IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),CpEntityManager.getCollectionScopeNameFromEntityType(connectionType));
+  IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),CpEntityManager.getConnectionScopeName(connectedEntityRef.getType(),connectionType));
   EntityIndex ei=managerCache.getEntityIndex(indexScope);
   ei.index(targetEntity);
   IndexScope allTypesIndexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),ALL_TYPES);
   EntityIndex aei=managerCache.getEntityIndex(allTypesIndexScope);
   aei.index(targetEntity);
+  Keyspace ko=cass.getApplicationKeyspace(applicationId);
+  Mutator<ByteBuffer> m=createMutator(ko,be);
+  batchUpdateEntityConnection(m,false,connection,UUIDGenerator.newTimeUUID());
+  batchExecute(m,CassandraService.RETRY_COUNT);
   return connection;
 }

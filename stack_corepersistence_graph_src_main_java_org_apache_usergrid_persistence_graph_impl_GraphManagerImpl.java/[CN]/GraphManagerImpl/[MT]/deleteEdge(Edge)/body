@@ -1,11 +1,10 @@
 {
   EdgeUtils.validateEdge(edge);
   final MarkedEdge markedEdge=new SimpleMarkedEdge(edge,true);
-  return HystrixObservable.user(Observable.from(markedEdge).subscribeOn(Schedulers.io()).map(new Func1<MarkedEdge,Edge>(){
+  return Observable.from(markedEdge).subscribeOn(Schedulers.io()).map(new Func1<MarkedEdge,Edge>(){
     @Override public Edge call(    final MarkedEdge edge){
       final UUID timestamp=UUIDGenerator.newTimeUUID();
-      final MutationBatch edgeMutation=commitLogSerialization.writeEdge(scope,edge,timestamp);
-      final AsynchronousMessage<EdgeDeleteEvent> event=edgeDeleteAsyncProcessor.setVerification(new EdgeDeleteEvent(scope,timestamp,edge),getTimeout());
+      final MutationBatch edgeMutation=storageEdgeSerialization.writeEdge(scope,edge,timestamp);
       try {
         LOG.debug("Marking edge {} as deleted to commit log",edge);
         edgeMutation.execute();
@@ -13,9 +12,9 @@
  catch (      ConnectionException e) {
         throw new RuntimeException("Unable to connect to cassandra",e);
       }
-      edgeDeleteAsyncProcessor.start(event);
+      edgeDeleteListener.receive(scope,markedEdge,timestamp).subscribeOn(Schedulers.io()).subscribe(edgeDeleteSubcriber);
       return edge;
     }
   }
-));
+);
 }

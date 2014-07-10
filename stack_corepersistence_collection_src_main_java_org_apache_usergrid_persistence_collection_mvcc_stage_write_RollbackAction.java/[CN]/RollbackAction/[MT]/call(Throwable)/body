@@ -1,29 +1,32 @@
 {
   if (t instanceof CollectionRuntimeException) {
     CollectionRuntimeException cre=(CollectionRuntimeException)t;
-    final Entity entity=cre.getEntity();
+    final MvccEntity mvccEntity=cre.getEntity();
     final CollectionScope scope=cre.getCollectionScope();
     MutationBatch rollbackMb=null;
-    for (    final Field field : entity.getFields()) {
-      if (field.isUnique()) {
-        UniqueValue toDelete=new UniqueValueImpl(scope,field,entity.getId(),entity.getVersion());
-        MutationBatch deleteMb=uniqueValueStrat.delete(toDelete);
-        if (rollbackMb == null) {
-          rollbackMb=deleteMb;
-        }
+    final Optional<Entity> entity=mvccEntity.getEntity();
+    if (entity.isPresent()) {
+      for (      final Field field : entity.get().getFields()) {
+        if (field.isUnique()) {
+          UniqueValue toDelete=new UniqueValueImpl(scope,field,entity.get().getId(),mvccEntity.getVersion());
+          MutationBatch deleteMb=uniqueValueStrat.delete(toDelete);
+          if (rollbackMb == null) {
+            rollbackMb=deleteMb;
+          }
  else {
-          rollbackMb.mergeShallow(deleteMb);
+            rollbackMb.mergeShallow(deleteMb);
+          }
         }
       }
-    }
-    if (rollbackMb != null) {
-      try {
-        rollbackMb.execute();
+      if (rollbackMb != null) {
+        try {
+          rollbackMb.execute();
+        }
+ catch (        ConnectionException ex) {
+          throw new RuntimeException("Error rolling back changes",ex);
+        }
       }
- catch (      ConnectionException ex) {
-        throw new RuntimeException("Error rolling back changes",ex);
-      }
+      logEntryStrat.delete(scope,entity.get().getId(),mvccEntity.getVersion());
     }
-    logEntryStrat.delete(scope,entity.getId(),entity.getVersion());
   }
 }

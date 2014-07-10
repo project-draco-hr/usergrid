@@ -1,0 +1,29 @@
+{
+  Collection<Class<?>> testClasses=new LinkedList<Class<?>>();
+  testClasses.addAll(iterationChopClasses);
+  testClasses.addAll(timeChopClasses);
+  for (  Class<?> iterationTest : testClasses) {
+    LOG.info("Scanning test class {} for annotations",iterationTest.getName());
+    for (    Field f : iterationTest.getDeclaredFields()) {
+      if (f.getType().isAssignableFrom(ICoordinatedCluster.class)) {
+        for (        Annotation annotation : f.getDeclaredAnnotations()) {
+          if (annotation.annotationType().equals(ChopCluster.class)) {
+            String clusterName=((ChopCluster)annotation).name();
+            ICoordinatedCluster cluster;
+            if (!clusterMap.containsKey(clusterName) || (cluster=clusterMap.get(clusterName)) == null) {
+              LOG.warn("No clusters found with name: {}",clusterName);
+              continue;
+            }
+            try {
+              LOG.info("Setting cluster {} on {} field",clusterName,f.getName());
+              f.set(null,cluster);
+            }
+ catch (            IllegalAccessException e) {
+              LOG.error("Cannot access field {}",f.getName(),e);
+            }
+          }
+        }
+      }
+    }
+  }
+}

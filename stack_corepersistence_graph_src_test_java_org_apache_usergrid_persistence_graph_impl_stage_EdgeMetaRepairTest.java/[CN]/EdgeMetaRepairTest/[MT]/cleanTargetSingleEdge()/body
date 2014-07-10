@@ -2,13 +2,13 @@
   MarkedEdge edge=createEdge("source","test","target");
   storageEdgeSerialization.writeEdge(scope,edge,UUIDGenerator.newTimeUUID()).execute();
   edgeMetadataSerialization.writeEdge(scope,edge).execute();
-  int value=edgeMetaRepair.repairTargets(scope,edge.getTargetNode(),edge.getType(),edge.getTimestamp()).toBlockingObservable().single();
+  int value=edgeMetaRepair.repairTargets(scope,edge.getTargetNode(),edge.getType(),edge.getTimestamp()).toBlocking().single();
   assertEquals("No subtypes removed, edge exists",1,value);
   storageEdgeSerialization.deleteEdge(scope,edge,UUIDGenerator.newTimeUUID()).execute();
-  value=edgeMetaRepair.repairTargets(scope,edge.getTargetNode(),edge.getType(),edge.getTimestamp()).toBlockingObservable().single();
+  value=edgeMetaRepair.repairTargets(scope,edge.getTargetNode(),edge.getType(),edge.getTimestamp()).toBlocking().single();
   assertEquals("Single subtype should be removed",0,value);
-  Iterator<String> edgeTypes=edgeMetadataSerialization.getEdgeTypesToTarget(scope,new SimpleSearchEdgeType(edge.getTargetNode(),null));
+  Iterator<String> edgeTypes=edgeMetadataSerialization.getEdgeTypesToTarget(scope,new SimpleSearchEdgeType(edge.getTargetNode(),null,null));
   assertFalse("No edge types exist",edgeTypes.hasNext());
-  Iterator<String> sourceTypes=edgeMetadataSerialization.getIdTypesToTarget(scope,new SimpleSearchIdType(edge.getTargetNode(),edge.getType(),null));
+  Iterator<String> sourceTypes=edgeMetadataSerialization.getIdTypesToTarget(scope,new SimpleSearchIdType(edge.getTargetNode(),edge.getType(),null,null));
   assertFalse("No edge types exist",sourceTypes.hasNext());
 }

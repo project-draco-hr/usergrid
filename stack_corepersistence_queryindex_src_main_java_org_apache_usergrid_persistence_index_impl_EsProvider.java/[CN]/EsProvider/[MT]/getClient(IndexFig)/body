@@ -3,14 +3,31 @@
     Client newClient=null;
     if (fig.isEmbedded()) {
       int port=AvailablePortFinder.getNextAvailable(2000);
-      Settings settings=ImmutableSettings.settingsBuilder().put("node.http.enabled",true).put("transport.tcp.port",port).put("path.logs","target/elasticsearch/logs_" + port).put("path.data","target/elasticsearch/data_" + port).put("gateway.type","none").put("index.store.type","memory").put("index.number_of_shards",1).put("index.number_of_replicas",1).build();
-      log.info("Starting ElasticSearch embedded with settings: " + settings.getAsMap());
-      Node node=NodeBuilder.nodeBuilder().local(true).settings(settings).node();
+      System.setProperty("EMBEDDED_ES_PORT",port + "");
+      File tempDir;
+      try {
+        tempDir=getTempDirectory();
+      }
+ catch (      Exception ex) {
+        throw new RuntimeException("Fatal error unable to create temp dir, start embedded ElasticSearch",ex);
+      }
+      Settings settings=ImmutableSettings.settingsBuilder().put("node.http.enabled",true).put("transport.tcp.port",port).put("path.logs",tempDir.toString()).put("path.data",tempDir.toString()).put("gateway.type","none").put("index.store.type","memory").put("index.number_of_shards",1).put("index.number_of_replicas",1).build();
+      log.info("-----------------------------------------------------------------------");
+      log.info("Starting ElasticSearch embedded with settings: \n" + settings.getAsMap());
+      log.info("-----------------------------------------------------------------------");
+      Node node=NodeBuilder.nodeBuilder().settings(settings).clusterName(fig.getClusterName()).node();
       newClient=node.client();
     }
  else {
       final String hosts=fig.getHosts();
-      Settings settings=ImmutableSettings.settingsBuilder().put("client.transport.ping_timeout",2000).put("client.transport.nodes_sampler_interval",100).put("http.enabled",false).put("discovery.zen.ping.unicast.hosts",hosts).build();
+      String allHosts="";
+      String SEP="";
+      for (      String host : fig.getHosts().split(",")) {
+        allHosts=SEP + host + ":"+ fig.getPort();
+        SEP=",";
+      }
+      Settings settings=ImmutableSettings.settingsBuilder().put("client.transport.ping_timeout",2000).put("client.transport.nodes_sampler_interval",100).put("http.enabled",false).put("discovery.zen.ping.unicast.hosts",allHosts).build();
+      log.info("Creating ElasticSearch client with settings: " + settings.getAsMap());
       Node node=NodeBuilder.nodeBuilder().settings(settings).clusterName(fig.getClusterName()).client(true).node();
       newClient=node.client();
     }

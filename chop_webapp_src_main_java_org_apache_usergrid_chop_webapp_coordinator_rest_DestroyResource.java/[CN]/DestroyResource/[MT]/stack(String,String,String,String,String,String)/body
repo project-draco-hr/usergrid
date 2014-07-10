@@ -14,9 +14,10 @@
   if (inTestMode(testMode)) {
     return Response.status(Response.Status.CREATED).entity(status).type(MediaType.APPLICATION_JSON).build();
   }
-  if (!status.equals(SetupStackState.SetUp)) {
+  if (!status.accepts(SetupStackSignal.DESTROY)) {
     return Response.status(Response.Status.OK).entity("Stack is " + status.toString() + ", will not destroy.").type(MediaType.APPLICATION_JSON).build();
   }
+  LOG.debug("Stack is {}, destroying... ",status.toString());
   String moduleId=BasicModule.createId(groupId,artifactId,version);
   Collection<Runner> runners=runnerCoordinator.getRunners(user,commitId,moduleId);
   for (  Runner runner : runners) {

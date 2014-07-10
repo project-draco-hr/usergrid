@@ -1,0 +1,30 @@
+{
+  NodeShardCounterSerialization serialization=new TestNodeShardCounterSerialization();
+  final NodeShardApproximation approximation=new NodeShardApproximationImpl(new TestGraphFig(),serialization,new TestTimeService());
+  final int increments=1000000;
+  final int workers=Runtime.getRuntime().availableProcessors() * 2;
+  final Id id=createId("test");
+  final String type="type";
+  final String type2="subType";
+  final long shardId=10000;
+  ExecutorService executor=Executors.newFixedThreadPool(workers);
+  List<Future<Long>> futures=new ArrayList<>(workers);
+  for (int i=0; i < workers; i++) {
+    final Future<Long> future=executor.submit(new Callable<Long>(){
+      @Override public Long call() throws Exception {
+        for (int i=0; i < increments; i++) {
+          approximation.increment(scope,id,shardId,1,type,type2);
+        }
+        return 0l;
+      }
+    }
+);
+    futures.add(future);
+  }
+  for (  Future<Long> future : futures) {
+    future.get();
+  }
+  final long returnedCount=approximation.getCount(scope,id,shardId,type,type2);
+  final long expected=workers * increments;
+  assertEquals(expected,returnedCount);
+}

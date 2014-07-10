@@ -1,0 +1,12 @@
+{
+  Preconditions.checkNotNull(counter,"counter must be specified");
+  final MutationBatch batch=keyspace.prepareMutationBatch();
+  for (  Map.Entry<ShardKey,AtomicLong> entry : counter.getEntries()) {
+    final ShardKey key=entry.getKey();
+    final long value=entry.getValue().get();
+    final EdgeRowKey edgeRowKey=new EdgeRowKey(key.getNodeId(),key.getEdgeTypes());
+    final ScopedRowKey rowKey=ScopedRowKey.fromKey(key.getScope(),edgeRowKey);
+    batch.withRow(EDGE_SHARD_COUNTS,rowKey).incrementCounterColumn(key.getShardId(),value);
+  }
+  return batch;
+}

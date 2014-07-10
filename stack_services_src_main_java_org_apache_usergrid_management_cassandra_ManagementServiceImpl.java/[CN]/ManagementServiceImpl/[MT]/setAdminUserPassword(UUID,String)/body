@@ -4,6 +4,7 @@
   }
   EntityManager em=emf.getEntityManager(smf.getManagementAppId());
   User user=em.get(userId,User.class);
+  em.refreshIndex();
   CredentialsInfo newCredentials=encryptionService.defaultEncryptedCredentials(newPassword,user.getUuid(),smf.getManagementAppId());
   int passwordHistorySize=calculatePasswordHistorySizeForUser(user.getUuid());
   Map<String,CredentialsInfo> credsMap=cast(em.getDictionaryAsMap(user,CREDENTIALS_HISTORY));
@@ -11,7 +12,7 @@
   if (passwordHistorySize > 0) {
     ArrayList<CredentialsInfo> oldCreds=new ArrayList<CredentialsInfo>(credsMap.values());
     Collections.sort(oldCreds);
-    currentCredentials=readUserPasswordCredentials(smf.getManagementAppId(),user.getUuid());
+    currentCredentials=readUserPasswordCredentials(smf.getManagementAppId(),user.getUuid(),user.getType());
     if (encryptionService.verify(newPassword,currentCredentials,userId,smf.getManagementAppId())) {
       throw new RecentlyUsedPasswordException();
     }

@@ -9,27 +9,33 @@
     results=Results.fromIdList(ids);
   }
  else   if (query.getLevel().equals(Level.REFS)) {
-    List<EntityRef> entityRefs=new ArrayList<EntityRef>();
-    Iterator<CandidateResult> iter=crs.iterator();
-    while (iter.hasNext()) {
-      Id id=iter.next().getId();
-      entityRefs.add(new SimpleEntityRef(id.getType(),id.getUuid()));
+    if (crs.size() == 1) {
+      CandidateResult cr=crs.iterator().next();
+      results=Results.fromRef(new SimpleEntityRef(cr.getId().getType(),cr.getId().getUuid()));
     }
-    results=Results.fromRefList(entityRefs);
+ else {
+      List<EntityRef> entityRefs=new ArrayList<EntityRef>();
+      Iterator<CandidateResult> iter=crs.iterator();
+      while (iter.hasNext()) {
+        Id id=iter.next().getId();
+        entityRefs.add(new SimpleEntityRef(id.getType(),id.getUuid()));
+      }
+      results=Results.fromRefList(entityRefs);
+    }
   }
  else {
-    CollectionScope collScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(query.getEntityType()));
-    EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collScope);
-    if (logger.isDebugEnabled()) {
-      logger.debug("Loading entities from scope\n   app {}\n   owner {}\n   name {}",new Object[]{collScope.getApplication(),collScope.getOwner(),collScope.getName()});
-    }
     Map<Id,org.apache.usergrid.persistence.model.entity.Entity> latestVersions=new LinkedHashMap<Id,org.apache.usergrid.persistence.model.entity.Entity>();
     Iterator<CandidateResult> iter=crs.iterator();
     while (iter.hasNext()) {
       CandidateResult cr=iter.next();
+      CollectionScope collScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(cr.getId().getType()));
+      EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collScope);
+      if (logger.isDebugEnabled()) {
+        logger.debug("Loading entity {} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{cr.getId(),collScope.getApplication(),collScope.getOwner(),collScope.getName()});
+      }
       org.apache.usergrid.persistence.model.entity.Entity e=ecm.load(cr.getId()).toBlockingObservable().last();
       if (cr.getVersion().compareTo(e.getVersion()) < 0) {
-        logger.debug("Stale version uuid:{} type:{} v:{}",new Object[]{cr.getId().getUuid(),cr.getId().getType(),cr.getVersion()});
+        logger.debug("Stale version uuid:{} type:{} version:{}",new Object[]{cr.getId().getUuid(),cr.getId().getType(),cr.getVersion()});
         continue;
       }
       org.apache.usergrid.persistence.model.entity.Entity alreadySeen=latestVersions.get(e.getId());
@@ -50,7 +56,12 @@
       entity.addProperties(entityMap);
       entities.add(entity);
     }
-    results=Results.fromEntities(entities);
+    if (entities.size() == 1) {
+      results=Results.fromEntity(entities.get(0));
+    }
+ else {
+      results=Results.fromEntities(entities);
+    }
   }
   results.setCursor(crs.getCursor());
   results.setQueryProcessor(new CpQueryProcessor(em,query,headEntity,collName));

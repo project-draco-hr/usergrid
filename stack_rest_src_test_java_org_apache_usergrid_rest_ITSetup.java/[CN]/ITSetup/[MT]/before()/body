@@ -6,12 +6,14 @@ synchronized (cassandraResource) {
       managementService.setup();
       setupCalled=true;
     }
-    applicationCreator=cassandraResource.getBean(ApplicationCreator.class);
     emf=cassandraResource.getBean(EntityManagerFactory.class);
+    smf=cassandraResource.getBean(ServiceManagerFactory.class);
+    properties=cassandraResource.getBean("properties",Properties.class);
     tokenService=cassandraResource.getBean(TokenService.class);
     providerFactory=cassandraResource.getBean(SignInProviderFactory.class);
-    properties=cassandraResource.getBean("properties",Properties.class);
-    smf=cassandraResource.getBean(ServiceManagerFactory.class);
+    applicationCreator=cassandraResource.getBean(ApplicationCreator.class);
+    tomcatResource.setCassandraPort(cassandraResource.getRpcPort());
+    tomcatResource.setElasticSearchPort(Integer.parseInt(System.getProperty("EMBEDDED_ES_PORT")));
     tomcatResource.before();
     uri=UriBuilder.fromUri("http://localhost/").port(tomcatResource.getPort()).build();
     ready=true;

@@ -4,7 +4,9 @@ synchronized (lock) {
     if (isReady()) {
       return;
     }
-    LOG.info("Initializing Cassandra at {} ...",tempDir.toString());
+    LOG.info("-------------------------------------------------------------------");
+    LOG.info("Initializing Embedded Cassandra at {} ...",tempDir.toString());
+    LOG.info("-------------------------------------------------------------------");
     File newYamlFile=new File(tempDir,"cassandra.yaml");
     URL newYamlUrl=FileUtils.toURLs(new File[]{newYamlFile})[0];
     Yaml yaml=new Yaml();
@@ -26,6 +28,7 @@ synchronized (lock) {
     System.setProperty("log4j.configuration","log4j.properties");
     System.setProperty("cassandra.ring_delay_ms","100");
     System.setProperty("cassandra.config",newYamlUrl.toString());
+    System.setProperty("cassandra.tempName",tempDir.getName());
     while (!AvailablePortFinder.available(rpcPort)) {
       rpcPort++;
     }

@@ -11,18 +11,18 @@
   UserInfo userInfo=setup.getMgmtSvc().getAdminUserByEmail("ed@anuff.com");
   Map<String,String> payload=hashMap("oldpassword",passwords[0]).map("newpassword",passwords[0]);
   try {
-    JsonNode node=resource().path("/management/users/edanuff/password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+    JsonNode node=mapper.readTree(resource().path("/management/users/edanuff/password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
     fail("should fail with conflict");
   }
  catch (  UniformInterfaceException e) {
     assertEquals(409,e.getResponse().getStatus());
   }
   payload.put("newpassword",passwords[1]);
-  JsonNode node=resource().path("/management/users/edanuff/password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+  JsonNode node=mapper.readTree(resource().path("/management/users/edanuff/password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
   payload.put("oldpassword",passwords[1]);
   payload.put("newpassword",passwords[0]);
   try {
-    node=resource().path("/management/users/edanuff/password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+    node=mapper.readTree(resource().path("/management/users/edanuff/password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
     fail("should fail with conflict");
   }
  catch (  UniformInterfaceException e) {

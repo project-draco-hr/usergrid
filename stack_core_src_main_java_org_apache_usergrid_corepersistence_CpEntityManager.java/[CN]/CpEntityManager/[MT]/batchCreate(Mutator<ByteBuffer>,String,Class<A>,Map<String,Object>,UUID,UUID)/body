@@ -13,12 +13,8 @@
   if (importId != null) {
     itemId=importId;
   }
-  boolean emptyPropertyMap=false;
   if (properties == null) {
     properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
-  }
-  if (properties.isEmpty()) {
-    emptyPropertyMap=true;
   }
   if (importId != null) {
     if (isTimeBased(importId)) {
@@ -57,8 +53,7 @@
       }
     }
   }
-  CollectionInfo collection=null;
-  if (emptyPropertyMap) {
+  if (properties.isEmpty()) {
     return null;
   }
   properties.put(PROPERTY_UUID,itemId);
@@ -91,16 +86,16 @@
         event.setProperty(prop_name,propertyValue);
       }
     }
+    counterUtils.addEventCounterMutations(ignored,applicationId,event,timestamp);
+    incrementEntityCollection("events",timestamp);
     return entity;
   }
-  org.apache.usergrid.persistence.model.entity.Entity cpEntity=entityToCpEntity(entity);
+  org.apache.usergrid.persistence.model.entity.Entity cpEntity=entityToCpEntity(entity,importId);
   CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),getCollectionScopeNameFromEntityType(eType));
+  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   if (logger.isDebugEnabled()) {
     logger.debug("Writing entity {}:{} into scope\n   app {}\n   owner {}\n   name {}",new Object[]{entity.getType(),entity.getUuid(),collectionScope.getApplication(),collectionScope.getOwner(),collectionScope.getName()});
   }
-  IndexScope defaultIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),entity.getType());
-  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
-  EntityIndex ei=managerCache.getEntityIndex(defaultIndexScope);
   try {
     cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
   }
@@ -113,6 +108,8 @@ catch (  HystrixRuntimeException hre) {
       handleWriteUniqueVerifyException(entity,wuve);
     }
   }
+  IndexScope defaultIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(entity.getType()));
+  EntityIndex ei=managerCache.getEntityIndex(defaultIndexScope);
   ei.index(cpEntity);
   entity.setUuid(cpEntity.getId().getUuid());
   Map<String,Object> entityMap=CpEntityMapUtils.toMap(cpEntity);
@@ -120,6 +117,7 @@ catch (  HystrixRuntimeException hre) {
   if (!is_application) {
     String collectionName=Schema.defaultCollectionName(eType);
     getRelationManager(getApplication()).addToCollection(collectionName,entity);
+    incrementEntityCollection(collectionName,timestamp);
   }
   return entity;
 }

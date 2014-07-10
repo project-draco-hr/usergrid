@@ -1,17 +1,11 @@
 {
   final MvccLogEntrySerializationStrategy logStrategy=mock(MvccLogEntrySerializationStrategy.class);
   final MutationBatch logMutation=mock(MutationBatch.class);
-  final ConsistencyFig consistencyFig=mock(ConsistencyFig.class);
-  final AsyncProcessorFactory factory=mock(AsyncProcessorFactory.class);
-  final AsyncProcessor<MvccEntityDeleteEvent> processor=mock(AsyncProcessor.class);
-  final SimpleAsynchronousMessage<MvccEntityDeleteEvent> message=mock(SimpleAsynchronousMessage.class);
   final MvccEntitySerializationStrategy mvccEntityStrategy=mock(MvccEntitySerializationStrategy.class);
   final MutationBatch entityMutation=mock(MutationBatch.class);
   final SerializationFig serializationFig=mock(SerializationFig.class);
   final UniqueValueSerializationStrategy uniqueValueSerializationStrategy=mock(UniqueValueSerializationStrategy.class);
   when(logStrategy.write(any(CollectionScope.class),any(MvccLogEntry.class))).thenReturn(logMutation);
   when(mvccEntityStrategy.write(any(CollectionScope.class),any(MvccEntity.class))).thenReturn(entityMutation);
-  when(factory.getProcessor(MvccEntityDeleteEvent.class)).thenReturn(processor);
-  when(processor.setVerification(any(MvccEntityDeleteEvent.class),any(long.class))).thenReturn(message);
-  new MarkCommit(logStrategy,mvccEntityStrategy,uniqueValueSerializationStrategy,factory,consistencyFig,serializationFig).call(event);
+  new MarkCommit(logStrategy,mvccEntityStrategy,uniqueValueSerializationStrategy,serializationFig).call(event);
 }

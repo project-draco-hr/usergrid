@@ -1,6 +1,7 @@
 {
   MvccValidationUtils.verifyMvccEntityWithEntity(ioevent.getEvent());
-  final Entity entity=ioevent.getEvent().getEntity().get();
+  final MvccEntity mvccEntity=ioevent.getEvent();
+  final Entity entity=mvccEntity.getEntity().get();
   final List<Observable<FieldUniquenessResult>> fields=new ArrayList<Observable<FieldUniquenessResult>>();
   for (  final Field field : entity.getFields()) {
     if (field.isUnique()) {
@@ -12,14 +13,14 @@
             mb.execute();
           }
  catch (          ConnectionException ex) {
-            throw new WriteUniqueVerifyException(entity,ioevent.getEntityCollection(),"Error writing unique value " + field.toString(),ex);
+            throw new WriteUniqueVerifyException(mvccEntity,ioevent.getEntityCollection(),"Error writing unique value " + field.toString(),ex);
           }
           UniqueValue loaded;
           try {
             loaded=uniqueValueStrat.load(ioevent.getEntityCollection(),field);
           }
  catch (          ConnectionException ex) {
-            throw new WriteUniqueVerifyException(entity,ioevent.getEntityCollection(),"Error verifying write",ex);
+            throw new WriteUniqueVerifyException(mvccEntity,ioevent.getEntityCollection(),"Error verifying write",ex);
           }
           return new FieldUniquenessResult(field,loaded.getEntityId().equals(written.getEntityId()));
         }
@@ -42,7 +43,7 @@
         }
       }
       if (!uniquenessVioloations.isEmpty()) {
-        throw new WriteUniqueVerifyException(entity,ioevent.getEntityCollection(),uniquenessVioloations);
+        throw new WriteUniqueVerifyException(mvccEntity,ioevent.getEntityCollection(),uniquenessVioloations);
       }
       return ioevent;
     }

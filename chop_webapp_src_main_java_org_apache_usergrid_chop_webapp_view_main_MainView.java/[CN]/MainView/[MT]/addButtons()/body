@@ -1,0 +1,47 @@
+{
+  HorizontalLayout horizontalLayout=new HorizontalLayout();
+  Button modules=new Button("Modules");
+  horizontalLayout.addComponent(modules);
+  modules.addClickListener(new Button.ClickListener(){
+    @Override public void buttonClick(    Button.ClickEvent clickEvent){
+      tabSheetManager.addTabWithVerticalLayout(new ModuleLayout(MainView.this),"Modules");
+    }
+  }
+);
+  Button runners=new Button("Runners");
+  horizontalLayout.addComponent(runners);
+  runners.addClickListener(new Button.ClickListener(){
+    @Override public void buttonClick(    Button.ClickEvent clickEvent){
+      tabSheetManager.addTabWithVerticalLayout(new RunnersLayout(),"Runners");
+    }
+  }
+);
+  Button users=new Button("Users");
+  horizontalLayout.addComponent(users);
+  users.addClickListener(new Button.ClickListener(){
+    @Override public void buttonClick(    Button.ClickEvent clickEvent){
+      UI.getCurrent().addWindow(new UserListWindow(tabSheetManager));
+    }
+  }
+);
+  Button logs=new Button("Logs");
+  horizontalLayout.addComponent(logs);
+  logs.addClickListener(new Button.ClickListener(){
+    @Override public void buttonClick(    Button.ClickEvent clickEvent){
+      tabSheetManager.addTabWithVerticalLayout(new LogLayout(),"Logs");
+    }
+  }
+);
+  Button logout=new Button("Logout");
+  horizontalLayout.addComponent(logout);
+  logout.addClickListener(new Button.ClickListener(){
+    @Override public void buttonClick(    Button.ClickEvent clickEvent){
+      ShiroRealm.logout();
+      redirectToMainView();
+    }
+  }
+);
+  float weight=logout.getHeight();
+  horizontalLayout.setHeight(String.valueOf(weight));
+  return horizontalLayout;
+}

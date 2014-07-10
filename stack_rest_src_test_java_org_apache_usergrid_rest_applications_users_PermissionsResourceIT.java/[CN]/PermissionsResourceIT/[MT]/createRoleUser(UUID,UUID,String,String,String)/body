@@ -1,6 +1,6 @@
 {
   Map<String,String> props=hashMap("email",email).map("username",username).map("name",username).map("password","password");
-  JsonNode node=resource().path(String.format("/%s/%s/users",orgId,appId)).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(JsonNode.class,props);
+  JsonNode node=mapper.readTree(resource().path(String.format("/%s/%s/users",orgId,appId)).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(String.class,props));
   assertNull(getError(node));
   UUID userId=UUID.fromString(getEntity(node,0).get("uuid").asText());
   setup.getMgmtSvc().activateAppUser(appId,userId);

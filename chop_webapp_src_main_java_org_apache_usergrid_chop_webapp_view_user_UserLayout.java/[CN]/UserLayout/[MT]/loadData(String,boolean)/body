@@ -1,0 +1,22 @@
+{
+  if (StringUtils.isEmpty(username)) {
+    deleteButton.setVisible(false);
+    keyListLayout.setVisible(false);
+    return;
+  }
+  User user=userDao.get(username);
+  ProviderParams providerParams=providerParamsDao.getByUser(username);
+  usernameField.setValue(user.getUsername());
+  passwordField.setValue(user.getPassword());
+  if (!hasAuthority) {
+    disableCredentialInformationView();
+  }
+ else {
+    keyListLayout.loadKeys(username);
+    accessKeyField.setValue(providerParams.getAccessKey());
+    imageField.setValue(providerParams.getImageId());
+    instanceTypeField.setValue(providerParams.getInstanceType());
+    secretKeyField.setValue(providerParams.getSecretKey());
+    keyPairNameField.setValue(providerParams.getKeyName());
+  }
+}

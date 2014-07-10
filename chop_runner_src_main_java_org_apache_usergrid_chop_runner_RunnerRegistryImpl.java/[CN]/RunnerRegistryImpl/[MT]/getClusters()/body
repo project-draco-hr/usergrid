@@ -1,0 +1,11 @@
+{
+  if (RunnerConfig.isTestMode()) {
+    return Collections.emptyList();
+  }
+  WebResource resource=Client.create().resource(coordinatorFig.getEndpoint());
+  StringBuilder sb=new StringBuilder();
+  sb.append(coordinatorFig.getUsername()).append("/").append(project.getGroupId()).append("/").append(project.getArtifactId()).append("/").append(project.getVersion()).append("/").append(project.getVcsVersion());
+  return resource.path(coordinatorFig.getPropertiesPath()).path(sb.toString()).type(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).get(new GenericType<List<ICoordinatedCluster>>(){
+  }
+);
+}
