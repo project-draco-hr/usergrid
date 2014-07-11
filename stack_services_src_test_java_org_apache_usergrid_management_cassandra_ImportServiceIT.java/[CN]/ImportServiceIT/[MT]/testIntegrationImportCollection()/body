@@ -1,0 +1,27 @@
+{
+  ExportService exportService=setup.getExportService();
+  S3Export s3Export=new S3ExportImpl();
+  HashMap<String,Object> payload=payloadBuilder();
+  payload.put("organizationId",organization.getUuid());
+  payload.put("applicationId",applicationId);
+  payload.put("collectionName","users");
+  UUID exportUUID=exportService.schedule(payload);
+  JobData jobData=jobExportDataCreator(payload,exportUUID,s3Export);
+  JobExecution jobExecution=mock(JobExecution.class);
+  when(jobExecution.getJobData()).thenReturn(jobData);
+  exportService.doExport(jobExecution);
+  while (!exportService.getState(exportUUID).equals("FINISHED")) {
+    ;
+  }
+  S3Import s3Import=new S3ImportImpl();
+  ImportService importService=setup.getImportService();
+  UUID importUUID=importService.schedule(payload);
+  jobData=jobImportDataCreator(payload,importUUID,s3Import);
+  jobExecution=mock(JobExecution.class);
+  when(jobExecution.getJobData()).thenReturn(jobData);
+  importService.doImport(jobExecution);
+  while (!importService.getState(importUUID).equals("FINISHED")) {
+    ;
+  }
+  assertThat(importService.getEphemeralFile().size(),is(not(0)));
+}

@@ -1,6 +1,16 @@
 {
   LOG.info("in setup");
-  adminUser=setup.getMgmtSvc().createAdminUser("pooja","Pooja Jain","pooja@jain.com","test",false,false);
-  organization=setup.getMgmtSvc().createOrganization("pooja-organization",adminUser,true);
-  applicationId=setup.getMgmtSvc().createApplication(organization.getUuid(),"pooja-application").getId();
+  adminUser=setup.getMgmtSvc().createAdminUser("intern","intern test","intern@test.com","test",false,false);
+  organization=setup.getMgmtSvc().createOrganization("test-organization",adminUser,true);
+  applicationId=setup.getMgmtSvc().createApplication(organization.getUuid(),"test-app").getId();
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  Map<String,Object> userProperties=null;
+  Entity[] entity;
+  entity=new Entity[5];
+  for (int i=0; i < 5; i++) {
+    userProperties=new LinkedHashMap<String,Object>();
+    userProperties.put("username","user" + i);
+    userProperties.put("email","user" + i + "@test.com");
+    entity[i]=em.create("users",userProperties);
+  }
 }
