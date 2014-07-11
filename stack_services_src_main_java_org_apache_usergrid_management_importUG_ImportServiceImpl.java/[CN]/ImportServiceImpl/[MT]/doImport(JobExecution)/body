@@ -1,0 +1,76 @@
+{
+  Map<String,Object> config=(Map<String,Object>)jobExecution.getJobData().getProperty("importInfo");
+  Object s3PlaceHolder=jobExecution.getJobData().getProperty("s3Import");
+  S3Import s3Import=null;
+  if (config == null) {
+    logger.error("Import Information passed through is null");
+    return;
+  }
+  UUID importId=(UUID)jobExecution.getJobData().getProperty(IMPORT_ID);
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  Import importUG=em.get(importId,Import.class);
+  importUG.setState(Import.State.STARTED);
+  em.update(importUG);
+  try {
+    if (s3PlaceHolder != null) {
+      s3Import=(S3Import)s3PlaceHolder;
+    }
+ else {
+      s3Import=new S3ImportImpl();
+    }
+  }
+ catch (  Exception e) {
+    logger.error("S3Import doesn't exist");
+    importUG.setErrorMessage(e.getMessage());
+    importUG.setState(Import.State.FAILED);
+    em.update(importUG);
+    return;
+  }
+  if (config.get("organizationId") == null) {
+    logger.error("No organization could be found");
+    importUG.setState(Import.State.FAILED);
+    em.update(importUG);
+    return;
+  }
+ else   if (config.get("applicationId") == null) {
+    try {
+    }
+ catch (    Exception e) {
+      importUG.setErrorMessage(e.getMessage());
+      importUG.setState(Import.State.FAILED);
+      em.update(importUG);
+      return;
+    }
+  }
+ else   if (config.get("collectionName") == null) {
+    try {
+    }
+ catch (    Exception e) {
+      importUG.setErrorMessage(e.getMessage());
+      importUG.setState(Import.State.FAILED);
+      em.update(importUG);
+      return;
+    }
+  }
+ else {
+    try {
+      try {
+        importCollectionFromOrgApp((UUID)config.get("applicationId"),config,jobExecution,s3Import);
+      }
+ catch (      Exception e) {
+        importUG.setErrorMessage(e.getMessage());
+        importUG.setState(Import.State.FAILED);
+        em.update(importUG);
+        return;
+      }
+    }
+ catch (    Exception e) {
+      importUG.setErrorMessage(e.getMessage());
+      importUG.setState(Import.State.FAILED);
+      em.update(importUG);
+      return;
+    }
+  }
+  importUG.setState(Import.State.FINISHED);
+  em.update(importUG);
+}

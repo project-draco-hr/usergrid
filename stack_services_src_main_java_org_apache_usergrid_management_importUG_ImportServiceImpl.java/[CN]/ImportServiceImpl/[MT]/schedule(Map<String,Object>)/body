@@ -1,0 +1,37 @@
+{
+  ApplicationInfo defaultImportApp=null;
+  if (config == null) {
+    logger.error("import information cannot be null");
+    return null;
+  }
+  EntityManager em=null;
+  try {
+    em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+    Set<String> collections=em.getApplicationCollections();
+    if (!collections.contains("imports")) {
+      em.createApplicationCollection("imports");
+    }
+  }
+ catch (  Exception e) {
+    logger.error("application doesn't exist within the current context");
+    return null;
+  }
+  Import importUG=new Import();
+  try {
+    importUG=em.create(importUG);
+  }
+ catch (  Exception e) {
+    logger.error("Import entity creation failed");
+    return null;
+  }
+  importUG.setState(Import.State.CREATED);
+  em.update(importUG);
+  JobData jobData=new JobData();
+  jobData.setProperty("importInfo",config);
+  jobData.setProperty(IMPORT_ID,importUG.getUuid());
+  long soonestPossible=System.currentTimeMillis() + 250;
+  sch.createJob(IMPORT_JOB_NAME,soonestPossible,jobData);
+  importUG.setState(Import.State.SCHEDULED);
+  em.update(importUG);
+  return importUG.getUuid();
+}

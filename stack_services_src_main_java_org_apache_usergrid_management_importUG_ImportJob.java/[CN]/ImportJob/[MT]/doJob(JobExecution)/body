@@ -1,0 +1,18 @@
+{
+  logger.info("execute ImportJob {}",jobExecution);
+  JobData jobData=jobExecution.getJobData();
+  if (jobData == null) {
+    logger.error("jobData cannot be null");
+    return;
+  }
+  jobExecution.heartbeat();
+  try {
+    importService.doImport(jobExecution);
+  }
+ catch (  Exception e) {
+    logger.error("Import Service failed to complete job");
+    logger.error(e.getMessage());
+    return;
+  }
+  logger.info("executed ImportJob process completed");
+}
