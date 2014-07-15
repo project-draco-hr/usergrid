@@ -24,4 +24,13 @@
     ;
   }
   assertThat(importService.getEphemeralFile().size(),is(not(0)));
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  EntityRef appRef=em.getApplicationRef();
+  Results collections=em.getCollection(applicationId,"users",null,Results.Level.ALL_PROPERTIES);
+  List<Entity> entities=collections.getEntities();
+  for (  Entity entity : entities) {
+    Long created=entity.getCreated();
+    Long modified=entity.getModified();
+    assertNotEquals(created,modified);
+  }
 }
