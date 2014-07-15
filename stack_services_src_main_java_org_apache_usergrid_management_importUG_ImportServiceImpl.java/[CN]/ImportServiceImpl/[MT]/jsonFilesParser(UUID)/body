@@ -1,0 +1,13 @@
+{
+  for (  File collectionFile : files) {
+    String applicationName=collectionFile.getPath().split("\\.")[0];
+    ApplicationInfo application=managementService.getApplicationInfo(applicationName);
+    JsonParser jp=getJsonParserForFile(collectionFile);
+    jp.nextToken();
+    EntityManager em=emf.getEntityManager(application.getId());
+    while (jp.nextToken() != JsonToken.END_OBJECT) {
+      importEntitysStuff(jp,em);
+    }
+    jp.close();
+  }
+}
