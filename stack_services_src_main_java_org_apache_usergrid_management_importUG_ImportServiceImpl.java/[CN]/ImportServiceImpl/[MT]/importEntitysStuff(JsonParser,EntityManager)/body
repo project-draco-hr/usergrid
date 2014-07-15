@@ -1,7 +1,11 @@
 {
-  String entityOwnerId=jp.getCurrentName();
+  String jsonFieldName=jp.getCurrentName();
+  String entityOwnerId="";
+  if (jsonFieldName.equals("Metadata")) {
+    JsonNode fieldValues=jp.readValueAsTree();
+    entityOwnerId=fieldValues.get("UUID").asText();
+  }
   EntityRef ownerEntityRef=em.getRef(UUID.fromString(entityOwnerId));
-  jp.nextToken();
   while (jp.nextToken() != JsonToken.END_OBJECT) {
     String collectionName=jp.getCurrentName();
     if (collectionName.equals("connections")) {
