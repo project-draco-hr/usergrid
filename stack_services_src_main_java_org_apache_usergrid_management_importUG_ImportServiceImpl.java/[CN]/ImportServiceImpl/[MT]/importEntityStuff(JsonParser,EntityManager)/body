@@ -10,8 +10,7 @@
         while (jp.nextToken() != JsonToken.END_ARRAY) {
           String entryId=jp.getText();
           EntityRef entryRef=em.getRef(UUID.fromString(entryId));
-          ConnectionRef ref=em.createConnection(ownerEntityRef,connectionType,entryRef);
-          System.out.println();
+          em.createConnection(ownerEntityRef,connectionType,entryRef);
         }
       }
     }
@@ -21,6 +20,7 @@
         String dictionaryName=jp.getCurrentName();
         jp.nextToken();
         @SuppressWarnings("unchecked") Map<String,Object> dictionary=jp.readValueAs(HashMap.class);
+        em.addMapToDictionary(ownerEntityRef,dictionaryName,dictionary);
       }
     }
  else {

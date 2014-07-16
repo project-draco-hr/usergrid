@@ -33,6 +33,29 @@
     Long modified=entity.getModified();
     assertNotEquals(created,modified);
   }
-  assertThat(entities.get(0).getConnections("related").size(),is(not(0)));
-  assertThat(entities.get(1).getConnections("related").size(),is(not(0)));
+  Results r;
+  List<ConnectionRef> connections;
+  r=em.getConnectedEntities(entities.get(0).getUuid(),"related",null,Results.Level.IDS);
+  connections=r.getConnections();
+  assertNotNull(connections);
+  r=em.getConnectedEntities(entities.get(1).getUuid(),"related",null,Results.Level.IDS);
+  connections=r.getConnections();
+  assertNotNull(connections);
+  EntityRef er;
+  Map<Object,Object> dictionaries;
+  er=em.getRef(entities.get(0).getUuid());
+  dictionaries=em.getDictionaryAsMap(er,"connected_types");
+  assertThat(dictionaries.size(),is(not(0)));
+  dictionaries=em.getDictionaryAsMap(er,"connecting_types");
+  assertThat(dictionaries.size(),is(not(0)));
+  er=em.getRef(entities.get(1).getUuid());
+  dictionaries=em.getDictionaryAsMap(er,"connected_types");
+  assertThat(dictionaries.size(),is(not(0)));
+  dictionaries=em.getDictionaryAsMap(er,"connecting_types");
+  assertThat(dictionaries.size(),is(not(0)));
+  er=em.getRef(entities.get(2).getUuid());
+  dictionaries=em.getDictionaryAsMap(er,"connected_types");
+  assertThat(dictionaries.size(),is(0));
+  dictionaries=em.getDictionaryAsMap(er,"connecting_types");
+  assertThat(dictionaries.size(),is(0));
 }
