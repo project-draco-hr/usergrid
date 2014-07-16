@@ -1,5 +1,5 @@
 {
-  EntityRef ownerEntryRef=null;
+  EntityRef ownerEntityRef=null;
   while (jp.nextToken() != JsonToken.END_OBJECT) {
     String collectionName=jp.getCurrentName();
     if (collectionName.equals("connections")) {
@@ -10,6 +10,8 @@
         while (jp.nextToken() != JsonToken.END_ARRAY) {
           String entryId=jp.getText();
           EntityRef entryRef=em.getRef(UUID.fromString(entryId));
+          ConnectionRef ref=em.createConnection(ownerEntityRef,connectionType,entryRef);
+          System.out.println();
         }
       }
     }
@@ -29,7 +31,7 @@
         if (token == JsonToken.VALUE_STRING || token == JsonToken.VALUE_NUMBER_INT) {
           String key=jp.getCurrentName();
           if (key.equals("uuid")) {
-            ownerEntryRef=em.getRef(UUID.fromString(jp.getText()));
+            ownerEntityRef=em.getRef(UUID.fromString(jp.getText()));
           }
  else {
             String value=jp.getText();
@@ -38,7 +40,7 @@
         }
         token=jp.nextToken();
       }
-      em.updateProperties(ownerEntryRef,properties);
+      em.updateProperties(ownerEntityRef,properties);
     }
   }
 }
