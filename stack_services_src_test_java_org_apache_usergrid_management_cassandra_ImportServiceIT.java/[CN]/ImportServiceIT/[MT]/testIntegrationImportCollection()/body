@@ -1,4 +1,6 @@
 {
+  createEntites();
+  createTestConnections();
   ExportService exportService=setup.getExportService();
   S3Export s3Export=new S3ExportImpl();
   HashMap<String,Object> payload=payloadBuilder();
@@ -25,7 +27,6 @@
   }
   assertThat(importService.getEphemeralFile().size(),is(not(0)));
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
-  EntityRef appRef=em.getApplicationRef();
   Results collections=em.getCollection(applicationId,"users",null,Results.Level.ALL_PROPERTIES);
   List<Entity> entities=collections.getEntities();
   for (  Entity entity : entities) {
@@ -35,27 +36,24 @@
   }
   Results r;
   List<ConnectionRef> connections;
-  r=em.getConnectedEntities(entities.get(0).getUuid(),"related",null,Results.Level.IDS);
-  connections=r.getConnections();
-  assertNotNull(connections);
-  r=em.getConnectedEntities(entities.get(1).getUuid(),"related",null,Results.Level.IDS);
-  connections=r.getConnections();
-  assertNotNull(connections);
+  for (int i=0; i < 2; i++) {
+    r=em.getConnectedEntities(entities.get(i).getUuid(),"related",null,Results.Level.IDS);
+    connections=r.getConnections();
+    assertNotNull(connections);
+  }
   EntityRef er;
-  Map<Object,Object> dictionaries;
-  er=em.getRef(entities.get(0).getUuid());
-  dictionaries=em.getDictionaryAsMap(er,"connected_types");
-  assertThat(dictionaries.size(),is(not(0)));
-  dictionaries=em.getDictionaryAsMap(er,"connecting_types");
-  assertThat(dictionaries.size(),is(not(0)));
-  er=em.getRef(entities.get(1).getUuid());
-  dictionaries=em.getDictionaryAsMap(er,"connected_types");
-  assertThat(dictionaries.size(),is(not(0)));
-  dictionaries=em.getDictionaryAsMap(er,"connecting_types");
-  assertThat(dictionaries.size(),is(not(0)));
-  er=em.getRef(entities.get(2).getUuid());
-  dictionaries=em.getDictionaryAsMap(er,"connected_types");
-  assertThat(dictionaries.size(),is(0));
-  dictionaries=em.getDictionaryAsMap(er,"connecting_types");
-  assertThat(dictionaries.size(),is(0));
+  Map<Object,Object> dictionaries1, dictionaries2;
+  for (int i=0; i < 3; i++) {
+    er=em.getRef(entities.get(i).getUuid());
+    dictionaries1=em.getDictionaryAsMap(er,"connected_types");
+    dictionaries2=em.getDictionaryAsMap(er,"connecting_types");
+    if (i == 2) {
+      assertThat(dictionaries1.size(),is(0));
+      assertThat(dictionaries2.size(),is(0));
+    }
+ else {
+      assertThat(dictionaries1.size(),is(not(0)));
+      assertThat(dictionaries2.size(),is(not(0)));
+    }
+  }
 }

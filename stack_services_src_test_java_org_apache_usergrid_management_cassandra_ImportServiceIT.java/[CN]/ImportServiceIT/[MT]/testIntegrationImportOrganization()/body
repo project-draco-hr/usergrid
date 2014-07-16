@@ -1,4 +1,7 @@
 {
+  createEntites();
+  createTestConnections();
+  createTestPermissions();
   ExportService exportService=setup.getExportService();
   S3Export s3Export=new S3ExportImpl();
   HashMap<String,Object> payload=payloadBuilder();
@@ -22,4 +25,34 @@
     ;
   }
   assertThat(importService.getEphemeralFile().size(),is(not(0)));
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  Set<String> collections=em.getApplicationCollections();
+  Iterator<String> itr=collections.iterator();
+  while (itr.hasNext()) {
+    String collectionName=itr.next();
+    Results collection=em.getCollection(applicationId,collectionName,null,Results.Level.ALL_PROPERTIES);
+    List<Entity> entities=collection.getEntities();
+    for (    Entity entity : entities) {
+      Long created=entity.getCreated();
+      Long modified=entity.getModified();
+      assertNotEquals(created,modified);
+      EntityRef er;
+      Map<Object,Object> dictionaries;
+      if (collectionName.equals("users")) {
+        er=em.getRef(entity.getUuid());
+        dictionaries=em.getDictionaryAsMap(er,"permissions");
+        assertThat(dictionaries.size(),is(not(0)));
+      }
+    }
+    if (collectionName.equals("users")) {
+      Results r;
+      List<ConnectionRef> connections;
+      r=em.getConnectedEntities(entities.get(0).getUuid(),"related",null,Results.Level.IDS);
+      connections=r.getConnections();
+      assertNotNull(connections);
+      r=em.getConnectedEntities(entities.get(1).getUuid(),"related",null,Results.Level.IDS);
+      connections=r.getConnections();
+      assertNotNull(connections);
+    }
+  }
 }
