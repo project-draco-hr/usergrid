@@ -4,11 +4,12 @@
   Entity entity[]=new Entity[5];
   for (int i=0; i < 5; i++) {
     userProperties=new LinkedHashMap<String,Object>();
-    userProperties.put("user","user" + i);
+    userProperties.put("name","user" + i);
     userProperties.put("email","user" + i + "@test.com");
-    entity[i]=em.create("user-test-collection",userProperties);
+    entity[i]=em.create("usertests",userProperties);
+    em.getCollections(entity[i]).contains("usertests");
   }
-  em.createConnection(em.getRef(entity[0].getUuid()),"related",em.getRef(entity[1].getUuid()));
+  ConnectedEntityRef ref=em.createConnection(em.getRef(entity[0].getUuid()),"related",em.getRef(entity[1].getUuid()));
   em.createConnection(em.getRef(entity[1].getUuid()),"related",em.getRef(entity[0].getUuid()));
   createAndSetup2ndApplication();
   ExportService exportService=setup.getExportService();
@@ -49,7 +50,7 @@
         Long modified=eachEntity.getModified();
         assertThat(created,not(equalTo(modified)));
       }
-      if (collectionName.equals("user-test-collection")) {
+      if (collectionName.equals("usertests")) {
         Results r;
         List<ConnectionRef> connections;
         for (int i=0; i < 2; i++) {
