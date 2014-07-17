@@ -1,4 +1,15 @@
 {
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  Map<String,Object> userProperties=null;
+  Entity entity[]=new Entity[5];
+  for (int i=0; i < 5; i++) {
+    userProperties=new LinkedHashMap<String,Object>();
+    userProperties.put("username","user" + i);
+    userProperties.put("email","user" + i + "@test.com");
+    entity[i]=em.create("users",userProperties);
+  }
+  em.createConnection(em.getRef(entity[0].getUuid()),"related",em.getRef(entity[1].getUuid()));
+  em.createConnection(em.getRef(entity[1].getUuid()),"related",em.getRef(entity[0].getUuid()));
   ExportService exportService=setup.getExportService();
   S3Export s3Export=new S3ExportImpl();
   HashMap<String,Object> payload=payloadBuilder();
@@ -24,12 +35,11 @@
     ;
   }
   assertThat(importService.getEphemeralFile().size(),is(not(0)));
-  EntityManager em=setup.getEmf().getEntityManager(applicationId);
   Results collections=em.getCollection(applicationId,"users",null,Results.Level.ALL_PROPERTIES);
   List<Entity> entities=collections.getEntities();
-  for (  Entity entity : entities) {
-    Long created=entity.getCreated();
-    Long modified=entity.getModified();
+  for (  Entity eachEntity : entities) {
+    Long created=eachEntity.getCreated();
+    Long modified=eachEntity.getModified();
     assertThat(created,not(equalTo(modified)));
   }
   Results r;
