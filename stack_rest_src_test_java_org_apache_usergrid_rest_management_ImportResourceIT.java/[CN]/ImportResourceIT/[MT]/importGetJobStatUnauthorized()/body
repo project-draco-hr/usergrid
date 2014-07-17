@@ -1,0 +1,12 @@
+{
+  JsonNode node=null;
+  ClientResponse.Status responseStatus=ClientResponse.Status.OK;
+  UUID fake=UUID.fromString("AAAAAAAA-FFFF-FFFF-FFFF-AAAAAAAAAAAA");
+  try {
+    node=resource().path("/management/orgs/test-organization/import/" + fake).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  }
+ catch (  UniformInterfaceException uie) {
+    responseStatus=uie.getResponse().getClientResponseStatus();
+  }
+  assertEquals(ClientResponse.Status.UNAUTHORIZED,responseStatus);
+}
