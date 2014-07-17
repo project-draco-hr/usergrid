@@ -1,0 +1,72 @@
+{
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  Map<String,Object> userProperties=null;
+  Entity entity[]=new Entity[5];
+  for (int i=0; i < 5; i++) {
+    userProperties=new LinkedHashMap<String,Object>();
+    userProperties.put("parameter1","user" + i);
+    userProperties.put("parameter2","user" + i + "@test.com");
+    entity[i]=em.create("customs",userProperties);
+  }
+  em.createConnection(em.getRef(entity[0].getUuid()),"related",em.getRef(entity[1].getUuid()));
+  em.createConnection(em.getRef(entity[1].getUuid()),"related",em.getRef(entity[0].getUuid()));
+  ExportService exportService=setup.getExportService();
+  S3Export s3Export=new S3ExportImpl();
+  HashMap<String,Object> payload=payloadBuilder();
+  payload.put("organizationId",organization.getUuid());
+  payload.put("applicationId",applicationId);
+  UUID exportUUID=exportService.schedule(payload);
+  JobData jobData=jobExportDataCreator(payload,exportUUID,s3Export);
+  JobExecution jobExecution=mock(JobExecution.class);
+  when(jobExecution.getJobData()).thenReturn(jobData);
+  exportService.doExport(jobExecution);
+  while (!exportService.getState(exportUUID).equals("FINISHED")) {
+    ;
+  }
+  S3Import s3Import=new S3ImportImpl();
+  ImportService importService=setup.getImportService();
+  UUID importUUID=importService.schedule(payload);
+  jobData=jobImportDataCreator(payload,importUUID,s3Import);
+  jobExecution=mock(JobExecution.class);
+  when(jobExecution.getJobData()).thenReturn(jobData);
+  importService.doImport(jobExecution);
+  while (!importService.getState(importUUID).equals("FINISHED")) {
+    ;
+  }
+  assertThat(importService.getEphemeralFile().size(),is(not(0)));
+  Set<String> collections=em.getApplicationCollections();
+  Iterator<String> collectionsItr=collections.iterator();
+  while (collectionsItr.hasNext()) {
+    String collectionName=collectionsItr.next();
+    Results collection=em.getCollection(applicationId,collectionName,null,Results.Level.ALL_PROPERTIES);
+    List<Entity> entities=collection.getEntities();
+    for (    Entity eachEntity : entities) {
+      Long created=eachEntity.getCreated();
+      Long modified=eachEntity.getModified();
+      assertThat(created,not(equalTo(modified)));
+      EntityRef er;
+      Map<Object,Object> dictionaries;
+      if (collectionName.equals("roles")) {
+        if (eachEntity.getName().equalsIgnoreCase("admin")) {
+          er=em.getRef(eachEntity.getUuid());
+          dictionaries=em.getDictionaryAsMap(er,"permissions");
+          assertThat(dictionaries.size(),is(0));
+        }
+ else {
+          er=em.getRef(eachEntity.getUuid());
+          dictionaries=em.getDictionaryAsMap(er,"permissions");
+          assertThat(dictionaries.size(),is(not(0)));
+        }
+      }
+    }
+    if (collectionName.equals("customs")) {
+      Results r;
+      List<ConnectionRef> connections;
+      for (int i=0; i < 2; i++) {
+        r=em.getConnectedEntities(entities.get(i).getUuid(),"related",null,Results.Level.IDS);
+        connections=r.getConnections();
+        assertNotNull(connections);
+      }
+    }
+  }
+}
