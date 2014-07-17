@@ -1,4 +1,5 @@
 {
+  Logger logger=LoggerFactory.getLogger(ImportServiceImpl.class);
   Blob blob=blobStore.getBlob(bucketName,fname);
   blobs.add(blob);
   String[] fileOrg=fname.split("/");
@@ -8,13 +9,14 @@
       organizationDirectory.mkdir();
     }
  catch (    SecurityException se) {
+      logger.error(se.getMessage());
     }
   }
   File ephemeral=new File(fname);
   FileOutputStream fop=new FileOutputStream(ephemeral);
   blobs.get(i).getPayload().writeTo(fop);
   files.add(ephemeral);
-  ephemeral.deleteOnExit();
   organizationDirectory.deleteOnExit();
+  ephemeral.deleteOnExit();
   fop.close();
 }
