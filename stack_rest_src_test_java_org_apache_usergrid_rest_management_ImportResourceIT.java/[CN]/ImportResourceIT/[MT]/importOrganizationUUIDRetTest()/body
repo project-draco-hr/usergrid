@@ -10,4 +10,14 @@
   }
   assertEquals(ClientResponse.Status.ACCEPTED,responseStatus);
   assertNotNull(node.get("Import Entity"));
+  String uuid=String.valueOf(node.get("Import Entity"));
+  uuid=uuid.replaceAll("\"","");
+  try {
+    node=resource().path("/management/orgs/test-organization/import/" + uuid).queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  }
+ catch (  UniformInterfaceException uie) {
+    responseStatus=uie.getResponse().getClientResponseStatus();
+  }
+  assertEquals(ClientResponse.Status.ACCEPTED,responseStatus);
+  assertEquals("SCHEDULED",node.get("state").getTextValue());
 }
