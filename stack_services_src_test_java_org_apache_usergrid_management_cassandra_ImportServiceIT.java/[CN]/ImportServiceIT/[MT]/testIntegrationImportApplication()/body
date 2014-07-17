@@ -1,7 +1,4 @@
 {
-  createEntities();
-  createTestConnections();
-  createTestPermissions();
   ExportService exportService=setup.getExportService();
   S3Export s3Export=new S3ExportImpl();
   HashMap<String,Object> payload=payloadBuilder();
@@ -54,12 +51,11 @@
     if (collectionName.equals("users")) {
       Results r;
       List<ConnectionRef> connections;
-      r=em.getConnectedEntities(entities.get(0).getUuid(),"related",null,Results.Level.IDS);
-      connections=r.getConnections();
-      assertNotNull(connections);
-      r=em.getConnectedEntities(entities.get(1).getUuid(),"related",null,Results.Level.IDS);
-      connections=r.getConnections();
-      assertNotNull(connections);
+      for (int i=0; i < 2; i++) {
+        r=em.getConnectedEntities(entities.get(i).getUuid(),"related",null,Results.Level.IDS);
+        connections=r.getConnections();
+        assertNotNull(connections);
+      }
     }
   }
 }
