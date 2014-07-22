@@ -1,13 +1,14 @@
 {
   writeLockLock.lock();
+  final MutationBatch batch;
   try {
     flushPending=currentCounter;
     currentCounter=new Counter();
+    batch=nodeShardCounterSerialization.flush(flushPending);
   }
   finally {
     writeLockLock.unlock();
   }
-  final MutationBatch batch=nodeShardCounterSerialization.flush(flushPending);
   new HystrixCommand(HystrixCassandra.ASYNC_GROUP){
     @Override protected Void run() throws Exception {
       batch.execute();
