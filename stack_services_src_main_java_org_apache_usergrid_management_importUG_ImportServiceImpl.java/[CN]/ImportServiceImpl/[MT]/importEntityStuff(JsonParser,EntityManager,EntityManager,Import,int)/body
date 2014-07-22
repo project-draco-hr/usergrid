@@ -1,5 +1,6 @@
 {
   EntityRef ownerEntityRef=null;
+  String entityUuid="";
   while (jp.nextToken() != JsonToken.END_OBJECT) {
     String collectionName=jp.getCurrentName();
     if (collectionName.equals("connections")) {
@@ -31,7 +32,8 @@
         if (token == JsonToken.VALUE_STRING || token == JsonToken.VALUE_NUMBER_INT) {
           String key=jp.getCurrentName();
           if (key.equals("uuid")) {
-            ownerEntityRef=em.getRef(UUID.fromString(jp.getText()));
+            entityUuid=jp.getText();
+            ownerEntityRef=em.getRef(UUID.fromString(entityUuid));
           }
  else           if (key.equals("type")) {
             String value=jp.getText();
@@ -51,4 +53,7 @@
       em.updateProperties(ownerEntityRef,properties);
     }
   }
+  ArrayList fileNames=(ArrayList)importUG.getDynamicProperties().get("files");
+  ((Map<String,Object>)fileNames.get(index)).put("lastUpdatedUUID",entityUuid);
+  rootEm.update(importUG);
 }

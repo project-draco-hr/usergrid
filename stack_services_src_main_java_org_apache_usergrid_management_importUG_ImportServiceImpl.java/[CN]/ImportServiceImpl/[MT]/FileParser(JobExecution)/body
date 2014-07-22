@@ -1,15 +1,44 @@
 {
+  Import importUG=getImportEntity(jobExecution);
+  EntityManager rootEm=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  Map<String,Object> fileMetadata=new HashMap<String,Object>();
+  ArrayList<Map<String,Object>> value=new ArrayList<Map<String,Object>>();
   for (  File collectionFile : files) {
-    String applicationName=collectionFile.getPath().split("\\.")[0];
-    ApplicationInfo application=managementService.getApplicationInfo(applicationName);
-    JsonParser jp=getJsonParserForFile(collectionFile);
-    while (jp.getCurrentToken() != JsonToken.START_OBJECT) {
-      jp.nextToken();
+    Map<String,Object> singleFile=new HashMap<String,Object>();
+    singleFile.put("name",collectionFile.getName());
+    singleFile.put("completed",new Boolean(false));
+    singleFile.put("lastUpdatedUUID",new String(""));
+    value.add(singleFile);
+  }
+  fileMetadata.put("files",value);
+  importUG.addProperties(fileMetadata);
+  rootEm.update(importUG);
+  ArrayList fileNames=(ArrayList)importUG.getDynamicProperties().get("files");
+  int i=0;
+  for (  File collectionFile : files) {
+    Map<String,Object> fileInfo=(Map<String,Object>)fileNames.get(i);
+    boolean completed=((Boolean)fileInfo.get("completed")).booleanValue();
+    if (!completed) {
+      String applicationName=collectionFile.getPath().split("\\.")[0];
+      ApplicationInfo application=managementService.getApplicationInfo(applicationName);
+      JsonParser jp=getJsonParserForFile(collectionFile);
+      String lastUpdatedUUID=fileInfo.get("lastUpdatedUUID").toString();
+      if (!lastUpdatedUUID.equals("")) {
+        while (!jp.getText().equals(lastUpdatedUUID)) {
+          jp.nextToken();
+        }
+      }
+      while (jp.getCurrentToken() != JsonToken.START_OBJECT) {
+        jp.nextToken();
+      }
+      EntityManager em=emf.getEntityManager(application.getId());
+      while (jp.nextToken() != JsonToken.END_ARRAY) {
+        importEntityStuff(jp,em,rootEm,importUG,i);
+      }
+      jp.close();
     }
-    EntityManager em=emf.getEntityManager(application.getId());
-    while (jp.nextToken() != JsonToken.END_ARRAY) {
-      importEntityStuff(jp,em);
-    }
-    jp.close();
+    ((Map<String,Object>)fileNames.get(i)).put("completed",true);
+    rootEm.update(importUG);
+    i++;
   }
 }
