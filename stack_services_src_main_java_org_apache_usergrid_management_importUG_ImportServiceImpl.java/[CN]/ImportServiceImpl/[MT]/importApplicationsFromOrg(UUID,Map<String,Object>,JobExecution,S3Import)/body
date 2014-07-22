@@ -2,7 +2,10 @@
   Import importUG=getImportEntity(jobExecution);
   String appFileName=null;
   OrganizationInfo organizationInfo=managementService.getOrganizationByUuid(organizationUUID);
+  if (organizationInfo == null) {
+    throw new OrganizationNotFoundException("Organization Not Found");
+  }
   appFileName=prepareInputFileName("organization",organizationInfo.getName(),null);
   files=fileTransfer(importUG,appFileName,config,s3Import,2);
-  FileParser();
+  FileParser(jobExecution);
 }

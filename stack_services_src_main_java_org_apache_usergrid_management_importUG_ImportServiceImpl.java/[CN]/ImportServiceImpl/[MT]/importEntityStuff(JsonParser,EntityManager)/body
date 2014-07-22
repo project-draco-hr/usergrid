@@ -33,6 +33,14 @@
           if (key.equals("uuid")) {
             ownerEntityRef=em.getRef(UUID.fromString(jp.getText()));
           }
+ else           if (key.equals("type")) {
+            String value=jp.getText();
+            Set<String> collections=em.getApplicationCollections();
+            if (!collections.contains(value + "s")) {
+              throw new CollectionNotFoundException("Collection Not Found");
+            }
+            properties.put(key,value);
+          }
  else {
             String value=jp.getText();
             properties.put(key,value);
