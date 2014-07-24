@@ -4,12 +4,7 @@
   if (application == null) {
     throw new ApplicationNotFoundException("Application Not Found");
   }
-  EntityManager em=emf.getEntityManager(application.getId());
   String collectionName=config.get("collectionName").toString();
-  Set<String> collections=em.getApplicationCollections();
-  if (!collections.contains(collectionName)) {
-    throw new CollectionNotFoundException("Collection Not Found");
-  }
   String appFileName=prepareInputFileName("application",application.getName(),collectionName);
   files=fileTransfer(importUG,appFileName,config,s3Import,0);
   FileParser(jobExecution);

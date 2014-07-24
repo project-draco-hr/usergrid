@@ -1,6 +1,7 @@
 {
   EntityRef ownerEntityRef=null;
   String entityUuid="";
+  String entityType="";
   while (jp.nextToken() != JsonToken.END_OBJECT) {
     String collectionName=jp.getCurrentName();
     if (collectionName.equals("connections")) {
@@ -33,15 +34,9 @@
           String key=jp.getCurrentName();
           if (key.equals("uuid")) {
             entityUuid=jp.getText();
-            ownerEntityRef=em.getRef(UUID.fromString(entityUuid));
           }
  else           if (key.equals("type")) {
-            String value=jp.getText();
-            Set<String> collections=em.getApplicationCollections();
-            if (!collections.contains(value + "s")) {
-              throw new CollectionNotFoundException("Collection Not Found");
-            }
-            properties.put(key,value);
+            entityType=jp.getText();
           }
  else {
             String value=jp.getText();
@@ -50,7 +45,8 @@
         }
         token=jp.nextToken();
       }
-      em.updateProperties(ownerEntityRef,properties);
+      Entity e=em.create(UUID.fromString(entityUuid),entityType,properties);
+      ownerEntityRef=em.getRef(UUID.fromString(entityUuid));
     }
   }
   ArrayList fileNames=(ArrayList)importUG.getDynamicProperties().get("files");
