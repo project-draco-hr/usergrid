@@ -33,41 +33,42 @@
   while (!importService.getState(importUUID).equals("FINISHED")) {
     ;
   }
-  assertThat(importService.getEphemeralFile().size(),is(not(0)));
-  Set<String> collections=em.getApplicationCollections();
-  Iterator<String> collectionsItr=collections.iterator();
-  while (collectionsItr.hasNext()) {
-    String collectionName=collectionsItr.next();
-    Results collection=em.getCollection(applicationId,collectionName,null,Results.Level.ALL_PROPERTIES);
-    List<Entity> entities=collection.getEntities();
-    for (    Entity eachEntity : entities) {
-      Long created=eachEntity.getCreated();
-      Long modified=eachEntity.getModified();
-      assertThat(created,not(equalTo(modified)));
-      EntityRef er;
-      Map<Object,Object> dictionaries;
-      if (collectionName.equals("roles")) {
-        if (eachEntity.getName().equalsIgnoreCase("admin")) {
-          er=em.getRef(eachEntity.getUuid());
-          dictionaries=em.getDictionaryAsMap(er,"permissions");
-          assertThat(dictionaries.size(),is(0));
-        }
+  try {
+    assertThat(importService.getEphemeralFile().size(),is(not(0)));
+    Set<String> collections=em.getApplicationCollections();
+    Iterator<String> collectionsItr=collections.iterator();
+    while (collectionsItr.hasNext()) {
+      String collectionName=collectionsItr.next();
+      Results collection=em.getCollection(applicationId,collectionName,null,Results.Level.ALL_PROPERTIES);
+      List<Entity> entities=collection.getEntities();
+      for (      Entity eachEntity : entities) {
+        EntityRef er;
+        Map<Object,Object> dictionaries;
+        if (collectionName.equals("roles")) {
+          if (eachEntity.getName().equalsIgnoreCase("admin")) {
+            er=em.getRef(eachEntity.getUuid());
+            dictionaries=em.getDictionaryAsMap(er,"permissions");
+            assertThat(dictionaries.size(),is(0));
+          }
  else {
-          er=em.getRef(eachEntity.getUuid());
-          dictionaries=em.getDictionaryAsMap(er,"permissions");
-          assertThat(dictionaries.size(),is(not(0)));
+            er=em.getRef(eachEntity.getUuid());
+            dictionaries=em.getDictionaryAsMap(er,"permissions");
+            assertThat(dictionaries.size(),is(not(0)));
+          }
         }
       }
-    }
-    if (collectionName.equals("customs")) {
-      Results r;
-      List<ConnectionRef> connections;
-      for (int i=0; i < 2; i++) {
-        r=em.getConnectedEntities(entities.get(i).getUuid(),"related",null,Results.Level.IDS);
-        connections=r.getConnections();
-        assertNotNull(connections);
+      if (collectionName.equals("customs")) {
+        Results r;
+        List<ConnectionRef> connections;
+        for (int i=0; i < 2; i++) {
+          r=em.getConnectedEntities(entities.get(i).getUuid(),"related",null,Results.Level.IDS);
+          connections=r.getConnections();
+          assertNotNull(connections);
+        }
       }
     }
   }
-  deleteBucket();
+  finally {
+    deleteBucket();
+  }
 }
