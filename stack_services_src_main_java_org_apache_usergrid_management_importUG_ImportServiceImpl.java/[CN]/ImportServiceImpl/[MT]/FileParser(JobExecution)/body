@@ -8,6 +8,7 @@
     singleFile.put("name",collectionFile.getName());
     singleFile.put("completed",new Boolean(false));
     singleFile.put("lastUpdatedUUID",new String(""));
+    singleFile.put("errorMessage",new String(""));
     value.add(singleFile);
   }
   fileMetadata.put("files",value);
@@ -19,6 +20,9 @@
     Map<String,Object> fileInfo=(Map<String,Object>)fileNames.get(i);
     boolean completed=((Boolean)fileInfo.get("completed")).booleanValue();
     if (!completed) {
+      if (!isValidJSON(collectionFile,fileInfo)) {
+        continue;
+      }
       String applicationName=collectionFile.getPath().split("\\.")[0];
       ApplicationInfo application=managementService.getApplicationInfo(applicationName);
       JsonParser jp=getJsonParserForFile(collectionFile);
