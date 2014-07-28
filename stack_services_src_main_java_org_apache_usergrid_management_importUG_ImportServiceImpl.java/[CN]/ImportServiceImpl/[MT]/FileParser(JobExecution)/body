@@ -3,16 +3,18 @@
   EntityManager rootEm=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
   Map<String,Object> fileMetadata=new HashMap<String,Object>();
   ArrayList<Map<String,Object>> value=new ArrayList<Map<String,Object>>();
-  for (  File collectionFile : files) {
-    Map<String,Object> singleFile=new HashMap<String,Object>();
-    singleFile.put("name",collectionFile.getName());
-    singleFile.put("completed",new Boolean(false));
-    singleFile.put("lastUpdatedUUID",new String(""));
-    value.add(singleFile);
+  if (!((Map<String,Object>)importUG.getDynamicProperties()).containsKey("files")) {
+    for (    File collectionFile : files) {
+      Map<String,Object> singleFile=new HashMap<String,Object>();
+      singleFile.put("name",collectionFile.getName());
+      singleFile.put("completed",new Boolean(false));
+      singleFile.put("lastUpdatedUUID",new String(""));
+      value.add(singleFile);
+    }
+    fileMetadata.put("files",value);
+    importUG.addProperties(fileMetadata);
+    rootEm.update(importUG);
   }
-  fileMetadata.put("files",value);
-  importUG.addProperties(fileMetadata);
-  rootEm.update(importUG);
   ArrayList fileNames=(ArrayList)importUG.getDynamicProperties().get("files");
   int i=0;
   for (  File collectionFile : files) {
