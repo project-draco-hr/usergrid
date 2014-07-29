@@ -24,6 +24,12 @@
       execution.start(maxFailCount);
       jobAccessor.save(execution);
       if (execution.getStatus() == Status.DEAD) {
+        try {
+          job.dead(execution);
+        }
+ catch (        Exception t) {
+          LOG.error("Unable to invoke dead event on job",t);
+        }
         return null;
       }
       job.execute(execution);
