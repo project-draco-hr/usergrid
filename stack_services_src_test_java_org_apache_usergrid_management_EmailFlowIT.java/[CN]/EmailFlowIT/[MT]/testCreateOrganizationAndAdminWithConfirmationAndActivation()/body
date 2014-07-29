@@ -15,6 +15,9 @@
   ActivationState state=setup.getMgmtSvc().handleConfirmationTokenForAdminUser(org_owner.owner.getUuid(),token);
   assertEquals(ActivationState.CONFIRMED_AWAITING_ACTIVATION,state);
   confirmation=user_inbox.get(1);
+  String body=((MimeMultipart)confirmation.getContent()).getBodyPart(0).getContent().toString();
+  Boolean subbedEmailed=StringUtils.contains(body,"$");
+  assertFalse(subbedEmailed);
   assertEquals("User Account Confirmed",confirmation.getSubject());
   List<Message> sysadmin_inbox=Mailbox.get("sysadmin-2@mockserver.com");
   assertFalse(sysadmin_inbox.isEmpty());

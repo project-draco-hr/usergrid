@@ -5,8 +5,9 @@
   DelayHeartbeat job=cassandraResource.getBean("delayHeartbeat",DelayHeartbeat.class);
   job.setTimeout(customRetry);
   job.setLatch(heartbeatCount + 1);
+  getJobListener().setExpected(1);
   JobData returned=scheduler.createJob("delayHeartbeat",System.currentTimeMillis(),new JobData());
-  boolean waited=getJobListener().blockTilDone(1,customRetry * (heartbeatCount * 2) + 5000L);
+  boolean waited=getJobListener().blockTilDone(customRetry * (heartbeatCount * 2) + 5000L);
   assertTrue("Job ran to complete",waited);
   JobStat stat=scheduler.getStatsForJob(returned.getJobName(),returned.getUuid());
   assertEquals(1,stat.getTotalAttempts());
