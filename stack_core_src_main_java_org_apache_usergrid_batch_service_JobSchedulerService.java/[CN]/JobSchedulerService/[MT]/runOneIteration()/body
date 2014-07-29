@@ -1,6 +1,6 @@
 {
   try {
-    LOG.info("running iteration...");
+    LOG.info("Running one check iteration ...");
     List<JobDescriptor> activeJobs;
     while (true) {
       if (LOG.isDebugEnabled()) {
@@ -23,20 +23,6 @@
     }
   }
  catch (  Throwable t) {
-    String error=t.getClass().getCanonicalName();
-    if (schedulerRunFailures.get(error) == null) {
-      LOG.error("Scheduler run failed, first instance of this exception",t);
-      schedulerRunFailures.put(error,1);
-    }
- else {
-      int count=schedulerRunFailures.get(error) + 1;
-      schedulerRunFailures.put(error,count);
-      if (LOG.isDebugEnabled()) {
-        LOG.debug(error + " caused scheduler run failure, count =  " + count,t);
-      }
- else {
-        LOG.error(error + " caused scheduler run failure, count =  " + count);
-      }
-    }
+    LOG.error("Scheduler run failed, error is",t);
   }
 }
