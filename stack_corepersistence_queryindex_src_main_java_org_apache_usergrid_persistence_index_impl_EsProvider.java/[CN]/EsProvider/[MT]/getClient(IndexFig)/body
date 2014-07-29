@@ -11,9 +11,9 @@
  catch (      Exception ex) {
         throw new RuntimeException("Fatal error unable to create temp dir, start embedded ElasticSearch",ex);
       }
-      Settings settings=ImmutableSettings.settingsBuilder().put("node.http.enabled",true).put("transport.tcp.port",port).put("path.logs",tempDir.toString()).put("path.data",tempDir.toString()).put("gateway.type","none").put("index.store.type","memory").put("index.number_of_shards",1).put("index.number_of_replicas",1).build();
+      Settings settings=ImmutableSettings.settingsBuilder().put("cluster.name",fig.getClusterName()).put("network.publish_host","127.0.0.1").put("transport.tcp.port",port).put("discovery.zen.ping.multicast.enabled","false").put("node.http.enabled",false).put("path.logs",tempDir.toString()).put("path.data",tempDir.toString()).put("gateway.type","none").put("index.store.type","memory").put("index.number_of_shards",1).put("index.number_of_replicas",1).build();
       log.info("-----------------------------------------------------------------------");
-      log.info("Starting ElasticSearch embedded with settings: \n" + settings.getAsMap());
+      log.info("Starting ElasticSearch embedded server with settings: \n" + settings.getAsMap());
       log.info("-----------------------------------------------------------------------");
       Node node=NodeBuilder.nodeBuilder().settings(settings).clusterName(fig.getClusterName()).node();
       newClient=node.client();
@@ -25,8 +25,10 @@
         allHosts=allHosts + SEP + host+ ":"+ fig.getPort();
         SEP=",";
       }
-      Settings settings=ImmutableSettings.settingsBuilder().put("client.transport.ping_timeout",2000).put("client.transport.nodes_sampler_interval",100).put("cluster.name",fig.getClusterName()).put("http.enabled",false).put("discovery.zen.ping.unicast.hosts",allHosts).build();
+      Settings settings=ImmutableSettings.settingsBuilder().put("cluster.name",fig.getClusterName()).put("discovery.zen.ping.unicast.hosts",allHosts).put("discovery.zen.ping.multicast.enabled","false").put("http.enabled",false).put("client.transport.ping_timeout",2000).put("client.transport.nodes_sampler_interval",100).build();
+      log.info("-----------------------------------------------------------------------");
       log.info("Creating ElasticSearch client with settings: " + settings.getAsMap());
+      log.info("-----------------------------------------------------------------------");
       Node node=NodeBuilder.nodeBuilder().settings(settings).client(true).node();
       newClient=node.client();
     }
