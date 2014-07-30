@@ -22,16 +22,18 @@
       LOG.debug("Starting the job with job id {}",execution.getJobId());
       runCounter.inc();
       execution.start(maxFailCount);
-      jobAccessor.save(execution);
       if (execution.getStatus() == Status.DEAD) {
         try {
           job.dead(execution);
+          jobAccessor.save(execution);
         }
  catch (        Exception t) {
           LOG.error("Unable to invoke dead event on job",t);
         }
         return null;
       }
+      jobAccessor.save(execution);
+      LOG.info("Starting job {} with execution data {}",job,execution);
       job.execute(execution);
       if (currentListener != null) {
         currentListener.onSubmit(execution);
