@@ -44,10 +44,24 @@
  else {
       importCollectionFromOrgApp((UUID)config.get("applicationId"),config,jobExecution,s3Import);
     }
-    Map<String,Object> FileJobID=new HashMap<String,Object>();
-    for (    File eachfile : files) {
-      UUID jobID=scheduleFile(eachfile,em.getRef(importId));
-      FileJobID.put(eachfile.getName(),jobID.toString());
+    if (files.size() == 0) {
+      importUG.setState(Import.State.FINISHED);
+      importUG.setErrorMessage("no files found in the bucket with the relevant context");
+      em.update(importUG);
+    }
+ else {
+      Map<String,Object> fileMetadata=new HashMap<String,Object>();
+      ArrayList<Map<String,Object>> value=new ArrayList<Map<String,Object>>();
+      for (      File eachfile : files) {
+        UUID jobID=scheduleFile(eachfile,em.getRef(importId));
+        Map<String,Object> fileJobID=new HashMap<String,Object>();
+        fileJobID.put("FileName",eachfile.getName());
+        fileJobID.put("JobID",jobID.toString());
+        value.add(fileJobID);
+      }
+      fileMetadata.put("files",value);
+      importUG.addProperties(fileMetadata);
+      em.update(importUG);
     }
     return;
   }

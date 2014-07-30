@@ -48,10 +48,9 @@ catch (      Exception e) {
         fileImport.setCompleted(true);
         fileImport.setState(FileImport.State.FINISHED);
         rootEm.update(fileImport);
-        Results filesCollection=rootEm.getCollection(MANAGEMENT_APPLICATION_ID,"importFiles",null,Results.Level.ALL_PROPERTIES);
-        List<Entity> entities=filesCollection.getEntities();
         UUID importId=UUID.fromString(jobExecution.getJobData().getProperty("importUUID").toString());
         Import importUG=rootEm.get(importId,Import.class);
+        List<Entity> entities=importUG.getConnections("includes");
         int count=0;
         for (        Entity eachEntity : entities) {
           FileImport fi=em.get(eachEntity.getUuid(),FileImport.class);
