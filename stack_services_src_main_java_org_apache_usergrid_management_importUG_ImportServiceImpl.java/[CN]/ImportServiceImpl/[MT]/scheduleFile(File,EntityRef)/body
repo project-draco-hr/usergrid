@@ -1,0 +1,43 @@
+{
+  ApplicationInfo defaultImportApp=null;
+  EntityManager em=null;
+  Set<String> collections=new HashSet<String>();
+  try {
+    em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+    collections=em.getApplicationCollections();
+    if (!collections.contains("importFiles")) {
+      em.createApplicationCollection("importFiles");
+    }
+  }
+ catch (  Exception e) {
+    logger.error("application doesn't exist within the current context");
+    return null;
+  }
+  RelationManager rm=em.getRelationManager(importRef);
+  FileImport fileImport=new FileImport();
+  fileImport.setFileName(file.getName());
+  fileImport.setCompleted(false);
+  fileImport.setLastUpdatedUUID("");
+  fileImport.setErrorMessage("");
+  fileImport.setState(FileImport.State.CREATED);
+  fileImport=em.create(fileImport);
+  EntityRef fileRef=em.getRef(fileImport.getUuid());
+  try {
+    rm.addToCollection("importFiles",fileRef);
+  }
+ catch (  Exception e) {
+    logger.error(e.getMessage());
+    return null;
+  }
+  fileImport.setState(FileImport.State.CREATED);
+  em.update(fileImport);
+  JobData jobData=new JobData();
+  jobData.setProperty("File ",file);
+  jobData.setProperty("fileImportId",fileImport.getUuid());
+  jobData.setProperty("importUUID",importRef);
+  long soonestPossible=System.currentTimeMillis() + 250;
+  sch.createJob("fileImportJob",soonestPossible,jobData);
+  fileImport.setState(FileImport.State.SCHEDULED);
+  em.update(fileImport);
+  return fileImport.getUuid();
+}

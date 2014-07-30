@@ -1,5 +1,4 @@
 {
-  ArrayList fileNames=(ArrayList)importUG.getDynamicProperties().get("files");
   Entity entity=null;
   EntityRef ownerEntityRef=null;
   String entityUuid="";
@@ -53,19 +52,19 @@
       }
     }
  catch (    IllegalArgumentException e) {
-      ((Map<String,Object>)fileNames.get(index)).put("Entity Creation Error",e.getMessage());
-      rootEm.update(importUG);
+      fileImport.setErrorMessage(e.getMessage());
+      rootEm.update(fileImport);
     }
 catch (    Exception e) {
-      ((Map<String,Object>)fileNames.get(index)).put("Miscellaneous Error",e.getMessage());
-      rootEm.update(importUG);
+      fileImport.setErrorMessage(e.getMessage());
+      rootEm.update(fileImport);
     }
   }
   if (entity != null) {
     entityCount++;
-    if (entityCount == 50) {
-      ((Map<String,Object>)fileNames.get(index)).put("lastUpdatedUUID",entityUuid);
-      rootEm.update(importUG);
+    if (entityCount == 1000) {
+      fileImport.setLastUpdatedUUID(entityUuid);
+      rootEm.update(fileImport);
       entityCount=0;
     }
   }

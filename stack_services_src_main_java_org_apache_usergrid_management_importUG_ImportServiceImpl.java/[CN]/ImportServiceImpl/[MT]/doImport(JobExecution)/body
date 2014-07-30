@@ -10,6 +10,7 @@
   EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
   Import importUG=em.get(importId,Import.class);
   importUG.setState(Import.State.STARTED);
+  importUG.setStarted(System.currentTimeMillis());
   em.update(importUG);
   try {
     if (s3PlaceHolder != null) {
@@ -29,6 +30,7 @@
   try {
     if (config.get("organizationId") == null) {
       logger.error("No organization could be found");
+      importUG.setErrorMessage("No organization could be found");
       importUG.setState(Import.State.FAILED);
       em.update(importUG);
       return;
@@ -42,25 +44,16 @@
  else {
       importCollectionFromOrgApp((UUID)config.get("applicationId"),config,jobExecution,s3Import);
     }
-  }
- catch (  OrganizationNotFoundException e) {
-    importUG.setErrorMessage(e.getMessage());
-    importUG.setState(Import.State.FAILED);
-    em.update(importUG);
+    Map<String,Object> FileJobID=new HashMap<String,Object>();
+    for (    File eachfile : files) {
+      UUID jobID=scheduleFile(eachfile,em.getRef(importId));
+      FileJobID.put(eachfile.getName(),jobID.toString());
+    }
     return;
   }
-catch (  ApplicationNotFoundException e) {
+ catch (  Exception e) {
     importUG.setErrorMessage(e.getMessage());
-    importUG.setState(Import.State.FAILED);
-    em.update(importUG);
-    return;
-  }
-catch (  Exception e) {
-    importUG.setErrorMessage(e.getMessage());
-    importUG.setState(Import.State.FAILED);
     em.update(importUG);
     throw e;
   }
-  importUG.setState(Import.State.FINISHED);
-  em.update(importUG);
 }

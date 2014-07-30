@@ -1,34 +1,14 @@
 {
-  Import importUG=getImportEntity(jobExecution);
+  FileImport fileImport=getFileImportEntity(jobExecution);
+  File file=(File)jobExecution.getJobData().getProperty("file");
   EntityManager rootEm=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
-  Map<String,Object> fileMetadata=new HashMap<String,Object>();
-  ArrayList<Map<String,Object>> value=new ArrayList<Map<String,Object>>();
-  if (!((Map<String,Object>)importUG.getDynamicProperties()).containsKey("files")) {
-    for (    File collectionFile : files) {
-      Map<String,Object> singleFile=new HashMap<String,Object>();
-      singleFile.put("name",collectionFile.getName());
-      singleFile.put("completed",new Boolean(false));
-      singleFile.put("lastUpdatedUUID",new String(""));
-      value.add(singleFile);
-    }
-    fileMetadata.put("files",value);
-    importUG.addProperties(fileMetadata);
-    rootEm.update(importUG);
-  }
-  ArrayList fileNames=(ArrayList)importUG.getDynamicProperties().get("files");
-  int i=0;
-  for (  File collectionFile : files) {
-    Map<String,Object> fileInfo=(Map<String,Object>)fileNames.get(i);
-    boolean completed=((Boolean)fileInfo.get("completed")).booleanValue();
-    if (!completed) {
-      if (!isValidJSON(collectionFile,rootEm,importUG,i)) {
-        i++;
-        continue;
-      }
-      String applicationName=collectionFile.getPath().split("\\.")[0];
+  boolean completed=fileImport.getCompleted();
+  if (!completed) {
+    if (isValidJSON(file,rootEm,fileImport)) {
+      String applicationName=file.getPath().split("\\.")[0];
       ApplicationInfo application=managementService.getApplicationInfo(applicationName);
-      JsonParser jp=getJsonParserForFile(collectionFile);
-      String lastUpdatedUUID=fileInfo.get("lastUpdatedUUID").toString();
+      JsonParser jp=getJsonParserForFile(file);
+      String lastUpdatedUUID=fileImport.getLastUpdatedUUID();
       if (!lastUpdatedUUID.equals("")) {
         while (!jp.getText().equals(lastUpdatedUUID)) {
           jp.nextToken();
@@ -41,13 +21,54 @@
         jp.nextToken();
       }
       EntityManager em=emf.getEntityManager(application.getId());
-      while (jp.nextToken() != JsonToken.END_ARRAY) {
-        importEntityStuff(jp,em,rootEm,importUG,i);
+      try {
+        while (jp.nextToken() != JsonToken.END_ARRAY) {
+          importEntityStuff(jp,em,rootEm,fileImport);
+        }
+        jp.close();
       }
-      jp.close();
+ catch (      OrganizationNotFoundException e) {
+        fileImport.setErrorMessage(e.getMessage());
+        fileImport.setState(FileImport.State.FINISHED);
+        em.update(fileImport);
+        return;
+      }
+catch (      ApplicationNotFoundException e) {
+        fileImport.setErrorMessage(e.getMessage());
+        fileImport.setState(FileImport.State.FINISHED);
+        em.update(fileImport);
+        return;
+      }
+catch (      Exception e) {
+        fileImport.setErrorMessage(e.getMessage());
+        em.update(fileImport);
+        throw e;
+      }
+      if (!fileImport.getState().equals("FAILED")) {
+        fileImport.setCompleted(true);
+        fileImport.setState(FileImport.State.FINISHED);
+        rootEm.update(fileImport);
+        Results filesCollection=rootEm.getCollection(MANAGEMENT_APPLICATION_ID,"importFiles",null,Results.Level.ALL_PROPERTIES);
+        List<Entity> entities=filesCollection.getEntities();
+        UUID importId=UUID.fromString(jobExecution.getJobData().getProperty("importUUID").toString());
+        Import importUG=rootEm.get(importId,Import.class);
+        int count=0;
+        for (        Entity eachEntity : entities) {
+          FileImport fi=em.get(eachEntity.getUuid(),FileImport.class);
+          if (fi.getState().equals("FINISHED")) {
+            count++;
+          }
+ else           if (fi.getState().equals("FAILED")) {
+            importUG.setState(Import.State.FAILED);
+            rootEm.update(importUG);
+            break;
+          }
+        }
+        if (count == entities.size()) {
+          importUG.setState(Import.State.FINISHED);
+          rootEm.update(importUG);
+        }
+      }
     }
-    ((Map<String,Object>)fileNames.get(i)).put("completed",true);
-    rootEm.update(importUG);
-    i++;
   }
 }
