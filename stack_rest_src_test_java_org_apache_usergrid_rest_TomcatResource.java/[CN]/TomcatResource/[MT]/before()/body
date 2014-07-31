@@ -1,16 +1,23 @@
 {
-  if (started) {
-    return;
-  }
+  log.info("Entering before");
 synchronized (mutex) {
+    clientCount.incrementAndGet();
     if (started) {
+      log.info("NOT starting Tomcat because it is already started #2");
       return;
     }
+    started=true;
     port=AvailablePortFinder.getNextAvailable(9998 + RandomUtils.nextInt(10));
     String propDirPath=createPropDir();
     createPropertyFiles(propDirPath);
     process=startTomcatProcess(propDirPath);
     waitForTomcat();
-    started=true;
+    Runtime.getRuntime().addShutdownHook(new Thread(){
+      @Override public void run(){
+        after();
+      }
+    }
+);
   }
+  log.info("Leaving before");
 }
