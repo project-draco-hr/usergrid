@@ -15,8 +15,10 @@
   fileImport.setErrorMessage("");
   fileImport.setState(FileImport.State.CREATED);
   fileImport=em.create(fileImport);
+  Import importUG=em.get(importRef,Import.class);
   try {
-    em.createConnection(importRef,"includes",fileImport);
+    ConnectionRef test=em.createConnection(importUG,"includes",fileImport);
+    System.out.println();
   }
  catch (  Exception e) {
     logger.error(e.getMessage());
@@ -27,9 +29,9 @@
   JobData jobData=new JobData();
   jobData.setProperty("File",file);
   jobData.setProperty("fileImportId",fileImport.getUuid());
-  jobData.setProperty("importUUID",importRef);
+  jobData.setProperty(FILE_IMPORT_ID,importRef);
   long soonestPossible=System.currentTimeMillis() + 250;
-  sch.createJob("fileImportJob",soonestPossible,jobData);
+  sch.createJob(FILE_IMPORT_JOB_NAME,soonestPossible,jobData);
   fileImport.setState(FileImport.State.SCHEDULED);
   em.update(fileImport);
   return fileImport.getUuid();
