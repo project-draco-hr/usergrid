@@ -2,12 +2,15 @@
   String[] passwords=new String[]{"password1","password2","password3","password4"};
   UserInfo user=setup.getMgmtSvc().createAdminUser("edanuff","Ed Anuff","ed@anuff.com",passwords[0],true,false);
   assertNotNull(user);
+  reindex("test-organization","test-app");
   OrganizationInfo organization=setup.getMgmtSvc().createOrganization("ed-organization",user,true);
   assertNotNull(organization);
+  reindex("test-organization","test-app");
   Map<String,Object> props=new HashMap<String,Object>();
   props.put(OrganizationInfo.PASSWORD_HISTORY_SIZE_KEY,1);
   organization.setProperties(props);
   setup.getMgmtSvc().updateOrganization(organization);
+  reindex("test-organization","test-app");
   UserInfo userInfo=setup.getMgmtSvc().getAdminUserByEmail("ed@anuff.com");
   Map<String,String> payload=hashMap("oldpassword",passwords[0]).map("newpassword",passwords[0]);
   try {
@@ -20,6 +23,7 @@
   payload.put("newpassword",passwords[1]);
   JsonNode node=mapper.readTree(resource().path("/management/users/edanuff/password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
   payload.put("oldpassword",passwords[1]);
+  reindex("test-organization","test-app");
   payload.put("newpassword",passwords[0]);
   try {
     node=mapper.readTree(resource().path("/management/users/edanuff/password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));

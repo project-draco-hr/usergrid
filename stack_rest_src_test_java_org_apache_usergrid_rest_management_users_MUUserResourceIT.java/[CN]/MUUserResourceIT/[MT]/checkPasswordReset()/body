@@ -1,15 +1,18 @@
 {
+  reindex("test-organization","test-app");
   TestUser user=context.getActiveUser();
   String email=user.getEmail();
   UserInfo userInfo=setup.getMgmtSvc().getAdminUserByEmail(email);
   String resetToken=setup.getMgmtSvc().getPasswordResetTokenForAdminUser(userInfo.getUuid(),15000);
   assertTrue(setup.getMgmtSvc().checkPasswordResetTokenForAdminUser(userInfo.getUuid(),resetToken));
+  reindex("test-organization","test-app");
   Form formData=new Form();
   formData.add("token",resetToken);
   formData.add("password1","sesame");
   formData.add("password2","sesame");
   String html=resource().path("/management/users/" + userInfo.getUsername() + "/resetpw").type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).post(String.class,formData);
   assertTrue(html.contains("password set"));
+  reindex("test-organization","test-app");
   assertFalse(setup.getMgmtSvc().checkPasswordResetTokenForAdminUser(userInfo.getUuid(),resetToken));
   html=resource().path("/management/users/" + userInfo.getUsername() + "/resetpw").type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).post(String.class,formData);
   assertTrue(html.contains("invalid token"));

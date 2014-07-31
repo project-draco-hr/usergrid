@@ -4,6 +4,7 @@
   String email="email1" + id + "@usergrid.org";
   ApiResponse response=client.createUser(email,name,email,"password");
   assertNull("Error was: " + response.getErrorDescription(),response.getError());
+  reindex("test-organization","test-app");
   UUID userId=response.getEntities().get(0).getUuid();
   Entity role=new Entity("role");
   role.setProperty("name","connectionQuerybyEmail1");
@@ -23,12 +24,15 @@
   perms.put("permission","get:/stuff/**");
   path=String.format("/test-organization/test-app/roles/%s/permissions",roleId2);
   node=mapper.readTree(resource().path(path).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,perms));
+  reindex("test-organization","test-app");
   path=String.format("/test-organization/test-app/roles/%s/users/%s",roleId1,userId);
   node=mapper.readTree(resource().path(path).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class));
   assertEquals(userId.toString(),getEntity(node,0).get("uuid").asText());
+  reindex("test-organization","test-app");
   path=String.format("/test-organization/test-app/roles/%s/users/%s",roleId2,userId);
   node=mapper.readTree(resource().path(path).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class));
   assertEquals(userId.toString(),getEntity(node,0).get("uuid").asText());
+  reindex("test-organization","test-app");
   path=String.format("/test-organization/test-app/roles/%s/users",roleId2);
   node=mapper.readTree(resource().path(path).queryParam("access_token",access_token).queryParam("ql","select%20*%20where%20username%20=%20'" + email + "'").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   assertEquals(userId.toString(),getEntity(node,0).get("uuid").asText());
@@ -38,6 +42,7 @@
   path=String.format("/test-organization/test-app/roles/%s",roleId1);
   node=mapper.readTree(resource().path(path).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).delete(String.class));
   path=String.format("/test-organization/test-app/roles/%s/users",roleId1);
+  reindex("test-organization","test-app");
   try {
     node=mapper.readTree(resource().path(path).queryParam("access_token",access_token).queryParam("ql","select%20*%20where%20username%20=%20'" + email + "'").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   }

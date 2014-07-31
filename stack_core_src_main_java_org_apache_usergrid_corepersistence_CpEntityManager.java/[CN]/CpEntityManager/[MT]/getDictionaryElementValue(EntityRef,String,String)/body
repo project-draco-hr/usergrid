@@ -10,7 +10,7 @@
   }
   Class<?> dictionaryCoType=getDefaultSchema().getDictionaryValueType(entity.getType(),dictionaryName);
   boolean coTypeIsBasic=ClassUtils.isBasicType(dictionaryCoType);
-  HColumn<ByteBuffer,ByteBuffer> result=cass.getColumn(cass.getApplicationKeyspace(applicationId),dictionaryCf,key(entity.getUuid(),dictionaryName),entityHasDictionary ? bytebuffer(elementName) : DynamicComposite.toByteBuffer(elementName),be,be);
+  HColumn<ByteBuffer,ByteBuffer> result=cass.getColumn(cass.getApplicationKeyspace(applicationId),dictionaryCf,CassandraPersistenceUtils.key(entity.getUuid(),dictionaryName),entityHasDictionary ? bytebuffer(elementName) : DynamicComposite.toByteBuffer(elementName),be,be);
   if (result != null) {
     if (entityHasDictionary && coTypeIsBasic) {
       value=object(dictionaryCoType,result.getValue());

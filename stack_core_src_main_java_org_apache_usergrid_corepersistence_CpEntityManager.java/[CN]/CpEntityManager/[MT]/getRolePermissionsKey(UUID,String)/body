@@ -1,3 +1,9 @@
 {
-  return key(getIdForGroupIdAndRoleName(groupId,roleName),DICTIONARY_PERMISSIONS);
+  try {
+    return CassandraPersistenceUtils.key(getGroupRoleRef(groupId,roleName).getUuid(),DICTIONARY_PERMISSIONS);
+  }
+ catch (  Exception e) {
+    logger.error("Error creating role key for uuid {} and role {}",groupId,roleName);
+    return null;
+  }
 }

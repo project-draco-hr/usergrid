@@ -2,6 +2,7 @@
   createUser("test_1","test_1@test.com","test123","Test1 User");
   createUser("test_2","test_2@test.com","test123","Test2 User");
   createUser("test_3","test_3@test.com","test123","Test3 User");
+  reindex("test-organization","test-app");
   ApplicationInfo appInfo=setup.getMgmtSvc().getApplicationInfo("test-organization/test-app");
   String clientId=setup.getMgmtSvc().getClientIdForApplication(appInfo.getId());
   String clientSecret=setup.getMgmtSvc().getClientSecretForApplication(appInfo.getId());
@@ -11,6 +12,7 @@
   setup.getMgmtSvc().activateAppUser(appInfo.getId(),userId);
   String user_token_from_java=setup.getMgmtSvc().getAccessTokenForAppUser(appInfo.getId(),userId,1000000);
   assertNotNull(user_token_from_client_credentials);
+  reindex("test-organization","test-app");
   Status status=null;
   try {
     resource().path("/test-organization/test-app/users/test_1/token").queryParam("access_token","blah").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
@@ -34,6 +36,7 @@
   response=mapper.readTree(resource().path("/test-organization/test-app/users/test_1").queryParam("access_token",user_token_from_java).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   assertNotNull(getEntity(response,0));
   setup.getMgmtSvc().deactivateUser(appInfo.getId(),userId);
+  reindex("test-organization","test-app");
   try {
     resource().path("/test-organization/test-app/token").queryParam("grant_type","password").queryParam("username","test_1").queryParam("password","test123").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
     fail("request for deactivated user should fail");

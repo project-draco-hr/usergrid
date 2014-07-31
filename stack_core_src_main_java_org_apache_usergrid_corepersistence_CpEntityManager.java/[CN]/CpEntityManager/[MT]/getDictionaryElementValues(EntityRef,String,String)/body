@@ -14,7 +14,7 @@
   for (int i=0; i < elementNames.length; i++) {
     columnNames[i]=entityHasDictionary ? bytebuffer(elementNames[i]) : DynamicComposite.toByteBuffer(elementNames[i]);
   }
-  ColumnSlice<ByteBuffer,ByteBuffer> results=cass.getColumns(cass.getApplicationKeyspace(applicationId),dictionaryCf,key(entity.getUuid(),dictionaryName),columnNames,be,be);
+  ColumnSlice<ByteBuffer,ByteBuffer> results=cass.getColumns(cass.getApplicationKeyspace(applicationId),dictionaryCf,CassandraPersistenceUtils.key(entity.getUuid(),dictionaryName),columnNames,be,be);
   if (results != null) {
     values=new HashMap<String,Object>();
     for (    HColumn<ByteBuffer,ByteBuffer> result : results.getColumns()) {

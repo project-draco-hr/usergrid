@@ -1,5 +1,5 @@
 {
-  long timestamp=getTimestampInMicros(timestampUuid);
+  long timestamp=UUIDUtils.getTimestampInMicros(timestampUuid);
   if (elementCoValue == null) {
     elementCoValue=ByteBuffer.allocate(0);
   }
@@ -10,14 +10,14 @@
   ApplicationCF dictionary_cf=entityHasDictionary ? ENTITY_DICTIONARIES : ENTITY_COMPOSITE_DICTIONARIES;
   if (elementValue != null) {
     if (!removeFromDictionary) {
-      elementCoValue=toStorableBinaryValue(elementCoValue,!entityHasDictionary);
-      addInsertToMutator(batch,dictionary_cf,key(entity.getUuid(),dictionaryName),entityHasDictionary ? elementValue : asList(elementValue),elementCoValue,timestamp);
+      elementCoValue=CassandraPersistenceUtils.toStorableBinaryValue(elementCoValue,!entityHasDictionary);
+      CassandraPersistenceUtils.addInsertToMutator(batch,dictionary_cf,CassandraPersistenceUtils.key(entity.getUuid(),dictionaryName),entityHasDictionary ? elementValue : asList(elementValue),elementCoValue,timestamp);
       if (!entityHasDictionary) {
-        addInsertToMutator(batch,ENTITY_DICTIONARIES,key(entity.getUuid(),DICTIONARY_SETS),dictionaryName,null,timestamp);
+        CassandraPersistenceUtils.addInsertToMutator(batch,ENTITY_DICTIONARIES,CassandraPersistenceUtils.key(entity.getUuid(),DICTIONARY_SETS),dictionaryName,null,timestamp);
       }
     }
  else {
-      addDeleteToMutator(batch,dictionary_cf,key(entity.getUuid(),dictionaryName),entityHasDictionary ? elementValue : asList(elementValue),timestamp);
+      CassandraPersistenceUtils.addDeleteToMutator(batch,dictionary_cf,CassandraPersistenceUtils.key(entity.getUuid(),dictionaryName),entityHasDictionary ? elementValue : asList(elementValue),timestamp);
     }
   }
   return batch;

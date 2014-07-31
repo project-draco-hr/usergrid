@@ -12,6 +12,7 @@
   cpEntity=CpEntityMapUtils.fromMap(cpEntity,entity.getProperties(),entity.getType(),true);
   try {
     cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
+    logger.debug("Wrote {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
   }
  catch (  WriteUniqueVerifyException wuve) {
     handleWriteUniqueVerifyException(entity,wuve);
@@ -22,7 +23,7 @@ catch (  HystrixRuntimeException hre) {
       handleWriteUniqueVerifyException(entity,wuve);
     }
   }
-  IndexScope indexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),entity.getType());
+  IndexScope indexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),getCollectionScopeNameFromEntityType(entity.getType()));
   EntityIndex ei=managerCache.getEntityIndex(indexScope);
   ei.index(cpEntity);
   IndexScope allTypesIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),ALL_TYPES);

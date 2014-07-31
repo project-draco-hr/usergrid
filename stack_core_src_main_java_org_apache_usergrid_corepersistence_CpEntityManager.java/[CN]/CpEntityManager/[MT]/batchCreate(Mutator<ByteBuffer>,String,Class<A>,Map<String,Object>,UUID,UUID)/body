@@ -5,7 +5,7 @@
   if (((applicationId == null) || applicationId.equals(UUIDUtils.ZERO_UUID)) && !is_application) {
     return null;
   }
-  long timestamp=getTimestampInMicros(timestampUuid);
+  long timestamp=UUIDUtils.getTimestampInMicros(timestampUuid);
   UUID itemId=UUIDUtils.newTimeUUID();
   if (is_application) {
     itemId=applicationId;
@@ -17,7 +17,7 @@
     properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
   }
   if (importId != null) {
-    if (isTimeBased(importId)) {
+    if (UUIDUtils.isTimeBased(importId)) {
       timestamp=UUIDUtils.getTimestampInMicros(importId);
     }
  else     if (properties.get(PROPERTY_CREATED) != null) {
@@ -98,6 +98,7 @@
   }
   try {
     cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
+    logger.debug("Wrote {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
   }
  catch (  WriteUniqueVerifyException wuve) {
     handleWriteUniqueVerifyException(entity,wuve);

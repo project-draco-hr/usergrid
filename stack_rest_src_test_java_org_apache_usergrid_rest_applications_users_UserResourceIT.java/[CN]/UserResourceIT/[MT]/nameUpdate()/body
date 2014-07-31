@@ -5,6 +5,7 @@
   String email="email" + id + "@usergrid.org";
   ApiResponse response=client.createUser(username,name,email,"password");
   assertNull("Error was: " + response.getErrorDescription(),response.getError());
+  reindex("test-organization","test-app");
   Entity userEntity=response.getEntities().get(0);
   JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/token").queryParam("username",username).queryParam("password","password").queryParam("grant_type","password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   assertEquals(username,node.get("user").get("username").asText());
@@ -17,6 +18,7 @@
   userEntity.setProperty("password","newp2ssword");
   userEntity.setProperty("pin","newp1n");
   node=mapper.readTree(resource().path(String.format("/test-organization/test-app/users/%s",username)).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(String.class,userEntity.getProperties()));
+  reindex("test-organization","test-app");
   node=mapper.readTree(resource().path("/test-organization/test-app/token").queryParam("username",username).queryParam("password","password").queryParam("grant_type","password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   assertEquals(username,node.get("user").get("username").asText());
   assertEquals(newName,node.get("user").get("name").asText());
