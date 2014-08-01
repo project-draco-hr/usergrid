@@ -4,9 +4,9 @@
   Entity entity[]=new Entity[5];
   for (int i=0; i < 5; i++) {
     userProperties=new LinkedHashMap<String,Object>();
-    userProperties.put("username","user" + i);
-    userProperties.put("email","user" + i + "@test.com");
-    entity[i]=em.create("users",userProperties);
+    userProperties.put("username","yabauser" + i);
+    userProperties.put("email","yavauser" + i + "@test.com");
+    entity[i]=em.create("yabas",userProperties);
   }
   em.createConnection(em.getRef(entity[0].getUuid()),"related",em.getRef(entity[1].getUuid()));
   em.createConnection(em.getRef(entity[1].getUuid()),"related",em.getRef(entity[0].getUuid()));
@@ -15,7 +15,7 @@
   HashMap<String,Object> payload=payloadBuilder();
   payload.put("organizationId",organization.getUuid());
   payload.put("applicationId",applicationId);
-  payload.put("collectionName","users");
+  payload.put("collectionName","yabas");
   UUID exportUUID=exportService.schedule(payload);
   JobData jobData=jobExportDataCreator(payload,exportUUID,s3Export);
   JobExecution jobExecution=mock(JobExecution.class);
@@ -36,7 +36,7 @@
   }
   try {
     assertThat(importService.getEphemeralFile().size(),is(not(0)));
-    Results collections=em.getCollection(applicationId,"users",null,Results.Level.ALL_PROPERTIES);
+    Results collections=em.getCollection(applicationId,"yabas",null,Results.Level.ALL_PROPERTIES);
     List<Entity> entities=collections.getEntities();
     Results r;
     List<ConnectionRef> connections;
