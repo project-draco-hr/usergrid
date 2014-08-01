@@ -1,5 +1,6 @@
 {
   FileImport fileImport=getFileImportEntity(jobExecution);
+  fileImport.setState(FileImport.State.STARTED);
   File file=(File)jobExecution.getJobData().getProperty("file");
   EntityManager rootEm=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
   boolean completed=fileImport.getCompleted();
@@ -48,11 +49,15 @@ catch (      Exception e) {
         fileImport.setCompleted(true);
         fileImport.setState(FileImport.State.FINISHED);
         rootEm.update(fileImport);
-        UUID importId=UUID.fromString(jobExecution.getJobData().getProperty("importUUID").toString());
+        Results ImportJobResults=em.getConnectingEntities(fileImport.getUuid(),"includes",null,Results.Level.ALL_PROPERTIES);
+        List<Entity> importEntity=ImportJobResults.getEntities();
+        UUID importId=importEntity.get(0).getUuid();
         Import importUG=rootEm.get(importId,Import.class);
-        List<Entity> entities=importUG.getConnections("includes");
+        Results entities=em.getConnectedEntities(importId,"includes",null,Results.Level.ALL_PROPERTIES);
+        Iterator<Entity> resultIterator=entities.iterator();
         int count=0;
-        for (        Entity eachEntity : entities) {
+        while (resultIterator.hasNext()) {
+          Entity eachEntity=resultIterator.next();
           FileImport fi=em.get(eachEntity.getUuid(),FileImport.class);
           if (fi.getState().equals("FINISHED")) {
             count++;
