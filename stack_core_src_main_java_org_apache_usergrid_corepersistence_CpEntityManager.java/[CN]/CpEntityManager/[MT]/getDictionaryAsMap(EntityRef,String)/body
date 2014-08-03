@@ -2,15 +2,15 @@
   entity=validate(entity);
   Map<Object,Object> dictionary=new LinkedHashMap<Object,Object>();
   ApplicationCF dictionaryCf=null;
-  boolean entityHasDictionary=getDefaultSchema().hasDictionary(entity.getType(),dictionaryName);
+  boolean entityHasDictionary=Schema.getDefaultSchema().hasDictionary(entity.getType(),dictionaryName);
   if (entityHasDictionary) {
     dictionaryCf=ENTITY_DICTIONARIES;
   }
  else {
     dictionaryCf=ENTITY_COMPOSITE_DICTIONARIES;
   }
-  Class<?> setType=getDefaultSchema().getDictionaryKeyType(entity.getType(),dictionaryName);
-  Class<?> setCoType=getDefaultSchema().getDictionaryValueType(entity.getType(),dictionaryName);
+  Class<?> setType=Schema.getDefaultSchema().getDictionaryKeyType(entity.getType(),dictionaryName);
+  Class<?> setCoType=Schema.getDefaultSchema().getDictionaryValueType(entity.getType(),dictionaryName);
   boolean coTypeIsBasic=ClassUtils.isBasicType(setCoType);
   List<HColumn<ByteBuffer,ByteBuffer>> results=cass.getAllColumns(cass.getApplicationKeyspace(applicationId),dictionaryCf,CassandraPersistenceUtils.key(entity.getUuid(),dictionaryName),be,be);
   for (  HColumn<ByteBuffer,ByteBuffer> result : results) {

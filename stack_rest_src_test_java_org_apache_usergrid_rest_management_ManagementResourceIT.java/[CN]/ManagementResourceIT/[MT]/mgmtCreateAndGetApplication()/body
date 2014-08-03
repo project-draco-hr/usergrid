@@ -5,9 +5,15 @@
   JsonNode appdata=mapper.readTree(resource().path("/management/orgs/" + orgInfo.getUuid() + "/applications").queryParam("access_token",adminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,data));
   logNode(appdata);
   appdata=getEntity(appdata,0);
+  refreshIndex("test-organization","test-app");
   assertEquals("test-organization/mgmt-org-app",appdata.get("name").asText());
+  assertNotNull(appdata.get("metadata"));
+  assertNotNull(appdata.get("metadata").get("collections"));
+  assertNotNull(appdata.get("metadata").get("collections").get("roles"));
+  assertNotNull(appdata.get("metadata").get("collections").get("roles").get("title"));
   assertEquals("Roles",appdata.get("metadata").get("collections").get("roles").get("title").asText());
   assertEquals(3,appdata.get("metadata").get("collections").get("roles").get("count").asInt());
+  refreshIndex("test-organization","test-app");
   appdata=mapper.readTree(resource().path("/management/orgs/" + orgInfo.getUuid() + "/applications/mgmt-org-app").queryParam("access_token",adminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   logNode(appdata);
   assertEquals("test-organization",appdata.get("organization").asText());

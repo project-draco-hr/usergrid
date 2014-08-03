@@ -5,6 +5,7 @@
   payload.put(OrganizationsResource.ORGANIZATION_PROPERTIES,properties);
   JsonNode node=mapper.readTree(resource().path("/management/organizations").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
   assertNotNull(node);
+  refreshIndex(context.getOrgName(),context.getAppName());
   OrganizationInfo orgInfo=setup.getMgmtSvc().getOrganizationByName("organizationresourceit.testorganizationupdate.test-org-1");
   assertEquals(5L,orgInfo.getProperties().get("securityLevel"));
   payload=new HashMap();
@@ -12,6 +13,7 @@
   payload.put(OrganizationsResource.ORGANIZATION_PROPERTIES,properties);
   node=mapper.readTree(resource().path("/management/organizations/organizationresourceit.testorganizationupdate.test-org-1").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(String.class,payload));
   logNode(node);
+  refreshIndex(context.getOrgName(),context.getAppName());
   node=mapper.readTree(resource().path("/management/organizations/organizationresourceit.testorganizationupdate.test-org-1").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   logNode(node);
   Assert.assertEquals(6,node.get("organization").get(OrganizationsResource.ORGANIZATION_PROPERTIES).get("securityLevel").asInt());

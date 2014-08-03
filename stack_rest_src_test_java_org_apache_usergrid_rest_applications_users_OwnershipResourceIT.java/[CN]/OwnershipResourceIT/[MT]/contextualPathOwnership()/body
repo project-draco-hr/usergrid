@@ -1,10 +1,21 @@
 {
   context.clearUser();
-  TestUser user1=new TestAppUser("testuser1@usergrid.org","password","testuser1@usergrid.org").create(context).login(context).makeActive(context);
+  refreshIndex(context.getOrgName(),context.getAppName());
+  TestUser user1=new TestAppUser("testuser1@usergrid.org","password","testuser1@usergrid.org").create(context);
+  refreshIndex(context.getOrgName(),context.getAppName());
+  user1.login(context);
+  user1.makeActive(context);
+  refreshIndex(context.getOrgName(),context.getAppName());
   context.application().users().user("me").devices().create(MapUtils.hashMap("name","device1").map("number","5551112222"));
   context.clearUser();
-  TestUser user2=new TestAppUser("testuser2@usergrid.org","password","testuser2@usergrid.org").create(context).login(context).makeActive(context);
+  refreshIndex(context.getOrgName(),context.getAppName());
+  TestUser user2=new TestAppUser("testuser2@usergrid.org","password","testuser2@usergrid.org").create(context);
+  refreshIndex(context.getOrgName(),context.getAppName());
+  user2.login(context);
+  user2.makeActive(context);
+  refreshIndex(context.getOrgName(),context.getAppName());
   context.application().users().user("me").devices().create(MapUtils.hashMap("name","device2").map("number","5552223333"));
+  refreshIndex(context.getOrgName(),context.getAppName());
   DevicesCollection devices=context.withUser(user1).application().users().user("me").devices();
   JsonNode data=devices.device("device1").get();
   assertNotNull(data);

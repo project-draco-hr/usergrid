@@ -7,11 +7,13 @@
     things.create(entity);
     created.add(entity);
   }
+  refreshIndex(context.getOrgName(),context.getAppName());
   ApiResponse response;
   int deletePageSize=10;
   things=things.withLimit(deletePageSize);
   for (int i=0; i < size / deletePageSize; i++) {
     response=parse(things.delete());
+    refreshIndex(context.getOrgName(),context.getAppName());
     assertEquals("Only 10 entities should have been deleted",10,response.getEntityCount());
   }
   response=parse(things.get());

@@ -3,6 +3,7 @@
   ApplicationInfo appInfo=setup.getMgmtSvc().getApplicationInfo("test-organization/test-app");
   String clientId=setup.getMgmtSvc().getClientIdForOrganization(orgInfo.getUuid());
   String clientSecret=setup.getMgmtSvc().getClientSecretForOrganization(orgInfo.getUuid());
+  refreshIndex("test-organization","test-app");
   JsonNode node=mapper.readTree(resource().path("/" + appInfo.getId()).queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   assertEquals(node.get("uri").textValue(),"http://sometestvalue/test-organization/test-app");
   node=getEntity(node,0);

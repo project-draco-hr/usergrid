@@ -1,15 +1,20 @@
 {
   context.clearUser();
+  refreshIndex(context.getOrgName(),context.getAppName());
   TestUser user1=new TestAppUser("testuser1@usergrid.org","password","testuser1@usergrid.org").create(context).login(context).makeActive(context);
   JsonNode data=context.application().collection("restaurants").create(MapUtils.hashMap("name","4peaks"));
   data=context.application().users().user("me").connection("likes").collection("restaurants").entity("4peaks").post();
+  refreshIndex(context.getOrgName(),context.getAppName());
   String peaksId=getEntity(data,0).get("uuid").asText();
   context.clearUser();
   TestUser user2=new TestAppUser("testuser2@usergrid.org","password","testuser2@usergrid.org").create(context).login(context).makeActive(context);
+  refreshIndex(context.getOrgName(),context.getAppName());
   data=context.application().collection("restaurants").create(MapUtils.hashMap("name","arrogantbutcher"));
   data=context.application().users().user("me").connection("likes").collection("restaurants").entity("arrogantbutcher").post();
+  refreshIndex(context.getOrgName(),context.getAppName());
   String arrogantButcherId=getEntity(data,0).get("uuid").asText();
   CustomCollection likeRestaurants=context.withUser(user1).application().users().user("me").connection("likes").collection("restaurants");
+  refreshIndex(context.getOrgName(),context.getAppName());
   data=likeRestaurants.entity(peaksId).get();
   assertNotNull(data);
   assertEquals("4peaks",getEntity(data,0).get("name").asText());

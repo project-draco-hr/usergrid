@@ -11,10 +11,13 @@
   }
   Map<String,Object> entityAsMap=EsEntityIndexImpl.entityToMap(entity);
   entityAsMap.put(ENTITYID_FIELDNAME,entity.getId().getUuid().toString());
-  log.debug("Indexing entity: " + entityAsMap);
   String indexId=EsEntityIndexImpl.this.createIndexDocId(entity);
-  IndexRequestBuilder irb=client.prepareIndex(indexName,this.indexType,indexId).setSource(entityAsMap).setRefresh(refresh);
+  log.debug("Indexing entity id {} data {} ",indexId,entityAsMap);
+  IndexRequestBuilder irb=client.prepareIndex(indexName,this.indexType,indexId).setSource(entityAsMap);
   irb.execute().actionGet();
+  if (refresh) {
+    refresh();
+  }
   if (log.isDebugEnabled()) {
     timer.stop();
     double average=averageIndexTime.get();

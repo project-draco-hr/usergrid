@@ -27,8 +27,15 @@
     searchResponse=srb.execute().actionGet();
   }
  else {
-    log.debug("Executing query with cursor: {} ",query.getCursor());
-    SearchScrollRequestBuilder ssrb=client.prepareSearchScroll(query.getCursor()).setScroll(cursorTimeout + "m");
+    String scrollId=query.getCursor();
+    if (scrollId.startsWith("\"")) {
+      scrollId=scrollId.substring(1);
+    }
+    if (scrollId.endsWith("\"")) {
+      scrollId=scrollId.substring(0,scrollId.length() - 1);
+    }
+    log.debug("Executing query with cursor: {} ",scrollId);
+    SearchScrollRequestBuilder ssrb=client.prepareSearchScroll(scrollId).setScroll(cursorTimeout + "m");
     searchResponse=ssrb.execute().actionGet();
   }
   SearchHits hits=searchResponse.getHits();

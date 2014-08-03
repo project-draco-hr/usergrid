@@ -5,7 +5,7 @@
   String email="email" + id + "@usergrid.org";
   ApiResponse response=client.createUser(username,name,email,"password");
   assertNull("Error was: " + response.getErrorDescription(),response.getError());
-  reindex("test-organization","test-app");
+  refreshIndex("test-organization","test-app");
   Entity userEntity=response.getEntities().get(0);
   JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/users/" + username).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   assertEquals(username,node.get("entities").get(0).get("username").asText());
