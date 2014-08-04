@@ -53,15 +53,18 @@
           entityWrapper=new EntityWrapper(UUID.fromString(entityUuid),entityType,properties);
           subscriber.onNext(entityWrapper);
           ownerEntityRef=em.getRef(UUID.fromString(entityUuid));
+          subscriber.onCompleted();
         }
       }
  catch (      IllegalArgumentException e) {
         ((Map<String,Object>)fileNames.get(index)).put("Entity Creation Error",e.getMessage());
         rootEm.update(importUG);
+        subscriber.onError(e);
       }
 catch (      Exception e) {
         ((Map<String,Object>)fileNames.get(index)).put("Miscellaneous Error",e.getMessage());
         rootEm.update(importUG);
+        subscriber.onError(e);
       }
     }
     if (entity != null) {
@@ -74,5 +77,6 @@ catch (      Exception e) {
     }
   }
  catch (  Exception e) {
+    System.out.println("something went wrong in observable json parser - " + e);
   }
 }

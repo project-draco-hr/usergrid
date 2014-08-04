@@ -6,8 +6,10 @@
       try {
         em.create(jsonEntity.entityUuid,jsonEntity.entityType,jsonEntity.properties);
         em.getRef(jsonEntity.entityUuid);
+        System.out.println("Emitting UUID " + jsonEntity.entityUuid + " on thread "+ Thread.currentThread().getName());
       }
  catch (      Exception e) {
+        System.out.println("something went wrong while creating this - " + e);
       }
     }
   }
@@ -17,5 +19,5 @@
       return entityWrapperObservable.doOnNext(doWork);
     }
   }
-);
+,Schedulers.io()).toBlocking().last();
 }
