@@ -1,16 +1,20 @@
 {
   FileImport fileImport=getFileImportEntity(jobExecution);
   fileImport.setState(FileImport.State.STARTED);
-  File file=(File)jobExecution.getJobData().getProperty("file");
+  File file=new File(jobExecution.getJobData().getProperty("File").toString());
+  logger.error(file.getName());
   EntityManager rootEm=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  rootEm.update(fileImport);
   boolean completed=fileImport.getCompleted();
   if (!completed) {
     if (isValidJSON(file,rootEm,fileImport)) {
       String applicationName=file.getPath().split("\\.")[0];
+      logger.error(applicationName);
       ApplicationInfo application=managementService.getApplicationInfo(applicationName);
       JsonParser jp=getJsonParserForFile(file);
       String lastUpdatedUUID=fileImport.getLastUpdatedUUID();
-      if (!lastUpdatedUUID.equals("")) {
+      logger.error(lastUpdatedUUID);
+      if (!lastUpdatedUUID.equals(" ")) {
         while (!jp.getText().equals(lastUpdatedUUID)) {
           jp.nextToken();
         }

@@ -9,9 +9,9 @@
     return null;
   }
   FileImport fileImport=new FileImport();
-  fileImport.setFileName(file.getName());
+  fileImport.setFileName(file);
   fileImport.setCompleted(false);
-  fileImport.setLastUpdatedUUID("");
+  fileImport.setLastUpdatedUUID(" ");
   fileImport.setErrorMessage("");
   fileImport.setState(FileImport.State.CREATED);
   fileImport=em.create(fileImport);
@@ -28,8 +28,7 @@
   em.update(fileImport);
   JobData jobData=new JobData();
   jobData.setProperty("File",file);
-  jobData.setProperty("fileImportId",fileImport.getUuid());
-  jobData.setProperty(FILE_IMPORT_ID,importRef);
+  jobData.setProperty(FILE_IMPORT_ID,fileImport.getUuid());
   long soonestPossible=System.currentTimeMillis() + 250;
   sch.createJob(FILE_IMPORT_JOB_NAME,soonestPossible,jobData);
   fileImport.setState(FileImport.State.SCHEDULED);
