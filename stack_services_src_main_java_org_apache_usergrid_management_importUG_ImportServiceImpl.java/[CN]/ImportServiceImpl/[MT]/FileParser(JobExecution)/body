@@ -2,7 +2,6 @@
   FileImport fileImport=getFileImportEntity(jobExecution);
   fileImport.setState(FileImport.State.STARTED);
   File file=new File(jobExecution.getJobData().getProperty("File").toString());
-  logger.error(file.getName());
   EntityManager rootEm=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
   rootEm.update(fileImport);
   boolean completed=fileImport.getCompleted();
@@ -43,11 +42,6 @@ catch (      ApplicationNotFoundException e) {
         fileImport.setState(FileImport.State.FINISHED);
         em.update(fileImport);
         return;
-      }
-catch (      Exception e) {
-        fileImport.setErrorMessage(e.getMessage());
-        em.update(fileImport);
-        throw e;
       }
       if (!fileImport.getState().equals("FAILED")) {
         fileImport.setCompleted(true);
