@@ -16,7 +16,7 @@
             jp.nextToken();
             while (jp.nextToken() != JsonToken.END_ARRAY) {
               String entryId=jp.getText();
-              EntityRef entryRef=em.getRef(UUID.fromString(entryId));
+              EntityRef entryRef=new SimpleEntityRef(UUID.fromString(entityUuid));
               entityWrapper=new ConnectionEvent(ownerEntityRef,connectionType,entryRef);
               subscriber.onNext(entityWrapper);
               subscriber.onCompleted();
@@ -56,7 +56,7 @@
           }
           entityWrapper=new EntityEvent(UUID.fromString(entityUuid),entityType,properties);
           subscriber.onNext(entityWrapper);
-          ownerEntityRef=em.getRef(UUID.fromString(entityUuid));
+          ownerEntityRef=new SimpleEntityRef(entityType,UUID.fromString(entityUuid));
           subscriber.onCompleted();
         }
       }
