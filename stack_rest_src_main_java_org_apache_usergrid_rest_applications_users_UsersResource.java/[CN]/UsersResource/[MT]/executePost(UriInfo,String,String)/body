@@ -1,9 +1,11 @@
 {
-  Object json=body.getEntity();
+  LOG.debug("UsersResource.executePost: body = " + body);
+  Object json=readJsonToObject(body);
   String password=null;
   String pin=null;
-  Boolean registration_requires_email_confirmation=(Boolean)this.getServices().getEntityManager().getProperty(this.getServices().getApplicationRef(),"registration_requires_email_confirmation");
-  boolean activated=!((registration_requires_email_confirmation != null) && registration_requires_email_confirmation);
+  Boolean confRequred=(Boolean)this.getServices().getEntityManager().getProperty(this.getServices().getApplicationRef(),"registration_requires_email_confirmation");
+  boolean activated=!((confRequred != null) && confRequred);
+  LOG.debug("Confirmation required: {} Activated: {}",confRequred,activated);
   if (json instanceof Map) {
     @SuppressWarnings("unchecked") Map<String,Object> map=(Map<String,Object>)json;
     password=(String)map.get("password");
@@ -22,7 +24,7 @@
       }
     }
   }
-  ApiResponse response=(ApiResponse)super.executePost(ui,body,callback).getJsonSource();
+  ApiResponse response=(ApiResponse)super.executePostWithObject(ui,json,callback).getJsonSource();
   if ((response.getEntities() != null) && (response.getEntities().size() == 1)) {
     Entity entity=response.getEntities().get(0);
     User user=(User)entity.toTypedEntity();
