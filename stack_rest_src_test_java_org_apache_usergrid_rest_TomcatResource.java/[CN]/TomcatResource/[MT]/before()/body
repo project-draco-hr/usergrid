@@ -7,17 +7,12 @@ synchronized (mutex) {
       return;
     }
     started=true;
-    port=AvailablePortFinder.getNextAvailable(9998 + RandomUtils.nextInt(10));
-    String propDirPath=createPropDir();
-    createPropertyFiles(propDirPath);
-    process=startTomcatProcess(propDirPath);
-    waitForTomcat();
-    Runtime.getRuntime().addShutdownHook(new Thread(){
-      @Override public void run(){
-        after();
-      }
+    if (forkTomcat) {
+      process=startTomcatProcess();
     }
-);
+ else {
+      startTomcatEmbedded();
+    }
   }
   log.info("Leaving before");
 }

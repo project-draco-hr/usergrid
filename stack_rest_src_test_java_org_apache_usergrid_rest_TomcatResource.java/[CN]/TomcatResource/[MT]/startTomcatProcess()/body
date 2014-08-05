@@ -1,4 +1,7 @@
 {
+  port=AvailablePortFinder.getNextAvailable(9998 + RandomUtils.nextInt(10));
+  String propDirPath=createPropDir();
+  createPropertyFilesForForkedTomcat(propDirPath);
   String javaHome=(String)System.getenv("JAVA_HOME");
   String logConfig="-Dlog4j.configuration=file:./src/test/resources/log4j.properties";
   String maxMemory="-Xmx1000m";
@@ -36,5 +39,12 @@
     }
   }
 ).start();
+  waitForTomcat();
+  Runtime.getRuntime().addShutdownHook(new Thread(){
+    @Override public void run(){
+      after();
+    }
+  }
+);
   return p;
 }
