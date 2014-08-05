@@ -4,10 +4,10 @@
   EntityManager rootEm=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
   rootEm.update(fileImport);
   boolean completed=fileImport.getCompleted();
-  logger.error("File parser called for " + file.getName());
   if (!completed) {
     if (isValidJSON(file,rootEm,fileImport)) {
       fileImport.setState(FileImport.State.STARTED);
+      rootEm.update(fileImport);
       String applicationName=file.getPath().split("\\.")[0];
       ApplicationInfo application=managementService.getApplicationInfo(applicationName);
       JsonParser jp=getJsonParserForFile(file);
@@ -31,46 +31,45 @@
         }
         if (!uuid.equals(" ")) {
           fileImport.setLastUpdatedUUID(uuid);
+          rootEm.update(fileImport);
         }
         jp.close();
       }
  catch (      OrganizationNotFoundException e) {
         fileImport.setErrorMessage(e.getMessage());
         fileImport.setState(FileImport.State.FINISHED);
-        em.update(fileImport);
+        rootEm.update(fileImport);
         return;
       }
 catch (      ApplicationNotFoundException e) {
         fileImport.setErrorMessage(e.getMessage());
         fileImport.setState(FileImport.State.FINISHED);
-        em.update(fileImport);
+        rootEm.update(fileImport);
         return;
       }
       if (!fileImport.getState().equals("FAILED")) {
-        logger.error("File parsing completed called for " + file.getName());
         fileImport.setCompleted(true);
         fileImport.setState(FileImport.State.FINISHED);
         rootEm.update(fileImport);
-        Results ImportJobResults=em.getConnectingEntities(fileImport.getUuid(),"includes",null,Results.Level.ALL_PROPERTIES);
+        Results ImportJobResults=rootEm.getConnectingEntities(fileImport.getUuid(),"includes",null,Results.Level.ALL_PROPERTIES);
         List<Entity> importEntity=ImportJobResults.getEntities();
         UUID importId=importEntity.get(0).getUuid();
         Import importUG=rootEm.get(importId,Import.class);
-        Results entities=em.getConnectedEntities(importId,"includes",null,Results.Level.ALL_PROPERTIES);
-        Iterator<Entity> resultIterator=entities.iterator();
+        Results entities=rootEm.getConnectedEntities(importId,"includes",null,Results.Level.ALL_PROPERTIES);
+        List<Entity> importFile=entities.getEntities();
         int count=0;
-        while (resultIterator.hasNext()) {
-          Entity eachEntity=resultIterator.next();
-          FileImport fi=em.get(eachEntity.getUuid(),FileImport.class);
-          if (fi.getState().equals("FINISHED")) {
+        for (        Entity eachEntity : importFile) {
+          FileImport fi=rootEm.get(eachEntity.getUuid(),FileImport.class);
+          if (fi.getState().toString().equals("FINISHED")) {
             count++;
           }
- else           if (fi.getState().equals("FAILED")) {
+ else           if (fi.getState().toString().equals("FAILED")) {
             importUG.setState(Import.State.FAILED);
             rootEm.update(importUG);
             break;
           }
         }
-        if (count == entities.size()) {
+        if (count == importFile.size()) {
           importUG.setState(Import.State.FINISHED);
           rootEm.update(importUG);
         }
