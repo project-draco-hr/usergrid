@@ -19,7 +19,6 @@
               EntityRef entryRef=new SimpleEntityRef(UUID.fromString(entryId));
               entityWrapper=new ConnectionEvent(ownerEntityRef,connectionType,entryRef);
               subscriber.onNext(entityWrapper);
-              subscriber.onCompleted();
             }
           }
         }
@@ -28,11 +27,11 @@
           while (jp.nextToken() != JsonToken.END_OBJECT) {
             String dictionaryName=jp.getCurrentName();
             jp.nextToken();
-            @SuppressWarnings("unchecked") Map<String,Object> dictionary=jp.readValueAs(HashMap.class);
+            Map<String,Object> dictionary=jp.readValueAs(HashMap.class);
             entityWrapper=new DictionaryEvent(ownerEntityRef,dictionaryName,dictionary);
             subscriber.onNext(entityWrapper);
-            subscriber.onCompleted();
           }
+          subscriber.onCompleted();
         }
  else {
           jp.nextToken();
@@ -57,7 +56,6 @@
           entityWrapper=new EntityEvent(UUID.fromString(entityUuid),entityType,properties);
           subscriber.onNext(entityWrapper);
           ownerEntityRef=new SimpleEntityRef(entityType,UUID.fromString(entityUuid));
-          subscriber.onCompleted();
         }
       }
  catch (      IllegalArgumentException e) {
