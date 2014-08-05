@@ -24,29 +24,10 @@
         jp.nextToken();
       }
       EntityManager em=emf.getEntityManager(application.getId());
-      try {
-        String uuid=" ";
-        while (jp.nextToken() != JsonToken.END_ARRAY) {
-          uuid=importEntityStuff(jp,em,rootEm,fileImport,jobExecution);
-        }
-        if (!uuid.equals(" ")) {
-          fileImport.setLastUpdatedUUID(uuid);
-          rootEm.update(fileImport);
-        }
-        jp.close();
+      while (jp.nextToken() != JsonToken.END_ARRAY) {
+        importEntityStuff(jp,em,rootEm,fileImport,jobExecution);
       }
- catch (      OrganizationNotFoundException e) {
-        fileImport.setErrorMessage(e.getMessage());
-        fileImport.setState(FileImport.State.FINISHED);
-        rootEm.update(fileImport);
-        return;
-      }
-catch (      ApplicationNotFoundException e) {
-        fileImport.setErrorMessage(e.getMessage());
-        fileImport.setState(FileImport.State.FINISHED);
-        rootEm.update(fileImport);
-        return;
-      }
+      jp.close();
       if (!fileImport.getState().equals("FAILED")) {
         fileImport.setCompleted(true);
         fileImport.setState(FileImport.State.FINISHED);

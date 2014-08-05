@@ -28,21 +28,35 @@
     em.update(importUG);
     return;
   }
-  if (config.get("organizationId") == null) {
-    logger.error("No organization could be found");
-    importUG.setErrorMessage("No organization could be found");
-    importUG.setState(Import.State.FAILED);
+  try {
+    if (config.get("organizationId") == null) {
+      logger.error("No organization could be found");
+      importUG.setErrorMessage("No organization could be found");
+      importUG.setState(Import.State.FAILED);
+      em.update(importUG);
+      return;
+    }
+ else     if (config.get("applicationId") == null) {
+      importApplicationsFromOrg((UUID)config.get("organizationId"),config,jobExecution,s3Import);
+    }
+ else     if (config.get("collectionName") == null) {
+      importApplicationFromOrg((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution,s3Import);
+    }
+ else {
+      importCollectionFromOrgApp((UUID)config.get("applicationId"),config,jobExecution,s3Import);
+    }
+  }
+ catch (  OrganizationNotFoundException e) {
+    importUG.setErrorMessage(e.getMessage());
+    importUG.setState(Import.State.FINISHED);
     em.update(importUG);
     return;
   }
- else   if (config.get("applicationId") == null) {
-    importApplicationsFromOrg((UUID)config.get("organizationId"),config,jobExecution,s3Import);
-  }
- else   if (config.get("collectionName") == null) {
-    importApplicationFromOrg((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution,s3Import);
-  }
- else {
-    importCollectionFromOrgApp((UUID)config.get("applicationId"),config,jobExecution,s3Import);
+catch (  ApplicationNotFoundException e) {
+    importUG.setErrorMessage(e.getMessage());
+    importUG.setState(Import.State.FINISHED);
+    em.update(importUG);
+    return;
   }
   if (files.size() == 0) {
     importUG.setState(Import.State.FINISHED);

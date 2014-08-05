@@ -1,0 +1,26 @@
+{
+  EntityManager rootEm=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  try {
+    Entity entity=em.create(entityUuid,entityType,properties);
+    if (entity != null) {
+      entityCount++;
+      if ((entityCount % 10) == 0) {
+        jobExecution.heartbeat();
+      }
+      if (entityCount == 2000) {
+        fileImport.setLastUpdatedUUID(entityUuid.toString());
+        rootEm.update(fileImport);
+        entityCount=0;
+      }
+    }
+  }
+ catch (  Exception e) {
+    logger.error("something went wrong while creating this - " + e);
+    fileImport.setErrorMessage(e.getMessage());
+    try {
+      rootEm.update(fileImport);
+    }
+ catch (    Exception ex) {
+    }
+  }
+}

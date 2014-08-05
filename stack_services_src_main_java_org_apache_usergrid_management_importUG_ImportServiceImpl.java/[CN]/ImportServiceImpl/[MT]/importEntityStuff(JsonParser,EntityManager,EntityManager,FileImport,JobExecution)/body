@@ -1,76 +1,16 @@
 {
-  Entity entity=null;
-  EntityRef ownerEntityRef=null;
-  String entityUuid="";
-  String entityType="";
-  while (jp.nextToken() != JsonToken.END_OBJECT) {
-    String collectionName=jp.getCurrentName();
-    try {
-      if (collectionName.equals("connections")) {
-        jp.nextToken();
-        while (jp.nextToken() != JsonToken.END_OBJECT) {
-          String connectionType=jp.getCurrentName();
-          jp.nextToken();
-          while (jp.nextToken() != JsonToken.END_ARRAY) {
-            String entryId=jp.getText();
-            EntityRef entryRef=em.getRef(UUID.fromString(entryId));
-            em.createConnection(ownerEntityRef,connectionType,entryRef);
-          }
-        }
-      }
- else       if (collectionName.equals("dictionaries")) {
-        jp.nextToken();
-        while (jp.nextToken() != JsonToken.END_OBJECT) {
-          String dictionaryName=jp.getCurrentName();
-          jp.nextToken();
-          Map<String,Object> dictionary=jp.readValueAs(HashMap.class);
-          em.addMapToDictionary(ownerEntityRef,dictionaryName,dictionary);
-        }
-      }
- else {
-        jp.nextToken();
-        Map<String,Object> properties=new HashMap<String,Object>();
-        JsonToken token=jp.nextToken();
-        while (token != JsonToken.END_OBJECT) {
-          if (token == JsonToken.VALUE_STRING || token == JsonToken.VALUE_NUMBER_INT) {
-            String key=jp.getCurrentName();
-            if (key.equals("uuid")) {
-              entityUuid=jp.getText();
-            }
- else             if (key.equals("type")) {
-              entityType=jp.getText();
-            }
- else             if (key.length() != 0 && jp.getText().length() != 0) {
-              String value=jp.getText();
-              properties.put(key,value);
-            }
-          }
-          token=jp.nextToken();
-        }
-        entity=em.create(UUID.fromString(entityUuid),entityType,properties);
-        ownerEntityRef=em.getRef(UUID.fromString(entityUuid));
-      }
-    }
- catch (    IllegalArgumentException e) {
-      fileImport.setErrorMessage(e.getMessage());
-      rootEm.update(fileImport);
-    }
-catch (    Exception e) {
-      fileImport.setErrorMessage(e.getMessage());
-      rootEm.update(fileImport);
+  final JsonParserObservable subscribe=new JsonParserObservable(jp,em,rootEm,fileImport);
+  final Observable<WriteEvent> observable=Observable.create(subscribe);
+  final Action1<WriteEvent> doWork=new Action1<WriteEvent>(){
+    @Override public void call(    WriteEvent writeEvent){
+      writeEvent.doWrite(em,jobExecution,fileImport);
     }
   }
-  if (entity != null) {
-    entityCount++;
-    if ((entityCount % 10) == 0) {
-      jobExecution.heartbeat();
+;
+  observable.parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
+    @Override public Observable<WriteEvent> call(    Observable<WriteEvent> entityWrapperObservable){
+      return entityWrapperObservable.doOnNext(doWork);
     }
-    if (entityCount == 1000) {
-      fileImport.setLastUpdatedUUID(entityUuid);
-      rootEm.update(fileIsmport);
-      entityCount=0;
-    }
-    return entityUuid;
   }
-  return new String(" ");
+,Schedulers.io()).toBlocking().last();
 }
