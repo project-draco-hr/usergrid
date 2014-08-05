@@ -1,21 +1,14 @@
 {
   final JsonParserObservable subscribe=new JsonParserObservable(jp,em,rootEm,importUG,index);
-  final Observable<EntityWrapper> observable=Observable.create(subscribe);
-  final Action1<EntityWrapper> doWork=new Action1<EntityWrapper>(){
-    @Override public void call(    EntityWrapper jsonEntity){
-      try {
-        em.create(jsonEntity.entityUuid,jsonEntity.entityType,jsonEntity.properties);
-        em.getRef(jsonEntity.entityUuid);
-        System.out.println("Emitting UUID " + jsonEntity.entityUuid + " on thread "+ Thread.currentThread().getName());
-      }
- catch (      Exception e) {
-        System.out.println("something went wrong while creating this - " + e);
-      }
+  final Observable<WriteEvent> observable=Observable.create(subscribe);
+  final Action1<WriteEvent> doWork=new Action1<WriteEvent>(){
+    @Override public void call(    WriteEvent writeEvent){
+      writeEvent.doWrite(em);
     }
   }
 ;
-  observable.parallel(new Func1<Observable<EntityWrapper>,Observable<EntityWrapper>>(){
-    @Override public Observable<EntityWrapper> call(    Observable<EntityWrapper> entityWrapperObservable){
+  observable.parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
+    @Override public Observable<WriteEvent> call(    Observable<WriteEvent> entityWrapperObservable){
       return entityWrapperObservable.doOnNext(doWork);
     }
   }

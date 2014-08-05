@@ -1,6 +1,6 @@
 {
   ArrayList fileNames=(ArrayList)importUG.getDynamicProperties().get("files");
-  EntityWrapper entityWrapper=null;
+  WriteEvent entityWrapper=null;
   Entity entity=null;
   EntityRef ownerEntityRef=null;
   String entityUuid="";
@@ -17,7 +17,9 @@
             while (jp.nextToken() != JsonToken.END_ARRAY) {
               String entryId=jp.getText();
               EntityRef entryRef=em.getRef(UUID.fromString(entryId));
-              em.createConnection(ownerEntityRef,connectionType,entryRef);
+              entityWrapper=new ConnectionEvent(ownerEntityRef,connectionType,entryRef);
+              subscriber.onNext(entityWrapper);
+              subscriber.onCompleted();
             }
           }
         }
@@ -27,7 +29,9 @@
             String dictionaryName=jp.getCurrentName();
             jp.nextToken();
             @SuppressWarnings("unchecked") Map<String,Object> dictionary=jp.readValueAs(HashMap.class);
-            em.addMapToDictionary(ownerEntityRef,dictionaryName,dictionary);
+            entityWrapper=new DictionaryEvent(ownerEntityRef,dictionaryName,dictionary);
+            subscriber.onNext(entityWrapper);
+            subscriber.onCompleted();
           }
         }
  else {
@@ -50,7 +54,7 @@
             }
             token=jp.nextToken();
           }
-          entityWrapper=new EntityWrapper(UUID.fromString(entityUuid),entityType,properties);
+          entityWrapper=new EntityEvent(UUID.fromString(entityUuid),entityType,properties);
           subscriber.onNext(entityWrapper);
           ownerEntityRef=em.getRef(UUID.fromString(entityUuid));
           subscriber.onCompleted();
