@@ -6,6 +6,7 @@
   JobData test=new JobData();
   test.setProperty("stringprop","test");
   test.setProperty("notificationId",notificationId);
+  getJobListener().setExpected(1);
   JobData saved=scheduler.createJob("countdownLatch",fireTime,test);
   Query query=new Query();
   query.addEqualityFilter("notificationId",notificationId);
@@ -19,6 +20,6 @@
   assertEquals(saved.getUuid(),r.getEntity().getUuid());
   scheduler.deleteJob(saved.getUuid());
   long waitTime=Math.max(0,fireTime - System.currentTimeMillis() + 1000);
-  boolean waited=getJobListener().blockTilDone(1,waitTime);
+  boolean waited=getJobListener().blockTilDone(waitTime);
   assertFalse("Job ran ",waited);
 }

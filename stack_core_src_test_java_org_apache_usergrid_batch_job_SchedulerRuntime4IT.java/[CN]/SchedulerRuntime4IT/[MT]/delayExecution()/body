@@ -4,12 +4,14 @@
   long customRetry=sleepTime * 2;
   DelayExecution job=cassandraResource.getBean("delayExecution",DelayExecution.class);
   job.setTimeout(customRetry);
-  job.setLatch(delayCount + 1);
+  int runCount=delayCount + 1;
+  job.setLatch(runCount);
+  getJobListener().setExpected(runCount);
   JobData returned=scheduler.createJob("delayExecution",System.currentTimeMillis(),new JobData());
-  boolean waited=getJobListener().blockTilDone(3,5000L + sleepTime * 2);
+  boolean waited=getJobListener().blockTilDone(50000L + sleepTime * 2);
   assertTrue("Job ran to complete",waited);
   JobStat stat=scheduler.getStatsForJob(returned.getJobName(),returned.getUuid());
   assertEquals(1,stat.getTotalAttempts());
-  assertEquals(delayCount + 1,stat.getRunCount());
+  assertEquals(runCount,stat.getRunCount());
   assertEquals(delayCount,stat.getDelayCount());
 }
