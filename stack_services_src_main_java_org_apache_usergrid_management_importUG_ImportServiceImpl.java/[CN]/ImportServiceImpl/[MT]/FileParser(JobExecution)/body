@@ -4,15 +4,14 @@
   EntityManager rootEm=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
   rootEm.update(fileImport);
   boolean completed=fileImport.getCompleted();
+  logger.error("File parser called for " + file.getName());
   if (!completed) {
     if (isValidJSON(file,rootEm,fileImport)) {
       fileImport.setState(FileImport.State.STARTED);
       String applicationName=file.getPath().split("\\.")[0];
-      logger.error(applicationName);
       ApplicationInfo application=managementService.getApplicationInfo(applicationName);
       JsonParser jp=getJsonParserForFile(file);
       String lastUpdatedUUID=fileImport.getLastUpdatedUUID();
-      logger.error(lastUpdatedUUID);
       if (!lastUpdatedUUID.equals(" ")) {
         while (!jp.getText().equals(lastUpdatedUUID)) {
           jp.nextToken();
@@ -28,7 +27,7 @@
       try {
         String uuid=" ";
         while (jp.nextToken() != JsonToken.END_ARRAY) {
-          uuid=importEntityStuff(jp,em,rootEm,fileImport);
+          uuid=importEntityStuff(jp,em,rootEm,fileImport,jobExecution);
         }
         if (!uuid.equals(" ")) {
           fileImport.setLastUpdatedUUID(uuid);
@@ -48,6 +47,7 @@ catch (      ApplicationNotFoundException e) {
         return;
       }
       if (!fileImport.getState().equals("FAILED")) {
+        logger.error("File parsing completed called for " + file.getName());
         fileImport.setCompleted(true);
         fileImport.setState(FileImport.State.FINISHED);
         rootEm.update(fileImport);
