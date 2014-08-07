@@ -4,12 +4,15 @@
     Entity entity=em.create(entityUuid,entityType,properties);
     if (entity != null) {
       entityCount++;
+      logger.error(entityCount + "");
       if ((entityCount % 10) == 0) {
         jobExecution.heartbeat();
       }
       if (entityCount == 2000) {
+        logger.error("updated entity count");
         fileImport.setLastUpdatedUUID(entity.getUuid().toString());
         rootEm.update(fileImport);
+        logger.error("updated entity count for file " + fileImport.getFileName());
         entityCount=0;
       }
     }
