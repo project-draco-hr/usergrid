@@ -7,12 +7,12 @@
     return;
   }
   UUID importId=(UUID)jobExecution.getJobData().getProperty(IMPORT_ID);
-  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
-  Import importUG=em.get(importId,Import.class);
+  EntityManager rooteEm=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  Import importUG=rooteEm.get(importId,Import.class);
   importUG.setState(Import.State.STARTED);
   importUG.setStarted(System.currentTimeMillis());
   importUG.setErrorMessage(" ");
-  em.update(importUG);
+  rooteEm.update(importUG);
   try {
     if (s3PlaceHolder != null) {
       s3Import=(S3Import)s3PlaceHolder;
@@ -25,7 +25,7 @@
     logger.error("S3Import doesn't exist");
     importUG.setErrorMessage(e.getMessage());
     importUG.setState(Import.State.FAILED);
-    em.update(importUG);
+    rooteEm.update(importUG);
     return;
   }
   try {
@@ -33,7 +33,7 @@
       logger.error("No organization could be found");
       importUG.setErrorMessage("No organization could be found");
       importUG.setState(Import.State.FAILED);
-      em.update(importUG);
+      rooteEm.update(importUG);
       return;
     }
  else     if (config.get("applicationId") == null) {
@@ -49,25 +49,25 @@
  catch (  OrganizationNotFoundException e) {
     importUG.setErrorMessage(e.getMessage());
     importUG.setState(Import.State.FINISHED);
-    em.update(importUG);
+    rooteEm.update(importUG);
     return;
   }
 catch (  ApplicationNotFoundException e) {
     importUG.setErrorMessage(e.getMessage());
     importUG.setState(Import.State.FINISHED);
-    em.update(importUG);
+    rooteEm.update(importUG);
     return;
   }
   if (files.size() == 0) {
     importUG.setState(Import.State.FINISHED);
     importUG.setErrorMessage("no files found in the bucket with the relevant context");
-    em.update(importUG);
+    rooteEm.update(importUG);
   }
  else {
     Map<String,Object> fileMetadata=new HashMap<String,Object>();
     ArrayList<Map<String,Object>> value=new ArrayList<Map<String,Object>>();
     for (    File eachfile : files) {
-      UUID jobID=scheduleFile(eachfile.getPath(),em.getRef(importId));
+      UUID jobID=scheduleFile(eachfile.getPath(),rooteEm.getRef(importId));
       Map<String,Object> fileJobID=new HashMap<String,Object>();
       fileJobID.put("FileName",eachfile.getName());
       fileJobID.put("JobID",jobID.toString());
@@ -75,7 +75,7 @@ catch (  ApplicationNotFoundException e) {
     }
     fileMetadata.put("files",value);
     importUG.addProperties(fileMetadata);
-    em.update(importUG);
+    rooteEm.update(importUG);
   }
   return;
 }

@@ -1,7 +1,7 @@
 {
-  EntityManager em=null;
+  EntityManager rootEm=null;
   try {
-    em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+    rootEm=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
   }
  catch (  Exception e) {
     logger.error("application doesn't exist within the current context");
@@ -13,23 +13,23 @@
   fileImport.setLastUpdatedUUID(" ");
   fileImport.setErrorMessage(" ");
   fileImport.setState(FileImport.State.CREATED);
-  fileImport=em.create(fileImport);
-  Import importUG=em.get(importRef,Import.class);
+  fileImport=rootEm.create(fileImport);
+  Import importUG=rootEm.get(importRef,Import.class);
   try {
-    em.createConnection(importUG,"includes",fileImport);
+    rootEm.createConnection(importUG,"includes",fileImport);
   }
  catch (  Exception e) {
     logger.error(e.getMessage());
     return null;
   }
   fileImport.setState(FileImport.State.CREATED);
-  em.update(fileImport);
+  rootEm.update(fileImport);
   JobData jobData=new JobData();
   jobData.setProperty("File",file);
   jobData.setProperty(FILE_IMPORT_ID,fileImport.getUuid());
   long soonestPossible=System.currentTimeMillis() + 250;
   sch.createJob(FILE_IMPORT_JOB_NAME,soonestPossible,jobData);
   fileImport.setState(FileImport.State.SCHEDULED);
-  em.update(fileImport);
+  rootEm.update(fileImport);
   return fileImport.getUuid();
 }
