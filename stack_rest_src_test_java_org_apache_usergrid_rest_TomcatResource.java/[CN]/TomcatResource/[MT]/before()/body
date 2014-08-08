@@ -1,9 +1,17 @@
 {
   log.info("Entering before");
+  String esStartup=properties.getProperty("tomcat.startup");
+  if ("forked".equals(esStartup)) {
+    forkTomcat=true;
+  }
+ else {
+    forkTomcat=false;
+  }
 synchronized (mutex) {
     clientCount.incrementAndGet();
     if (started) {
-      log.info("NOT starting Tomcat because it is already started #2");
+      log.info("NOT starting Tomcat because it is already started");
+      log.info("Leaving before: {} users of Tomcat",clientCount.get());
       return;
     }
     if (forkTomcat) {
@@ -12,6 +20,6 @@ synchronized (mutex) {
  else {
       startTomcatEmbedded();
     }
+    log.info("Leaving before: Started Tomcat, now {} users",clientCount.get());
   }
-  log.info("Leaving before");
 }

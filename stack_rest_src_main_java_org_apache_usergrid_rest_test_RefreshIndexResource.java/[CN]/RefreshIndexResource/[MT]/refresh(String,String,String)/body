@@ -1,22 +1,28 @@
 {
-  Properties props=management.getProperties();
-  String testProp=(String)props.get("usergrid.test");
-  if (testProp == null || !Boolean.parseBoolean(testProp)) {
-    throw new UnsupportedOperationException();
-  }
-  UUID appId;
-  if (orgName != null && appName != null) {
-    appId=emf.lookupApplication(orgName + "/" + appName);
-  }
+  try {
+    Properties props=management.getProperties();
+    String testProp=(String)props.get("usergrid.test");
+    if (testProp == null || !Boolean.parseBoolean(testProp)) {
+      throw new UnsupportedOperationException();
+    }
+    UUID appId;
+    if (orgName != null && appName != null) {
+      appId=emf.lookupApplication(orgName + "/" + appName);
+    }
  else {
-    appId=UUID.fromString(appIdString);
-  }
-  if (appId != null) {
-    EntityManager em=emf.getEntityManager(appId);
-    em.refreshIndex();
-  }
+      appId=UUID.fromString(appIdString);
+    }
+    if (appId != null) {
+      EntityManager em=emf.getEntityManager(appId);
+      em.refreshIndex();
+    }
  else {
-    emf.refreshIndex();
+      emf.refreshIndex();
+    }
   }
-  return Response.created(null).build();
+ catch (  Exception e) {
+    logger.error("Error in refresh",e);
+    return Response.serverError().build();
+  }
+  return Response.ok().build();
 }

@@ -8,6 +8,7 @@
   ProcessBuilder pb=new ProcessBuilder(javaHome + "/bin/java",maxMemory,logConfig,"org.apache.usergrid.TomcatMain","src/main/webapp",port + "");
   String classpath=System.getProperty("java.class.path");
   List<String> path=new ArrayList<String>();
+  path.add(propDirPath);
   String parts[]=classpath.split(File.pathSeparator);
   for (  String part : parts) {
     if (part.endsWith("test-classes")) {
@@ -15,7 +16,6 @@
     }
     path.add(part);
   }
-  path.add(propDirPath);
   String newClasspath=StringUtils.join(path,File.pathSeparator);
   Map<String,String> env=pb.environment();
   StringBuilder sb=new StringBuilder();

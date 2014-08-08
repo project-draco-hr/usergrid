@@ -1,4 +1,11 @@
 {
   LOG.debug("Refreshing index for appId {}",appId);
-  resource().path("/refreshindex").queryParam("app_id",appId.toString()).accept(MediaType.APPLICATION_JSON).post();
+  try {
+    resource().path("/refreshindex").queryParam("app_id",appId.toString()).accept(MediaType.APPLICATION_JSON).post();
+  }
+ catch (  Exception e) {
+    LOG.debug("Error refreshing index",e);
+    return;
+  }
+  LOG.debug("Refreshed index for appId {}",appId);
 }

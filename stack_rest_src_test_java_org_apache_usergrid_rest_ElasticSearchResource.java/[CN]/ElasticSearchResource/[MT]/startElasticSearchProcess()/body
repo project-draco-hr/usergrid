@@ -1,0 +1,38 @@
+{
+  port=AvailablePortFinder.getNextAvailable(4000 + RandomUtils.nextInt(10));
+  System.setProperty(LOCAL_ES_PORT_PROPNAME,port + "");
+  String javaHome=(String)System.getenv("JAVA_HOME");
+  String maxMemory="-Xmx1000m";
+  ProcessBuilder pb=new ProcessBuilder(javaHome + "/bin/java",maxMemory,"org.apache.usergrid.ElasticSearchMain",properties.getProperty("elasticsearch.cluster_name"),port + "");
+  String classpath=System.getProperty("java.class.path");
+  Map<String,String> env=pb.environment();
+  StringBuilder sb=new StringBuilder();
+  sb.append(classpath);
+  env.put("CLASSPATH",sb.toString());
+  pb.redirectErrorStream(true);
+  final Process p=pb.start();
+  new Thread(new Runnable(){
+    @Override public void run(){
+      BufferedReader br=new BufferedReader(new InputStreamReader(p.getInputStream()));
+      String line=null;
+      try {
+        while ((line=br.readLine()) != null) {
+          log.info(line);
+        }
+      }
+ catch (      Exception ex) {
+        log.error("Error reading from ElasticSearch process",ex);
+        return;
+      }
+    }
+  }
+).start();
+  waitForElasticSearch();
+  Runtime.getRuntime().addShutdownHook(new Thread(){
+    @Override public void run(){
+      after();
+    }
+  }
+);
+  return p;
+}

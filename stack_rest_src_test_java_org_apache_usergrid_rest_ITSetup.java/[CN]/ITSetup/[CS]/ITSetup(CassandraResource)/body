@@ -1,7 +1,14 @@
 {
+  try {
+    String[] locations={"usergrid-properties-context.xml"};
+    ConfigurableApplicationContext appContext=new ClassPathXmlApplicationContext(locations);
+    properties=(Properties)appContext.getBean("properties");
+  }
+ catch (  Exception ex) {
+    throw new RuntimeException("Error getting properties",ex);
+  }
   this.cassandraResource=cassandraResource;
-  managementService=cassandraResource.getBean(ManagementService.class);
   tomcatResource=TomcatResource.instance;
   tomcatResource.setWebAppsPath("src/main/webapp");
-  tomcatResource.setProperties(managementService.getProperties());
+  elasticSearchResource=ElasticSearchResource.instance;
 }
