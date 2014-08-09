@@ -46,7 +46,7 @@
   }
   String javaHome=(String)System.getenv("JAVA_HOME");
   String maxMemory="-Xmx1000m";
-  ProcessBuilder pb=new ProcessBuilder(javaHome + "/bin/java",maxMemory,"org.apache.usergrid.cassandra.CassandraMain",newYamlUrl.toString(),tempDir.getName(),getTargetDir() + "/src/test/resources/log4j.properties","" + rpcPort,"" + storagePort,"" + sslStoragePort,"" + nativeTransportPort);
+  ProcessBuilder pb=new ProcessBuilder(javaHome + "/bin/java",getJammArgument(),maxMemory,"org.apache.usergrid.cassandra.CassandraMain",newYamlUrl.toString(),tempDir.getName(),getTargetDir() + "/src/test/resources/log4j.properties","" + rpcPort,"" + storagePort,"" + sslStoragePort,"" + nativeTransportPort);
   String classpath=System.getProperty("java.class.path");
   List<String> path=new ArrayList<String>();
   String parts[]=classpath.split(File.pathSeparator);
@@ -85,6 +85,7 @@
     }
   }
 );
+  Thread.sleep(5000);
   String[] locations={"usergrid-test-context.xml"};
   applicationContext=new ClassPathXmlApplicationContext(locations);
   loadSchemaManager(schemaManagerName);

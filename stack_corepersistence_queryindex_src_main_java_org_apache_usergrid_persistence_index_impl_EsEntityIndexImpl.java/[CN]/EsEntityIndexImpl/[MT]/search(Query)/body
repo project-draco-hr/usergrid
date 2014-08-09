@@ -1,7 +1,7 @@
 {
   QueryBuilder qb=query.createQueryBuilder();
   if (log.isDebugEnabled()) {
-    log.debug("Searching index {}\n   type {}\n   query {}",new Object[]{this.indexName,this.indexType,qb.toString().replace("\n"," ")});
+    log.debug("Searching index {}\n   type {}\n   query {} limit {}",new Object[]{this.indexName,this.indexType,qb.toString().replace("\n"," "),query.getLimit()});
   }
   SearchResponse searchResponse;
   if (query.getCursor() == null) {
@@ -50,7 +50,7 @@
     candidates.add(new CandidateResult(entityId,UUID.fromString(version)));
   }
   CandidateResults candidateResults=new CandidateResults(query,candidates);
-  if (candidates.size() == query.getLimit()) {
+  if (candidates.size() >= query.getLimit()) {
     candidateResults.setCursor(searchResponse.getScrollId());
     log.debug("   Cursor = " + searchResponse.getScrollId());
   }

@@ -1,5 +1,5 @@
 {
-  CustomCollection things=context.application().collection("things");
+  CustomCollection things=context.application().collection("things1");
   int size=40;
   List<Map<String,String>> created=new ArrayList<Map<String,String>>(size);
   for (int i=0; i < size; i++) {
@@ -15,9 +15,11 @@
     for (    Entity e : response.getEntities()) {
       assertTrue(entityItr.hasNext());
       assertEquals(entityItr.next().get("name"),e.getProperties().get("name").asText());
+      logger.debug("Got item value {}",e.getProperties().get("name").asText());
     }
+    logger.debug("response cursor: " + response.getCursor());
     things=things.withCursor(response.getCursor());
   }
  while (response != null && response.getCursor() != null);
-  assertFalse(entityItr.hasNext());
+  assertFalse("Should have paged them all",entityItr.hasNext());
 }
