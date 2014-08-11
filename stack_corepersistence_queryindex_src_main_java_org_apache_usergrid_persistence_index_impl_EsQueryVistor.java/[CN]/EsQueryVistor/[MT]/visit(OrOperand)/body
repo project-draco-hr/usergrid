@@ -1,5 +1,20 @@
 {
   op.getLeft().visit(this);
   op.getRight().visit(this);
-  stack.push(QueryBuilders.boolQuery().should(stack.pop()).should(stack.pop()));
+  QueryBuilder left=null;
+  if (!(op.getLeft() instanceof WithinOperand)) {
+    left=stack.pop();
+  }
+  QueryBuilder right=null;
+  if (!(op.getRight() instanceof WithinOperand)) {
+    right=stack.pop();
+  }
+  BoolQueryBuilder qb=QueryBuilders.boolQuery();
+  if (left != null) {
+    qb=qb.should(left);
+  }
+  if (right != null) {
+    qb=qb.should(right);
+  }
+  stack.push(qb);
 }
