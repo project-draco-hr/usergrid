@@ -1,15 +1,23 @@
 {
   context.clearUser();
   refreshIndex(context.getOrgName(),context.getAppName());
-  TestUser user1=new TestAppUser("testuser1@usergrid.org","password","testuser1@usergrid.org").create(context).login(context).makeActive(context);
+  String email="testuser1@usergrid.org";
+  TestUser user1=new TestAppUser(email,"password",email).create(context);
+  refreshIndex(context.getOrgName(),context.getAppName());
+  user1.login(context).makeActive(context);
   JsonNode data=context.application().collection("restaurants").create(MapUtils.hashMap("name","4peaks"));
+  refreshIndex(context.getOrgName(),context.getAppName());
   data=context.application().users().user("me").connection("likes").collection("restaurants").entity("4peaks").post();
   refreshIndex(context.getOrgName(),context.getAppName());
   String peaksId=getEntity(data,0).get("uuid").asText();
   context.clearUser();
-  TestUser user2=new TestAppUser("testuser2@usergrid.org","password","testuser2@usergrid.org").create(context).login(context).makeActive(context);
+  email="testuser2@usergrid.org";
+  TestUser user2=new TestAppUser(email,"password",email).create(context);
+  refreshIndex(context.getOrgName(),context.getAppName());
+  user2.login(context).makeActive(context);
   refreshIndex(context.getOrgName(),context.getAppName());
   data=context.application().collection("restaurants").create(MapUtils.hashMap("name","arrogantbutcher"));
+  refreshIndex(context.getOrgName(),context.getAppName());
   data=context.application().users().user("me").connection("likes").collection("restaurants").entity("arrogantbutcher").post();
   refreshIndex(context.getOrgName(),context.getAppName());
   String arrogantButcherId=getEntity(data,0).get("uuid").asText();
