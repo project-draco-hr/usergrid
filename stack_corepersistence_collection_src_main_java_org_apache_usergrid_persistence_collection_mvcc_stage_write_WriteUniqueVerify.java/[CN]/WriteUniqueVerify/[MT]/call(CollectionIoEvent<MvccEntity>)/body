@@ -7,7 +7,7 @@
     if (field.isUnique()) {
       Observable<FieldUniquenessResult> result=Observable.from(field).subscribeOn(Schedulers.io()).map(new Func1<Field,FieldUniquenessResult>(){
         @Override public FieldUniquenessResult call(        Field field){
-          UniqueValue written=new UniqueValueImpl(ioevent.getEntityCollection(),field,entity.getId(),entity.getVersion());
+          UniqueValue written=new UniqueValueImpl(ioevent.getEntityCollection(),field,entity.getId(),mvccEntity.getVersion());
           MutationBatch mb=uniqueValueStrat.write(written,serializationFig.getTimeout());
           try {
             mb.execute();

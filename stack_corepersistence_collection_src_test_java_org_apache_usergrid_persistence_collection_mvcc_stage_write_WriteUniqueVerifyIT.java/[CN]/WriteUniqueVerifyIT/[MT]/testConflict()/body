@@ -10,6 +10,11 @@
   entityManager.write(entity).toBlocking().last();
   Entity entityFetched=entityManager.load(entity.getId()).toBlocking().last();
   entityFetched.setField(new StringField("foo","bar"));
+  try {
+    Thread.sleep(serializationFig.getTimeout() * 1100);
+  }
+ catch (  InterruptedException ignored) {
+  }
   final Entity entity2=TestEntityGenerator.generateEntity();
   entity2.setField(new StringField("name","Aston Martin Vanquish",true));
   entity2.setField(new StringField("identifier","v12",true));

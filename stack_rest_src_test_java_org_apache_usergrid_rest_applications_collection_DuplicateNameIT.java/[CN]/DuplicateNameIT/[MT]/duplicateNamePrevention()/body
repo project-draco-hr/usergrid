@@ -1,0 +1,24 @@
+{
+  CustomCollection things=context.application().collection("things");
+  Map<String,String> entity=MapUtils.hashMap("name","enzo");
+  try {
+    things.create(entity);
+  }
+ catch (  IOException ex) {
+    logger.error("Cannot create entity",ex);
+  }
+  refreshIndex(context.getAppUuid());
+  Injector injector=Guice.createInjector(new TestGuiceModule());
+  SerializationFig sfig=injector.getInstance(SerializationFig.class);
+  try {
+    Thread.sleep(sfig.getTimeout() * 1100);
+  }
+ catch (  InterruptedException ignored) {
+  }
+  try {
+    things.create(entity);
+    fail("Should not have created duplicate entity");
+  }
+ catch (  Exception ex) {
+  }
+}
