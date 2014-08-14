@@ -7,13 +7,7 @@
       final MutationBatch mutation=edgeMetadataSerialization.writeEdge(scope,edge);
       final MutationBatch edgeMutation=storageEdgeSerialization.writeEdge(scope,edge,timestamp);
       mutation.mergeShallow(edgeMutation);
-      try {
-        LOG.debug("Writing edge {} to metadata and commit log",edge);
-        mutation.execute();
-      }
- catch (      ConnectionException e) {
-        throw new RuntimeException("Unable to connect to cassandra",e);
-      }
+      HystrixCassandra.user(mutation);
       return edge;
     }
   }

@@ -3,13 +3,8 @@
     @Override public Id call(    final Id id){
       final UUID eventTimestamp=UUIDGenerator.newTimeUUID();
       final MutationBatch nodeMutation=nodeSerialization.mark(scope,id,timestamp);
-      try {
-        LOG.debug("Marking node {} as deleted to node mark",node);
-        nodeMutation.execute();
-      }
- catch (      ConnectionException e) {
-        throw new RuntimeException("Unable to connect to cassandra",e);
-      }
+      LOG.debug("Marking node {} as deleted to node mark",node);
+      HystrixCassandra.user(nodeMutation);
       nodeDeleteListener.receive(scope,id,eventTimestamp).subscribeOn(Schedulers.io()).subscribe(nodeDelete);
       return id;
     }

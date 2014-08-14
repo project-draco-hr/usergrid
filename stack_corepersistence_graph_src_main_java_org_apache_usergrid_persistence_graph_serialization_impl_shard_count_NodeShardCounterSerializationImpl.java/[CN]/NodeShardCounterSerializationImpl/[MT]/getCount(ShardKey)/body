@@ -1,13 +1,13 @@
 {
   final ScopedRowKey rowKey=ScopedRowKey.fromKey(key.scope,key);
   try {
-    OperationResult<Column<Boolean>> column=keyspace.prepareQuery(EDGE_SHARD_COUNTS).getKey(rowKey).getColumn(true).execute();
+    OperationResult<Column<Boolean>> column=HystrixCassandra.user(keyspace.prepareQuery(EDGE_SHARD_COUNTS).getKey(rowKey).getColumn(true));
     return column.getResult().getLongValue();
   }
- catch (  NotFoundException nfe) {
-    return 0;
-  }
-catch (  ConnectionException e) {
-    throw new GraphRuntimeException("An error occurred connecting to cassandra",e);
+ catch (  RuntimeException re) {
+    if (re.getCause() instanceof NotFoundException) {
+      return 0;
+    }
+    throw re;
   }
 }

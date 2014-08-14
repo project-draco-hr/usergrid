@@ -25,11 +25,7 @@
   MarkedEdge marked=edges.next();
   final long createTimestamp=timeService.getCurrentTime();
   final Shard newShard=new Shard(marked.getTimestamp(),createTimestamp,false);
-  try {
-    this.edgeShardSerialization.writeShardMeta(scope,newShard,directedEdgeMeta).execute();
-  }
- catch (  ConnectionException e) {
-    throw new GraphRuntimeException("Unable to write the new edge metadata");
-  }
+  final MutationBatch batch=this.edgeShardSerialization.writeShardMeta(scope,newShard,directedEdgeMeta);
+  HystrixCassandra.user(batch);
   return true;
 }

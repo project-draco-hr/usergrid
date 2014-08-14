@@ -10,12 +10,8 @@
     existingShards=edgeShardSerialization.getShardMetaData(scope,maxShardId,directedEdgeMeta);
   }
   if (existingShards == null || !existingShards.hasNext()) {
-    try {
-      edgeShardSerialization.writeShardMeta(scope,MIN_SHARD,directedEdgeMeta).execute();
-    }
- catch (    ConnectionException e) {
-      throw new GraphRuntimeException("Unable to allocate minimum shard");
-    }
+    final MutationBatch batch=edgeShardSerialization.writeShardMeta(scope,MIN_SHARD,directedEdgeMeta);
+    HystrixCassandra.user(batch);
     existingShards=Collections.singleton(MIN_SHARD).iterator();
   }
   return new ShardEntryGroupIterator(existingShards,graphFig.getShardMinDelta());

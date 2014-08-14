@@ -1,0 +1,16 @@
+{
+  GraphManager manager=factory.createEdgeManager(scope);
+  final StopWatch timer=new StopWatch();
+  timer.start();
+  for (long i=0; i < writeLimit; i++) {
+    Edge edge=generator.newEdge();
+    Edge returned=manager.writeEdge(edge).toBlocking().last();
+    assertNotNull("Returned has a version",returned.getTimestamp());
+    if (i % 1000 == 0) {
+      log.info("   Wrote: " + i);
+    }
+  }
+  timer.stop();
+  log.info("Total time to write {} entries {} ms",writeLimit,timer.getTime());
+  return true;
+}

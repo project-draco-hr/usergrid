@@ -5,13 +5,8 @@
     @Override public Edge call(    final MarkedEdge edge){
       final UUID timestamp=UUIDGenerator.newTimeUUID();
       final MutationBatch edgeMutation=storageEdgeSerialization.writeEdge(scope,edge,timestamp);
-      try {
-        LOG.debug("Marking edge {} as deleted to commit log",edge);
-        edgeMutation.execute();
-      }
- catch (      ConnectionException e) {
-        throw new RuntimeException("Unable to connect to cassandra",e);
-      }
+      LOG.debug("Marking edge {} as deleted to commit log",edge);
+      HystrixCassandra.user(edgeMutation);
       edgeDeleteListener.receive(scope,markedEdge,timestamp).subscribeOn(Schedulers.io()).subscribe(edgeDeleteSubcriber);
       return edge;
     }

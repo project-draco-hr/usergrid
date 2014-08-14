@@ -8,12 +8,7 @@
       }
       return doDeletes(node,scope,maxVersion.get(),timestamp).count().doOnCompleted(new Action0(){
         @Override public void call(){
-          try {
-            nodeSerialization.delete(scope,node,maxVersion.get()).execute();
-          }
- catch (          ConnectionException e) {
-            throw new GraphRuntimeException("Unable to delete marked graph node " + node,e);
-          }
+          HystrixCassandra.async(nodeSerialization.delete(scope,node,maxVersion.get()));
         }
       }
 );

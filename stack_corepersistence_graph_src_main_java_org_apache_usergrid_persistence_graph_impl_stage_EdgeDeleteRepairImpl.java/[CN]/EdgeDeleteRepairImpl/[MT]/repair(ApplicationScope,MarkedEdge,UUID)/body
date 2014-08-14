@@ -5,12 +5,7 @@
         @Override public void call(        final MarkedEdge markedEdge){
           if (edge.equals(markedEdge)) {
             LOG.info("Removing edge {} ",edge);
-            try {
-              storageSerialization.deleteEdge(scope,edge,timestamp).execute();
-            }
- catch (            ConnectionException e) {
-              throw new GraphRuntimeException("Unable to remove edge from storage",e);
-            }
+            HystrixCassandra.async(storageSerialization.deleteEdge(scope,edge,timestamp));
           }
         }
       }

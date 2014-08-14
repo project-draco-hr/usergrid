@@ -8,17 +8,12 @@
     keys.add(ScopedRowKey.fromKey(scope,edge.getSourceNode()));
     keys.add(ScopedRowKey.fromKey(scope,edge.getTargetNode()));
   }
-  try {
-    final Rows<ScopedRowKey<ApplicationScope,Id>,Boolean> results=query.getRowSlice(keys).withColumnSlice(Collections.singletonList(COLUMN_NAME)).execute().getResult();
-    for (    Row<ScopedRowKey<ApplicationScope,Id>,Boolean> row : results) {
-      Column<Boolean> column=row.getColumns().getColumnByName(COLUMN_NAME);
-      if (column != null) {
-        versions.put(row.getKey().getKey(),column.getLongValue());
-      }
+  final Rows<ScopedRowKey<ApplicationScope,Id>,Boolean> results=HystrixCassandra.user(query.getRowSlice(keys).withColumnSlice(Collections.singletonList(COLUMN_NAME))).getResult();
+  for (  Row<ScopedRowKey<ApplicationScope,Id>,Boolean> row : results) {
+    Column<Boolean> column=row.getColumns().getColumnByName(COLUMN_NAME);
+    if (column != null) {
+      versions.put(row.getKey().getKey(),column.getLongValue());
     }
-  }
- catch (  ConnectionException e) {
-    throw new GraphRuntimeException("Unable to execute multiget for all max versions",e);
   }
   return versions;
 }

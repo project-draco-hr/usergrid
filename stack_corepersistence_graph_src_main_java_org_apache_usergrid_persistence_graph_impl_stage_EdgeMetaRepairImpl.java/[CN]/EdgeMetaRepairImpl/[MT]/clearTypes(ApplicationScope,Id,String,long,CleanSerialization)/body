@@ -25,13 +25,8 @@
       }
       return MathObservable.sumInteger(Observable.merge(checks)).doOnNext(new Action1<Integer>(){
         @Override public void call(        final Integer count){
-          LOG.debug("Executing batch for subtype deletion with type {}.  " + "Mutation has {} rows to mutate ",edgeType,batch.getRowCount());
-          try {
-            batch.execute();
-          }
- catch (          ConnectionException e) {
-            throw new GraphRuntimeException("Unable to execute mutation",e);
-          }
+          LOG.debug("Executing batch for subtype deletion with " + "type {}.  " + "Mutation has {} rows to mutate ",edgeType,batch.getRowCount());
+          HystrixCassandra.async(batch);
         }
       }
 );
@@ -44,13 +39,8 @@
         LOG.debug("Type {} has {} subtypes in use as of maxTimestamp {}.  Not deleting type.",edgeType,subTypeUsedCount,maxTimestamp);
         return;
       }
-      try {
-        LOG.debug("Type {} has no subtypes in use as of maxTimestamp {}.  Deleting type.",edgeType,maxTimestamp);
-        serialization.removeEdgeType(scope,node,edgeType,maxTimestamp).execute();
-      }
- catch (      ConnectionException e) {
-        throw new GraphRuntimeException("Unable to execute mutation");
-      }
+      LOG.debug("Type {} has no subtypes in use as of maxTimestamp {}.  Deleting type.",edgeType,maxTimestamp);
+      HystrixCassandra.async(serialization.removeEdgeType(scope,node,edgeType,maxTimestamp));
     }
   }
 );
