@@ -1,3 +1,26 @@
 {
-  return shardedEdgeSerialization.deleteEdge(edgeColumnFamilies,scope,markedEdge,timestamp);
+  ValidationUtils.validateApplicationScope(scope);
+  GraphValidation.validateEdge(markedEdge);
+  ValidationUtils.verifyTimeUuid(timestamp,"timestamp");
+  final long now=timeService.getCurrentTime();
+  final Id sourceNode=markedEdge.getSourceNode();
+  final Id targetNode=markedEdge.getTargetNode();
+  final String edgeType=markedEdge.getType();
+  final long edgeTimestamp=markedEdge.getTimestamp();
+  final DirectedEdgeMeta sourceEdgeMeta=DirectedEdgeMeta.fromSourceNode(sourceNode,edgeType);
+  final Collection<Shard> sourceWriteShards=edgeShardStrategy.getWriteShards(scope,edgeTimestamp,sourceEdgeMeta).getWriteShards(now);
+  final MutationBatch batch=shardedEdgeSerialization.deleteEdgeFromSource(edgeColumnFamilies,scope,markedEdge,sourceWriteShards,sourceEdgeMeta,timestamp);
+  final DirectedEdgeMeta sourceTargetTypeEdgeMeta=DirectedEdgeMeta.fromSourceNodeTargetType(sourceNode,edgeType,targetNode.getType());
+  final Collection<Shard> sourceTargetTypeWriteShards=edgeShardStrategy.getWriteShards(scope,edgeTimestamp,sourceTargetTypeEdgeMeta).getWriteShards(now);
+  batch.mergeShallow(shardedEdgeSerialization.deleteEdgeFromSourceWithTargetType(edgeColumnFamilies,scope,markedEdge,sourceTargetTypeWriteShards,sourceTargetTypeEdgeMeta,timestamp));
+  final DirectedEdgeMeta targetEdgeMeta=DirectedEdgeMeta.fromTargetNode(targetNode,edgeType);
+  final Collection<Shard> targetWriteShards=edgeShardStrategy.getWriteShards(scope,edgeTimestamp,targetEdgeMeta).getWriteShards(now);
+  batch.mergeShallow(shardedEdgeSerialization.deleteEdgeToTarget(edgeColumnFamilies,scope,markedEdge,targetWriteShards,targetEdgeMeta,timestamp));
+  final DirectedEdgeMeta targetSourceTypeEdgeMeta=DirectedEdgeMeta.fromTargetNodeSourceType(targetNode,edgeType,sourceNode.getType());
+  final Collection<Shard> targetSourceTypeWriteShards=edgeShardStrategy.getWriteShards(scope,edgeTimestamp,targetSourceTypeEdgeMeta).getWriteShards(now);
+  batch.mergeShallow(shardedEdgeSerialization.deleteEdgeToTargetWithSourceType(edgeColumnFamilies,scope,markedEdge,targetSourceTypeWriteShards,targetSourceTypeEdgeMeta,timestamp));
+  final DirectedEdgeMeta edgeVersionsMeta=DirectedEdgeMeta.fromEdge(sourceNode,targetNode,edgeType);
+  final Collection<Shard> edgeVersionsShards=edgeShardStrategy.getWriteShards(scope,edgeTimestamp,edgeVersionsMeta).getWriteShards(now);
+  batch.mergeShallow(shardedEdgeSerialization.deleteEdgeVersions(edgeColumnFamilies,scope,markedEdge,edgeVersionsShards,edgeVersionsMeta,timestamp));
+  return batch;
 }

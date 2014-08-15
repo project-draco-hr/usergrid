@@ -1,0 +1,26 @@
+{
+  final long startTime=timeService.getCurrentTime();
+  Preconditions.checkNotNull(group,"group cannot be null");
+  Preconditions.checkArgument(group.isCompactionPending(),"Compaction is pending");
+  Preconditions.checkArgument(group.shouldCompact(startTime),"Compaction can now be run");
+  if (!shardCompactionTaskTracker.shouldStartCompaction(scope,edgeMeta,group)) {
+    return Collections.emptySet();
+  }
+  final Shard targetShard=group.getCompactionTarget();
+  final Collection<Shard> sourceShards=group.getReadShards();
+  Observable.create(new ObservableIterator<MarkedEdge>("Shard_Repair"){
+    @Override protected Iterator<MarkedEdge> getIterator(){
+      return edgeMeta.loadEdges(shardedEdgeSerialization,edgeColumnFamilies,scope,group.getReadShards(),Long.MAX_VALUE);
+    }
+  }
+).buffer(graphFig.getScanPageSize()).doOnNext(new Action1<List<MarkedEdge>>(){
+    @Override public void call(    final List<MarkedEdge> markedEdges){
+    }
+  }
+).doOnNext(new Action1<List<MarkedEdge>>(){
+    @Override public void call(    final List<MarkedEdge> markedEdges){
+    }
+  }
+);
+  return null;
+}

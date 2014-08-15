@@ -5,7 +5,12 @@
   final String type=edgeType.getType();
   final String targetType=edgeType.getIdType();
   final long maxTimestamp=edgeType.getMaxTimestamp();
-  final DirectedEdgeMeta sourceMeta=DirectedEdgeMeta.fromSourceNodeTargetType(sourceId,type,targetType);
-  final Iterator<ShardEntryGroup> readShards=edgeShardStrategy.getReadShards(scope,maxTimestamp,sourceMeta);
-  return shardedEdgeSerialization.getEdgesFromSourceByTargetType(edgeColumnFamilies,scope,edgeType,readShards);
+  final DirectedEdgeMeta directedEdgeMeta=DirectedEdgeMeta.fromSourceNodeTargetType(sourceId,type,targetType);
+  final Iterator<ShardEntryGroup> readShards=edgeShardStrategy.getReadShards(scope,maxTimestamp,directedEdgeMeta);
+  return new ShardGroupColumnIterator<MarkedEdge>(readShards){
+    @Override protected Iterator<MarkedEdge> getIterator(    final Collection<Shard> readShards){
+      return shardedEdgeSerialization.getEdgesFromSourceByTargetType(edgeColumnFamilies,scope,edgeType,readShards);
+    }
+  }
+;
 }

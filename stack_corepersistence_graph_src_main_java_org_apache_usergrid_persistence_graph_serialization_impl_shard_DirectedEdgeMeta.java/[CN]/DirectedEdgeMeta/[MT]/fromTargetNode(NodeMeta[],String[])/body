@@ -1,10 +1,10 @@
 {
   return new DirectedEdgeMeta(nodes,types){
-    @Override public Iterator<MarkedEdge> loadEdges(    final ShardedEdgeSerialization serialization,    final EdgeColumnFamilies edgeColumnFamilies,    final ApplicationScope scope,    final ShardEntryGroup group,    final long maxValue){
+    @Override public Iterator<MarkedEdge> loadEdges(    final ShardedEdgeSerialization serialization,    final EdgeColumnFamilies edgeColumnFamilies,    final ApplicationScope scope,    final Collection<Shard> shards,    final long maxValue){
       final Id targetId=nodes[0].id;
       final String edgeType=types[0];
       final SearchByEdgeType search=new SimpleSearchByEdgeType(targetId,edgeType,maxValue,null);
-      return serialization.getEdgesToTarget(edgeColumnFamilies,scope,search,Collections.singleton(group).iterator());
+      return serialization.getEdgesToTarget(edgeColumnFamilies,scope,search,shards);
     }
     @Override public MetaType getType(){
       return MetaType.TARGET;

@@ -1,0 +1,14 @@
+{
+  ValidationUtils.validateApplicationScope(scope);
+  GraphValidation.validateEdge(markedEdge);
+  ValidationUtils.verifyTimeUuid(timestamp,"timestamp");
+  return new TargetSourceTypeWriteOp(columnFamilies,markedEdge){
+    @Override void writeEdge(    final MutationBatch batch,    final MultiTennantColumnFamily<ApplicationScope,RowKeyType,DirectedEdge> columnFamily,    final ApplicationScope scope,    final RowKeyType rowKey,    final DirectedEdge edge,    final Shard shard,    final boolean isDeleted){
+      batch.withRow(columnFamilies.getTargetNodeSourceTypeCfName(),ScopedRowKey.fromKey(scope,rowKey)).putColumn(edge,isDeleted);
+      if (!isDeleted) {
+        writeEdgeShardStrategy.increment(scope,shard,1,directedEdgeMeta);
+      }
+    }
+  }
+.createBatch(scope,shards,timestamp);
+}

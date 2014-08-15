@@ -1,0 +1,18 @@
+{
+  final double repairChance=random.nextDouble();
+  if (repairChance > graphFig.getShardRepairChance()) {
+    return AuditResult.NOT_CHECKED;
+  }
+  if (!group.isCompactionPending()) {
+    final boolean created=nodeShardAllocation.auditShard(scope,group,edgeMeta);
+    if (!created) {
+      return AuditResult.CHECKED_NO_OP;
+    }
+    return AuditResult.CHECKED_CREATED;
+  }
+  if (group.shouldCompact(timeService.getCurrentTime())) {
+    compact(scope,edgeMeta,group);
+    return AuditResult.COMPACTING;
+  }
+  return AuditResult.NOT_CHECKED;
+}

@@ -1,8 +1,10 @@
 {
-  final long maxTime=(timeService.getCurrentTime() + graphFig.getShardCacheTimeout()) * 10000;
+  final long uuidDelta=graphFig.getShardCacheTimeout() * 10000;
+  final long timeNow=UUIDGenerator.newTimeUUID().timestamp();
   for (  DirectedEdgeMeta.NodeMeta node : directedEdgeMeta.getNodes()) {
     final long uuidTime=node.getId().getUuid().timestamp();
-    if (uuidTime < maxTime) {
+    final long uuidTimeDelta=uuidTime + uuidDelta;
+    if (uuidTimeDelta < timeNow) {
       return true;
     }
   }
