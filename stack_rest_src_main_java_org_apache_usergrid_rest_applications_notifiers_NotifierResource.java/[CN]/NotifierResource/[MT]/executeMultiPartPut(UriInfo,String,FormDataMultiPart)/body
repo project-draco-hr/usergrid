@@ -1,0 +1,26 @@
+{
+  logger.debug("NotifierResource.executePut");
+  String name=getValueOrNull(multiPart,"name");
+  String provider=getValueOrNull(multiPart,"provider");
+  String certPassword=getValueOrNull(multiPart,"certificatePassword");
+  InputStream is=null;
+  if (multiPart.getField("p12Certificate") != null) {
+    is=multiPart.getField("p12Certificate").getEntityAs(InputStream.class);
+  }
+  HashMap<String,Object> properties=new LinkedHashMap<String,Object>();
+  properties.put("name",name);
+  properties.put("provider",provider);
+  properties.put("environment","production");
+  properties.put("certificatePassword",certPassword);
+  if (is != null) {
+    byte[] certBytes=IOUtils.toByteArray(is);
+    properties.put("p12Certificate",certBytes);
+  }
+  ApiResponse response=createApiResponse();
+  response.setAction("put");
+  response.setApplication(services.getApplication());
+  response.setParams(ui.getQueryParameters());
+  ServicePayload payload=getPayload(properties);
+  executeServiceRequest(ui,response,ServiceAction.PUT,payload);
+  return new JSONWithPadding(response,callback);
+}
