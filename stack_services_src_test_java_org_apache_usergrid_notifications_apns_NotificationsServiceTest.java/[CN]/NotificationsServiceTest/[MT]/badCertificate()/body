@@ -1,0 +1,43 @@
+{
+  app.clear();
+  app.put("name","prod_apns");
+  app.put("provider",PROVIDER);
+  app.put("environment","development");
+  InputStream fis=getClass().getClassLoader().getResourceAsStream("empty.p12");
+  byte[] certBytes=IOUtils.toByteArray(fis);
+  app.put("p12Certificate",certBytes);
+  fis.close();
+  Entity e=app.testRequest(ServiceAction.POST,1,"notifiers").getEntity();
+  notifier=app.getEm().get(e.getUuid(),Notifier.class);
+  if (!USE_REAL_CONNECTIONS) {
+    ns.providerAdapters.put("apple",new MockSuccessfulProviderAdapter(){
+      @Override public void testConnection(      Notifier notifier) throws ConnectionException {
+        Exception e=new SocketException("Connection closed by remote host");
+        throw new ConnectionException(e.getMessage(),e);
+      }
+    }
+);
+  }
+  app.clear();
+  String payload=getPayload();
+  Map<String,String> payloads=new HashMap<String,String>(1);
+  payloads.put(notifier.getUuid().toString(),payload);
+  app.put("payloads",payloads);
+  app.put("queued",System.currentTimeMillis());
+  e=app.testRequest(ServiceAction.POST,1,"notifications").getEntity();
+  app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
+  Notification notification=app.getEm().get(e.getUuid(),Notification.class);
+  assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
+  ns.addDevice(notification,device1);
+  try {
+    ns.getQueueManager().processBatchAndReschedule(notification,null);
+    fail("testConnection() should have failed");
+  }
+ catch (  Exception ex) {
+  }
+  Query query=new Query();
+  query.addEqualityFilter("state",Notification.State.FAILED.toString());
+  Results results=app.getEm().searchCollection(app.getEm().getApplicationRef(),"notifications",query);
+  Entity entity=results.getEntitiesMap().get(notification.getUuid());
+  assertNotNull(entity);
+}

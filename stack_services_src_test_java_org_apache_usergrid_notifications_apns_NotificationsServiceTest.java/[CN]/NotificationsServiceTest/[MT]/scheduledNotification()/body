@@ -1,0 +1,27 @@
+{
+  app.clear();
+  String payload=getPayload();
+  Map<String,String> payloads=new HashMap<String,String>(1);
+  payloads.put(notifier.getUuid().toString(),payload);
+  app.put("payloads",payloads);
+  app.put("deliver",System.currentTimeMillis() + 240000);
+  app.put("queued",System.currentTimeMillis());
+  Entity e=app.testRequest(ServiceAction.POST,1,"notifications").getEntity();
+  app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
+  Notification notification=app.getEm().get(e.getUuid(),Notification.class);
+  assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
+  ns.addDevice(notification,device1);
+  Thread.sleep(500);
+  Query query=new Query();
+  query.addEqualityFilter("state",Notification.State.SCHEDULED.toString());
+  Results results=app.getEm().searchCollection(app.getEm().getApplicationRef(),"notifications",query);
+  Entity entity=results.getEntitiesMap().get(notification.getUuid());
+  assertNotNull(entity);
+  try {
+    e=app.testRequest(ServiceAction.DELETE,1,"notifications",e.getUuid()).getEntity();
+  }
+ catch (  Exception deleteException) {
+    LOG.error("Couldn't delete",deleteException);
+  }
+  app.getEm().get(e.getUuid(),Notification.class);
+}

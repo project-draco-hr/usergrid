@@ -1,0 +1,13 @@
+{
+  app.clear();
+  app.put("provider","apple");
+  app.put("environment","development");
+  InputStream fis=getClass().getClassLoader().getResourceAsStream("pushtest_dev_recent.p12");
+  byte[] certBytes=IOUtils.toByteArray(fis);
+  app.put("p12Certificate",certBytes);
+  fis.close();
+  Notifier notifier=(Notifier)app.testRequest(ServiceAction.POST,1,false,new Object[]{"notifiers"}).getEntity().toTypedEntity();
+  assertEquals(app.get("provider"),notifier.getProvider());
+  assertEquals(app.get("environment"),notifier.getEnvironment());
+  assertArrayEquals(notifier.getP12Certificate(),certBytes);
+}

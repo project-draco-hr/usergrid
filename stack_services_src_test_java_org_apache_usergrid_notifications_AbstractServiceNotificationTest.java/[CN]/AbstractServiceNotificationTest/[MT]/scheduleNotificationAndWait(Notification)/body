@@ -1,0 +1,13 @@
+{
+  getNotificationService().getQueueManager().processBatchAndReschedule(notification,null);
+  long timeout=System.currentTimeMillis() + 60000;
+  while (System.currentTimeMillis() < timeout) {
+    Thread.sleep(200);
+    notification=app.getEm().get(notification.getUuid(),Notification.class);
+    if (notification.getFinished() != null) {
+      return notification;
+    }
+  }
+  fail("Notification failed to complete");
+  return null;
+}

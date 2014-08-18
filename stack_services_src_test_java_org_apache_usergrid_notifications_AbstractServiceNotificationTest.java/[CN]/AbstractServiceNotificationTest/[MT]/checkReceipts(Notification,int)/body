@@ -1,0 +1,20 @@
+{
+  List<EntityRef> receipts=getNotificationReceipts(notification);
+  long timeout=System.currentTimeMillis() + 60000;
+  while (System.currentTimeMillis() < timeout) {
+    Thread.sleep(200);
+    receipts=getNotificationReceipts(notification);
+    if (receipts.size() == expected) {
+      break;
+    }
+  }
+  assertEquals(expected,receipts.size());
+  for (  EntityRef receipt : receipts) {
+    Receipt r=app.getEm().get(receipt,Receipt.class);
+    assertNotNull(r.getSent());
+    assertNotNull(r.getPayload());
+    assertNotNull(r.getNotifierId());
+    EntityRef source=getNotificationService().getSourceNotification(r);
+    assertEquals(source.getUuid(),notification.getUuid());
+  }
+}

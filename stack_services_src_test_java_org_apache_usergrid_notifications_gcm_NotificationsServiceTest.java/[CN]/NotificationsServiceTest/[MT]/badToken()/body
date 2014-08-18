@@ -1,0 +1,30 @@
+{
+  if (!USE_REAL_CONNECTIONS) {
+    ns.providerAdapters.put("google",new MockSuccessfulProviderAdapter(){
+      @Override public void sendNotification(      String providerId,      Notifier notifier,      Object payload,      Notification notification,      TaskTracker tracker) throws Exception {
+        tracker.failed("InvalidRegistration","InvalidRegistration");
+      }
+    }
+);
+  }
+  app.clear();
+  String payload="Hello, World!";
+  Map<String,String> payloads=new HashMap<String,String>(1);
+  payloads.put(notifier.getUuid().toString(),payload);
+  app.put("payloads",payloads);
+  app.put("queued",System.currentTimeMillis());
+  Entity e=app.testRequest(ServiceAction.POST,1,"notifications").getEntity();
+  app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
+  Notification notification=app.getEm().get(e.getUuid(),Notification.class);
+  assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
+  app.clear();
+  app.put(notifier.getName() + NOTIFIER_ID_POSTFIX,PUSH_TOKEN + "x");
+  e=app.testRequest(ServiceAction.POST,1,"devices").getEntity();
+  device1=app.getEm().get(e.getUuid(),Device.class);
+  ns.addDevice(notification,device1);
+  notification=scheduleNotificationAndWait(notification);
+  List<EntityRef> receipts=getNotificationReceipts(notification);
+  assertEquals(1,receipts.size());
+  Receipt receipt=app.getEm().get(receipts.get(0),Receipt.class);
+  assertEquals("InvalidRegistration",receipt.getErrorCode());
+}

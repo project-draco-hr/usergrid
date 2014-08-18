@@ -1,0 +1,30 @@
+{
+  if (!USE_REAL_CONNECTIONS) {
+    ns.providerAdapters.put("apple",new MockSuccessfulProviderAdapter(){
+      @Override public void sendNotification(      String providerId,      Notifier notifier,      Object payload,      Notification notification,      TaskTracker tracker) throws Exception {
+        APNsNotification apnsNotification=APNsNotification.create(providerId,payload.toString(),notification,tracker);
+        apnsNotification.messageSent();
+        apnsNotification.messageSendFailed(RejectedNotificationReason.INVALID_TOKEN);
+      }
+    }
+);
+  }
+  HashMap<String,Object> properties=new LinkedHashMap<String,Object>();
+  String payload=getPayload();
+  Map<String,String> payloads=new HashMap<String,String>(1);
+  payloads.put(notifier.getUuid().toString(),payload);
+  properties.put("payloads",payloads);
+  properties.put("queued",System.currentTimeMillis());
+  Entity e=app.testRequest(ServiceAction.POST,1,"notifications").getEntity();
+  app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
+  Notification notification=app.getEm().get(e.getUuid(),Notification.class);
+  assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
+  ns.addDevice(notification,device1);
+  notification=scheduleNotificationAndWait(notification);
+  checkStatistics(notification,0,1);
+  notification=(Notification)app.getEm().get(notification).toTypedEntity();
+  checkReceipts(notification,1);
+  List<EntityRef> receipts=getNotificationReceipts(notification);
+  Receipt receipt=app.getEm().get(receipts.get(0),Receipt.class);
+  assertEquals(8,((Long)receipt.getErrorCode()).longValue());
+}
