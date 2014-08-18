@@ -1,4 +1,8 @@
 {
+  if (columnNameIterators.size() == 1) {
+    iterator=columnNameIterators.iterator().next();
+    return;
+  }
   Observable<T>[] observables=new Observable[columnNameIterators.size()];
   int i=0;
   for (  ColumnNameIterator<C,T> columnNameIterator : columnNameIterators) {
@@ -6,6 +10,7 @@
     i++;
   }
   Observable<T> merged=OrderedMerge.orderedMerge(comparator,bufferSize,observables).distinctUntilChanged();
-  iterator=new InnerIterator(bufferSize);
-  merged.subscribe(iterator);
+  InnerIterator innerIterator=new InnerIterator(bufferSize);
+  merged.subscribe(innerIterator);
+  iterator=innerIterator;
 }

@@ -6,13 +6,13 @@
   storageEdgeSerialization.writeEdge(scope,edge1,UUIDGenerator.newTimeUUID()).execute();
   final MarkedEdge edge2=createEdge(sourceId,edgeType,targetId);
   storageEdgeSerialization.writeEdge(scope,edge2,UUIDGenerator.newTimeUUID()).execute();
-  Iterator<MarkedEdge> itr=storageEdgeSerialization.getEdgeVersions(scope,new SimpleSearchByEdge(sourceId,edgeType,targetId,System.currentTimeMillis(),null));
+  Iterator<MarkedEdge> itr=storageEdgeSerialization.getEdgeVersions(scope,new SimpleSearchByEdge(sourceId,edgeType,targetId,System.currentTimeMillis(),SearchByEdgeType.Order.DESCENDING,null));
   assertEquals(edge2,itr.next());
   assertEquals(edge1,itr.next());
   assertFalse(itr.hasNext());
   MarkedEdge deleted=edgeDeleteRepair.repair(scope,edge1,UUIDGenerator.newTimeUUID()).toBlocking().single();
   assertEquals(edge1,deleted);
-  itr=storageEdgeSerialization.getEdgeVersions(scope,new SimpleSearchByEdge(sourceId,edgeType,targetId,System.currentTimeMillis(),null));
+  itr=storageEdgeSerialization.getEdgeVersions(scope,new SimpleSearchByEdge(sourceId,edgeType,targetId,System.currentTimeMillis(),SearchByEdgeType.Order.DESCENDING,null));
   assertEquals(edge2,itr.next());
   assertFalse(itr.hasNext());
 }

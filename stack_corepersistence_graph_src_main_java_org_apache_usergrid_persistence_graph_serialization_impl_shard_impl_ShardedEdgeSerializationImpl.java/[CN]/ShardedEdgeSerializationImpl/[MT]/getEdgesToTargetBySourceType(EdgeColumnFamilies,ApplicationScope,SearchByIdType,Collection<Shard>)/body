@@ -1,20 +1,21 @@
 {
   ValidationUtils.validateApplicationScope(scope);
-  GraphValidation.validateSearchByEdgeType(edgeType);
-  final Id targetId=edgeType.getNode();
-  final String sourceType=edgeType.getIdType();
-  final String type=edgeType.getType();
-  final long maxTimestamp=edgeType.getMaxTimestamp();
+  GraphValidation.validateSearchByEdgeType(search);
+  final Id targetId=search.getNode();
+  final String sourceType=search.getIdType();
+  final String type=search.getType();
+  final long maxTimestamp=search.getMaxTimestamp();
   final MultiTennantColumnFamily<ApplicationScope,RowKeyType,DirectedEdge> columnFamily=columnFamilies.getTargetNodeSourceTypeCfName();
   final Serializer<DirectedEdge> serializer=columnFamily.getColumnSerializer();
-  final TargetEdgeSearcher<RowKeyType,DirectedEdge,MarkedEdge> searcher=new TargetEdgeSearcher<RowKeyType,DirectedEdge,MarkedEdge>(scope,maxTimestamp,edgeType.last(),shards){
+  final OrderedComparator<MarkedEdge> comparator=new OrderedComparator<>(SourceDirectedEdgeDescendingComparator.INSTANCE,search.getOrder());
+  final EdgeSearcher<RowKeyType,DirectedEdge,MarkedEdge> searcher=new EdgeSearcher<RowKeyType,DirectedEdge,MarkedEdge>(scope,shards,search.getOrder(),comparator,maxTimestamp,search.last().transform(TRANSFORM)){
     @Override protected Serializer<DirectedEdge> getSerializer(){
       return serializer;
     }
     @Override protected RowKeyType generateRowKey(    final long shard){
       return new RowKeyType(targetId,type,sourceType,shard);
     }
-    @Override protected DirectedEdge getStartColumn(    final Edge last){
+    @Override protected DirectedEdge createColumn(    final MarkedEdge last){
       return new DirectedEdge(last.getTargetNode(),last.getTimestamp());
     }
     @Override protected MarkedEdge createEdge(    final DirectedEdge edge,    final boolean marked){

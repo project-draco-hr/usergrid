@@ -1,14 +1,6 @@
 {
-  final Hasher hasher=MURMUR_128.newHasher();
-  addToHash(hasher,scope.getApplication());
-  for (  DirectedEdgeMeta.NodeMeta nodeMeta : directedEdgeMeta.getNodes()) {
-    addToHash(hasher,nodeMeta.getId());
-    hasher.putInt(nodeMeta.getNodeType().getStorageValue());
-  }
-  for (  String type : directedEdgeMeta.getTypes()) {
-    hasher.putString(type,CHARSET);
-  }
+  final Hasher hasher=super.doHash(scope,directedEdgeMeta,shardEntryGroup);
   final Shard compactionTarget=shardEntryGroup.getCompactionTarget();
   hasher.putLong(compactionTarget.getShardIndex());
-  return hasher.hash();
+  return hasher;
 }

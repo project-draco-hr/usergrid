@@ -1,14 +1,15 @@
 {
+  final ShardGroupCompaction shardGroupCompaction=mock(ShardGroupCompaction.class);
   final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
   final EdgeColumnFamilies edgeColumnFamilies=mock(EdgeColumnFamilies.class);
   final ShardedEdgeSerialization shardedEdgeSerialization=mock(ShardedEdgeSerialization.class);
   final NodeShardApproximation nodeShardApproximation=mock(NodeShardApproximation.class);
   final TimeService timeService=mock(TimeService.class);
-  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeColumnFamilies,shardedEdgeSerialization,nodeShardApproximation,timeService,graphFig);
+  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeColumnFamilies,shardedEdgeSerialization,nodeShardApproximation,timeService,graphFig,shardGroupCompaction);
   final Id nodeId=createId("test");
   final String type="type";
   final String subType="subType";
-  final long timeservicetime=10000;
+  final long timeservicetime=System.currentTimeMillis() + 60000;
   when(timeService.getCurrentTime()).thenReturn(timeservicetime);
   assertTrue("Shard cache mocked",graphFig.getShardCacheTimeout() > 0);
   final long minDelta=graphFig.getShardMinDelta();
@@ -27,16 +28,11 @@
   ShardEntryGroup shardEntryGroup=result.next();
   assertEquals("Future shard returned",futureShard1,shardEntryGroup.getCompactionTarget());
   Collection<Shard> writeShards=shardEntryGroup.getWriteShards(minTime + minDelta);
-  assertEquals("Shard size as expected",4,writeShards.size());
-  assertTrue(writeShards.contains(futureShard1));
-  assertTrue(writeShards.contains(futureShard2));
-  assertTrue(writeShards.contains(futureShard3));
+  assertEquals("Shard size as expected",1,writeShards.size());
   assertTrue(writeShards.contains(compactedShard));
   Collection<Shard> readShards=shardEntryGroup.getReadShards();
-  assertEquals("Shard size as expected",4,readShards.size());
+  assertEquals("Shard size as expected",2,readShards.size());
   assertTrue(readShards.contains(futureShard1));
-  assertTrue(readShards.contains(futureShard2));
-  assertTrue(readShards.contains(futureShard3));
   assertTrue(readShards.contains(compactedShard));
   assertTrue("Shards present",result.hasNext());
   shardEntryGroup=result.next();

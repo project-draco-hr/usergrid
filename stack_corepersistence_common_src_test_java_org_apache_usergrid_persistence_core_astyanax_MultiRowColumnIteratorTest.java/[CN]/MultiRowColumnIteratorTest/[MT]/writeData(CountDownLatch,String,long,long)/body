@@ -1,0 +1,36 @@
+{
+  Observable.just(rowKey).doOnNext(new Action1<String>(){
+    @Override public void call(    final String key){
+      final MutationBatch batch=keyspace.prepareMutationBatch();
+      for (long i=0; i < maxValue; i++) {
+        if (i % mod == 0) {
+          batch.withRow(COLUMN_FAMILY,key).putColumn(i,TRUE);
+        }
+        if (i % 1000 == 0) {
+          try {
+            batch.execute();
+          }
+ catch (          ConnectionException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      }
+      try {
+        batch.execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+).subscribe(new Observer<String>(){
+    @Override public void onCompleted(){
+      latch.countDown();
+    }
+    @Override public void onError(    final Throwable e){
+    }
+    @Override public void onNext(    final String s){
+    }
+  }
+);
+}

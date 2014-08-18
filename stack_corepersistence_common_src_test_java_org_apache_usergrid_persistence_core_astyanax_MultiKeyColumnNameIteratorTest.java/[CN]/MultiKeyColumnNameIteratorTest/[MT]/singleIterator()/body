@@ -1,0 +1,54 @@
+{
+  final String rowKey1=UUIDGenerator.newTimeUUID().toString();
+  final long maxValue=10000;
+  Observable.just(rowKey1).parallel(new Func1<Observable<String>,Observable<String>>(){
+    @Override public Observable<String> call(    final Observable<String> stringObservable){
+      return stringObservable.doOnNext(new Action1<String>(){
+        @Override public void call(        final String key){
+          final MutationBatch batch=keyspace.prepareMutationBatch();
+          for (long i=0; i < maxValue; i++) {
+            batch.withRow(COLUMN_FAMILY,key).putColumn(i,TRUE);
+            if (i % 1000 == 0) {
+              try {
+                batch.execute();
+              }
+ catch (              ConnectionException e) {
+                throw new RuntimeException(e);
+              }
+            }
+          }
+          try {
+            batch.execute();
+          }
+ catch (          ConnectionException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      }
+);
+    }
+  }
+).toBlocking().last();
+  ColumnNameIterator<Long,Long> row1Iterator=createIterator(rowKey1,false);
+  final Comparator<Long> ascendingComparator=new Comparator<Long>(){
+    @Override public int compare(    final Long o1,    final Long o2){
+      return Long.compare(o1,o2);
+    }
+  }
+;
+  final MultiKeyColumnNameIterator<Long,Long> ascendingItr=new MultiKeyColumnNameIterator<>(Arrays.asList(row1Iterator),ascendingComparator,900);
+  for (long i=0; i < maxValue; i++) {
+    assertEquals(i,ascendingItr.next().longValue());
+  }
+  ColumnNameIterator<Long,Long> row1IteratorDesc=createIterator(rowKey1,true);
+  final Comparator<Long> descendingComparator=new Comparator<Long>(){
+    @Override public int compare(    final Long o1,    final Long o2){
+      return ascendingComparator.compare(o1,o2) * -1;
+    }
+  }
+;
+  final MultiKeyColumnNameIterator<Long,Long> descendingItr=new MultiKeyColumnNameIterator<>(Arrays.asList(row1IteratorDesc),descendingComparator,900);
+  for (long i=maxValue - 1; i > -1; i--) {
+    assertEquals(i,descendingItr.next().longValue());
+  }
+}

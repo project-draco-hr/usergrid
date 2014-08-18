@@ -1,12 +1,14 @@
 {
-  final long uuidDelta=graphFig.getShardCacheTimeout() * 10000;
-  final long timeNow=UUIDGenerator.newTimeUUID().timestamp();
+  final long timeoutDelta=graphFig.getShardCacheTimeout();
+  final long timeNow=timeService.getCurrentTime();
+  boolean isNew=true;
   for (  DirectedEdgeMeta.NodeMeta node : directedEdgeMeta.getNodes()) {
-    final long uuidTime=node.getId().getUuid().timestamp();
-    final long uuidTimeDelta=uuidTime + uuidDelta;
-    if (uuidTimeDelta < timeNow) {
-      return true;
+    if (!isNew) {
+      return false;
     }
+    final long uuidTime=TimeUUIDUtils.getTimeFromUUID(node.getId().getUuid());
+    final long newExpirationTimeout=uuidTime + timeoutDelta;
+    isNew=isNew && newExpirationTimeout > timeNow;
   }
-  return false;
+  return isNew;
 }

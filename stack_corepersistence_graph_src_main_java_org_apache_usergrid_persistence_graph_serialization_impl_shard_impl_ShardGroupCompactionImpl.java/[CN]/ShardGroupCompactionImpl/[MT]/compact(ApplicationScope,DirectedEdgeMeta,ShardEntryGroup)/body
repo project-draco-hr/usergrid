@@ -2,25 +2,65 @@
   final long startTime=timeService.getCurrentTime();
   Preconditions.checkNotNull(group,"group cannot be null");
   Preconditions.checkArgument(group.isCompactionPending(),"Compaction is pending");
-  Preconditions.checkArgument(group.shouldCompact(startTime),"Compaction can now be run");
-  if (!shardCompactionTaskTracker.shouldStartCompaction(scope,edgeMeta,group)) {
-    return Collections.emptySet();
-  }
+  Preconditions.checkArgument(group.shouldCompact(startTime),"Compaction cannot be run yet.  Ignoring compaction.");
+  final CompactionResult.CompactionBuilder resultBuilder=CompactionResult.builder();
   final Shard targetShard=group.getCompactionTarget();
-  final Collection<Shard> sourceShards=group.getReadShards();
-  Observable.create(new ObservableIterator<MarkedEdge>("Shard_Repair"){
-    @Override protected Iterator<MarkedEdge> getIterator(){
-      return edgeMeta.loadEdges(shardedEdgeSerialization,edgeColumnFamilies,scope,group.getReadShards(),Long.MAX_VALUE);
+  final Set<Shard> sourceShards=new HashSet<>(group.getReadShards());
+  sourceShards.remove(targetShard);
+  final UUID timestamp=UUIDGenerator.newTimeUUID();
+  final long newShardPivot=targetShard.getShardIndex();
+  final int maxWorkSize=graphFig.getScanPageSize();
+  final MutationBatch newRowBatch=keyspace.prepareMutationBatch();
+  final MutationBatch deleteRowBatch=keyspace.prepareMutationBatch();
+  long edgeCount=0;
+  for (  Shard sourceShard : sourceShards) {
+    Iterator<MarkedEdge> edges=edgeMeta.loadEdges(shardedEdgeSerialization,edgeColumnFamilies,scope,Collections.singleton(sourceShard),Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING);
+    while (edges.hasNext()) {
+      final MarkedEdge edge=edges.next();
+      final long edgeTimestamp=edge.getTimestamp();
+      if (edgeTimestamp < newShardPivot) {
+        break;
+      }
+      newRowBatch.mergeShallow(edgeMeta.writeEdge(shardedEdgeSerialization,edgeColumnFamilies,scope,targetShard,edge,timestamp));
+      deleteRowBatch.mergeShallow(edgeMeta.deleteEdge(shardedEdgeSerialization,edgeColumnFamilies,scope,sourceShard,edge,timestamp));
+      edgeCount++;
+      if (edgeCount % maxWorkSize == 0) {
+        try {
+          HystrixCassandra.async(newRowBatch);
+          HystrixCassandra.async(deleteRowBatch);
+        }
+ catch (        Throwable t) {
+          LOG.error("Unable to move edges from shard {} to shard {}",sourceShard,targetShard);
+        }
+      }
     }
   }
-).buffer(graphFig.getScanPageSize()).doOnNext(new Action1<List<MarkedEdge>>(){
-    @Override public void call(    final List<MarkedEdge> markedEdges){
-    }
+  try {
+    HystrixCassandra.async(newRowBatch);
+    HystrixCassandra.async(deleteRowBatch);
   }
-).doOnNext(new Action1<List<MarkedEdge>>(){
-    @Override public void call(    final List<MarkedEdge> markedEdges){
-    }
+ catch (  Throwable t) {
+    LOG.error("Unable to move edges to target shard {}",targetShard);
   }
-);
-  return null;
+  LOG.info("Finished compacting {} shards and moved {} edges",sourceShards,edgeCount);
+  resultBuilder.withCopiedEdges(edgeCount).withSourceShards(sourceShards).withTargetShard(targetShard);
+  if (edgeCount == 0) {
+    final MutationBatch shardRemovalRollup=keyspace.prepareMutationBatch();
+    for (    Shard source : sourceShards) {
+      if (!group.canBeDeleted(source)) {
+        continue;
+      }
+      LOG.info("Source shards have been fully drained.  Removing shard {}",source);
+      final MutationBatch shardRemoval=edgeShardSerialization.removeShardMeta(scope,source,edgeMeta);
+      shardRemovalRollup.mergeShallow(shardRemoval);
+      resultBuilder.withRemovedShard(source);
+    }
+    HystrixCassandra.async(shardRemovalRollup);
+    LOG.info("Shard has been fully compacted.  Marking shard {} as compacted in Cassandra",targetShard);
+    Shard compactedShard=new Shard(targetShard.getShardIndex(),timeService.getCurrentTime(),true);
+    final MutationBatch updateMark=edgeShardSerialization.writeShardMeta(scope,compactedShard,edgeMeta);
+    HystrixCassandra.async(updateMark);
+    resultBuilder.withCompactedShard(compactedShard);
+  }
+  return resultBuilder.build();
 }
