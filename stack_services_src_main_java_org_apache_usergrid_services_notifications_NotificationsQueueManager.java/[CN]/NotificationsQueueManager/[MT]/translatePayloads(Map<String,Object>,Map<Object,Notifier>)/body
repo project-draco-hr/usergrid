@@ -1,0 +1,18 @@
+{
+  Map<String,Object> translatedPayloads=new HashMap<String,Object>(payloads.size());
+  for (  Map.Entry<String,Object> entry : payloads.entrySet()) {
+    String payloadKey=entry.getKey();
+    Object payloadValue=entry.getValue();
+    Notifier notifier=notifierMap.get(payloadKey);
+    if (notifier != null) {
+      ProviderAdapter providerAdapter=providerAdapters.get(notifier.getProvider());
+      if (providerAdapter != null) {
+        Object translatedPayload=payloadValue != null ? providerAdapter.translatePayload(payloadValue) : null;
+        if (translatedPayload != null) {
+          translatedPayloads.put(payloadKey,translatedPayload);
+        }
+      }
+    }
+  }
+  return translatedPayloads;
+}

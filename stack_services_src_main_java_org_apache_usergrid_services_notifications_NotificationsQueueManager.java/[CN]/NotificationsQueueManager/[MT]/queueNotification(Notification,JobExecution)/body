@@ -1,0 +1,89 @@
+{
+  if (notification.getCanceled() == Boolean.TRUE) {
+    LOG.info("notification " + notification.getUuid() + " canceled");
+    if (jobExecution != null) {
+      jobExecution.killed();
+    }
+    return;
+  }
+  long startTime=System.currentTimeMillis();
+  LOG.info("notification {} start queuing",notification.getUuid());
+  final PathQuery<Device> pathQuery=notification.getPathQuery();
+  final AtomicInteger deviceCount=new AtomicInteger();
+  final AtomicInteger batchCount=new AtomicInteger();
+  final int numCurrentBatchesConfig=getNumConcurrentBatches();
+  final ConcurrentLinkedQueue<String> errorMessages=new ConcurrentLinkedQueue<String>();
+  if (pathQuery != null) {
+    final Iterator<Device> iterator=pathQuery.iterator(em);
+    if (iterator instanceof ResultsIterator && ((ResultsIterator)iterator).hasPages() && jobExecution == null) {
+      jobScheduler.scheduleQueueJob(notification,true);
+      return;
+    }
+    Observable.create(new IteratorObservable<Entity>(iterator)).parallel(new Func1<Observable<Entity>,Observable<Entity>>(){
+      @Override public Observable<Entity> call(      Observable<Entity> deviceObservable){
+        return deviceObservable.map(new Func1<Entity,Entity>(){
+          @Override public Entity call(          Entity entity){
+            try {
+              List<EntityRef> devicesRef=getDevices(entity);
+              boolean maySchedule=false;
+              for (              EntityRef deviceRef : devicesRef) {
+                maySchedule|=deviceCount.incrementAndGet() % BATCH_SIZE == 0;
+                Message message=new Message();
+                message.setProperty(MESSAGE_PROPERTY_DEVICE_UUID,deviceRef.getUuid());
+                qm.postToQueue(getJobQueueName(notification),message);
+                if (notification.getQueued() == null) {
+                  notification.setQueued(System.currentTimeMillis());
+                  em.update(notification);
+                }
+              }
+              if (maySchedule && numCurrentBatchesConfig >= batchCount.incrementAndGet()) {
+                processBatchAndReschedule(notification,jobExecution);
+              }
+              if (devicesRef.size() <= 0) {
+                errorMessages.add("Could not find devices for entity: " + entity.getUuid());
+              }
+            }
+ catch (            Exception deviceLoopException) {
+              LOG.error("Failed to add devices",deviceLoopException);
+              errorMessages.add("Failed to add devices for entity: " + entity.getUuid() + " error:"+ deviceLoopException);
+            }
+            return entity;
+          }
+        }
+);
+      }
+    }
+,Schedulers.io()).toBlocking().lastOrDefault(null);
+  }
+  batchCount.set(Math.min(numCurrentBatchesConfig,batchCount.get()));
+  Map<String,Object> properties=new HashMap<String,Object>(2);
+  properties.put("queued",notification.getQueued());
+  properties.put("state",notification.getState());
+  if (deviceCount.get() > 0) {
+    if (batchCount.get() <= 0) {
+      processBatchAndReschedule(notification,jobExecution);
+    }
+  }
+ else {
+    if (!IS_TEST) {
+      finishedBatch(notification,0,0);
+      errorMessages.add("No devices for notification " + notification.getUuid());
+    }
+  }
+  if (!IS_TEST && errorMessages.size() > 0) {
+    properties.put("deliveryErrors",errorMessages.toArray());
+    if (notification.getErrorMessage() == null) {
+      notification.setErrorMessage("There was a problem delivering all of your notifications. See deliveryErrors in properties");
+    }
+  }
+  notification.addProperties(properties);
+  em.update(notification);
+  long elapsed=notification.getQueued() - startTime;
+  if (LOG.isInfoEnabled()) {
+    StringBuilder sb=new StringBuilder();
+    sb.append("notification ").append(notification.getUuid());
+    sb.append(" done queuing to ").append(deviceCount);
+    sb.append(" devices in ").append(elapsed).append(" ms");
+    LOG.info(sb.toString());
+  }
+}

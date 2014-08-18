@@ -1,0 +1,96 @@
+{
+  LOG.info("sending batch of {} devices for Notification: {}",queueResults.size(),notification.getUuid());
+  final Map<Object,Notifier> notifierMap=getNotifierMap();
+  queueSize.update(queueResults.size());
+  final Map<String,Object> payloads=notification.getPayloads();
+  final Map<String,Object> translatedPayloads=translatePayloads(payloads,notifierMap);
+  try {
+    Observable.from(queueResults).parallel(new Func1<Observable<Message>,Observable<Message>>(){
+      @Override public Observable<Message> call(      Observable<Message> messageObservable){
+        return messageObservable.map(new Func1<Message,Message>(){
+          @Override public Message call(          Message message){
+            UUID deviceUUID=(UUID)message.getObjectProperty(MESSAGE_PROPERTY_DEVICE_UUID);
+            boolean foundNotifier=false;
+            for (            Map.Entry<String,Object> entry : payloads.entrySet()) {
+              try {
+                String payloadKey=entry.getKey();
+                Notifier notifier=notifierMap.get(payloadKey.toLowerCase());
+                EntityRef deviceRef=new SimpleEntityRef(Device.ENTITY_TYPE,deviceUUID);
+                String providerId;
+                try {
+                  providerId=getProviderId(deviceRef,notifier);
+                  if (providerId == null) {
+                    LOG.debug("Provider not found.{} {}",deviceRef,notifier.getName());
+                    continue;
+                  }
+                }
+ catch (                Exception providerException) {
+                  LOG.error("Exception getting provider.",providerException);
+                  continue;
+                }
+                Object payload=translatedPayloads.get(payloadKey);
+                Receipt receipt=new Receipt(notification.getUuid(),providerId,payload,deviceUUID);
+                TaskTracker tracker=new TaskTracker(notifier,taskManager,receipt,deviceUUID);
+                if (payload == null) {
+                  LOG.debug("selected device {} for notification {} doesn't have a valid payload. skipping.",deviceUUID,notification.getUuid());
+                  try {
+                    tracker.failed(0,"failed to match payload to " + payloadKey + " notifier");
+                  }
+ catch (                  Exception e) {
+                    LOG.debug("failed to mark device failed" + e);
+                  }
+                  continue;
+                }
+                if (LOG.isDebugEnabled()) {
+                  StringBuilder sb=new StringBuilder();
+                  sb.append("sending notification ").append(notification.getUuid());
+                  sb.append(" to device ").append(deviceUUID);
+                  LOG.debug(sb.toString());
+                }
+                try {
+                  ProviderAdapter providerAdapter=providerAdapters.get(notifier.getProvider());
+                  providerAdapter.sendNotification(providerId,notifier,payload,notification,tracker);
+                }
+ catch (                Exception e) {
+                  try {
+                    tracker.failed(0,e.getMessage());
+                  }
+ catch (                  Exception trackerException) {
+                    LOG.error("tracker failed",trackerException);
+                  }
+                }
+                foundNotifier=true;
+              }
+  finally {
+                sendMeter.mark();
+              }
+            }
+            if (!foundNotifier) {
+              try {
+                taskManager.skip(deviceUUID);
+              }
+ catch (              Exception trackerException) {
+                LOG.error("failed on skip",trackerException);
+              }
+            }
+            return message;
+          }
+        }
+);
+      }
+    }
+,Schedulers.io()).toBlocking().lastOrDefault(null);
+    for (    ProviderAdapter providerAdapter : providerAdapters.values()) {
+      try {
+        providerAdapter.doneSendingNotifications();
+      }
+ catch (      Exception e) {
+        LOG.error("providerAdapter.doneSendingNotifications: ",e);
+      }
+    }
+  }
+  finally {
+    outstandingQueue.dec();
+    LOG.info("finished sending batch for notification {}",notification.getUuid());
+  }
+}

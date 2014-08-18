@@ -1,0 +1,22 @@
+{
+  Map<Object,Notifier> notifiers=new HashMap<Object,Notifier>(payloads.size() * 2);
+  for (  Object id : payloads.keySet()) {
+    Identifier identifier=Identifier.from(id);
+    Notifier notifier;
+    if (identifier.isUUID()) {
+      notifier=em.get(identifier.getUUID(),Notifier.class);
+    }
+ else {
+      EntityRef ref=em.getAlias("notifier",identifier.getName());
+      notifier=em.get(ref,Notifier.class);
+    }
+    if (notifier != null) {
+      notifiers.put(notifier.getUuid(),notifier);
+      notifiers.put(notifier.getUuid().toString(),notifier);
+      if (notifier.getName() != null) {
+        notifiers.put(notifier.getName(),notifier);
+      }
+    }
+  }
+  return notifiers;
+}

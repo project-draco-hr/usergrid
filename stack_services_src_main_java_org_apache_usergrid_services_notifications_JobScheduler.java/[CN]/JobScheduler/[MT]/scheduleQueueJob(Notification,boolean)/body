@@ -1,0 +1,27 @@
+{
+  boolean scheduleInFuture=notification.getDeliver() != null;
+  long scheduleAt=(notification.getDeliver() != null) ? notification.getDeliver() : 0;
+  long soonestPossible=System.currentTimeMillis() + SCHEDULER_GRACE_PERIOD;
+  if (scheduleAt < soonestPossible) {
+    scheduleAt=soonestPossible;
+    scheduleInFuture=false;
+  }
+  if (notification.getStarted() == null || notification.getStarted() == 0) {
+    notification.setStarted(System.currentTimeMillis());
+    Map<String,Object> properties=new HashMap<String,Object>(2);
+    properties.put("started",notification.getStarted());
+    properties.put("state",notification.getState());
+    em.updateProperties(notification,properties);
+  }
+  boolean scheduled=scheduleInFuture || forceSchedule;
+  if (scheduled) {
+    JobData jobData=new JobData();
+    jobData.setProperty("applicationId",sm.getApplicationId());
+    jobData.setProperty("notificationId",notification.getUuid());
+    jobData.setProperty("deliver",notification.getDeliver());
+    SchedulerService scheduler=getSchedulerService();
+    scheduler.createJob("queueJob",scheduleAt,jobData);
+  }
+  LOG.info("notification {} scheduled for queuing",notification.getUuid());
+  return scheduled;
+}

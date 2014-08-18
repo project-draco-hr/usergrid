@@ -1,0 +1,21 @@
+{
+  Timer.Context timer=postTimer.time();
+  postMeter.mark();
+  try {
+    validate(null,context.getPayload());
+    PathQuery<Device> pathQuery=getPathQuery(context.getRequest().getOriginalParameters());
+    context.getProperties().put("state",Notification.State.CREATED);
+    context.getProperties().put("pathQuery",pathQuery);
+    context.setOwner(sm.getApplication());
+    ServiceResults results=super.postCollection(context);
+    Notification notification=(Notification)results.getEntity();
+    if (!notificationQueueManager.scheduleQueueJob(notification)) {
+      notificationQueueManager.queueNotification(notification,null);
+    }
+    outstandingQueue.inc();
+    return results;
+  }
+  finally {
+    timer.stop();
+  }
+}

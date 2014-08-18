@@ -1,0 +1,38 @@
+{
+  Timer.Context timer=execution.time();
+  requests.mark();
+  logger.info("execute QueueJob {}",jobExecution);
+  JobData jobData=jobExecution.getJobData();
+  UUID applicationId=(UUID)jobData.getProperty("applicationId");
+  ServiceManager sm=smf.getServiceManager(applicationId);
+  NotificationsService notificationsService=(NotificationsService)sm.getService("notifications");
+  EntityManager em=emf.getEntityManager(applicationId);
+  try {
+    if (em == null) {
+      logger.info("no EntityManager for applicationId  {}",applicationId);
+      return;
+    }
+    UUID notificationId=(UUID)jobData.getProperty("notificationId");
+    Notification notification=em.get(notificationId,Notification.class);
+    if (notification == null) {
+      logger.info("notificationId {} no longer exists",notificationId);
+      return;
+    }
+    try {
+      notificationsService.getQueueManager().queueNotification(notification,jobExecution);
+    }
+ catch (    Exception e) {
+      logger.error("execute QueueJob failed",e);
+      em.setProperty(notification,"errorMessage",e.getMessage());
+      throw e;
+    }
+ finally {
+      long diff=System.currentTimeMillis() - notification.getCreated();
+      histogram.update(diff);
+    }
+  }
+  finally {
+    timer.stop();
+  }
+  logger.info("execute QueueJob completed normally");
+}
