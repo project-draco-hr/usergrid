@@ -9,16 +9,14 @@
   ProviderAdapter providerAdapter=ns.providerAdapters.get(provider);
   providerAdapter.validateCreateNotifier(payload);
   ServiceResults results=super.postCollection(context);
-  DynamicEntity entity=(DynamicEntity)results.getEntity();
-  Notifier notifier1=new Notifier();
-  notifier1.setProperties(entity.getProperties());
-  if (entity != null) {
+  Notifier notifier=(Notifier)results.getEntity();
+  if (notifier != null) {
     try {
-      ns.testConnection(notifier1);
+      ns.testConnection(notifier);
     }
  catch (    Exception e) {
       logger.info("notifier testConnection() failed",e);
-      em.delete(entity);
+      em.delete(notifier);
       throw e;
     }
   }
