@@ -19,25 +19,35 @@
       jobScheduler.scheduleQueueJob(notification,true);
       return;
     }
-    Observable.create(new IteratorObservable<Entity>(iterator)).parallel(new Func1<Observable<Entity>,Observable<Entity>>(){
-      @Override public Observable<Entity> call(      Observable<Entity> deviceObservable){
+    final CountMinSketch sketch=new CountMinSketch(0.0001,.99,7364181);
+    rx.Observable.create(new IteratorObservable<Entity>(iterator)).parallel(new Func1<rx.Observable<Entity>,rx.Observable<Entity>>(){
+      @Override public rx.Observable<Entity> call(      rx.Observable<Entity> deviceObservable){
         return deviceObservable.map(new Func1<Entity,Entity>(){
           @Override public Entity call(          Entity entity){
             try {
               List<EntityRef> devicesRef=getDevices(entity);
+              String queueName=getJobQueueName(notification);
               boolean maySchedule=false;
               for (              EntityRef deviceRef : devicesRef) {
+                long hash=MurmurHash.hash(deviceRef.getUuid());
+                if (sketch.estimateCount(hash) > 0) {
+                  LOG.debug("Maybe Found duplicate device: {}",deviceRef.getUuid());
+                  continue;
+                }
+ else {
+                  sketch.add(hash,1);
+                }
                 maySchedule|=deviceCount.incrementAndGet() % BATCH_SIZE == 0;
                 Message message=new Message();
                 message.setProperty(MESSAGE_PROPERTY_DEVICE_UUID,deviceRef.getUuid());
-                qm.postToQueue(getJobQueueName(notification),message);
+                qm.postToQueue(queueName,message);
                 if (notification.getQueued() == null) {
                   notification.setQueued(System.currentTimeMillis());
                   em.update(notification);
                 }
               }
               if (maySchedule && numCurrentBatchesConfig >= batchCount.incrementAndGet()) {
-                processBatchAndReschedule(notification,jobExecution);
+                processBatchAndReschedule(notification,null);
               }
               if (devicesRef.size() <= 0) {
                 errorMessages.add("Could not find devices for entity: " + entity.getUuid());

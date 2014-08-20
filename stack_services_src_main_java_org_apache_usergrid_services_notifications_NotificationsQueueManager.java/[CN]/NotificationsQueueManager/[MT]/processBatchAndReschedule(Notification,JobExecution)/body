@@ -17,7 +17,7 @@
  else {
     consecutiveEmptyQueues.incrementAndGet();
   }
-  if (!isNotificationDeliveryComplete(notification) && consecutiveEmptyQueues.get() <= CONSECUTIVE_EMPTY_QUEUES) {
+  if (qm.hasPendingReads(getJobQueueName(notification),null) && consecutiveEmptyQueues.get() <= CONSECUTIVE_EMPTY_QUEUES) {
     if (jobExecution == null) {
       jobScheduler.scheduleBatchJob(notification,reschedule_delay);
     }
