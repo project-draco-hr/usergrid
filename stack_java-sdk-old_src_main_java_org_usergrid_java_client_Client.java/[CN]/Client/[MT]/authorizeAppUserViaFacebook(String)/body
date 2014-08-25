@@ -1,0 +1,22 @@
+{
+  assertValidApplicationId();
+  loggedInUser=null;
+  accessToken=null;
+  currentOrganization=null;
+  Map<String,Object> formData=new HashMap<String,Object>();
+  formData.put("fb_access_token",fb_access_token);
+  ApiResponse response=apiRequest(HttpMethod.POST,formData,null,organizationId,applicationId,"auth","facebook");
+  if (response == null) {
+    return response;
+  }
+  if (!isEmpty(response.getAccessToken()) && (response.getUser() != null)) {
+    loggedInUser=response.getUser();
+    accessToken=response.getAccessToken();
+    currentOrganization=null;
+    log.info("Client.authorizeAppUserViaFacebook(): Access token: " + accessToken);
+  }
+ else {
+    log.info("Client.authorizeAppUserViaFacebook(): Response: " + response);
+  }
+  return response;
+}

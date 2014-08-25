@@ -1,0 +1,33 @@
+{
+  HttpHeaders requestHeaders=new HttpHeaders();
+  requestHeaders.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+  if (accessToken != null) {
+    String auth="Bearer " + accessToken;
+    requestHeaders.set("Authorization",auth);
+    log.info("Authorization: " + auth);
+  }
+  String url=path(apiUrl,segments);
+  MediaType contentType=MediaType.APPLICATION_JSON;
+  if (method.equals(HttpMethod.POST) && isEmpty(data) && !isEmpty(params)) {
+    data=encodeParams(params);
+    contentType=MediaType.APPLICATION_FORM_URLENCODED;
+  }
+ else {
+    url=addQueryParams(url,params);
+  }
+  requestHeaders.setContentType(contentType);
+  HttpEntity<?> requestEntity=null;
+  if (method.equals(HttpMethod.POST) || method.equals(HttpMethod.PUT)) {
+    if (isEmpty(data)) {
+      data=JsonNodeFactory.instance.objectNode();
+    }
+    requestEntity=new HttpEntity<Object>(data,requestHeaders);
+  }
+ else {
+    requestEntity=new HttpEntity<Object>(requestHeaders);
+  }
+  log.info("Client.httpRequest(): url: " + url);
+  ResponseEntity<T> responseEntity=restTemplate.exchange(url,method,requestEntity,cls);
+  log.info("Client.httpRequest(): reponse body: " + responseEntity.getBody().toString());
+  return responseEntity.getBody();
+}
