@@ -24,11 +24,6 @@ catch (  HystrixRuntimeException hre) {
       handleWriteUniqueVerifyException(entity,wuve);
     }
   }
-  IndexScope indexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),getCollectionScopeNameFromEntityType(entity.getType()));
-  EntityIndex ei=managerCache.getEntityIndex(indexScope);
-  ei.index(cpEntity);
-  IndexScope allTypesIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),ALL_TYPES);
-  EntityIndex aei=managerCache.getEntityIndex(allTypesIndexScope);
-  aei.index(cpEntity);
-  updateEntityIndexes(entity,cpEntity);
+  CpRelationManager rm=(CpRelationManager)getRelationManager(entity);
+  rm.updateContainingCollectionAndCollectionIndexes(entity,cpEntity);
 }
