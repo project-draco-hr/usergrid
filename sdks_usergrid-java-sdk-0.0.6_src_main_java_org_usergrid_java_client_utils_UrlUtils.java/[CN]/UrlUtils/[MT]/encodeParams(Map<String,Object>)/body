@@ -1,0 +1,42 @@
+{
+  if (params == null) {
+    return "";
+  }
+  boolean first=true;
+  StringBuilder results=new StringBuilder();
+  for (  Entry<String,Object> entry : params.entrySet()) {
+    if (entry.getValue() instanceof List) {
+      for (      Object o : (List)entry.getValue()) {
+        if (!isEmpty(o)) {
+          if (!first) {
+            results.append('&');
+          }
+          first=false;
+          results.append(entry.getKey());
+          results.append("=");
+          try {
+            results.append(encode(o.toString(),"UTF-8"));
+          }
+ catch (          UnsupportedEncodingException e) {
+            throw new ClientException("Unknown encoding",e);
+          }
+        }
+      }
+    }
+ else     if (!isEmpty(entry.getValue())) {
+      if (!first) {
+        results.append('&');
+      }
+      first=false;
+      results.append(entry.getKey());
+      results.append("=");
+      try {
+        results.append(encode(entry.getValue().toString(),"UTF-8"));
+      }
+ catch (      UnsupportedEncodingException e) {
+        throw new ClientException("Unsupported string encoding",e);
+      }
+    }
+  }
+  return results.toString();
+}
