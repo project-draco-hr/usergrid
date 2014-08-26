@@ -5,9 +5,6 @@
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   EntityIndex ei=managerCache.getEntityIndex(defaultIndexScope);
   Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
-  if (!UUIDUtils.isTimeBased(entityId.getUuid())) {
-    throw new IllegalArgumentException("Entity Id " + entityId.getType() + ":"+ entityId.getUuid()+ " uuid not time based");
-  }
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(entityId).toBlockingObservable().last();
   cpEntity.removeField(propertyName);
   logger.debug("About to Write {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});

@@ -5,7 +5,13 @@
   if (((applicationId == null) || applicationId.equals(UUIDUtils.ZERO_UUID)) && !is_application) {
     return null;
   }
-  long timestamp=UUIDUtils.getTimestampInMicros(timestampUuid);
+  long timestamp=0;
+  if (UUIDUtils.isTimeBased(timestampUuid)) {
+    timestamp=UUIDUtils.getTimestampInMicros(timestampUuid);
+  }
+ else {
+    timestamp=MurmurHash.hash64(timestampUuid);
+  }
   UUID itemId=UUIDUtils.newTimeUUID();
   if (is_application) {
     itemId=applicationId;
