@@ -3,10 +3,22 @@
   assertNotNull(applicationId);
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
   assertNotNull(em);
-  Map<String,Object> subObject=new LinkedHashMap<String,Object>();
-  subObject.put("subField","Foo");
-  Map<String,Object> properties=new LinkedHashMap<String,Object>();
-  properties.put("subObjectArray",new Map[]{subObject});
+  Map<String,Object> properties=new LinkedHashMap<String,Object>(){
+{
+      put("subObjectArray",new ArrayList<Map<String,Object>>(){
+{
+          add(new LinkedHashMap<String,Object>(){
+{
+              put("subField","Foo");
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+;
   Entity entity1=em.create("game",properties);
   assertNotNull(entity1);
   Entity entity2=em.create("game",properties);
