@@ -4,64 +4,11 @@ synchronized (lock) {
     if (isReady()) {
       return;
     }
-    LOG.info("-------------------------------------------------------------------");
-    LOG.info("Initializing Embedded Cassandra at {} ...",tempDir.toString());
-    LOG.info("-------------------------------------------------------------------");
-    File newYamlFile=new File(tempDir,"cassandra.yaml");
-    URL newYamlUrl=FileUtils.toURLs(new File[]{newYamlFile})[0];
-    Yaml yaml=new Yaml();
-    @SuppressWarnings("unchecked") Map<String,Object> map=(Map<String,Object>)yaml.load(ClassLoader.getSystemResourceAsStream("cassandra.yaml"));
-    map.put(RPC_PORT_KEY,getRpcPort());
-    map.put(STORAGE_PORT_KEY,getStoragePort());
-    map.put(SSL_STORAGE_PORT_KEY,getSslStoragePort());
-    map.put(NATIVE_TRANSPORT_PORT_KEY,getNativeTransportPort());
-    map.put(COMMIT_FILE_DIR_KEY,new File(tempDir,"commitlog").toString());
-    map.put(DATA_FILE_DIR_KEY,new String[]{new File(tempDir,"data").toString()});
-    map.put(SAVED_CACHES_DIR_KEY,new File(tempDir,"saved_caches").toString());
-    FileWriter writer=new FileWriter(newYamlFile);
-    yaml.dump(map,writer);
-    writer.flush();
-    writer.close();
-    System.setProperty("cassandra.url","localhost:" + Integer.toString(rpcPort));
-    System.setProperty("cassandra-foreground","true");
-    System.setProperty("log4j.defaultInitOverride","true");
-    System.setProperty("log4j.configuration","log4j.properties");
-    System.setProperty("cassandra.ring_delay_ms","100");
-    System.setProperty("cassandra.config",newYamlUrl.toString());
-    System.setProperty("cassandra.tempName",tempDir.getName());
-    while (!AvailablePortFinder.available(rpcPort)) {
-      rpcPort++;
+    if (forkCassandra) {
+      startCassandraForked();
     }
-    while (!AvailablePortFinder.available(storagePort)) {
-      storagePort++;
+ else {
+      startCassandraEmbedded();
     }
-    while (!AvailablePortFinder.available(sslStoragePort)) {
-      sslStoragePort++;
-    }
-    while (!AvailablePortFinder.available(nativeTransportPort)) {
-      nativeTransportPort++;
-    }
-    System.setProperty("cassandra." + RPC_PORT_KEY,Integer.toString(rpcPort));
-    System.setProperty("cassandra." + STORAGE_PORT_KEY,Integer.toString(storagePort));
-    System.setProperty("cassandra." + SSL_STORAGE_PORT_KEY,Integer.toString(sslStoragePort));
-    System.setProperty("cassandra." + NATIVE_TRANSPORT_PORT_KEY,Integer.toString(nativeTransportPort));
-    LOG.info("before() test, setting system properties for ports : [rpc, storage, sslStoage, native] = [{}, {}, {}, {}]",new Object[]{rpcPort,storagePort,sslStoragePort,nativeTransportPort});
-    if (!newYamlFile.exists()) {
-      throw new RuntimeException("Cannot find new Yaml file: " + newYamlFile);
-    }
-    cassandraDaemon=new CassandraDaemon();
-    cassandraDaemon.activate();
-    Runtime.getRuntime().addShutdownHook(new Thread(){
-      @Override public void run(){
-        after();
-      }
-    }
-);
-    String[] locations={"usergrid-test-context.xml"};
-    applicationContext=new ClassPathXmlApplicationContext(locations);
-    loadSchemaManager(schemaManagerName);
-    initialized=true;
-    LOG.info("External Cassandra resource at {} is ready!",tempDir.toString());
-    lock.notifyAll();
   }
 }

@@ -1,7 +1,8 @@
 {
-  CustomCollection things=context.application().collection("things");
+  CustomCollection things=context.application().collection("test4things");
   Map<String,String> data=hashMap("name","thing1");
   JsonNode response=things.create(data);
+  refreshIndex(context.getOrgName(),context.getAppName());
   JsonNode entity=getEntity(response,0);
   String uuid=entity.get("uuid").asText();
   EntityResource entityRequest=things.entity("thing1").withParam("ql","").withParam("limit","");
@@ -12,6 +13,7 @@
   assertEquals(entity,returnedEntity);
   returnedEntity=getEntity(entityRequest.delete(),0);
   assertEquals(entity,returnedEntity);
+  refreshIndex(context.getOrgName(),context.getAppName());
   returnedEntity=getEntity(things.entity(uuid).get(),0);
   assertNull(returnedEntity);
 }

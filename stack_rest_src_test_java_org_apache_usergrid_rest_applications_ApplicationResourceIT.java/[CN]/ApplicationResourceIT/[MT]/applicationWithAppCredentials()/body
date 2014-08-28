@@ -2,6 +2,7 @@
   ApplicationInfo appInfo=setup.getMgmtSvc().getApplicationInfo("test-organization/test-app");
   String clientId=setup.getMgmtSvc().getClientIdForApplication(appInfo.getId());
   String clientSecret=setup.getMgmtSvc().getClientSecretForApplication(appInfo.getId());
+  refreshIndex("test-organization","test-app");
   JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/users").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   assertNotNull(node.get("entities"));
 }

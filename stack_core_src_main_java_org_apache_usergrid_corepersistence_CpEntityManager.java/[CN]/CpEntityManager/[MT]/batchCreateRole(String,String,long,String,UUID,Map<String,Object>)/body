@@ -1,6 +1,6 @@
 {
-  UUID timestampUuid=newTimeUUID();
-  long timestamp=getTimestampInMicros(timestampUuid);
+  UUID timestampUuid=UUIDUtils.newTimeUUID();
+  long timestamp=UUIDUtils.getTimestampInMicros(timestampUuid);
   Map<String,Object> properties=new TreeMap<>(CASE_INSENSITIVE_ORDER);
   properties.put(PROPERTY_TYPE,Role.ENTITY_TYPE);
   properties.put(PROPERTY_NAME,propertyName);
@@ -15,9 +15,9 @@
   UUID id=UUIDGenerator.newTimeUUID();
   batchCreate(null,Role.ENTITY_TYPE,null,properties,id,timestampUuid);
   Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
-  addInsertToMutator(batch,ENTITY_DICTIONARIES,key(ownerId,Schema.DICTIONARY_ROLENAMES),roleName,roleTitle,timestamp);
-  addInsertToMutator(batch,ENTITY_DICTIONARIES,key(ownerId,Schema.DICTIONARY_ROLETIMES),roleName,inactivity,timestamp);
-  addInsertToMutator(batch,ENTITY_DICTIONARIES,key(ownerId,DICTIONARY_SETS),Schema.DICTIONARY_ROLENAMES,null,timestamp);
-  batchExecute(batch,CassandraService.RETRY_COUNT);
+  CassandraPersistenceUtils.addInsertToMutator(batch,ENTITY_DICTIONARIES,CassandraPersistenceUtils.key(ownerId,Schema.DICTIONARY_ROLENAMES),roleName,roleTitle,timestamp);
+  CassandraPersistenceUtils.addInsertToMutator(batch,ENTITY_DICTIONARIES,CassandraPersistenceUtils.key(ownerId,Schema.DICTIONARY_ROLETIMES),roleName,inactivity,timestamp);
+  CassandraPersistenceUtils.addInsertToMutator(batch,ENTITY_DICTIONARIES,CassandraPersistenceUtils.key(ownerId,DICTIONARY_SETS),Schema.DICTIONARY_ROLENAMES,null,timestamp);
+  CassandraPersistenceUtils.batchExecute(batch,CassandraService.RETRY_COUNT);
   return get(id,Role.class);
 }

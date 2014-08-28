@@ -1,18 +1,18 @@
 {
   ref=validate(ref);
-  properties=getDefaultSchema().cleanUpdatedProperties(ref.getType(),properties,false);
+  properties=Schema.getDefaultSchema().cleanUpdatedProperties(ref.getType(),properties,false);
   EntityRef entityRef=ref;
   if (entityRef instanceof CollectionRef) {
     CollectionRef cref=(CollectionRef)ref;
     entityRef=cref.getItemRef();
   }
   Entity entity=get(entityRef);
-  properties.put(PROPERTY_MODIFIED,getTimestampInMillis(newTimeUUID()));
+  properties.put(PROPERTY_MODIFIED,UUIDUtils.getTimestampInMillis(UUIDUtils.newTimeUUID()));
   for (  String propertyName : properties.keySet()) {
     Object propertyValue=properties.get(propertyName);
     Schema defaultSchema=Schema.getDefaultSchema();
     boolean entitySchemaHasProperty=defaultSchema.hasProperty(entity.getType(),propertyName);
-    propertyValue=getDefaultSchema().validateEntityPropertyValue(entity.getType(),propertyName,propertyValue);
+    propertyValue=Schema.getDefaultSchema().validateEntityPropertyValue(entity.getType(),propertyName,propertyValue);
     if (entitySchemaHasProperty) {
       if (!defaultSchema.isPropertyMutable(entity.getType(),propertyName)) {
         continue;

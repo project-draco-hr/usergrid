@@ -17,12 +17,17 @@
     }
   }
   if (query.isReversed()) {
-    Query.SortPredicate newsp=new Query.SortPredicate(PROPERTY_CREATED,Query.SortDirection.DESCENDING);
-    query.addSort(newsp);
+    Query.SortPredicate desc=new Query.SortPredicate(PROPERTY_CREATED,Query.SortDirection.DESCENDING);
+    try {
+      query.addSort(desc);
+    }
+ catch (    Exception e) {
+      logger.warn("Attempted to reverse sort order already set",PROPERTY_CREATED);
+    }
   }
   if (query.getSortPredicates().isEmpty()) {
-    Query.SortPredicate newsp=new Query.SortPredicate(PROPERTY_CREATED,Query.SortDirection.ASCENDING);
-    query.addSort(newsp);
+    Query.SortPredicate asc=new Query.SortPredicate(PROPERTY_CREATED,Query.SortDirection.ASCENDING);
+    query.addSort(asc);
   }
   return query;
 }

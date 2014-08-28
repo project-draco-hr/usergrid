@@ -1,16 +1,25 @@
 {
-  if (started) {
-    return;
+  log.info("Entering before");
+  String esStartup=properties.getProperty("tomcat.startup");
+  if ("forked".equals(esStartup)) {
+    forkTomcat=true;
+  }
+ else {
+    forkTomcat=false;
   }
 synchronized (mutex) {
+    clientCount.incrementAndGet();
     if (started) {
+      log.info("NOT starting Tomcat because it is already started");
+      log.info("Leaving before: {} users of Tomcat",clientCount.get());
       return;
     }
-    port=AvailablePortFinder.getNextAvailable(9998 + RandomUtils.nextInt(10));
-    String propDirPath=createPropDir();
-    createPropertyFiles(propDirPath);
-    process=startTomcatProcess(propDirPath);
-    waitForTomcat();
-    started=true;
+    if (forkTomcat) {
+      process=startTomcatProcess();
+    }
+ else {
+      startTomcatEmbedded();
+    }
+    log.info("Leaving before: Started Tomcat, now {} users",clientCount.get());
   }
 }

@@ -1,0 +1,37 @@
+{
+  JsonNode node=null;
+  ClientResponse.Status responseStatus=ClientResponse.Status.OK;
+  HashMap<String,Object> payload=payloadBuilder();
+  HashMap<String,Object> properties=(HashMap<String,Object>)payload.get("properties");
+  HashMap<String,Object> storage_info=(HashMap<String,Object>)properties.get("storage_info");
+  storage_info.remove("s3_key");
+  try {
+    node=resource().path("/management/orgs/test-organization/export").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+  }
+ catch (  UniformInterfaceException uie) {
+    responseStatus=uie.getResponse().getClientResponseStatus();
+  }
+  assertEquals(ClientResponse.Status.BAD_REQUEST,responseStatus);
+  payload=payloadBuilder();
+  properties=(HashMap<String,Object>)payload.get("properties");
+  storage_info=(HashMap<String,Object>)properties.get("storage_info");
+  storage_info.remove("s3_access_id");
+  try {
+    node=resource().path("/management/orgs/test-organization/export").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+  }
+ catch (  UniformInterfaceException uie) {
+    responseStatus=uie.getResponse().getClientResponseStatus();
+  }
+  assertEquals(ClientResponse.Status.BAD_REQUEST,responseStatus);
+  payload=payloadBuilder();
+  properties=(HashMap<String,Object>)payload.get("properties");
+  storage_info=(HashMap<String,Object>)properties.get("storage_info");
+  storage_info.remove("bucket_location");
+  try {
+    node=resource().path("/management/orgs/test-organization/export").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+  }
+ catch (  UniformInterfaceException uie) {
+    responseStatus=uie.getResponse().getClientResponseStatus();
+  }
+  assertEquals(ClientResponse.Status.BAD_REQUEST,responseStatus);
+}

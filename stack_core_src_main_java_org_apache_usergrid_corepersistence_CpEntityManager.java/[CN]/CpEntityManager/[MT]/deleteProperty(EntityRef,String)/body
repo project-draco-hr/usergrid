@@ -1,7 +1,7 @@
 {
   String collectionName=getCollectionScopeNameFromEntityType(entityRef.getType());
   CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),collectionName);
-  IndexScope defaultIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),entityRef.getType());
+  IndexScope defaultIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),getCollectionScopeNameFromEntityType(entityRef.getType()));
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   EntityIndex ei=managerCache.getEntityIndex(defaultIndexScope);
   Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
@@ -10,7 +10,10 @@
   }
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(entityId).toBlockingObservable().last();
   cpEntity.removeField(propertyName);
+  logger.debug("About to Write {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
   cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
+  logger.debug("Wrote {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
   ei.index(cpEntity);
-  updateEntityIndexes(get(entityRef),cpEntity);
+  CpRelationManager rm=(CpRelationManager)getRelationManager(entityRef);
+  rm.updateContainingCollectionAndCollectionIndexes(get(entityRef),cpEntity);
 }

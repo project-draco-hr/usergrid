@@ -47,6 +47,7 @@
     assertEquals("User Account Activated",activation.getSubject());
     client=new MockImapClient("mockserver.com","test-user-46","somepassword");
     client.processMail();
+    refreshIndex(orgName,appName);
     node=mapper.readTree(resource().path("/management/token").queryParam("grant_type","password").queryParam("username",userName).queryParam("password",passwd).accept(MediaType.APPLICATION_JSON).get(String.class));
     assertNotNull(node);
     LOG.info("Authentication succeeded after confirmation: {}.",node.toString());

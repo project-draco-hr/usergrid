@@ -1,18 +1,18 @@
 {
   ServicePayload payload=null;
-  json=normalizeJsonTree(json);
+  json=JsonUtils.normalizeJsonTree(json);
   if (json instanceof Map) {
     Map<String,Object> jsonMap=(Map<String,Object>)json;
-    payload=payload(jsonMap);
+    payload=ServicePayload.payload(jsonMap);
   }
  else   if (json instanceof List) {
     List<?> jsonList=(List<?>)json;
     if (jsonList.size() > 0) {
       if (jsonList.get(0) instanceof UUID) {
-        payload=idListPayload((List<UUID>)json);
+        payload=ServicePayload.idListPayload((List<UUID>)json);
       }
  else       if (jsonList.get(0) instanceof Map) {
-        payload=batchPayload((List<Map<String,Object>>)jsonList);
+        payload=ServicePayload.batchPayload((List<Map<String,Object>>)jsonList);
       }
     }
   }

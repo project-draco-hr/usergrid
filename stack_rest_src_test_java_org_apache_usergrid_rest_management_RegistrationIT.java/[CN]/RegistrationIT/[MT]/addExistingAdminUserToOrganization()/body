@@ -6,21 +6,23 @@
     setTestProperty(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
     setTestProperty(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"false");
     setTestProperty(PROPERTIES_SYSADMIN_EMAIL,"sysadmin-1@mockserver.com");
+    String adminUserName="AdminUserFromOtherOrg";
     String adminUserEmail="AdminUserFromOtherOrg@otherorg.com";
     UserInfo adminUser=setup.getMgmtSvc().createAdminUser(adminUserEmail,adminUserEmail,adminUserEmail,"password1",true,false);
+    refreshIndex("test-organization","test-app");
     assertNotNull(adminUser);
-    Message[] msgs=getMessages("otherorg.com","AdminUserFromOtherOrg","password1");
+    Message[] msgs=getMessages("otherorg.com",adminUserName,"password1");
     assertEquals(1,msgs.length);
     String adminToken=adminToken();
-    JsonNode node=postAddAdminToOrg("test-organization","AdminUserFromOtherOrg@otherorg.com","password1",adminToken);
+    JsonNode node=postAddAdminToOrg("test-organization",adminUserEmail,"password1",adminToken);
     String uuid=node.get("data").get("user").get("uuid").textValue();
     UUID userId=UUID.fromString(uuid);
     assertEquals(adminUser.getUuid(),userId);
-    String resetpwd="Password Reset";
-    String invited="User Invited To Organization";
-    msgs=getMessages("otherorg.com","AdminUserFromOtherOrg","password1");
+    msgs=getMessages("otherorg.com",adminUserName,"password1");
     assertEquals(2,msgs.length);
+    String resetpwd="Password Reset";
     assertNotSame(resetpwd,msgs[1].getSubject());
+    String invited="User Invited To Organization";
     assertEquals(invited,msgs[1].getSubject());
   }
   finally {

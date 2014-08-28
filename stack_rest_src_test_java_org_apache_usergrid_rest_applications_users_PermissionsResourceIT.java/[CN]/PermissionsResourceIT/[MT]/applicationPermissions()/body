@@ -16,13 +16,17 @@
   addPermission(orgname,applicationName,adminToken,"reviewer","get,put,post:/reviews/**");
   addPermission(orgname,applicationName,adminToken,"guest","get:/reviews/**");
   UUID userId=createRoleUser(orgs.getOrganization().getUuid(),appInfo.getId(),adminToken,"reviewer1","reviewer1@usergrid.com");
+  refreshIndex(orgname,applicationName);
   node=mapper.readTree(resource().path(String.format("/%s/%s/users/reviewer1/roles/reviewer",orgname,applicationName)).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class));
   assertNull(getError(node));
+  refreshIndex(orgname,applicationName);
   String reviewer1Token=setup.getMgmtSvc().getAccessTokenForAppUser(appInfo.getId(),userId,0);
   Map<String,String> review=hashMap("rating","4").map("name","noca").map("review","Excellent service and food");
   resource().path(String.format("/%s/%s/reviews",orgname,applicationName)).queryParam("access_token",reviewer1Token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,review);
   review=hashMap("rating","4").map("name","4peaks").map("review","Huge beer selection");
+  refreshIndex(orgname,applicationName);
   resource().path(String.format("/%s/%s/reviews",orgname,applicationName)).queryParam("access_token",reviewer1Token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(String.class,review);
+  refreshIndex(orgname,applicationName);
   node=mapper.readTree(resource().path(String.format("/%s/%s/reviews",orgname,applicationName)).queryParam("access_token",reviewer1Token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   assertEquals("noca",getEntity(node,0).get("name").asText());
   assertEquals("4peaks",getEntity(node,1).get("name").asText());
@@ -34,6 +38,7 @@
     status=uie.getResponse().getClientResponseStatus();
   }
   assertEquals(Status.UNAUTHORIZED,status);
+  refreshIndex(orgname,applicationName);
   status=null;
   try {
     resource().path(String.format("/%s/%s/reviews/4peaks",orgname,applicationName)).queryParam("access_token",reviewer1Token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).delete(String.class);
@@ -42,16 +47,22 @@
     status=uie.getResponse().getClientResponseStatus();
   }
   assertEquals(Status.UNAUTHORIZED,status);
+  refreshIndex(orgname,applicationName);
   UUID secondUserId=createRoleUser(orgs.getOrganization().getUuid(),appInfo.getId(),adminToken,"reviewer2","reviewer2@usergrid.com");
   Map<String,String> group=hashMap("path","reviewergroup");
   resource().path(String.format("/%s/%s/groups",orgname,applicationName)).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,group);
+  refreshIndex(orgname,applicationName);
   resource().path(String.format("/%s/%s/groups/reviewergroup/roles/reviewer",orgname,applicationName)).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,group);
+  refreshIndex(orgname,applicationName);
   resource().path(String.format("/%s/%s/users/reviewer2/groups/reviewergroup",orgname,applicationName)).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class);
+  refreshIndex(orgname,applicationName);
   String secondUserToken=setup.getMgmtSvc().getAccessTokenForAppUser(appInfo.getId(),secondUserId,0);
   review=hashMap("rating","4").map("name","cowboyciao").map("review","Great atmosphoere");
   resource().path(String.format("/%s/%s/reviews",orgname,applicationName)).queryParam("access_token",secondUserToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,review);
   review=hashMap("rating","4").map("name","currycorner").map("review","Authentic");
+  refreshIndex(orgname,applicationName);
   resource().path(String.format("/%s/%s/reviews",orgname,applicationName)).queryParam("access_token",secondUserToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,review);
+  refreshIndex(orgname,applicationName);
   node=mapper.readTree(resource().path(String.format("/%s/%s/reviews",orgname,applicationName)).queryParam("access_token",secondUserToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   assertEquals("noca",getEntity(node,0).get("name").asText());
   assertEquals("4peaks",getEntity(node,1).get("name").asText());
@@ -65,6 +76,7 @@
     status=uie.getResponse().getClientResponseStatus();
   }
   assertEquals(Status.UNAUTHORIZED,status);
+  refreshIndex(orgname,applicationName);
   status=null;
   try {
     resource().path(String.format("/%s/%s/reviews/currycorner",orgname,applicationName)).queryParam("access_token",secondUserToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).delete(String.class);

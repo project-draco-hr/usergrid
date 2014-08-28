@@ -1,5 +1,5 @@
 {
-  CustomCollection groups=context.application().collection("groups");
+  CustomCollection groups=context.application().collection("test2groups");
   int maxRangeLimit=20;
   JsonNode[] saved=new JsonNode[maxRangeLimit];
   Map<String,String> actor=hashMap("displayName","Erin");
@@ -17,6 +17,7 @@
     JsonNode activity=groups.create(props).get("entities").get(0);
     saved[i]=activity;
   }
+  refreshIndex(context.getOrgName(),context.getAppName());
   JsonNode node=null;
   for (int consistent=0; consistent < 20; consistent++) {
     String query=String.format("select * where location within 100 of 37, -75 and ordinal >= %d and ordinal < %d",saved[7].get("ordinal").asLong(),saved[10].get("ordinal").asLong());

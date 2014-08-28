@@ -7,4 +7,6 @@
   accessMap.put("username",properties.getProperty("cassandra.username"));
   accessMap.put("password",properties.getProperty("cassandra.password"));
   systemKeyspace=HFactory.createKeyspace(SYSTEM_KEYSPACE,cluster,consistencyLevelPolicy,ON_FAIL_TRY_ALL_AVAILABLE,accessMap);
+  final int flushSize=getIntValue(properties,"cassandra.mutation.flushsize",2000);
+  CountingMutator.MAX_SIZE=flushSize;
 }

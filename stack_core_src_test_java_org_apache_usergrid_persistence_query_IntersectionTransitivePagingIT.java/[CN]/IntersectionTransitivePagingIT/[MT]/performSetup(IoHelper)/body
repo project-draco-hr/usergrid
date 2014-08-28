@@ -1,0 +1,24 @@
+{
+  io.doSetup();
+  int writeSize=PAGE_SIZE * 4;
+  List<UUID> expected=new ArrayList<UUID>(writeSize);
+  Map<String,Object> entity=new HashMap<String,Object>();
+  entity.put("city","San Francisco");
+  Map<String,Object> otherEntity=new HashMap<String,Object>();
+  otherEntity.put("city","Denver");
+  otherEntity.put("postcalCode",80211);
+  for (int i=0; i < writeSize; i++) {
+    if (i % 2 == 0) {
+      int mod=i % 4;
+      entity.put("postalCode",94100 + mod);
+      UUID returned1=io.writeEntity(entity).getUuid();
+      if (mod == 0) {
+        expected.add(returned1);
+      }
+    }
+ else {
+      io.writeEntity(otherEntity);
+    }
+  }
+  return expected;
+}

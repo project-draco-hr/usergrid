@@ -1,6 +1,6 @@
 {
   if (!skipAggregateCounters) {
-    Mutator<ByteBuffer> m=createMutator(cass.getApplicationKeyspace(applicationId),be);
+    Mutator<ByteBuffer> m=CountingMutator.createFlushingMutator(cass.getApplicationKeyspace(applicationId),be);
     counterUtils.batchIncrementAggregateCounters(m,applicationId,userId,groupId,null,category,counterName,value,cassandraTimestamp / 1000,cassandraTimestamp);
     batchExecute(m,CassandraService.RETRY_COUNT);
   }

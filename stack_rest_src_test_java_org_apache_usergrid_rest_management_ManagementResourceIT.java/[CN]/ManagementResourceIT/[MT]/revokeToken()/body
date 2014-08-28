@@ -6,6 +6,7 @@
   response=mapper.readTree(resource().path("/management/users/test").queryParam("access_token",token2).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   assertEquals("test@usergrid.com",response.get("data").get("email").asText());
   response=mapper.readTree(resource().path("/management/users/test/revoketokens").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class));
+  refreshIndex("test-organization","test-app");
   Status status=null;
   try {
     response=mapper.readTree(resource().path("/management/users/test").queryParam("access_token",token1).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));

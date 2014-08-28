@@ -1,5 +1,5 @@
 {
-  CustomCollection groups=context.application().collection("groups");
+  CustomCollection groups=context.application().collection("test1groups");
   int maxRangeLimit=2000;
   long[] index=new long[maxRangeLimit];
   Map actor=hashMap("displayName","Erin");
@@ -17,7 +17,8 @@
     JsonNode activity=groups.create(props);
     index[i]=activity.findValue("created").longValue();
   }
-  String query="select * where location within 20000 of 37,-75 and created > " + index[2] + " and "+ "created < "+ index[4]+ "";
+  refreshIndex(context.getOrgName(),context.getAppName());
+  String query="select * where location within 20000 of 37,-75 " + " and created > " + index[2] + " and created < "+ index[4]+ "";
   JsonNode node=groups.withQuery(query).get();
   assertEquals(1,node.get("entities").size());
   assertEquals(index[3],node.get("entities").get(0).get("created").longValue());

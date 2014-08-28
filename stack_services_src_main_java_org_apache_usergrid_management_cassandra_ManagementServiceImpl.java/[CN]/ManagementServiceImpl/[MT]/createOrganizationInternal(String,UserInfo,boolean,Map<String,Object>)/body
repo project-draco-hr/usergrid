@@ -1,8 +1,13 @@
 {
-  if ((organizationName == null) || (user == null)) {
+  logger.info("createOrganizationInternal2: {}",organizationName);
+  if (organizationName == null) {
+    logger.debug("organizationName = null");
     return null;
   }
-  logger.info("createOrganizationInternal: {}",organizationName);
+  if (user == null) {
+    logger.debug("user = null");
+    return null;
+  }
   EntityManager em=emf.getEntityManager(smf.getManagementAppId());
   Group organizationEntity=new Group();
   organizationEntity.setPath(organizationName);
@@ -12,8 +17,8 @@
   writeUserToken(smf.getManagementAppId(),organizationEntity,encryptionService.plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.ORGANIZATION),user.getUuid(),smf.getManagementAppId()));
   OrganizationInfo organization=new OrganizationInfo(organizationEntity.getUuid(),organizationName,properties);
   updateOrganization(organization);
-  logger.info("createOrganizationInternal: {}",organizationName);
   postOrganizationActivity(organization.getUuid(),user,"create",organizationEntity,"Organization",organization.getName(),"<a href=\"mailto:" + user.getEmail() + "\">"+ user.getName()+ " ("+ user.getEmail()+ ")</a> created a new organization account named "+ organizationName,null);
   startOrganizationActivationFlow(organization);
+  em.refreshIndex();
   return organization;
 }
