@@ -1,0 +1,52 @@
+{
+  log.info("GeoQueryBooleanTest.testGeoQueryWithOr");
+  UUID applicationId=setup.createApplication("testOrganization","testGeoQueryWithOr");
+  assertNotNull(applicationId);
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  assertNotNull(em);
+  Map<String,Object> properties=new LinkedHashMap<String,Object>(){
+{
+      put("username","ed");
+      put("employer","Apigee");
+      put("email","ed@example.com");
+      put("location",new LinkedHashMap<String,Object>(){
+{
+          put("latitude",37.776753);
+          put("longitude",-122.407846);
+        }
+      }
+);
+    }
+  }
+;
+  Entity user1=em.create("user",properties);
+  assertNotNull(user1);
+  properties=new LinkedHashMap<String,Object>(){
+{
+      put("username","fred");
+      put("employer","Microsoft");
+      put("email","fred@example.com");
+      put("location",new LinkedHashMap<String,Object>(){
+{
+          put("latitude",37.776753);
+          put("longitude",-122.407846);
+        }
+      }
+);
+    }
+  }
+;
+  Entity user2=em.create("user",properties);
+  assertNotNull(user2);
+  em.refreshIndex();
+  Point center=new Point(37.774277,-122.404744);
+  Query query=Query.fromQL("select * where location within 400 of " + center.getLat() + ","+ center.getLon());
+  Results listResults=em.searchCollection(em.getApplicationRef(),"users",query);
+  assertEquals(2,listResults.size());
+  query=Query.fromQL("select * where employer='Apigee' or location within 100 of " + center.getLat() + ","+ center.getLon());
+  listResults=em.searchCollection(em.getApplicationRef(),"users",query);
+  assertEquals(0,listResults.size());
+  query=Query.fromQL("select * where employer='Apigee' or location within 400 of " + center.getLat() + ","+ center.getLon());
+  listResults=em.searchCollection(em.getApplicationRef(),"users",query);
+  assertEquals(1,listResults.size());
+}
