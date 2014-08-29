@@ -6,14 +6,15 @@
   final Id id=createId("test");
   final String type="type";
   final String type2="subType";
-  final long shardId=10000;
+  final Shard shard=new Shard(10000,0,true);
+  final DirectedEdgeMeta directedEdgeMeta=DirectedEdgeMeta.fromTargetNodeSourceType(id,type,type2);
   ExecutorService executor=Executors.newFixedThreadPool(workers);
   List<Future<Long>> futures=new ArrayList<>(workers);
   for (int i=0; i < workers; i++) {
     final Future<Long> future=executor.submit(new Callable<Long>(){
       @Override public Long call() throws Exception {
         for (int i=0; i < increments; i++) {
-          approximation.increment(scope,id,shardId,1,type,type2);
+          approximation.increment(scope,shard,1,directedEdgeMeta);
         }
         return 0l;
       }
@@ -24,7 +25,10 @@
   for (  Future<Long> future : futures) {
     future.get();
   }
-  final long returnedCount=approximation.getCount(scope,id,shardId,type,type2);
+  waitForFlush(approximation);
+  final long returnedCount=approximation.getCount(scope,shard,directedEdgeMeta);
   final long expected=workers * increments;
   assertEquals(expected,returnedCount);
+  final long emptyCount=approximation.getCount(scope,shard,DirectedEdgeMeta.fromSourceNodeTargetType(id,type,type2));
+  assertEquals(0,emptyCount);
 }

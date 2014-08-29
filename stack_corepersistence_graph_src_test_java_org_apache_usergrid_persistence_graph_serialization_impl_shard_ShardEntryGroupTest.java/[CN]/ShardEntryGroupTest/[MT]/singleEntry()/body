@@ -1,0 +1,10 @@
+{
+  final long delta=10000;
+  Shard rootShard=new Shard(0,0,false);
+  ShardEntryGroup shardEntryGroup=new ShardEntryGroup(delta);
+  final boolean result=shardEntryGroup.addShard(rootShard);
+  assertTrue("Shard added",result);
+  assertFalse("Single shard cannot be deleted",shardEntryGroup.canBeDeleted(rootShard));
+  assertNull("No merge target found",shardEntryGroup.getCompactionTarget());
+  assertFalse("Merge cannot be run with a single shard",shardEntryGroup.shouldCompact(Long.MAX_VALUE));
+}

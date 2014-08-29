@@ -1,0 +1,56 @@
+{
+  final String rowKey1=UUIDGenerator.newTimeUUID().toString();
+  final String rowKey2=UUIDGenerator.newTimeUUID().toString();
+  final String rowKey3=UUIDGenerator.newTimeUUID().toString();
+  final long maxValue=10000;
+  final CountDownLatch latch=new CountDownLatch(3);
+  writeData(latch,rowKey1,maxValue,1);
+  writeData(latch,rowKey2,maxValue,2);
+  writeData(latch,rowKey3,maxValue,10);
+  latch.await();
+  final ColumnParser<Long,Long> longParser=new ColumnParser<Long,Long>(){
+    @Override public Long parseColumn(    final Column<Long> column){
+      return column.getName();
+    }
+  }
+;
+  final ColumnSearch<Long> ascendingSearch=new ColumnSearch<Long>(){
+    @Override public void buildRange(    final RangeBuilder rangeBuilder,    final Long value){
+      rangeBuilder.setStart(value);
+    }
+    @Override public void buildRange(    final RangeBuilder rangeBuilder){
+    }
+  }
+;
+  final Comparator<Long> ascendingComparator=new Comparator<Long>(){
+    @Override public int compare(    final Long o1,    final Long o2){
+      return Long.compare(o1,o2);
+    }
+  }
+;
+  final Collection<String> rowKeys=Arrays.asList(rowKey1,rowKey2,rowKey3);
+  MultiRowColumnIterator<String,Long,Long> ascendingItr=new MultiRowColumnIterator<>(keyspace,COLUMN_FAMILY,ConsistencyLevel.CL_QUORUM,longParser,ascendingSearch,ascendingComparator,rowKeys,852);
+  for (long i=0; i < maxValue; i++) {
+    assertEquals(i,ascendingItr.next().longValue());
+  }
+  final ColumnSearch<Long> descendingSearch=new ColumnSearch<Long>(){
+    @Override public void buildRange(    final RangeBuilder rangeBuilder,    final Long value){
+      rangeBuilder.setStart(value);
+      buildRange(rangeBuilder);
+    }
+    @Override public void buildRange(    final RangeBuilder rangeBuilder){
+      rangeBuilder.setReversed(true);
+    }
+  }
+;
+  final Comparator<Long> descendingComparator=new Comparator<Long>(){
+    @Override public int compare(    final Long o1,    final Long o2){
+      return ascendingComparator.compare(o1,o2) * -1;
+    }
+  }
+;
+  MultiRowColumnIterator<String,Long,Long> descendingItr=new MultiRowColumnIterator<>(keyspace,COLUMN_FAMILY,ConsistencyLevel.CL_QUORUM,longParser,descendingSearch,descendingComparator,rowKeys,712);
+  for (long i=maxValue - 1; i > -1; i--) {
+    assertEquals(i,descendingItr.next().longValue());
+  }
+}

@@ -1,0 +1,26 @@
+{
+  ValidationUtils.validateApplicationScope(scope);
+  GraphValidation.validateSearchByEdgeType(search);
+  final Id sourceId=search.getNode();
+  final String type=search.getType();
+  final long maxTimestamp=search.getMaxTimestamp();
+  final MultiTennantColumnFamily<ApplicationScope,RowKey,DirectedEdge> columnFamily=columnFamilies.getSourceNodeCfName();
+  final Serializer<DirectedEdge> serializer=columnFamily.getColumnSerializer();
+  final OrderedComparator<MarkedEdge> comparator=new OrderedComparator<>(TargetDirectedEdgeDescendingComparator.INSTANCE,search.getOrder());
+  final EdgeSearcher<RowKey,DirectedEdge,MarkedEdge> searcher=new EdgeSearcher<RowKey,DirectedEdge,MarkedEdge>(scope,shards,search.getOrder(),comparator,maxTimestamp,search.last().transform(TRANSFORM)){
+    @Override protected Serializer<DirectedEdge> getSerializer(){
+      return serializer;
+    }
+    @Override protected RowKey generateRowKey(    long shard){
+      return new RowKey(sourceId,type,shard);
+    }
+    @Override protected DirectedEdge createColumn(    final MarkedEdge last){
+      return new DirectedEdge(last.getTargetNode(),last.getTimestamp());
+    }
+    @Override protected MarkedEdge createEdge(    final DirectedEdge edge,    final boolean marked){
+      return new SimpleMarkedEdge(sourceId,type,edge.id,edge.timestamp,marked);
+    }
+  }
+;
+  return new ShardsColumnIterator<>(searcher,columnFamily,keyspace,cassandraConfig.getReadCL(),graphFig.getScanPageSize());
+}

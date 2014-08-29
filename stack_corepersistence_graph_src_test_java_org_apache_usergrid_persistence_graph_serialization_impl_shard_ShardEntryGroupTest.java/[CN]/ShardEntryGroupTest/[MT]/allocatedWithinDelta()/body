@@ -1,0 +1,14 @@
+{
+  final long delta=10000;
+  Shard firstShard=new Shard(1000,1000,false);
+  Shard secondShard=new Shard(1000,1001,false);
+  ShardEntryGroup shardEntryGroup=new ShardEntryGroup(delta);
+  boolean result=shardEntryGroup.addShard(secondShard);
+  assertTrue("Shard added",result);
+  result=shardEntryGroup.addShard(firstShard);
+  assertTrue(" Shard added",result);
+  assertFalse("First shard cannot be deleted",shardEntryGroup.canBeDeleted(firstShard));
+  assertFalse("Second shard cannot be deleted",shardEntryGroup.canBeDeleted(secondShard));
+  assertFalse("Duplicate shard id cannot be deleted",shardEntryGroup.canBeDeleted(secondShard));
+  assertNull("Can't compact, no min compacted shard present",shardEntryGroup.getCompactionTarget());
+}

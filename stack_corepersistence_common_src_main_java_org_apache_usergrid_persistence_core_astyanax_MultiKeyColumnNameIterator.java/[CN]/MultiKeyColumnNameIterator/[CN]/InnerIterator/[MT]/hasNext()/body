@@ -1,0 +1,16 @@
+{
+  if (next != null) {
+    return true;
+  }
+  try {
+    startLatch.await();
+  }
+ catch (  InterruptedException e) {
+    throw new RuntimeException("Unable to wait for start of submission");
+  }
+  do {
+    next=queue.poll();
+  }
+ while (next == null && !done);
+  return next != null;
+}

@@ -1,0 +1,17 @@
+{
+  ValidationUtils.validateApplicationScope(scope);
+  GraphValidation.validateDirectedEdgeMeta(directedEdgeMeta);
+  final CacheKey key=new CacheKey(scope,directedEdgeMeta);
+  CacheEntry entry;
+  try {
+    entry=this.graphs.get(key);
+  }
+ catch (  ExecutionException e) {
+    throw new GraphRuntimeException("Unable to load shard key for graph",e);
+  }
+  final ShardEntryGroup shardId=entry.getShardId(timestamp);
+  if (shardId != null) {
+    return shardId;
+  }
+  throw new GraphRuntimeException("No time UUID shard was found and could not allocate one");
+}
