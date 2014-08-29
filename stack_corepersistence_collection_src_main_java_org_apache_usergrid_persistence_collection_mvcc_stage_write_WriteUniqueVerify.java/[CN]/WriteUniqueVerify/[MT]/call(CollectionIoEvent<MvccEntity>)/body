@@ -13,14 +13,14 @@
             mb.execute();
           }
  catch (          ConnectionException ex) {
-            throw new WriteUniqueVerifyException(mvccEntity,ioevent.getEntityCollection(),"Error writing unique value " + field.toString(),ex);
+            throw new RuntimeException("Unable to write to cassandra",ex);
           }
           UniqueValue loaded;
           try {
             loaded=uniqueValueStrat.load(ioevent.getEntityCollection(),field);
           }
  catch (          ConnectionException ex) {
-            throw new WriteUniqueVerifyException(mvccEntity,ioevent.getEntityCollection(),"Error verifying write",ex);
+            throw new RuntimeException("Unable to read from cassandra",ex);
           }
           return new FieldUniquenessResult(field,loaded.getEntityId().equals(written.getEntityId()));
         }
