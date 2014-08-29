@@ -1,0 +1,62 @@
+{
+  Map<String,Object> properties=new LinkedHashMap<String,Object>(){
+{
+      put("username","bart");
+      put("email","bart@example.com");
+      put("block",new ArrayList<Object>(){
+{
+          add(new LinkedHashMap<String,Object>(){
+{
+              put("name","fred");
+            }
+          }
+);
+          add(new LinkedHashMap<String,Object>(){
+{
+              put("name","gertrude");
+            }
+          }
+);
+          add(new LinkedHashMap<String,Object>(){
+{
+              put("name","mina");
+            }
+          }
+);
+        }
+      }
+);
+      put("blockedBy",new ArrayList<Object>(){
+{
+          add(new LinkedHashMap<String,Object>(){
+{
+              put("name","isabell");
+            }
+          }
+);
+        }
+      }
+);
+      put("location",new LinkedHashMap<String,Object>(){
+{
+          put("latitude",37.776753);
+          put("longitude",-122.407846);
+        }
+      }
+);
+    }
+  }
+;
+  org.apache.usergrid.persistence.model.entity.Entity entity=new org.apache.usergrid.persistence.model.entity.Entity(new SimpleId("user"));
+  entity=CpEntityMapUtils.fromMap(entity,properties,null,true);
+  assertUserWithBlocks(entity);
+  ObjectMapper mapper=new ObjectMapper();
+  mapper.enable(SerializationFeature.INDENT_OUTPUT);
+  mapper.enableDefaultTypingAsProperty(ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT,"@class");
+  String entityString=mapper.writeValueAsString(entity);
+  TypeReference<Entity> tr=new TypeReference<Entity>(){
+  }
+;
+  entity=mapper.readValue(entityString,tr);
+  assertUserWithBlocks(entity);
+}

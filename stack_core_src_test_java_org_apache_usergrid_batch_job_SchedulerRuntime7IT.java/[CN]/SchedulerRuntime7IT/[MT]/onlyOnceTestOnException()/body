@@ -9,7 +9,9 @@
   job.setDelay(sleepTime);
   getJobListener().setExpected(2);
   JobData returned=scheduler.createJob("onlyOnceUnlockOnFailExceution",System.currentTimeMillis(),new JobData());
+  scheduler.refreshIndex();
   boolean waited=getJobListener().blockTilDone(runLoop * numberOfRuns * 2 + 5000L);
+  scheduler.refreshIndex();
   assertTrue("Both runs executed",waited);
   assertTrue("Job failed",getJobListener().getFailureCount() == 1);
   assertTrue("No Job succeeded",getJobListener().getSuccessCount() == 1);
