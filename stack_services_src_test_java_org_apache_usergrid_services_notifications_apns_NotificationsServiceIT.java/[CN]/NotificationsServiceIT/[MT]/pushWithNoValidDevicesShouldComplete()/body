@@ -27,18 +27,16 @@
   Notification notification=app.getEm().get(e.getUuid(),Notification.class);
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
   ns.addDevice(notification,device);
-  Query query=new Query();
-  query.addEqualityFilter("state",Notification.State.STARTED.toString());
+  Query query=Query.fromQL("select * where type = 'notification'");
   Results results=app.getEm().searchCollection(app.getEm().getApplicationRef(),"notifications",query);
-  Entity entity=results.getEntitiesMap().get(notification.getUuid());
-  assertNotNull(entity);
+  Notification note=(Notification)results.getEntitiesMap().get(notification.getUuid());
+  assertEquals(Notification.State.STARTED,note.getState());
   ns.getQueueManager().processBatchAndReschedule(notification,null);
-  query=new Query();
-  query.addEqualityFilter("state",Notification.State.FINISHED.toString());
+  query=Query.fromQL("select * where type = 'notification'");
   results=app.getEm().searchCollection(app.getEm().getApplicationRef(),"notifications",query);
-  entity=results.getEntitiesMap().get(notification.getUuid());
-  assertNotNull(entity);
-  notification=(Notification)entity.toTypedEntity();
+  note=(Notification)results.getEntitiesMap().get(notification.getUuid());
+  assertEquals(Notification.State.FINISHED,note.getState());
+  notification=note;
   checkReceipts(notification,0);
   checkStatistics(notification,0,0);
 }
