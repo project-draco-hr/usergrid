@@ -1,20 +1,24 @@
 {
   final Id now=createId("test");
-  final long slice1=1000l;
-  final long slice2=slice1 * 2;
-  final long slice3=slice2 * 2;
-  String[] types={"edgeType","subType"};
-  MutationBatch batch=edgeShardSerialization.writeEdgeMeta(scope,now,slice1,types);
-  batch.mergeShallow(edgeShardSerialization.writeEdgeMeta(scope,now,slice2,types));
-  batch.mergeShallow(edgeShardSerialization.writeEdgeMeta(scope,now,slice3,types));
+  final long timestamp=10000l;
+  final Shard shard1=new Shard(1000l,timestamp,false);
+  final Shard shard2=new Shard(shard1.getShardIndex() * 2,timestamp,true);
+  final Shard shard3=new Shard(shard2.getShardIndex() * 2,timestamp,false);
+  final DirectedEdgeMeta sourceEdgeMeta=DirectedEdgeMeta.fromSourceNodeTargetType(now,"edgeType","subType");
+  MutationBatch batch=edgeShardSerialization.writeShardMeta(scope,shard1,sourceEdgeMeta);
+  batch.mergeShallow(edgeShardSerialization.writeShardMeta(scope,shard2,sourceEdgeMeta));
+  batch.mergeShallow(edgeShardSerialization.writeShardMeta(scope,shard3,sourceEdgeMeta));
   batch.execute();
-  Iterator<Long> results=edgeShardSerialization.getEdgeMetaData(scope,now,Optional.<Long>absent(),types);
-  assertEquals(slice3,results.next().longValue());
-  assertEquals(slice2,results.next().longValue());
-  assertEquals(slice1,results.next().longValue());
+  Iterator<Shard> results=edgeShardSerialization.getShardMetaData(scope,Optional.<Shard>absent(),sourceEdgeMeta);
+  assertEquals(shard3,results.next());
+  assertEquals(shard2,results.next());
+  assertEquals(shard1,results.next());
   assertFalse(results.hasNext());
-  results=edgeShardSerialization.getEdgeMetaData(scope,now,Optional.of(slice2),types);
-  assertEquals(slice2,results.next().longValue());
-  assertEquals(slice1,results.next().longValue());
+  final DirectedEdgeMeta targetEdgeMeta=DirectedEdgeMeta.fromTargetNodeSourceType(now,"edgeType","subType");
+  results=edgeShardSerialization.getShardMetaData(scope,Optional.<Shard>absent(),targetEdgeMeta);
+  assertFalse(results.hasNext());
+  results=edgeShardSerialization.getShardMetaData(scope,Optional.of(shard2),sourceEdgeMeta);
+  assertEquals(shard2,results.next());
+  assertEquals(shard1,results.next());
   assertFalse(results.hasNext());
 }

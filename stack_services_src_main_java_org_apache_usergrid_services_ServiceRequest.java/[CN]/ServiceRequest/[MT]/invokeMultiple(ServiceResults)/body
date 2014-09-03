@@ -1,0 +1,27 @@
+{
+  List<ServiceRequest> requests=previousResults.getNextRequests();
+  if (returnsTree) {
+    for (    ServiceRequest request : requests) {
+      ServiceResults rs=request.execute(previousResults);
+      if (rs != null) {
+        previousResults.setChildResults(rs);
+      }
+    }
+    return previousResults;
+  }
+ else {
+    ServiceResults aggregate_results=null;
+    for (    ServiceRequest request : requests) {
+      ServiceResults rs=request.execute(previousResults);
+      if (rs != null) {
+        if (aggregate_results == null) {
+          aggregate_results=rs;
+        }
+ else {
+          aggregate_results.merge(rs);
+        }
+      }
+    }
+    return aggregate_results;
+  }
+}

@@ -1,0 +1,24 @@
+{
+  final int pollCount=5;
+  final int expectedInterval=5000;
+  JobSchedulerService schedulerService=cassandraResource.getBean(JobSchedulerService.class);
+  final long interval=schedulerService.getInterval();
+  final int numberOfWorkers=schedulerService.getWorkerSize();
+  final int expectedExecutions=numberOfWorkers * pollCount;
+  assertEquals("Interval must be set to " + expectedInterval + " for test to work properly",expectedInterval,interval);
+  CountdownLatchJob counterJob=cassandraResource.getBean(CountdownLatchJob.class);
+  counterJob.setLatch(expectedExecutions);
+  getJobListener().setExpected(expectedExecutions);
+  long fireTime=System.currentTimeMillis();
+  for (int i=0; i < pollCount; i++) {
+    for (int j=0; j < numberOfWorkers; j++) {
+      scheduler.createJob("countdownLatch",fireTime,new JobData());
+    }
+    fireTime+=expectedInterval * 2;
+  }
+  boolean waited=counterJob.waitForCount(EXPECTED_RUNTIME,TimeUnit.MILLISECONDS);
+  assertTrue("Ran" + getCount() + " number of jobs",waited);
+  while (!getJobListener().blockTilDone(EXPECTED_RUNTIME)) {
+    logger.warn("Jobs not yet finished after waited {}, block again",waitTime);
+  }
+}

@@ -1,29 +1,36 @@
 {
-  if (!readyToProduce()) {
-    return;
-  }
 synchronized (this) {
-    while (true) {
-      InnerObserver<T> maxObserver=null;
-      T max=null;
-      for (      InnerObserver<T> inner : innerSubscribers) {
-        if (inner.drained) {
-          continue;
-        }
-        final T current=inner.peek();
-        if (current == null) {
-          return;
-        }
-        if (max == null || (current != null && comparator.compare(current,max) > 0)) {
-          maxObserver=inner;
-          max=current;
-        }
+    while (!toProduce.isEmpty()) {
+      InnerObserver<T> inner=toProduce.pop();
+      if (inner.drained) {
+        continue;
       }
-      if (maxObserver == null) {
+      final T nextKey=inner.peek();
+      if (nextKey == null) {
+        toProduce.push(inner);
         return;
       }
-      log.trace("Max element is item {}",max);
-      subscriber.onNext(maxObserver.pop());
+      nextValues.put(nextKey,inner);
+    }
+    while (!nextValues.isEmpty()) {
+      final T lowestKey=nextValues.keySet().first();
+      NavigableSet<InnerObserver<T>> nextObservers=nextValues.get(lowestKey);
+      while (!nextObservers.isEmpty()) {
+        final InnerObserver<T> inner=nextObservers.pollFirst();
+        nextValues.remove(lowestKey,inner);
+        final T value=inner.pop();
+        log.trace("Emitting value {}",value);
+        subscriber.onNext(value);
+        final T nextKey=inner.peek();
+        if (nextKey == null) {
+          if (inner.drained) {
+            continue;
+          }
+          toProduce.push(inner);
+          return;
+        }
+        nextValues.put(nextKey,inner);
+      }
     }
   }
 }

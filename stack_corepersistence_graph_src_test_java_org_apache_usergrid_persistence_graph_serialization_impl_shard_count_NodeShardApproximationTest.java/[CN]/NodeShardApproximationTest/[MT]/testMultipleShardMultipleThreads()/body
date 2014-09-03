@@ -7,24 +7,27 @@
   final String type="type";
   final String type2="subType";
   final AtomicLong shardIdCounter=new AtomicLong();
+  final DirectedEdgeMeta directedEdgeMeta=DirectedEdgeMeta.fromTargetNodeSourceType(id,type,type2);
   ExecutorService executor=Executors.newFixedThreadPool(workers);
-  List<Future<Long>> futures=new ArrayList<>(workers);
+  List<Future<Shard>> futures=new ArrayList<>(workers);
   for (int i=0; i < workers; i++) {
-    final Future<Long> future=executor.submit(new Callable<Long>(){
-      @Override public Long call() throws Exception {
+    final Future<Shard> future=executor.submit(new Callable<Shard>(){
+      @Override public Shard call() throws Exception {
         final long threadShardId=shardIdCounter.incrementAndGet();
+        final Shard shard=new Shard(threadShardId,0,true);
         for (int i=0; i < increments; i++) {
-          approximation.increment(scope,id,threadShardId,1,type,type2);
+          approximation.increment(scope,shard,1,directedEdgeMeta);
         }
-        return threadShardId;
+        return shard;
       }
     }
 );
     futures.add(future);
   }
-  for (  Future<Long> future : futures) {
-    final long shardId=future.get();
-    final long returnedCount=approximation.getCount(scope,id,shardId,type,type2);
+  for (  Future<Shard> future : futures) {
+    final Shard shardId=future.get();
+    waitForFlush(approximation);
+    final long returnedCount=approximation.getCount(scope,shardId,directedEdgeMeta);
     assertEquals(increments,returnedCount);
   }
 }

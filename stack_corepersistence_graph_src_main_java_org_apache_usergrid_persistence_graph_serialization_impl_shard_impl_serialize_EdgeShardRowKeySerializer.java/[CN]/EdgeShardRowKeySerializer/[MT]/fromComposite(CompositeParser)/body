@@ -1,0 +1,17 @@
+{
+  final int storageType=composite.readInteger();
+  final DirectedEdgeMeta.MetaType metaType=DirectedEdgeMeta.MetaType.fromStorage(storageType);
+  final int idLength=composite.readInteger();
+  final DirectedEdgeMeta.NodeMeta[] nodePairs=new DirectedEdgeMeta.NodeMeta[idLength];
+  for (int i=0; i < idLength; i++) {
+    final Id sourceId=ID_SER.fromComposite(composite);
+    final NodeType type=NodeType.get(composite.readInteger());
+    nodePairs[i]=new DirectedEdgeMeta.NodeMeta(sourceId,type);
+  }
+  final int length=composite.readInteger();
+  String[] types=new String[length];
+  for (int i=0; i < length; i++) {
+    types[i]=composite.readString();
+  }
+  return DirectedEdgeMeta.fromStorage(metaType,nodePairs,types);
+}

@@ -7,11 +7,14 @@
   job.setTimeout(customRetry);
   job.setLatch(numberOfRuns);
   job.setDelay(sleepTime);
+  getJobListener().setExpected(2);
   JobData returned=scheduler.createJob("onlyOnceUnlockOnFailExceution",System.currentTimeMillis(),new JobData());
-  boolean waited=getJobListener().blockTilDone(1,runLoop * numberOfRuns * 2 + 5000L);
-  assertTrue("Job threw exception",waited);
+  scheduler.refreshIndex();
+  boolean waited=getJobListener().blockTilDone(runLoop * numberOfRuns * 2 + 5000L);
+  scheduler.refreshIndex();
+  assertTrue("Both runs executed",waited);
   assertTrue("Job failed",getJobListener().getFailureCount() == 1);
-  assertTrue("No Job succeeded",getJobListener().getSuccessCount() == 0);
+  assertTrue("No Job succeeded",getJobListener().getSuccessCount() == 1);
   JobStat stat=scheduler.getStatsForJob(returned.getJobName(),returned.getUuid());
   assertEquals(numberOfRuns,stat.getTotalAttempts());
   assertEquals(numberOfRuns,stat.getRunCount());

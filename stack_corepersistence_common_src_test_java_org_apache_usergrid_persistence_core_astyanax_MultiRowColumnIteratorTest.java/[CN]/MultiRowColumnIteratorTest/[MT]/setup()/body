@@ -1,0 +1,15 @@
+{
+  final CassandraConfig cassandraConfig=new CassandraConfig(){
+    @Override public ConsistencyLevel getReadCL(){
+      return ConsistencyLevel.CL_QUORUM;
+    }
+    @Override public ConsistencyLevel getWriteCL(){
+      return ConsistencyLevel.CL_QUORUM;
+    }
+  }
+;
+  AstyanaxKeyspaceProvider astyanaxKeyspaceProvider=new AstyanaxKeyspaceProvider(rule.getCassandraFig(),cassandraConfig);
+  keyspace=astyanaxKeyspaceProvider.get();
+  TestUtils.createKeyspace(keyspace);
+  TestUtils.createColumnFamiliy(keyspace,COLUMN_FAMILY,new HashMap<String,Object>());
+}

@@ -1,0 +1,45 @@
+{
+  UUID applicationId=setup.createApplication("testOrganization","notSubObjectQuery");
+  assertNotNull(applicationId);
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  assertNotNull(em);
+  Map<String,Object> properties=new LinkedHashMap<String,Object>(){
+{
+      put("subObjectArray",new ArrayList<Map<String,Object>>(){
+{
+          add(new LinkedHashMap<String,Object>(){
+{
+              put("subField","Foo");
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+;
+  Entity entity1=em.create("game",properties);
+  assertNotNull(entity1);
+  Entity entity2=em.create("game",properties);
+  assertNotNull(entity2);
+  em.refreshIndex();
+  Query query=Query.fromQL("select * where NOT subObjectArray.subField = 'Foo'").withLimit(1);
+  Results r=em.searchCollection(em.getApplicationRef(),"games",query);
+  assertEquals(0,r.size());
+  assertNull(r.getCursor());
+  query=Query.fromQL("select * where NOT subObjectArray.subField = 'Bar'").withLimit(1);
+  r=em.searchCollection(em.getApplicationRef(),"games",query);
+  assertEquals(1,r.size());
+  assertNotNull(r.getCursor());
+  assertEquals(entity1,r.getEntities().get(0));
+  query=Query.fromQL("select * where NOT subObjectArray.subField = 'Bar'").withLimit(1).withCursor(r.getCursor());
+  r=em.searchCollection(em.getApplicationRef(),"games",query);
+  assertEquals(1,r.size());
+  assertNotNull(r.getCursor());
+  assertEquals(entity2,r.getEntities().get(0));
+  query=Query.fromQL("select * where NOT subObjectArray.subField = 'Bar'").withLimit(1).withCursor(r.getCursor());
+  r=em.searchCollection(em.getApplicationRef(),"games",query);
+  assertEquals(0,r.size());
+  assertNull(r.getCursor());
+}

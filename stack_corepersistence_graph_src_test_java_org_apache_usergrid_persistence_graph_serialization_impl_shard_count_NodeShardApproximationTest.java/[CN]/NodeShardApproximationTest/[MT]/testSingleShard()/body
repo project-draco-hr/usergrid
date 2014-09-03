@@ -2,9 +2,11 @@
   when(graphFig.getCounterFlushCount()).thenReturn(100000l);
   NodeShardApproximation approximation=new NodeShardApproximationImpl(graphFig,nodeShardCounterSerialization,timeService);
   final Id id=createId("test");
-  final long shardId=0l;
+  final Shard shard=new Shard(0,0,true);
   final String type="type";
   final String type2="subType";
-  long count=approximation.getCount(scope,id,shardId,type,type2);
+  final DirectedEdgeMeta directedEdgeMeta=DirectedEdgeMeta.fromTargetNodeSourceType(id,type,type2);
+  long count=approximation.getCount(scope,shard,directedEdgeMeta);
+  waitForFlush(approximation);
   assertEquals(0,count);
 }

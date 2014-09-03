@@ -1,0 +1,12 @@
+{
+  final ColumnParser<Long,Long> longParser=new ColumnParser<Long,Long>(){
+    @Override public Long parseColumn(    final Column<Long> column){
+      return column.getName();
+    }
+  }
+;
+  final RangeBuilder forwardRange=new RangeBuilder().setLimit(720).setReversed(reversed);
+  final RowQuery<String,Long> forwardQuery=keyspace.prepareQuery(COLUMN_FAMILY).getKey(rowKey).withColumnRange(forwardRange.build());
+  ColumnNameIterator<Long,Long> itr=new ColumnNameIterator<>(forwardQuery,longParser,false);
+  return itr;
+}

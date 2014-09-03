@@ -1,0 +1,8 @@
+{
+  final long minimumAllowed=2 * graphFig.getShardCacheTimeout();
+  final long minDelta=graphFig.getShardMinDelta();
+  if (minDelta < minimumAllowed) {
+    throw new GraphRuntimeException(String.format("You must configure the property %s to be >= 2 x %s.  Otherwise you risk losing data",GraphFig.SHARD_MIN_DELTA,GraphFig.SHARD_CACHE_TIMEOUT));
+  }
+  return timeService.getCurrentTime() - minDelta;
+}
