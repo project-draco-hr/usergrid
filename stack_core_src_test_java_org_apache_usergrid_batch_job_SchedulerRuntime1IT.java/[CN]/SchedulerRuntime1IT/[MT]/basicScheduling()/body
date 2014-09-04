@@ -1,6 +1,7 @@
 {
   CountdownLatchJob counterJob=cassandraResource.getBean(CountdownLatchJob.class);
   counterJob.setLatch(getCount());
+  getJobListener().setExpected(getCount());
   for (int i=0; i < getCount(); i++) {
     scheduler.createJob("countdownLatch",System.currentTimeMillis(),new JobData());
   }
@@ -8,7 +9,7 @@
   boolean waited=counterJob.waitForCount(waitTime,TimeUnit.MILLISECONDS);
   assertTrue("Failed to run " + getCount() + " number of jobs. Waited "+ waitTime+ " ms.",waited);
   scheduler.refreshIndex();
-  while (!getJobListener().blockTilDone(getCount(),waitTime)) {
+  while (!getJobListener().blockTilDone(waitTime)) {
     logger.warn("Jobs not yet finished after waited {}, block again",waitTime);
   }
   assertEquals("Expected success job: " + getCount() + ". Actual :"+ getJobListener().getSuccessCount()+ ". Total count: "+ getJobListener().getDoneCount(),getCount(),getJobListener().getSuccessCount());

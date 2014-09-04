@@ -1,0 +1,43 @@
+{
+  final ShardGroupCompaction shardGroupCompaction=mock(ShardGroupCompaction.class);
+  final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
+  final EdgeColumnFamilies edgeColumnFamilies=mock(EdgeColumnFamilies.class);
+  final ShardedEdgeSerialization shardedEdgeSerialization=mock(ShardedEdgeSerialization.class);
+  final NodeShardApproximation nodeShardApproximation=mock(NodeShardApproximation.class);
+  final TimeService timeService=mock(TimeService.class);
+  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeColumnFamilies,shardedEdgeSerialization,nodeShardApproximation,timeService,graphFig,shardGroupCompaction);
+  final Id nodeId=createId("test");
+  final String type="type";
+  final String subType="subType";
+  final long timeservicetime=System.currentTimeMillis();
+  when(timeService.getCurrentTime()).thenReturn(timeservicetime);
+  final Shard futureShard=new Shard(0l,0l,true);
+  final ShardEntryGroup shardEntryGroup=new ShardEntryGroup(1000l);
+  shardEntryGroup.addShard(futureShard);
+  final DirectedEdgeMeta targetEdgeMeta=DirectedEdgeMeta.fromSourceNodeTargetType(nodeId,type,subType);
+  final long shardCount=(long)(graphFig.getShardSize() * 2.5);
+  when(nodeShardApproximation.getCount(scope,futureShard,targetEdgeMeta)).thenReturn(shardCount);
+  final int numToIterate=(int)(graphFig.getShardSize() * 2);
+  SimpleMarkedEdge skipped=new SimpleMarkedEdge(nodeId,type,createId(subType),10000,false);
+  SimpleMarkedEdge keep=new SimpleMarkedEdge(nodeId,type,createId(subType),20000,false);
+  List<MarkedEdge> edges=new ArrayList(numToIterate + 100);
+  int i=0;
+  for (; i < numToIterate - 1; i++) {
+    edges.add(skipped);
+  }
+  edges.add(keep);
+  i++;
+  for (; i < shardCount; i++) {
+    edges.add(skipped);
+  }
+  final Iterator<MarkedEdge> edgeIterator=edges.iterator();
+  when(shardedEdgeSerialization.getEdgesFromSourceByTargetType(same(edgeColumnFamilies),same(scope),any(SearchByIdType.class),any(Collection.class))).thenReturn(edgeIterator);
+  ArgumentCaptor<Shard> shardValue=ArgumentCaptor.forClass(Shard.class);
+  when(edgeShardSerialization.writeShardMeta(same(scope),shardValue.capture(),same(targetEdgeMeta))).thenReturn(mock(MutationBatch.class));
+  final boolean result=approximation.auditShard(scope,shardEntryGroup,targetEdgeMeta);
+  assertTrue("Shard was split correctly",result);
+  final long savedTimestamp=shardValue.getValue().getCreatedTime();
+  assertEquals("Expected time service time",timeservicetime,savedTimestamp);
+  final long savedShardPivot=shardValue.getValue().getShardIndex();
+  assertEquals("Expected max value to be the same",keep.getTimestamp(),savedShardPivot);
+}

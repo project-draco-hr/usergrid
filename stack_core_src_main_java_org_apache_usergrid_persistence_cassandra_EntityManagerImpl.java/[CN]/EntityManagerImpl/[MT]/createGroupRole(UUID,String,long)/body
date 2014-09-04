@@ -1,6 +1,6 @@
 {
   UUID timestampUuid=newTimeUUID();
-  Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
+  Mutator<ByteBuffer> batch=CountingMutator.createFlushingMutator(cass.getApplicationKeyspace(applicationId),be);
   batchCreateRole(batch,groupId,roleName,null,inactivity,null,timestampUuid);
   batchExecute(batch,CassandraService.RETRY_COUNT);
   return get(roleRef(groupId,roleName));

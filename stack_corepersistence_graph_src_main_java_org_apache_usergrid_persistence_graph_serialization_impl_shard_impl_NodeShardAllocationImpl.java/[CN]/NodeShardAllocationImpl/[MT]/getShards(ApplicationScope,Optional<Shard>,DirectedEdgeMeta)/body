@@ -1,0 +1,18 @@
+{
+  ValidationUtils.validateApplicationScope(scope);
+  Preconditions.checkNotNull(maxShardId,"maxShardId cannot be null");
+  GraphValidation.validateDirectedEdgeMeta(directedEdgeMeta);
+  Iterator<Shard> existingShards;
+  if (isNewNode(directedEdgeMeta)) {
+    existingShards=Collections.singleton(MIN_SHARD).iterator();
+  }
+ else {
+    existingShards=edgeShardSerialization.getShardMetaData(scope,maxShardId,directedEdgeMeta);
+  }
+  if (existingShards == null || !existingShards.hasNext()) {
+    final MutationBatch batch=edgeShardSerialization.writeShardMeta(scope,MIN_SHARD,directedEdgeMeta);
+    HystrixCassandra.user(batch);
+    existingShards=Collections.singleton(MIN_SHARD).iterator();
+  }
+  return new ShardEntryGroupIterator(existingShards,graphFig.getShardMinDelta(),shardGroupCompaction,scope,directedEdgeMeta);
+}

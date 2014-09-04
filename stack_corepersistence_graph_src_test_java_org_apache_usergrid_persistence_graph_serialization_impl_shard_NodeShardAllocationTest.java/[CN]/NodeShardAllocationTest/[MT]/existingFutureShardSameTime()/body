@@ -1,0 +1,22 @@
+{
+  final ShardGroupCompaction shardGroupCompaction=mock(ShardGroupCompaction.class);
+  final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
+  final EdgeColumnFamilies edgeColumnFamilies=mock(EdgeColumnFamilies.class);
+  final ShardedEdgeSerialization shardedEdgeSerialization=mock(ShardedEdgeSerialization.class);
+  final NodeShardApproximation nodeShardCounterSerialization=mock(NodeShardApproximation.class);
+  final TimeService timeService=mock(TimeService.class);
+  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeColumnFamilies,shardedEdgeSerialization,nodeShardCounterSerialization,timeService,graphFig,shardGroupCompaction);
+  final Id nodeId=createId("test");
+  final String type="type";
+  final String subType="subType";
+  final long timeservicetime=System.currentTimeMillis();
+  when(timeService.getCurrentTime()).thenReturn(timeservicetime);
+  final Shard firstShard=new Shard(0l,0l,true);
+  final Shard futureShard=new Shard(10000l,timeservicetime,false);
+  final ShardEntryGroup shardEntryGroup=new ShardEntryGroup(1000l);
+  shardEntryGroup.addShard(futureShard);
+  shardEntryGroup.addShard(firstShard);
+  final DirectedEdgeMeta targetEdgeMeta=DirectedEdgeMeta.fromSourceNodeTargetType(nodeId,type,subType);
+  final boolean result=approximation.auditShard(scope,shardEntryGroup,targetEdgeMeta);
+  assertFalse("No shard allocated",result);
+}

@@ -3,4 +3,7 @@
   this.nodeShardCounterSerialization=nodeShardCounterSerialization;
   this.timeService=timeService;
   this.currentCounter=new Counter();
+  this.flushQueue=new LinkedBlockingQueue<>(graphFig.getCounterFlushQueueSize());
+  this.worker=new FlushWorker(this.flushQueue,nodeShardCounterSerialization);
+  Schedulers.newThread().createWorker().schedule(worker);
 }

@@ -3,13 +3,13 @@
   ValidationUtils.verifyIdentity(node);
   ColumnFamilyQuery<ScopedRowKey<ApplicationScope,Id>,Boolean> query=keyspace.prepareQuery(GRAPH_DELETE).setConsistencyLevel(fig.getReadCL());
   try {
-    Column<Boolean> result=query.getKey(ScopedRowKey.fromKey(scope,node)).getColumn(COLUMN_NAME).execute().getResult();
+    Column<Boolean> result=HystrixCassandra.user(query.getKey(ScopedRowKey.fromKey(scope,node)).getColumn(COLUMN_NAME)).getResult();
     return Optional.of(result.getLongValue());
   }
- catch (  NotFoundException e) {
-    return Optional.absent();
-  }
-catch (  ConnectionException e) {
-    throw new GraphRuntimeException("Unable to connect to casandra",e);
+ catch (  RuntimeException re) {
+    if (re.getCause().getCause() instanceof NotFoundException) {
+      return Optional.absent();
+    }
+    throw re;
   }
 }

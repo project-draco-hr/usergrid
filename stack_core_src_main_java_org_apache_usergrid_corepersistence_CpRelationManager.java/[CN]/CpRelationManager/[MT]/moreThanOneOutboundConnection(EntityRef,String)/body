@@ -1,14 +1,7 @@
 {
   Id sourceId=new SimpleId(source.getUuid(),source.getType());
   GraphManager gm=managerCache.getGraphManager(applicationScope);
-  Observable<Edge> edgesFromSource=gm.loadEdgesFromSource(new SimpleSearchByEdgeType(sourceId,CpRelationManager.getEdgeTypeFromConnectionType(connectionType,null),System.currentTimeMillis(),null));
-  Iterator<Edge> iterator=edgesFromSource.toBlockingObservable().getIterator();
-  int count=0;
-  while (iterator.hasNext()) {
-    iterator.next();
-    if (count++ > 1) {
-      return true;
-    }
-  }
-  return false;
+  Observable<Edge> edgesFromSource=gm.loadEdgesFromSource(new SimpleSearchByEdgeType(sourceId,CpRelationManager.getEdgeTypeFromConnectionType(connectionType,null),System.currentTimeMillis(),SearchByEdgeType.Order.DESCENDING,null));
+  int count=edgesFromSource.take(2).count().toBlocking().last();
+  return count > 1;
 }

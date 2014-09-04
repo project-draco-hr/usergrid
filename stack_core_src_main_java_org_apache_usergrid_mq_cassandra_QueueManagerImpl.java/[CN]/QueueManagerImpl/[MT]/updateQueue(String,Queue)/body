@@ -2,7 +2,7 @@
   queue.setPath(queuePath);
   UUID timestampUuid=newTimeUUID();
   long timestamp=getTimestampInMicros(timestampUuid);
-  Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
+  Mutator<ByteBuffer> batch=CountingMutator.createFlushingMutator(cass.getApplicationKeyspace(applicationId),be);
   addQueueToMutator(batch,queue,timestamp);
   try {
     batchUpdateQueuePropertiesIndexes(batch,queuePath,queue.getUuid(),queue.getProperties(),timestampUuid);

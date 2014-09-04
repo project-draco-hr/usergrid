@@ -3,7 +3,7 @@
   UUID publisherQueueId=getQueueId(publisherQueuePath);
   UUID timestampUuid=newTimeUUID();
   long timestamp=getTimestampInMicros(timestampUuid);
-  Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
+  Mutator<ByteBuffer> batch=CountingMutator.createFlushingMutator(cass.getApplicationKeyspace(applicationId),be);
   QueueSet queues=new QueueSet();
   for (  String subscriberQueuePath : subscriberQueuePaths) {
     subscriberQueuePath=normalizeQueuePath(subscriberQueuePath);

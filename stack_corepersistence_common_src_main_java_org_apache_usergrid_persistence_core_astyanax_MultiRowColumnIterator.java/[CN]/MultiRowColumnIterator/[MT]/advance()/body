@@ -1,0 +1,41 @@
+{
+  final int selectSize=startColumn == null ? pageSize : pageSize + 1;
+  final RangeBuilder rangeBuilder=new RangeBuilder();
+  if (startColumn == null) {
+    columnSearch.buildRange(rangeBuilder);
+  }
+ else {
+    columnSearch.buildRange(rangeBuilder,startColumn);
+  }
+  rangeBuilder.setLimit(selectSize);
+  final RowSliceQuery<R,C> query=keyspace.prepareQuery(cf).setConsistencyLevel(consistencyLevel).getKeySlice(rowKeys).withColumnRange(rangeBuilder.build());
+  final Rows<R,C> result=HystrixCassandra.user(query).getResult();
+  final TreeSet<T> mergedResults=new TreeSet<>(comparator);
+  for (  final R key : result.getKeys()) {
+    final ColumnList<C> columns=result.getRow(key).getColumns();
+    final int size=columns.size();
+    int readIndex=0;
+    if (startColumn != null && size > 0) {
+      final T returnedValue=columnParser.parseColumn(columns.getColumnByIndex(0));
+      if (comparator.compare(returnedValue,startColumn) == 0) {
+        readIndex++;
+      }
+    }
+    for (; readIndex < size; readIndex++) {
+      final Column<C> column=columns.getColumnByIndex(readIndex);
+      final T returnedValue=columnParser.parseColumn(column);
+      mergedResults.add(returnedValue);
+      while (mergedResults.size() > pageSize) {
+        mergedResults.pollLast();
+      }
+    }
+    LOG.trace("Read {} columns from row key {}",readIndex,key);
+    LOG.trace("Candidate result set size is {}",mergedResults.size());
+  }
+  if (!mergedResults.isEmpty()) {
+    startColumn=mergedResults.last();
+  }
+  moreToFollow=mergedResults.size() == pageSize;
+  currentColumnIterator=mergedResults.iterator();
+  LOG.trace("Finished parsing {} rows for a total of {} results",rowKeys.size(),mergedResults.size());
+}

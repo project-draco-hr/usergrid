@@ -1,6 +1,6 @@
 {
   long timestamp=cass.createTimestamp();
-  Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
+  Mutator<ByteBuffer> batch=CountingMutator.createFlushingMutator(cass.getApplicationKeyspace(applicationId),be);
   queuePath=normalizeQueuePath(queuePath);
   MessageIndexUpdate indexUpdate=new MessageIndexUpdate(message);
   batchPostToQueue(batch,queuePath,message,indexUpdate,timestamp);
@@ -11,7 +11,7 @@
     if (subscribers.getQueues().isEmpty()) {
       break;
     }
-    batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
+    batch=CountingMutator.createFlushingMutator(cass.getApplicationKeyspace(applicationId),be);
     for (    QueueInfo q : subscribers.getQueues()) {
       batchPostToQueue(batch,q.getPath(),message,indexUpdate,timestamp);
       firstSubscriberQueuePath=q.getPath();

@@ -2,7 +2,7 @@
   String type=entityRef.getType();
   UUID entityId=entityRef.getUuid();
   Keyspace ko=cass.getApplicationKeyspace(applicationId);
-  Mutator<ByteBuffer> m=createMutator(ko,be);
+  Mutator<ByteBuffer> m=CountingMutator.createFlushingMutator(ko,be);
   Object itemKey=key(entityId);
   long timestamp=cass.createTimestamp();
   addPropertyToMutator(m,itemKey,type,PROPERTY_UUID,entityId,timestamp);

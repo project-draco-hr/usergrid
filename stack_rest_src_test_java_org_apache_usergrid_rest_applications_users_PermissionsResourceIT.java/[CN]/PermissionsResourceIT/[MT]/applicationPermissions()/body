@@ -13,6 +13,7 @@
   assertNull(getError(node));
   node=mapper.readTree(resource().path(String.format("/%s/%s/roles/default",orgname,applicationName)).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).delete(String.class));
   assertNull(getError(node));
+  refreshIndex(orgname,applicationName);
   addPermission(orgname,applicationName,adminToken,"reviewer","get,put,post:/reviews/**");
   addPermission(orgname,applicationName,adminToken,"guest","get:/reviews/**");
   UUID userId=createRoleUser(orgs.getOrganization().getUuid(),appInfo.getId(),adminToken,"reviewer1","reviewer1@usergrid.com");

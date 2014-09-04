@@ -1,0 +1,21 @@
+{
+  if (compactionTarget != null) {
+    return compactionTarget;
+  }
+  if (isTooSmallToCompact()) {
+    return null;
+  }
+  final int lastIndex=shards.size() - 1;
+  final Shard last=shards.get(lastIndex);
+  if (!last.isCompacted()) {
+    return null;
+  }
+  for (int i=lastIndex - 1; i > -1; i--) {
+    final Shard compactionCandidate=shards.get(i);
+    if (!compactionCandidate.isCompacted()) {
+      compactionTarget=compactionCandidate;
+      break;
+    }
+  }
+  return compactionTarget;
+}

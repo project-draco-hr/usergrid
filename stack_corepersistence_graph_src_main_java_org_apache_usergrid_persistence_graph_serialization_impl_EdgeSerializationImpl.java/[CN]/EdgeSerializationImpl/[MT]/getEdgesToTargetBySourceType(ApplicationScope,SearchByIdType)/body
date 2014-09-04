@@ -1,24 +1,16 @@
 {
   ValidationUtils.validateApplicationScope(scope);
-  EdgeUtils.validateSearchByEdgeType(edgeType);
+  GraphValidation.validateSearchByIdType(edgeType);
   final Id targetId=edgeType.getNode();
   final String sourceType=edgeType.getIdType();
   final String type=edgeType.getType();
   final long maxTimestamp=edgeType.getMaxTimestamp();
-  final EdgeSearcher<RowKeyType,DirectedEdge,MarkedEdge> searcher=new EdgeSearcher<RowKeyType,DirectedEdge,MarkedEdge>(scope,maxTimestamp,edgeType.last(),edgeShardStrategy.getReadShards(scope,targetId,maxTimestamp,type,sourceType)){
-    @Override protected Serializer<DirectedEdge> getSerializer(){
-      return EDGE_SERIALIZER;
-    }
-    @Override protected RowKeyType generateRowKey(    final long shard){
-      return new RowKeyType(targetId,type,sourceType,shard);
-    }
-    @Override protected DirectedEdge getStartColumn(    final Edge last){
-      return new DirectedEdge(last.getTargetNode(),last.getTimestamp());
-    }
-    @Override protected MarkedEdge createEdge(    final DirectedEdge edge,    final boolean marked){
-      return new SimpleMarkedEdge(edge.id,type,targetId,edge.timestamp,marked);
+  final DirectedEdgeMeta directedEdgeMeta=DirectedEdgeMeta.fromTargetNodeSourceType(targetId,type,sourceType);
+  final Iterator<ShardEntryGroup> readShards=edgeShardStrategy.getReadShards(scope,maxTimestamp,directedEdgeMeta);
+  return new ShardGroupColumnIterator<MarkedEdge>(readShards){
+    @Override protected Iterator<MarkedEdge> getIterator(    final Collection<Shard> readShards){
+      return shardedEdgeSerialization.getEdgesToTargetBySourceType(edgeColumnFamilies,scope,edgeType,readShards);
     }
   }
 ;
-  return new ShardRowIterator<>(searcher,targetNodeSourceTypeCf);
 }

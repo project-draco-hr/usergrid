@@ -1,0 +1,24 @@
+{
+  while (true) {
+    try {
+      rollUp=null;
+      rollUp=counterQueue.take();
+    }
+ catch (    InterruptedException e) {
+      LOG.error("Unable to read from counter queue",e);
+      throw new RuntimeException("Unable to read from counter queue",e);
+    }
+    final MutationBatch batch=nodeShardCounterSerialization.flush(rollUp);
+    new HystrixCommand(HystrixCassandra.ASYNC_GROUP){
+      @Override protected Void run() throws Exception {
+        batch.execute();
+        return null;
+      }
+      @Override protected Object getFallback(){
+        counterQueue.offer(rollUp);
+        return null;
+      }
+    }
+.execute();
+  }
+}

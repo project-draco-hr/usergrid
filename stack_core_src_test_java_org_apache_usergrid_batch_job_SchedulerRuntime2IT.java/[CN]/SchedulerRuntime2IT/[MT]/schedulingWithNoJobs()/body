@@ -1,19 +1,22 @@
 {
   CountdownLatchJob counterJob=cassandraResource.getBean(CountdownLatchJob.class);
   counterJob.setLatch(getCount());
+  getJobListener().setExpected(getCount());
   for (int i=0; i < getCount(); i++) {
     scheduler.createJob("countdownLatch",System.currentTimeMillis(),new JobData());
   }
   scheduler.refreshIndex();
   boolean waited=counterJob.waitForCount(waitTime,TimeUnit.MILLISECONDS);
-  assertTrue("Failed to run " + getCount() + " number of jobs. Waited "+ waitTime+ " ms.",waited);
+  assertTrue("Failed to run " + getCount() + " number of jobs. Waited "+ waitTime+ " seconds.",waited);
   scheduler.refreshIndex();
-  while (!getJobListener().blockTilDone(getCount(),waitTime)) {
+  while (!getJobListener().blockTilDone(waitTime)) {
     logger.warn("Jobs not yet finished after waited {}, block again",waitTime);
   }
   assertEquals("Expected success job: " + getCount() + ". Actual :"+ getJobListener().getSuccessCount()+ ". Total count: "+ getJobListener().getDoneCount(),getCount(),getJobListener().getSuccessCount());
   Thread.sleep(5000L);
+  scheduler.refreshIndex();
   counterJob.setLatch(getCount());
+  getJobListener().setExpected(getCount());
   for (int i=0; i < getCount(); i++) {
     scheduler.createJob("countdownLatch",System.currentTimeMillis(),new JobData());
   }
@@ -21,8 +24,9 @@
   waited=counterJob.waitForCount(waitTime,TimeUnit.MILLISECONDS);
   assertTrue("Failed to run " + getCount() + " number of jobs. Waited "+ waitTime+ " seconds.",waited);
   scheduler.refreshIndex();
-  while (!getJobListener().blockTilDone(getCount(),waitTime)) {
+  while (!getJobListener().blockTilDone(waitTime)) {
     logger.warn("Jobs not yet finished after waited {}, block again",waitTime);
   }
+  scheduler.refreshIndex();
   assertEquals("Expected success job: " + 2 * getCount() + ". Actual :" + getJobListener().getSuccessCount() + ". Total count: " + getJobListener().getDoneCount(),2 * getCount(),getJobListener().getSuccessCount());
 }

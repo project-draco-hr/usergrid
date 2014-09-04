@@ -1,0 +1,40 @@
+{
+  String rowKey1=UUIDGenerator.newTimeUUID().toString();
+  final long maxValue=10000;
+  final MutationBatch batch=keyspace.prepareMutationBatch();
+  for (long i=0; i < maxValue; i++) {
+    batch.withRow(COLUMN_FAMILY,rowKey1).putColumn(i,TRUE);
+    if (i % 1000 == 0) {
+      try {
+        batch.execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+  try {
+    batch.execute();
+  }
+ catch (  ConnectionException e) {
+    throw new RuntimeException(e);
+  }
+  final ColumnParser<Long,Long> longParser=new ColumnParser<Long,Long>(){
+    @Override public Long parseColumn(    final Column<Long> column){
+      return column.getName();
+    }
+  }
+;
+  final RangeBuilder forwardRange=new RangeBuilder().setLimit(720);
+  final RowQuery<String,Long> forwardQuery=keyspace.prepareQuery(COLUMN_FAMILY).getKey(rowKey1).withColumnRange(forwardRange.build());
+  ColumnNameIterator<Long,Long> itr=new ColumnNameIterator<>(forwardQuery,longParser,false);
+  for (long i=0; i < maxValue; i++) {
+    assertEquals(i,itr.next().longValue());
+  }
+  final RangeBuilder reverseRange=new RangeBuilder().setLimit(720).setReversed(true);
+  final RowQuery<String,Long> reverseQuery=keyspace.prepareQuery(COLUMN_FAMILY).getKey(rowKey1).withColumnRange(reverseRange.build());
+  ColumnNameIterator<Long,Long> reverseItr=new ColumnNameIterator<>(reverseQuery,longParser,false);
+  for (long i=maxValue - 1; i > -1; i--) {
+    assertEquals(i,reverseItr.next().longValue());
+  }
+}

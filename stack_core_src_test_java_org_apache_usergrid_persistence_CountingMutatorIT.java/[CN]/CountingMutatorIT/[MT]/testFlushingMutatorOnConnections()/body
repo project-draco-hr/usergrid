@@ -1,0 +1,32 @@
+{
+  CountingMutator.MAX_SIZE=10;
+  UUID applicationId=setup.createApplication("testOrganization","testFlushingMutatorOnConnections");
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  Map<String,Object> properties=new LinkedHashMap<String,Object>();
+  properties.put("name","testuser");
+  properties.put("username","testuser");
+  properties.put("email","test@foo.bar");
+  Entity created=em.create("user",properties);
+  em.refreshIndex();
+  Entity returned=em.get(created.getUuid());
+  int writeSize=(int)(CountingMutator.MAX_SIZE * 2.5);
+  for (int i=0; i < writeSize; i++) {
+    Map<String,Object> connectedProps=new LinkedHashMap<String,Object>();
+    final UUID uuid=UUIDUtils.newTimeUUID();
+    connectedProps.put("name","testuser" + uuid);
+    connectedProps.put("username","testuser" + uuid);
+    connectedProps.put("email","test" + uuid + "@foo.bar");
+    Entity connectedEntity=em.create("user",connectedProps);
+    em.refreshIndex();
+    em.createConnection(connectedEntity,"following",returned);
+  }
+  PagingResultsIterator itr=new PagingResultsIterator(em.getConnectingEntities(returned,"following","user",Level.ALL_PROPERTIES,1000));
+  int count=0;
+  while (itr.hasNext()) {
+    itr.next();
+    count++;
+  }
+  assertEquals("Correct number of connections created",writeSize,count);
+  properties.put("email","test2@foo.bar");
+  em.updateProperties(returned,properties);
+}
