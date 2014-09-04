@@ -17,11 +17,9 @@
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
   Notification notification=app.getEm().get(e.getUuid(),Notification.class);
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
-  ns.addDevice(notification,device1);
-  ns.addDevice(notification,device2);
   assertNotNull(device1.getProperty(notifier.getName() + NOTIFIER_ID_POSTFIX));
   assertNotNull(device2.getProperty(notifier.getName() + NOTIFIER_ID_POSTFIX));
-  notification=scheduleNotificationAndWait(notification);
+  scheduleNotificationAndWait(notification);
   device1=app.getEm().get(device1,Device.class);
   assertNull(device1.getProperty(notifier.getName() + NOTIFIER_ID_POSTFIX));
   device2=app.getEm().get(device2,Device.class);

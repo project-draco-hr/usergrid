@@ -28,9 +28,8 @@
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
   Notification notification=app.getEm().get(e.getUuid(),Notification.class);
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
-  ns.addDevice(notification,device1);
   try {
-    ns.getQueueManager().processBatchAndReschedule(notification,null);
+    scheduleNotificationAndWait(notification);
     fail("testConnection() should have failed");
   }
  catch (  Exception ex) {

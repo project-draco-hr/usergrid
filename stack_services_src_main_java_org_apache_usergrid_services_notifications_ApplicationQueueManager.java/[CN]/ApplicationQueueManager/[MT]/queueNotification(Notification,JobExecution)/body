@@ -1,0 +1,102 @@
+{
+  if (notification.getCanceled() == Boolean.TRUE) {
+    LOG.info("notification " + notification.getUuid() + " canceled");
+    if (jobExecution != null) {
+      jobExecution.killed();
+    }
+    return;
+  }
+  long startTime=System.currentTimeMillis();
+  LOG.info("notification {} start queuing",notification.getUuid());
+  final PathQuery<Device> pathQuery=TEST_PATH_QUERY == null ? notification.getPathQuery() : TEST_PATH_QUERY;
+  final AtomicInteger deviceCount=new AtomicInteger();
+  final ConcurrentLinkedQueue<String> errorMessages=new ConcurrentLinkedQueue<String>();
+  final HashMap<Object,Notifier> notifierMap=getNotifierMap();
+  final Map<String,Object> payloads=notification.getPayloads();
+  if (pathQuery != null) {
+    final Iterator<Device> iterator=pathQuery.iterator(em);
+    if (iterator instanceof ResultsIterator && ((ResultsIterator)iterator).hasPages() && jobExecution == null) {
+      jobScheduler.scheduleQueueJob(notification,true);
+      return;
+    }
+    final CountMinSketch sketch=new CountMinSketch(0.0001,.99,7364181);
+    rx.Observable.create(new IteratorObservable<Entity>(iterator)).parallel(new Func1<Observable<Entity>,Observable<Entity>>(){
+      @Override public rx.Observable<Entity> call(      rx.Observable<Entity> deviceObservable){
+        return deviceObservable.map(new Func1<Entity,Entity>(){
+          @Override public Entity call(          Entity entity){
+            try {
+              List<EntityRef> devicesRef=getDevices(entity);
+              for (              EntityRef deviceRef : devicesRef) {
+                long hash=MurmurHash.hash(deviceRef.getUuid());
+                if (sketch.estimateCount(hash) > 0) {
+                  LOG.debug("Maybe Found duplicate device: {}",deviceRef.getUuid());
+                  continue;
+                }
+ else {
+                  sketch.add(hash,1);
+                }
+                String notifierId=null;
+                String notifierKey=null;
+                for (                Map.Entry<String,Object> entry : payloads.entrySet()) {
+                  Notifier notifier=notifierMap.get(entry.getKey().toLowerCase());
+                  String providerId=getProviderId(deviceRef,notifier);
+                  if (providerId != null) {
+                    notifierId=providerId;
+                    notifierKey=entry.getKey().toLowerCase();
+                    break;
+                  }
+                }
+                if (notifierId == null) {
+                  LOG.debug("Notifier did not match for device {} ",deviceRef);
+                  continue;
+                }
+                ApplicationQueueMessage message=new ApplicationQueueMessage(em.getApplication().getUuid(),notification.getUuid(),deviceRef.getUuid(),notifierKey,notifierId);
+                qm.postToQueue(QUEUE_NAME,message);
+                if (notification.getQueued() == null) {
+                  notification.setQueued(System.currentTimeMillis());
+                  em.update(notification);
+                }
+                deviceCount.incrementAndGet();
+              }
+            }
+ catch (            Exception deviceLoopException) {
+              LOG.error("Failed to add devices",deviceLoopException);
+              errorMessages.add("Failed to add devices for entity: " + entity.getUuid() + " error:"+ deviceLoopException);
+            }
+            return entity;
+          }
+        }
+);
+      }
+    }
+,Schedulers.io()).doOnError(new Action1<Throwable>(){
+      @Override public void call(      Throwable throwable){
+        LOG.error("Failed while writing",throwable);
+      }
+    }
+).toBlocking().lastOrDefault(null);
+  }
+  Map<String,Object> properties=new HashMap<String,Object>(2);
+  properties.put("queued",notification.getQueued());
+  properties.put("state",notification.getState());
+  if (errorMessages.size() > 0) {
+    if (notification.getErrorMessage() == null) {
+      notification.setErrorMessage("There was a problem delivering all of your notifications. See deliveryErrors in properties");
+    }
+  }
+  notification.setExpectedCount(deviceCount.get());
+  notification.addProperties(properties);
+  em.update(notification);
+  if (deviceCount.get() <= 0) {
+    SingleQueueTaskManager taskManager=new SingleQueueTaskManager(em,qm,this,notification);
+    taskManager.finishedBatch();
+  }
+  if (LOG.isInfoEnabled()) {
+    long elapsed=notification.getQueued() != null ? notification.getQueued() - startTime : 0;
+    StringBuilder sb=new StringBuilder();
+    sb.append("notification ").append(notification.getUuid());
+    sb.append(" done queuing to ").append(deviceCount);
+    sb.append(" devices in ").append(elapsed).append(" ms");
+    LOG.info(sb.toString());
+  }
+}

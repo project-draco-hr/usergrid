@@ -19,7 +19,8 @@
       return;
     }
     try {
-      notificationsService.getQueueManager().processBatchAndReschedule(notification,jobExecution);
+      NotificationsQueueManager queueManager=new NotificationsQueueManager(new JobScheduler(sm,em),em,properties,sm.getQueueManager(),metricsService);
+      queueManager.processBatchAndReschedule(notification,jobExecution);
     }
  catch (    Exception e) {
       logger.error("execute NotificationBatchJob failed",e);

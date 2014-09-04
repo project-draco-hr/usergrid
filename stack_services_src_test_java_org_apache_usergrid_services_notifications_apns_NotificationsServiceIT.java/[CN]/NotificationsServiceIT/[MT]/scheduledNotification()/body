@@ -10,12 +10,12 @@
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
   Notification notification=app.getEm().get(e.getUuid(),Notification.class);
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
-  ns.addDevice(notification,device1);
   Thread.sleep(500);
-  Query query=Query.fromQL("select * where type = 'notification'");
+  Query query=new Query();
+  query.addEqualityFilter("state",Notification.State.SCHEDULED.toString());
   Results results=app.getEm().searchCollection(app.getEm().getApplicationRef(),"notifications",query);
-  Notification note=(Notification)results.getEntitiesMap().get(notification.getUuid());
-  assertNotNull(note);
+  Entity entity=results.getEntitiesMap().get(notification.getUuid());
+  assertNotNull(entity);
   try {
     e=app.testRequest(ServiceAction.DELETE,1,"notifications",e.getUuid()).getEntity();
   }

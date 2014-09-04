@@ -1,5 +1,7 @@
 {
   super.init(info);
+  smf=getApplicationContext().getBean(ServiceManagerFactory.class);
+  emf=getApplicationContext().getBean(EntityManagerFactory.class);
   metricsService=getApplicationContext().getBean(MetricsFactory.class);
   sendMeter=metricsService.getMeter(NotificationsService.class,"send");
   postMeter=metricsService.getMeter(NotificationsService.class,"requests");
@@ -7,6 +9,6 @@
   queueSize=metricsService.getHistogram(NotificationsService.class,"queue_size");
   outstandingQueue=metricsService.getCounter(NotificationsService.class,"current_queue");
   JobScheduler jobScheduler=new JobScheduler(sm,em);
-  notificationQueueManager=new NotificationsQueueManager(jobScheduler,em,sm.getProperties(),sm.getQueueManager(),metricsService);
+  notificationQueueManager=new ApplicationQueueManager(jobScheduler,em,smf.getServiceManager(smf.getManagementAppId()).getQueueManager(),metricsService);
   gracePeriod=jobScheduler.SCHEDULER_GRACE_PERIOD;
 }

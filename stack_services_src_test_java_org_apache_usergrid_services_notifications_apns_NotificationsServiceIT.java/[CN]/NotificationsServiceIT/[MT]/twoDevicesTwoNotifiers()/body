@@ -1,6 +1,6 @@
 {
   app.clear();
-  app.put("name","apns2");
+  app.put("name","apNs2");
   app.put("provider",PROVIDER);
   app.put("environment","development");
   InputStream fis=getClass().getClassLoader().getResourceAsStream("pushtest_dev_recent.p12");
@@ -8,9 +8,9 @@
   app.put("p12Certificate",certBytes);
   fis.close();
   Entity e=app.testRequest(ServiceAction.POST,1,"notifiers").getEntity();
-  app.testRequest(ServiceAction.GET,1,"notifiers","apns2");
+  app.testRequest(ServiceAction.GET,1,"notifiers","apNs2");
   Notifier notifier2=app.getEm().get(e.getUuid(),Notifier.class);
-  assertEquals(notifier2.getName(),"apns2");
+  assertEquals(notifier2.getName(),"apNs2");
   assertEquals(notifier2.getProvider(),PROVIDER);
   assertEquals(notifier2.getEnvironment(),"development");
   String key=notifier.getName() + NOTIFIER_ID_POSTFIX;
@@ -29,8 +29,6 @@
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
   Notification notification=app.getEm().get(e.getUuid(),Notification.class);
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
-  ns.addDevice(notification,device1);
-  ns.addDevice(notification,device2);
   notification=scheduleNotificationAndWait(notification);
   checkReceipts(notification,2);
 }
