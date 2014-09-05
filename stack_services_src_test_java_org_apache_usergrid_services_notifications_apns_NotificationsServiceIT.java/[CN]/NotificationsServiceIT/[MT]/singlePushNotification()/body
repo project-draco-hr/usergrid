@@ -1,4 +1,5 @@
 {
+  app.getEm().refreshIndex();
   app.clear();
   Query pQuery=new Query();
   pQuery.setLimit(100);
@@ -21,6 +22,7 @@
   Entity entity=results.getEntitiesMap().get(notification.getUuid());
   assertNotNull(entity);
   notification=scheduleNotificationAndWait(notification);
+  app.getEm().refreshIndex();
   query=new Query();
   query.addEqualityFilter("state",Notification.State.FINISHED.toString());
   results=app.getEm().searchCollection(app.getEm().getApplicationRef(),"notifications",query);

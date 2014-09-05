@@ -1,3 +1,8 @@
 {
-  return new ApplicationQueueMessage(UUID.fromString(message.getStringProperty(MESSAGE_PROPERTY_APPLICATION_UUID)),UUID.fromString(message.getStringProperty(MESSAGE_PROPERTY_NOTIFICATION_ID)),UUID.fromString(message.getStringProperty(MESSAGE_PROPERTY_DEVICE_UUID)),message.getStringProperty(MESSAGE_PROPERTY_NOTIFIER_NAME),message.getStringProperty(MESSAGE_PROPERTY_NOTIFIER_ID));
+  byte[] mpaBytes=(byte[])message.getObjectProperty(MESSAGE_PROPERTY_APPLICATION_UUID);
+  UUID mpaUuid=bytesToUuid(mpaBytes);
+  byte[] mpnBytes=(byte[])message.getObjectProperty(MESSAGE_PROPERTY_NOTIFICATION_ID);
+  UUID mpnUuid=bytesToUuid(mpnBytes);
+  UUID mpdUuid=(UUID)message.getObjectProperty(MESSAGE_PROPERTY_DEVICE_UUID);
+  return new ApplicationQueueMessage(mpaUuid,mpnUuid,mpdUuid,message.getStringProperty(MESSAGE_PROPERTY_NOTIFIER_NAME),message.getStringProperty(MESSAGE_PROPERTY_NOTIFIER_ID));
 }
