@@ -8,6 +8,7 @@
   app.put("queued",System.currentTimeMillis());
   Entity e=app.testRequest(ServiceAction.POST,1,"notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
+  app.getEm().refreshIndex();
   Notification notification=app.getEm().get(e.getUuid(),Notification.class);
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
   Thread.sleep(500);
@@ -16,6 +17,7 @@
   Results results=app.getEm().searchCollection(app.getEm().getApplicationRef(),"notifications",query);
   Entity entity=results.getEntitiesMap().get(notification.getUuid());
   assertNotNull(entity);
+  app.getEm().refreshIndex();
   try {
     e=app.testRequest(ServiceAction.DELETE,1,"notifications",e.getUuid()).getEntity();
   }

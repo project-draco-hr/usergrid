@@ -9,11 +9,13 @@
   Entity entity=app.testRequest(ServiceAction.POST,1,"notifiers").getEntity();
   Notifier notifier=app.getEm().get(entity.getUuid(),Notifier.class);
   final String notifierKey=notifier.getName() + NOTIFIER_ID_POSTFIX;
+  app.getEm().refreshIndex();
   for (int i=0; i < NUM_DEVICES; i++) {
     app.clear();
     app.put(notifierKey,PUSH_TOKEN);
     app.put("name","device" + i * 10);
     app.testRequest(ServiceAction.POST,1,"devices").getEntity();
+    app.getEm().refreshIndex();
   }
   app.clear();
   String payload=getPayload();
@@ -23,6 +25,7 @@
   app.put("queued",System.currentTimeMillis());
   entity=app.testRequest(ServiceAction.POST,1,"notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",entity.getUuid());
+  app.getEm().refreshIndex();
   final Notification notification=(Notification)entity.toTypedEntity();
   try {
     scheduleNotificationAndWait(notification);
