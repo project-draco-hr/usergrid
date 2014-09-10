@@ -1,26 +1,2 @@
 {
-  app.clear();
-  app.put("username","asdf");
-  app.put("email","asdf@adsf.com");
-  Entity user=app.testRequest(ServiceAction.POST,1,"users").getEntity();
-  assertNotNull(user);
-  Entity device=app.testRequest(ServiceAction.POST,1,"users",user.getUuid(),"devices",device1.getUuid()).getEntity();
-  assertEquals(device.getUuid(),device1.getUuid());
-  Query pQuery=new Query();
-  pQuery.setLimit(100);
-  pQuery.setCollection("devices");
-  pQuery.setResultsLevel(Query.Level.ALL_PROPERTIES);
-  pQuery.addIdentifier(new ServiceParameter.NameParameter(device.getUuid().toString()).getIdentifier());
-  ns.getQueueManager().TEST_PATH_QUERY=new PathQuery(new SimpleEntityRef(app.getEm().getApplicationRef()),pQuery);
-  String payload="Hello, World!";
-  Map<String,String> payloads=new HashMap<String,String>(1);
-  payloads.put(notifier.getUuid().toString(),payload);
-  app.put("payloads",payloads);
-  app.put("queued",System.currentTimeMillis());
-  Entity e=app.testRequest(ServiceAction.POST,1,"notifications").getEntity();
-  app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
-  Notification notification=app.getEm().get(e.getUuid(),Notification.class);
-  notification=scheduleNotificationAndWait(notification);
-  app.getEm().refreshIndex();
-  checkReceipts(notification,1);
 }
