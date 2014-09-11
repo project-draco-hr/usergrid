@@ -18,7 +18,8 @@
   }
   String edgeType=getEdgeTypeFromCollectionName(collName,memberEntity.getId().getType());
   logger.debug("addToCollection(): Creating edge type {} from {}:{} to {}:{}",new Object[]{edgeType,headEntity.getType(),headEntity.getUuid(),itemRef.getType(),itemRef.getUuid()});
-  long uuidHash=UUIDUtils.getUUIDLong(memberEntity.getId().getUuid());
+  UUID timeStampUuid=memberEntity.getId().getUuid() != null && UUIDUtils.isTimeBased(memberEntity.getId().getUuid()) ? memberEntity.getId().getUuid() : UUIDUtils.newTimeUUID();
+  long uuidHash=UUIDUtils.getUUIDLong(timeStampUuid);
   Edge edge=new SimpleEdge(cpHeadEntity.getId(),edgeType,memberEntity.getId(),uuidHash);
   GraphManager gm=managerCache.getGraphManager(applicationScope);
   gm.writeEdge(edge).toBlockingObservable().last();
