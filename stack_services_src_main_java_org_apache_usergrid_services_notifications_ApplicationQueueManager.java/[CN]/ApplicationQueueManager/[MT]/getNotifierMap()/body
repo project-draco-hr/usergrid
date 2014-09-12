@@ -1,10 +1,19 @@
 {
-  try {
-    HashMap<Object,Notifier> map=notifierCacheMap.get(em);
-    return map;
+  if (notifierHashMap != null) {
+    notifierHashMap=new HashMap<Object,Notifier>();
+    Query query=new Query();
+    query.setCollection("notifiers");
+    query.setLimit(100);
+    PathQuery<Notifier> pathQuery=new PathQuery<Notifier>(new SimpleEntityRef(em.getApplicationRef()),query);
+    Iterator<Notifier> notifierIterator=pathQuery.iterator(em);
+    while (notifierIterator.hasNext()) {
+      Notifier notifier=notifierIterator.next();
+      String name=notifier.getName() != null ? notifier.getName() : "";
+      UUID uuid=notifier.getUuid() != null ? notifier.getUuid() : UUID.randomUUID();
+      notifierHashMap.put(name.toLowerCase(),notifier);
+      notifierHashMap.put(uuid,notifier);
+      notifierHashMap.put(uuid.toString(),notifier);
+    }
   }
- catch (  ExecutionException ee) {
-    LOG.error("failed to get from cache",ee);
-    return new HashMap<Object,Notifier>();
-  }
+  return notifierHashMap;
 }
