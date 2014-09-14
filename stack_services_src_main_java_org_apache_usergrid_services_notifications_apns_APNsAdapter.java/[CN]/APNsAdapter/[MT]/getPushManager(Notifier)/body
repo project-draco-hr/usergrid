@@ -1,22 +1,8 @@
 {
   PushManager<SimpleApnsPushNotification> pushManager=apnsServiceMap.get(notifier);
   if (pushManager != null && !pushManager.isStarted() && pushManager.isShutDown()) {
-    try {
-      pushManager=createApnsService(notifier);
-    }
- catch (    Exception e) {
-      logger.error("could not instantiate push manager.");
-      throw new ExecutionException(e);
-    }
-    apnsServiceMap.put(notifier,pushManager);
-  }
-  try {
-    if (!pushManager.isStarted()) {
-      pushManager.start();
-    }
-  }
- catch (  IllegalStateException ise) {
-    logger.debug("failed to start",ise);
+    apnsServiceMap.invalidate(notifier);
+    pushManager=apnsServiceMap.get(notifier);
   }
   return pushManager;
 }
