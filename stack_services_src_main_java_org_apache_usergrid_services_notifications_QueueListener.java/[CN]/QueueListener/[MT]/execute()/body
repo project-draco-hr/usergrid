@@ -2,9 +2,11 @@
   svcMgr=smf.getServiceManager(smf.getManagementAppId());
   queueManager=svcMgr.getQueueManager();
   final AtomicInteger consecutiveExceptions=new AtomicInteger();
+  LOG.info("QueueListener: Starting execute process.");
   while (true) {
     try {
       QueueResults results=ApplicationQueueManager.getDeliveryBatch(queueManager);
+      LOG.info("QueueListener: retreived batch of {} messages",results.size());
       List<Message> messages=results.getMessages();
       if (messages.size() > 0) {
         Observable.from(messages).subscribeOn(Schedulers.io()).map(new Func1<Message,ApplicationQueueMessage>(){
