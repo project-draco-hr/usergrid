@@ -12,7 +12,6 @@
   final AtomicInteger deviceCount=new AtomicInteger();
   final ConcurrentLinkedQueue<String> errorMessages=new ConcurrentLinkedQueue<String>();
   final HashMap<Object,Notifier> notifierMap=getNotifierMap();
-  final Map<String,Object> payloads=notification.getPayloads();
   if (pathQuery != null) {
     LOG.info("ApplicationsQueueMessage: notification {} start query",notification.getUuid());
     final Iterator<Device> iterator=pathQuery.iterator(em);
@@ -22,6 +21,7 @@
     }
     final CountMinSketch sketch=new CountMinSketch(0.0001,.99,7364181);
     final UUID appId=em.getApplication().getUuid();
+    final Map<String,Object> payloads=notification.getPayloads();
     LOG.info("ApplicationsQueueMessage: notification {} start threading",notification.getUuid());
     rx.Observable.create(new IteratorObservable<Entity>(iterator)).parallel(new Func1<Observable<Entity>,Observable<Entity>>(){
       @Override public rx.Observable<Entity> call(      rx.Observable<Entity> deviceObservable){
@@ -67,11 +67,9 @@
                   LOG.info("ApplicationsQueueMessage: notification {} post-queue to device {} ",notification.getUuid(),deviceRef.getUuid());
                 }
                 if (notification.getQueued() == null) {
-synchronized (notification) {
-                    notification.setQueued(System.currentTimeMillis());
-                    em.update(notification);
-                    LOG.info("ApplicationsQueueMessage: notification {} queue time set.",notification.getUuid(),deviceRef.getUuid());
-                  }
+                  notification.setQueued(System.currentTimeMillis());
+                  em.update(notification);
+                  LOG.info("ApplicationsQueueMessage: notification {} queue time set.",notification.getUuid(),deviceRef.getUuid());
                 }
                 deviceCount.incrementAndGet();
               }

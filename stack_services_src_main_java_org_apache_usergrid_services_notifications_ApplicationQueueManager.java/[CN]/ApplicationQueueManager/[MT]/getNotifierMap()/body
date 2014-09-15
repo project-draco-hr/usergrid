@@ -6,6 +6,7 @@
     query.setLimit(100);
     PathQuery<Notifier> pathQuery=new PathQuery<Notifier>(new SimpleEntityRef(em.getApplicationRef()),query);
     Iterator<Notifier> notifierIterator=pathQuery.iterator(em);
+    int count=0;
     while (notifierIterator.hasNext()) {
       Notifier notifier=notifierIterator.next();
       String name=notifier.getName() != null ? notifier.getName() : "";
@@ -13,7 +14,12 @@
       notifierHashMap.put(name.toLowerCase(),notifier);
       notifierHashMap.put(uuid,notifier);
       notifierHashMap.put(uuid.toString(),notifier);
+      if (count++ >= 100) {
+        LOG.error("ApplicationQueueManager: too many notifiers...breaking out ",notifierHashMap.size());
+        break;
+      }
     }
+    LOG.info("ApplicationQueueManager: fetching notifiers finished size={}",notifierHashMap.size());
   }
   return notifierHashMap;
 }
