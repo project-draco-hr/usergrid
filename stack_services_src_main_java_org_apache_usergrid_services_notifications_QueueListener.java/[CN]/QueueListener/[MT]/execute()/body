@@ -2,9 +2,11 @@
   svcMgr=smf.getServiceManager(smf.getManagementAppId());
   queueManager=svcMgr.getQueueManager();
   final AtomicInteger consecutiveExceptions=new AtomicInteger();
+  LOG.info("QueueListener: Starting execute process.");
   while (true) {
     try {
       QueueResults results=ApplicationQueueManager.getDeliveryBatch(queueManager);
+      LOG.info("QueueListener: retrieved batch of {} messages",results.size());
       List<Message> messages=results.getMessages();
       if (messages.size() > 0) {
         Observable.from(messages).subscribeOn(Schedulers.io()).map(new Func1<Message,ApplicationQueueMessage>(){
@@ -25,6 +27,7 @@
             final ApplicationQueueManager manager=new ApplicationQueueManager(new JobScheduler(serviceManager,entityManager),entityManager,queueManager,metricsService);
             return groupedObservable.buffer(ApplicationQueueManager.BATCH_SIZE).flatMap(new Func1<List<ApplicationQueueMessage>,Observable<?>>(){
               @Override public Observable<?> call(              List<ApplicationQueueMessage> queueMessages){
+                LOG.info("QueueListener: send batch {} messages",queueMessages.size());
                 return manager.sendBatchToProviders(queueMessages);
               }
             }
@@ -37,9 +40,10 @@
           }
         }
 ).toBlocking().last();
-        LOG.info("Messages sent in batch");
+        LOG.info("QueueListener: Messages sent in batch");
       }
  else {
+        LOG.info("QueueListener: no messages...sleep...",results.size());
         Thread.sleep(sleepPeriod);
       }
       consecutiveExceptions.set(0);
