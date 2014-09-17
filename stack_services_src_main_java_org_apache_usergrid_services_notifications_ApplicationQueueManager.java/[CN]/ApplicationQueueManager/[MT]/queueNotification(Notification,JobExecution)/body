@@ -1,5 +1,6 @@
 {
   final Meter queueMeter=metricsFactory.getMeter(ApplicationQueueManager.class,"queue");
+  long startTime=System.currentTimeMillis();
   if (notification.getCanceled() == Boolean.TRUE) {
     LOG.info("ApplicationQueueMessage: notification " + notification.getUuid() + " canceled");
     if (jobExecution != null) {
@@ -7,7 +8,6 @@
     }
     return;
   }
-  long startTime=System.currentTimeMillis();
   LOG.info("ApplicationQueueMessage: notification {} start queuing",notification.getUuid());
   final PathQuery<Device> pathQuery=notification.getPathQuery();
   final AtomicInteger deviceCount=new AtomicInteger();
