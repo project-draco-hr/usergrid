@@ -76,24 +76,18 @@
       }
     }
 ;
-    if (jobExecution != null) {
-      LOG.info("ApplicationQueueMessage: notification {} start threading",notification.getUuid());
-      o=rx.Observable.create(new IteratorObservable<Entity>(iterator)).parallel(new Func1<Observable<Entity>,Observable<Entity>>(){
-        @Override public rx.Observable<Entity> call(        rx.Observable<Entity> deviceObservable){
-          return deviceObservable.map(entityListFunct);
-        }
+    LOG.info("ApplicationQueueMessage: notification {} start threading",notification.getUuid());
+    o=rx.Observable.create(new IteratorObservable<Entity>(iterator)).parallel(new Func1<Observable<Entity>,Observable<Entity>>(){
+      @Override public rx.Observable<Entity> call(      rx.Observable<Entity> deviceObservable){
+        return deviceObservable.map(entityListFunct);
       }
+    }
 ,Schedulers.io()).doOnError(new Action1<Throwable>(){
-        @Override public void call(        Throwable throwable){
-          LOG.error("Failed while writing",throwable);
-        }
+      @Override public void call(      Throwable throwable){
+        LOG.error("Failed while writing",throwable);
       }
+    }
 );
-    }
- else {
-      LOG.info("ApplicationQueueMessage: notification {} start single threaded",notification.getUuid());
-      o=rx.Observable.create(new IteratorObservable(iterator)).subscribeOn(Schedulers.io()).map(entityListFunct);
-    }
     o.toBlocking().lastOrDefault(null);
   }
   Map<String,Object> properties=new HashMap<String,Object>(2);

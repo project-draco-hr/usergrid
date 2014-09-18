@@ -60,7 +60,12 @@ synchronized (taskMap) {
     }
   }
 ;
-  Observable o=rx.Observable.from(messages).subscribeOn(Schedulers.io()).map(func).buffer(BATCH_SIZE).map(new Func1<List<ApplicationQueueMessage>,HashMap<UUID,ApplicationQueueMessage>>(){
+  Observable o=rx.Observable.from(messages).parallel(new Func1<rx.Observable<ApplicationQueueMessage>,rx.Observable<ApplicationQueueMessage>>(){
+    @Override public rx.Observable<ApplicationQueueMessage> call(    rx.Observable<ApplicationQueueMessage> messageObservable){
+      return messageObservable.map(func);
+    }
+  }
+,Schedulers.io()).buffer(BATCH_SIZE).map(new Func1<List<ApplicationQueueMessage>,HashMap<UUID,ApplicationQueueMessage>>(){
     @Override public HashMap<UUID,ApplicationQueueMessage> call(    List<ApplicationQueueMessage> queueMessages){
       for (      ProviderAdapter providerAdapter : providerAdapters.values()) {
         try {
