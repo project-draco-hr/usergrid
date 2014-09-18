@@ -19,9 +19,29 @@
   }
 ;
   try {
-    JsonNode updatedNode=mapper.readTree(resource().path("/test-organization/test-app/user/" + uuid).queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).put(String.class,updateProperties));
+    mapper.readTree(resource().path("/test-organization/test-app/user/" + uuid).queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).put(String.class,updateProperties));
   }
  catch (  UniformInterfaceException uie) {
     fail("Update failed due to: " + uie.getResponse().getEntity(String.class));
   }
+  refreshIndex("test-organization","test-app");
+  userNode=mapper.readTree(resource().path("/test-organization/test-app/users/" + uuid).queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).get(String.class));
+  assertNotNull(userNode);
+  assertEquals("Initech",userNode.withArray("entities").get(0).get("employer").asText());
+  updateProperties=new LinkedHashMap<String,Object>(){
+{
+      put("employer","ACME Corporation");
+    }
+  }
+;
+  try {
+    mapper.readTree(resource().path("/test-organization/test-app/users/bart").queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).put(String.class,updateProperties));
+  }
+ catch (  UniformInterfaceException uie) {
+    fail("Update failed due to: " + uie.getResponse().getEntity(String.class));
+  }
+  refreshIndex("test-organization","test-app");
+  userNode=mapper.readTree(resource().path("/test-organization/test-app/users/bart").queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).get(String.class));
+  assertNotNull(userNode);
+  assertEquals("ACME Corporation",userNode.withArray("entities").get(0).get("employer").asText());
 }
