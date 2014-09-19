@@ -79,7 +79,12 @@
     }
 ;
     long now=System.currentTimeMillis();
-    Observable o=rx.Observable.create(new IteratorObservable(iterator)).subscribeOn(Schedulers.io()).map(entityListFunct).doOnError(new Action1<Throwable>(){
+    Observable o=rx.Observable.create(new IteratorObservable<Entity>(iterator)).parallel(new Func1<Observable<Entity>,Observable<Entity>>(){
+      @Override public rx.Observable<Entity> call(      rx.Observable<Entity> deviceObservable){
+        return deviceObservable.map(entityListFunct);
+      }
+    }
+,Schedulers.io()).doOnError(new Action1<Throwable>(){
       @Override public void call(      Throwable throwable){
         LOG.error("Failed while writing",throwable);
       }
