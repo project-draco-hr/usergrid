@@ -24,7 +24,7 @@
             UUID appId=groupedObservable.getKey();
             EntityManager entityManager=emf.getEntityManager(appId);
             ServiceManager serviceManager=smf.getServiceManager(appId);
-            final ApplicationQueueManager manager=new ApplicationQueueManager(new JobScheduler(serviceManager,entityManager),entityManager,queueManager,metricsService);
+            final ApplicationQueueManager manager=new ApplicationQueueManager(new JobScheduler(serviceManager,entityManager),entityManager,queueManager,metricsService,properties);
             return groupedObservable.buffer(ApplicationQueueManager.BATCH_SIZE).flatMap(new Func1<List<ApplicationQueueMessage>,Observable<?>>(){
               @Override public Observable<?> call(              List<ApplicationQueueMessage> queueMessages){
                 LOG.info("QueueListener: send batch {} messages",queueMessages.size());
@@ -41,10 +41,11 @@
         }
 ).toBlocking().last();
         LOG.info("QueueListener: Messages sent in batch");
+        Thread.sleep(sleepBetweenRuns);
       }
  else {
         LOG.info("QueueListener: no messages...sleep...",results.size());
-        Thread.sleep(sleepPeriod);
+        Thread.sleep(sleepWhenNoneFound);
       }
       consecutiveExceptions.set(0);
     }
