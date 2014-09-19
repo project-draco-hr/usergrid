@@ -1,0 +1,22 @@
+{
+  int widgetsSize=50;
+  CustomCollection widgets=context.application().collection("widgets");
+  for (int i=0; i < widgetsSize; i++) {
+    Map<String,String> entity=hashMap("name",String.valueOf(i));
+    widgets.create(entity);
+  }
+  refreshIndex(context.getOrgName(),context.getAppName());
+  JsonNode widgetsNode=mapper.readTree(resource().path("/" + context.getOrgName() + "/"+ context.getAppName()+ "/widgets").queryParam("access_token",context.getActiveUser().getToken()).accept(MediaType.APPLICATION_JSON).get(String.class));
+  assertEquals(10,widgetsNode.get("count").asInt());
+  assertNotNull(widgetsNode.get("cursor"));
+  int trinketsSize=5;
+  CustomCollection trinkets=context.application().collection("trinkets");
+  for (int i=0; i < trinketsSize; i++) {
+    Map<String,String> entity=hashMap("name",String.valueOf(i));
+    trinkets.create(entity);
+  }
+  refreshIndex(context.getOrgName(),context.getAppName());
+  JsonNode trinketsNode=mapper.readTree(resource().path("/" + context.getOrgName() + "/"+ context.getAppName()+ "/trinkets").queryParam("access_token",context.getActiveUser().getToken()).accept(MediaType.APPLICATION_JSON).get(String.class));
+  assertEquals(trinketsSize,trinketsNode.get("count").asInt());
+  assertNull(trinketsNode.get("cursor"));
+}
