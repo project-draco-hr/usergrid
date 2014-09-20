@@ -6,7 +6,6 @@
     this.ecmFactory=factory;
     this.indexName=createIndexName(config.getIndexPrefix(),indexScope);
     this.indexType=createCollectionScopeTypeName(indexScope);
-    this.serializationFig=serializationFig;
     this.refresh=config.isForcedRefresh();
     this.cursorTimeout=config.getQueryCursorTimeout();
   }
@@ -26,5 +25,8 @@
     }
   }
  catch (  IndexAlreadyExistsException ignored) {
+    if (log.isDebugEnabled()) {
+      log.debug("Keyspace already exists: " + indexName,ignored);
+    }
   }
 }
