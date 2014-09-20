@@ -12,7 +12,7 @@
       futures=new ArrayList<Future>(maxThreads);
       while (threadCount++ < maxThreads) {
         LOG.info("QueueListener: Starting thread {}.",threadCount);
-        futures.add(pool.submit(new Runnable(){
+        Runnable task=new Runnable(){
           @Override public void run(){
             try {
               execute();
@@ -22,7 +22,8 @@
             }
           }
         }
-));
+;
+        futures.add(pool.submit(task));
       }
     }
  catch (    Exception e) {
