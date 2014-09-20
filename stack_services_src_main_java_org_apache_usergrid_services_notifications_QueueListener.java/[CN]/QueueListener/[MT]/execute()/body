@@ -22,16 +22,22 @@
             messageMap.get(applicationId).add(queueMessage);
           }
         }
+        long now=System.currentTimeMillis();
+        Observable merge=null;
         for (        Map.Entry<UUID,List<ApplicationQueueMessage>> entry : messageMap.entrySet()) {
           UUID applicationId=entry.getKey();
           EntityManager entityManager=emf.getEntityManager(applicationId);
           ServiceManager serviceManager=smf.getServiceManager(applicationId);
           final ApplicationQueueManager manager=new ApplicationQueueManager(new JobScheduler(serviceManager,entityManager),entityManager,queueManager,metricsService,properties);
-          long now=System.currentTimeMillis();
-          LOG.info("QueueListener: send batch {} messages",entry.getValue().size());
-          manager.sendBatchToProviders(entry.getValue()).toBlocking().lastOrDefault(null);
-          LOG.info("QueueListener: sent batch {} messages duration {} ms",entry.getValue().size(),System.currentTimeMillis() - now);
+          LOG.info("QueueListener: send batch for app {} of {} messages",entry.getKey(),entry.getValue().size());
+          Observable current=manager.sendBatchToProviders(entry.getValue());
+          if (merge == null)           merge=current;
+ else {
+            merge=Observable.merge(merge,current);
+          }
         }
+        merge.toBlocking().lastOrDefault(null);
+        LOG.info("QueueListener: sent batch {} messages duration {} ms",messages.size(),System.currentTimeMillis() - now);
         if (sleepBetweenRuns > 0) {
           Thread.sleep(sleepBetweenRuns);
         }
