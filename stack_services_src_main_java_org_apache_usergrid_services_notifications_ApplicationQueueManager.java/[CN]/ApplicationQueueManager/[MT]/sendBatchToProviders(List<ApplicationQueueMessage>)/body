@@ -26,9 +26,6 @@ synchronized (taskMap) {
         final Map<String,Object> payloads=notification.getPayloads();
         final Map<String,Object> translatedPayloads=translatePayloads(payloads,notifierMap);
         LOG.info("sending notification for device {} for Notification: {}",deviceUUID,notification.getUuid());
-        if (!isOkToSend(notification)) {
-          return message;
-        }
         taskManager.addMessage(deviceUUID,message);
         try {
           String notifierName=message.getNotifierKey().toLowerCase();
@@ -36,21 +33,26 @@ synchronized (taskMap) {
           Object payload=translatedPayloads.get(notifierName);
           Receipt receipt=new Receipt(notification.getUuid(),message.getNotifierId(),payload,deviceUUID);
           TaskTracker tracker=new TaskTracker(notifier,taskManager,receipt,deviceUUID);
-          if (payload == null) {
-            LOG.debug("selected device {} for notification {} doesn't have a valid payload. skipping.",deviceUUID,notification.getUuid());
-            tracker.failed(0,"failed to match payload to " + message.getNotifierId() + " notifier");
+          if (!isOkToSend(notification)) {
+            tracker.failed(0,"Notification is duplicate/expired/cancelled.");
           }
  else {
-            long now=System.currentTimeMillis();
-            try {
-              ProviderAdapter providerAdapter=providerAdapters.get(notifier.getProvider());
-              providerAdapter.sendNotification(message.getNotifierId(),notifier,payload,notification,tracker);
+            if (payload == null) {
+              LOG.debug("selected device {} for notification {} doesn't have a valid payload. skipping.",deviceUUID,notification.getUuid());
+              tracker.failed(0,"failed to match payload to " + message.getNotifierId() + " notifier");
             }
- catch (            Exception e) {
-              tracker.failed(0,e.getMessage());
-            }
+ else {
+              long now=System.currentTimeMillis();
+              try {
+                ProviderAdapter providerAdapter=providerAdapters.get(notifier.getProvider());
+                providerAdapter.sendNotification(message.getNotifierId(),notifier,payload,notification,tracker);
+              }
+ catch (              Exception e) {
+                tracker.failed(0,e.getMessage());
+              }
  finally {
-              LOG.info("sending to device {} for Notification: {} duration " + (System.currentTimeMillis() - now) + " ms",deviceUUID,notification.getUuid());
+                LOG.info("sending to device {} for Notification: {} duration " + (System.currentTimeMillis() - now) + " ms",deviceUUID,notification.getUuid());
+              }
             }
           }
         }
