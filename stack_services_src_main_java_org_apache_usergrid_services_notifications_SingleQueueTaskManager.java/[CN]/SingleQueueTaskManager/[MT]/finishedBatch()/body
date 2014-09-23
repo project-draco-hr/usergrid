@@ -4,40 +4,21 @@
   this.hasFinished=true;
   Notification notification=em.get(this.notification.getUuid(),Notification.class);
   notification.setModified(System.currentTimeMillis());
-  Map<String,Object> properties;
+  long sent=successes, errors=failures;
   Map<String,Long> stats;
-  String statsKey="statistics_batch";
-  if (successes + failures > 0) {
-    properties=new HashMap<String,Object>(4);
-    stats=new HashMap<String,Long>(2);
-    stats.put("sent",successes);
-    stats.put("errors",failures);
-    properties.put(statsKey + "_" + System.currentTimeMillis(),stats);
-    properties.put("modified",notification.getModified());
-    em.updateProperties(notification,properties);
-  }
-  properties=em.getProperties(notification);
-  long sent=0;
-  long errors=0;
-  for (  String key : properties.keySet()) {
-    if (key.contains(statsKey)) {
-      stats=(Map<String,Long>)properties.get(key);
-      sent+=stats.get("sent");
-      errors+=stats.get("errors");
-    }
-  }
   stats=new HashMap<String,Long>(2);
   stats.put("sent",sent);
   stats.put("errors",errors);
   notification.setStatistics(stats);
   LOG.info("notification {} sending to {}",notification.getUuid(),sent + errors);
   if (notification.getExpectedCount() <= (errors + sent)) {
+    Map<String,Object> properties=new HashMap<>();
     notification.setFinished(notification.getModified());
     properties.put("finished",notification.getModified());
     properties.put("state",notification.getState());
     LOG.info("done sending to devices in {} ms",notification.getFinished() - notification.getStarted());
+    notification.addProperties(properties);
   }
   LOG.info("notification finished batch: {}",notification.getUuid());
-  em.updateProperties(notification,properties);
   em.update(notification);
 }
