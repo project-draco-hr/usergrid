@@ -1,7 +1,7 @@
 {
   final int NUM_DEVICES=50;
-  int oldBatchSize=ApplicationQueueManager.BATCH_SIZE;
-  ApplicationQueueManager.BATCH_SIZE=10;
+  int oldBatchSize=listener.getBatchSize();
+  listener.setBatchSize(10);
   app.clear();
   app.put("name",UUID.randomUUID().toString());
   app.put("provider","noop");
@@ -31,7 +31,7 @@
     scheduleNotificationAndWait(notification);
   }
   finally {
-    ApplicationQueueManager.BATCH_SIZE=oldBatchSize;
+    listener.setBatchSize(oldBatchSize);
   }
   checkReceipts(notification,NUM_DEVICES);
   checkStatistics(notification,NUM_DEVICES,0);

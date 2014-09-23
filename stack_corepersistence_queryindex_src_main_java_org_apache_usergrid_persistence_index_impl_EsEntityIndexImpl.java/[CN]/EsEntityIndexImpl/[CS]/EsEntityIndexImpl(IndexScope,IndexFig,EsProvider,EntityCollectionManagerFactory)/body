@@ -1,0 +1,32 @@
+{
+  IndexValidationUtils.validateIndexScope(indexScope);
+  try {
+    this.indexScope=indexScope;
+    this.client=provider.getClient();
+    this.ecmFactory=factory;
+    this.indexName=createIndexName(config.getIndexPrefix(),indexScope);
+    this.indexType=createCollectionScopeTypeName(indexScope);
+    this.refresh=config.isForcedRefresh();
+    this.cursorTimeout=config.getQueryCursorTimeout();
+  }
+ catch (  Exception e) {
+    log.error("Error setting up index",e);
+    throw e;
+  }
+  AdminClient admin=client.admin();
+  try {
+    CreateIndexResponse r=admin.indices().prepareCreate(indexName).execute().actionGet();
+    log.debug("Created new Index Name [{}] ACK=[{}]",indexName,r.isAcknowledged());
+    client.admin().indices().prepareRefresh(indexName).execute().actionGet();
+    try {
+      Thread.sleep(500);
+    }
+ catch (    InterruptedException ex) {
+    }
+  }
+ catch (  IndexAlreadyExistsException ignored) {
+    if (log.isDebugEnabled()) {
+      log.debug("Keyspace already exists: " + indexName,ignored);
+    }
+  }
+}

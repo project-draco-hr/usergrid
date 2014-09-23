@@ -1,6 +1,6 @@
 {
   int numDevices=10;
-  int numNotifications=50;
+  int numNotifications=100;
   String token=userToken("ed@anuff.com","sesame");
   String org="test-organization";
   String app="test-app";
@@ -42,6 +42,8 @@
   sw.stop();
   logger.info("Created {} devices in {}ms",devicesCount,sw.getTime());
   refreshIndex(org,app);
+  StopWatch allSw=new StopWatch();
+  allSw.start();
   sw.reset();
   sw.start();
   int notificationCount=0;
@@ -80,7 +82,8 @@
       String cursor=finishedNode.get("cursor").asText();
       while (cursor != null) {
         JsonNode moreNode=mapper.readTree(resource().path(orgapp + "/notifications").queryParam("ql","select * where state='FINISHED'").queryParam("access_token",token).queryParam("cursor",cursor).accept(MediaType.APPLICATION_JSON).get(String.class));
-        finished+=moreNode.get("count").asInt();
+        int returnCount=moreNode.get("count").asInt();
+        finished+=returnCount;
         if (moreNode.get("cursor") != null) {
           cursor=moreNode.get("cursor").asText();
         }
@@ -94,6 +97,7 @@
     }
   }
   notificationCount=numDevices * numNotifications;
-  logger.info("Finished {} notifications in {}ms",notificationCount,sw.getTime());
-  logger.info("Finished Notification throughput = {} TPS",((float)notificationCount) / (sw.getTime() / 1000));
+  allSw.stop();
+  logger.info("Finished {} notifications in {}ms",notificationCount,allSw.getTime());
+  logger.info("Finished Notification throughput = {} TPS",((float)notificationCount) / (allSw.getTime() / 1000));
 }

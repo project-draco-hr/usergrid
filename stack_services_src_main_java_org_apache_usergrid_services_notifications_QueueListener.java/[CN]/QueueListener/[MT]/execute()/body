@@ -1,55 +1,64 @@
 {
+  Thread.currentThread().setName("Notifications_Processor" + UUID.randomUUID());
   svcMgr=smf.getServiceManager(smf.getManagementAppId());
   queueManager=svcMgr.getQueueManager();
   final AtomicInteger consecutiveExceptions=new AtomicInteger();
   LOG.info("QueueListener: Starting execute process.");
   while (true) {
     try {
-      QueueResults results=ApplicationQueueManager.getDeliveryBatch(queueManager);
+      QueueResults results=getDeliveryBatch(queueManager);
       LOG.info("QueueListener: retrieved batch of {} messages",results.size());
       List<Message> messages=results.getMessages();
       if (messages.size() > 0) {
-        Observable.from(messages).subscribeOn(Schedulers.io()).map(new Func1<Message,ApplicationQueueMessage>(){
-          @Override public ApplicationQueueMessage call(          Message message){
-            return ApplicationQueueMessage.generate(message);
+        HashMap<UUID,List<ApplicationQueueMessage>> messageMap=new HashMap<>(messages.size());
+        for (        Message message : messages) {
+          ApplicationQueueMessage queueMessage=ApplicationQueueMessage.generate(message);
+          UUID applicationId=queueMessage.getApplicationId();
+          if (!messageMap.containsKey(applicationId)) {
+            List<ApplicationQueueMessage> applicationQueueMessages=new ArrayList<ApplicationQueueMessage>();
+            applicationQueueMessages.add(queueMessage);
+            messageMap.put(applicationId,applicationQueueMessages);
+          }
+ else {
+            messageMap.get(applicationId).add(queueMessage);
           }
         }
-).groupBy(new Func1<ApplicationQueueMessage,UUID>(){
-          @Override public UUID call(          ApplicationQueueMessage message){
-            return message.getApplicationId();
+        long now=System.currentTimeMillis();
+        Observable merge=null;
+        for (        Map.Entry<UUID,List<ApplicationQueueMessage>> entry : messageMap.entrySet()) {
+          UUID applicationId=entry.getKey();
+          EntityManager entityManager=emf.getEntityManager(applicationId);
+          ServiceManager serviceManager=smf.getServiceManager(applicationId);
+          final ApplicationQueueManager manager=new ApplicationQueueManager(new JobScheduler(serviceManager,entityManager),entityManager,queueManager,metricsService,properties);
+          LOG.info("QueueListener: send batch for app {} of {} messages",entry.getKey(),entry.getValue().size());
+          Observable current=manager.sendBatchToProviders(entry.getValue());
+          if (merge == null)           merge=current;
+ else {
+            merge=Observable.merge(merge,current);
           }
         }
-).flatMap(new Func1<GroupedObservable<UUID,ApplicationQueueMessage>,Observable<?>>(){
-          @Override public Observable<?> call(          GroupedObservable<UUID,ApplicationQueueMessage> groupedObservable){
-            UUID appId=groupedObservable.getKey();
-            EntityManager entityManager=emf.getEntityManager(appId);
-            ServiceManager serviceManager=smf.getServiceManager(appId);
-            final ApplicationQueueManager manager=new ApplicationQueueManager(new JobScheduler(serviceManager,entityManager),entityManager,queueManager,metricsService);
-            return groupedObservable.buffer(ApplicationQueueManager.BATCH_SIZE).flatMap(new Func1<List<ApplicationQueueMessage>,Observable<?>>(){
-              @Override public Observable<?> call(              List<ApplicationQueueMessage> queueMessages){
-                LOG.info("QueueListener: send batch {} messages",queueMessages.size());
-                return manager.sendBatchToProviders(queueMessages);
-              }
-            }
-);
-          }
+        if (merge != null) {
+          merge.toBlocking().lastOrDefault(null);
         }
-).doOnError(new Action1<Throwable>(){
-          @Override public void call(          Throwable throwable){
-            LOG.error("Failed while listening",throwable);
-          }
+        LOG.info("QueueListener: sent batch {} messages duration {} ms",messages.size(),System.currentTimeMillis() - now);
+        if (sleepBetweenRuns > 0) {
+          Thread.sleep(sleepBetweenRuns);
         }
-).toBlocking().last();
-        LOG.info("QueueListener: Messages sent in batch");
       }
  else {
         LOG.info("QueueListener: no messages...sleep...",results.size());
-        Thread.sleep(sleepPeriod);
+        Thread.sleep(sleepWhenNoneFound);
       }
       consecutiveExceptions.set(0);
     }
  catch (    Exception ex) {
       LOG.error("failed to dequeue",ex);
+      try {
+        Thread.sleep(sleepWhenNoneFound);
+      }
+ catch (      InterruptedException ie) {
+        LOG.info("sleep interupted");
+      }
       if (consecutiveExceptions.getAndIncrement() > MAX_CONSECUTIVE_FAILS) {
         LOG.error("killing message listener; too many failures");
         break;
