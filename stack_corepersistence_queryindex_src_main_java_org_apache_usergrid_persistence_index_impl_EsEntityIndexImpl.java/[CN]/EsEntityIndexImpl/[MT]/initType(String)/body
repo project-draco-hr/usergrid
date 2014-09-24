@@ -7,15 +7,11 @@
     XContentBuilder mxcb=EsEntityIndexImpl.createDoubleStringIndexMapping(jsonBuilder(),typeName);
     admin.indices().preparePutMapping(indexName).setType(typeName).setSource(mxcb).execute().actionGet();
     admin.indices().prepareGetMappings(indexName).addTypes(typeName).execute().actionGet();
-    log.debug("Created new type mapping");
-    log.debug("   Scope application: " + indexScope.getApplication());
-    log.debug("   Scope owner: " + indexScope.getOwner());
-    log.debug("   Type name: " + typeName);
     knownTypes.add(typeName);
   }
- catch (  Exception ex) {
-    if (log.isDebugEnabled()) {
-      log.debug("Problem creating mapping for type: " + typeName,ex);
-    }
+ catch (  IndexAlreadyExistsException ignored) {
+  }
+catch (  IOException ex) {
+    throw new RuntimeException("Exception initing type " + typeName + " in app "+ indexScope.getApplication().toString());
   }
 }
