@@ -1,0 +1,8 @@
+{
+  Preconditions.checkNotNull(name);
+  Preconditions.checkArgument(name.length() > 0,"name must have a length");
+  Preconditions.checkArgument(poolSize > 0,"poolSize must be > than 0");
+  Preconditions.checkArgument(queueLength > -1,"queueLength must be 0 or more");
+  final BlockingQueue<Runnable> queue=queueLength > 0 ? new ArrayBlockingQueue<Runnable>(queueLength) : new SynchronousQueue<Runnable>();
+  executorService=MoreExecutors.listeningDecorator(new MaxSizeThreadPool(name,poolSize,queue));
+}
