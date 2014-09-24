@@ -42,11 +42,12 @@
         }
         LOG.info("QueueListener: sent batch {} messages duration {} ms",messages.size(),System.currentTimeMillis() - now);
         if (sleepBetweenRuns > 0) {
+          LOG.info("QueueListener: sleep between rounds...sleep...{}",sleepBetweenRuns);
           Thread.sleep(sleepBetweenRuns);
         }
       }
  else {
-        LOG.info("QueueListener: no messages...sleep...",results.size());
+        LOG.info("QueueListener: no messages...sleep...{}",sleepWhenNoneFound);
         Thread.sleep(sleepWhenNoneFound);
       }
       consecutiveExceptions.set(0);
@@ -54,14 +55,12 @@
  catch (    Exception ex) {
       LOG.error("failed to dequeue",ex);
       try {
-        Thread.sleep(sleepWhenNoneFound);
+        long sleeptime=sleepWhenNoneFound * (consecutiveExceptions.incrementAndGet());
+        LOG.info("sleeping due to failures {} ms",sleeptime);
+        Thread.sleep(sleeptime);
       }
  catch (      InterruptedException ie) {
-        LOG.info("sleep interupted");
-      }
-      if (consecutiveExceptions.getAndIncrement() > MAX_CONSECUTIVE_FAILS) {
-        LOG.error("killing message listener; too many failures");
-        break;
+        LOG.info("sleep interrupted");
       }
     }
   }
