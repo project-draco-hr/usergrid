@@ -1,0 +1,16 @@
+{
+  final CollectionScope scope=collectionIoEvent.getEntityCollection();
+  final Id entityId=collectionIoEvent.getEvent().getId();
+  final UUID maxVersion=collectionIoEvent.getEvent().getVersion();
+  VersionIterator versionIterator=new VersionIterator(logEntrySerializationStrategy,scope,entityId,maxVersion,1000);
+  UUID currentVersion=null;
+  while (versionIterator.hasNext()) {
+    currentVersion=versionIterator.next();
+    for (    EntityVersionDeleted listener : listeners) {
+      listener.versionDeleted(scope,entityId,currentVersion);
+    }
+    entitySerializationStrategy.delete(scope,entityId,currentVersion).execute();
+    logEntrySerializationStrategy.delete(scope,entityId,currentVersion).execute();
+  }
+  return collectionIoEvent;
+}
