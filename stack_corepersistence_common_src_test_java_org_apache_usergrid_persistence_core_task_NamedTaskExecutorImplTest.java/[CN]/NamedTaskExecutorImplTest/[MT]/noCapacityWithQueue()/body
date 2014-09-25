@@ -1,15 +1,14 @@
 {
   final int threadPoolSize=1;
-  final int queueSize=10;
-  final TaskExecutor executor=new NamedTaskExecutorImpl("jobSuccess",threadPoolSize,queueSize);
+  final TaskExecutor executor=new NamedTaskExecutorImpl("jobSuccess",threadPoolSize);
   final CountDownLatch exceptionLatch=new CountDownLatch(0);
   final CountDownLatch rejectedLatch=new CountDownLatch(0);
   final CountDownLatch runLatch=new CountDownLatch(1);
-  int iterations=threadPoolSize + queueSize;
+  int iterations=threadPoolSize;
   for (int i=0; i < iterations; i++) {
     final TestTask<Void> task=new TestTask<Void>(exceptionLatch,rejectedLatch,runLatch){
-      @Override public Void call() throws Exception {
-        super.call();
+      @Override public Void executeTask() throws Exception {
+        super.executeTask();
         final Object mutex=new Object();
 synchronized (mutex) {
           mutex.wait();

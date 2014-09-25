@@ -1,0 +1,13 @@
+{
+  final int threadPoolSize=4;
+  final TaskExecutor executor=new NamedTaskExecutorImpl("jobSuccess",threadPoolSize);
+  final CountDownLatch exceptionLatch=new CountDownLatch(0);
+  final CountDownLatch rejectedLatch=new CountDownLatch(0);
+  final CountDownLatch runLatch=new CountDownLatch(7);
+  TestRecursiveTask task=new TestRecursiveTask(exceptionLatch,rejectedLatch,runLatch,1,3);
+  executor.submit(task);
+  Integer result=task.join();
+  final int expected=4 * 3;
+  assertEquals(expected,result.intValue());
+  runLatch.await(1000,TimeUnit.MILLISECONDS);
+}

@@ -1,12 +1,11 @@
 {
-  final TaskExecutor executor=new NamedTaskExecutorImpl("jobSuccess",1,0);
+  final TaskExecutor executor=new NamedTaskExecutorImpl("jobSuccess",1);
   final CountDownLatch exceptionLatch=new CountDownLatch(1);
   final CountDownLatch rejectedLatch=new CountDownLatch(0);
   final CountDownLatch runLatch=new CountDownLatch(1);
   final RuntimeException re=new RuntimeException("throwing exception");
   final TestTask<Void> task=new TestTask<Void>(exceptionLatch,rejectedLatch,runLatch){
-    @Override public Void call() throws Exception {
-      super.call();
+    @Override public Void executeTask(){
       throw re;
     }
   }
