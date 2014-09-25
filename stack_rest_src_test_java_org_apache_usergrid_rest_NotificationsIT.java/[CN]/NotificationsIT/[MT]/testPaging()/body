@@ -1,10 +1,7 @@
 {
   int numDevices=10;
   int numNotifications=100;
-  String token=userToken("ed@anuff.com","sesame");
-  String org="test-organization";
-  String app="test-app";
-  String orgapp=org + "/" + app;
+  token=userToken("ed@anuff.com","sesame");
   Map<String,Object> notifier=new HashMap<String,Object>(){
 {
       put("name","mynotifier");
@@ -13,11 +10,8 @@
   }
 ;
   JsonNode notifierNode=mapper.readTree(resource().path(orgapp + "/notifier").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).post(String.class,notifier));
-  logger.debug("Notifier is: " + notifierNode.toString());
   assertEquals("noop",notifierNode.withArray("entities").get(0).get("provider").asText());
   refreshIndex(org,app);
-  StopWatch sw=new StopWatch();
-  sw.start();
   int devicesCount=0;
   List<String> deviceIds=new ArrayList();
   for (int i=0; i < numDevices; i++) {
@@ -34,19 +28,15 @@
     }
 ;
     JsonNode deviceNode=mapper.readTree(resource().path(orgapp + "/devices").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).post(String.class,device));
-    logger.debug("Device is: " + deviceNode.toString());
     assertEquals("device" + i,deviceNode.withArray("entities").get(0).get("name").asText());
     deviceIds.add(deviceNode.withArray("entities").get(0).get("uuid").asText());
     devicesCount++;
   }
-  sw.stop();
-  logger.info("Created {} devices in {}ms",devicesCount,sw.getTime());
   refreshIndex(org,app);
-  StopWatch allSw=new StopWatch();
-  allSw.start();
-  sw.reset();
-  sw.start();
+  String postMeterName=getClass().getSimpleName() + ".postNotifications";
+  Meter postMeter=registry.meter(postMeterName);
   int notificationCount=0;
+  List<String> notificationUuids=new ArrayList<String>();
   for (int i=0; i < numNotifications; i++) {
     for (int j=0; j < deviceIds.size(); j++) {
       final String deviceId=deviceIds.get(j);
@@ -62,42 +52,31 @@
       }
 ;
       JsonNode notificationNode=mapper.readTree(resource().path(orgapp + "/notifications").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).post(String.class,notification));
-      logger.debug("Notification is: " + notificationNode.toString());
+      postMeter.mark();
+      Thread.sleep(writeDelayMs);
+      notificationUuids.add(notificationNode.withArray("entities").get(0).get("uuid").asText());
     }
     notificationCount++;
+    if (notificationCount % 100 == 0) {
+      logger.debug("Created {} notifications",notificationCount);
+    }
   }
-  sw.stop();
-  logger.info("Created {} notifications in {}ms",notificationCount,sw.getTime());
-  logger.info("Post Notification throughput = {} TPS",((float)notificationCount) / (sw.getTime() / 1000));
+  registry.remove(postMeterName);
   refreshIndex(org,app);
   logger.info("Waiting for all notifications to be sent");
-  sw.reset();
+  StopWatch sw=new StopWatch();
   sw.start();
   boolean allSent=false;
   while (!allSent) {
-    Thread.sleep(1000);
-    JsonNode finishedNode=mapper.readTree(resource().path(orgapp + "/notifications").queryParam("ql","select * where state='FINISHED'").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).get(String.class));
-    int finished=finishedNode.get("count").asInt();
-    if (finishedNode.get("cursor") != null) {
-      String cursor=finishedNode.get("cursor").asText();
-      while (cursor != null) {
-        JsonNode moreNode=mapper.readTree(resource().path(orgapp + "/notifications").queryParam("ql","select * where state='FINISHED'").queryParam("access_token",token).queryParam("cursor",cursor).accept(MediaType.APPLICATION_JSON).get(String.class));
-        int returnCount=moreNode.get("count").asInt();
-        finished+=returnCount;
-        if (moreNode.get("cursor") != null) {
-          cursor=moreNode.get("cursor").asText();
-        }
- else {
-          cursor=null;
-        }
-      }
-    }
+    Thread.sleep(100);
+    int finished=pageThroughAllNotifications("FINISHED");
     if (finished == (numDevices * numNotifications)) {
       allSent=true;
     }
   }
-  notificationCount=numDevices * numNotifications;
-  allSw.stop();
-  logger.info("Finished {} notifications in {}ms",notificationCount,allSw.getTime());
-  logger.info("Finished Notification throughput = {} TPS",((float)notificationCount) / (allSw.getTime() / 1000));
+  sw.stop();
+  int nc=numDevices * numNotifications;
+  logger.info("Processed {} notifications in {}ms",nc,sw.getTime());
+  logger.info("Processing Notifications throughput = {} TPS",((float)nc) / (sw.getTime() / 1000));
+  logger.info("Successfully Paged through {} notifications",pageThroughAllNotifications("FINISHED"));
 }
