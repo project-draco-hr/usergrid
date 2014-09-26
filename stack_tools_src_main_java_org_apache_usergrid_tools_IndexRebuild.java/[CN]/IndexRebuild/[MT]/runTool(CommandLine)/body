@@ -1,11 +1,14 @@
 {
   startSpring();
   logger.info("Starting index rebuild");
+  emf.rebuildInternalIndexes();
+  emf.refreshIndex();
   for (  UUID appId : getAppIds(line)) {
     logger.info("Reindexing for app id: {}",appId);
     Set<String> collections=getCollections(line,appId);
     for (    String collection : collections) {
       reindex(appId,collection);
+      emf.refreshIndex();
     }
   }
   logger.info("Finished index rebuild");
