@@ -1,4 +1,7 @@
 {
+  if (scheduleQueueJob(notification)) {
+    return;
+  }
   final Meter queueMeter=metricsFactory.getMeter(ApplicationQueueManager.class,"queue");
   long startTime=System.currentTimeMillis();
   if (notification.getCanceled() == Boolean.TRUE) {
@@ -61,7 +64,6 @@
             if (notification.getQueued() == null) {
               now=System.currentTimeMillis();
               notification.setQueued(System.currentTimeMillis());
-              em.update(notification);
               LOG.info("ApplicationQueueMessage: notification {} device {} queue time set. duration " + (System.currentTimeMillis() - now) + " ms",notification.getUuid(),deviceRef.getUuid());
             }
             now=System.currentTimeMillis();
