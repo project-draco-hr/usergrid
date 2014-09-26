@@ -6,7 +6,8 @@
   LOG.info("QueueListener: Starting execute process.");
   while (true) {
     try {
-      QueueResults results=getDeliveryBatch(queueManager);
+      String queueName=ApplicationQueueManager.getRandomQueue(queueNames);
+      QueueResults results=getDeliveryBatch(queueManager,queueName);
       LOG.info("QueueListener: retrieved batch of {} messages",results.size());
       List<Message> messages=results.getMessages();
       if (messages.size() > 0) {
@@ -31,7 +32,7 @@
           ServiceManager serviceManager=smf.getServiceManager(applicationId);
           final ApplicationQueueManager manager=new ApplicationQueueManager(new JobScheduler(serviceManager,entityManager),entityManager,queueManager,metricsService,properties);
           LOG.info("QueueListener: send batch for app {} of {} messages",entry.getKey(),entry.getValue().size());
-          Observable current=manager.sendBatchToProviders(entry.getValue());
+          Observable current=manager.sendBatchToProviders(entry.getValue(),queueName);
           if (merge == null)           merge=current;
  else {
             merge=Observable.merge(merge,current);
