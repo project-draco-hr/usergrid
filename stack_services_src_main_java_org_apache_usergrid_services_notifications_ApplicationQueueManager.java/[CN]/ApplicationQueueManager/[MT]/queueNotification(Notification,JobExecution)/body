@@ -1,5 +1,6 @@
 {
   if (scheduleQueueJob(notification)) {
+    em.update(notification);
     return;
   }
   final Meter queueMeter=metricsFactory.getMeter(ApplicationQueueManager.class,"queue");
@@ -22,6 +23,7 @@
     final Iterator<Device> iterator=pathQuery.iterator(em);
     if (iterator instanceof ResultsIterator && ((ResultsIterator)iterator).hasPages() && jobExecution == null) {
       jobScheduler.scheduleQueueJob(notification,true);
+      em.update(notification);
       return;
     }
     final CountMinSketch sketch=new CountMinSketch(0.0001,.99,7364181);
