@@ -8,12 +8,15 @@
   do {
     r=em.searchCollection(app,collectionName,query);
     for (    org.apache.usergrid.persistence.Entity entity : r.getEntities()) {
-      logger.info("    Updating Entity name {}, type: {}, id: {} in app id: {}",new Object[]{entity.getName(),entity.getType(),entity.getUuid(),appId});
+      logger.info("   Updating Entity name {}, type: {}, id: {} in app id: {}",new Object[]{entity.getName(),entity.getType(),entity.getUuid(),appId});
       try {
         em.update(entity);
+        if (po != null) {
+          po.onProgress();
+        }
       }
  catch (      DuplicateUniquePropertyExistsException dupee) {
-        logger.error("Duplicate property for type: {} with id: {} for app id: {}.  " + "Property name: {} , value: {}",new Object[]{entity.getType(),entity.getUuid(),appId,dupee.getPropertyName(),dupee.getPropertyValue()});
+        logger.error("   Duplicate property for type: {} with id: {} for app id: {}.  " + "Property name: {} , value: {}",new Object[]{entity.getType(),entity.getUuid(),appId,dupee.getPropertyName(),dupee.getPropertyValue()});
       }
     }
     query.setCursor(r.getCursor());

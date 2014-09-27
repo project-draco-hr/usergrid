@@ -1,0 +1,34 @@
+{
+  logger.info("Started rebuildIndex()");
+  final EntityManager em=app.getEntityManager();
+  final long stopTime=System.currentTimeMillis() + RUNTIME;
+  final Map<String,Object> entityMap=new HashMap<>();
+  entityMap.put("key1",1000);
+  entityMap.put("key2",2000);
+  entityMap.put("key3","Some value");
+  List<EntityRef> entityRefs=new ArrayList<EntityRef>();
+  int i=0;
+  while (System.currentTimeMillis() < stopTime) {
+    entityMap.put("key",i);
+    final Entity created=em.create("testType",entityMap);
+    entityRefs.add(new SimpleEntityRef(created.getType(),created.getUuid()));
+    i++;
+    if (i % 1000 == 0) {
+      logger.debug("rebuildIndex() Created {} entities",i);
+    }
+    Thread.sleep(writeDelayMs);
+  }
+  logger.info("rebuildIndex() Created {} entities",i);
+  final String meterName=this.getClass().getSimpleName() + ".rebuildIndex";
+  final Meter meter=registry.meter(meterName);
+  EntityManagerFactory.ProgressObserver po=new EntityManagerFactory.ProgressObserver(){
+    @Override public void onProgress(){
+      meter.mark();
+    }
+  }
+;
+  setup.getEmf().rebuildInternalIndexes(po);
+  setup.getEmf().rebuildCollectionIndex(app.getId(),"testTypes",po);
+  registry.remove(meterName);
+  logger.info("Finished rebuildIndex()");
+}
