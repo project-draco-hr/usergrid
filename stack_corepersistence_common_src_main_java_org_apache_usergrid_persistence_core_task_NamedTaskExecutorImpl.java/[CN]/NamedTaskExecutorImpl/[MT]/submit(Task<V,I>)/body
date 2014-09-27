@@ -1,0 +1,12 @@
+{
+  final ListenableFuture<V> future;
+  try {
+    future=executorService.submit(task);
+    Futures.addCallback(future,new TaskFutureCallBack<V,I>(task));
+  }
+ catch (  RejectedExecutionException ree) {
+    task.rejected();
+    return Futures.immediateCancelledFuture();
+  }
+  return future;
+}

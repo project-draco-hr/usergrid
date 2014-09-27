@@ -1,9 +1,17 @@
 {
   final double repairChance=random.nextDouble();
   if (repairChance > graphFig.getShardRepairChance()) {
-    return new ImmediateTask<AuditResult>(AuditResult.NOT_CHECKED){
-    }
-;
+    return Futures.immediateFuture(AuditResult.NOT_CHECKED);
   }
-  return taskExecutor.submit(new ShardAuditTask(scope,edgeMeta,group));
+  ListenableFuture<AuditResult> future=taskExecutor.submit(new ShardAuditTask(scope,edgeMeta,group));
+  Futures.addCallback(future,new FutureCallback<AuditResult>(){
+    @Override public void onSuccess(    @Nullable final AuditResult result){
+      LOG.debug("Successfully completed audit of task {}",result);
+    }
+    @Override public void onFailure(    final Throwable t){
+      LOG.error("Unable to perform audit.  Exception is ",t);
+    }
+  }
+);
+  return future;
 }
