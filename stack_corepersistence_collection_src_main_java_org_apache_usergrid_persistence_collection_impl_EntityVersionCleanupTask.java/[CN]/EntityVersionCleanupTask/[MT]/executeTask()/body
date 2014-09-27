@@ -1,24 +1,12 @@
 {
-  final CollectionScope scope=collectionIoEvent.getEntityCollection();
-  final Id entityId=collectionIoEvent.getEvent().getId();
-  final UUID maxVersion=collectionIoEvent.getEvent().getVersion();
+  final UUID maxVersion=version;
   LogEntryIterator logEntryIterator=new LogEntryIterator(logEntrySerializationStrategy,scope,entityId,maxVersion,serializationFig.getHistorySize());
   while (logEntryIterator.hasNext()) {
     final MvccLogEntry logEntry=logEntryIterator.next();
     final UUID version=logEntry.getVersion();
-    List<ForkJoinTask<Void>> tasks=new ArrayList<>();
-    for (    final EntityVersionDeleted listener : listeners) {
-      tasks.add(new RecursiveTask<Void>(){
-        @Override protected Void compute(){
-          listener.versionDeleted(scope,entityId,version);
-          return null;
-        }
-      }
-.fork());
-    }
-    joinAll(tasks);
+    fireEvents();
     entitySerializationStrategy.delete(scope,entityId,version).execute();
     logEntrySerializationStrategy.delete(scope,entityId,version).execute();
   }
-  return collectionIoEvent;
+  return null;
 }

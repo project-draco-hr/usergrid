@@ -1,0 +1,21 @@
+{
+  final SerializationFig serializationFig=mock(SerializationFig.class);
+  when(serializationFig.getHistorySize()).thenReturn(10);
+  final MvccEntitySerializationStrategy mvccEntitySerializationStrategy=mock(MvccEntitySerializationStrategy.class);
+  final MvccLogEntrySerializationStrategy mvccLogEntrySerializationStrategy=mock(MvccLogEntrySerializationStrategy.class);
+  final List<EntityVersionDeleted> listeners=new ArrayList<EntityVersionDeleted>();
+  final Id applicationId=new SimpleId("application");
+  final CollectionScope appScope=new CollectionScopeImpl(applicationId,applicationId,"users");
+  final Id entityId=new SimpleId("user");
+  final LogEntryMock logEntryMock=LogEntryMock.createLogEntryMock(mvccLogEntrySerializationStrategy,appScope,entityId,1);
+  final UUID version=logEntryMock.getEntries().iterator().next().getVersion();
+  EntityVersionCleanupTask cleanupTask=new EntityVersionCleanupTask(serializationFig,mvccLogEntrySerializationStrategy,mvccEntitySerializationStrategy,listeners,appScope,entityId,version);
+  final MutationBatch firstBatch=mock(MutationBatch.class);
+  when(mvccEntitySerializationStrategy.delete(same(appScope),same(entityId),any(UUID.class))).thenReturn(firstBatch);
+  final MutationBatch secondBatch=mock(MutationBatch.class);
+  when(mvccLogEntrySerializationStrategy.delete(same(appScope),same(entityId),any(UUID.class))).thenReturn(secondBatch);
+  taskExecutor.submit(cleanupTask);
+  cleanupTask.get();
+  verify(firstBatch,never()).execute();
+  verify(secondBatch,never()).execute();
+}
