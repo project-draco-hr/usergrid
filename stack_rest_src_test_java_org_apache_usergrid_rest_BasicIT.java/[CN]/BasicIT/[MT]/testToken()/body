@@ -75,11 +75,13 @@
   MultivaluedMap<String,String> formData=new MultivaluedMapImpl();
   formData.add("pin","5678");
   node=mapper.readTree(resource().path("/test-organization/test-app/users/ed@anuff.com/setpin").queryParam("access_token",user_access_token).type("application/x-www-form-urlencoded").post(String.class,formData));
+  refreshIndex("test-organization","test-app");
   node=mapper.readTree(resource().path("/test-organization/test-app/token").queryParam("grant_type","pin").queryParam("username","ed@anuff.com").queryParam("pin","5678").accept(MediaType.APPLICATION_JSON).get(String.class));
   logNode(node);
   user_access_token=node.get("access_token").textValue();
   assertTrue(isNotBlank(user_access_token));
-  node=mapper.readTree(resource().path("/test-organization/test-app/users/ed@anuff.com/test").get(String.class));
+  refreshIndex("test-organization","test-app");
+  node=mapper.readTree(resource().path("/test-organization/test-app/users/ed@anuff.com/test").queryParam("access_token",user_access_token).get(String.class));
   logNode(node);
   Map<String,String> payload=hashMap("email","ed.anuff@gmail.com").map("username","ed.anuff").map("name","Ed Anuff").map("password","sesame").map("pin","1234");
   node=mapper.readTree(resource().path("/test-organization/test-app/users").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
