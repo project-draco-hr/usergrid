@@ -1,12 +1,13 @@
 {
   Thread.currentThread().setName("Notifications_Processor" + UUID.randomUUID());
-  svcMgr=smf.getServiceManager(smf.getManagementAppId());
-  queueManager=svcMgr.getQueueManager();
   final AtomicInteger consecutiveExceptions=new AtomicInteger();
   LOG.info("QueueListener: Starting execute process.");
   while (true) {
     try {
-      QueueResults results=getDeliveryBatch(queueManager);
+      svcMgr=smf.getServiceManager(smf.getManagementAppId());
+      queueManager=svcMgr.getQueueManager();
+      String queueName=ApplicationQueueManager.getRandomQueue(queueNames);
+      QueueResults results=getDeliveryBatch(queueManager,queueName);
       LOG.info("QueueListener: retrieved batch of {} messages",results.size());
       List<Message> messages=results.getMessages();
       if (messages.size() > 0) {
@@ -31,7 +32,7 @@
           ServiceManager serviceManager=smf.getServiceManager(applicationId);
           final ApplicationQueueManager manager=new ApplicationQueueManager(new JobScheduler(serviceManager,entityManager),entityManager,queueManager,metricsService,properties);
           LOG.info("QueueListener: send batch for app {} of {} messages",entry.getKey(),entry.getValue().size());
-          Observable current=manager.sendBatchToProviders(entry.getValue());
+          Observable current=manager.sendBatchToProviders(entry.getValue(),queueName);
           if (merge == null)           merge=current;
  else {
             merge=Observable.merge(merge,current);
@@ -42,11 +43,12 @@
         }
         LOG.info("QueueListener: sent batch {} messages duration {} ms",messages.size(),System.currentTimeMillis() - now);
         if (sleepBetweenRuns > 0) {
+          LOG.info("QueueListener: sleep between rounds...sleep...{}",sleepBetweenRuns);
           Thread.sleep(sleepBetweenRuns);
         }
       }
  else {
-        LOG.info("QueueListener: no messages...sleep...",results.size());
+        LOG.info("QueueListener: no messages...sleep...{}",sleepWhenNoneFound);
         Thread.sleep(sleepWhenNoneFound);
       }
       consecutiveExceptions.set(0);
@@ -54,14 +56,14 @@
  catch (    Exception ex) {
       LOG.error("failed to dequeue",ex);
       try {
-        Thread.sleep(sleepWhenNoneFound);
+        long sleeptime=sleepWhenNoneFound * consecutiveExceptions.incrementAndGet();
+        long maxSleep=15000;
+        sleeptime=sleeptime > maxSleep ? maxSleep : sleeptime;
+        LOG.info("sleeping due to failures {} ms",sleeptime);
+        Thread.sleep(sleeptime);
       }
  catch (      InterruptedException ie) {
-        LOG.info("sleep interupted");
-      }
-      if (consecutiveExceptions.getAndIncrement() > MAX_CONSECUTIVE_FAILS) {
-        LOG.error("killing message listener; too many failures");
-        break;
+        LOG.info("sleep interrupted");
       }
     }
   }

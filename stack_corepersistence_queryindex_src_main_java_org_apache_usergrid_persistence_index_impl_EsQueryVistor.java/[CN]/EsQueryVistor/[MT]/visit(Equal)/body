@@ -4,11 +4,16 @@
   Object value=op.getLiteral().getValue();
   if (value instanceof String) {
     String svalue=(String)value;
+    BoolQueryBuilder qb=QueryBuilders.boolQuery();
+    qb=qb.should(QueryBuilders.wildcardQuery(name,svalue));
     if (svalue.indexOf("*") != -1) {
-      stack.push(QueryBuilders.wildcardQuery(name,svalue));
-      return;
+      qb=qb.should(QueryBuilders.wildcardQuery(addPrefix(value,name),svalue));
     }
-    value=svalue;
+ else {
+      qb=qb.should(QueryBuilders.termQuery(addPrefix(value,name),value));
+    }
+    stack.push(qb);
+    return;
   }
-  stack.push(QueryBuilders.termQuery(name,value));
+  stack.push(QueryBuilders.termQuery(addPrefix(value,name),value));
 }

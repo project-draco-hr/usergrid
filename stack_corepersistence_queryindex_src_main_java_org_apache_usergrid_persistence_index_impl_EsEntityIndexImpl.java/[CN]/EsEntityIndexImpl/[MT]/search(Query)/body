@@ -20,9 +20,14 @@
  else {
         order=SortOrder.DESC;
       }
-      FieldSortBuilder sort=SortBuilders.fieldSort(sp.getPropertyName()).order(order).ignoreUnmapped(true);
-      srb.addSort(sort);
-      log.debug("   Sort: {} order by {}",sp.getPropertyName(),order.toString());
+      final String stringFieldName=STRING_PREFIX + sp.getPropertyName();
+      final FieldSortBuilder stringSort=SortBuilders.fieldSort(stringFieldName).order(order).ignoreUnmapped(true);
+      srb.addSort(stringSort);
+      log.debug("   Sort: {} order by {}",stringFieldName,order.toString());
+      final String numberFieldName=NUMBER_PREFIX + sp.getPropertyName();
+      final FieldSortBuilder numberSort=SortBuilders.fieldSort(numberFieldName).order(order).ignoreUnmapped(true);
+      srb.addSort(numberSort);
+      log.debug("   Sort: {} order by {}",numberFieldName,order.toString());
     }
     searchResponse=srb.execute().actionGet();
   }
