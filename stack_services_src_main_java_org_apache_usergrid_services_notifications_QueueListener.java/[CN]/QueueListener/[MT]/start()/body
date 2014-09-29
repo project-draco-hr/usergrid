@@ -10,6 +10,7 @@
       queueNames=ApplicationQueueManager.getQueueNames(properties);
       int maxThreads=new Integer(properties.getProperty("usergrid.notifications.listener.maxThreads",MAX_THREADS));
       futures=new ArrayList<Future>(maxThreads);
+      pool=Executors.newFixedThreadPool(maxThreads);
       while (threadCount++ < maxThreads) {
         LOG.info("QueueListener: Starting thread {}.",threadCount);
         Runnable task=new Runnable(){
