@@ -4,7 +4,7 @@
     throw new QueueException("Neccessary queue bounds not found");
   }
   UUID finish_uuid=params.reversed ? bounds.getOldest() : bounds.getNewest();
-  List<UUID> results=new ArrayList<UUID>(params.limit);
+  List<UUID> results=new ArrayList<>(params.limit);
   UUID start=params.startId;
   if (start == null) {
     start=params.reversed ? bounds.getNewest() : bounds.getOldest();
@@ -36,7 +36,7 @@
     q.setColumnFamily(QUEUE_INBOX.getColumnFamily());
     q.setKey(getQueueShardRowKey(queueId,current_ts_shard));
     q.setRange(lastValue,finish_uuid,params.reversed,params.limit + 1);
-    final List<HColumn<UUID,ByteBuffer>> cassResults=q.execute().get().getColumns();
+    final List<HColumn<UUID,ByteBuffer>> cassResults=swallowOrderedExecution(q);
     for (int i=0; i < cassResults.size(); i++) {
       HColumn<UUID,ByteBuffer> column=cassResults.get(i);
       final UUID columnName=column.getName();
