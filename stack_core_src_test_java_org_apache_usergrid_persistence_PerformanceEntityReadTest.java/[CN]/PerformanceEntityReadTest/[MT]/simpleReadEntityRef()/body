@@ -1,0 +1,31 @@
+{
+  logger.info("Started simpleReadEnityRef()");
+  final EntityManager em=app.getEntityManager();
+  final long stopTime=System.currentTimeMillis() + RUNTIME;
+  final Map<String,Object> entityMap=new HashMap<>();
+  entityMap.put("key1",1000);
+  entityMap.put("key2",2000);
+  entityMap.put("key3","Some value");
+  List<EntityRef> entityRefs=new ArrayList<EntityRef>();
+  int i=0;
+  while (System.currentTimeMillis() < stopTime) {
+    entityMap.put("key",i);
+    final Entity created=em.create("testType",entityMap);
+    entityRefs.add(new SimpleEntityRef(created.getType(),created.getUuid()));
+    i++;
+    if (i % 1000 == 0) {
+      logger.debug("simpleReadEntityRef() Created {} entities",i);
+    }
+    Thread.sleep(writeDelayMs);
+  }
+  logger.info("simpleReadEntityRef() Created {} entities",i);
+  final String meterName=this.getClass().getSimpleName() + ".simpleReadEntityRef";
+  final Meter meter=registry.meter(meterName);
+  for (  EntityRef entityRef : entityRefs) {
+    Entity entity=em.get(entityRef);
+    meter.mark();
+    Thread.sleep(readDelayMs);
+  }
+  registry.remove(meterName);
+  logger.info("Finished simpleReadEntityRef()");
+}

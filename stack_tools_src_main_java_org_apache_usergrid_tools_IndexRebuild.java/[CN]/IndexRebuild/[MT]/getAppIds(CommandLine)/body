@@ -1,13 +1,14 @@
 {
   String appId=line.getOptionValue(APPLICATION_ARG);
+  Map<String,UUID> ids=emf.getApplications();
   if (appId != null) {
     UUID id=UUIDUtils.tryExtractUUID(appId);
     if (id == null) {
+      logger.debug("Got applications: " + ids);
       id=emf.getApplications().get(appId);
     }
     return Collections.singleton(id);
   }
-  Map<String,UUID> ids=emf.getApplications();
   System.out.println("Printing all apps");
   for (  Entry<String,UUID> entry : ids.entrySet()) {
     System.out.println(entry.getKey());

@@ -1,0 +1,28 @@
+{
+  String name=origname;
+  String[] parts=origname.split("\\.");
+  if (parts.length > 1) {
+    name=parts[parts.length - 1];
+  }
+  if (value instanceof String && analyzed) {
+    name=addAnalyzedStringPrefix(name);
+  }
+ else   if (value instanceof String) {
+    name=addStringPrefix(name);
+  }
+ else   if (value instanceof Number) {
+    name=addNumberPrefix(name);
+  }
+ else   if (value instanceof Boolean) {
+    name=addBooleanPrefix(name);
+  }
+ else   if (value instanceof UUID) {
+    name=addStringPrefix(name);
+  }
+  if (parts.length > 1) {
+    parts[parts.length - 1]=name;
+    Joiner joiner=Joiner.on(".").skipNulls();
+    return joiner.join(parts);
+  }
+  return name;
+}

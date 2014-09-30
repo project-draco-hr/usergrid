@@ -1,4 +1,8 @@
 {
+  if (scheduleQueueJob(notification)) {
+    em.update(notification);
+    return;
+  }
   final Meter queueMeter=metricsFactory.getMeter(ApplicationQueueManager.class,"queue");
   long startTime=System.currentTimeMillis();
   if (notification.getCanceled() == Boolean.TRUE) {
@@ -13,23 +17,24 @@
   final AtomicInteger deviceCount=new AtomicInteger();
   final ConcurrentLinkedQueue<String> errorMessages=new ConcurrentLinkedQueue<String>();
   final HashMap<Object,Notifier> notifierMap=getNotifierMap();
+  final String queueName=getRandomQueue(queueNames);
   if (pathQuery != null) {
     LOG.info("ApplicationQueueMessage: notification {} start query",notification.getUuid());
     final Iterator<Device> iterator=pathQuery.iterator(em);
     if (iterator instanceof ResultsIterator && ((ResultsIterator)iterator).hasPages() && jobExecution == null) {
       jobScheduler.scheduleQueueJob(notification,true);
+      em.update(notification);
       return;
     }
     final CountMinSketch sketch=new CountMinSketch(0.0001,.99,7364181);
     final UUID appId=em.getApplication().getUuid();
     final Map<String,Object> payloads=notification.getPayloads();
-    Observable o;
     final Func1<Entity,Entity> entityListFunct=new Func1<Entity,Entity>(){
       @Override public Entity call(      Entity entity){
         try {
-          LOG.info("ApplicationQueueMessage: notification {} queue entity {}",notification.getUuid(),entity.getUuid());
+          long now=System.currentTimeMillis();
           List<EntityRef> devicesRef=getDevices(entity);
-          LOG.info("ApplicationQueueMessage: notification {} queue  {} devices",notification.getUuid(),devicesRef.size());
+          LOG.info("ApplicationQueueMessage: notification {} queue  {} devices, duration " + (System.currentTimeMillis() - now) + " ms",notification.getUuid(),devicesRef.size());
           for (          EntityRef deviceRef : devicesRef) {
             LOG.info("ApplicationQueueMessage: notification {} starting to queue device {} ",notification.getUuid(),deviceRef.getUuid());
             long hash=MurmurHash.hash(deviceRef.getUuid());
@@ -44,26 +49,28 @@
             String notifierKey=null;
             for (            Map.Entry<String,Object> entry : payloads.entrySet()) {
               Notifier notifier=notifierMap.get(entry.getKey().toLowerCase());
+              now=System.currentTimeMillis();
               String providerId=getProviderId(deviceRef,notifier);
               if (providerId != null) {
                 notifierId=providerId;
                 notifierKey=entry.getKey().toLowerCase();
                 break;
               }
+              LOG.info("ApplicationQueueMessage: Provider query for notification {} device {} took " + (System.currentTimeMillis() - now) + " ms",notification.getUuid(),deviceRef.getUuid());
             }
             if (notifierId == null) {
               LOG.debug("ApplicationQueueMessage: Notifier did not match for device {} ",deviceRef);
               continue;
             }
             ApplicationQueueMessage message=new ApplicationQueueMessage(appId,notification.getUuid(),deviceRef.getUuid(),notifierKey,notifierId);
-            LOG.info("ApplicationQueueMessage: notification {} pre-queue to device {} ",notification.getUuid(),deviceRef.getUuid());
-            qm.postToQueue(QUEUE_NAME,message);
-            LOG.info("ApplicationQueueMessage: notification {} post-queue to device {} ",notification.getUuid(),deviceRef.getUuid());
             if (notification.getQueued() == null) {
+              now=System.currentTimeMillis();
               notification.setQueued(System.currentTimeMillis());
-              em.update(notification);
-              LOG.info("ApplicationQueueMessage: notification {} queue time set.",notification.getUuid(),deviceRef.getUuid());
+              LOG.info("ApplicationQueueMessage: notification {} device {} queue time set. duration " + (System.currentTimeMillis() - now) + " ms",notification.getUuid(),deviceRef.getUuid());
             }
+            now=System.currentTimeMillis();
+            qm.postToQueue(queueName,message);
+            LOG.info("ApplicationQueueMessage: notification {} post-queue to device {} duration " + (System.currentTimeMillis() - now) + " ms "+ queueName+ " queue",notification.getUuid(),deviceRef.getUuid());
             deviceCount.incrementAndGet();
             queueMeter.mark();
           }
@@ -76,25 +83,20 @@
       }
     }
 ;
-    if (jobExecution != null) {
-      LOG.info("ApplicationQueueMessage: notification {} start threading",notification.getUuid());
-      o=rx.Observable.create(new IteratorObservable<Entity>(iterator)).parallel(new Func1<Observable<Entity>,Observable<Entity>>(){
-        @Override public rx.Observable<Entity> call(        rx.Observable<Entity> deviceObservable){
-          return deviceObservable.map(entityListFunct);
-        }
+    long now=System.currentTimeMillis();
+    Observable o=rx.Observable.create(new IteratorObservable<Entity>(iterator)).parallel(new Func1<Observable<Entity>,Observable<Entity>>(){
+      @Override public rx.Observable<Entity> call(      rx.Observable<Entity> deviceObservable){
+        return deviceObservable.map(entityListFunct);
       }
+    }
 ,Schedulers.io()).doOnError(new Action1<Throwable>(){
-        @Override public void call(        Throwable throwable){
-          LOG.error("Failed while writing",throwable);
-        }
+      @Override public void call(      Throwable throwable){
+        LOG.error("Failed while writing",throwable);
       }
+    }
 );
-    }
- else {
-      LOG.info("ApplicationQueueMessage: notification {} start single threaded",notification.getUuid());
-      o=rx.Observable.create(new IteratorObservable(iterator)).subscribeOn(Schedulers.io()).map(entityListFunct);
-    }
     o.toBlocking().lastOrDefault(null);
+    LOG.info("ApplicationQueueMessage: notification {} done queueing duration {} ms",notification.getUuid(),System.currentTimeMillis() - now);
   }
   Map<String,Object> properties=new HashMap<String,Object>(2);
   properties.put("queued",notification.getQueued());
@@ -106,14 +108,15 @@
   }
   notification.setExpectedCount(deviceCount.get());
   notification.addProperties(properties);
+  long now=System.currentTimeMillis();
   em.update(notification);
+  LOG.info("ApplicationQueueMessage: notification {} updated notification duration {} ms",notification.getUuid(),System.currentTimeMillis() - now);
   if (deviceCount.get() <= 0) {
-    SingleQueueTaskManager taskManager=new SingleQueueTaskManager(em,qm,this,notification);
+    SingleQueueTaskManager taskManager=new SingleQueueTaskManager(em,qm,this,notification,queueName);
     taskManager.finishedBatch();
   }
   if (LOG.isInfoEnabled()) {
     long elapsed=notification.getQueued() != null ? notification.getQueued() - startTime : 0;
     LOG.info("ApplicationQueueMessage: notification {} done queuing to {} devices in " + elapsed + " ms",notification.getUuid().toString(),deviceCount.get());
-    LOG.info("ApplicationQueueMessage: notification {} finished in {} ms",notification.getUuid().toString(),elapsed);
   }
 }
