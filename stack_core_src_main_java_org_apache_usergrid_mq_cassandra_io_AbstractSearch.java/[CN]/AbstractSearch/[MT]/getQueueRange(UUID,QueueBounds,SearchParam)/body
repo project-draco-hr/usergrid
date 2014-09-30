@@ -23,17 +23,15 @@
   if (params.reversed) {
     current_ts_shard=finish_ts_shard;
   }
-  if (!params.reversed && UUIDUtils.compare(start,finish_uuid) > 0) {
-    logger.warn("Tried to perform a slice with start UUID {} after finish UUID {}.",start,finish_uuid);
-    throw new IllegalArgumentException(String.format("You cannot specify a start value of %s after finish value of %s",start,finish_uuid));
-  }
- else   if (params.reversed && UUIDUtils.compare(start,finish_uuid) < 0) {
+  final MessageIdComparator comparator=new MessageIdComparator(params.reversed);
+  if (comparator.compare(start,finish_uuid) > 0) {
     logger.warn("Tried to perform a slice with start UUID {} after finish UUID {}.",start,finish_uuid);
     throw new IllegalArgumentException(String.format("You cannot specify a start value of %s after finish value of %s",start,finish_uuid));
   }
   UUID lastValue=start;
   boolean firstPage=true;
-  while ((current_ts_shard >= start_ts_shard) && (current_ts_shard <= finish_ts_shard)) {
+  while ((current_ts_shard >= start_ts_shard) && (current_ts_shard <= finish_ts_shard) && comparator.compare(start,finish_uuid) < 1) {
+    logger.info("Starting search with start UUID {}, finish UUID {}, and reversed {}",new Object[]{lastValue,finish_uuid,params.reversed});
     SliceQuery<ByteBuffer,UUID,ByteBuffer> q=createSliceQuery(ko,be,ue,be);
     q.setColumnFamily(QUEUE_INBOX.getColumnFamily());
     q.setKey(getQueueShardRowKey(queueId,current_ts_shard));
