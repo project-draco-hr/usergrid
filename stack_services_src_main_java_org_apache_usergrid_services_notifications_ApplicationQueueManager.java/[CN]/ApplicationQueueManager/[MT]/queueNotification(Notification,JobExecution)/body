@@ -18,6 +18,7 @@
   final ConcurrentLinkedQueue<String> errorMessages=new ConcurrentLinkedQueue<String>();
   final HashMap<Object,Notifier> notifierMap=getNotifierMap();
   final String queueName=getRandomQueue(queueNames);
+  final List<ApplicationQueueMessage> messages=new ArrayList<>();
   if (pathQuery != null) {
     LOG.info("ApplicationQueueMessage: notification {} start query",notification.getUuid());
     final Iterator<Device> iterator=pathQuery.iterator(em);
@@ -69,7 +70,12 @@
               LOG.info("ApplicationQueueMessage: notification {} device {} queue time set. duration " + (System.currentTimeMillis() - now) + " ms",notification.getUuid(),deviceRef.getUuid());
             }
             now=System.currentTimeMillis();
-            qm.postToQueue(queueName,message);
+            if (jobExecution == null && sendNow) {
+              messages.add(message);
+            }
+ else {
+              qm.postToQueue(queueName,message);
+            }
             LOG.info("ApplicationQueueMessage: notification {} post-queue to device {} duration " + (System.currentTimeMillis() - now) + " ms "+ queueName+ " queue",notification.getUuid(),deviceRef.getUuid());
             deviceCount.incrementAndGet();
             queueMeter.mark();
@@ -119,4 +125,9 @@
     long elapsed=notification.getQueued() != null ? notification.getQueued() - startTime : 0;
     LOG.info("ApplicationQueueMessage: notification {} done queuing to {} devices in " + elapsed + " ms",notification.getUuid().toString(),deviceCount.get());
   }
+  now=System.currentTimeMillis();
+  if (sendNow && messages.size() > 0) {
+    sendBatchToProviders(messages,null).toBlocking().lastOrDefault(null);
+  }
+  LOG.info("ApplicationQueueMessage: notification {} done sending duration {} ms",notification.getUuid(),System.currentTimeMillis() - now);
 }
