@@ -12,9 +12,9 @@
           if (isCollectionEdgeType(edge.getType())) {
             String collName=getCollectionName(edgeType);
             String memberType=getCollectionEntityType(edgeType);
-            CollectionScope collScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromCollectionName(collName));
+            CollectionScope collScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(entity.getType()));
             EntityCollectionManager collMgr=managerCache.getEntityCollectionManager(collScope);
-            org.apache.usergrid.persistence.model.entity.Entity collEntity=collMgr.load(edge.getTargetNode()).toBlockingObservable().last();
+            org.apache.usergrid.persistence.model.entity.Entity collEntity=collMgr.load(edge.getSourceNode()).toBlockingObservable().last();
             CollectionScope memberScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(memberType));
             EntityCollectionManager memberMgr=managerCache.getEntityCollectionManager(memberScope);
             org.apache.usergrid.persistence.model.entity.Entity memberEntity=memberMgr.load(edge.getTargetNode()).toBlockingObservable().last();
@@ -29,7 +29,7 @@
             String sourceEntityType=entity.getType();
             CollectionScope sourceScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(sourceEntityType));
             EntityCollectionManager sourceEcm=managerCache.getEntityCollectionManager(sourceScope);
-            org.apache.usergrid.persistence.model.entity.Entity sourceEntity=sourceEcm.load(edge.getTargetNode()).toBlockingObservable().last();
+            org.apache.usergrid.persistence.model.entity.Entity sourceEntity=sourceEcm.load(fromEntityId).toBlockingObservable().last();
             CollectionScope targetScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(targetEntityType));
             EntityCollectionManager targetEcm=managerCache.getEntityCollectionManager(targetScope);
             org.apache.usergrid.persistence.model.entity.Entity targetEntity=targetEcm.load(edge.getTargetNode()).toBlockingObservable().last();

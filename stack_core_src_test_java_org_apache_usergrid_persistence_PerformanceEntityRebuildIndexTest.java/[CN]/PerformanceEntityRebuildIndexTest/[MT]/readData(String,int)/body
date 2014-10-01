@@ -1,0 +1,25 @@
+{
+  EntityManager em=app.getEntityManager();
+  Query q=Query.fromQL("select * where key1=1000");
+  q.setLimit(40);
+  Results results=em.searchCollection(em.getApplicationRef(),collectionName,q);
+  int count=0;
+  while (true) {
+    for (    Entity e : results.getEntities()) {
+      assertEquals(2000,e.getProperty("key2"));
+      logger.info("read {} entities",count++);
+    }
+    if (results.hasCursor()) {
+      logger.info("Counted {} : query again with cursor",count);
+      q.setCursor(results.getCursor());
+      results=em.searchCollection(em.getApplicationRef(),collectionName,q);
+    }
+ else {
+      break;
+    }
+  }
+  if (expected != -1 && expected != count) {
+    throw new RuntimeException("Did not get expected " + expected + " entities");
+  }
+  return count;
+}

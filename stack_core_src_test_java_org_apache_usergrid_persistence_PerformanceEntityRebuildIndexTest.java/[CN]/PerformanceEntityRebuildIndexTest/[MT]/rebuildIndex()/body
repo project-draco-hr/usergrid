@@ -1,15 +1,15 @@
 {
   logger.info("Started rebuildIndex()");
   final EntityManager em=app.getEntityManager();
-  final long stopTime=System.currentTimeMillis() + RUNTIME;
+  final long stopTime=System.currentTimeMillis() + 300;
   final Map<String,Object> entityMap=new HashMap<>();
   entityMap.put("key1",1000);
   entityMap.put("key2",2000);
   entityMap.put("key3","Some value");
   List<EntityRef> entityRefs=new ArrayList<EntityRef>();
-  int i=0;
+  int entityCount=0;
   while (System.currentTimeMillis() < stopTime) {
-    entityMap.put("key",i);
+    entityMap.put("key",entityCount);
     final Entity created;
     try {
       created=em.create("testType",entityMap);
@@ -18,17 +18,32 @@
       throw new RuntimeException("Error creating entity",ex);
     }
     entityRefs.add(new SimpleEntityRef(created.getType(),created.getUuid()));
-    if (i % 100 == 0) {
-      logger.info("Created {} entities",i);
+    if (entityCount % 100 == 0) {
+      logger.info("Created {} entities",entityCount);
     }
-    i++;
+    entityCount++;
     try {
       Thread.sleep(writeDelayMs);
     }
  catch (    InterruptedException ignored) {
     }
   }
-  logger.info("Created {} entities",i);
+  logger.info("Created {} entities",entityCount);
+  em.refreshIndex();
+  logger.debug("Read the data");
+  readData("testTypes",entityCount);
+  logger.debug("Deleting app index and system app index");
+  deleteIndex(CpEntityManagerFactory.SYSTEM_APP_ID);
+  deleteIndex(em.getApplicationId());
+  logger.debug("Reading data, should fail this time ");
+  try {
+    readData("testTypes",entityCount);
+    fail("should have failed to read data");
+  }
+ catch (  Exception expected) {
+  }
+  logger.debug("Preparing to rebuild all indexes");
+  ;
   final String meterName=this.getClass().getSimpleName() + ".rebuildIndex";
   final Meter meter=registry.meter(meterName);
   EntityManagerFactory.ProgressObserver po=new EntityManagerFactory.ProgressObserver(){
@@ -46,10 +61,11 @@
   try {
     setup.getEmf().rebuildAllIndexes(po);
     registry.remove(meterName);
-    logger.info("Finished rebuildIndex()");
+    logger.info("Rebuilt index");
   }
  catch (  Exception ex) {
     logger.error("Error rebuilding index",ex);
     fail();
   }
+  readData("testTypes",entityCount);
 }
