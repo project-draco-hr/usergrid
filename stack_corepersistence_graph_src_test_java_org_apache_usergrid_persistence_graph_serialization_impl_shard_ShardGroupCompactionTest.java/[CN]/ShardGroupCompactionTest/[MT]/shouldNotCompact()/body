@@ -5,6 +5,7 @@
   final EdgeColumnFamilies edgeColumnFamilies=mock(EdgeColumnFamilies.class);
   final Keyspace keyspace=mock(Keyspace.class);
   final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
+  final TaskExecutor taskExecutor=mock(TaskExecutor.class);
   final long delta=10000;
   final long createTime=20000;
   final long timeNow=createTime + delta - 1;
@@ -12,7 +13,7 @@
   group.addShard(new Shard(2000,createTime,false));
   group.addShard(new Shard(1000,5000,true));
   when(timeService.getCurrentTime()).thenReturn(timeNow);
-  ShardGroupCompactionImpl compaction=new ShardGroupCompactionImpl(timeService,graphFig,nodeShardAllocation,shardedEdgeSerialization,edgeColumnFamilies,keyspace,edgeShardSerialization);
+  ShardGroupCompactionImpl compaction=new ShardGroupCompactionImpl(timeService,graphFig,nodeShardAllocation,shardedEdgeSerialization,edgeColumnFamilies,keyspace,edgeShardSerialization,taskExecutor);
   DirectedEdgeMeta directedEdgeMeta=DirectedEdgeMeta.fromSourceNode(createId("source"),"test");
   try {
     compaction.compact(this.scope,directedEdgeMeta,group);

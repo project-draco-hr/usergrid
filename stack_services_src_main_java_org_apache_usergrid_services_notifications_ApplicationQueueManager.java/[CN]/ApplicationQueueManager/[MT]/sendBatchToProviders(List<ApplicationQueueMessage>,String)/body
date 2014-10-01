@@ -3,10 +3,11 @@
   final Meter sendMeter=metricsFactory.getMeter(NotificationsService.class,"send");
   final Map<Object,Notifier> notifierMap=getNotifierMap();
   final QueueManager proxy=this;
-  final ConcurrentHashMap<UUID,SingleQueueTaskManager> taskMap=new ConcurrentHashMap<UUID,SingleQueueTaskManager>(messages.size());
+  final ConcurrentHashMap<UUID,TaskManager> taskMap=new ConcurrentHashMap<UUID,TaskManager>(messages.size());
   final ConcurrentHashMap<UUID,Notification> notificationMap=new ConcurrentHashMap<UUID,Notification>(messages.size());
   final Func1<ApplicationQueueMessage,ApplicationQueueMessage> func=new Func1<ApplicationQueueMessage,ApplicationQueueMessage>(){
     @Override public ApplicationQueueMessage call(    ApplicationQueueMessage message){
+      boolean messageCommitted=false;
       try {
         LOG.info("start sending notification for device {} for Notification: {} on thread " + Thread.currentThread().getId(),message.getDeviceId(),message.getNotificationId());
         UUID deviceUUID=message.getDeviceId();
@@ -15,10 +16,9 @@
           notification=em.get(message.getNotificationId(),Notification.class);
           notificationMap.put(message.getNotificationId(),notification);
         }
-        SingleQueueTaskManager taskManager;
-        taskManager=taskMap.get(message.getNotificationId());
+        TaskManager taskManager=taskMap.get(message.getNotificationId());
         if (taskManager == null) {
-          taskManager=new SingleQueueTaskManager(em,qm,proxy,notification,queuePath);
+          taskManager=new TaskManager(em,qm,proxy,notification,queuePath);
           taskMap.putIfAbsent(message.getNotificationId(),taskManager);
           taskManager=taskMap.get(message.getNotificationId());
         }
@@ -54,6 +54,7 @@
               }
             }
           }
+          messageCommitted=true;
         }
   finally {
           sendMeter.mark();
@@ -61,6 +62,14 @@
       }
  catch (      Exception e) {
         LOG.error("Failure while sending",e);
+        try {
+          if (!messageCommitted && queuePath != null) {
+            qm.commitTransaction(queuePath,message.getTransaction(),null);
+          }
+        }
+ catch (        Exception queueException) {
+          LOG.error("Failed to commit message.",queueException);
+        }
       }
       return message;
     }
@@ -85,7 +94,7 @@
       for (      ApplicationQueueMessage message : queueMessages) {
         if (notifications.get(message.getNotificationId()) == null) {
           try {
-            SingleQueueTaskManager taskManager=taskMap.get(message.getNotificationId());
+            TaskManager taskManager=taskMap.get(message.getNotificationId());
             notifications.put(message.getNotificationId(),message);
             taskManager.finishedBatch();
           }
