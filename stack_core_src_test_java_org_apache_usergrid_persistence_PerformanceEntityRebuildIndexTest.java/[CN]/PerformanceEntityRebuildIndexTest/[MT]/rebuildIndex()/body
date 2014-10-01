@@ -10,25 +10,46 @@
   int i=0;
   while (System.currentTimeMillis() < stopTime) {
     entityMap.put("key",i);
-    final Entity created=em.create("testType",entityMap);
-    entityRefs.add(new SimpleEntityRef(created.getType(),created.getUuid()));
-    i++;
-    if (i % 1000 == 0) {
-      logger.debug("rebuildIndex() Created {} entities",i);
+    final Entity created;
+    try {
+      created=em.create("testType",entityMap);
     }
-    Thread.sleep(writeDelayMs);
+ catch (    Exception ex) {
+      throw new RuntimeException("Error creating entity",ex);
+    }
+    entityRefs.add(new SimpleEntityRef(created.getType(),created.getUuid()));
+    if (i % 100 == 0) {
+      logger.info("Created {} entities",i);
+    }
+    i++;
+    try {
+      Thread.sleep(writeDelayMs);
+    }
+ catch (    InterruptedException ignored) {
+    }
   }
-  logger.info("rebuildIndex() Created {} entities",i);
+  logger.info("Created {} entities",i);
   final String meterName=this.getClass().getSimpleName() + ".rebuildIndex";
   final Meter meter=registry.meter(meterName);
   EntityManagerFactory.ProgressObserver po=new EntityManagerFactory.ProgressObserver(){
-    @Override public void onProgress(){
+    int counter=0;
+    @Override public void onProgress(    EntityRef s,    EntityRef t,    String etype){
       meter.mark();
+      logger.debug("Indexing from {}:{} to {}:{} edgeType {}",new Object[]{s.getType(),s.getUuid(),t.getType(),t.getUuid(),etype});
+      if (!logger.isDebugEnabled() && counter % 100 == 0) {
+        logger.info("Reindexed {} entities",counter);
+      }
+      counter++;
     }
   }
 ;
-  setup.getEmf().rebuildInternalIndexes(po);
-  setup.getEmf().rebuildCollectionIndex(app.getId(),"testTypes",po);
-  registry.remove(meterName);
-  logger.info("Finished rebuildIndex()");
+  try {
+    setup.getEmf().rebuildAllIndexes(po);
+    registry.remove(meterName);
+    logger.info("Finished rebuildIndex()");
+  }
+ catch (  Exception ex) {
+    logger.error("Error rebuilding index",ex);
+    fail();
+  }
 }
