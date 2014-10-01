@@ -7,8 +7,9 @@
       svcMgr=smf.getServiceManager(smf.getManagementAppId());
       queueManager=svcMgr.getQueueManager();
       String queueName=ApplicationQueueManager.getRandomQueue(queueNames);
+      LOG.info("getting from queue {} ",queueName);
       QueueResults results=getDeliveryBatch(queueManager,queueName);
-      LOG.info("QueueListener: retrieved batch of {} messages",results.size());
+      LOG.info("QueueListener: retrieved batch of {} messages from queue {} ",results.size(),queueName);
       List<Message> messages=results.getMessages();
       if (messages.size() > 0) {
         HashMap<UUID,List<ApplicationQueueMessage>> messageMap=new HashMap<>(messages.size());
