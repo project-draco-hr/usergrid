@@ -1,0 +1,17 @@
+{
+  final MvccLogEntrySerializationStrategy logEntrySerializationStrategy=mock(MvccLogEntrySerializationStrategy.class);
+  final CollectionScope scope=new CollectionScopeImpl(new SimpleId("application"),new SimpleId("owner"),"entities");
+  final Id entityId=new SimpleId("entity");
+  final int toGenerate=pageSize * totalPages + lastPageSize;
+  final LogEntryMock mockResults=LogEntryMock.createLogEntryMock(logEntrySerializationStrategy,scope,entityId,toGenerate);
+  Iterator<MvccLogEntry> expectedEntries=mockResults.getEntries().iterator();
+  UUID start=expectedEntries.next().getVersion();
+  LogEntryIterator itr=new LogEntryIterator(logEntrySerializationStrategy,scope,entityId,start,pageSize);
+  while (expectedEntries.hasNext() && itr.hasNext()) {
+    final MvccLogEntry expected=expectedEntries.next();
+    final MvccLogEntry returned=itr.next();
+    assertEquals(expected,returned);
+  }
+  assertFalse(itr.hasNext());
+  assertFalse(expectedEntries.hasNext());
+}

@@ -3,40 +3,7 @@
   if (repairChance > graphFig.getShardRepairChance()) {
     return Futures.immediateFuture(AuditResult.NOT_CHECKED);
   }
-  ListenableFuture<AuditResult> future=executorService.submit(new Callable<AuditResult>(){
-    @Override public AuditResult call() throws Exception {
-      if (!group.isCompactionPending()) {
-        if (!shardAuditTaskTracker.canStartTask(scope,edgeMeta,group)) {
-          return AuditResult.CHECKED_NO_OP;
-        }
-        try {
-          final boolean created=nodeShardAllocation.auditShard(scope,group,edgeMeta);
-          if (!created) {
-            return AuditResult.CHECKED_NO_OP;
-          }
-        }
-  finally {
-          shardAuditTaskTracker.complete(scope,edgeMeta,group);
-        }
-        return AuditResult.CHECKED_CREATED;
-      }
-      if (group.shouldCompact(timeService.getCurrentTime())) {
-        if (!shardCompactionTaskTracker.canStartTask(scope,edgeMeta,group)) {
-          return AuditResult.COMPACTING;
-        }
-        try {
-          CompactionResult result=compact(scope,edgeMeta,group);
-          LOG.info("Compaction result for compaction of scope {} with edge meta data of {} and shard group {} is {}",new Object[]{scope,edgeMeta,group,result});
-        }
-  finally {
-          shardCompactionTaskTracker.complete(scope,edgeMeta,group);
-        }
-        return AuditResult.COMPACTED;
-      }
-      return AuditResult.NOT_CHECKED;
-    }
-  }
-);
+  ListenableFuture<AuditResult> future=taskExecutor.submit(new ShardAuditTask(scope,edgeMeta,group));
   Futures.addCallback(future,new FutureCallback<AuditResult>(){
     @Override public void onSuccess(    @Nullable final AuditResult result){
       LOG.debug("Successfully completed audit of task {}",result);
