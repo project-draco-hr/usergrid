@@ -1,13 +1,15 @@
 {
   Thread.currentThread().setName("Notifications_Processor" + UUID.randomUUID());
-  svcMgr=smf.getServiceManager(smf.getManagementAppId());
-  queueManager=svcMgr.getQueueManager();
   final AtomicInteger consecutiveExceptions=new AtomicInteger();
   LOG.info("QueueListener: Starting execute process.");
   while (true) {
     try {
-      QueueResults results=getDeliveryBatch(queueManager);
-      LOG.info("QueueListener: retrieved batch of {} messages",results.size());
+      svcMgr=smf.getServiceManager(smf.getManagementAppId());
+      queueManager=svcMgr.getQueueManager();
+      String queueName=ApplicationQueueManager.getRandomQueue(queueNames);
+      LOG.info("getting from queue {} ",queueName);
+      QueueResults results=getDeliveryBatch(queueManager,queueName);
+      LOG.info("QueueListener: retrieved batch of {} messages from queue {} ",results.size(),queueName);
       List<Message> messages=results.getMessages();
       if (messages.size() > 0) {
         HashMap<UUID,List<ApplicationQueueMessage>> messageMap=new HashMap<>(messages.size());
@@ -31,7 +33,7 @@
           ServiceManager serviceManager=smf.getServiceManager(applicationId);
           final ApplicationQueueManager manager=new ApplicationQueueManager(new JobScheduler(serviceManager,entityManager),entityManager,queueManager,metricsService,properties);
           LOG.info("QueueListener: send batch for app {} of {} messages",entry.getKey(),entry.getValue().size());
-          Observable current=manager.sendBatchToProviders(entry.getValue());
+          Observable current=manager.sendBatchToProviders(entry.getValue(),queueName);
           if (merge == null)           merge=current;
  else {
             merge=Observable.merge(merge,current);
@@ -55,7 +57,9 @@
  catch (    Exception ex) {
       LOG.error("failed to dequeue",ex);
       try {
-        long sleeptime=sleepWhenNoneFound * (consecutiveExceptions.incrementAndGet());
+        long sleeptime=sleepWhenNoneFound * consecutiveExceptions.incrementAndGet();
+        long maxSleep=15000;
+        sleeptime=sleeptime > maxSleep ? maxSleep : sleeptime;
         LOG.info("sleeping due to failures {} ms",sleeptime);
         Thread.sleep(sleeptime);
       }

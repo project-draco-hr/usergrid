@@ -4,7 +4,7 @@
     throw new QueueException("Neccessary queue bounds not found");
   }
   UUID finish_uuid=params.reversed ? bounds.getOldest() : bounds.getNewest();
-  List<UUID> results=new ArrayList<UUID>(params.limit);
+  List<UUID> results=new ArrayList<>(params.limit);
   UUID start=params.startId;
   if (start == null) {
     start=params.reversed ? bounds.getNewest() : bounds.getOldest();
@@ -23,31 +23,33 @@
   if (params.reversed) {
     current_ts_shard=finish_ts_shard;
   }
-  while ((current_ts_shard >= start_ts_shard) && (current_ts_shard <= finish_ts_shard)) {
-    UUID slice_start=MIN_TIME_UUID;
-    UUID slice_end=MAX_TIME_UUID;
-    if (current_ts_shard == start_ts_shard) {
-      slice_start=start;
-    }
-    if (current_ts_shard == finish_ts_shard) {
-      slice_end=finish_uuid;
-    }
+  final MessageIdComparator comparator=new MessageIdComparator(params.reversed);
+  if (comparator.compare(start,finish_uuid) > 0) {
+    logger.warn("Tried to perform a slice with start UUID {} after finish UUID {}.",start,finish_uuid);
+    throw new IllegalArgumentException(String.format("You cannot specify a start value of %s after finish value of %s",start,finish_uuid));
+  }
+  UUID lastValue=start;
+  boolean firstPage=true;
+  while ((current_ts_shard >= start_ts_shard) && (current_ts_shard <= finish_ts_shard) && comparator.compare(start,finish_uuid) < 1) {
+    logger.info("Starting search with start UUID {}, finish UUID {}, and reversed {}",new Object[]{lastValue,finish_uuid,params.reversed});
     SliceQuery<ByteBuffer,UUID,ByteBuffer> q=createSliceQuery(ko,be,ue,be);
     q.setColumnFamily(QUEUE_INBOX.getColumnFamily());
     q.setKey(getQueueShardRowKey(queueId,current_ts_shard));
-    q.setRange(slice_start,slice_end,params.reversed,params.limit + 1);
-    List<HColumn<UUID,ByteBuffer>> cassResults=q.execute().get().getColumns();
+    q.setRange(lastValue,finish_uuid,params.reversed,params.limit + 1);
+    final List<HColumn<UUID,ByteBuffer>> cassResults=swallowOrderedExecution(q);
     for (int i=0; i < cassResults.size(); i++) {
       HColumn<UUID,ByteBuffer> column=cassResults.get(i);
-      if (i == 0 && params.skipFirst && params.startId.equals(column.getName())) {
+      final UUID columnName=column.getName();
+      if (i == 0 && (firstPage && params.skipFirst && params.startId.equals(columnName)) || (!firstPage && lastValue != null && lastValue.equals(columnName))) {
         continue;
       }
-      UUID id=column.getName();
-      results.add(id);
-      logger.debug("Added id '{}' to result set for queue id '{}'",id,queueId);
+      lastValue=columnName;
+      results.add(columnName);
+      logger.debug("Added id '{}' to result set for queue id '{}'",start,queueId);
       if (results.size() >= params.limit) {
         return results;
       }
+      firstPage=false;
     }
     if (params.reversed) {
       current_ts_shard-=QUEUE_SHARD_INTERVAL;

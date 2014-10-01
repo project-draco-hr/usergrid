@@ -3,7 +3,7 @@
   q.setColumnFamily(CONSUMER_QUEUE_TIMEOUTS.getColumnFamily());
   q.setKey(getQueueClientTransactionKey(queueId,consumerId));
   q.setRange(params.startId,startTimeUUID,false,params.limit + 1);
-  List<HColumn<UUID,UUID>> cassResults=q.execute().get().getColumns();
+  List<HColumn<UUID,UUID>> cassResults=swallowOrderedExecution(q);
   List<TransactionPointer> results=new ArrayList<TransactionPointer>(params.limit);
   for (  HColumn<UUID,UUID> column : cassResults) {
     if (logger.isDebugEnabled()) {

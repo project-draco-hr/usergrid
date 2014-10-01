@@ -2,6 +2,9 @@
   String name=op.getProperty().getValue();
   name=name.toLowerCase();
   Object value=op.getLiteral().getValue();
-  name=addPrefix(value,name,true);
-  stack.push(QueryBuilders.matchQuery(name,value));
+  BoolQueryBuilder qb=QueryBuilders.boolQuery();
+  qb.minimumNumberShouldMatch(1);
+  qb=qb.should(QueryBuilders.matchQuery(name,value));
+  qb=qb.should(QueryBuilders.matchQuery(addPrefix(value.toString(),name,true),value));
+  stack.push(qb);
 }

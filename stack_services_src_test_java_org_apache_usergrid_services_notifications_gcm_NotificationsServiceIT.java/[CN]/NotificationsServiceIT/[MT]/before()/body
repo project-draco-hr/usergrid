@@ -1,4 +1,5 @@
 {
+  ApplicationQueueManager.DEFAULT_QUEUE_NAME="notifications/test/" + UUID.randomUUID().toString() + ";"+ "notifications/test/"+ UUID.randomUUID().toString();
   super.before();
   app.clear();
   app.put("name","gcm");
@@ -23,7 +24,7 @@
   query.setResultsLevel(Query.Level.ALL_PROPERTIES);
   PathQuery pathQuery=new PathQuery(new SimpleEntityRef(app.getEm().getApplicationRef()),query);
   ns.TEST_PATH_QUERY=pathQuery;
-  ApplicationQueueManager.DEFAULT_QUEUE_NAME="notifications/test/" + UUID.randomUUID().toString();
   listener=new QueueListener(ns.getServiceManagerFactory(),ns.getEntityManagerFactory(),ns.getMetricsFactory(),new Properties());
-  listener.run();
+  listener.DEFAULT_SLEEP=200;
+  listener.start();
 }
