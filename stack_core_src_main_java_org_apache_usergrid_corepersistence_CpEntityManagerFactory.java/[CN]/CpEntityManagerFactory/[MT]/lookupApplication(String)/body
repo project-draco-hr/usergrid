@@ -1,9 +1,15 @@
 {
+  init();
   Query q=Query.fromQL(PROPERTY_NAME + " = '" + name+ "'");
-  EntityIndex ei=getManagerCache().getEntityIndex(SYSTEM_APPS_INDEX_SCOPE);
-  CandidateResults results=ei.search(SYSTEM_APPS_INDEX_SCOPE,q);
+  EntityManager em=getEntityManager(SYSTEM_APP_ID);
+  Results results=em.searchCollection(em.getApplicationRef(),"appinfos",q);
   if (results.isEmpty()) {
     return null;
   }
-  return results.iterator().next().getId().getUuid();
+  Entity entity=results.iterator().next();
+  Object uuidObject=entity.getProperty("applicationUuid");
+  if (uuidObject instanceof UUID) {
+    return (UUID)uuidObject;
+  }
+  return UUIDUtils.tryExtractUUID(entity.getProperty("applicationUuid").toString());
 }

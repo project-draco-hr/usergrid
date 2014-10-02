@@ -1,16 +1,20 @@
 {
-  EntityIndex ei=getManagerCache().getEntityIndex(SYSTEM_PROPS_INDEX_SCOPE);
-  EntityCollectionManager em=getManagerCache().getEntityCollectionManager(SYSTEM_PROPS_SCOPE);
-  Query q=Query.fromQL("select *");
-  CandidateResults results=ei.search(SYSTEM_PROPS_INDEX_SCOPE,q);
-  if (results.isEmpty()) {
-    return new HashMap<String,String>();
-  }
-  CandidateResult cr=results.iterator().next();
-  Entity propsEntity=em.load(cr.getId()).toBlockingObservable().last();
   Map<String,String> props=new HashMap<String,String>();
-  for (  Field f : propsEntity.getFields()) {
-    props.put(f.getName(),f.getValue().toString());
+  EntityManager em=getEntityManager(SYSTEM_APP_ID);
+  Query q=Query.fromQL("select *");
+  Results results=null;
+  try {
+    results=em.searchCollection(em.getApplicationRef(),"propertymaps",q);
+  }
+ catch (  Exception ex) {
+    logger.error("Error getting system properties",ex);
+  }
+  if (results == null || results.isEmpty()) {
+    return props;
+  }
+  org.apache.usergrid.persistence.Entity e=results.getEntity();
+  for (  String key : e.getProperties().keySet()) {
+    props.put(key,props.get(key).toString());
   }
   return props;
 }
