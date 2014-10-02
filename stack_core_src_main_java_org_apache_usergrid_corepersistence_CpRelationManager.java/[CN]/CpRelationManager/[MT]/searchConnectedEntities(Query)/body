@@ -4,14 +4,14 @@
   }
   headEntity=em.validate(headEntity);
   if (query.getEntityType() == null) {
-    IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),ALL_TYPES);
+    IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),CpNamingUtils.ALL_TYPES);
     EntityIndex ei=managerCache.getEntityIndex(applicationScope);
     logger.debug("Searching connections from the all-types scope {}:{}:{}",new String[]{indexScope.getApplication().toString(),indexScope.getOwner().toString(),indexScope.getName()});
     query=adjustQuery(query);
     CandidateResults crs=ei.search(indexScope,query);
     return buildConnectionResults(query,crs,query.getConnectionType());
   }
-  IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),CpEntityManager.getConnectionScopeName(query.getEntityType(),query.getConnectionType()));
+  IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),CpNamingUtils.getConnectionScopeName(query.getEntityType(),query.getConnectionType()));
   EntityIndex ei=managerCache.getEntityIndex(applicationScope);
   logger.debug("Searching connections from the '{}' scope {}:{}:{}",new String[]{indexScope.getApplication().toString(),indexScope.getOwner().toString(),indexScope.getName()});
   query=adjustQuery(query);

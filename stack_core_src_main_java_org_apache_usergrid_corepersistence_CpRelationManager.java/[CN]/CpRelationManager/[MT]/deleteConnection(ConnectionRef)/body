@@ -6,7 +6,7 @@
   EntityRef connectingEntityRef=connectionRef.getConnectingEntity();
   EntityRef connectedEntityRef=connectionRef.getConnectedEntity();
   String connectionType=connectionRef.getConnectedEntity().getConnectionType();
-  CollectionScope targetScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(connectedEntityRef.getType()));
+  CollectionScope targetScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpNamingUtils.getCollectionScopeNameFromEntityType(connectedEntityRef.getType()));
   EntityCollectionManager targetEcm=managerCache.getEntityCollectionManager(targetScope);
   if (logger.isDebugEnabled()) {
     logger.debug("Deleting connection '{}' from source {}:{} \n   to target {}:{}",new Object[]{connectionType,connectingEntityRef.getType(),connectingEntityRef.getUuid(),connectedEntityRef.getType(),connectedEntityRef.getUuid()});
@@ -17,8 +17,8 @@
   gm.deleteEdge(edge).toBlockingObservable().last();
   final EntityIndex ei=managerCache.getEntityIndex(applicationScope);
   final EntityIndexBatch batch=ei.createBatch();
-  IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),CpEntityManager.getConnectionScopeName(targetEntity.getId().getType(),connectionType));
+  IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),CpNamingUtils.getConnectionScopeName(targetEntity.getId().getType(),connectionType));
   batch.deindex(indexScope,targetEntity);
-  IndexScope allTypesIndexScope=new IndexScopeImpl(applicationScope.getApplication(),new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),ALL_TYPES);
+  IndexScope allTypesIndexScope=new IndexScopeImpl(applicationScope.getApplication(),new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),CpNamingUtils.ALL_TYPES);
   batch.deindex(allTypesIndexScope,targetEntity);
 }
