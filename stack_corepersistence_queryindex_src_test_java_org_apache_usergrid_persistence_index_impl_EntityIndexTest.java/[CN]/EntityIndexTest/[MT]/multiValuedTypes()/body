@@ -16,7 +16,8 @@
   Entity bill=EntityIndexMapUtils.fromMap(billMap);
   EntityUtils.setId(bill,new SimpleId(UUIDGenerator.newTimeUUID(),"user"));
   EntityUtils.setVersion(bill,UUIDGenerator.newTimeUUID());
-  ei.index(bill);
+  EntityIndexBatch batch=ei.createBatch();
+  batch.index(appScope,bill);
   Map fredMap=new HashMap(){
 {
       put("username","fred");
@@ -43,22 +44,22 @@
   Entity fred=EntityIndexMapUtils.fromMap(fredMap);
   EntityUtils.setId(fred,new SimpleId(UUIDGenerator.newTimeUUID(),"user"));
   EntityUtils.setVersion(fred,UUIDGenerator.newTimeUUID());
-  ei.index(fred);
-  ei.refresh();
+  batch.index(appScope,fred);
+  batch.executeAndRefresh();
   Query query=new Query();
   query.addEqualityFilter("username","bill");
-  CandidateResults r=ei.search(query);
+  CandidateResults r=ei.search(appScope,query);
   assertEquals(bill.getId(),r.get(0).getId());
   query=new Query();
   query.addEqualityFilter("username","fred");
-  r=ei.search(query);
+  r=ei.search(appScope,query);
   assertEquals(fred.getId(),r.get(0).getId());
   query=new Query();
   query.addEqualityFilter("age",41);
-  r=ei.search(query);
+  r=ei.search(appScope,query);
   assertEquals(fred.getId(),r.get(0).getId());
   query=new Query();
   query.addEqualityFilter("age","thirtysomething");
-  r=ei.search(query);
+  r=ei.search(appScope,query);
   assertEquals(bill.getId(),r.get(0).getId());
 }

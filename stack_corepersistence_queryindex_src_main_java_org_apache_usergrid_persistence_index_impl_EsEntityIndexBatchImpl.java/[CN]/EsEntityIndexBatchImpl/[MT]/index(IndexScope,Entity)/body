@@ -1,0 +1,14 @@
+{
+  final String indexType=createCollectionScopeTypeName(indexScope);
+  if (log.isDebugEnabled()) {
+    log.debug("Indexing entity {}:{} in scope\n   app {}\n   owner {}\n   name {}\n   type {}",new Object[]{entity.getId().getType(),entity.getId().getUuid(),indexScope.getApplication(),indexScope.getOwner(),indexScope.getName(),indexType});
+  }
+  ValidationUtils.verifyEntityWrite(entity);
+  initType(indexScope,indexType);
+  Map<String,Object> entityAsMap=entityToMap(entity);
+  entityAsMap.put(STRING_PREFIX + ENTITYID_FIELDNAME,entity.getId().getUuid().toString().toLowerCase());
+  String indexId=createIndexDocId(entity);
+  log.debug("Indexing entity id {} data {} ",indexId,entityAsMap);
+  bulkRequest.add(client.prepareIndex(indexName,indexType,indexId).setSource(entityAsMap));
+  return this;
+}

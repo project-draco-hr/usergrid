@@ -13,12 +13,11 @@
   Entity entity=EntityIndexMapUtils.fromMap(entityMap);
   EntityUtils.setId(entity,new SimpleId("fastcar"));
   EntityUtils.setVersion(entity,UUIDGenerator.newTimeUUID());
-  entityIndex.index(entity);
-  entityIndex.refresh();
-  CandidateResults candidateResults=entityIndex.search(Query.fromQL("name contains 'Ferrari*'"));
+  entityIndex.createBatch().index(indexScope,entity).executeAndRefresh();
+  CandidateResults candidateResults=entityIndex.search(indexScope,Query.fromQL("name contains 'Ferrari*'"));
   assertEquals(1,candidateResults.size());
-  entityIndex.deindex(entity);
+  entityIndex.createBatch().deindex(indexScope,entity).execute();
   entityIndex.refresh();
-  candidateResults=entityIndex.search(Query.fromQL("name contains 'Ferrari*'"));
+  candidateResults=entityIndex.search(indexScope,Query.fromQL("name contains 'Ferrari*'"));
   assertEquals(0,candidateResults.size());
 }

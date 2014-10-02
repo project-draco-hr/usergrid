@@ -13,18 +13,22 @@
   String s=null;
   Entity current=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),"review"));
   int count=0;
+  EntityIndexBatch entityIndexBatch=eci.createBatch();
   try {
     while ((s=br.readLine()) != null && count < maxEntities) {
       try {
         if (s.trim().equals("")) {
           ecm.write(current).toBlocking().last();
-          eci.index(current);
+          entityIndexBatch.index(indexScope,current);
           if (maxEntities < 20) {
             log.info("Index written for {}",current.getId());
             log.info("---");
           }
           current=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),"review"));
           count++;
+          if (count % 1000 == 0) {
+            entityIndexBatch.execute();
+          }
           if (count % 100000 == 0) {
             log.info("Indexed {} reviews in {} / {} ",new Object[]{count,indexScope.getApplication(),indexScope.getOwner()});
           }

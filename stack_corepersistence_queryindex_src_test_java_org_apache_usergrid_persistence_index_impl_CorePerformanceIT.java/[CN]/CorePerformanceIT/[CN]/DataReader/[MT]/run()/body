@@ -3,11 +3,11 @@
   EntityCollectionManager ecm=ecmf.createCollectionManager(new CollectionScopeImpl(indexScope.getApplication(),indexScope.getOwner(),indexScope.getName()));
   Query query=Query.fromQL("review_score > 0");
   query.withLimit(maxEntities < 1000 ? maxEntities : 1000);
-  CandidateResults candidateResults=eci.search(query);
+  CandidateResults candidateResults=eci.search(indexScope,query);
   int count=candidateResults.size();
   while (candidateResults.hasCursor() && count < maxEntities) {
     query.setCursor(candidateResults.getCursor());
-    candidateResults=eci.search(query);
+    candidateResults=eci.search(indexScope,query);
     count+=candidateResults.size();
     EntityResults entityResults=new EntityResults(candidateResults,ecm,UUIDGenerator.newTimeUUID());
     while (entityResults.hasNext()) {

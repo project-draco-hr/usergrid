@@ -1,0 +1,10 @@
+{
+  final String indexType=createCollectionScopeTypeName(indexScope);
+  if (log.isDebugEnabled()) {
+    log.debug("De-indexing entity {}:{} in scope\n   app {}\n   owner {}\n   name {} type {}",new Object[]{id.getType(),id.getUuid(),indexScope.getApplication(),indexScope.getOwner(),indexScope.getName(),indexType});
+  }
+  String indexId=createIndexDocId(id,version);
+  bulkRequest.add(client.prepareDelete(indexName,indexType,indexId).setRefresh(refresh));
+  log.debug("Deindexed Entity with index id " + indexId);
+  return this;
+}

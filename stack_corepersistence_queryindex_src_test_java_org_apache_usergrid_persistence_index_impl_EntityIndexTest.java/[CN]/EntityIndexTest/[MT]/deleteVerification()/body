@@ -15,16 +15,15 @@
   Entity user=EntityIndexMapUtils.fromMap(entityMap);
   EntityUtils.setId(user,new SimpleId("edanuff"));
   EntityUtils.setVersion(user,UUIDGenerator.newTimeUUID());
-  ei.index(user);
-  ei.refresh();
+  EntityIndexBatch batch=ei.createBatch();
+  batch.index(appScope,user).executeAndRefresh();
   Query query=new Query();
   query.addEqualityFilter("username","edanuff");
-  CandidateResults r=ei.search(query);
+  CandidateResults r=ei.search(appScope,query);
   assertEquals(user.getId(),r.get(0).getId());
-  ei.deindex(user.getId(),user.getVersion());
-  ei.refresh();
+  batch.deindex(appScope,user.getId(),user.getVersion()).executeAndRefresh();
   query=new Query();
   query.addEqualityFilter("username","edanuff");
-  r=ei.search(query);
+  r=ei.search(appScope,query);
   assertFalse(r.iterator().hasNext());
 }

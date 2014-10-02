@@ -24,9 +24,10 @@
   assertNotNull(person.getId().getUuid());
   IndexScope scope=new IndexScopeImpl(appId,person.getId(),"likes");
   EntityIndex personLikesIndex=ecif.createEntityIndex(scope);
-  personLikesIndex.index(muffin);
-  personLikesIndex.refresh();
-  CandidateResults likes=personLikesIndex.search(Query.fromQL("select *"));
+  EntityIndexBatch batch=personLikesIndex.createBatch();
+  batch.index(scope,muffin);
+  batch.executeAndRefresh();
+  CandidateResults likes=personLikesIndex.search(scope,Query.fromQL("select *"));
   assertEquals(1,likes.size());
   assertEquals(muffin.getId(),likes.get(0).getId());
 }
