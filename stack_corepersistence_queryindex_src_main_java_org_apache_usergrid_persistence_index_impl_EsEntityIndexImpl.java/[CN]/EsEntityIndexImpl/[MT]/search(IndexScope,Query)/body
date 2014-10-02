@@ -1,0 +1,68 @@
+{
+  final String indexType=createCollectionScopeTypeName(indexScope);
+  QueryBuilder qb=query.createQueryBuilder();
+  if (log.isDebugEnabled()) {
+    log.debug("Searching index {}\n   type {}\n   query {} limit {}",new Object[]{this.indexName,indexType,qb.toString().replace("\n"," "),query.getLimit()});
+  }
+  SearchResponse searchResponse;
+  if (query.getCursor() == null) {
+    SearchRequestBuilder srb=client.prepareSearch(indexName).setTypes(indexType).setScroll(cursorTimeout + "m").setQuery(qb);
+    FilterBuilder fb=query.createFilterBuilder();
+    if (fb != null) {
+      log.debug("   Filter: {} ",fb.toString());
+      srb=srb.setPostFilter(fb);
+    }
+    srb=srb.setFrom(0).setSize(query.getLimit());
+    for (    Query.SortPredicate sp : query.getSortPredicates()) {
+      final SortOrder order;
+      if (sp.getDirection().equals(Query.SortDirection.ASCENDING)) {
+        order=SortOrder.ASC;
+      }
+ else {
+        order=SortOrder.DESC;
+      }
+      final String stringFieldName=STRING_PREFIX + sp.getPropertyName();
+      final FieldSortBuilder stringSort=SortBuilders.fieldSort(stringFieldName).order(order).ignoreUnmapped(true);
+      srb.addSort(stringSort);
+      log.debug("   Sort: {} order by {}",stringFieldName,order.toString());
+      final String numberFieldName=NUMBER_PREFIX + sp.getPropertyName();
+      final FieldSortBuilder numberSort=SortBuilders.fieldSort(numberFieldName).order(order).ignoreUnmapped(true);
+      srb.addSort(numberSort);
+      log.debug("   Sort: {} order by {}",numberFieldName,order.toString());
+      final String booleanFieldName=BOOLEAN_PREFIX + sp.getPropertyName();
+      final FieldSortBuilder booleanSort=SortBuilders.fieldSort(booleanFieldName).order(order).ignoreUnmapped(true);
+      srb.addSort(booleanSort);
+      log.debug("   Sort: {} order by {}",booleanFieldName,order.toString());
+    }
+    searchResponse=srb.execute().actionGet();
+  }
+ else {
+    String scrollId=query.getCursor();
+    if (scrollId.startsWith("\"")) {
+      scrollId=scrollId.substring(1);
+    }
+    if (scrollId.endsWith("\"")) {
+      scrollId=scrollId.substring(0,scrollId.length() - 1);
+    }
+    log.debug("Executing query with cursor: {} ",scrollId);
+    SearchScrollRequestBuilder ssrb=client.prepareSearchScroll(scrollId).setScroll(cursorTimeout + "m");
+    searchResponse=ssrb.execute().actionGet();
+  }
+  SearchHits hits=searchResponse.getHits();
+  log.debug("   Hit count: {} Total hits: {}",hits.getHits().length,hits.getTotalHits());
+  List<CandidateResult> candidates=new ArrayList<CandidateResult>();
+  for (  SearchHit hit : hits.getHits()) {
+    String[] idparts=hit.getId().split(DOC_ID_SEPARATOR_SPLITTER);
+    String id=idparts[0];
+    String type=idparts[1];
+    String version=idparts[2];
+    Id entityId=new SimpleId(UUID.fromString(id),type);
+    candidates.add(new CandidateResult(entityId,UUID.fromString(version)));
+  }
+  CandidateResults candidateResults=new CandidateResults(query,candidates);
+  if (candidates.size() >= query.getLimit()) {
+    candidateResults.setCursor(searchResponse.getScrollId());
+    log.debug("   Cursor = " + searchResponse.getScrollId());
+  }
+  return candidateResults;
+}

@@ -1,11 +1,11 @@
 {
-  IndexScope collectionIndexScope=new IndexScopeImpl(applicationScope.getApplication(),collectionEntity.getId(),CpEntityManager.getCollectionScopeNameFromCollectionName(collName));
-  EntityIndex collectionIndex=managerCache.getEntityIndex(collectionIndexScope);
-  collectionIndex.index(memberEntity);
-  IndexScope entityAllTypesScope=new IndexScopeImpl(applicationScope.getApplication(),collectionEntity.getId(),ALL_TYPES);
-  EntityIndex entityAllCollectionIndex=managerCache.getEntityIndex(entityAllTypesScope);
-  entityAllCollectionIndex.index(memberEntity);
-  IndexScope appAllTypesScope=new IndexScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),ALL_TYPES);
-  EntityIndex allCollectionIndex=managerCache.getEntityIndex(appAllTypesScope);
-  allCollectionIndex.index(memberEntity);
+  final EntityIndex ei=getManagerCache().getEntityIndex(applicationScope);
+  final EntityIndexBatch batch=ei.createBatch();
+  IndexScope collectionIndexScope=new IndexScopeImpl(collectionEntity.getId(),CpNamingUtils.getCollectionScopeNameFromCollectionName(collName));
+  batch.index(collectionIndexScope,memberEntity);
+  IndexScope entityAllTypesScope=new IndexScopeImpl(collectionEntity.getId(),CpNamingUtils.ALL_TYPES);
+  batch.index(entityAllTypesScope,memberEntity);
+  IndexScope appAllTypesScope=new IndexScopeImpl(applicationScope.getApplication(),CpNamingUtils.ALL_TYPES);
+  batch.index(appAllTypesScope,memberEntity);
+  batch.execute();
 }
