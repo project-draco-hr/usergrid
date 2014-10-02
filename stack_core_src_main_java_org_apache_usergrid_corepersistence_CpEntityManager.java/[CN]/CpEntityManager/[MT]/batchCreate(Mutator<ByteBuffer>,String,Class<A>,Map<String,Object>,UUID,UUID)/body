@@ -91,7 +91,7 @@
     return entity;
   }
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=entityToCpEntity(entity,importId);
-  CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),getCollectionScopeNameFromEntityType(eType));
+  CollectionScope collectionScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),getCollectionScopeNameFromEntityType(eType));
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   if (logger.isDebugEnabled()) {
     logger.debug("Writing entity {}:{} into scope\n   app {}\n   owner {}\n   name {} data {}",new Object[]{entity.getType(),entity.getUuid(),collectionScope.getApplication(),collectionScope.getOwner(),collectionScope.getName(),CpEntityMapUtils.toMap(cpEntity)});
@@ -110,7 +110,7 @@ catch (  HystrixRuntimeException hre) {
       handleWriteUniqueVerifyException(entity,wuve);
     }
   }
-  IndexScope defaultIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(entity.getType()));
+  IndexScope defaultIndexScope=new IndexScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(entity.getType()));
   EntityIndex ei=managerCache.getEntityIndex(defaultIndexScope);
   ei.index(cpEntity);
   entity.setUuid(cpEntity.getId().getUuid());

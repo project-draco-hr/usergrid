@@ -12,12 +12,12 @@
       Edge edge=iter.next();
       EntityRef sourceEntity=new SimpleEntityRef(edge.getSourceNode().getType(),edge.getSourceNode().getUuid());
       IndexScope indexScope;
-      if (isCollectionEdgeType(edge.getType())) {
-        String collName=getCollectionName(edge.getType());
+      if (CpEntityManager.isCollectionEdgeType(edge.getType())) {
+        String collName=CpEntityManager.getCollectionName(edge.getType());
         indexScope=new IndexScopeImpl(applicationScope.getApplication(),new SimpleId(sourceEntity.getUuid(),sourceEntity.getType()),CpEntityManager.getCollectionScopeNameFromCollectionName(collName));
       }
  else {
-        String connName=getCollectionName(edge.getType());
+        String connName=CpEntityManager.getCollectionName(edge.getType());
         indexScope=new IndexScopeImpl(applicationScope.getApplication(),new SimpleId(sourceEntity.getUuid(),sourceEntity.getType()),CpEntityManager.getConnectionScopeName(cpHeadEntity.getId().getType(),connName));
       }
       EntityIndex ei=managerCache.getEntityIndex(indexScope);

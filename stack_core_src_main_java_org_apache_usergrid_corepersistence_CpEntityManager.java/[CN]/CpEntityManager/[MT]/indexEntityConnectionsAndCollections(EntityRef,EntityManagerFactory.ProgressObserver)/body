@@ -1,0 +1,47 @@
+{
+  final GraphManager gm=managerCache.getGraphManager(applicationScope);
+  final Id fromEntityId=new SimpleId(entity.getUuid(),entity.getType());
+  logger.debug("Loading edges types from {}:{}\n   scope {}:{}",new Object[]{entity.getType(),entity.getUuid(),applicationScope.getApplication().getType(),applicationScope.getApplication().getUuid()});
+  Observable<String> edgeTypes=gm.getEdgeTypesFromSource(new SimpleSearchEdgeType(fromEntityId,null,null));
+  edgeTypes.forEach(new Action1<String>(){
+    @Override public void call(    final String edgeType){
+      logger.debug("Loading edges of edgeType {} from {}:{}\n   scope {}:{}",new Object[]{edgeType,entity.getType(),entity.getUuid(),applicationScope.getApplication().getType(),applicationScope.getApplication().getUuid()});
+      Observable<Edge> edges=gm.loadEdgesFromSource(new SimpleSearchByEdgeType(fromEntityId,edgeType,Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING,null));
+      edges.forEach(new Action1<Edge>(){
+        @Override public void call(        Edge edge){
+          if (isCollectionEdgeType(edge.getType())) {
+            String collName=getCollectionName(edgeType);
+            String memberType=getCollectionEntityType(edgeType);
+            CollectionScope collScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(entity.getType()));
+            EntityCollectionManager collMgr=managerCache.getEntityCollectionManager(collScope);
+            org.apache.usergrid.persistence.model.entity.Entity collEntity=collMgr.load(edge.getSourceNode()).toBlockingObservable().last();
+            CollectionScope memberScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(memberType));
+            EntityCollectionManager memberMgr=managerCache.getEntityCollectionManager(memberScope);
+            org.apache.usergrid.persistence.model.entity.Entity memberEntity=memberMgr.load(edge.getTargetNode()).toBlockingObservable().last();
+            indexEntityIntoCollections(collEntity,memberEntity,collName,true);
+            EntityRef ref=new SimpleEntityRef(memberEntity.getId().getType(),memberEntity.getId().getUuid());
+            po.onProgress(entity,ref,edge.getType());
+            indexEntityConnectionsAndCollections(new SimpleEntityRef(memberEntity.getId().getType(),memberEntity.getId().getUuid()),po);
+          }
+ else           if (isConnectionEdgeType(edge.getType())) {
+            String connType=getConnectionType(edgeType);
+            String targetEntityType=getConnectedEntityType(edgeType);
+            String sourceEntityType=entity.getType();
+            CollectionScope sourceScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(sourceEntityType));
+            EntityCollectionManager sourceEcm=managerCache.getEntityCollectionManager(sourceScope);
+            org.apache.usergrid.persistence.model.entity.Entity sourceEntity=sourceEcm.load(fromEntityId).toBlockingObservable().last();
+            CollectionScope targetScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(targetEntityType));
+            EntityCollectionManager targetEcm=managerCache.getEntityCollectionManager(targetScope);
+            org.apache.usergrid.persistence.model.entity.Entity targetEntity=targetEcm.load(edge.getTargetNode()).toBlockingObservable().last();
+            indexEntityIntoConnection(sourceEntity,targetEntity,targetEntityType,connType);
+            EntityRef ref=new SimpleEntityRef(targetEntity.getId().getType(),targetEntity.getId().getUuid());
+            po.onProgress(entity,ref,edge.getType());
+            indexEntityConnectionsAndCollections(new SimpleEntityRef(targetEntity.getId().getType(),targetEntity.getId().getUuid()),po);
+          }
+        }
+      }
+);
+    }
+  }
+);
+}

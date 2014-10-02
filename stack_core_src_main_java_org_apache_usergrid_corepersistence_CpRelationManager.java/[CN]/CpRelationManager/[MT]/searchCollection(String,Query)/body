@@ -12,6 +12,32 @@
   logger.debug("Searching scope {}:{}:{}",new String[]{indexScope.getApplication().toString(),indexScope.getOwner().toString(),indexScope.getName()});
   query.setEntityType(collection.getType());
   query=adjustQuery(query);
-  CandidateResults crs=ei.search(query);
-  return buildResults(query,crs,collName);
+  int maxQueries=10;
+  Results results=null;
+  int queryCount=0;
+  int originalLimit=query.getLimit();
+  boolean satisfied=false;
+  while (!satisfied && queryCount++ < maxQueries) {
+    CandidateResults crs=ei.search(query);
+    if (results == null) {
+      results=buildResults(query,crs,collName);
+    }
+ else {
+      Results newResults=buildResults(query,crs,collName);
+      results.merge(newResults);
+    }
+    if (crs.isEmpty() || !crs.hasCursor()) {
+      satisfied=true;
+    }
+ else     if (results.size() == query.getLimit()) {
+      satisfied=true;
+    }
+ else     if (crs.hasCursor()) {
+      satisfied=false;
+      query.setCursor(results.getCursor());
+      query.setLimit(originalLimit - results.size());
+      logger.warn("Satisfy query limit {}, new limit {} query count {}",new Object[]{originalLimit,query.getLimit(),queryCount});
+    }
+  }
+  return results;
 }

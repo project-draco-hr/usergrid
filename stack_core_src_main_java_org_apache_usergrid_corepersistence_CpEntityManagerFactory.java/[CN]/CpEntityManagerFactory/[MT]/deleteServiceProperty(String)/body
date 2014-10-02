@@ -1,17 +1,28 @@
 {
-  EntityCollectionManager em=getManagerCache().getEntityCollectionManager(SYSTEM_PROPS_SCOPE);
-  EntityIndex ei=getManagerCache().getEntityIndex(SYSTEM_PROPS_INDEX_SCOPE);
+  EntityManager em=getEntityManager(SYSTEM_APP_ID);
   Query q=Query.fromQL("select *");
-  CandidateResults results=ei.search(q);
-  Entity propsEntity=em.load(results.iterator().next().getId()).toBlockingObservable().last();
-  if (propsEntity == null) {
+  Results results=null;
+  try {
+    results=em.searchCollection(em.getApplicationRef(),"propertymaps",q);
+  }
+ catch (  Exception ex) {
+    logger.error("Error getting service property for delete of property: " + name,ex);
     return false;
   }
-  if (propsEntity.getField(name) == null) {
+  org.apache.usergrid.persistence.Entity propsEntity=null;
+  if (!results.isEmpty()) {
+    propsEntity=results.getEntity();
+  }
+ else {
+    propsEntity=EntityFactory.newEntity(UUIDUtils.newTimeUUID(),"propertymap");
+  }
+  try {
+    ((AbstractEntity)propsEntity).clearDataset(name);
+    em.update(propsEntity);
+  }
+ catch (  Exception ex) {
+    logger.error("Error deleting service property name: " + name,ex);
     return false;
   }
-  propsEntity.removeField(name);
-  propsEntity=em.write(propsEntity).toBlockingObservable().last();
-  ei.index(propsEntity);
   return true;
 }
