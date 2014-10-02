@@ -2,22 +2,54 @@
   logger.info("Started rebuildIndex()");
   final EntityManager em=app.getEntityManager();
   final long stopTime=System.currentTimeMillis() + RUNTIME;
-  final Map<String,Object> entityMap=new HashMap<>();
-  entityMap.put("key1",1000);
-  entityMap.put("key2",2000);
-  entityMap.put("key3","Some value");
+  Map<String,Object> entityMap=new HashMap<String,Object>(){
+{
+      put("key1",1000);
+      put("key2",2000);
+      put("key3","Some value");
+    }
+  }
+;
+  Map<String,Object> cat1map=new HashMap<String,Object>(){
+{
+      put("name","enzo");
+      put("color","orange");
+    }
+  }
+;
+  Map<String,Object> cat2map=new HashMap<String,Object>(){
+{
+      put("name","marquee");
+      put("color","grey");
+    }
+  }
+;
+  Map<String,Object> cat3map=new HashMap<String,Object>(){
+{
+      put("name","bertha");
+      put("color","tabby");
+    }
+  }
+;
+  Entity cat1=em.create("cat",cat1map);
+  Entity cat2=em.create("cat",cat2map);
+  Entity cat3=em.create("cat",cat3map);
   List<EntityRef> entityRefs=new ArrayList<EntityRef>();
   int entityCount=0;
   while (System.currentTimeMillis() < stopTime) {
-    entityMap.put("key",entityCount);
-    final Entity created;
+    final Entity entity;
     try {
-      created=em.create("testType",entityMap);
+      entityMap.put("key",entityCount);
+      entity=em.create("testType",entityMap);
+      em.refreshIndex();
+      em.createConnection(entity,"herds",cat1);
+      em.createConnection(entity,"herds",cat2);
+      em.createConnection(entity,"herds",cat3);
     }
  catch (    Exception ex) {
       throw new RuntimeException("Error creating entity",ex);
     }
-    entityRefs.add(new SimpleEntityRef(created.getType(),created.getUuid()));
+    entityRefs.add(new SimpleEntityRef(entity.getType(),entity.getUuid()));
     if (entityCount % 100 == 0) {
       logger.info("Created {} entities",entityCount);
     }
