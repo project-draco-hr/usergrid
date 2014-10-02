@@ -1,0 +1,13 @@
+{
+  final MutationBatch batch=keyspace.prepareMutationBatch();
+  final ScopedRowKey<ApplicationScope,MapEntryKey> entryRowKey=MapEntryKey.fromKey(scope,key);
+  batch.withRow(MAP_ENTRIES,entryRowKey).putColumn(true,value);
+  final ScopedRowKey<ApplicationScope,String> keyRowKey=ScopedRowKey.fromKey((ApplicationScope)scope,key);
+  batch.withRow(MAP_KEYS,keyRowKey).putColumn(key,true);
+  try {
+    batch.execute();
+  }
+ catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to connect to cassandra",e);
+  }
+}
