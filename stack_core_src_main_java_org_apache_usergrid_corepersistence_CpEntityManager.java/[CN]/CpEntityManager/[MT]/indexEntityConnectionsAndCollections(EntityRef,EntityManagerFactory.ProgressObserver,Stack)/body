@@ -21,7 +21,11 @@
             indexEntityIntoCollections(collEntity,memberEntity,collName,true);
             EntityRef ref=new SimpleEntityRef(memberEntity.getId().getType(),memberEntity.getId().getUuid());
             po.onProgress(entity,ref,edge.getType());
-            indexEntityConnectionsAndCollections(new SimpleEntityRef(memberEntity.getId().getType(),memberEntity.getId().getUuid()),po);
+            if (!stack.contains(ref)) {
+              stack.push(ref);
+              indexEntityConnectionsAndCollections(ref,po,stack);
+              stack.pop();
+            }
           }
  else           if (isConnectionEdgeType(edge.getType())) {
             String connType=getConnectionType(edgeType);
@@ -36,7 +40,11 @@
             indexEntityIntoConnection(sourceEntity,targetEntity,targetEntityType,connType);
             EntityRef ref=new SimpleEntityRef(targetEntity.getId().getType(),targetEntity.getId().getUuid());
             po.onProgress(entity,ref,edge.getType());
-            indexEntityConnectionsAndCollections(new SimpleEntityRef(targetEntity.getId().getType(),targetEntity.getId().getUuid()),po);
+            if (!stack.contains(ref)) {
+              stack.push(ref);
+              indexEntityConnectionsAndCollections(ref,po,stack);
+              stack.pop();
+            }
           }
         }
       }
