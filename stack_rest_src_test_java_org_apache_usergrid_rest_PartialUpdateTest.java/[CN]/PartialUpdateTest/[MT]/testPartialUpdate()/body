@@ -28,10 +28,14 @@
     }
     refreshIndex("test-organization","test-app");
     userNode=mapper.readTree(resource().path("/test-organization/test-app/users/" + uuid).queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).get(String.class));
+    log.info(userNode.toString());
     assertNotNull(userNode);
     assertEquals("Initech",userNode.withArray("entities").get(0).get("employer").asText());
-    assertNotEquals(latitude,userNode.withArray("entities").get(0).get("location").get("latitude").asDouble(),0d);
-    assertNotEquals(longitude,userNode.withArray("entities").get(0).get("location").get("longitude").asDouble(),0d);
+    assertNotNull(userNode.withArray("entities").get(0).get("location"));
+    assertNotNull(userNode.withArray("entities").get(0).get("location").get("latitude"));
+    assertNotNull(userNode.withArray("entities").get(0).get("location").get("longitude"));
+    assertNotSame(latitude,userNode.withArray("entities").get(0).get("location").get("latitude").asDouble());
+    assertNotSame(longitude,userNode.withArray("entities").get(0).get("location").get("longitude").asDouble());
   }
   updateProperties=new LinkedHashMap<String,Object>(){
 {
