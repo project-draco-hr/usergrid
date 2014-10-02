@@ -1,21 +1,30 @@
 {
-  EntityCollectionManager em=getManagerCache().getEntityCollectionManager(SYSTEM_PROPS_SCOPE);
-  EntityIndex ei=getManagerCache().getEntityIndex(SYSTEM_PROPS_INDEX_SCOPE);
+  EntityManager em=getEntityManager(SYSTEM_APP_ID);
   Query q=Query.fromQL("select *");
-  CandidateResults results=ei.search(q);
-  Entity propsEntity;
+  Results results=null;
+  try {
+    results=em.searchCollection(em.getApplicationRef(),"propertymaps",q);
+  }
+ catch (  Exception ex) {
+    logger.error("Error getting system properties",ex);
+    return false;
+  }
+  org.apache.usergrid.persistence.Entity propsEntity=null;
   if (!results.isEmpty()) {
-    propsEntity=em.load(results.iterator().next().getId()).toBlockingObservable().last();
+    propsEntity=results.getEntity();
   }
  else {
-    propsEntity=new Entity(new SimpleId("properties"));
-    long timestamp=System.currentTimeMillis();
-    propsEntity.setField(new LongField(PROPERTY_CREATED,(long)(timestamp / 1000)));
+    propsEntity=EntityFactory.newEntity(UUIDUtils.newTimeUUID(),"propertymap");
   }
   for (  String key : properties.keySet()) {
-    propsEntity.setField(new StringField(key,properties.get(key)));
+    propsEntity.setProperty(key,properties.get(key).toString());
   }
-  propsEntity=em.write(propsEntity).toBlockingObservable().last();
-  ei.index(propsEntity);
+  try {
+    em.update(propsEntity);
+  }
+ catch (  Exception ex) {
+    logger.error("Error updating service properties",ex);
+    return false;
+  }
   return true;
 }

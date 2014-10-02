@@ -1,5 +1,5 @@
 {
-  CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),getCollectionScopeNameFromEntityType(entityRef.getType()));
+  CollectionScope collectionScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),getCollectionScopeNameFromEntityType(entityRef.getType()));
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
   org.apache.usergrid.persistence.model.entity.Entity entity=ecm.load(entityId).toBlockingObservable().last();
@@ -12,16 +12,16 @@
       for (      UUID uuid : collectionsByUuid.keySet()) {
         Set<String> collectionNames=collectionsByUuid.get(uuid);
         for (        String coll : collectionNames) {
-          IndexScope indexScope=new IndexScopeImpl(appScope.getApplication(),new SimpleId(uuid,ownerType),CpEntityManager.getCollectionScopeNameFromCollectionName(coll));
+          IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),new SimpleId(uuid,ownerType),CpEntityManager.getCollectionScopeNameFromCollectionName(coll));
           EntityIndex ei=managerCache.getEntityIndex(indexScope);
           ei.deindex(entity);
         }
       }
     }
-    IndexScope defaultIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),getCollectionScopeNameFromEntityType(entityRef.getType()));
+    IndexScope defaultIndexScope=new IndexScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),getCollectionScopeNameFromEntityType(entityRef.getType()));
     EntityIndex entityIndex=managerCache.getEntityIndex(defaultIndexScope);
     entityIndex.deindex(entity);
-    IndexScope allTypesIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),ALL_TYPES);
+    IndexScope allTypesIndexScope=new IndexScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),ALL_TYPES);
     EntityIndex aei=managerCache.getEntityIndex(allTypesIndexScope);
     aei.deindex(entity);
     decrementEntityCollection(Schema.defaultCollectionName(entityId.getType()));

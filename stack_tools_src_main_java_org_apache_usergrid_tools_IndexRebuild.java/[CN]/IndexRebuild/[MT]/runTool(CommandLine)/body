@@ -1,14 +1,32 @@
 {
   startSpring();
   logger.info("Starting index rebuild");
-  emf.rebuildInternalIndexes();
+  EntityManagerFactory.ProgressObserver po=new EntityManagerFactory.ProgressObserver(){
+    @Override public void onProgress(    EntityRef s,    EntityRef t,    String etype){
+      logger.info("Indexing from {}:{} to {}:{} edgeType {}",new Object[]{s.getType(),s.getUuid(),t.getType(),t.getUuid(),etype});
+    }
+  }
+;
+  emf.rebuildInternalIndexes(po);
   emf.refreshIndex();
-  for (  UUID appId : getAppIds(line)) {
-    logger.info("Reindexing for app id: {}",appId);
-    Set<String> collections=getCollections(line,appId);
-    for (    String collection : collections) {
-      emf.rebuildCollectionIndex(appId,collection);
-      emf.refreshIndex();
+  if (line.getOptionValue("all") != null && line.getOptionValue("all").equalsIgnoreCase("true")) {
+    emf.rebuildAllIndexes(po);
+  }
+ else   if (line.getOptionValue(APPLICATION_ARG) != null) {
+    for (    UUID appId : getAppIds(line)) {
+      logger.info("Reindexing for app id: {}",appId);
+      Set<String> collections=getCollections(line,appId);
+      for (      String collection : collections) {
+        emf.rebuildCollectionIndex(appId,collection,po);
+        emf.refreshIndex();
+      }
+    }
+  }
+ else {
+    Map<String,UUID> ids=emf.getApplications();
+    System.out.println("Printing all apps");
+    for (    Entry<String,UUID> entry : ids.entrySet()) {
+      System.out.println(entry.getKey() + " appid=" + entry.getValue());
     }
   }
   logger.info("Finished index rebuild");
