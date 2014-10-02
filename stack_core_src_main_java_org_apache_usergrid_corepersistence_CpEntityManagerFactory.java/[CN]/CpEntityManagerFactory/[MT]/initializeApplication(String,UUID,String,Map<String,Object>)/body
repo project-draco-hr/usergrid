@@ -15,8 +15,7 @@
     EntityCollectionManager ecm=getManagerCache().getEntityCollectionManager(SYSTEM_ORGS_SCOPE);
     EntityIndex eci=getManagerCache().getEntityIndex(SYSTEM_ORGS_INDEX_SCOPE);
     orgInfoEntity=ecm.write(orgInfoEntity).toBlockingObservable().last();
-    eci.index(orgInfoEntity);
-    eci.refresh();
+    eci.createBatch().index(SYSTEM_ORGS_INDEX_SCOPE,orgInfoEntity).executeAndRefresh();
   }
   if (properties == null) {
     properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
@@ -32,7 +31,7 @@
     EntityCollectionManager ecm=getManagerCache().getEntityCollectionManager(SYSTEM_APPS_SCOPE);
     EntityIndex eci=getManagerCache().getEntityIndex(SYSTEM_APPS_INDEX_SCOPE);
     appInfoEntity=ecm.write(appInfoEntity).toBlockingObservable().last();
-    eci.index(appInfoEntity);
+    eci.createBatch().index(SYSTEM_APPS_INDEX_SCOPE,appInfoEntity).executeAndRefresh();
     eci.refresh();
   }
   EntityManager em=getEntityManager(applicationId);

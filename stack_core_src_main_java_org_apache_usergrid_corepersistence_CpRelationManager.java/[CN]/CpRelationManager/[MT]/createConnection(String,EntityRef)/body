@@ -15,12 +15,13 @@
   Edge edge=new SimpleEdge(cpHeadEntity.getId(),edgeType,targetEntity.getId(),System.currentTimeMillis());
   GraphManager gm=managerCache.getGraphManager(applicationScope);
   gm.writeEdge(edge).toBlockingObservable().last();
+  final EntityIndex ei=managerCache.getEntityIndex(applicationScope);
+  final EntityIndexBatch batch=ei.createBatch();
   IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),CpEntityManager.getConnectionScopeName(connectedEntityRef.getType(),connectionType));
-  EntityIndex ei=managerCache.getEntityIndex(indexScope);
-  ei.index(targetEntity);
+  batch.index(indexScope,targetEntity);
   IndexScope allTypesIndexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),ALL_TYPES);
-  EntityIndex aei=managerCache.getEntityIndex(allTypesIndexScope);
-  aei.index(targetEntity);
+  batch.index(allTypesIndexScope,targetEntity);
+  batch.execute();
   Keyspace ko=cass.getApplicationKeyspace(applicationId);
   Mutator<ByteBuffer> m=createMutator(ko,be);
   batchUpdateEntityConnection(m,false,connection,UUIDGenerator.newTimeUUID());

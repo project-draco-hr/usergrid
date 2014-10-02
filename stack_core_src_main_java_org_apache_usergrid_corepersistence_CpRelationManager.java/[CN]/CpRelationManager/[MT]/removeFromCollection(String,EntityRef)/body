@@ -19,12 +19,13 @@
     logger.debug("Loading entity to remove from collection " + "{}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{itemRef.getType(),itemRef.getUuid(),memberScope.getApplication(),memberScope.getOwner(),memberScope.getName()});
   }
   org.apache.usergrid.persistence.model.entity.Entity memberEntity=memberMgr.load(new SimpleId(itemRef.getUuid(),itemRef.getType())).toBlockingObservable().last();
+  final EntityIndex ei=managerCache.getEntityIndex(applicationScope);
+  final EntityIndexBatch batch=ei.createBatch();
   IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),CpEntityManager.getCollectionScopeNameFromCollectionName(collName));
-  EntityIndex ei=managerCache.getEntityIndex(indexScope);
-  ei.deindex(memberEntity);
+  batch.deindex(indexScope,memberEntity);
   IndexScope itemScope=new IndexScopeImpl(applicationScope.getApplication(),memberEntity.getId(),CpEntityManager.getCollectionScopeNameFromCollectionName(Schema.defaultCollectionName(cpHeadEntity.getId().getType())));
-  ei=managerCache.getEntityIndex(itemScope);
-  ei.deindex(cpHeadEntity);
+  batch.deindex(itemScope,cpHeadEntity);
+  batch.execute();
   GraphManager gm=managerCache.getGraphManager(applicationScope);
   Edge collectionToItemEdge=new SimpleEdge(cpHeadEntity.getId(),getEdgeTypeFromCollectionName(collName,memberEntity.getId().getType()),memberEntity.getId(),memberEntity.getId().getUuid().timestamp());
   gm.deleteEdge(collectionToItemEdge).toBlockingObservable().last();

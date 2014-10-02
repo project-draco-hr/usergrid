@@ -8,10 +8,10 @@
     throw new RuntimeException("Cannot find collection-info for '" + collName + "' of "+ headEntity.getType()+ ":"+ headEntity.getUuid());
   }
   IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),cpHeadEntity.getId(),CpEntityManager.getCollectionScopeNameFromCollectionName(collName));
-  EntityIndex ei=managerCache.getEntityIndex(indexScope);
+  EntityIndex ei=managerCache.getEntityIndex(applicationScope);
   logger.debug("Searching scope {}:{}:{}",new String[]{indexScope.getApplication().toString(),indexScope.getOwner().toString(),indexScope.getName()});
   query.setEntityType(collection.getType());
   query=adjustQuery(query);
-  CandidateResults crs=ei.search(query);
+  CandidateResults crs=ei.search(indexScope,query);
   return buildResults(query,crs,collName);
 }

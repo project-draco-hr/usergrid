@@ -2,7 +2,7 @@
   EntityCollectionManager em=getManagerCache().getEntityCollectionManager(SYSTEM_PROPS_SCOPE);
   EntityIndex ei=getManagerCache().getEntityIndex(SYSTEM_PROPS_INDEX_SCOPE);
   Query q=Query.fromQL("select *");
-  CandidateResults results=ei.search(q);
+  CandidateResults results=ei.search(SYSTEM_PROPS_INDEX_SCOPE,q);
   Entity propsEntity;
   if (!results.isEmpty()) {
     propsEntity=em.load(results.iterator().next().getId()).toBlockingObservable().last();
@@ -16,6 +16,6 @@
     propsEntity.setField(new StringField(key,properties.get(key)));
   }
   propsEntity=em.write(propsEntity).toBlockingObservable().last();
-  ei.index(propsEntity);
+  ei.createBatch().index(SYSTEM_PROPS_INDEX_SCOPE,propsEntity);
   return true;
 }

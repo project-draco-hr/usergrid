@@ -15,10 +15,10 @@
   Edge edge=new SimpleEdge(new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),connectionType,targetEntity.getId(),System.currentTimeMillis());
   GraphManager gm=managerCache.getGraphManager(applicationScope);
   gm.deleteEdge(edge).toBlockingObservable().last();
+  final EntityIndex ei=managerCache.getEntityIndex(applicationScope);
+  final EntityIndexBatch batch=ei.createBatch();
   IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),CpEntityManager.getConnectionScopeName(targetEntity.getId().getType(),connectionType));
-  EntityIndex ei=managerCache.getEntityIndex(indexScope);
-  ei.deindex(targetEntity);
+  batch.deindex(indexScope,targetEntity);
   IndexScope allTypesIndexScope=new IndexScopeImpl(applicationScope.getApplication(),new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),ALL_TYPES);
-  EntityIndex aei=managerCache.getEntityIndex(allTypesIndexScope);
-  aei.deindex(targetEntity);
+  batch.deindex(allTypesIndexScope,targetEntity);
 }

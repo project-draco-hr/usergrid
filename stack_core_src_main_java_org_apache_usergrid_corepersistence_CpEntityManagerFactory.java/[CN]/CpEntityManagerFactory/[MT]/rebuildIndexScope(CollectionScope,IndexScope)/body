@@ -3,8 +3,9 @@
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(cs);
   EntityIndex ei=managerCache.getEntityIndex(is);
   Query q=Query.fromQL("select *");
-  CandidateResults results=ei.search(q);
-  Map<String,UUID> appMap=new HashMap<String,UUID>();
+  CandidateResults results=ei.search(is,q);
+  int count=0;
+  final EntityIndexBatch batch=ei.createBatch();
   Iterator<CandidateResult> iter=results.iterator();
   while (iter.hasNext()) {
     CandidateResult cr=iter.next();
@@ -14,6 +15,7 @@
       continue;
     }
     logger.info("    Updating CP Entity type: {} with id: {} for app id: {}",new Object[]{cr.getId().getType(),cr.getId().getUuid(),CpEntityManagerFactory.SYSTEM_APPS_SCOPE.getApplication().getUuid()});
-    ei.index(entity);
+    batch.index(is,entity);
+    count++;
   }
 }

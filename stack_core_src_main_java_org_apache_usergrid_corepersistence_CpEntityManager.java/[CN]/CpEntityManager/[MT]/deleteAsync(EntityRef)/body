@@ -7,23 +7,23 @@
     RelationManager rm=getRelationManager(entityRef);
     Map<String,Map<UUID,Set<String>>> owners=rm.getOwners();
     logger.debug("Deleting indexes of all {} collections owning the entity",owners.keySet().size());
+    final EntityIndex ei=managerCache.getEntityIndex(appScope);
+    final EntityIndexBatch batch=ei.createBatch();
     for (    String ownerType : owners.keySet()) {
       Map<UUID,Set<String>> collectionsByUuid=owners.get(ownerType);
       for (      UUID uuid : collectionsByUuid.keySet()) {
         Set<String> collectionNames=collectionsByUuid.get(uuid);
         for (        String coll : collectionNames) {
           IndexScope indexScope=new IndexScopeImpl(appScope.getApplication(),new SimpleId(uuid,ownerType),CpEntityManager.getCollectionScopeNameFromCollectionName(coll));
-          EntityIndex ei=managerCache.getEntityIndex(indexScope);
-          ei.deindex(entity);
+          batch.index(indexScope,entity);
         }
       }
     }
     IndexScope defaultIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),getCollectionScopeNameFromEntityType(entityRef.getType()));
-    EntityIndex entityIndex=managerCache.getEntityIndex(defaultIndexScope);
-    entityIndex.deindex(entity);
+    batch.deindex(defaultIndexScope,entity);
     IndexScope allTypesIndexScope=new IndexScopeImpl(appScope.getApplication(),appScope.getApplication(),ALL_TYPES);
-    EntityIndex aei=managerCache.getEntityIndex(allTypesIndexScope);
-    aei.deindex(entity);
+    batch.deindex(allTypesIndexScope,entity);
+    batch.execute();
     decrementEntityCollection(Schema.defaultCollectionName(entityId.getType()));
     return ecm.delete(entityId);
   }
