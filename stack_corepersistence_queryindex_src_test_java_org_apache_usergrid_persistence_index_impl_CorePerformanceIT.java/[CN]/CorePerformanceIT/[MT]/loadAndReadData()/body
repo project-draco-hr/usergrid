@@ -2,11 +2,12 @@
   Injector injector=Guice.createInjector(new TestIndexModule());
   ecmf=injector.getInstance(EntityCollectionManagerFactory.class);
   ecif=injector.getInstance(EntityIndexFactory.class);
+  final ApplicationScope scope=new ApplicationScopeImpl(new SimpleId("application"));
   log.info("Start Data Load");
-  List<IndexScope> scopes=loadData();
+  List<IndexScope> scopes=loadData(scope);
   log.info("Finish Data Load");
   log.info("Start Data Read");
-  readData(scopes);
+  readData(scope,scopes);
   log.info("Finish Data Read");
-  runSelectedQueries(scopes);
+  runSelectedQueries(scope,scopes);
 }

@@ -9,13 +9,13 @@
       Observable<Edge> edges=gm.loadEdgesFromSource(new SimpleSearchByEdgeType(fromEntityId,edgeType,Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING,null));
       edges.forEach(new Action1<Edge>(){
         @Override public void call(        Edge edge){
-          if (isCollectionEdgeType(edge.getType())) {
-            String collName=getCollectionName(edgeType);
-            String memberType=getCollectionEntityType(edgeType);
-            CollectionScope collScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(entity.getType()));
+          if (CpNamingUtils.isCollectionEdgeType(edge.getType())) {
+            String collName=CpNamingUtils.getCollectionName(edgeType);
+            String memberType=edge.getTargetNode().getType();
+            CollectionScope collScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpNamingUtils.getCollectionScopeNameFromEntityType(entity.getType()));
             EntityCollectionManager collMgr=managerCache.getEntityCollectionManager(collScope);
             org.apache.usergrid.persistence.model.entity.Entity collEntity=collMgr.load(edge.getSourceNode()).toBlockingObservable().last();
-            CollectionScope memberScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(memberType));
+            CollectionScope memberScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpNamingUtils.getCollectionScopeNameFromEntityType(memberType));
             EntityCollectionManager memberMgr=managerCache.getEntityCollectionManager(memberScope);
             org.apache.usergrid.persistence.model.entity.Entity memberEntity=memberMgr.load(edge.getTargetNode()).toBlockingObservable().last();
             indexEntityIntoCollections(collEntity,memberEntity,collName,true);
@@ -27,14 +27,14 @@
               stack.pop();
             }
           }
- else           if (isConnectionEdgeType(edge.getType())) {
-            String connType=getConnectionType(edgeType);
-            String targetEntityType=getConnectedEntityType(edgeType);
+ else           if (CpNamingUtils.isConnectionEdgeType(edge.getType())) {
+            String connType=CpNamingUtils.getConnectionType(edgeType);
+            String targetEntityType=edge.getTargetNode().getType();
             String sourceEntityType=entity.getType();
-            CollectionScope sourceScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(sourceEntityType));
+            CollectionScope sourceScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpNamingUtils.getCollectionScopeNameFromEntityType(sourceEntityType));
             EntityCollectionManager sourceEcm=managerCache.getEntityCollectionManager(sourceScope);
             org.apache.usergrid.persistence.model.entity.Entity sourceEntity=sourceEcm.load(fromEntityId).toBlockingObservable().last();
-            CollectionScope targetScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpEntityManager.getCollectionScopeNameFromEntityType(targetEntityType));
+            CollectionScope targetScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpNamingUtils.getCollectionScopeNameFromEntityType(targetEntityType));
             EntityCollectionManager targetEcm=managerCache.getEntityCollectionManager(targetScope);
             org.apache.usergrid.persistence.model.entity.Entity targetEntity=targetEcm.load(edge.getTargetNode()).toBlockingObservable().last();
             indexEntityIntoConnection(sourceEntity,targetEntity,targetEntityType,connType);
