@@ -1,11 +1,11 @@
 {
+  final EntityIndex ei=getManagerCache().getEntityIndex(applicationScope);
+  final EntityIndexBatch batch=ei.createBatch();
   IndexScope collectionIndexScope=new IndexScopeImpl(applicationScope.getApplication(),collectionEntity.getId(),CpEntityManager.getCollectionScopeNameFromCollectionName(collName));
-  EntityIndex collectionIndex=managerCache.getEntityIndex(collectionIndexScope);
-  collectionIndex.index(memberEntity);
+  batch.index(collectionIndexScope,memberEntity);
   IndexScope entityAllTypesScope=new IndexScopeImpl(applicationScope.getApplication(),collectionEntity.getId(),ALL_TYPES);
-  EntityIndex entityAllCollectionIndex=managerCache.getEntityIndex(entityAllTypesScope);
-  entityAllCollectionIndex.index(memberEntity);
+  batch.index(entityAllTypesScope,memberEntity);
   IndexScope appAllTypesScope=new IndexScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),ALL_TYPES);
-  EntityIndex allCollectionIndex=managerCache.getEntityIndex(appAllTypesScope);
-  allCollectionIndex.index(memberEntity);
+  batch.index(appAllTypesScope,memberEntity);
+  batch.execute();
 }
