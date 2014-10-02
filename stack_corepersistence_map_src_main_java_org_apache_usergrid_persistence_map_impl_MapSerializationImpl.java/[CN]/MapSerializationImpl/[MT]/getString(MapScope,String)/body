@@ -1,13 +1,4 @@
 {
-  final ScopedRowKey<ApplicationScope,MapEntryKey> entryRowKey=MapEntryKey.fromKey(scope,key);
-  try {
-    final Column<Boolean> result=keyspace.prepareQuery(MAP_ENTRIES).getKey(entryRowKey).getColumn(true).execute().getResult();
-    return result.getStringValue();
-  }
- catch (  NotFoundException nfe) {
-    return null;
-  }
-catch (  ConnectionException e) {
-    throw new RuntimeException("Unable to connect to cassandra",e);
-  }
+  Column<Boolean> col=getValue(scope,key);
+  return (col != null) ? col.getStringValue() : null;
 }
