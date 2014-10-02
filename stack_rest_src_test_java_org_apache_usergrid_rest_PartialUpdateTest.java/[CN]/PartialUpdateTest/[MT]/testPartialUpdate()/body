@@ -30,8 +30,8 @@
     userNode=mapper.readTree(resource().path("/test-organization/test-app/users/" + uuid).queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).get(String.class));
     assertNotNull(userNode);
     assertEquals("Initech",userNode.withArray("entities").get(0).get("employer").asText());
-    assertNotEquals(latitude,userNode.withArray("entities").get(0).get("location").get("latitude"));
-    assertNotEquals(longitude,userNode.withArray("entities").get(0).get("location").get("longitude"));
+    assertNotEquals(latitude,userNode.withArray("entities").get(0).get("location").get("latitude").asDouble(),0d);
+    assertNotEquals(longitude,userNode.withArray("entities").get(0).get("location").get("longitude").asDouble(),0d);
   }
   updateProperties=new LinkedHashMap<String,Object>(){
 {
