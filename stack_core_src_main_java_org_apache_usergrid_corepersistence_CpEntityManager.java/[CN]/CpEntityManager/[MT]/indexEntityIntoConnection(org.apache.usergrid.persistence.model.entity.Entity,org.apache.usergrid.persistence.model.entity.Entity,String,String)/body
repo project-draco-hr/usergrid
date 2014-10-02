@@ -2,9 +2,9 @@
   logger.debug("Indexing into connection {} source {}:{} target {}:{}",new Object[]{connType,sourceEntity.getId().getType(),sourceEntity.getId().getUuid(),targetEntity.getId().getType(),targetEntity.getId().getUuid()});
   final EntityIndex ei=getManagerCache().getEntityIndex(applicationScope);
   final EntityIndexBatch batch=ei.createBatch();
-  IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),sourceEntity.getId(),CpNamingUtils.getConnectionScopeName(targetEntityType,connType));
+  IndexScope indexScope=new IndexScopeImpl(sourceEntity.getId(),CpNamingUtils.getConnectionScopeName(targetEntityType,connType));
   batch.index(indexScope,targetEntity);
-  IndexScope allTypesIndexScope=new IndexScopeImpl(applicationScope.getApplication(),sourceEntity.getId(),CpNamingUtils.ALL_TYPES);
+  IndexScope allTypesIndexScope=new IndexScopeImpl(sourceEntity.getId(),CpNamingUtils.ALL_TYPES);
   batch.index(allTypesIndexScope,targetEntity);
   batch.execute();
 }

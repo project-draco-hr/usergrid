@@ -1,7 +1,12 @@
 {
-  final BulkResponse response=request.execute().actionGet();
-  if (response.hasFailures()) {
-    throw new RuntimeException("Unable to index documents.  Errors are :" + response.buildFailureMessage());
+  if (request.numberOfActions() == 0) {
+    return;
+  }
+  final BulkResponse responses=request.execute().actionGet();
+  for (  BulkItemResponse response : responses) {
+    if (response.isFailed()) {
+      throw new RuntimeException("Unable to index documents.  Errors are :" + response.getFailure().getMessage());
+    }
   }
   initBatch();
 }

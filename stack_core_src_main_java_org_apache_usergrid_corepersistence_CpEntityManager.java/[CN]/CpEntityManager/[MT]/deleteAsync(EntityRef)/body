@@ -14,14 +14,14 @@
       for (      UUID uuid : collectionsByUuid.keySet()) {
         Set<String> collectionNames=collectionsByUuid.get(uuid);
         for (        String coll : collectionNames) {
-          IndexScope indexScope=new IndexScopeImpl(applicationScope.getApplication(),new SimpleId(uuid,ownerType),CpNamingUtils.getCollectionScopeNameFromCollectionName(coll));
+          IndexScope indexScope=new IndexScopeImpl(new SimpleId(uuid,ownerType),CpNamingUtils.getCollectionScopeNameFromCollectionName(coll));
           batch.index(indexScope,entity);
         }
       }
     }
-    IndexScope defaultIndexScope=new IndexScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpNamingUtils.getCollectionScopeNameFromEntityType(entityRef.getType()));
+    IndexScope defaultIndexScope=new IndexScopeImpl(applicationScope.getApplication(),CpNamingUtils.getCollectionScopeNameFromEntityType(entityRef.getType()));
     batch.deindex(defaultIndexScope,entity);
-    IndexScope allTypesIndexScope=new IndexScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpNamingUtils.ALL_TYPES);
+    IndexScope allTypesIndexScope=new IndexScopeImpl(applicationScope.getApplication(),CpNamingUtils.ALL_TYPES);
     batch.deindex(allTypesIndexScope,entity);
     batch.execute();
     decrementEntityCollection(Schema.defaultCollectionName(entityId.getType()));
