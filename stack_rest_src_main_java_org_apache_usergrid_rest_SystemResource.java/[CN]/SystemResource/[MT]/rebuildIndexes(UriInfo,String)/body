@@ -1,0 +1,16 @@
+{
+  ApiResponse response=createApiResponse();
+  response.setAction("rebuild indexes");
+  EntityManagerFactory.ProgressObserver po=new EntityManagerFactory.ProgressObserver(){
+    @Override public void onProgress(    EntityRef s,    EntityRef t,    String etype){
+      logger.info("Indexing from {}:{} to {}:{} edgeType {}",new Object[]{s.getType(),s.getUuid(),t.getType(),t.getUuid(),etype});
+    }
+  }
+;
+  logger.info("Rebuilding all indexes");
+  emf.rebuildInternalIndexes(po);
+  emf.refreshIndex();
+  emf.rebuildAllIndexes(po);
+  response.setSuccess();
+  return new JSONWithPadding(response,callback);
+}
