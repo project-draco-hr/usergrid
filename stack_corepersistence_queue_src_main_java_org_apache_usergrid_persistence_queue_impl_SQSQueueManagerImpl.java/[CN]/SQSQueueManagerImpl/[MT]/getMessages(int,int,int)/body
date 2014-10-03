@@ -1,0 +1,26 @@
+{
+  waitTime=waitTime / 1000;
+  String url=getQueue().getUrl();
+  LOG.info("Getting {} messages from {}",limit,url);
+  ReceiveMessageRequest receiveMessageRequest=new ReceiveMessageRequest(url);
+  receiveMessageRequest.setMaxNumberOfMessages(limit);
+  receiveMessageRequest.setVisibilityTimeout(timeout);
+  receiveMessageRequest.setWaitTimeSeconds(waitTime);
+  ReceiveMessageResult result=sqs.receiveMessage(receiveMessageRequest);
+  List<Message> messages=result.getMessages();
+  LOG.info("Received {} messages from {}",messages.size(),url);
+  List<QueueMessage> queueMessages=new ArrayList<>(messages.size());
+  for (  Message message : messages) {
+    Object body;
+    try {
+      body=fromString(message.getBody());
+    }
+ catch (    Exception e) {
+      LOG.error("failed to deserialize message",e);
+      body=message.getBody();
+    }
+    QueueMessage queueMessage=new QueueMessage(message.getMessageId(),message.getReceiptHandle(),body);
+    queueMessages.add(queueMessage);
+  }
+  return queueMessages;
+}

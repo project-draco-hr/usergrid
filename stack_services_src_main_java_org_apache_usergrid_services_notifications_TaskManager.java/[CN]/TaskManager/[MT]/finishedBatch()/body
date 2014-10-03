@@ -1,22 +1,23 @@
 {
-  long successes=this.successes.getAndSet(0);
-  long failures=this.failures.getAndSet(0);
-  this.hasFinished=true;
-  Notification notification=em.get(this.notification.getUuid(),Notification.class);
-  notification.setModified(System.currentTimeMillis());
-  long sent=successes, errors=failures;
-  Map<String,Long> stats=new HashMap<>(2);
-  stats.put("sent",sent);
-  stats.put("errors",errors);
-  notification.updateStatistics(successes,errors);
-  if (notification.getExpectedCount() <= (notification.getStatistics().get("sent") + notification.getStatistics().get("errors"))) {
-    Map<String,Object> properties=new HashMap<>();
-    notification.setFinished(notification.getModified());
-    properties.put("finished",notification.getModified());
-    properties.put("state",notification.getState());
-    LOG.info("done sending to devices in {} ms",notification.getFinished() - notification.getStarted());
-    notification.addProperties(properties);
+synchronized (this) {
+    long successes=this.successes.getAndSet(0);
+    long failures=this.failures.getAndSet(0);
+    this.hasFinished=true;
+    Notification notification=em.get(this.notification.getUuid(),Notification.class);
+    notification.setModified(System.currentTimeMillis());
+    Map<String,Long> stats=new HashMap<>(2);
+    stats.put("sent",successes);
+    stats.put("errors",failures);
+    notification.updateStatistics(successes,failures);
+    if (notification.getExpectedCount() <= (notification.getStatistics().get("sent") + notification.getStatistics().get("errors"))) {
+      Map<String,Object> properties=new HashMap<>();
+      notification.setFinished(notification.getModified());
+      properties.put("finished",notification.getModified());
+      properties.put("state",notification.getState());
+      LOG.info("done sending to devices in {} ms",notification.getFinished() - notification.getStarted());
+      notification.addProperties(properties);
+    }
+    LOG.info("notification finished batch: {} of {} devices",notification.getUuid(),successes + failures);
+    em.update(notification);
   }
-  LOG.info("notification finished batch: {} of {} devices",notification.getUuid(),sent + errors);
-  em.update(notification);
 }
