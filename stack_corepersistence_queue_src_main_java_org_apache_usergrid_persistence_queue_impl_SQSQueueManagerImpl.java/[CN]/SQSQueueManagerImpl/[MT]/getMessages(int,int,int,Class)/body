@@ -4,7 +4,7 @@
   LOG.info("Getting {} messages from {}",limit,url);
   ReceiveMessageRequest receiveMessageRequest=new ReceiveMessageRequest(url);
   receiveMessageRequest.setMaxNumberOfMessages(limit);
-  receiveMessageRequest.setVisibilityTimeout(timeout);
+  receiveMessageRequest.setVisibilityTimeout(transactionTimeout);
   receiveMessageRequest.setWaitTimeSeconds(waitTime);
   ReceiveMessageResult result=sqs.receiveMessage(receiveMessageRequest);
   List<Message> messages=result.getMessages();
@@ -13,11 +13,11 @@
   for (  Message message : messages) {
     Object body;
     try {
-      body=fromString(message.getBody());
+      body=fromString(message.getBody(),klass);
     }
  catch (    Exception e) {
       LOG.error("failed to deserialize message",e);
-      body=message.getBody();
+      throw e;
     }
     QueueMessage queueMessage=new QueueMessage(message.getMessageId(),message.getReceiptHandle(),body);
     queueMessages.add(queueMessage);
