@@ -7,6 +7,10 @@
   postMeter=metricsService.getMeter(NotificationsService.class,"requests");
   postTimer=metricsService.getTimer(this.getClass(),"execution_rest");
   JobScheduler jobScheduler=new JobScheduler(sm,em);
-  notificationQueueManager=new ApplicationQueueManager(jobScheduler,em,smf.getServiceManager(smf.getManagementAppId()).getQueueManager(),metricsService,props);
+  String name=ApplicationQueueManager.getQueueNames(props);
+  QueueScope queueScope=new QueueScopeImpl(new SimpleId(smf.getManagementAppId(),"notifications"),name);
+  queueManagerFactory=CpSetup.getInjector().getInstance(QueueManagerFactory.class);
+  QueueManager queueManager=queueManagerFactory.getQueueManager(queueScope);
+  notificationQueueManager=new ApplicationQueueManager(jobScheduler,em,queueManager,metricsService,props);
   gracePeriod=jobScheduler.SCHEDULER_GRACE_PERIOD;
 }

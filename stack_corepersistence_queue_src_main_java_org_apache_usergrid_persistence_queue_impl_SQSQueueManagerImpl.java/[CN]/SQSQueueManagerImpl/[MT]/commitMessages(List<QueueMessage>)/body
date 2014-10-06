@@ -1,0 +1,14 @@
+{
+  String url=getQueue().getUrl();
+  LOG.info("Commit messages {} to queue {}",queueMessages.size(),url);
+  List<DeleteMessageBatchRequestEntry> entries=new ArrayList<>();
+  for (  QueueMessage message : queueMessages) {
+    entries.add(new DeleteMessageBatchRequestEntry(message.getMessageId(),message.getHandle()));
+  }
+  DeleteMessageBatchRequest request=new DeleteMessageBatchRequest(url,entries);
+  DeleteMessageBatchResult result=sqs.deleteMessageBatch(request);
+  boolean successful=result.getFailed().size() > 0;
+  if (!successful) {
+    LOG.error("Commit failed {} messages",result.getFailed().size());
+  }
+}
