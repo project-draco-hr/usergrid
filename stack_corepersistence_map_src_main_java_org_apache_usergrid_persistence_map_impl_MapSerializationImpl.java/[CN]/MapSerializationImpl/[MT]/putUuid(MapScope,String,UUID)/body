@@ -1,0 +1,11 @@
+{
+  Preconditions.checkNotNull(scope,"mapscope is required");
+  Preconditions.checkNotNull(key,"key is required");
+  Preconditions.checkNotNull(putUuid,"value is required");
+  final MutationBatch batch=keyspace.prepareMutationBatch();
+  final ScopedRowKey<ApplicationScope,MapEntryKey> entryRowKey=MapEntryKey.fromKey(scope,key);
+  batch.withRow(MAP_ENTRIES,entryRowKey).putColumn(true,putUuid);
+  final ScopedRowKey<ApplicationScope,String> keyRowKey=ScopedRowKey.fromKey((ApplicationScope)scope,key);
+  batch.withRow(MAP_KEYS,keyRowKey).putColumn(key,true);
+  executeBatch(batch);
+}

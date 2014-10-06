@@ -1,0 +1,16 @@
+{
+  if (queue == null) {
+    ListQueuesResult result=sqs.listQueues();
+    for (    String queueUrl : result.getQueueUrls()) {
+      boolean found=queueUrl.contains(getName());
+      if (found) {
+        queue=new Queue(queueUrl);
+        break;
+      }
+    }
+  }
+  if (queue == null) {
+    queue=createQueue();
+  }
+  return queue;
+}

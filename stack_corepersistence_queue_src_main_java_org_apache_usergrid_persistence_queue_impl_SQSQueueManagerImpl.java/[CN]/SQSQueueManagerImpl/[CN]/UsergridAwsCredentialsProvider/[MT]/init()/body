@@ -1,0 +1,14 @@
+{
+  creds=new AWSCredentials(){
+    @Override public String getAWSAccessKeyId(){
+      return StringUtils.trim(System.getProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR));
+    }
+    @Override public String getAWSSecretKey(){
+      return StringUtils.trim(System.getProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR));
+    }
+  }
+;
+  if (StringUtils.isEmpty(creds.getAWSAccessKeyId()) || StringUtils.isEmpty(creds.getAWSSecretKey())) {
+    throw new AmazonClientException("could not retrieve credentials from system properties");
+  }
+}

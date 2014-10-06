@@ -5,34 +5,33 @@
   while (true) {
     try {
       svcMgr=smf.getServiceManager(smf.getManagementAppId());
-      queueManager=svcMgr.getQueueManager();
-      String queueName=ApplicationQueueManager.getRandomQueue(queueNames);
       LOG.info("getting from queue {} ",queueName);
-      QueueResults results=getDeliveryBatch(queueManager,queueName);
-      LOG.info("QueueListener: retrieved batch of {} messages from queue {} ",results.size(),queueName);
-      List<Message> messages=results.getMessages();
+      QueueScope queueScope=new QueueScopeImpl(new SimpleId(smf.getManagementAppId(),"notifications"),queueName);
+      QueueManager queueManager=queueManagerFactory.getQueueManager(queueScope);
+      List<QueueMessage> messages=queueManager.getMessages(getBatchSize(),MESSAGE_TRANSACTION_TIMEOUT,5000,ApplicationQueueMessage.class);
+      LOG.info("retrieved batch of {} messages from queue {} ",messages.size(),queueName);
       if (messages.size() > 0) {
-        HashMap<UUID,List<ApplicationQueueMessage>> messageMap=new HashMap<>(messages.size());
-        for (        Message message : messages) {
-          ApplicationQueueMessage queueMessage=ApplicationQueueMessage.generate(message);
+        HashMap<UUID,List<QueueMessage>> messageMap=new HashMap<>(messages.size());
+        for (        QueueMessage message : messages) {
+          ApplicationQueueMessage queueMessage=(ApplicationQueueMessage)message.getBody();
           UUID applicationId=queueMessage.getApplicationId();
           if (!messageMap.containsKey(applicationId)) {
-            List<ApplicationQueueMessage> applicationQueueMessages=new ArrayList<ApplicationQueueMessage>();
-            applicationQueueMessages.add(queueMessage);
+            List<QueueMessage> applicationQueueMessages=new ArrayList<QueueMessage>();
+            applicationQueueMessages.add(message);
             messageMap.put(applicationId,applicationQueueMessages);
           }
  else {
-            messageMap.get(applicationId).add(queueMessage);
+            messageMap.get(applicationId).add(message);
           }
         }
         long now=System.currentTimeMillis();
         Observable merge=null;
-        for (        Map.Entry<UUID,List<ApplicationQueueMessage>> entry : messageMap.entrySet()) {
+        for (        Map.Entry<UUID,List<QueueMessage>> entry : messageMap.entrySet()) {
           UUID applicationId=entry.getKey();
           EntityManager entityManager=emf.getEntityManager(applicationId);
           ServiceManager serviceManager=smf.getServiceManager(applicationId);
           final ApplicationQueueManager manager=new ApplicationQueueManager(new JobScheduler(serviceManager,entityManager),entityManager,queueManager,metricsService,properties);
-          LOG.info("QueueListener: send batch for app {} of {} messages",entry.getKey(),entry.getValue().size());
+          LOG.info("send batch for app {} of {} messages",entry.getKey(),entry.getValue().size());
           Observable current=manager.sendBatchToProviders(entry.getValue(),queueName);
           if (merge == null)           merge=current;
  else {
@@ -41,15 +40,15 @@
         }
         if (merge != null) {
           merge.toBlocking().lastOrDefault(null);
+          LOG.info("sent batch {} messages duration {} ms",messages.size(),System.currentTimeMillis() - now);
         }
-        LOG.info("QueueListener: sent batch {} messages duration {} ms",messages.size(),System.currentTimeMillis() - now);
         if (sleepBetweenRuns > 0) {
-          LOG.info("QueueListener: sleep between rounds...sleep...{}",sleepBetweenRuns);
+          LOG.info("sleep between rounds...sleep...{}",sleepBetweenRuns);
           Thread.sleep(sleepBetweenRuns);
         }
       }
  else {
-        LOG.info("QueueListener: no messages...sleep...{}",sleepWhenNoneFound);
+        LOG.info("no messages...sleep...{}",sleepWhenNoneFound);
         Thread.sleep(sleepWhenNoneFound);
       }
       consecutiveExceptions.set(0);
