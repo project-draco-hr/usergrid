@@ -9,9 +9,9 @@
     }
   }
 ).subscribeOn(Schedulers.io()).buffer(serializationFig.getBufferSize()).flatMap(new Func1<List<CandidateResult>,Observable<? extends EntityVersion>>(){
-    @Override public Observable<? extends EntityVersion> call(    List<CandidateResult> candidateResults){
+    @Override public Observable<? extends EntityVersion> call(    List<CandidateResult> crs){
       List<EntityVersion> versions=new ArrayList<>();
-      for (      CandidateResult entity : candidateResults) {
+      for (      CandidateResult entity : crs) {
         if (entity.getVersion().timestamp() <= event.getVersion().timestamp()) {
           versions.add(entity);
           entityIndex.createBatch().deindex(indexScope,entity.getId(),entity.getVersion());
