@@ -10,7 +10,7 @@
   String name=ApplicationQueueManager.getQueueNames(props);
   QueueScope queueScope=new QueueScopeImpl(new SimpleId(smf.getManagementAppId(),"notifications"),name);
   queueManagerFactory=CpSetup.getInjector().getInstance(QueueManagerFactory.class);
-  QueueManager queueManager=queueManagerFactory.getQueueManager(queueScope);
+  QueueManager queueManager=TEST_QUEUE_MANAGER != null ? TEST_QUEUE_MANAGER : queueManagerFactory.getQueueManager(queueScope);
   notificationQueueManager=new ApplicationQueueManager(jobScheduler,em,queueManager,metricsService,props);
   gracePeriod=jobScheduler.SCHEDULER_GRACE_PERIOD;
 }
