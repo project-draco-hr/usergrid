@@ -6,6 +6,7 @@
   Observable<CollectionIoEvent<MvccEntity>> observable=stageRunner(writeData,writeStart);
   observable.map(writeCommit).doOnNext(new Action1<Entity>(){
     @Override public void call(    final Entity entity){
+      taskExecutor.submit(entityVersionCleanupFactory.getTask(entityId,entity.getVersion()));
     }
   }
 ).doOnError(rollback);
