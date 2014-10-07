@@ -5,7 +5,8 @@
   UUID version=UUIDGenerator.newTimeUUID();
   UniqueValue stored=new UniqueValueImpl(scope,field,entityId,version);
   strategy.write(stored).execute();
-  UniqueValue retrieved=strategy.load(scope,field);
+  UniqueValueSet fields=strategy.load(scope,Collections.<Field>singleton(field));
+  UniqueValue retrieved=fields.getValue(field.getName());
   Assert.assertNotNull(retrieved);
   Assert.assertEquals(stored,retrieved);
 }

@@ -6,10 +6,12 @@
   UniqueValue stored=new UniqueValueImpl(scope,field,entityId,version);
   strategy.write(stored,2).execute();
   Thread.sleep(1000);
-  UniqueValue retrieved=strategy.load(scope,field);
+  UniqueValueSet fields=strategy.load(scope,Collections.<Field>singleton(field));
+  UniqueValue retrieved=fields.getValue(field.getName());
   Assert.assertNotNull(retrieved);
   Assert.assertEquals(stored,retrieved);
   Thread.sleep(1500);
-  UniqueValue nullExpected=strategy.load(scope,field);
+  fields=strategy.load(scope,Collections.<Field>singleton(field));
+  UniqueValue nullExpected=fields.getValue(field.getName());
   Assert.assertNull(nullExpected);
 }
