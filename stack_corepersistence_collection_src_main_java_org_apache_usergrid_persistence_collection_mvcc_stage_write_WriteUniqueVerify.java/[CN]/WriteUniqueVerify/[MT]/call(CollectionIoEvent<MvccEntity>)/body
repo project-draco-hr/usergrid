@@ -1,17 +1,17 @@
 {
   MvccValidationUtils.verifyMvccEntityWithEntity(ioevent.getEvent());
   final MvccEntity mvccEntity=ioevent.getEvent();
+  final Id entityId=mvccEntity.getId();
+  final UUID entityVersion=mvccEntity.getVersion();
   final Entity entity=mvccEntity.getEntity().get();
-  final Id entityId=entity.getId();
-  final UUID entityVersion=entity.getVersion();
   final CollectionScope scope=ioevent.getEntityCollection();
   final Collection<Field> entityFields=entity.getFields();
   final List<Field> uniqueFields=new ArrayList<>(entityFields.size());
   final MutationBatch batch=keyspace.prepareMutationBatch();
   for (  final Field field : entityFields) {
     if (field.isUnique()) {
-      final UniqueValue written=new UniqueValueImpl(scope,field,entityId,entityVersion);
-      final MutationBatch mb=uniqueValueStrat.write(written,serializationFig.getTimeout());
+      final UniqueValue written=new UniqueValueImpl(field,entityId,entityVersion);
+      final MutationBatch mb=uniqueValueStrat.write(scope,written,serializationFig.getTimeout());
       batch.mergeShallow(mb);
       uniqueFields.add(field);
     }
