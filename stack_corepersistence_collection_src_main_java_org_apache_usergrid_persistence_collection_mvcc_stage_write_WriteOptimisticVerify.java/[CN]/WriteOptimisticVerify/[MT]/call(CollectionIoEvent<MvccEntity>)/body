@@ -4,7 +4,7 @@
   final Entity entity=mvccEntity.getEntity().get();
   CollectionScope collectionScope=ioevent.getEntityCollection();
   if (entity.getVersion() == null) {
-    return ioevent;
+    return;
   }
   try {
     List<MvccLogEntry> versions=logEntryStrat.load(collectionScope,entity.getId(),entity.getVersion(),2);
@@ -17,5 +17,4 @@
     log.error("Error reading entity log",e);
     throw new CollectionRuntimeException(mvccEntity,collectionScope,"Error reading entity log",e);
   }
-  return ioevent;
 }

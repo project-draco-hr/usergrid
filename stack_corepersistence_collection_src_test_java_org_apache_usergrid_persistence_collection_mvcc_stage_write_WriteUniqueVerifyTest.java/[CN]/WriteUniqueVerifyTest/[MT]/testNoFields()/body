@@ -1,8 +1,9 @@
 {
   final CollectionScope collectionScope=mock(CollectionScope.class);
+  final Keyspace keyspace=mock(Keyspace.class);
   final Entity entity=generateEntity();
   final MvccEntity mvccEntity=fromEntity(entity);
-  WriteUniqueVerify newStage=new WriteUniqueVerify(uvstrat,fig);
-  CollectionIoEvent<MvccEntity> result=newStage.call(new CollectionIoEvent<MvccEntity>(collectionScope,mvccEntity)).toBlocking().last();
-  assertSame("Context was correct",collectionScope,result.getEntityCollection());
+  WriteUniqueVerify newStage=new WriteUniqueVerify(uvstrat,fig,keyspace);
+  newStage.call(new CollectionIoEvent<>(collectionScope,mvccEntity));
+  verify(keyspace,never()).prepareMutationBatch();
 }
