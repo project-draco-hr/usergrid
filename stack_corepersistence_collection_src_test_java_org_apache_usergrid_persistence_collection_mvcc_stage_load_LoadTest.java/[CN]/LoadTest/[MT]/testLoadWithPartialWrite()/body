@@ -2,6 +2,8 @@
   final CollectionScope collection=mock(CollectionScope.class);
   final UUIDService uuidService=mock(UUIDService.class);
   final MvccEntitySerializationStrategy serializationStrategy=mock(MvccEntitySerializationStrategy.class);
+  final SerializationFig serializationFig=mock(SerializationFig.class);
+  when(serializationFig.getBufferSize()).thenReturn(10);
   final UUID loadVersion=UUIDGenerator.newTimeUUID();
   when(uuidService.newTimeUUID()).thenReturn(loadVersion);
   final Id entityId=TestEntityGenerator.generateId();
@@ -19,7 +21,7 @@
   final MutationBatch batch=mock(MutationBatch.class);
   ArgumentCaptor<MvccEntity> writtenEntityArg=ArgumentCaptor.forClass(MvccEntity.class);
   when(serializationStrategy.write(same(collection),writtenEntityArg.capture())).thenReturn(batch);
-  Load load=new Load(uuidService,serializationStrategy);
+  Load load=new Load(uuidService,serializationStrategy,serializationFig);
   Entity loaded=load.call(entityIoEvent);
   assertNotNull(loaded.getField("derp"));
   assertNull(loaded.getField("derple"));

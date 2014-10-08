@@ -2,6 +2,8 @@
   final CollectionScope collection=mock(CollectionScope.class);
   final UUIDService uuidService=mock(UUIDService.class);
   final MvccEntitySerializationStrategy serializationStrategy=mock(MvccEntitySerializationStrategy.class);
+  final SerializationFig serializationFig=mock(SerializationFig.class);
+  when(serializationFig.getBufferSize()).thenReturn(10);
   final UUID loadVersion=UUIDGenerator.newTimeUUID();
   when(uuidService.newTimeUUID()).thenReturn(loadVersion);
   final Id entityId=TestEntityGenerator.generateId();
@@ -10,7 +12,7 @@
   final MvccEntity mvccEntity=TestEntityGenerator.fromEntityStatus(entity,MvccEntity.Status.COMPLETE);
   final Iterator<MvccEntity> results=Lists.newArrayList(mvccEntity).iterator();
   when(serializationStrategy.load(collection,entityId,loadVersion,1)).thenReturn(results);
-  Load load=new Load(uuidService,serializationStrategy);
+  Load load=new Load(uuidService,serializationStrategy,serializationFig);
   Entity loaded=load.call(entityIoEvent);
   assertSame("Same entity was loaded",entity,loaded);
 }

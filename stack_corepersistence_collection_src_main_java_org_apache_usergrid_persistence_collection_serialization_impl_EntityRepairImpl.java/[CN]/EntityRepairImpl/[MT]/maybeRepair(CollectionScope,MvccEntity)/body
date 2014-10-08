@@ -1,0 +1,28 @@
+{
+  if (!needsRepaired(targetEntity)) {
+    return targetEntity;
+  }
+  final List<MvccEntity> partialEntities=new ArrayList<>(serializationFig.getBufferSize());
+  partialEntities.add(targetEntity);
+  final Iterator<MvccEntity> results=mvccEntitySerializationStrategy.load(collectionScope,targetEntity.getId(),targetEntity.getVersion(),serializationFig.getBufferSize());
+  if (results.hasNext()) {
+    results.next();
+  }
+  while (results.hasNext()) {
+    final MvccEntity mvccEntity=results.next();
+    partialEntities.add(mvccEntity);
+    if (!needsRepaired(mvccEntity)) {
+      break;
+    }
+  }
+  Collections.reverse(partialEntities);
+  final ChangeLog changeLog=CHANGE_LOG_GENERATOR.getChangeLog(partialEntities);
+  final MvccEntity mergedEntity=entityRepair(changeLog,targetEntity);
+  try {
+    mvccEntitySerializationStrategy.write(collectionScope,mergedEntity).execute();
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Couldn't rewrite repaired entity",e);
+  }
+  return mergedEntity;
+}
