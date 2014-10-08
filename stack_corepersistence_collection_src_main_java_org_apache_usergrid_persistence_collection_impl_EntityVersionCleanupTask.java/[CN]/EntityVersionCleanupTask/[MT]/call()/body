@@ -1,12 +1,11 @@
 {
-  final UUID maxVersion=version;
   Observable<List<MvccEntity>> deleteFieldsObservable=Observable.create(new ObservableIterator<MvccEntity>("deleteColumns"){
     @Override protected Iterator<MvccEntity> getIterator(){
       Iterator<MvccEntity> entities=entitySerializationStrategy.load(scope,entityId,version,serializationFig.getBufferSize());
       return entities;
     }
   }
-).buffer(serializationFig.getBufferSize()).doOnNext(new Action1<List<MvccEntity>>(){
+).skip(1).buffer(serializationFig.getBufferSize()).doOnNext(new Action1<List<MvccEntity>>(){
     @Override public void call(    final List<MvccEntity> mvccEntities){
       final MutationBatch batch=keyspace.prepareMutationBatch();
       final MutationBatch entityBatch=keyspace.prepareMutationBatch();
