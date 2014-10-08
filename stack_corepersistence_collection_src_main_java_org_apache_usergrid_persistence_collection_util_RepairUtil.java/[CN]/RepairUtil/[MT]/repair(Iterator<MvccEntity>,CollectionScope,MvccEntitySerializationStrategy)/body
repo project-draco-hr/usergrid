@@ -2,20 +2,20 @@
   if (!results.hasNext()) {
     return null;
   }
-  MvccEntity mvccEntity=results.next();
+  final MvccEntity partialEntity=results.next();
   List<MvccEntity> partialEntities=new ArrayList<>();
-  if (!mvccEntity.getEntity().isPresent() && (mvccEntity.getStatus() == MvccEntity.Status.DELETED || mvccEntity.getStatus() == MvccEntity.Status.COMPLETE)) {
+  if (!partialEntity.getEntity().isPresent() && (partialEntity.getStatus() == MvccEntity.Status.DELETED || partialEntity.getStatus() == MvccEntity.Status.COMPLETE)) {
     return null;
   }
-  if (mvccEntity.getStatus() == MvccEntity.Status.COMPLETE) {
-    return mvccEntity;
+  if (partialEntity.getStatus() == MvccEntity.Status.COMPLETE) {
+    return partialEntity;
   }
-  partialEntities.add(mvccEntity);
+  partialEntities.add(partialEntity);
   while (results.hasNext()) {
-    mvccEntity=results.next();
-    partialEntities.add(mvccEntity);
-    if (mvccEntity.getStatus() != MvccEntity.Status.PARTIAL) {
-      return repairAndWrite(partialEntities,mvccEntity,entitySerializationStrategy,collectionScope);
+    final MvccEntity previousEntity=results.next();
+    partialEntities.add(previousEntity);
+    if (previousEntity.getStatus() != MvccEntity.Status.PARTIAL) {
+      return repairAndWrite(partialEntities,partialEntity,entitySerializationStrategy,collectionScope);
     }
   }
   return null;
