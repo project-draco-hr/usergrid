@@ -20,14 +20,13 @@
         }
         TaskManager taskManager=taskMap.get(message.getNotificationId());
         if (taskManager == null) {
-          taskManager=new TaskManager(em,proxy,notification,qm);
+          taskManager=new TaskManager(em,proxy,notification);
           taskMap.putIfAbsent(message.getNotificationId(),taskManager);
           taskManager=taskMap.get(message.getNotificationId());
         }
         final Map<String,Object> payloads=notification.getPayloads();
         final Map<String,Object> translatedPayloads=translatePayloads(payloads,notifierMap);
         LOG.info("sending notification for device {} for Notification: {}",deviceUUID,notification.getUuid());
-        taskManager.addMessage(deviceUUID,queueMessage);
         try {
           String notifierName=message.getNotifierKey().toLowerCase();
           Notifier notifier=notifierMap.get(notifierName.toLowerCase());
@@ -98,7 +97,8 @@
           try {
             TaskManager taskManager=taskMap.get(message.getNotificationId());
             notifications.put(message.getNotificationId(),message);
-            taskManager.finishedBatch();
+            Notification notification=notificationMap.get(message.getNotificationId());
+            if (notification.getDebug())             taskManager.finishedBatch();
           }
  catch (          Exception e) {
             LOG.error("Failed to finish batch",e);

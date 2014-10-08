@@ -1,26 +1,3 @@
 {
-  long successes=this.successes.get();
-  long failures=this.failures.get();
-  for (int i=0; i < successes; i++) {
-    this.successes.decrementAndGet();
-  }
-  for (int i=0; i < failures; i++) {
-    this.failures.decrementAndGet();
-  }
-  this.hasFinished=true;
-  Notification notification=em.get(this.notification.getUuid(),Notification.class);
-  notification.setModified(System.currentTimeMillis());
-  Map<String,Long> stats=new HashMap<>(2);
-  stats.put("sent",successes);
-  stats.put("errors",failures);
-  notification.updateStatistics(successes,failures);
-  long totals=(notification.getStatistics().get("sent") + notification.getStatistics().get("errors"));
-  Map<String,Object> properties=new HashMap<>();
-  notification.setFinished(notification.getModified());
-  properties.put("finished",notification.getModified());
-  properties.put("state",notification.getState());
-  LOG.info("done sending to devices in {} ms",notification.getFinished() - notification.getStarted());
-  notification.addProperties(properties);
-  LOG.info("notification finished batch: {} of {} devices",notification.getUuid(),totals);
-  em.update(notification);
+  finishedBatch(true);
 }
