@@ -19,10 +19,8 @@
   notification.setFinished(notification.getModified());
   properties.put("finished",notification.getModified());
   properties.put("state",notification.getState());
-  LOG.info("done sending to devices in {} ms",notification.getFinished() - notification.getStarted());
   notification.addProperties(properties);
-  LOG.info("notification finished batch: {} of {} devices",notification.getUuid(),totals);
-  if (update) {
-    em.update(notification);
-  }
+  long latency=notification.getFinished() - notification.getStarted();
+  LOG.info("notification finished batch: {} of {} devices in " + latency + "ms",notification.getUuid(),totals);
+  em.update(notification);
 }

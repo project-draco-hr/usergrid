@@ -109,11 +109,13 @@
   notification.addProperties(properties);
   long now=System.currentTimeMillis();
   LOG.info("notification {} updated notification duration {} ms",notification.getUuid(),System.currentTimeMillis() - now);
-  if (deviceCount.get() <= 0) {
+  if (deviceCount.get() <= 0 || notification.getDebug()) {
     TaskManager taskManager=new TaskManager(em,this,notification);
-    taskManager.finishedBatch(false,false);
+    taskManager.finishedBatch(false);
   }
-  em.update(notification);
+ else {
+    em.update(notification);
+  }
   long elapsed=notification.getQueued() != null ? notification.getQueued() - startTime : 0;
   LOG.info("notification {} done queuing to {} devices in " + elapsed + " ms",notification.getUuid().toString(),deviceCount.get());
 }
