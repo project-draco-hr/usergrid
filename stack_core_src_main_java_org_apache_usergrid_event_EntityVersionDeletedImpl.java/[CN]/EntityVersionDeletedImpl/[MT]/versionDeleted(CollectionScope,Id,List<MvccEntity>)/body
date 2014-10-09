@@ -1,0 +1,13 @@
+{
+  final IndexScope indexScope=new IndexScopeImpl(new SimpleId(scope.getOwner().getUuid(),scope.getOwner().getType()),scope.getName());
+  rx.Observable.from(entityVersions).subscribeOn(Schedulers.io()).buffer(serializationFig.getBufferSize()).map(new Func1<List<MvccEntity>,List<MvccEntity>>(){
+    @Override public List<MvccEntity> call(    List<MvccEntity> entityList){
+      for (      MvccEntity entity : entityList) {
+        entityIndexBatch.deindex(indexScope,entityId,entity.getVersion());
+      }
+      entityIndexBatch.execute();
+      return entityList;
+    }
+  }
+).toBlocking().last();
+}
