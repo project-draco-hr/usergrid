@@ -1,27 +1,14 @@
 {
-  ValidationUtils.validateApplicationScope(applicationScope);
+  ValidationUtils.validateApplicationScope(appScope);
   try {
-    this.applicationScope=applicationScope;
+    this.applicationScope=appScope;
     this.client=provider.getClient();
-    this.indexName=createIndexName(config.getIndexPrefix(),applicationScope);
-    this.cursorTimeout=config.getQueryCursorTimeout();
     this.config=config;
+    this.cursorTimeout=config.getQueryCursorTimeout();
+    this.indexName=IndexingUtils.createIndexName(config.getIndexPrefix(),appScope);
+    initIndex();
   }
- catch (  Exception e) {
-    log.error("Error setting up index",e);
-    throw e;
-  }
-  AdminClient admin=client.admin();
-  try {
-    CreateIndexResponse r=admin.indices().prepareCreate(indexName).execute().actionGet();
-    log.debug("Created new Index Name [{}] ACK=[{}]",indexName,r.isAcknowledged());
-    client.admin().indices().prepareRefresh(indexName).execute().actionGet();
-    try {
-      Thread.sleep(500);
-    }
- catch (    InterruptedException ex) {
-    }
-  }
- catch (  IndexAlreadyExistsException ignored) {
+ catch (  IOException ex) {
+    throw new RuntimeException("Error initializing ElasticSearch mappings or index",ex);
   }
 }
