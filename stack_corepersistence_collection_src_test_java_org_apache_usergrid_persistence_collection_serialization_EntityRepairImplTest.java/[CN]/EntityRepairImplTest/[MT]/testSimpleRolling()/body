@@ -16,6 +16,8 @@
   final Id applicationId=new SimpleId("application");
   final CollectionScope scope=new CollectionScopeImpl(applicationId,applicationId,"users");
   when(mvccEntitySerializationStrategy.load(scope,simpleId,v3.getVersion(),serializationFig.getBufferSize())).thenReturn(Arrays.<MvccEntity>asList(v3,v2,v1).iterator());
+  final MutationBatch mutationBatch=mock(MutationBatch.class);
+  when(mvccEntitySerializationStrategy.write(scope,v3)).thenReturn(mutationBatch);
   EntityRepairImpl entityRepair=new EntityRepairImpl(mvccEntitySerializationStrategy,serializationFig);
   final MvccEntity returned=entityRepair.maybeRepair(scope,v3);
   final UUID version=returned.getVersion();
@@ -23,10 +25,8 @@
   final Id entityId=returned.getId();
   assertEquals("Entity Id's match",simpleId,entityId);
   final Entity finalVersion=returned.getEntity().get();
-  final Object expectedField1Value=v2.getEntity().get().getField("field1").getValue();
-  final Object returnedField1Value=finalVersion.getField("field1").getValue();
-  assertEquals("Same field value",expectedField1Value,returnedField1Value);
   final Object expectedField2Value=v3.getEntity().get().getField("field2").getValue();
   final Object returnedField2Value=finalVersion.getField("field2").getValue();
   assertEquals("Same field value",expectedField2Value,returnedField2Value);
+  verify(mutationBatch).execute();
 }
