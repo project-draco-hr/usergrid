@@ -2,13 +2,9 @@
   Preconditions.checkNotNull(entity,"Entity is required in the new stage of the mvcc write");
   final Id entityId=entity.getId();
   ValidationUtils.verifyIdentity(entityId);
-  CollectionIoEvent<Entity> writeData=new CollectionIoEvent<Entity>(collectionScope,entity);
+  final CollectionIoEvent<Entity> writeData=new CollectionIoEvent<Entity>(collectionScope,entity);
   Observable<CollectionIoEvent<MvccEntity>> observable=stageRunner(writeData,writeStart);
-  observable.doOnNext(new Action1<CollectionIoEvent<MvccEntity>>(){
-    @Override public void call(    final CollectionIoEvent<MvccEntity> mvccEntityCollectionIoEvent){
-    }
-  }
-).map(writeCommit).doOnNext(new Action1<Entity>(){
+  observable.map(writeCommit).doOnNext(new Action1<Entity>(){
     @Override public void call(    final Entity entity){
     }
   }

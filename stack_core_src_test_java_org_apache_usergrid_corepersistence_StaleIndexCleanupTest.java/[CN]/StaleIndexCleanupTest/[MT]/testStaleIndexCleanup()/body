@@ -1,0 +1,29 @@
+{
+  logger.info("Started testStaleIndexCleanup()");
+  final EntityManager em=app.getEntityManager();
+  final List<Entity> things=new ArrayList<Entity>();
+  int numEntities=1;
+  int numUpdates=3;
+  for (int i=0; i < numEntities; i++) {
+    final String thingName="thing" + i;
+    things.add(em.create("thing",new HashMap<String,Object>(){
+{
+        put("name",thingName);
+      }
+    }
+));
+  }
+  em.refreshIndex();
+  CandidateResults crs=queryCollectionCp("things","select *");
+  Assert.assertEquals(numEntities,crs.size());
+  for (  Entity thing : things) {
+    for (int j=0; j < numUpdates; j++) {
+      Entity toUpdate=em.get(thing.getUuid());
+      thing.setProperty("property" + j,RandomStringUtils.randomAlphanumeric(10));
+      em.update(toUpdate);
+      em.refreshIndex();
+    }
+  }
+  crs=queryCollectionCp("things","select *");
+  Assert.assertEquals(numEntities * numUpdates,crs.size());
+}

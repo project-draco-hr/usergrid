@@ -1,11 +1,11 @@
 {
   Collections.reverse(partialEntities);
-  mvccEntity=entityRepair(changeLogGenerator.getChangeLog(partialEntities.iterator(),partialEntities.get(partialEntities.size() - 1).getVersion()),partialEntities,mvccEntity);
+  final MvccEntity mergedEntity=entityRepair(changeLogGenerator.getChangeLog(partialEntities.iterator(),partialEntities.get(partialEntities.size() - 1).getVersion()),partialEntities,targetEntity);
   try {
-    entitySerializationStrategy.write(collectionScope,mvccEntity).execute();
+    entitySerializationStrategy.write(collectionScope,mergedEntity).execute();
   }
  catch (  Exception e) {
     throw new RuntimeException("Couldn't rewrite repaired entity",e);
   }
-  return mvccEntity;
+  return mergedEntity;
 }

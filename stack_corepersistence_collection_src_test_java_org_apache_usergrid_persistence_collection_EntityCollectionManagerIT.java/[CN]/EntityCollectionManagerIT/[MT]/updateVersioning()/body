@@ -1,0 +1,16 @@
+{
+  Entity origEntity=new Entity(new SimpleId("testUpdate"));
+  origEntity.setField(new StringField("testField","value"));
+  CollectionScope context=new CollectionScopeImpl(new SimpleId("organization"),new SimpleId("testUpdate"),"testUpdate");
+  EntityCollectionManager manager=factory.createCollectionManager(context);
+  Entity returned=manager.write(origEntity).toBlocking().lastOrDefault(null);
+  UUID oldVersion=returned.getVersion();
+  assertNotNull("A version must be assigned",oldVersion);
+  Entity updateEntity=new Entity(origEntity.getId());
+  updateEntity.setField(new StringField("addedField","other value"));
+  manager.update(origEntity).toBlocking().lastOrDefault(null);
+  returned=manager.load(origEntity.getId()).toBlocking().lastOrDefault(null);
+  UUID newVersion=returned.getVersion();
+  assertNotNull("A new version must be assigned",newVersion);
+  assertTrue(UUIDComparator.staticCompare(newVersion,oldVersion) > 0);
+}

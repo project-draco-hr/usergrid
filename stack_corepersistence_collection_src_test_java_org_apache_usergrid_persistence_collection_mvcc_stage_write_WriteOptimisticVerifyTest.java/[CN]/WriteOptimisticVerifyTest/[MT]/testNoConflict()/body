@@ -13,11 +13,5 @@
   when(noConflictLog.load(collectionScope,entity.getId(),entity.getVersion(),2)).thenReturn(logEntries);
   UniqueValueSerializationStrategy uvstrat=mock(UniqueValueSerializationStrategy.class);
   WriteOptimisticVerify newStage=new WriteOptimisticVerify(noConflictLog);
-  CollectionIoEvent<MvccEntity> result;
-  result=newStage.call(new CollectionIoEvent<MvccEntity>(collectionScope,mvccEntity));
-  assertSame("Context was correct",collectionScope,result.getEntityCollection());
-  MvccEntity entry=result.getEvent();
-  assertSame("Id correct",entity.getId(),entry.getId());
-  assertSame("Version did not not match entityId",entity.getVersion(),entry.getVersion());
-  assertSame("Entity correct",entity,entry.getEntity().get());
+  newStage.call(new CollectionIoEvent<>(collectionScope,mvccEntity));
 }
