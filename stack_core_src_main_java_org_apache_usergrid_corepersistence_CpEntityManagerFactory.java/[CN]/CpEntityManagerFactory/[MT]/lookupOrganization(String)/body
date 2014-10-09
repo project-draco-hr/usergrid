@@ -1,10 +1,13 @@
 {
   init();
-  Query q=Query.fromQL(PROPERTY_NAME + " = '" + name+ "'");
   EntityManager em=getEntityManager(SYSTEM_APP_ID);
-  Results results=em.searchCollection(em.getApplicationRef(),"organizations",q);
-  if (results.isEmpty()) {
+  final EntityRef alias=em.getAlias("organizations",name);
+  if (alias == null) {
     return null;
   }
-  return results.iterator().next().getUuid();
+  final Entity entity=em.get(alias);
+  if (entity == null) {
+    return null;
+  }
+  return entity.getUuid();
 }
