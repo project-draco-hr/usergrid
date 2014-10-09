@@ -1,9 +1,9 @@
 {
   logger.info("Started testStaleIndexCleanup()");
   final EntityManager em=app.getEntityManager();
+  int numEntities=100;
+  int numUpdates=10;
   final List<Entity> things=new ArrayList<Entity>();
-  int numEntities=1;
-  int numUpdates=3;
   for (int i=0; i < numEntities; i++) {
     final String thingName="thing" + i;
     things.add(em.create("thing",new HashMap<String,Object>(){
@@ -12,18 +12,32 @@
       }
     }
 ));
+    Thread.sleep(writeDelayMs);
   }
   em.refreshIndex();
   CandidateResults crs=queryCollectionCp("things","select *");
   Assert.assertEquals(numEntities,crs.size());
+  int count=0;
   for (  Entity thing : things) {
     for (int j=0; j < numUpdates; j++) {
       Entity toUpdate=em.get(thing.getUuid());
       thing.setProperty("property" + j,RandomStringUtils.randomAlphanumeric(10));
       em.update(toUpdate);
+      Thread.sleep(writeDelayMs);
       em.refreshIndex();
+      count++;
+      if (count % 100 == 0) {
+        logger.info("Updated {} of {} times",count,numEntities * numUpdates);
+      }
     }
   }
   crs=queryCollectionCp("things","select *");
   Assert.assertEquals(numEntities * numUpdates,crs.size());
+  Query q=Query.fromQL("select *");
+  q.setLimit(10000);
+  Results results=em.searchCollection(em.getApplicationRef(),"things",q);
+  assertEquals(numEntities,results.size());
+  Thread.sleep(600);
+  crs=queryCollectionCp("things","select *");
+  Assert.assertEquals(numEntities,crs.size());
 }
