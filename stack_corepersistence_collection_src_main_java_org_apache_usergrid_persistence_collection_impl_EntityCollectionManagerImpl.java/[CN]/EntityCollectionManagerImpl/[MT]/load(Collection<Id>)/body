@@ -1,5 +1,16 @@
 {
   Preconditions.checkNotNull(entityIds,"entityIds cannot be null");
-  final EntitySet results=entitySerializationStrategy.load(collectionScope,entityIds,UUIDGenerator.newTimeUUID());
-  return Observable.just(results);
+  return Observable.create(new Observable.OnSubscribe<EntitySet>(){
+    @Override public void call(    final Subscriber<? super EntitySet> subscriber){
+      try {
+        final EntitySet results=entitySerializationStrategy.load(collectionScope,entityIds,UUIDGenerator.newTimeUUID());
+        subscriber.onNext(results);
+        subscriber.onCompleted();
+      }
+ catch (      Exception e) {
+        subscriber.onError(e);
+      }
+    }
+  }
+);
 }
