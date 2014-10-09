@@ -1,0 +1,16 @@
+{
+  CollectionScope collectionScope1=new CollectionScopeImpl(new SimpleId("organization"),new SimpleId("test1"),"test1");
+  Entity newEntity=new Entity(new SimpleId("test"));
+  Field field=new StringField("testField","unique",true);
+  newEntity.setField(field);
+  EntityCollectionManager manager=factory.createCollectionManager(collectionScope1);
+  Observable<Entity> observable=manager.write(newEntity);
+  Entity createReturned=observable.toBlocking().lastOrDefault(null);
+  assertNotNull("Id was assigned",createReturned.getId());
+  assertNotNull("Version was assigned",createReturned.getVersion());
+  Id id=manager.getIdField(field).toBlocking().lastOrDefault(null);
+  assertNotNull(id);
+  Field fieldNull=new StringField("testFieldNotThere","uniquely",true);
+  id=manager.getIdField(fieldNull).toBlocking().lastOrDefault(null);
+  assertNull(id);
+}
