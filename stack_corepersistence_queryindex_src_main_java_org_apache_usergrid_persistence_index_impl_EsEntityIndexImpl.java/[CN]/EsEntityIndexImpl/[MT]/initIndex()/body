@@ -1,0 +1,18 @@
+{
+  try {
+    if (!mappingsCreated.getAndSet(true)) {
+      createMappings();
+    }
+    AdminClient admin=client.admin();
+    CreateIndexResponse cir=admin.indices().prepareCreate(indexName).execute().actionGet();
+    log.debug("Created new Index Name [{}] ACK=[{}]",indexName,cir.isAcknowledged());
+    admin.indices().prepareRefresh(indexName).execute().actionGet();
+    try {
+      Thread.sleep(500);
+    }
+ catch (    InterruptedException ex) {
+    }
+  }
+ catch (  IndexAlreadyExistsException expected) {
+  }
+}

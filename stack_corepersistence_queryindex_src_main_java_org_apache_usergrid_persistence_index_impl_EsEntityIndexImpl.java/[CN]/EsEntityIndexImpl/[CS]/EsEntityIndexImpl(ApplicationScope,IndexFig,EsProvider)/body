@@ -6,28 +6,9 @@
     this.config=config;
     this.cursorTimeout=config.getQueryCursorTimeout();
     this.indexName=IndexingUtils.createIndexName(config.getIndexPrefix(),appScope);
+    initIndex();
   }
- catch (  Exception e) {
-    log.error("Error setting up index",e);
-    throw e;
-  }
-  AdminClient admin=client.admin();
-  try {
-    CreateIndexResponse cir=admin.indices().prepareCreate(indexName).execute().actionGet();
-    log.debug("Created new Index Name [{}] ACK=[{}]",indexName,cir.isAcknowledged());
-    client.admin().indices().prepareRefresh(indexName).execute().actionGet();
-    XContentBuilder xcb=IndexingUtils.createDoubleStringIndexMapping(XContentFactory.jsonBuilder(),"_default_");
-    PutIndexTemplateResponse pitr=client.admin().indices().preparePutTemplate("usergrid_template").setTemplate(config.getIndexPrefix() + "*").addMapping("_default_",xcb).execute().actionGet();
-    log.debug("Create Mapping for new Index Name [{}] ACK=[{}]",indexName,pitr.isAcknowledged());
-    try {
-      Thread.sleep(500);
-    }
- catch (    InterruptedException ex) {
-    }
-  }
- catch (  IndexAlreadyExistsException expected) {
-  }
-catch (  IOException ioe) {
-    throw new RuntimeException("Error setting up index",ioe);
+ catch (  IOException ex) {
+    throw new RuntimeException("Error initializing ElasticSearch mappings or index",ex);
   }
 }
