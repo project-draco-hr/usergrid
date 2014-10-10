@@ -9,16 +9,16 @@
   EntityUtils.setVersion(entity,version);
   MvccEntity saved=new MvccEntityImpl(entityId,version,MvccEntity.Status.COMPLETE,Optional.of(entity));
   serializationStrategy.write(context,saved).execute();
-  MvccEntity returned=serializationStrategy.load(context,entityId,version);
+  MvccEntity returned=serializationStrategy.load(context,Collections.singleton(entityId),version).getEntity(entityId);
   assertEquals("Mvcc entities are the same",saved,returned);
   assertEquals(entityId,returned.getId());
   assertEquals(entityId,returned.getEntity().get().getId());
   serializationStrategy.mark(context,entityId,version).execute();
-  returned=serializationStrategy.load(context,entityId,version);
+  returned=serializationStrategy.load(context,Collections.singleton(entityId),version).getEntity(entityId);
   assertEquals(entityId,returned.getId());
   assertEquals(version,returned.getVersion());
   assertFalse(returned.getEntity().isPresent());
   serializationStrategy.delete(context,entityId,version).execute();
-  returned=serializationStrategy.load(context,entityId,version);
+  returned=serializationStrategy.load(context,Collections.singleton(entityId),version).getEntity(entityId);
   assertNull(returned);
 }

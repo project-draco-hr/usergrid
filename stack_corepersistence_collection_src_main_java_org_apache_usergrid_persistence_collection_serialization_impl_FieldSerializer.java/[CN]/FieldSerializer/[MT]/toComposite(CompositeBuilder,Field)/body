@@ -1,9 +1,17 @@
 {
-  builder.addString(field.getName());
-  builder.addString(field.getValue().toString());
-  String simpleName=field.getClass().getSimpleName();
-  int nameIndex=simpleName.lastIndexOf(".");
-  String fieldType=simpleName.substring(nameIndex + 1,simpleName.length() - "Field".length());
-  fieldType=StringUtils.upperCase(fieldType + "_FIELD");
-  builder.addString(fieldType);
+  final FieldTypeName fieldType=field.getTypeName();
+switch (fieldType) {
+case BOOLEAN:
+case DOUBLE:
+case INTEGER:
+case LONG:
+case STRING:
+case UUID:
+    break;
+default :
+  throw new RuntimeException(String.format("Type %s is not a supported type for unique values",fieldType));
+}
+builder.addString(fieldType.name());
+builder.addString(field.getName());
+builder.addString(field.getValue().toString());
 }

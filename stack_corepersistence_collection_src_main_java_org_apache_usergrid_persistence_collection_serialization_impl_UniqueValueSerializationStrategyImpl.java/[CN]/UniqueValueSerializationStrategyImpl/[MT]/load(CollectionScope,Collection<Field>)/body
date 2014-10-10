@@ -11,12 +11,12 @@
   while (results.hasNext()) {
     final Row<ScopedRowKey<CollectionScope,Field>,EntityVersion> unique=results.next();
     final Field field=unique.getKey().getKey();
-    final ColumnList<EntityVersion> columnList=unique.getColumns();
-    if (columnList.size() < 1) {
+    final Iterator<Column<EntityVersion>> columnList=unique.getColumns().iterator();
+    if (!columnList.hasNext()) {
       continue;
     }
-    final EntityVersion entityVersion=columnList.getColumnByIndex(0).getName();
-    final UniqueValueImpl uniqueValue=new UniqueValueImpl(colScope,field,entityVersion.getEntityId(),entityVersion.getEntityVersion());
+    final EntityVersion entityVersion=columnList.next().getName();
+    final UniqueValueImpl uniqueValue=new UniqueValueImpl(field,entityVersion.getEntityId(),entityVersion.getEntityVersion());
     uniqueValueSet.addValue(uniqueValue);
   }
   return uniqueValueSet;

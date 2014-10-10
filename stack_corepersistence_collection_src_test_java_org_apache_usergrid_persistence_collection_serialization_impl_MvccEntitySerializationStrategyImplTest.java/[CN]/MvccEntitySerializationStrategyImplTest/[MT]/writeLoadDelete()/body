@@ -27,7 +27,7 @@
   entity.setField(arrayField);
   MvccEntity saved=new MvccEntityImpl(id,version,MvccEntity.Status.COMPLETE,Optional.of(entity));
   serializationStrategy.write(context,saved).execute();
-  MvccEntity returned=serializationStrategy.load(context,id,version);
+  MvccEntity returned=serializationStrategy.load(context,Collections.singleton(id),version).getEntity(id);
   assertEquals("Mvcc entities are the same",saved,returned);
   assertEquals(id,returned.getId());
   Field<Boolean> boolFieldReturned=returned.getEntity().get().getField(boolField.getName());
@@ -56,6 +56,6 @@
   assertEquals(id,entity.getId());
   assertEquals(version,entity.getVersion());
   serializationStrategy.delete(context,id,version).execute();
-  returned=serializationStrategy.load(context,id,version);
+  returned=serializationStrategy.load(context,Collections.singleton(id),version).getEntity(id);
   assertNull(returned);
 }

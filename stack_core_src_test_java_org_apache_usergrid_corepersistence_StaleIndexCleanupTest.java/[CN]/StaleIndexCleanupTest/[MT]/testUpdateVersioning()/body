@@ -1,0 +1,25 @@
+{
+  final EntityManager em=app.getEntityManager();
+  Entity thing=em.create("thing",new HashMap<String,Object>(){
+{
+      put("name","thing1");
+    }
+  }
+);
+  em.refreshIndex();
+  assertEquals(1,queryCollectionCp("things","select *").size());
+  org.apache.usergrid.persistence.model.entity.Entity cpEntity=getCpEntity(thing);
+  UUID oldVersion=cpEntity.getVersion();
+  em.updateProperties(thing,new HashMap<String,Object>(){
+{
+      put("stuff","widget");
+    }
+  }
+);
+  em.refreshIndex();
+  org.apache.usergrid.persistence.model.entity.Entity cpUpdated=getCpEntity(thing);
+  assertEquals("widget",cpUpdated.getField("stuff").getValue());
+  UUID newVersion=cpUpdated.getVersion();
+  assertTrue("New version is greater than old",UUIDComparator.staticCompare(newVersion,oldVersion) > 0);
+  assertEquals(2,queryCollectionCp("things","select *").size());
+}

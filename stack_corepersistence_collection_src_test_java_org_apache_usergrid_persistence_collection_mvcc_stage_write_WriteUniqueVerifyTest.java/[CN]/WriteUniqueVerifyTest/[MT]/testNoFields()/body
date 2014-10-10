@@ -1,9 +1,11 @@
 {
   final CollectionScope collectionScope=mock(CollectionScope.class);
   final Keyspace keyspace=mock(Keyspace.class);
+  final MutationBatch batch=mock(MutationBatch.class);
+  when(keyspace.prepareMutationBatch()).thenReturn(batch);
   final Entity entity=generateEntity();
   final MvccEntity mvccEntity=fromEntity(entity);
   WriteUniqueVerify newStage=new WriteUniqueVerify(uvstrat,fig,keyspace);
   newStage.call(new CollectionIoEvent<>(collectionScope,mvccEntity));
-  verify(keyspace,never()).prepareMutationBatch();
+  verify(batch,never()).execute();
 }

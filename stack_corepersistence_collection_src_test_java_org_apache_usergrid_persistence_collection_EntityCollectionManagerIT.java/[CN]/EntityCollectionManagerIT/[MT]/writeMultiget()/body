@@ -1,0 +1,22 @@
+{
+  final CollectionScope context=new CollectionScopeImpl(new SimpleId("organization"),new SimpleId("test"),"test");
+  final EntityCollectionManager manager=factory.createCollectionManager(context);
+  final int multigetSize=serializationFig.getMaxLoadSize();
+  final List<Entity> writtenEntities=new ArrayList<>(multigetSize);
+  final List<Id> entityIds=new ArrayList<>(multigetSize);
+  for (int i=0; i < multigetSize; i++) {
+    final Entity entity=new Entity(new SimpleId("test"));
+    final Entity written=manager.write(entity).toBlocking().last();
+    writtenEntities.add(written);
+    entityIds.add(written.getId());
+  }
+  final EntitySet entitySet=manager.load(entityIds).toBlocking().lastOrDefault(null);
+  assertNotNull(entitySet);
+  assertEquals(multigetSize,entitySet.size());
+  assertFalse(entitySet.isEmpty());
+  for (int i=0; i < multigetSize; i++) {
+    final Entity expected=writtenEntities.get(i);
+    final MvccEntity returned=entitySet.getEntity(expected.getId());
+    assertEquals("Same entity returned",expected,returned.getEntity().get());
+  }
+}

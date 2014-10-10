@@ -1,0 +1,12 @@
+{
+  startSpring();
+  logger.info("Starting index rebuild");
+  EntityManagerFactory.ProgressObserver po=new EntityManagerFactory.ProgressObserver(){
+    @Override public void onProgress(    EntityRef s,    EntityRef t,    String etype){
+      logger.info("Repersisting from {}:{} to {}:{}",new Object[]{s.getType(),s.getUuid(),t.getType(),t.getUuid(),etype});
+    }
+  }
+;
+  emf.rebuildAllIndexes(po);
+  logger.info("Finished index rebuild");
+}

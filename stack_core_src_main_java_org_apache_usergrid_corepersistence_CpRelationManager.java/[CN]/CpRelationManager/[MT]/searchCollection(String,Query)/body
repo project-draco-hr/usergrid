@@ -13,23 +13,25 @@
   query.setEntityType(collection.getType());
   query=adjustQuery(query);
   int maxQueries=10;
+  final int originalLimit=query.getLimit();
   Results results=null;
   int queryCount=0;
-  int originalLimit=query.getLimit();
   boolean satisfied=false;
   while (!satisfied && queryCount++ < maxQueries) {
     CandidateResults crs=ei.search(indexScope,query);
     if (results == null) {
+      logger.debug("Calling build results 1");
       results=buildResults(query,crs,collName);
     }
  else {
+      logger.debug("Calling build results 2");
       Results newResults=buildResults(query,crs,collName);
       results.merge(newResults);
     }
     if (crs.isEmpty() || !crs.hasCursor()) {
       satisfied=true;
     }
- else     if (results.size() == query.getLimit()) {
+ else     if (results.size() == originalLimit) {
       satisfied=true;
     }
  else     if (crs.hasCursor()) {
