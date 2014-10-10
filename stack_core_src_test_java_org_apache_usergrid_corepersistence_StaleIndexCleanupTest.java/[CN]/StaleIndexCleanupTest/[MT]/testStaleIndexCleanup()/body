@@ -3,7 +3,7 @@
   final EntityManager em=app.getEntityManager();
   final int numEntities=100;
   final int numUpdates=5;
-  final List<Entity> things=new ArrayList<Entity>();
+  final List<Entity> things=new ArrayList<Entity>(numEntities);
   for (int i=0; i < numEntities; i++) {
     final String thingName="thing" + i;
     things.add(em.create("thing",new HashMap<String,Object>(){
@@ -18,10 +18,12 @@
   CandidateResults crs=queryCollectionCp("things","select *");
   Assert.assertEquals("Expect no stale candidates yet",numEntities,crs.size());
   int count=0;
+  List<Entity> maxVersions=new ArrayList<>(numEntities);
   for (  Entity thing : things) {
+    Entity toUpdate=null;
     for (int j=0; j < numUpdates; j++) {
-      Entity toUpdate=em.get(thing.getUuid());
-      thing.setProperty("property" + j,RandomStringUtils.randomAlphanumeric(10));
+      toUpdate=em.get(thing.getUuid());
+      toUpdate.setProperty("property" + j,RandomStringUtils.randomAlphanumeric(10));
       em.update(toUpdate);
       Thread.sleep(writeDelayMs);
       count++;
@@ -29,21 +31,29 @@
         logger.info("Updated {} of {} times",count,numEntities * numUpdates);
       }
     }
+    maxVersions.add(toUpdate);
   }
   em.refreshIndex();
   crs=queryCollectionCp("things","select *");
   Assert.assertEquals("Expect stale candidates",numEntities * (numUpdates + 1),crs.size());
+  final int limit=8;
   Query q=Query.fromQL("select *");
-  q.setLimit(8);
+  q.setLimit(limit);
   int thingCount=0;
   String cursor=null;
+  int index=0;
   do {
     Results results=em.searchCollection(em.getApplicationRef(),"things",q);
     cursor=results.getCursor();
     if (cursor != null) {
-      assertEquals(8,results.size());
+      assertEquals(limit,results.size());
     }
     thingCount+=results.size();
+    for (int i=0; i < results.size(); i++, index++) {
+      final Entity returned=results.getEntities().get(i);
+      final Entity expected=maxVersions.get(index);
+      assertEquals("correct entity returned",expected,returned);
+    }
   }
  while (cursor != null);
   assertEquals("Expect no stale candidates",numEntities,thingCount);
