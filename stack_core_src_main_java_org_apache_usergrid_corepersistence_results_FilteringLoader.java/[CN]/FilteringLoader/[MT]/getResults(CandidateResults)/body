@@ -9,18 +9,18 @@
     final CandidateResult cr=iter.next();
     final String collectionType=CpNamingUtils.getCollectionScopeNameFromEntityType(cr.getId().getType());
     final Id entityId=cr.getId();
-    final CandidateResult seen=idResultMapping.get(entityId);
-    if (seen == null) {
+    final CandidateResult previousMax=idResultMapping.get(entityId);
+    if (previousMax == null) {
       idResultMapping.put(entityId,cr);
       orderIndex.put(entityId,i);
       groupedByScopes.put(collectionType,cr);
     }
  else {
-      final UUID seenVersion=seen.getVersion();
+      final UUID previousMaxVersion=previousMax.getVersion();
       final UUID currentVersion=cr.getVersion();
-      if (UUIDComparator.staticCompare(currentVersion,seenVersion) > 0) {
-        logger.debug("Stale version of Entity uuid:{} type:{}, stale v:{}, latest v:{}",new Object[]{entityId.getUuid(),entityId.getType(),seen,currentVersion});
-        deIndex(indexBatch,ownerId,cr);
+      if (UUIDComparator.staticCompare(currentVersion,previousMaxVersion) > 0) {
+        logger.debug("Stale version of Entity uuid:{} type:{}, stale v:{}, latest v:{}",new Object[]{entityId.getUuid(),entityId.getType(),previousMax,currentVersion});
+        deIndex(indexBatch,ownerId,previousMax);
         idResultMapping.put(entityId,cr);
         orderIndex.put(entityId,i);
         groupedByScopes.put(collectionType,cr);
