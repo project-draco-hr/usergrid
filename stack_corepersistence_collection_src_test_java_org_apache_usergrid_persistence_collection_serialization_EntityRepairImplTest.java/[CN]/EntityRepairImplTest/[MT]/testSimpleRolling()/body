@@ -1,0 +1,32 @@
+{
+  final SerializationFig serializationFig=mock(SerializationFig.class);
+  when(serializationFig.getBufferSize()).thenReturn(10);
+  final Id simpleId=new SimpleId("entity");
+  final Entity v1Entity=new Entity(simpleId);
+  v1Entity.setField(new StringField("field1","value1"));
+  v1Entity.setField(new StringField("field2","value2"));
+  final MvccEntityImpl v1=new MvccEntityImpl(simpleId,UUIDGenerator.newTimeUUID(),MvccEntity.Status.COMPLETE,v1Entity);
+  final Entity v2Entity=new Entity(simpleId);
+  v2Entity.setField(new StringField("field1","value1.1"));
+  final MvccEntityImpl v2=new MvccEntityImpl(simpleId,UUIDGenerator.newTimeUUID(),MvccEntity.Status.PARTIAL,v2Entity);
+  final Entity v3Entity=new Entity(simpleId);
+  v3Entity.setField(new StringField("field2","value1.2"));
+  final MvccEntityImpl v3=new MvccEntityImpl(simpleId,UUIDGenerator.newTimeUUID(),MvccEntity.Status.PARTIAL,v3Entity);
+  final MvccEntitySerializationStrategy mvccEntitySerializationStrategy=mock(MvccEntitySerializationStrategy.class);
+  final Id applicationId=new SimpleId("application");
+  final CollectionScope scope=new CollectionScopeImpl(applicationId,applicationId,"users");
+  when(mvccEntitySerializationStrategy.load(scope,simpleId,v3.getVersion(),serializationFig.getBufferSize())).thenReturn(Arrays.<MvccEntity>asList(v3,v2,v1).iterator());
+  final MutationBatch mutationBatch=mock(MutationBatch.class);
+  when(mvccEntitySerializationStrategy.write(scope,v3)).thenReturn(mutationBatch);
+  EntityRepairImpl entityRepair=new EntityRepairImpl(mvccEntitySerializationStrategy,serializationFig);
+  final MvccEntity returned=entityRepair.maybeRepair(scope,v3);
+  final UUID version=returned.getVersion();
+  assertEquals("Versions should match",v3.getVersion(),version);
+  final Id entityId=returned.getId();
+  assertEquals("Entity Id's match",simpleId,entityId);
+  final Entity finalVersion=returned.getEntity().get();
+  final Object expectedField2Value=v3.getEntity().get().getField("field2").getValue();
+  final Object returnedField2Value=finalVersion.getField("field2").getValue();
+  assertEquals("Same field value",expectedField2Value,returnedField2Value);
+  verify(mutationBatch).execute();
+}

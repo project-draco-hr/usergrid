@@ -1,0 +1,57 @@
+{
+  final EntityIndex index=managerCache.getEntityIndex(applicationScope);
+  final EntityIndexBatch indexBatch=index.createBatch();
+  final Map<Id,Integer> orderIndex=new HashMap<>(crs.size());
+  final Map<Id,CandidateResult> idResultMapping=new HashMap<>(crs.size());
+  final HashMultimap<String,CandidateResult> groupedByScopes=HashMultimap.create(crs.size(),crs.size());
+  final Iterator<CandidateResult> iter=crs.iterator();
+  for (int i=0; iter.hasNext(); i++) {
+    final CandidateResult cr=iter.next();
+    final String collectionType=CpNamingUtils.getCollectionScopeNameFromEntityType(cr.getId().getType());
+    final Id entityId=cr.getId();
+    final CandidateResult previousMax=idResultMapping.get(entityId);
+    if (previousMax == null) {
+      idResultMapping.put(entityId,cr);
+      orderIndex.put(entityId,i);
+      groupedByScopes.put(collectionType,cr);
+    }
+ else {
+      final UUID previousMaxVersion=previousMax.getVersion();
+      final UUID currentVersion=cr.getVersion();
+      if (UUIDComparator.staticCompare(currentVersion,previousMaxVersion) > 0) {
+        logger.debug("Stale version of Entity uuid:{} type:{}, stale v:{}, latest v:{}",new Object[]{entityId.getUuid(),entityId.getType(),previousMax,currentVersion});
+        deIndex(indexBatch,ownerId,previousMax);
+        idResultMapping.put(entityId,cr);
+        orderIndex.put(entityId,i);
+        groupedByScopes.put(collectionType,cr);
+      }
+    }
+  }
+  final TreeMap<Integer,Id> sortedResults=new TreeMap<>();
+  for (  final String scopeName : groupedByScopes.keys()) {
+    final Set<CandidateResult> candidateResults=groupedByScopes.get(scopeName);
+    final Collection<Id> idsToLoad=Collections2.transform(candidateResults,new Function<CandidateResult,Id>(){
+      @Nullable @Override public Id apply(      @Nullable final CandidateResult input){
+        if (input == null) {
+          return null;
+        }
+        return input.getId();
+      }
+    }
+);
+    final CollectionScope collScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),scopeName);
+    final EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collScope);
+    resultsLoader.loadResults(idsToLoad,ecm);
+    for (    final Id requestedId : idsToLoad) {
+      final CandidateResult cr=idResultMapping.get(requestedId);
+      if (!resultsLoader.isValid(cr)) {
+        deIndex(indexBatch,ownerId,cr);
+        continue;
+      }
+      final int candidateIndex=orderIndex.get(requestedId);
+      sortedResults.put(candidateIndex,requestedId);
+    }
+  }
+  indexBatch.execute();
+  return resultsLoader.getResults(sortedResults.values());
+}

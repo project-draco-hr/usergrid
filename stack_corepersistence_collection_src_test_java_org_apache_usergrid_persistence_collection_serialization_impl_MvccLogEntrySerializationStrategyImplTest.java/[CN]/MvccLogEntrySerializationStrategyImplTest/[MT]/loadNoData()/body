@@ -3,8 +3,8 @@
   final Id applicationId=new SimpleId("application");
   final String name="test";
   CollectionScope context=new CollectionScopeImpl(organizationId,applicationId,name);
-  final SimpleId id=new SimpleId("test");
+  final Id id=new SimpleId("test");
   final UUID version=UUIDGenerator.newTimeUUID();
-  MvccLogEntry returned=logEntryStrategy.load(context,id,version);
+  MvccLogEntry returned=logEntryStrategy.load(context,Collections.singleton(id),version).getMaxVersion(id);
   assertNull("Returned value should not exist",returned);
 }
