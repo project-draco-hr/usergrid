@@ -1,68 +1,29 @@
 {
   LOG.info("ChangeLogGeneratorImpl test");
-  CollectionScope context=new CollectionScopeImpl(new SimpleId("organization"),new SimpleId("test"),"test");
-  EntityCollectionManager manager=factory.createCollectionManager(context);
-  Entity e1=new Entity(new SimpleId("test"));
+  final Id entityId=new SimpleId("test");
+  Entity e1=new Entity(entityId);
   e1.setField(new StringField("name","name1"));
   e1.setField(new IntegerField("count",1));
-  Observable<Entity> o1=manager.write(e1);
-  e1=o1.toBlocking().lastOrDefault(null);
-  Entity e2=manager.load(e1.getId()).toBlocking().lastOrDefault(null);
+  e1.setField(new BooleanField("single",true));
+  final MvccEntity mvccEntity1=new MvccEntityImpl(entityId,UUIDGenerator.newTimeUUID(),MvccEntity.Status.COMPLETE,e1);
+  Entity e2=new Entity(entityId);
   e2.setField(new StringField("name","name2"));
   e2.setField(new IntegerField("count",2));
   e2.setField(new StringField("nickname","buddy"));
-  Observable<Entity> o2=manager.write(e2);
-  e2=o2.toBlocking().lastOrDefault(null);
-  Entity e3=manager.load(e1.getId()).toBlocking().lastOrDefault(null);
+  e2.setField(new BooleanField("cool",false));
+  final MvccEntity mvccEntity2=new MvccEntityImpl(entityId,UUIDGenerator.newTimeUUID(),MvccEntity.Status.PARTIAL,e2);
+  Entity e3=new Entity(entityId);
   e3.setField(new StringField("name","name3"));
   e3.setField(new IntegerField("count",2));
-  e3.getFields().remove(new StringField("nickname","buddy"));
-  Observable<Entity> o3=manager.write(e3);
-  e3=o3.toBlocking().lastOrDefault(null);
-{
-    Iterator<MvccEntity> versions=mvccEntitySerializationStrategy.load(context,e1.getId(),e3.getVersion(),10);
-    ChangeLogGeneratorImpl instance=new ChangeLogGeneratorImpl();
-    List<ChangeLogEntry> result=instance.getChangeLog(versions,e3.getVersion());
-    for (    ChangeLogEntry cle : result) {
-      LOG.info(cle.toString());
-      Assert.assertFalse(cle.getVersions().isEmpty());
-    }
-    Assert.assertEquals(6,result.size());
-    Assert.assertTrue(isAscendingOrder(result));
-    Assert.assertEquals(ChangeLogEntry.ChangeType.PROPERTY_WRITE,result.get(0).getChangeType());
-    Assert.assertEquals("count",result.get(0).getField().getName());
-    Assert.assertEquals("2",result.get(0).getField().getValue().toString());
-    Assert.assertEquals(ChangeLogEntry.ChangeType.PROPERTY_WRITE,result.get(1).getChangeType());
-    Assert.assertEquals("name",result.get(1).getField().getName());
-    Assert.assertEquals("name3",result.get(1).getField().getValue());
-    Assert.assertEquals(ChangeLogEntry.ChangeType.PROPERTY_DELETE,result.get(2).getChangeType());
-    Assert.assertEquals("nickname",result.get(2).getField().getName());
-    Assert.assertEquals("buddy",result.get(2).getField().getValue());
-    Assert.assertEquals(ChangeLogEntry.ChangeType.PROPERTY_DELETE,result.get(3).getChangeType());
-    Assert.assertEquals("name",result.get(3).getField().getName());
-    Assert.assertEquals("name2",result.get(3).getField().getValue());
-    Assert.assertEquals(ChangeLogEntry.ChangeType.PROPERTY_DELETE,result.get(4).getChangeType());
-    Assert.assertEquals("count",result.get(4).getField().getName());
-    Assert.assertEquals("1",result.get(4).getField().getValue().toString());
-    Assert.assertEquals(ChangeLogEntry.ChangeType.PROPERTY_DELETE,result.get(5).getChangeType());
-    Assert.assertEquals("name",result.get(5).getField().getName());
-    Assert.assertEquals("name1",result.get(5).getField().getValue());
-  }
-{
-    Iterator<MvccEntity> versions=mvccEntitySerializationStrategy.load(context,e1.getId(),e3.getVersion(),10);
-    ChangeLogGeneratorImpl instance=new ChangeLogGeneratorImpl();
-    List<ChangeLogEntry> result=instance.getChangeLog(versions,e2.getVersion());
-    for (    ChangeLogEntry cle : result) {
-      LOG.info(cle.toString());
-      Assert.assertFalse(cle.getVersions().isEmpty());
-    }
-    Assert.assertEquals(6,result.size());
-    Assert.assertTrue(isAscendingOrder(result));
-    Assert.assertEquals(ChangeLogEntry.ChangeType.PROPERTY_WRITE,result.get(2).getChangeType());
-    Assert.assertEquals("nickname",result.get(2).getField().getName());
-    Assert.assertEquals("buddy",result.get(2).getField().getValue());
-    Assert.assertEquals(ChangeLogEntry.ChangeType.PROPERTY_DELETE,result.get(4).getChangeType());
-    Assert.assertEquals("count",result.get(4).getField().getName());
-    Assert.assertEquals("1",result.get(4).getField().getValue().toString());
-  }
+  e3.setField(new BooleanField("single",true));
+  final MvccEntity mvccEntity3=new MvccEntityImpl(entityId,UUIDGenerator.newTimeUUID(),MvccEntity.Status.PARTIAL,e3);
+  ChangeLogGeneratorImpl instance=new ChangeLogGeneratorImpl();
+  ChangeLog result=instance.getChangeLog(Arrays.asList(mvccEntity1,mvccEntity2,mvccEntity3));
+  assertEquals("All changes not present",2,result.getSize());
+  Collection<Field> changes=result.getWrites();
+  assertEquals(0,changes.size());
+  Set<String> deletes=result.getDeletes();
+  assertEquals(2,deletes.size());
+  assertTrue(deletes.contains("nickname"));
+  assertTrue(deletes.contains("cool"));
 }

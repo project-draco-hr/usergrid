@@ -1,0 +1,25 @@
+{
+  LOG.info("ChangeLogGeneratorImpl test");
+  final Id entityId=new SimpleId("test");
+  final MvccEntity mvccEntity1=new MvccEntityImpl(entityId,UUIDGenerator.newTimeUUID(),MvccEntity.Status.DELETED,Optional.<Entity>absent());
+  Entity e2=new Entity(entityId);
+  e2.setField(new StringField("name","name2"));
+  e2.setField(new IntegerField("count",2));
+  e2.setField(new StringField("nickname","buddy"));
+  e2.setField(new BooleanField("cool",false));
+  final MvccEntity mvccEntity2=new MvccEntityImpl(entityId,UUIDGenerator.newTimeUUID(),MvccEntity.Status.PARTIAL,e2);
+  Entity e3=new Entity(entityId);
+  e3.setField(new StringField("name","name3"));
+  e3.setField(new IntegerField("count",2));
+  e3.setField(new BooleanField("single",true));
+  final MvccEntity mvccEntity3=new MvccEntityImpl(entityId,UUIDGenerator.newTimeUUID(),MvccEntity.Status.PARTIAL,e3);
+  ChangeLogGeneratorImpl instance=new ChangeLogGeneratorImpl();
+  ChangeLog result=instance.getChangeLog(Arrays.asList(mvccEntity1,mvccEntity2,mvccEntity3));
+  assertEquals("All changes not present",2,result.getSize());
+  Collection<Field> changes=result.getWrites();
+  assertEquals(0,changes.size());
+  Set<String> deletes=result.getDeletes();
+  assertEquals(2,deletes.size());
+  assertTrue(deletes.contains("nickname"));
+  assertTrue(deletes.contains("cool"));
+}

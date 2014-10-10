@@ -1,0 +1,93 @@
+{
+  logger.info("Started repersistAll()");
+  final EntityManager em=app.getEntityManager();
+  final long stopTime=System.currentTimeMillis() + RUNTIME;
+  Map<String,Object> entityMap=new HashMap<String,Object>(){
+{
+      put("key1",1000);
+      put("key2",2000);
+      put("key3","Some value");
+    }
+  }
+;
+  Map<String,Object> cat1map=new HashMap<String,Object>(){
+{
+      put("name","enzo");
+      put("color","orange");
+    }
+  }
+;
+  Map<String,Object> cat2map=new HashMap<String,Object>(){
+{
+      put("name","marquee");
+      put("color","grey");
+    }
+  }
+;
+  Map<String,Object> cat3map=new HashMap<String,Object>(){
+{
+      put("name","bertha");
+      put("color","tabby");
+    }
+  }
+;
+  Entity cat1=em.create("cat",cat1map);
+  Entity cat2=em.create("cat",cat2map);
+  Entity cat3=em.create("cat",cat3map);
+  List<EntityRef> entityRefs=new ArrayList<EntityRef>();
+  int entityCount=0;
+  while (System.currentTimeMillis() < stopTime) {
+    final Entity entity;
+    try {
+      entityMap.put("key",entityCount);
+      entity=em.create("testType",entityMap);
+      em.createConnection(entity,"herds",cat1);
+      em.createConnection(entity,"herds",cat2);
+      em.createConnection(entity,"herds",cat3);
+    }
+ catch (    Exception ex) {
+      throw new RuntimeException("Error creating entity",ex);
+    }
+    entityRefs.add(new SimpleEntityRef(entity.getType(),entity.getUuid()));
+    if (entityCount % 100 == 0) {
+      logger.info("Created {} entities",entityCount);
+    }
+    entityCount++;
+    try {
+      Thread.sleep(writeDelayMs);
+    }
+ catch (    InterruptedException ignored) {
+    }
+  }
+  logger.info("Created {} entities",entityCount);
+  em.refreshIndex();
+  logger.debug("Read the data");
+  readData("testTypes",entityCount);
+  logger.debug("Preparing to repersist all");
+  ;
+  final String meterName=this.getClass().getSimpleName() + ".repersist";
+  final Meter meter=registry.meter(meterName);
+  EntityManagerFactory.ProgressObserver po=new EntityManagerFactory.ProgressObserver(){
+    int counter=0;
+    @Override public void onProgress(    EntityRef s,    EntityRef t,    String etype){
+      meter.mark();
+      logger.debug("Repersisting from {}:{} to {}:{} ",new Object[]{s.getType(),s.getUuid(),t.getType(),t.getUuid(),etype});
+      if (!logger.isDebugEnabled() && counter % 100 == 0) {
+        logger.info("Repersisted {} entities",counter);
+      }
+      counter++;
+    }
+  }
+;
+  try {
+    setup.getEmf().repersistAll(po);
+    registry.remove(meterName);
+    logger.info("Repersist complete");
+  }
+ catch (  Exception ex) {
+    logger.error("Error repersisting",ex);
+    fail();
+  }
+  em.refreshIndex();
+  readData("testTypes",entityCount);
+}

@@ -1,5 +1,5 @@
 {
-  CollectionScope collectionScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpNamingUtils.getCollectionScopeNameFromEntityType(entity.getType()));
+  CollectionScope collectionScope=new CollectionScopeImpl(getApplicationScope().getApplication(),getApplicationScope().getApplication(),CpNamingUtils.getCollectionScopeNameFromEntityType(entity.getType()));
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   Id entityId=new SimpleId(entity.getUuid(),entity.getType());
   if (logger.isDebugEnabled()) {
@@ -8,7 +8,6 @@
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=new org.apache.usergrid.persistence.model.entity.Entity(entityId);
   cpEntity=CpEntityMapUtils.fromMap(cpEntity,entity.getProperties(),entity.getType(),true);
   try {
-    logger.debug("About to Write {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
     cpEntity=ecm.update(cpEntity).toBlockingObservable().last();
     cpEntity=ecm.load(entityId).toBlockingObservable().last();
     logger.debug("Wrote {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
