@@ -1,8 +1,8 @@
 {
   logger.info("Started testStaleIndexCleanup()");
   final EntityManager em=app.getEntityManager();
-  final int numEntities=100;
-  final int numUpdates=5;
+  final int numEntities=10;
+  final int numUpdates=3;
   final List<Entity> things=new ArrayList<Entity>(numEntities);
   for (int i=0; i < numEntities; i++) {
     final String thingName="thing" + i;
@@ -44,11 +44,12 @@
   int index=0;
   do {
     Results results=em.searchCollection(em.getApplicationRef(),"things",q);
+    thingCount+=results.size();
+    logger.debug("Retrieved total of {} entities",thingCount);
     cursor=results.getCursor();
-    if (cursor != null) {
+    if (cursor != null && thingCount < numEntities) {
       assertEquals(limit,results.size());
     }
-    thingCount+=results.size();
     for (int i=0; i < results.size(); i++, index++) {
       final Entity returned=results.getEntities().get(i);
       final Entity expected=maxVersions.get(index);

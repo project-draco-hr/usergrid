@@ -41,10 +41,10 @@
 );
     final CollectionScope collScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),scopeName);
     final EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collScope);
-    resultsLoader.loadResults(idsToLoad,ecm);
+    resultsVerifier.loadResults(idsToLoad,ecm);
     for (    final Id requestedId : idsToLoad) {
       final CandidateResult cr=maxCandidateMapping.get(requestedId);
-      if (!resultsLoader.isValid(cr)) {
+      if (!resultsVerifier.isValid(cr)) {
         deIndex(indexBatch,ownerId,cr);
         continue;
       }
@@ -53,5 +53,5 @@
     }
   }
   indexBatch.execute();
-  return resultsLoader.getResults(sortedResults.values());
+  return resultsVerifier.getResults(sortedResults.values());
 }
