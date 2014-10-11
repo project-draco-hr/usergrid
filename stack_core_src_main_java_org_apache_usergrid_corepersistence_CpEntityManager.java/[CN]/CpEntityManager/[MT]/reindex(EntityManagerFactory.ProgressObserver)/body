@@ -1,17 +1,23 @@
 {
   CpWalker walker=new CpWalker();
   walker.walkCollections(this,application,new CpVisitor(){
-    @Override public void visitCollectionEntry(    EntityCollectionManager ecm,    String collectionName,    org.apache.usergrid.persistence.model.entity.Entity collectionEntity,    org.apache.usergrid.persistence.model.entity.Entity memberEntity){
-      EntityRef source=new SimpleEntityRef(collectionEntity.getId().getType(),collectionEntity.getId().getUuid());
-      EntityRef target=new SimpleEntityRef(memberEntity.getId().getType(),memberEntity.getId().getUuid());
-      po.onProgress(source,target,"dummy");
-      indexEntityIntoCollection(collectionEntity,memberEntity,collectionName);
+    @Override public void visitCollectionEntry(    EntityManager em,    String collName,    Entity source,    Entity target){
+      try {
+        em.update(target);
+        po.onProgress(source,target,collName);
+      }
+ catch (      Exception ex) {
+        logger.error("Error repersisting entity",ex);
+      }
     }
-    @Override public void visitConnectionEntry(    EntityCollectionManager ecm,    String connectionType,    org.apache.usergrid.persistence.model.entity.Entity sourceEntity,    org.apache.usergrid.persistence.model.entity.Entity targetEntity){
-      EntityRef source=new SimpleEntityRef(sourceEntity.getId().getType(),sourceEntity.getId().getUuid());
-      EntityRef target=new SimpleEntityRef(targetEntity.getId().getType(),targetEntity.getId().getUuid());
-      po.onProgress(source,target,"dummy");
-      indexEntityIntoConnection(sourceEntity,targetEntity,connectionType);
+    @Override public void visitConnectionEntry(    EntityManager em,    String connType,    Entity source,    Entity target){
+      try {
+        em.update(target);
+        po.onProgress(source,target,connType);
+      }
+ catch (      Exception ex) {
+        logger.error("Error repersisting entity",ex);
+      }
     }
   }
 );
