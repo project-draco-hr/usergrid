@@ -1,4 +1,7 @@
 {
+  if (crs.size() == 0) {
+    return new Results();
+  }
   final Map<Id,Integer> orderIndex=new HashMap<>(crs.size());
   final Map<Id,CandidateResult> maxCandidateMapping=new HashMap<>(crs.size());
   final HashMultimap<String,CandidateResult> groupedByScopes=HashMultimap.create(crs.size(),crs.size());
@@ -30,14 +33,11 @@
     final Set<CandidateResult> candidateResults=groupedByScopes.get(scopeName);
     final Collection<Id> idsToLoad=Collections2.transform(candidateResults,new Function<CandidateResult,Id>(){
       @Nullable @Override public Id apply(      @Nullable final CandidateResult input){
-        if (input == null) {
-          return null;
-        }
         return input.getId();
       }
     }
 );
-    final CollectionScope collScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),scopeName);
+    final CollectionScope collScope=new CollectionScopeImpl(applicationScope.getApplication(),ownerId,scopeName);
     final EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collScope);
     resultsVerifier.loadResults(idsToLoad,ecm);
     for (    final Id requestedId : idsToLoad) {
