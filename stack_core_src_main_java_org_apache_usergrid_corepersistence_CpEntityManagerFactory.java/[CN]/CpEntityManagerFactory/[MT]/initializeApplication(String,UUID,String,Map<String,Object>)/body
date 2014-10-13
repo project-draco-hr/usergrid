@@ -1,6 +1,5 @@
 {
   EntityManager em=getEntityManager(SYSTEM_APP_ID);
-  em.createIndex();
   final String appName=buildAppName(organizationName,name);
   if (lookupApplication(appName) != null) {
     throw new ApplicationAlreadyExistsException(appName);
@@ -35,6 +34,7 @@
   }
   properties.put(PROPERTY_NAME,appName);
   EntityManager appEm=getEntityManager(applicationId);
+  appEm.createIndex();
   appEm.create(applicationId,TYPE_APPLICATION,properties);
   appEm.resetRoles();
   appEm.refreshIndex();
