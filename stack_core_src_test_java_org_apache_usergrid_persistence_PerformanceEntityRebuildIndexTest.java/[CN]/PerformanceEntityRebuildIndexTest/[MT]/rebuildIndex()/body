@@ -1,7 +1,6 @@
 {
   logger.info("Started rebuildIndex()");
   final EntityManager em=app.getEntityManager();
-  final long stopTime=System.currentTimeMillis() + RUNTIME;
   Map<String,Object> entityMap=new HashMap<String,Object>(){
 {
       put("key1",1000);
@@ -34,6 +33,7 @@
   Entity cat1=em.create("cat",cat1map);
   Entity cat2=em.create("cat",cat2map);
   Entity cat3=em.create("cat",cat3map);
+  final long stopTime=System.currentTimeMillis() + RuntimeMs;
   List<EntityRef> entityRefs=new ArrayList<EntityRef>();
   int entityCount=0;
   while (System.currentTimeMillis() < stopTime) {
@@ -50,7 +50,7 @@
       throw new RuntimeException("Error creating entity",ex);
     }
     entityRefs.add(new SimpleEntityRef(entity.getType(),entity.getUuid()));
-    if (entityCount % 100 == 0) {
+    if (entityCount % 10 == 0) {
       logger.info("Created {} entities",entityCount);
     }
     entityCount++;
@@ -82,8 +82,7 @@
     int counter=0;
     @Override public void onProgress(    EntityRef s,    EntityRef t,    String etype){
       meter.mark();
-      logger.debug("Indexing from {}:{} to {}:{} edgeType {}",new Object[]{s.getType(),s.getUuid(),t.getType(),t.getUuid(),etype});
-      if (!logger.isDebugEnabled() && counter % 100 == 0) {
+      if (!logger.isDebugEnabled() && counter % 10 == 0) {
         logger.info("Reindexed {} entities",counter);
       }
       counter++;
