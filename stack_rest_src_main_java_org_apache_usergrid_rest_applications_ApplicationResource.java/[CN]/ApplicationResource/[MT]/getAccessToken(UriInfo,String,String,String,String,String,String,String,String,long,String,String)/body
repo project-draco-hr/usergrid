@@ -25,6 +25,7 @@ catch (      DisabledAppUserException daue) {
         errorDescription="user disabled";
       }
 catch (      Exception e1) {
+        logger.warn("Unexpected exception during token username/password verification",e1);
       }
     }
  else     if ("pin".equals(grant_type)) {
@@ -32,6 +33,7 @@ catch (      Exception e1) {
         user=management.verifyAppUserPinCredentials(services.getApplicationId(),username,pin);
       }
  catch (      Exception e1) {
+        logger.warn("Unexpected exception during token pin verification",e1);
       }
     }
  else     if ("client_credentials".equals(grant_type)) {
@@ -42,14 +44,11 @@ catch (      Exception e1) {
         }
       }
  catch (      Exception e1) {
+        logger.warn("Unexpected exception during token client authentication",e1);
       }
     }
- else     if ("authorization_code".equals(grant_type)) {
-      AccessInfo access_info=new AccessInfo();
-      access_info.setAccessToken(code);
-      return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
-    }
     if (user == null) {
+      logger.debug("Returning 400 bad request due to: " + errorDescription);
       OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription(errorDescription).buildJSONMessage();
       return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
     }

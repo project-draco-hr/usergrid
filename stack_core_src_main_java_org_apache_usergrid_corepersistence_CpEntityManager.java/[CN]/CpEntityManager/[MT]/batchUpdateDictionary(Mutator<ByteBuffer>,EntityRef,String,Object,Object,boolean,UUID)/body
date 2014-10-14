@@ -1,0 +1,24 @@
+{
+  long timestamp=UUIDUtils.getUUIDLong(timestampUuid);
+  if (elementCoValue == null) {
+    elementCoValue=ByteBuffer.allocate(0);
+  }
+  boolean entityHasDictionary=Schema.getDefaultSchema().hasDictionary(entity.getType(),dictionaryName);
+  if (entityHasDictionary) {
+    getRelationManager(entity).batchUpdateSetIndexes(batch,dictionaryName,elementValue,removeFromDictionary,timestampUuid);
+  }
+  ApplicationCF dictionary_cf=entityHasDictionary ? ENTITY_DICTIONARIES : ENTITY_COMPOSITE_DICTIONARIES;
+  if (elementValue != null) {
+    if (!removeFromDictionary) {
+      elementCoValue=CassandraPersistenceUtils.toStorableBinaryValue(elementCoValue,!entityHasDictionary);
+      CassandraPersistenceUtils.addInsertToMutator(batch,dictionary_cf,CassandraPersistenceUtils.key(entity.getUuid(),dictionaryName),entityHasDictionary ? elementValue : asList(elementValue),elementCoValue,timestamp);
+      if (!entityHasDictionary) {
+        CassandraPersistenceUtils.addInsertToMutator(batch,ENTITY_DICTIONARIES,CassandraPersistenceUtils.key(entity.getUuid(),DICTIONARY_SETS),dictionaryName,null,timestamp);
+      }
+    }
+ else {
+      CassandraPersistenceUtils.addDeleteToMutator(batch,dictionary_cf,CassandraPersistenceUtils.key(entity.getUuid(),dictionaryName),entityHasDictionary ? elementValue : asList(elementValue),timestamp);
+    }
+  }
+  return batch;
+}

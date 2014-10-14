@@ -1,0 +1,16 @@
+{
+  String queryString="select * where a = 1 and b > 2";
+  ANTLRStringStream in=new ANTLRStringStream(queryString);
+  CpQueryFilterLexer lexer=new CpQueryFilterLexer(in);
+  TokenRewriteStream tokens=new TokenRewriteStream(lexer);
+  CpQueryFilterParser parser=new CpQueryFilterParser(tokens);
+  Query query=parser.ql().query;
+  Operand root=query.getRootOperand();
+  AndOperand and=(AndOperand)root;
+  Equal equal=(Equal)and.getLeft();
+  assertEquals("a",equal.getProperty().getValue());
+  assertEquals(1,((LongLiteral)equal.getLiteral()).getValue().intValue());
+  GreaterThan greater=(GreaterThan)and.getRight();
+  assertEquals("b",greater.getProperty().getValue());
+  assertEquals(2,((LongLiteral)greater.getLiteral()).getValue().intValue());
+}

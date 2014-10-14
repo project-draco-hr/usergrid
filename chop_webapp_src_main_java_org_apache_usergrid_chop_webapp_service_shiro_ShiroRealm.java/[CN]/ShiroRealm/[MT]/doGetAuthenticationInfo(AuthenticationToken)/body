@@ -1,0 +1,24 @@
+{
+  try {
+    UsernamePasswordToken token=(UsernamePasswordToken)authenticationToken;
+    token.setRememberMe(true);
+    String username=token.getUsername();
+    String password=String.valueOf(token.getPassword());
+    if (username == null) {
+      throw new AuthenticationException("Authentication failed");
+    }
+    LOG.info(String.format("Authenticating user %s",username));
+    if (username.equals(username) && password.equals("pass")) {
+      initUserData();
+    }
+    User user=InjectorFactory.getInstance(UserDao.class).get(username.toLowerCase());
+    if (user == null || user.getPassword() == null || !user.getPassword().equalsIgnoreCase(password)) {
+      throw new AuthenticationException("Authentication failed");
+    }
+    return new SimpleAuthenticationInfo(username,password,this.getName());
+  }
+ catch (  Exception e) {
+    LOG.error("Error while authenticating",e);
+    throw new AuthenticationException("Authentication failed",e);
+  }
+}

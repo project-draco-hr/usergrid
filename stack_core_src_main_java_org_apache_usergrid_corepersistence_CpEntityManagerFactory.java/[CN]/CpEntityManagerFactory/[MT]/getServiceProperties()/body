@@ -1,0 +1,20 @@
+{
+  Map<String,String> props=new HashMap<String,String>();
+  EntityManager em=getEntityManager(SYSTEM_APP_ID);
+  Query q=Query.fromQL("select *");
+  Results results=null;
+  try {
+    results=em.searchCollection(em.getApplicationRef(),"propertymaps",q);
+  }
+ catch (  Exception ex) {
+    logger.error("Error getting system properties",ex);
+  }
+  if (results == null || results.isEmpty()) {
+    return props;
+  }
+  org.apache.usergrid.persistence.Entity e=results.getEntity();
+  for (  String key : e.getProperties().keySet()) {
+    props.put(key,props.get(key).toString());
+  }
+  return props;
+}

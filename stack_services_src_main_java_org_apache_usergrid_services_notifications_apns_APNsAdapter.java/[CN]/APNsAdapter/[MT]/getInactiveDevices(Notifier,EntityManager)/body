@@ -1,0 +1,20 @@
+{
+  Map<String,Date> map=new HashMap<String,Date>();
+  if (isMock(notifier)) {
+    return map;
+  }
+  PushManager<SimpleApnsPushNotification> pushManager=getPushManager(notifier);
+  List<ExpiredToken> tokens=null;
+  try {
+    tokens=pushManager.getExpiredTokens();
+  }
+ catch (  FeedbackConnectionException fce) {
+    logger.debug("Failed to get tokens",fce);
+    return map;
+  }
+  for (  ExpiredToken token : tokens) {
+    String expiredToken=new String(token.getToken());
+    map.put(expiredToken,token.getExpiration());
+  }
+  return map;
+}

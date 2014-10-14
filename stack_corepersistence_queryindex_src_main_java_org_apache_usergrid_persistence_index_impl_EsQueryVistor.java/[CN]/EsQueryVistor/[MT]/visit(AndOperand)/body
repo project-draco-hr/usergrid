@@ -1,0 +1,29 @@
+{
+  op.getLeft().visit(this);
+  QueryBuilder left=null;
+  if (!(op.getLeft() instanceof WithinOperand)) {
+    left=stack.peek();
+  }
+  op.getRight().visit(this);
+  QueryBuilder right=null;
+  if (!(op.getRight() instanceof WithinOperand)) {
+    right=stack.peek();
+  }
+  if (left == right) {
+    return;
+  }
+  if (!(op.getLeft() instanceof WithinOperand)) {
+    left=stack.pop();
+  }
+  if (!(op.getRight() instanceof WithinOperand)) {
+    right=stack.pop();
+  }
+  BoolQueryBuilder qb=QueryBuilders.boolQuery();
+  if (left != null) {
+    qb=qb.must(left);
+  }
+  if (right != null) {
+    qb=qb.must(right);
+  }
+  stack.push(qb);
+}

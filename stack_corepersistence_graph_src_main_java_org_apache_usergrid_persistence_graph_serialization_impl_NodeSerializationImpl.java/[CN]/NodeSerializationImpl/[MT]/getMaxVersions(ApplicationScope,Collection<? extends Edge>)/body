@@ -1,0 +1,19 @@
+{
+  ValidationUtils.validateApplicationScope(scope);
+  Preconditions.checkNotNull(edges,"edges cannot be null");
+  final ColumnFamilyQuery<ScopedRowKey<ApplicationScope,Id>,Boolean> query=keyspace.prepareQuery(GRAPH_DELETE).setConsistencyLevel(fig.getReadCL());
+  final List<ScopedRowKey<ApplicationScope,Id>> keys=new ArrayList<ScopedRowKey<ApplicationScope,Id>>(edges.size());
+  final Map<Id,Long> versions=new HashMap<>(edges.size());
+  for (  final Edge edge : edges) {
+    keys.add(ScopedRowKey.fromKey(scope,edge.getSourceNode()));
+    keys.add(ScopedRowKey.fromKey(scope,edge.getTargetNode()));
+  }
+  final Rows<ScopedRowKey<ApplicationScope,Id>,Boolean> results=HystrixCassandra.user(query.getRowSlice(keys).withColumnSlice(Collections.singletonList(COLUMN_NAME))).getResult();
+  for (  Row<ScopedRowKey<ApplicationScope,Id>,Boolean> row : results) {
+    Column<Boolean> column=row.getColumns().getColumnByName(COLUMN_NAME);
+    if (column != null) {
+      versions.put(row.getKey().getKey(),column.getLongValue());
+    }
+  }
+  return versions;
+}

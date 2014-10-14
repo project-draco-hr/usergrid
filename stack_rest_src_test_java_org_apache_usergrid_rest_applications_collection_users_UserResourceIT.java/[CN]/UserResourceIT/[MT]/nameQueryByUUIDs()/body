@@ -1,0 +1,8 @@
+{
+  UserRepo.INSTANCE.load(resource(),access_token);
+  refreshIndex("test-organization","test-app");
+  String ql="select uuid name = 'John*'";
+  ApplicationInfo appInfo=setup.getMgmtSvc().getApplicationInfo("test-organization/test-app");
+  OrganizationInfo orgInfo=setup.getMgmtSvc().getOrganizationByName("test-organization");
+  resource().path("/" + orgInfo.getUuid() + "/"+ appInfo.getId()+ "/users").queryParam("ql",ql).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
+}

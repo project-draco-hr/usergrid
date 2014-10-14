@@ -1,0 +1,15 @@
+{
+  ValidationUtils.validateApplicationScope(scope);
+  GraphValidation.validateSearchByEdgeType(edgeType);
+  final Id sourceId=edgeType.getNode();
+  final String type=edgeType.getType();
+  final long maxTimestamp=edgeType.getMaxTimestamp();
+  final DirectedEdgeMeta directedEdgeMeta=DirectedEdgeMeta.fromSourceNode(sourceId,type);
+  final Iterator<ShardEntryGroup> readShards=edgeShardStrategy.getReadShards(scope,maxTimestamp,directedEdgeMeta);
+  return new ShardGroupColumnIterator<MarkedEdge>(readShards){
+    @Override protected Iterator<MarkedEdge> getIterator(    final Collection<Shard> readShards){
+      return shardedEdgeSerialization.getEdgesFromSource(edgeColumnFamilies,scope,edgeType,readShards);
+    }
+  }
+;
+}

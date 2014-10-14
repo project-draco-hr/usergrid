@@ -1,0 +1,20 @@
+{
+  final GraphManager gm=getHelper(emf.createEdgeManager(scope));
+  Id targetId=new SimpleId("target");
+  Id sourceId=new SimpleId("source");
+  Edge testTargetEdge=createEdge(sourceId,"test1edge1",targetId,System.currentTimeMillis());
+  gm.writeEdge(testTargetEdge).toBlocking().singleOrDefault(null);
+  Edge testTarget2Edge=createEdge(sourceId,"test1edge2",targetId,System.currentTimeMillis());
+  gm.writeEdge(testTarget2Edge).toBlocking().singleOrDefault(null);
+  Edge test2TargetEdge=createEdge(sourceId,"test2edge1",targetId,System.currentTimeMillis());
+  gm.writeEdge(test2TargetEdge).toBlocking().singleOrDefault(null);
+  Observable<String> edges=gm.getEdgeTypesToTarget(new SimpleSearchEdgeType(testTargetEdge.getTargetNode(),"test1",null));
+  Iterator<String> results=edges.toBlocking().getIterator();
+  assertEquals("Edges correct","test1edge1",results.next());
+  assertEquals("Edges correct","test1edge2",results.next());
+  assertFalse("No more edges",results.hasNext());
+  edges=gm.getEdgeTypesToTarget(new SimpleSearchEdgeType(testTargetEdge.getTargetNode(),"test2",null));
+  results=edges.toBlocking().getIterator();
+  assertEquals("Edges correct","test2edge1",results.next());
+  assertFalse("No more edges",results.hasNext());
+}

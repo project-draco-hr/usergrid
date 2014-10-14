@@ -1,0 +1,30 @@
+{
+  if (inTestMode(testMode)) {
+    LOG.info("Calling /destroy/stack in test mode ...");
+    LOG.info("  Commit Id: {}",commitId);
+    LOG.info("  Group Id: {}",groupId);
+    LOG.info("  Artifact Id: {}",artifactId);
+    LOG.info("  Version: {}",version);
+    LOG.info("  User: {}",user);
+  }
+ else {
+    LOG.info("Calling /destroy/stack");
+  }
+  SetupStackState status=stackCoordinator.stackStatus(commitId,artifactId,groupId,version,user);
+  if (inTestMode(testMode)) {
+    return Response.status(Response.Status.CREATED).entity(status).type(MediaType.APPLICATION_JSON).build();
+  }
+  if (!status.accepts(SetupStackSignal.DESTROY)) {
+    return Response.status(Response.Status.OK).entity("Stack is " + status.toString() + ", will not destroy.").type(MediaType.APPLICATION_JSON).build();
+  }
+  LOG.debug("Stack is {}, destroying... ",status.toString());
+  String moduleId=BasicModule.createId(groupId,artifactId,version);
+  Collection<Runner> runners=runnerCoordinator.getRunners(user,commitId,moduleId);
+  for (  Runner runner : runners) {
+    if (!runnerCoordinator.unregister(runner.getUrl())) {
+      LOG.warn("Could not unregister runner at {}.",runner.getUrl());
+    }
+  }
+  stackCoordinator.destroyStack(commitId,artifactId,groupId,version,user);
+  return Response.status(Response.Status.CREATED).entity("Destroyed the stack").type(MediaType.APPLICATION_JSON).build();
+}

@@ -1,0 +1,43 @@
+{
+  EntityManager em=getEntityManager(SYSTEM_APP_ID);
+  final String appName=buildAppName(organizationName,name);
+  if (lookupApplication(appName) != null) {
+    throw new ApplicationAlreadyExistsException(appName);
+  }
+  getSetup().setupApplicationKeyspace(applicationId,appName);
+  UUID orgUuid=lookupOrganization(organizationName);
+  if (orgUuid == null) {
+    final String orgName=organizationName;
+    Entity orgInfo=em.create("organization",new HashMap<String,Object>(){
+{
+        put(PROPERTY_NAME,orgName);
+      }
+    }
+);
+    em.refreshIndex();
+    orgUuid=orgInfo.getUuid();
+  }
+  final UUID appId=applicationId;
+  final UUID orgId=orgUuid;
+  Map<String,Object> appInfoMap=new HashMap<String,Object>(){
+{
+      put(PROPERTY_NAME,appName);
+      put("applicationUuid",appId);
+      put("organizationUuid",orgId);
+    }
+  }
+;
+  Entity appInfo=em.create("appinfo",appInfoMap);
+  em.refreshIndex();
+  if (properties == null) {
+    properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
+  }
+  properties.put(PROPERTY_NAME,appName);
+  EntityManager appEm=getEntityManager(applicationId);
+  appEm.createIndex();
+  appEm.create(applicationId,TYPE_APPLICATION,properties);
+  appEm.resetRoles();
+  appEm.refreshIndex();
+  logger.info("Initialized application {}",appName);
+  return applicationId;
+}

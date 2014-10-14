@@ -1,0 +1,28 @@
+{
+  UserRepo.INSTANCE.load(resource(),access_token);
+  UUID userId=UserRepo.INSTANCE.getByUserName("user1");
+  refreshIndex("test-organization","test-app");
+  Activity activity=new Activity();
+  activity.setProperty("email","rod@rodsimpson.com");
+  activity.setProperty("verb","POST");
+  activity.setProperty("content","activity 1");
+  ApiResponse response=client.postUserActivity(userId.toString(),activity);
+  assertNull("Error was: " + response.getErrorDescription(),response.getError());
+  refreshIndex("test-organization","test-app");
+  Entity entity=response.getFirstEntity();
+  UUID firstActivityId=entity.getUuid();
+  activity=new Activity();
+  activity.setProperty("email","rod@rodsimpson.com");
+  activity.setProperty("verb","POST");
+  activity.setProperty("content","activity 2");
+  response=client.postUserActivity(userId.toString(),activity);
+  assertNull("Error was: " + response.getErrorDescription(),response.getError());
+  refreshIndex("test-organization","test-app");
+  entity=response.getFirstEntity();
+  UUID secondActivityId=entity.getUuid();
+  Query query=client.queryActivity();
+  entity=query.getResponse().getEntities().get(0);
+  assertEquals(secondActivityId,entity.getUuid());
+  entity=query.getResponse().getEntities().get(1);
+  assertEquals(firstActivityId,entity.getUuid());
+}

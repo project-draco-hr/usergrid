@@ -1,0 +1,45 @@
+{
+  app.clear();
+  app.put("payloads","{asdf}");
+  app.put("debug",true);
+  try {
+    app.testRequest(ServiceAction.POST,1,"notifications");
+    fail("invalid payload should have been rejected");
+  }
+ catch (  IllegalArgumentException ex) {
+  }
+  Map<String,String> payloads=new HashMap<String,String>(2);
+  app.put("payloads",payloads);
+  payloads.put("xxx","");
+  try {
+    app.testRequest(ServiceAction.POST,1,"notifications");
+    fail("invalid payload should have been rejected");
+  }
+ catch (  IllegalArgumentException ex) {
+  }
+  app.clear();
+  app.put("name","gcm2");
+  app.put("provider","google");
+  app.put("environment","development");
+  app.put("apiKey",API_KEY);
+  Entity e=app.testRequest(ServiceAction.POST,1,"notifiers").getEntity();
+  Notifier notifier2=app.getEm().get(e.getUuid(),Notifier.class);
+  payloads.clear();
+  StringBuilder sb=new StringBuilder();
+  sb.append("{\"x\":\"");
+  while (sb.length() < 4080) {
+    sb.append("x");
+  }
+  sb.append("\"}");
+  payloads.put(notifier2.getUuid().toString(),sb.toString());
+  app.clear();
+  app.put("payloads",payloads);
+  app.put("debug",true);
+  try {
+    app.testRequest(ServiceAction.POST,1,"notifications");
+    fail("invalid payload should have been rejected");
+  }
+ catch (  Exception ex) {
+    assertEquals("java.lang.IllegalArgumentException: GCM payloads must be 4096 characters or less",ex.getMessage());
+  }
+}

@@ -1,0 +1,11 @@
+{
+  final MutationBatch batch=keyspace.prepareMutationBatch().withConsistencyLevel(cassandraConfig.getWriteCL()).withTimestamp(opTimestamp.timestamp());
+  final C column=getDirectedEdge();
+  final MultiTennantColumnFamily<ApplicationScope,R,C> columnFamily=getColumnFamily();
+  final boolean isDeleted=isDeleted();
+  for (  Shard shard : shards) {
+    final R rowKey=getRowKey(shard);
+    writeEdge(batch,columnFamily,scope,rowKey,column,shard,isDeleted);
+  }
+  return batch;
+}

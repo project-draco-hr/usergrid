@@ -1,0 +1,14 @@
+{
+  final ScopedRowKey rowKey=ScopedRowKey.fromKey(key.scope,key);
+  try {
+    OperationResult<Column<Boolean>> column=HystrixCassandra.user(keyspace.prepareQuery(EDGE_SHARD_COUNTS).getKey(rowKey).getColumn(true));
+    return column.getResult().getLongValue();
+  }
+ catch (  RuntimeException re) {
+    final Throwable cause=re.getCause();
+    if (cause != null && cause.getCause() instanceof NotFoundException) {
+      return 0;
+    }
+    throw re;
+  }
+}

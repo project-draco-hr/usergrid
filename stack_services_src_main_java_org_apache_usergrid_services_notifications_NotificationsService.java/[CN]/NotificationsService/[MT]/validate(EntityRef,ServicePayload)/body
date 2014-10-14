@@ -1,0 +1,35 @@
+{
+  Object obj_payloads=servicePayload.getProperty("payloads");
+  if (obj_payloads == null && ref == null) {
+    throw new RequiredPropertyNotFoundException("notification","payloads");
+  }
+  if (obj_payloads != null) {
+    if (!(obj_payloads instanceof Map)) {
+      throw new IllegalArgumentException("payloads must be a JSON Map");
+    }
+    final Map<String,Object> payloads=(Map<String,Object>)obj_payloads;
+    final Map<Object,Notifier> notifierMap=getNotifierMap(payloads);
+    Observable t=Observable.from(payloads.entrySet()).subscribeOn(Schedulers.io()).map(new Func1<Map.Entry<String,Object>,Object>(){
+      @Override public Object call(      Map.Entry<String,Object> entry){
+        String notifierId=entry.getKey();
+        Notifier notifier=notifierMap.get(notifierId);
+        if (notifier == null) {
+          throw new IllegalArgumentException("notifier \"" + notifierId + "\" not found");
+        }
+        ProviderAdapter providerAdapter=providerAdapters.get(notifier.getProvider());
+        Object payload=entry.getValue();
+        try {
+          return providerAdapter.translatePayload(payload);
+        }
+ catch (        Exception e) {
+          return e;
+        }
+      }
+    }
+);
+    Object e=t.toBlocking().lastOrDefault(null);
+    if (e instanceof Throwable) {
+      throw new Exception((Exception)e);
+    }
+  }
+}

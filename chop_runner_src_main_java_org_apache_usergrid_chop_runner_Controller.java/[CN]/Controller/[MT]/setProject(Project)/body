@@ -1,0 +1,27 @@
+{
+  if (project == null) {
+    return;
+  }
+  this.project=project;
+  LOG.info("Controller injected with project properties: {}",project);
+  if (project.getTestPackageBase() == null) {
+    return;
+  }
+  Reflections reflections=new Reflections(project.getTestPackageBase());
+  timeChopClasses=reflections.getTypesAnnotatedWith(TimeChop.class);
+  LOG.info("TimeChop classes = {}",timeChopClasses);
+  iterationChopClasses=reflections.getTypesAnnotatedWith(IterationChop.class);
+  LOG.info("IterationChop classes = {}",iterationChopClasses);
+  if (project.getLoadKey() == null) {
+    state=State.INACTIVE;
+    LOG.info("Null loadKey: controller going into INACTIVE state.");
+    return;
+  }
+  if (timeChopClasses.isEmpty() && iterationChopClasses.isEmpty()) {
+    state=State.INACTIVE;
+    LOG.info("Nothing to scan: controller going into INACTIVE state.");
+    return;
+  }
+  state=State.READY;
+  LOG.info("We have things to scan and a valid loadKey: controller going into READY state.");
+}

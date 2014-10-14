@@ -1,0 +1,36 @@
+{
+  Map<String,String> originalProperties=getRemoteTestProperties();
+  try {
+    setTestProperty(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"false");
+    setTestProperty(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
+    setTestProperty(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"false");
+    setTestProperty(PROPERTIES_SYSADMIN_EMAIL,"sysadmin-1@mockserver.com");
+    Map<String,Object> organizationProperties=new HashMap<String,Object>();
+    organizationProperties.put("securityLevel",5);
+    Map payload=hashMap("email","test-user-1@mockserver.com").map("username","test-user-1").map("name","Test User").map("password","password").map("organization","test-org-1").map("company","Apigee");
+    payload.put(OrganizationsResource.ORGANIZATION_PROPERTIES,organizationProperties);
+    JsonNode node=mapper.readTree(resource().path("/management/organizations").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
+    assertNotNull(node);
+    ApplicationInfo applicationInfo=setup.getMgmtSvc().getApplicationInfo("test-org-1/sandbox");
+    assertNotNull(applicationInfo);
+    Set<String> rolePerms=setup.getEmf().getEntityManager(applicationInfo.getId()).getRolePermissions("guest");
+    assertNotNull(rolePerms);
+    assertTrue(rolePerms.contains("get,post,put,delete:/**"));
+    logNode(node);
+    UserInfo ui=setup.getMgmtSvc().getAdminUserByEmail("test-user-1@mockserver.com");
+    EntityManager em=setup.getEmf().getEntityManager(setup.getEmf().getManagementAppId());
+    User user=em.get(ui.getUuid(),User.class);
+    assertEquals("Test User",user.getName());
+    assertEquals("Apigee",user.getProperty("company"));
+    OrganizationInfo orgInfo=setup.getMgmtSvc().getOrganizationByName("test-org-1");
+    assertEquals(5L,orgInfo.getProperties().get("securityLevel"));
+    node=mapper.readTree(resource().path("/management/organizations/test-org-1").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
+    logNode(node);
+    Assert.assertEquals(5,node.get("organization").get(OrganizationsResource.ORGANIZATION_PROPERTIES).get("securityLevel").asInt());
+    node=mapper.readTree(resource().path("/management/organizations/test-org-1").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
+    Assert.assertEquals(5,node.get("organization").get(OrganizationsResource.ORGANIZATION_PROPERTIES).get("securityLevel").asInt());
+  }
+  finally {
+    setTestProperties(originalProperties);
+  }
+}

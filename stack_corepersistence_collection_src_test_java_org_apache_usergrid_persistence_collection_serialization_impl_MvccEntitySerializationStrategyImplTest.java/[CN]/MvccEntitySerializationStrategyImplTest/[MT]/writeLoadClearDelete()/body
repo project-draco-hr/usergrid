@@ -1,0 +1,24 @@
+{
+  final Id organizationId=new SimpleId("organization");
+  final Id applicationId=new SimpleId("application");
+  final String name="test";
+  CollectionScope context=new CollectionScopeImpl(organizationId,applicationId,name);
+  final UUID version=UUIDGenerator.newTimeUUID();
+  final Id entityId=new SimpleId("test");
+  Entity entity=new Entity(entityId);
+  EntityUtils.setVersion(entity,version);
+  MvccEntity saved=new MvccEntityImpl(entityId,version,MvccEntity.Status.COMPLETE,Optional.of(entity));
+  serializationStrategy.write(context,saved).execute();
+  MvccEntity returned=serializationStrategy.load(context,Collections.singleton(entityId),version).getEntity(entityId);
+  assertEquals("Mvcc entities are the same",saved,returned);
+  assertEquals(entityId,returned.getId());
+  assertEquals(entityId,returned.getEntity().get().getId());
+  serializationStrategy.mark(context,entityId,version).execute();
+  returned=serializationStrategy.load(context,Collections.singleton(entityId),version).getEntity(entityId);
+  assertEquals(entityId,returned.getId());
+  assertEquals(version,returned.getVersion());
+  assertFalse(returned.getEntity().isPresent());
+  serializationStrategy.delete(context,entityId,version).execute();
+  returned=serializationStrategy.load(context,Collections.singleton(entityId),version).getEntity(entityId);
+  assertNull(returned);
+}

@@ -1,0 +1,15 @@
+{
+  scope=mock(ApplicationScope.class);
+  Id orgId=mock(Id.class);
+  when(orgId.getType()).thenReturn("organization");
+  when(orgId.getUuid()).thenReturn(UUIDGenerator.newTimeUUID());
+  when(scope.getApplication()).thenReturn(orgId);
+  graphFig=mock(GraphFig.class);
+  when(graphFig.getShardCacheSize()).thenReturn(10000l);
+  when(graphFig.getShardSize()).thenReturn(250000l);
+  when(graphFig.getCounterFlushQueueSize()).thenReturn(10000);
+  nodeShardCounterSerialization=mock(NodeShardCounterSerialization.class);
+  when(nodeShardCounterSerialization.flush(any(Counter.class))).thenReturn(mock(MutationBatch.class));
+  timeService=mock(TimeService.class);
+  when(timeService.getCurrentTime()).thenReturn(System.currentTimeMillis());
+}

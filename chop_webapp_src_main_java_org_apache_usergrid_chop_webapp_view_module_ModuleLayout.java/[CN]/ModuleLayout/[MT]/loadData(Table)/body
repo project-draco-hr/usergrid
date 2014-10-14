@@ -1,0 +1,18 @@
+{
+  ModuleDao moduleDao=InjectorFactory.getInstance(ModuleDao.class);
+  List<Module> modules=moduleDao.getAll();
+  for (  final Module module : modules) {
+    Label groupLabel=new Label(module.getGroupId());
+    Label artifactLabel=new Label(module.getArtifactId());
+    Label versionLabel=new Label(module.getVersion());
+    Button detailsField=new Button("show details");
+    detailsField.addStyleName("link");
+    detailsField.addClickListener(new Button.ClickListener(){
+      @Override public void buttonClick(      Button.ClickEvent event){
+        onItemClick(module.getId());
+      }
+    }
+);
+    userTable.addItem(new Object[]{groupLabel,artifactLabel,versionLabel,detailsField},module.getId());
+  }
+}

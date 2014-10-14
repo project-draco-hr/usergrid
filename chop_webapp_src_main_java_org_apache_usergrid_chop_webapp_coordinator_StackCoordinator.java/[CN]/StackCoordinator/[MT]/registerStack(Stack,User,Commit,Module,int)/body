@@ -1,0 +1,16 @@
+{
+  CoordinatedStack coordinatedStack=getCoordinatedStack(stack,user,commit,module);
+  if (coordinatedStack != null) {
+    LOG.info("Stack {} is already registered",stack.getName());
+    return coordinatedStack;
+  }
+ else {
+    coordinatedStack=new CoordinatedStack(stack,user,commit,module,runnerCount);
+  }
+  LOG.info("Registering stack...",stack.getName());
+synchronized (coordinatedStack) {
+    coordinatedStack.setSetupState(SetupStackSignal.DEPLOY);
+    registeredStacks.put(coordinatedStack.hashCode(),coordinatedStack);
+  }
+  return coordinatedStack;
+}

@@ -1,0 +1,22 @@
+{
+  if (identifier == null) {
+    logger.debug("getUserByIdentifier: returning null for null identifier");
+    return null;
+  }
+  logger.debug("getUserByIdentifier {}:{}",identifier.getType(),identifier.toString());
+  if (identifier.isUUID()) {
+    return new SimpleEntityRef("user",identifier.getUUID());
+  }
+  if (identifier.isName()) {
+    return this.getAlias(new SimpleEntityRef(Application.ENTITY_TYPE,applicationId),"user",identifier.getName());
+  }
+  if (identifier.isEmail()) {
+    final Iterable<EntityRef> emailProperty=getEntityRefsForUniqueProperty(Schema.defaultCollectionName("user"),"email",identifier.getEmail());
+    for (    EntityRef firstRef : emailProperty) {
+      return firstRef;
+    }
+    logger.debug("return alias");
+    return this.getAlias(new SimpleEntityRef(Application.ENTITY_TYPE,applicationId),"user",identifier.getEmail());
+  }
+  return null;
+}

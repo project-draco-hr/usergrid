@@ -1,0 +1,23 @@
+{
+  GraphManager gm=emf.createEdgeManager(scope);
+  final Id sourceId=createId("source");
+  final String edgeType="test";
+  final long flushCount=graphFig.getCounterFlushCount();
+  final long maxShardSize=graphFig.getShardSize();
+  final long startTime=System.currentTimeMillis();
+  final long writeCount=flushCount / 4;
+  assertTrue("Shard size must be >= beginFlush Count",maxShardSize >= flushCount);
+  Id targetId=null;
+  for (long i=0; i < writeCount; i++) {
+    targetId=createId("target");
+    final Edge edge=createEdge(sourceId,edgeType,targetId);
+    gm.writeEdge(edge).toBlocking().last();
+  }
+  final DirectedEdgeMeta sourceEdgeMeta=DirectedEdgeMeta.fromSourceNodeTargetType(sourceId,edgeType,targetId.getType());
+  final Shard shard=new Shard(0,0,true);
+  long shardCount=nodeShardApproximation.getCount(scope,shard,sourceEdgeMeta);
+  assertEquals("Shard count for source node should be the same as write count",writeCount,shardCount);
+  final DirectedEdgeMeta targetEdgeMeta=DirectedEdgeMeta.fromTargetNodeSourceType(targetId,edgeType,sourceId.getType());
+  shardCount=nodeShardApproximation.getCount(scope,shard,targetEdgeMeta);
+  assertEquals(1,shardCount);
+}

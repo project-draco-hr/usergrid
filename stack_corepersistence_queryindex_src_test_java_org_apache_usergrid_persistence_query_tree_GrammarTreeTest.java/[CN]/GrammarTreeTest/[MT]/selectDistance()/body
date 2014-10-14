@@ -1,0 +1,11 @@
+{
+  String queryString="select * where a contains 'foo'";
+  ANTLRStringStream in=new ANTLRStringStream(queryString);
+  CpQueryFilterLexer lexer=new CpQueryFilterLexer(in);
+  TokenRewriteStream tokens=new TokenRewriteStream(lexer);
+  CpQueryFilterParser parser=new CpQueryFilterParser(tokens);
+  Query query=parser.ql().query;
+  ContainsOperand operand=(ContainsOperand)query.getRootOperand();
+  assertEquals("a",operand.getProperty().getValue());
+  assertEquals("foo",operand.getString().getValue());
+}

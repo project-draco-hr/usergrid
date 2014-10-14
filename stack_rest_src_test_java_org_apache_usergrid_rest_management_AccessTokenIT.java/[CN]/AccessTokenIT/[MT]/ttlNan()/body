@@ -1,0 +1,11 @@
+{
+  Map<String,String> payload=hashMap("grant_type","password").map("username","test@usergrid.com").map("password","test").map("ttl","derp");
+  ClientResponse.Status responseStatus=null;
+  try {
+    resource().path("/management/token").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload);
+  }
+ catch (  UniformInterfaceException uie) {
+    responseStatus=uie.getResponse().getClientResponseStatus();
+  }
+  assertEquals(ClientResponse.Status.BAD_REQUEST,responseStatus);
+}

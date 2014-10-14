@@ -1,0 +1,25 @@
+{
+  final Edge edge1=createEdge("source","edge","target");
+  final Id targetId=edge1.getTargetNode();
+  final Edge edge2=createEdge(createId("source"),"edge",targetId);
+  final Edge edge3=createEdge(createId("source2"),"edge2",targetId);
+  serialization.writeEdge(scope,edge1).execute();
+  serialization.writeEdge(scope,edge2).execute();
+  serialization.writeEdge(scope,edge3).execute();
+  Iterator<String> edges=serialization.getEdgeTypesToTarget(scope,createSearchEdge(targetId,null));
+  assertEquals("edge",edges.next());
+  assertEquals("edge2",edges.next());
+  assertFalse(edges.hasNext());
+  serialization.removeEdgeTypeFromSource(scope,edge1).execute();
+  edges=serialization.getEdgeTypesToTarget(scope,createSearchEdge(targetId,null));
+  assertEquals("edge",edges.next());
+  assertEquals("edge2",edges.next());
+  assertFalse(edges.hasNext());
+  serialization.removeEdgeTypeToTarget(scope,edge2).execute();
+  edges=serialization.getEdgeTypesToTarget(scope,createSearchEdge(targetId,null));
+  assertEquals("edge2",edges.next());
+  assertFalse(edges.hasNext());
+  serialization.removeEdgeTypeToTarget(scope,edge3).execute();
+  edges=serialization.getEdgeTypesToTarget(scope,createSearchEdge(targetId,null));
+  assertFalse(edges.hasNext());
+}

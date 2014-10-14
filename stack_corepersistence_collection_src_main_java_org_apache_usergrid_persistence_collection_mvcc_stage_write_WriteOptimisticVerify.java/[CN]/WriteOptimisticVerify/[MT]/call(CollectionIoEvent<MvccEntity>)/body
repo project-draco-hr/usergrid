@@ -1,0 +1,14 @@
+{
+  MvccValidationUtils.verifyMvccEntityWithEntity(ioevent.getEvent());
+  MvccEntity mvccEntity=ioevent.getEvent();
+  final Entity entity=mvccEntity.getEntity().get();
+  CollectionScope collectionScope=ioevent.getEntityCollection();
+  if (entity.getVersion() == null) {
+    return;
+  }
+  List<MvccLogEntry> versions=logEntryStrat.load(collectionScope,entity.getId(),entity.getVersion(),2);
+  if (versions.size() > 1 && versions.get(1).getStage().ordinal() < Stage.COMMITTED.ordinal()) {
+    log.debug("Conflict writing entity id {} version {}",entity.getId().toString(),entity.getVersion().toString());
+    throw new WriteOptimisticVerifyException(mvccEntity,collectionScope,"Change conflict, not first writer");
+  }
+}

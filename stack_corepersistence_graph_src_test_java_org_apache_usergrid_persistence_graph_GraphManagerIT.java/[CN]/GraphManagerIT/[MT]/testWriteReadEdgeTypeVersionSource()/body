@@ -1,0 +1,14 @@
+{
+  GraphManager gm=getHelper(emf.createEdgeManager(scope));
+  final long earlyVersion=1000l;
+  Edge edge=createEdge("source","test","target",earlyVersion);
+  gm.writeEdge(edge).toBlocking().last();
+  SearchByEdgeType search=createSearchByEdge(edge.getSourceNode(),edge.getType(),edge.getTimestamp(),null);
+  Observable<Edge> edges=gm.loadEdgesFromSource(search);
+  Edge returned=edges.toBlocking().single();
+  assertEquals("Correct edge returned",edge,returned);
+  search=createSearchByEdge(edge.getSourceNode(),edge.getType(),earlyVersion - 1,null);
+  edges=gm.loadEdgesFromSource(search);
+  returned=edges.toBlocking().singleOrDefault(null);
+  assertNull("Earlier version should not be returned",returned);
+}

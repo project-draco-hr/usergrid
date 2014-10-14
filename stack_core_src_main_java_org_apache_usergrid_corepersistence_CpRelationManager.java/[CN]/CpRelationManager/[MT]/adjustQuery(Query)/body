@@ -1,0 +1,33 @@
+{
+  if (query.getRootOperand() == null) {
+    if (query.containsSingleNameOrEmailIdentifier()) {
+      Identifier ident=query.getSingleIdentifier();
+      if (query.getEntityType().equals(User.ENTITY_TYPE) && ident.isEmail()) {
+        Query newQuery=Query.fromQL("select * where email='" + query.getSingleNameOrEmailIdentifier() + "'");
+        query.setRootOperand(newQuery.getRootOperand());
+      }
+ else {
+        Query newQuery=Query.fromQL("select * where name='" + query.getSingleNameOrEmailIdentifier() + "'");
+        query.setRootOperand(newQuery.getRootOperand());
+      }
+    }
+ else     if (query.containsSingleUuidIdentifier()) {
+      Query newQuery=Query.fromQL("select * where uuid='" + query.getSingleUuidIdentifier() + "'");
+      query.setRootOperand(newQuery.getRootOperand());
+    }
+  }
+  if (query.isReversed()) {
+    Query.SortPredicate desc=new Query.SortPredicate(PROPERTY_CREATED,Query.SortDirection.DESCENDING);
+    try {
+      query.addSort(desc);
+    }
+ catch (    Exception e) {
+      logger.warn("Attempted to reverse sort order already set",PROPERTY_CREATED);
+    }
+  }
+  if (query.getSortPredicates().isEmpty()) {
+    Query.SortPredicate asc=new Query.SortPredicate(PROPERTY_CREATED,Query.SortDirection.ASCENDING);
+    query.addSort(asc);
+  }
+  return query;
+}

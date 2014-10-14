@@ -1,0 +1,32 @@
+{
+  List<Integer> expected1List=Arrays.asList(5,3,2,0);
+  Observable<Integer> expected1=Observable.from(expected1List);
+  List<Integer> expected2List=Arrays.asList(10,7,6,4);
+  Observable<Integer> expected2=Observable.from(expected2List);
+  List<Integer> expected3List=Arrays.asList(9,8,1);
+  Observable<Integer> expected3=Observable.from(expected3List);
+  Observable<Integer> ordered=OrderedMerge.orderedMerge(new ReverseIntegerComparator(),2,expected1,expected2,expected3);
+  final CountDownLatch latch=new CountDownLatch(1);
+  final List<Integer> results=new ArrayList();
+  final boolean[] errorThrown=new boolean[1];
+  ordered.subscribe(new Subscriber<Integer>(){
+    @Override public void onCompleted(){
+      latch.countDown();
+    }
+    @Override public void onError(    final Throwable e){
+      log.error("Expected error thrown",e);
+      if (e.getMessage().contains("The maximum queue size of 2 has been reached")) {
+        errorThrown[0]=true;
+      }
+      latch.countDown();
+    }
+    @Override public void onNext(    final Integer integer){
+      log.info("onNext invoked with {}",integer);
+      results.add(integer);
+    }
+  }
+);
+  latch.await();
+  assertEquals(0,results.size());
+  assertTrue("An exception was thrown",errorThrown[0]);
+}

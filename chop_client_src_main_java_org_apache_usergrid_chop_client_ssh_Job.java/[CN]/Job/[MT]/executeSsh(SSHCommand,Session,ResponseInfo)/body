@@ -1,0 +1,35 @@
+{
+  Channel channel=null;
+  String message;
+  try {
+    channel=session.openChannel("exec");
+    ((ChannelExec)channel).setCommand(command.getCommand());
+    channel.connect();
+    BufferedReader inputReader=new BufferedReader(new InputStreamReader(channel.getInputStream()));
+    BufferedReader errorReader=new BufferedReader(new InputStreamReader(((ChannelExec)channel).getErrStream()));
+    while ((message=inputReader.readLine()) != null) {
+      response.addMessage(message);
+      LOG.info("SSH command response: {}",message);
+    }
+    while ((message=errorReader.readLine()) != null) {
+      response.addMessage(message);
+      LOG.info("Error in ssh command: {}",message);
+    }
+    inputReader.close();
+    errorReader.close();
+  }
+ catch (  Exception e) {
+    message="Error while sending ssh command to " + value.getPublicIpAddress();
+    LOG.warn(message,e);
+    response.addErrorMessage(message);
+  }
+ finally {
+    try {
+      if (channel != null) {
+        channel.disconnect();
+      }
+    }
+ catch (    Exception e) {
+    }
+  }
+}

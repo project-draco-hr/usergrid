@@ -1,0 +1,31 @@
+{
+  Id appId=new SimpleId("application");
+  Id ownerId=new SimpleId("owner");
+  ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
+  IndexScope appScope=new IndexScopeImpl(ownerId,"user");
+  EntityIndex ei=cif.createEntityIndex(applicationScope);
+  ei.initializeIndex();
+  final String middleName="middleName" + UUIDUtils.newTimeUUID();
+  Map entityMap=new HashMap(){
+{
+      put("username","edanuff");
+      put("email","ed@anuff.com");
+      put("middlename",middleName);
+    }
+  }
+;
+  Entity user=EntityIndexMapUtils.fromMap(entityMap);
+  EntityUtils.setId(user,new SimpleId("edanuff"));
+  EntityUtils.setVersion(user,UUIDGenerator.newTimeUUID());
+  EntityIndexBatch batch=ei.createBatch();
+  batch.index(appScope,user).executeAndRefresh();
+  Query query=new Query();
+  query.addEqualityFilter("username","edanuff");
+  CandidateResults r=ei.search(appScope,query);
+  assertEquals(user.getId(),r.get(0).getId());
+  batch.deindex(appScope,user.getId(),user.getVersion()).executeAndRefresh();
+  query=new Query();
+  query.addEqualityFilter("username","edanuff");
+  r=ei.search(appScope,query);
+  assertFalse(r.iterator().hasNext());
+}

@@ -1,0 +1,8 @@
+{
+  if (!skipAggregateCounters) {
+    long timestamp=cass.createTimestamp();
+    Mutator<ByteBuffer> m=createMutator(cass.getApplicationKeyspace(applicationId),be);
+    counterUtils.batchIncrementAggregateCounters(m,applicationId,userId,groupId,null,category,counters,timestamp);
+    CassandraPersistenceUtils.batchExecute(m,CassandraService.RETRY_COUNT);
+  }
+}

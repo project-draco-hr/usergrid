@@ -1,0 +1,14 @@
+{
+  app.clear();
+  String payload=getPayload();
+  Map<String,String> payloads=new HashMap<String,String>(1);
+  payloads.put(notifierName,payload);
+  app.put("payloads",payloads);
+  app.put("queued",System.currentTimeMillis());
+  app.put("debug",true);
+  Entity e=app.testRequest(ServiceAction.POST,1,"notifications").getEntity();
+  app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
+  Notification notification=app.getEm().get(e.getUuid(),Notification.class);
+  notification=scheduleNotificationAndWait(notification);
+  checkReceipts(notification,2);
+}

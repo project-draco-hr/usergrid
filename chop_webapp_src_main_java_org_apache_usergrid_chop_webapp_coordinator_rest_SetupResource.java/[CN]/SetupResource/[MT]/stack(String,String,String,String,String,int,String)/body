@@ -1,0 +1,34 @@
+{
+  if (inTestMode(testMode)) {
+    LOG.info("Calling /setup/stack in test mode ...");
+    LOG.info("  Commit Id: {}",commitId);
+    LOG.info("  Group Id: {}",groupId);
+    LOG.info("  Artifact Id: {}",artifactId);
+    LOG.info("  Version: {}",version);
+    LOG.info("  User: {}",user);
+    LOG.info("  Runner Count: {}",runnerCount);
+  }
+ else {
+    LOG.info("Calling /setup/stack");
+  }
+  SetupStackState status=stackCoordinator.stackStatus(commitId,artifactId,groupId,version,user);
+  if (inTestMode(testMode)) {
+    return Response.status(Response.Status.CREATED).entity(status).type(MediaType.APPLICATION_JSON).build();
+  }
+  if (status.equals(SetupStackState.SetupFailed)) {
+    String message="";
+    CoordinatedStack stack=stackCoordinator.findCoordinatedStack(commitId,artifactId,groupId,version,user);
+    SetupStackThread setupStackThread=stackCoordinator.getSetupStackThread(stack);
+    if (setupStackThread != null) {
+      message=setupStackThread.getErrorMessage();
+    }
+    message=SetupStackState.SetupFailed.getStackStateMessage() + " Error message: " + message;
+    stackCoordinator.removeFailedStack(stack);
+    return Response.status(Response.Status.OK).entity(message).type(MediaType.APPLICATION_JSON).build();
+  }
+  if (!status.equals(SetupStackState.NotSetUp)) {
+    return Response.status(Response.Status.OK).entity(status.getStackStateMessage()).type(MediaType.APPLICATION_JSON).build();
+  }
+  stackCoordinator.setupStack(commitId,artifactId,groupId,version,user,runnerCount);
+  return Response.status(Response.Status.CREATED).entity("Started setting up the stack").type(MediaType.APPLICATION_JSON).build();
+}

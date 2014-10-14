@@ -1,0 +1,22 @@
+{
+  String edgeType=CpNamingUtils.getEdgeTypeFromConnectionType(connType);
+  Map<EntityRef,Set<String>> containers=getContainers(count,edgeType,fromEntityType);
+  if (Level.REFS.equals(level)) {
+    List<EntityRef> refList=new ArrayList<EntityRef>(containers.keySet());
+    return Results.fromRefList(refList);
+  }
+  if (Level.IDS.equals(level)) {
+    List<UUID> idList=new ArrayList<UUID>();
+    for (    EntityRef ref : containers.keySet()) {
+      idList.add(ref.getUuid());
+    }
+    return Results.fromIdList(idList);
+  }
+  List<Entity> entities=new ArrayList<Entity>();
+  for (  EntityRef ref : containers.keySet()) {
+    Entity entity=em.get(ref);
+    logger.debug("   Found connecting entity: " + entity.getProperties());
+    entities.add(entity);
+  }
+  return Results.fromEntities(entities);
+}

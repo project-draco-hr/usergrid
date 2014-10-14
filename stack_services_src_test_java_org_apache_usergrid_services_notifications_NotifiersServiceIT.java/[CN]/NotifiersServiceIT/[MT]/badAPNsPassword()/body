@@ -1,0 +1,23 @@
+{
+  ns.providerAdapters.put("apple",new MockSuccessfulProviderAdapter(){
+    @Override public void testConnection(    Notifier notifier) throws ConnectionException {
+      Exception e=new Exception("invalid ssl config");
+      throw new ConnectionException(e.getMessage(),e);
+    }
+  }
+);
+  app.clear();
+  app.put("provider","apple");
+  app.put("environment","development");
+  app.put("certificatePassword","wrong");
+  InputStream fis=getClass().getClassLoader().getResourceAsStream("pushtest_dev_recent.p12");
+  byte[] certBytes=IOUtils.toByteArray(fis);
+  app.put("p12Certificate",certBytes);
+  fis.close();
+  try {
+    app.testRequest(ServiceAction.POST,1,"notifiers");
+    fail("notifier creation should have failed with a bad connection test");
+  }
+ catch (  ConnectionException e) {
+  }
+}

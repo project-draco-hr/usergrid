@@ -1,0 +1,28 @@
+{
+  StringField testField1=new StringField("testField","value");
+  StringField addedField=new StringField("testFud","NEWPARTIALUPDATEZOMG");
+  CollectionScope context=new CollectionScopeImpl(new SimpleId("organization"),new SimpleId("testUpdate"),"testUpdate");
+  Entity oldEntity=new Entity(new SimpleId("testUpdate"));
+  oldEntity.setField(new StringField("testField","value"));
+  EntityCollectionManager manager=factory.createCollectionManager(context);
+  Observable<Entity> observable=manager.write(oldEntity);
+  Entity returned=observable.toBlocking().lastOrDefault(null);
+  assertNotNull("Returned has a uuid",returned.getId());
+  final UUID writeVersion=returned.getVersion();
+  assertNotNull("Write version was set",writeVersion);
+  oldEntity.getFields().remove(testField1);
+  oldEntity.setField(addedField);
+  observable=manager.update(oldEntity);
+  Entity updateReturned=observable.toBlocking().lastOrDefault(null);
+  assertNotNull("Returned has a uuid",returned.getId());
+  assertEquals(oldEntity.getField("testFud"),returned.getField("testFud"));
+  final UUID updatedVersion=updateReturned.getVersion();
+  assertNotNull("Updated version returned",updatedVersion);
+  assertTrue("Updated version higher",UUIDComparator.staticCompare(updatedVersion,writeVersion) > 0);
+  Observable<Entity> newEntityObs=manager.load(updateReturned.getId());
+  Entity newEntity=newEntityObs.toBlocking().last();
+  final UUID returnedVersion=newEntity.getVersion();
+  assertEquals("Loaded version matches updated version",updatedVersion,returnedVersion);
+  assertNotNull("Returned has a uuid",returned.getId());
+  assertEquals(addedField,newEntity.getField("testFud"));
+}

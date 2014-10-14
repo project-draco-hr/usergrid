@@ -1,0 +1,25 @@
+{
+  final TimeService timeService=mock(TimeService.class);
+  final NodeShardAllocation nodeShardAllocation=mock(NodeShardAllocation.class);
+  final ShardedEdgeSerialization shardedEdgeSerialization=mock(ShardedEdgeSerialization.class);
+  final EdgeColumnFamilies edgeColumnFamilies=mock(EdgeColumnFamilies.class);
+  final Keyspace keyspace=mock(Keyspace.class);
+  final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
+  final TaskExecutor taskExecutor=mock(TaskExecutor.class);
+  final long delta=10000;
+  final long createTime=20000;
+  final long timeNow=createTime + delta - 1;
+  ShardEntryGroup group=new ShardEntryGroup(delta);
+  group.addShard(new Shard(2000,createTime,false));
+  group.addShard(new Shard(1000,5000,true));
+  when(timeService.getCurrentTime()).thenReturn(timeNow);
+  ShardGroupCompactionImpl compaction=new ShardGroupCompactionImpl(timeService,graphFig,nodeShardAllocation,shardedEdgeSerialization,edgeColumnFamilies,keyspace,edgeShardSerialization,taskExecutor);
+  DirectedEdgeMeta directedEdgeMeta=DirectedEdgeMeta.fromSourceNode(createId("source"),"test");
+  try {
+    compaction.compact(this.scope,directedEdgeMeta,group);
+    fail("I should not reach this point");
+  }
+ catch (  Throwable t) {
+    assertEquals("Correct error message returned","Compaction cannot be run yet.  Ignoring compaction.",t.getMessage());
+  }
+}

@@ -1,5 +1,5 @@
 {
-  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  EntityManager em=emf.getEntityManager(smf.getManagementAppId());
   em.setProperty(new SimpleEntityRef(Group.ENTITY_TYPE,organization.getUuid()),"activated",true);
   List<UserInfo> users=getAdminUsersForOrganization(organization.getUuid());
   for (  UserInfo user : users) {
@@ -12,4 +12,5 @@
   if (sendEmail) {
     startOrganizationActivationFlow(organization);
   }
+  em.refreshIndex();
 }

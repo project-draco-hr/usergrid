@@ -2,11 +2,11 @@
   try {
     try {
       String accessToken=request.getQueryParameters().getFirst("access_token");
-      if (accessToken == null) {
+      if (StringUtils.isEmpty(accessToken)) {
         OAuthAccessResourceRequest oauthRequest=new OAuthAccessResourceRequest(httpServletRequest,ParameterStyle.HEADER);
         accessToken=oauthRequest.getAccessToken();
       }
-      if (accessToken == null) {
+      if (StringUtils.isEmpty(accessToken)) {
         return request;
       }
       AuthPrincipalInfo principal=null;
@@ -24,7 +24,12 @@ catch (      InvalidTokenException ite) {
         throw mappableSecurityException(INVALID_AUTH_ERROR);
       }
 catch (      Exception e) {
-        LOG.error("unable to verify oauth token",e);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Unable to verify OAuth token: " + accessToken,e);
+        }
+ else {
+          LOG.warn("Unable to verify OAuth token");
+        }
         throw mappableSecurityException(UNVERIFIED_OAUTH_ERROR);
       }
       if (principal == null) {
@@ -45,7 +50,7 @@ catch (        Exception e) {
         if (user == null) {
           throw mappableSecurityException(BAD_ACCESS_TOKEN_ERROR);
         }
-        token=PrincipalCredentialsToken.getFromAdminUserInfoAndAccessToken(user,accessToken);
+        token=PrincipalCredentialsToken.getFromAdminUserInfoAndAccessToken(user,accessToken,emf.getManagementAppId());
       }
  else       if (AuthPrincipalType.APPLICATION_USER.equals(principal.getType())) {
         UserInfo user=null;

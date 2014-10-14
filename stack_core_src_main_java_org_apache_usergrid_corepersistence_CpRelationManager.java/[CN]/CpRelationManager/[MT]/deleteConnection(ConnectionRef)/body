@@ -1,0 +1,25 @@
+{
+  Keyspace ko=cass.getApplicationKeyspace(applicationId);
+  Mutator<ByteBuffer> m=createMutator(ko,be);
+  batchUpdateEntityConnection(m,true,(ConnectionRefImpl)connectionRef,UUIDGenerator.newTimeUUID());
+  batchExecute(m,CassandraService.RETRY_COUNT);
+  EntityRef connectingEntityRef=connectionRef.getConnectingEntity();
+  EntityRef connectedEntityRef=connectionRef.getConnectedEntity();
+  String connectionType=connectionRef.getConnectedEntity().getConnectionType();
+  CollectionScope targetScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpNamingUtils.getCollectionScopeNameFromEntityType(connectedEntityRef.getType()));
+  EntityCollectionManager targetEcm=managerCache.getEntityCollectionManager(targetScope);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Deleting connection '{}' from source {}:{} \n   to target {}:{}",new Object[]{connectionType,connectingEntityRef.getType(),connectingEntityRef.getUuid(),connectedEntityRef.getType(),connectedEntityRef.getUuid()});
+  }
+  org.apache.usergrid.persistence.model.entity.Entity targetEntity=targetEcm.load(new SimpleId(connectedEntityRef.getUuid(),connectedEntityRef.getType())).toBlockingObservable().last();
+  Edge edge=new SimpleEdge(new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),connectionType,targetEntity.getId(),System.currentTimeMillis());
+  GraphManager gm=managerCache.getGraphManager(applicationScope);
+  gm.deleteEdge(edge).toBlockingObservable().last();
+  final EntityIndex ei=managerCache.getEntityIndex(applicationScope);
+  final EntityIndexBatch batch=ei.createBatch();
+  IndexScope indexScope=new IndexScopeImpl(new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),CpNamingUtils.getConnectionScopeName(targetEntity.getId().getType(),connectionType));
+  batch.deindex(indexScope,targetEntity);
+  IndexScope allTypesIndexScope=new IndexScopeImpl(new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),CpNamingUtils.ALL_TYPES);
+  batch.deindex(allTypesIndexScope,targetEntity);
+  batch.execute();
+}

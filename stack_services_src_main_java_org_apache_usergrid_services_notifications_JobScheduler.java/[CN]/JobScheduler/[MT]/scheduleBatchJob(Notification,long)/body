@@ -1,0 +1,10 @@
+{
+  JobData jobData=new JobData();
+  jobData.setProperty("applicationId",sm.getApplicationId());
+  jobData.setProperty("notificationId",notification.getUuid());
+  jobData.setProperty("deliver",notification.getDeliver());
+  long soonestPossible=System.currentTimeMillis() + SCHEDULER_GRACE_PERIOD + delay;
+  SchedulerService scheduler=getSchedulerService();
+  scheduler.createJob("notificationBatchJob",soonestPossible,jobData);
+  LOG.info("notification {} batch scheduled for delivery",notification.getUuid());
+}

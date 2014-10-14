@@ -1,0 +1,21 @@
+{
+  CustomCollection things=context.collection("things");
+  UUID thing1Id=getEntityId(things.create(hashMap("name","thing1")),0);
+  UUID thing2Id=getEntityId(things.create(hashMap("name","thing2")),0);
+  refreshIndex(context.getOrgName(),context.getAppName());
+  things.entity(thing1Id).connection("likes").entity(thing2Id).post();
+  refreshIndex(context.getOrgName(),context.getAppName());
+  JsonNode response=things.entity("thing1").get();
+  String url=getEntity(response,0).get("metadata").get("connections").get("likes").asText();
+  assertNotNull("Connection url returned in entity",url);
+  url=url.substring(1);
+  response=context.collection(url).get();
+  UUID returnedUUID=getEntityId(response,0);
+  assertEquals(thing2Id,returnedUUID);
+  url=getEntity(response,0).get("metadata").get("connecting").get("likes").asText();
+  assertNotNull("Incoming edge URL provited",url);
+  url=url.substring(1);
+  response=context.collection(url).get();
+  UUID returned=getEntityId(response,0);
+  assertEquals("Should point to thing1 as an incoming entity connection",thing1Id,returned);
+}

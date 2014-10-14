@@ -1,0 +1,21 @@
+{
+  CustomCollection activities=context.collection("activities");
+  Map actor=hashMap("displayName","Erin");
+  Map props=new HashMap();
+  int checkResultsNum=0;
+  props.put("actor",actor);
+  props.put("verb","go");
+  props.put("content","bragh");
+  for (int i=0; i < 20; i++) {
+    props.put("ordinal",i);
+    JsonNode activity=activities.create(props);
+  }
+  refreshIndex(context.getOrgName(),context.getAppName());
+  String query="select * where created > " + 1 + " order by created desc";
+  JsonNode incorrectNode=activities.withQuery(query).withLimit(5).get();
+  assertEquals(5,incorrectNode.get("entities").size());
+  while (checkResultsNum < 5) {
+    assertEquals(activities.entityIndex(query,checkResultsNum),activities.entityIndexLimit(query,5,checkResultsNum));
+    checkResultsNum++;
+  }
+}

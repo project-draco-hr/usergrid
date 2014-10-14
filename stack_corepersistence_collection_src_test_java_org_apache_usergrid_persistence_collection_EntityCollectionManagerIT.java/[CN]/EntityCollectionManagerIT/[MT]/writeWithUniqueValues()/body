@@ -1,0 +1,22 @@
+{
+  CollectionScope context=new CollectionScopeImpl(new SimpleId("organization"),new SimpleId("test"),"test");
+  EntityCollectionManager manager=factory.createCollectionManager(context);
+{
+    Entity newEntity=new Entity(new SimpleId("test"));
+    newEntity.setField(new IntegerField("count",5,true));
+    Observable<Entity> observable=manager.write(newEntity);
+    Entity returned=observable.toBlocking().lastOrDefault(null);
+  }
+{
+    try {
+      Entity newEntity=new Entity(new SimpleId("test"));
+      newEntity.setField(new IntegerField("count",5,true));
+      manager.write(newEntity).toBlocking().last();
+      fail("Write should have thrown an exception");
+    }
+ catch (    Exception ex) {
+      WriteUniqueVerifyException e=(WriteUniqueVerifyException)ex;
+      assertEquals(1,e.getVioliations().size());
+    }
+  }
+}

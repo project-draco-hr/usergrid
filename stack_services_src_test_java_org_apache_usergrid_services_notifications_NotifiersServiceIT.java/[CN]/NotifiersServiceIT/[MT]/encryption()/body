@@ -1,0 +1,23 @@
+{
+  app.clear();
+  app.put("provider","apple");
+  app.put("environment","development");
+  InputStream fis=getClass().getClassLoader().getResourceAsStream("pushtest_dev_recent.p12");
+  byte[] certBytes=IOUtils.toByteArray(fis);
+  app.put("p12Certificate",certBytes);
+  fis.close();
+  Field f=Schema.class.getDeclaredField("encryptionSeed");
+  f.setAccessible(true);
+  byte[] originalSeed=(byte[])f.get(Schema.class);
+  byte[] encryptionSeed="This is a new seed.".getBytes();
+  f.set(Schema.class,encryptionSeed);
+  Notifier notifier=(Notifier)app.testRequest(ServiceAction.POST,1,"notifiers").getEntity().toTypedEntity();
+  assertArrayEquals(notifier.getP12Certificate(),certBytes);
+  f.set(Schema.class,originalSeed);
+  try {
+    app.getEm().get(notifier.getUuid());
+    fail("Should have failed to retrieve the encrypted entity.");
+  }
+ catch (  IllegalStateException e) {
+  }
+}

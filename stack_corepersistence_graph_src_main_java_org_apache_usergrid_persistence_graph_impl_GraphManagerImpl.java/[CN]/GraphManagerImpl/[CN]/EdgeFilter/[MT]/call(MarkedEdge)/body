@@ -1,0 +1,15 @@
+{
+  final long edgeTimestamp=edge.getTimestamp();
+  if (edge.isDeleted() || Long.compare(edgeTimestamp,maxTimestamp) > 0) {
+    return false;
+  }
+  final Long sourceTimestamp=markCache.get(edge.getSourceNode());
+  if (sourceTimestamp != null && Long.compare(edgeTimestamp,sourceTimestamp) < 1) {
+    return false;
+  }
+  final Long targetTimestamp=markCache.get(edge.getTargetNode());
+  if (targetTimestamp != null && Long.compare(edgeTimestamp,targetTimestamp) < 1) {
+    return false;
+  }
+  return true;
+}

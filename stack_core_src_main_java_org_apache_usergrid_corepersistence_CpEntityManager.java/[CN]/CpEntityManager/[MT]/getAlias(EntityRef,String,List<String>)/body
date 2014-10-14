@@ -1,0 +1,15 @@
+{
+  logger.debug("getAliases() for collection {} aliases {}",collName,aliases);
+  Assert.notNull(ownerRef,"ownerRef is required");
+  Assert.notNull(collName,"collectionName is required");
+  Assert.notEmpty(aliases,"aliases are required");
+  String propertyName=Schema.getDefaultSchema().aliasProperty(collName);
+  Map<String,EntityRef> results=new HashMap<>();
+  for (  String alias : aliases) {
+    Iterable<EntityRef> refs=getEntityRefsForUniqueProperty(collName,propertyName,alias);
+    for (    EntityRef ref : refs) {
+      results.put(alias,ref);
+    }
+  }
+  return results;
+}

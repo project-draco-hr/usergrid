@@ -1,0 +1,27 @@
+{
+  logger.debug("ServiceResource.uploadData");
+  String name=getValueOrNull(multiPart,"name");
+  String provider=getValueOrNull(multiPart,"provider");
+  String environment=getValueOrNull(multiPart,"environment");
+  String certPassword=getValueOrNull(multiPart,"certificatePassword");
+  InputStream is=null;
+  if (multiPart.getField("p12Certificate") != null) {
+    is=multiPart.getField("p12Certificate").getEntityAs(InputStream.class);
+  }
+  HashMap<String,Object> certProps=new LinkedHashMap<String,Object>();
+  certProps.put("name",name);
+  certProps.put("provider",provider);
+  certProps.put("environment",environment);
+  certProps.put("certificatePassword",certPassword);
+  if (is != null) {
+    byte[] certBytes=IOUtils.toByteArray(is);
+    certProps.put("p12Certificate",certBytes);
+  }
+  ApiResponse response=createApiResponse();
+  response.setAction("post");
+  response.setApplication(services.getApplication());
+  response.setParams(ui.getQueryParameters());
+  ServicePayload payload=getPayload(certProps);
+  executeServiceRequest(ui,response,ServiceAction.POST,payload);
+  return new JSONWithPadding(response,callback);
+}

@@ -1,0 +1,21 @@
+{
+  Collection<Runner> runnerList=Collections.emptyList();
+  if (inTestMode(testMode)) {
+    LOG.info("Calling /runners/list in test mode ...");
+    return Response.ok(runnerList).build();
+  }
+  LOG.info("Calling /runners/list");
+  Preconditions.checkNotNull(user,"The 'user' request parameter MUST NOT be null.");
+  Preconditions.checkNotNull(artifactId,"The 'artifactId' request parameter MUST NOT be null.");
+  Preconditions.checkNotNull(groupId,"The 'groupId' request parameter MUST NOT be null.");
+  Preconditions.checkNotNull(version,"The 'version' request parameter MUST NOT be null.");
+  Preconditions.checkNotNull(commitId,"The 'commitId' request parameter MUST NOT be null.");
+  String moduleId=BasicModule.createId(groupId,artifactId,version);
+  Module inStore=moduleDao.get(moduleId);
+  if (inStore == null) {
+    LOG.warn("Returning empty runner list for request associated with non-existent module: {}",groupId + "." + artifactId+ "-"+ version);
+    return Response.ok(runnerList).build();
+  }
+  runnerList=runnerCoordinator.getRunners(user,commitId,moduleId);
+  return Response.status(Response.Status.CREATED).entity(runnerList).build();
+}

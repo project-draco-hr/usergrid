@@ -1,0 +1,34 @@
+{
+  Map<String,Object> values=null;
+  ApplicationCF dictionaryCf=null;
+  boolean entityHasDictionary=Schema.getDefaultSchema().hasDictionary(entity.getType(),dictionaryName);
+  if (entityHasDictionary) {
+    dictionaryCf=ENTITY_DICTIONARIES;
+  }
+ else {
+    dictionaryCf=ENTITY_COMPOSITE_DICTIONARIES;
+  }
+  Class<?> dictionaryCoType=Schema.getDefaultSchema().getDictionaryValueType(entity.getType(),dictionaryName);
+  boolean coTypeIsBasic=ClassUtils.isBasicType(dictionaryCoType);
+  ByteBuffer[] columnNames=new ByteBuffer[elementNames.length];
+  for (int i=0; i < elementNames.length; i++) {
+    columnNames[i]=entityHasDictionary ? bytebuffer(elementNames[i]) : DynamicComposite.toByteBuffer(elementNames[i]);
+  }
+  ColumnSlice<ByteBuffer,ByteBuffer> results=cass.getColumns(cass.getApplicationKeyspace(applicationId),dictionaryCf,CassandraPersistenceUtils.key(entity.getUuid(),dictionaryName),columnNames,be,be);
+  if (results != null) {
+    values=new HashMap<String,Object>();
+    for (    HColumn<ByteBuffer,ByteBuffer> result : results.getColumns()) {
+      String name=entityHasDictionary ? string(result.getName()) : DynamicComposite.fromByteBuffer(result.getName()).get(0,se);
+      if (entityHasDictionary && coTypeIsBasic) {
+        values.put(name,object(dictionaryCoType,result.getValue()));
+      }
+ else       if (result.getValue().remaining() > 0) {
+        values.put(name,Schema.deserializePropertyValueFromJsonBinary(result.getValue().slice(),dictionaryCoType));
+      }
+    }
+  }
+ else {
+    logger.error("Results of CpEntityManagerImpl.getDictionaryElementValues is null");
+  }
+  return values;
+}

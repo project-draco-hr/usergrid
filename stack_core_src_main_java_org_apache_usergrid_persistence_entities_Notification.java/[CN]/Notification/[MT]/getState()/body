@@ -1,0 +1,21 @@
+{
+  if (getErrorMessage() != null) {
+    return State.FAILED;
+  }
+ else   if (getCanceled() == Boolean.TRUE) {
+    return State.CANCELED;
+  }
+ else   if (getFinished() != null) {
+    return State.FINISHED;
+  }
+ else   if (getStarted() != null && getDeliver() == null) {
+    return State.STARTED;
+  }
+ else   if (isExpired()) {
+    return State.EXPIRED;
+  }
+ else   if (getDeliver() != null || getQueued() != null) {
+    return State.SCHEDULED;
+  }
+  return State.CREATED;
+}

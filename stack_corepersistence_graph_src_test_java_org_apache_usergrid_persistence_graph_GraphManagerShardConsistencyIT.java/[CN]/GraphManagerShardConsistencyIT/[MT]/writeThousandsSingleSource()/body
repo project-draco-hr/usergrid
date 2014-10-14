@@ -1,0 +1,88 @@
+{
+  final Id sourceId=createId("source");
+  final String edgeType="test";
+  final EdgeGenerator generator=new EdgeGenerator(){
+    @Override public Edge newEdge(){
+      Edge edge=createEdge(sourceId,edgeType,createId("target"));
+      return edge;
+    }
+    @Override public Observable<Edge> doSearch(    final GraphManager manager){
+      return manager.loadEdgesFromSource(new SimpleSearchByEdgeType(sourceId,edgeType,Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING,null));
+    }
+  }
+;
+  final int numInjectors=1;
+  final List<Injector> injectors=createInjectors(numInjectors);
+  final GraphFig graphFig=getInstance(injectors,GraphFig.class);
+  final long shardSize=graphFig.getShardSize();
+  final int numProcessors=Runtime.getRuntime().availableProcessors() / 2;
+  final int numWorkersPerInjector=numProcessors / numInjectors;
+  final long numberOfEdges=shardSize * 4;
+  final long workerWriteLimit=numberOfEdges / numWorkersPerInjector;
+  final long expectedShardCount=numberOfEdges / shardSize;
+  final ListeningExecutorService executor=MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(numWorkersPerInjector));
+  final AtomicLong writeCounter=new AtomicLong();
+  final long minExecutionTime=graphFig.getShardMinDelta() + graphFig.getShardCacheTimeout();
+  log.info("Writing {} edges per worker on {} workers in {} injectors",workerWriteLimit,numWorkersPerInjector,numInjectors);
+  final List<Future<Boolean>> futures=new ArrayList<>();
+  for (  Injector injector : injectors) {
+    final GraphManagerFactory gmf=injector.getInstance(GraphManagerFactory.class);
+    for (int i=0; i < numWorkersPerInjector; i++) {
+      Future<Boolean> future=executor.submit(new Worker(gmf,generator,workerWriteLimit,minExecutionTime,writeCounter));
+      futures.add(future);
+    }
+  }
+  for (  Future<Boolean> future : futures) {
+    future.get();
+  }
+  final NodeShardCache cache=getInstance(injectors,NodeShardCache.class);
+  final DirectedEdgeMeta directedEdgeMeta=DirectedEdgeMeta.fromSourceNode(sourceId,edgeType);
+  final GraphManagerFactory gmf=getInstance(injectors,GraphManagerFactory.class);
+  final long writeCount=writeCounter.get();
+  final Meter readMeter=registry.meter("readThroughput");
+  final ListenableFuture<Long> future=executor.submit(new ReadWorker(gmf,generator,writeCount,readMeter));
+  final List<Throwable> failures=new ArrayList<>();
+  Futures.addCallback(future,new FutureCallback<Long>(){
+    @Override public void onSuccess(    @Nullable final Long result){
+      log.info("Successfully ran the read, re-running");
+      executor.submit(new ReadWorker(gmf,generator,writeCount,readMeter));
+    }
+    @Override public void onFailure(    final Throwable t){
+      failures.add(t);
+      log.error("Failed test!",t);
+    }
+  }
+);
+  int compactedCount;
+  while (true) {
+    if (!failures.isEmpty()) {
+      StringBuilder builder=new StringBuilder();
+      builder.append("Read runner failed!\n");
+      for (      Throwable t : failures) {
+        builder.append("Exception is: ");
+        ByteArrayOutputStream output=new ByteArrayOutputStream();
+        t.printStackTrace(new PrintWriter(output));
+        builder.append(output.toString("UTF-8"));
+        builder.append("\n\n");
+      }
+      fail(builder.toString());
+    }
+    compactedCount=0;
+    final Iterator<ShardEntryGroup> groups=cache.getReadShardGroup(scope,Long.MAX_VALUE,directedEdgeMeta);
+    final Set<ShardEntryGroup> shardEntryGroups=new HashSet<>();
+    while (groups.hasNext()) {
+      final ShardEntryGroup group=groups.next();
+      shardEntryGroups.add(group);
+      log.info("Compaction pending status for group {} is {}",group,group.isCompactionPending());
+      if (!group.isCompactionPending()) {
+        compactedCount++;
+      }
+    }
+    if (compactedCount >= expectedShardCount) {
+      log.info("All compactions complete, sleeping");
+      break;
+    }
+    Thread.sleep(2000);
+  }
+  executor.shutdownNow();
+}

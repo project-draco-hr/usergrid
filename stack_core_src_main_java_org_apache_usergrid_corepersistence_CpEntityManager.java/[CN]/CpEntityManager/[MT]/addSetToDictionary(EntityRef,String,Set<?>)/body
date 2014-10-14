@@ -1,0 +1,12 @@
+{
+  if ((elementValues == null) || elementValues.isEmpty()) {
+    return;
+  }
+  EntityRef entity=get(entityRef);
+  UUID timestampUuid=UUIDUtils.newTimeUUID();
+  Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
+  for (  Object elementValue : elementValues) {
+    batch=batchUpdateDictionary(batch,entity,dictionaryName,elementValue,null,false,timestampUuid);
+  }
+  CassandraPersistenceUtils.batchExecute(batch,CassandraService.RETRY_COUNT);
+}

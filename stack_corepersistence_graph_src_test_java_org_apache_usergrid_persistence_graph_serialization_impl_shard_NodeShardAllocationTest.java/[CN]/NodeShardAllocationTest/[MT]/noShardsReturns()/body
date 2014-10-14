@@ -1,0 +1,29 @@
+{
+  final ShardGroupCompaction shardGroupCompaction=mock(ShardGroupCompaction.class);
+  final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
+  final EdgeColumnFamilies edgeColumnFamilies=mock(EdgeColumnFamilies.class);
+  final ShardedEdgeSerialization shardedEdgeSerialization=mock(ShardedEdgeSerialization.class);
+  final NodeShardApproximation nodeShardApproximation=mock(NodeShardApproximation.class);
+  final TimeService timeService=mock(TimeService.class);
+  final long returnTime=System.currentTimeMillis() + graphFig.getShardCacheTimeout() * 2;
+  when(timeService.getCurrentTime()).thenReturn(returnTime);
+  final MutationBatch batch=mock(MutationBatch.class);
+  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeColumnFamilies,shardedEdgeSerialization,nodeShardApproximation,timeService,graphFig,shardGroupCompaction);
+  final Id nodeId=createId("test");
+  final String type="type";
+  final String subType="subType";
+  final DirectedEdgeMeta directedEdgeMeta=DirectedEdgeMeta.fromTargetNodeSourceType(nodeId,type,subType);
+  when(edgeShardSerialization.getShardMetaData(same(scope),any(Optional.class),same(directedEdgeMeta))).thenReturn(Collections.<Shard>emptyList().iterator());
+  ArgumentCaptor<Shard> shardArgumentCaptor=ArgumentCaptor.forClass(Shard.class);
+  when(edgeShardSerialization.writeShardMeta(same(scope),shardArgumentCaptor.capture(),same(directedEdgeMeta))).thenReturn(batch);
+  final Iterator<ShardEntryGroup> result=approximation.getShards(scope,Optional.<Shard>absent(),directedEdgeMeta);
+  ShardEntryGroup shardEntryGroup=result.next();
+  final Shard rootShard=new Shard(0,0,true);
+  assertEquals("Shard size expected",1,shardEntryGroup.entrySize());
+  assertEquals("Root shard was persisted",rootShard,shardArgumentCaptor.getValue());
+  Collection<Shard> writeShards=shardEntryGroup.getWriteShards(timeService.getCurrentTime());
+  Collection<Shard> readShards=shardEntryGroup.getReadShards();
+  assertTrue("root shard allocated",writeShards.contains(rootShard));
+  assertTrue("root shard allocated",readShards.contains(rootShard));
+  assertFalse("No other shard group allocated",result.hasNext());
+}

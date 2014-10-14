@@ -1,0 +1,22 @@
+{
+  KeyspaceDefinition keyspaceDefinition=null;
+  try {
+    keyspaceDefinition=keyspace.describeKeyspace();
+  }
+ catch (  BadRequestException badRequestException) {
+    final String message=badRequestException.getMessage();
+    boolean missingKeyspace=message.contains("why:Keyspace") && message.contains("does not exist");
+    if (!missingKeyspace) {
+      throw badRequestException;
+    }
+  }
+  if (keyspaceDefinition != null) {
+    return;
+  }
+  ImmutableMap.Builder<String,Object> strategyOptions=getKeySpaceProps();
+  ImmutableMap<String,Object> options=ImmutableMap.<String,Object>builder().put("strategy_class",fig.getStrategyClass()).put("strategy_options",strategyOptions.build()).build();
+  keyspace.createKeyspace(options);
+  strategyOptions.toString();
+  logger.info("Created keyspace {} with options {}",keyspace.getKeyspaceName(),options.toString());
+  waitForMigration();
+}

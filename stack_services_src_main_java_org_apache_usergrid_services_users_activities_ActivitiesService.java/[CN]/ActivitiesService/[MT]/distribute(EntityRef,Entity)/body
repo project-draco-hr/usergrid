@@ -3,14 +3,14 @@
     return;
   }
   em.addToCollection(user,"feed",activity);
-  Results results=em.getConnectingEntities(user.getUuid(),"following",User.ENTITY_TYPE,Results.Level.REFS);
+  Results results=em.getConnectingEntities(new SimpleEntityRef(user.getType(),user.getUuid()),"following",User.ENTITY_TYPE,Level.REFS);
   if (results != null) {
     PagingResultsIterator itr=new PagingResultsIterator(results);
     List<EntityRef> refs=new ArrayList<EntityRef>();
-    ConnectedEntityRef c;
+    EntityRef c;
     int breaker=10000;
     while (itr.hasNext()) {
-      c=(ConnectedEntityRef)itr.next();
+      c=(EntityRef)itr.next();
       refs.add(c);
       if (refs.size() > breaker) {
         em.addToCollections(refs,"feed",activity);

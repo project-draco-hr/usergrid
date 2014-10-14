@@ -1,0 +1,15 @@
+{
+  FileOutputStream outStream=null;
+  try {
+    File file=keyService.addFile(username,keyNameField.getValue(),fileName);
+    outStream=new FileOutputStream(file);
+    Set<PosixFilePermission> permissions=new HashSet<PosixFilePermission>();
+    permissions.add(PosixFilePermission.OWNER_READ);
+    permissions.add(PosixFilePermission.OWNER_WRITE);
+    Files.setPosixFilePermissions(file.toPath(),permissions);
+  }
+ catch (  IOException e) {
+    LOG.error("Error while setting key file permissions.",e);
+  }
+  return outStream;
+}

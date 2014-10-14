@@ -2,9 +2,8 @@
   if ((userId == null) || (oldPassword == null) || (newPassword == null)) {
     return;
   }
-  User user=emf.getEntityManager(MANAGEMENT_APPLICATION_ID).get(userId,User.class);
-  if (!verify(MANAGEMENT_APPLICATION_ID,user.getUuid(),oldPassword)) {
-    logger.info("Old password doesn't match");
+  User user=emf.getEntityManager(smf.getManagementAppId()).get(userId,User.class);
+  if (!verify(smf.getManagementAppId(),user.getUuid(),oldPassword)) {
     throw new IncorrectPasswordException("Old password does not match");
   }
   setAdminUserPassword(userId,newPassword);

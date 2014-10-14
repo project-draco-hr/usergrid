@@ -1,0 +1,28 @@
+{
+  Map<String,String> payload=new HashMap<String,String>();
+  UUID uuid=UUID.randomUUID();
+  payload.put("name","foo");
+  String path="devices/" + uuid;
+  refreshIndex("test-organization","test-app");
+  JsonNode response=mapper.readTree(appPath(path).put(String.class,payload));
+  JsonNode entity=getEntity(response,0);
+  assertNotNull(entity);
+  String newUuid=entity.get("uuid").textValue();
+  assertEquals(uuid.toString(),newUuid);
+  response=mapper.readTree(appPath(path).delete(String.class));
+  assertNotNull(getEntity(response,0));
+  refreshIndex("test-organization","test-app");
+  try {
+    response=mapper.readTree(appPath(path).get(String.class));
+    fail("should get 404 error");
+  }
+ catch (  UniformInterfaceException e) {
+    assertEquals(404,e.getResponse().getStatus());
+  }
+  response=mapper.readTree(appPath(path).put(String.class,payload));
+  entity=getEntity(response,0);
+  assertNotNull(entity);
+  refreshIndex("test-organization","test-app");
+  response=mapper.readTree(appPath(path).get(String.class));
+  assertNotNull(getEntity(response,0));
+}

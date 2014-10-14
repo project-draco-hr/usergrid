@@ -1,11 +1,11 @@
 {
   String queryString="select * where a = 'foo-bar'";
   ANTLRStringStream in=new ANTLRStringStream(queryString);
-  QueryFilterLexer lexer=new QueryFilterLexer(in);
+  CpQueryFilterLexer lexer=new CpQueryFilterLexer(in);
   TokenRewriteStream tokens=new TokenRewriteStream(lexer);
-  QueryFilterParser parser=new QueryFilterParser(tokens);
+  CpQueryFilterParser parser=new CpQueryFilterParser(tokens);
   Query query=parser.ql().query;
-  QueryProcessor processor=new QueryProcessor(query,null,null,null);
+  QueryProcessor processor=new QueryProcessorImpl(query,null,null,null);
   SliceNode node=(SliceNode)processor.getFirstNode();
   Iterator<QuerySlice> slices=node.getAllSlices().iterator();
   QuerySlice slice=slices.next();

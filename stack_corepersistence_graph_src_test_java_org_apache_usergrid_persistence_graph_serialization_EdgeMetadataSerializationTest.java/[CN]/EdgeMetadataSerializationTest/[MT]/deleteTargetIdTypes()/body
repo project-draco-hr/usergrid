@@ -1,0 +1,26 @@
+{
+  final long timestamp=1000l;
+  final Edge edge1=createEdge("source","edge","target",timestamp);
+  final Id sourceId=edge1.getSourceNode();
+  final Edge edge2=createEdge(sourceId,"edge",createId("target"),timestamp + 1);
+  final Edge edge3=createEdge(sourceId,"edge",createId("target2"),timestamp + 2);
+  serialization.writeEdge(scope,edge1).execute();
+  serialization.writeEdge(scope,edge2).execute();
+  serialization.writeEdge(scope,edge3).execute();
+  Iterator<String> edges=serialization.getIdTypesFromSource(scope,createSearchIdType(sourceId,"edge",null));
+  assertEquals("target",edges.next());
+  assertEquals("target2",edges.next());
+  assertFalse(edges.hasNext());
+  serialization.removeIdTypeFromSource(scope,edge1).execute();
+  edges=serialization.getIdTypesFromSource(scope,createSearchIdType(sourceId,"edge",null));
+  assertEquals("target",edges.next());
+  assertEquals("target2",edges.next());
+  assertFalse(edges.hasNext());
+  serialization.removeIdTypeFromSource(scope,edge2).execute();
+  edges=serialization.getIdTypesFromSource(scope,createSearchIdType(sourceId,"edge",null));
+  assertEquals("target2",edges.next());
+  assertFalse(edges.hasNext());
+  serialization.removeIdTypeFromSource(scope,edge3).execute();
+  edges=serialization.getIdTypesFromSource(scope,createSearchIdType(sourceId,"edge",null));
+  assertFalse(edges.hasNext());
+}

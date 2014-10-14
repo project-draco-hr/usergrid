@@ -1,0 +1,34 @@
+{
+  final Id sourceId=createId("source");
+  final String edgeType="test";
+  final Id targetId=createId("target");
+  final long edgeTimestamp=1000l;
+  MarkedEdge edgeV1=createMarkedEdge(sourceId,edgeType,targetId,edgeTimestamp);
+  MarkedEdge edgeV2=createMarkedEdge(sourceId,edgeType,targetId,edgeTimestamp + 1);
+  MarkedEdge edgeV3=createMarkedEdge(sourceId,edgeType,targetId,edgeTimestamp + 2);
+  storageEdgeSerialization.writeEdge(scope,edgeV1,UUIDGenerator.newTimeUUID()).execute();
+  storageEdgeSerialization.writeEdge(scope,edgeV2,UUIDGenerator.newTimeUUID()).execute();
+  storageEdgeSerialization.writeEdge(scope,edgeV3,UUIDGenerator.newTimeUUID()).execute();
+  edgeDeleteListener.receive(scope,edgeV3,UUIDGenerator.newTimeUUID()).toBlocking().single();
+  long now=System.currentTimeMillis();
+  Iterator<MarkedEdge> edges=storageEdgeSerialization.getEdgeVersions(scope,createGetByEdge(sourceId,edgeType,targetId,now,null));
+  assertEquals(edgeV2,edges.next());
+  assertEquals(edgeV1,edges.next());
+  assertFalse(edges.hasNext());
+  edges=storageEdgeSerialization.getEdgesFromSource(scope,createSearchByEdge(sourceId,edgeType,now,null));
+  assertEquals(edgeV2,edges.next());
+  assertEquals(edgeV1,edges.next());
+  assertFalse(edges.hasNext());
+  edges=storageEdgeSerialization.getEdgesFromSourceByTargetType(scope,createSearchByEdgeAndId(sourceId,edgeType,now,targetId.getType(),null));
+  assertEquals(edgeV2,edges.next());
+  assertEquals(edgeV1,edges.next());
+  assertFalse(edges.hasNext());
+  edges=storageEdgeSerialization.getEdgesToTarget(scope,createSearchByEdge(targetId,edgeType,now,null));
+  assertEquals(edgeV2,edges.next());
+  assertEquals(edgeV1,edges.next());
+  assertFalse(edges.hasNext());
+  edges=storageEdgeSerialization.getEdgesToTargetBySourceType(scope,createSearchByEdgeAndId(targetId,edgeType,now,sourceId.getType(),null));
+  assertEquals(edgeV2,edges.next());
+  assertEquals(edgeV1,edges.next());
+  assertFalse(edges.hasNext());
+}

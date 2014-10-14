@@ -1,0 +1,33 @@
+{
+  InputStream stream=null;
+  URLClassLoader classLoader=null;
+  try {
+    classLoader=new URLClassLoader(new URL[]{runnerJar.toURL()},Thread.currentThread().getContextClassLoader());
+    ObjectMapper mapper=new ObjectMapper();
+    stream=classLoader.getResourceAsStream(Constants.STACK_JSON);
+    BasicStack stack=mapper.readValue(stream,BasicStack.class);
+    return stack;
+  }
+ catch (  Exception e) {
+    LOG.warn("Error while reading stack.json from runner.jar resources",e);
+    return null;
+  }
+ finally {
+    if (stream != null) {
+      try {
+        stream.close();
+      }
+ catch (      Exception e) {
+        LOG.debug("Could not close stack json stream",e);
+      }
+    }
+    if (classLoader != null) {
+      try {
+        classLoader.close();
+      }
+ catch (      Exception e) {
+        LOG.debug("Could not close class loader for loading stack.json",e);
+      }
+    }
+  }
+}

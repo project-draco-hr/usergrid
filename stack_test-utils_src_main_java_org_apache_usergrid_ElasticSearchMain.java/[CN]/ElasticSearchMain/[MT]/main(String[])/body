@@ -1,0 +1,19 @@
+{
+  String clusterName=args[0];
+  String port=args[1];
+  File tempDir;
+  try {
+    tempDir=getTempDirectory();
+  }
+ catch (  Exception ex) {
+    throw new RuntimeException("Fatal error unable to create temp dir, start embedded ElasticSearch",ex);
+  }
+  Settings settings=ImmutableSettings.settingsBuilder().put("cluster.name",clusterName).put("network.publish_host","127.0.0.1").put("transport.tcp.port",port).put("discovery.zen.ping.multicast.enabled","false").put("node.http.enabled",false).put("path.logs",tempDir.toString()).put("path.data",tempDir.toString()).put("gateway.type","none").put("index.store.type","memory").put("index.number_of_shards",1).put("index.number_of_replicas",1).build();
+  log.info("-----------------------------------------------------------------------");
+  log.info("Starting forked ElasticSearch server with settings: \n" + settings.getAsMap());
+  log.info("-----------------------------------------------------------------------");
+  Node node=NodeBuilder.nodeBuilder().settings(settings).clusterName(clusterName).node();
+  while (true) {
+    Thread.sleep(1000);
+  }
+}

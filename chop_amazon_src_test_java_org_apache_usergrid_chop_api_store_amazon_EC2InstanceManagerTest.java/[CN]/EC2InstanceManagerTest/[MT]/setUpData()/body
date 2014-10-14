@@ -1,0 +1,33 @@
+{
+  Injector injector=Guice.createInjector(new AmazonModule());
+  amazonFig=injector.getInstance(AmazonFig.class);
+  String accessKey=amazonFig.getAwsAccessKey();
+  String secretKey=amazonFig.getAwsSecretKey();
+  if (accessKey == null || accessKey.equals("${aws.access.key}") || accessKey.isEmpty() || secretKey == null || secretKey.equals("${aws.secret.key}") || secretKey.isEmpty()) {
+    LOG.warn("EC2InstanceManagerTest tests are not run, " + "Provided AWS secret or access key values are invalid or no values are provided");
+  }
+ else {
+    try {
+      ObjectMapper mapper=new ObjectMapper();
+      InputStream is=EC2InstanceManagerTest.class.getClassLoader().getResourceAsStream("test-stack.json");
+      Stack basicStack=mapper.readValue(is,Stack.class);
+      when(commit.getCreateTime()).thenReturn(new Date());
+      when(commit.getMd5()).thenReturn("742e2a76a6ba161f9efb87ce58a9187e");
+      when(commit.getModuleId()).thenReturn("2000562494");
+      when(commit.getRunnerPath()).thenReturn("/some/dummy/path");
+      when(commit.getId()).thenReturn("cc471b502aca2791c3a068f93d15b79ff6b7b827");
+      when(module.getGroupId()).thenReturn("org.apache.usergrid.chop");
+      when(module.getArtifactId()).thenReturn("chop-maven-plugin");
+      when(module.getVersion()).thenReturn("1.0-SNAPSHOT");
+      when(module.getVcsRepoUrl()).thenReturn("https://stash.safehaus.org/scm/chop/main.git");
+      when(module.getTestPackageBase()).thenReturn("org.apache.usergrid.chop");
+      when(module.getId()).thenReturn("2000562494");
+      stack=new CoordinatedStack(basicStack,new User("user","pass"),commit,module,RUNNER_COUNT);
+    }
+ catch (    Exception e) {
+      LOG.error("Error while reading test stack json resource",e);
+      return;
+    }
+    manager=injector.getInstance(EC2InstanceManager.class);
+  }
+}

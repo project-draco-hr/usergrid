@@ -1,0 +1,30 @@
+{
+  EntityManager em=getEntityManager(SYSTEM_APP_ID);
+  Query q=Query.fromQL("select *");
+  Results results=null;
+  try {
+    results=em.searchCollection(em.getApplicationRef(),"propertymaps",q);
+  }
+ catch (  Exception ex) {
+    logger.error("Error getting system properties",ex);
+    return false;
+  }
+  org.apache.usergrid.persistence.Entity propsEntity=null;
+  if (!results.isEmpty()) {
+    propsEntity=results.getEntity();
+  }
+ else {
+    propsEntity=EntityFactory.newEntity(UUIDUtils.newTimeUUID(),"propertymap");
+  }
+  for (  String key : properties.keySet()) {
+    propsEntity.setProperty(key,properties.get(key).toString());
+  }
+  try {
+    em.update(propsEntity);
+  }
+ catch (  Exception ex) {
+    logger.error("Error updating service properties",ex);
+    return false;
+  }
+  return true;
+}

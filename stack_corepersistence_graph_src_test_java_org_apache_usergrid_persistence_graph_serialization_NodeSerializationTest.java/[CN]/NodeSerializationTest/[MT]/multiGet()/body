@@ -1,0 +1,12 @@
+{
+  final Id nodeId1=createId("test");
+  final Id nodeId2=createId("test");
+  final Id nodeId3=createId("test");
+  final long version=System.currentTimeMillis();
+  serialization.mark(scope,nodeId1,version).execute();
+  serialization.mark(scope,nodeId2,version).execute();
+  Map<Id,Long> marks=serialization.getMaxVersions(scope,Arrays.asList(createEdge(nodeId1,"test",nodeId2),createEdge(nodeId2,"test",nodeId3)));
+  assertEquals(version,marks.get(nodeId1).longValue());
+  assertEquals(version,marks.get(nodeId2).longValue());
+  assertFalse(marks.containsKey(nodeId3));
+}

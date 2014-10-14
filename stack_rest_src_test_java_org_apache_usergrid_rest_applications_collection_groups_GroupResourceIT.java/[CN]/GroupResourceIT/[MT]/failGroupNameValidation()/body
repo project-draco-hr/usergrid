@@ -1,0 +1,16 @@
+{
+  ApiResponse response=client.createGroup("groupName/withslash");
+  assertNull(response.getError());
+  refreshIndex("test-organization","test-app");
+{
+    boolean failed=false;
+    try {
+      ApiResponse groupResponse=client.createGroup("groupName withspace");
+      failed=groupResponse.getError() != null;
+    }
+ catch (    Exception e) {
+      failed=true;
+    }
+    assertTrue(failed);
+  }
+}

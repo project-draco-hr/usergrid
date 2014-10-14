@@ -1,0 +1,51 @@
+{
+  if (client == null) {
+    Client newClient=null;
+    if ("embedded".equals(fig.getStartUp())) {
+      int port=AvailablePortFinder.getNextAvailable(2000);
+      System.setProperty(LOCAL_ES_PORT_PROPNAME,port + "");
+      File tempDir;
+      try {
+        tempDir=getTempDirectory();
+      }
+ catch (      Exception ex) {
+        throw new RuntimeException("Fatal error unable to create temp dir, start embedded ElasticSearch",ex);
+      }
+      Settings settings=ImmutableSettings.settingsBuilder().put("cluster.name",fig.getClusterName()).put("network.publish_host","127.0.0.1").put("transport.tcp.port",port).put("discovery.zen.ping.multicast.enabled","false").put("node.http.enabled",false).put("path.logs",tempDir.toString()).put("path.data",tempDir.toString()).put("gateway.type","none").put("index.store.type","memory").put("index.number_of_shards",1).put("index.number_of_replicas",1).build();
+      log.info("-----------------------------------------------------------------------");
+      log.info("Starting ElasticSearch embedded server with settings: \n" + settings.getAsMap());
+      log.info("-----------------------------------------------------------------------");
+      Node node=NodeBuilder.nodeBuilder().settings(settings).clusterName(fig.getClusterName()).node();
+      newClient=node.client();
+    }
+ else {
+      String allHosts="";
+      if ("remote".equals(fig.getStartUp())) {
+        String SEP="";
+        for (        String host : fig.getHosts().split(",")) {
+          allHosts=allHosts + SEP + host+ ":"+ fig.getPort();
+          SEP=",";
+        }
+      }
+ else {
+        allHosts="localhost:" + System.getProperty(LOCAL_ES_PORT_PROPNAME);
+      }
+      String nodeName=fig.getNodeName();
+      if ("default".equals(nodeName)) {
+        try {
+          nodeName=InetAddress.getLocalHost().getHostName();
+        }
+ catch (        UnknownHostException ex) {
+          nodeName="client-" + RandomStringUtils.randomAlphabetic(8);
+          log.warn("Couldn't get hostname to use as ES node name, using " + nodeName);
+        }
+      }
+      Settings settings=ImmutableSettings.settingsBuilder().put("cluster.name",fig.getClusterName()).put("discovery.zen.ping.unicast.hosts",allHosts).put("discovery.zen.ping.multicast.enabled","false").put("http.enabled",false).put("client.transport.ping_timeout",2000).put("client.transport.nodes_sampler_interval",100).put("network.tcp.blocking",true).put("node.name",nodeName).build();
+      log.debug("Creating ElasticSearch client with settings: " + settings.getAsMap());
+      Node node=NodeBuilder.nodeBuilder().settings(settings).client(true).node();
+      newClient=node.client();
+    }
+    client=newClient;
+  }
+  return client;
+}

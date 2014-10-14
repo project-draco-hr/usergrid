@@ -1,0 +1,30 @@
+{
+  final Id organizationId=new SimpleId("organization");
+  final Id applicationId=new SimpleId("application");
+  final String name="test";
+  CollectionScope context=new CollectionScopeImpl(organizationId,applicationId,name);
+  final UUID entityId=UUIDGenerator.newTimeUUID();
+  final UUID version=UUIDGenerator.newTimeUUID();
+  final String type="test";
+  final Id id=new SimpleId(entityId,type);
+  Entity entity=new Entity(id);
+  EntityUtils.setVersion(entity,version);
+  BooleanField boolField=new BooleanField("boolean",false);
+  entity.setField(boolField);
+  MvccEntity saved=new MvccEntityImpl(id,version,MvccEntity.Status.COMPLETE,Optional.of(entity));
+  serializationStrategy.write(context,saved).execute();
+  MvccEntity returned=serializationStrategy.load(context,Collections.singleton(id),version).getEntity(id);
+  assertEquals("Mvcc entities are the same",saved,returned);
+  assertEquals(id,entity.getId());
+  Field<Boolean> boolFieldReturned=returned.getEntity().get().getField(boolField.getName());
+  assertEquals(boolField,boolFieldReturned);
+  Set<Field> results=new HashSet<Field>();
+  results.addAll(entity.getFields());
+  assertTrue(results.contains(boolField));
+  assertEquals(1,results.size());
+  assertEquals(id,entity.getId());
+  assertEquals(version,entity.getVersion());
+  serializationStrategy.delete(context,id,version).execute();
+  returned=serializationStrategy.load(context,Collections.singleton(id),version).getEntity(id);
+  assertNull(returned);
+}

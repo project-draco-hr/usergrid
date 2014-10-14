@@ -1,0 +1,22 @@
+{
+  final MarkedEdge edge1=createEdge("source","edge1","target");
+  final Id sourceId=edge1.getSourceNode();
+  final Id targetId=edge1.getTargetNode();
+  final MarkedEdge edge2=createEdge(sourceId,"edge2",targetId);
+  UUID timestamp=UUIDGenerator.newTimeUUID();
+  serialization.writeEdge(scope,edge1,timestamp).execute();
+  serialization.writeEdge(scope,edge2,timestamp).execute();
+  long now=System.currentTimeMillis();
+  Iterator<MarkedEdge> results=serialization.getEdgesFromSource(scope,createSearchByEdge(sourceId,"edge1",now,null));
+  assertEquals(edge1,results.next());
+  assertFalse(results.hasNext());
+  results=serialization.getEdgesFromSource(scope,createSearchByEdge(sourceId,"edge2",now,null));
+  assertEquals(edge2,results.next());
+  assertFalse(results.hasNext());
+  results=serialization.getEdgesToTarget(scope,createSearchByEdge(targetId,"edge1",now,null));
+  assertEquals(edge1,results.next());
+  assertFalse(results.hasNext());
+  results=serialization.getEdgesToTarget(scope,createSearchByEdge(targetId,"edge2",now,null));
+  assertEquals(edge2,results.next());
+  assertFalse(results.hasNext());
+}

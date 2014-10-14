@@ -1,0 +1,14 @@
+{
+  try {
+    KeyStore keyStore=KeyStore.getInstance("PKCS12");
+    String password=notifier.getCertificatePassword();
+    char[] passChars=(password != null ? password : "").toCharArray();
+    InputStream stream=notifier.getP12CertificateStream();
+    keyStore.load(stream,passChars);
+    SSLContext context=SSLContextUtil.createDefaultSSLContext(keyStore,passChars);
+    return context;
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Error getting certificate",e);
+  }
+}

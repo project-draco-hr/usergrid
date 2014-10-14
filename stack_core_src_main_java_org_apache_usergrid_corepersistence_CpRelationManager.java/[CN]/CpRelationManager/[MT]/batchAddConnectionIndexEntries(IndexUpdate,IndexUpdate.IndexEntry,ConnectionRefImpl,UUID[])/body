@@ -1,0 +1,12 @@
+{
+  logger.debug("batchAddConnectionIndexEntries");
+  Object property_index_key=key(index_keys[ConnectionRefImpl.ALL],INDEX_CONNECTIONS,entry.getPath(),indexBucketLocator.getBucket(applicationId,IndexBucketLocator.IndexType.CONNECTION,index_keys[ConnectionRefImpl.ALL],entry.getPath()));
+  Object entity_type_prop_index_key=key(index_keys[ConnectionRefImpl.BY_ENTITY_TYPE],INDEX_CONNECTIONS,entry.getPath(),indexBucketLocator.getBucket(applicationId,IndexBucketLocator.IndexType.CONNECTION,index_keys[ConnectionRefImpl.BY_ENTITY_TYPE],entry.getPath()));
+  Object connection_type_prop_index_key=key(index_keys[ConnectionRefImpl.BY_CONNECTION_TYPE],INDEX_CONNECTIONS,entry.getPath(),indexBucketLocator.getBucket(applicationId,IndexBucketLocator.IndexType.CONNECTION,index_keys[ConnectionRefImpl.BY_CONNECTION_TYPE],entry.getPath()));
+  Object connection_type_and_entity_type_prop_index_key=key(index_keys[ConnectionRefImpl.BY_CONNECTION_AND_ENTITY_TYPE],INDEX_CONNECTIONS,entry.getPath(),indexBucketLocator.getBucket(applicationId,IndexBucketLocator.IndexType.CONNECTION,index_keys[ConnectionRefImpl.BY_CONNECTION_AND_ENTITY_TYPE],entry.getPath()));
+  addInsertToMutator(indexUpdate.getBatch(),ENTITY_INDEX,property_index_key,entry.getIndexComposite(conn.getConnectedEntityId(),conn.getConnectionType(),conn.getConnectedEntityType()),conn.getUuid(),indexUpdate.getTimestamp());
+  addInsertToMutator(indexUpdate.getBatch(),ENTITY_INDEX,entity_type_prop_index_key,entry.getIndexComposite(conn.getConnectedEntityId(),conn.getConnectionType()),conn.getUuid(),indexUpdate.getTimestamp());
+  addInsertToMutator(indexUpdate.getBatch(),ENTITY_INDEX,connection_type_prop_index_key,entry.getIndexComposite(conn.getConnectedEntityId(),conn.getConnectedEntityType()),conn.getUuid(),indexUpdate.getTimestamp());
+  addInsertToMutator(indexUpdate.getBatch(),ENTITY_INDEX,connection_type_and_entity_type_prop_index_key,entry.getIndexComposite(conn.getConnectedEntityId()),conn.getUuid(),indexUpdate.getTimestamp());
+  return indexUpdate.getBatch();
+}

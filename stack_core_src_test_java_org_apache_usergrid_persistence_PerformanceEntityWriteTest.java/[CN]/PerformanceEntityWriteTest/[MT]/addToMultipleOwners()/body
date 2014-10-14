@@ -1,0 +1,34 @@
+{
+  final EntityManager em=app.getEntityManager();
+  final String meterName=this.getClass().getSimpleName() + ".addToMultipleOwners";
+  final Meter meter=registry.meter(meterName);
+  final long stopTime=System.currentTimeMillis() + RUNTIME;
+  final DynamicEntity toCreate=new DynamicEntity();
+  toCreate.setType("toCreate");
+  final Entity owner1=em.create("1owner",new HashMap<String,Object>(){
+{
+      put("key","owner1");
+    }
+  }
+);
+  final Entity owner2=em.create("2owner",new HashMap<String,Object>(){
+{
+      put("key","owner2");
+    }
+  }
+);
+  final Map<String,Object> addToCollectionEntity=new HashMap<>();
+  addToCollectionEntity.put("key1",1000);
+  addToCollectionEntity.put("key2",2000);
+  addToCollectionEntity.put("key3","Some value");
+  final List<EntityRef> owners=Arrays.asList((EntityRef)owner1,(EntityRef)owner2);
+  int i=0;
+  while (System.currentTimeMillis() < stopTime) {
+    addToCollectionEntity.put("key",i);
+    final Entity created=em.create("testType",addToCollectionEntity);
+    em.addToCollections(owners,"test",created);
+    meter.mark();
+    i++;
+  }
+  registry.remove(meterName);
+}

@@ -1,0 +1,56 @@
+{
+  final String CF_NAME="test";
+  final StringSerializer STR_SER=StringSerializer.get();
+  ColumnFamily<String,String> testCf=new ColumnFamily<String,String>(CF_NAME,STR_SER,STR_SER);
+  if (keyspace.describeKeyspace().getColumnFamily(CF_NAME) == null) {
+    keyspace.createColumnFamily(testCf,null);
+  }
+  final String key="key";
+  final String colname="name";
+  final String colvalue="value";
+  UUID firstUUID=UUIDGenerator.newTimeUUID();
+  UUID secondUUID=UUIDGenerator.newTimeUUID();
+  UUID thirdUUID=UUIDGenerator.newTimeUUID();
+  assertTrue("First before second",UUIDComparator.staticCompare(firstUUID,secondUUID) < 0);
+  assertTrue("Second before third",UUIDComparator.staticCompare(secondUUID,thirdUUID) < 0);
+  MutationBatch batch=keyspace.prepareMutationBatch();
+  batch.withRow(testCf,key).setTimestamp(firstUUID.timestamp()).putColumn(colname,colvalue);
+  batch.execute();
+  Column<String> col=keyspace.prepareQuery(testCf).getKey(key).getColumn(colname).execute().getResult();
+  assertEquals(colname,col.getName());
+  assertEquals(colvalue,col.getStringValue());
+  batch=keyspace.prepareMutationBatch();
+  batch.withRow(testCf,key).setTimestamp(firstUUID.timestamp()).putColumn(colname,colvalue);
+  batch.withRow(testCf,key).setTimestamp(firstUUID.timestamp()).deleteColumn(colname);
+  batch.execute();
+  boolean deleted=false;
+  try {
+    keyspace.prepareQuery(testCf).getKey(key).getColumn(colname).execute().getResult();
+  }
+ catch (  NotFoundException nfe) {
+    deleted=true;
+  }
+  assertTrue(deleted);
+  batch.withRow(testCf,key).setTimestamp(secondUUID.timestamp()).putColumn(colname,colvalue);
+  batch.execute();
+  col=keyspace.prepareQuery(testCf).getKey(key).getColumn(colname).execute().getResult();
+  assertEquals(colname,col.getName());
+  assertEquals(colvalue,col.getStringValue());
+  batch=keyspace.prepareMutationBatch();
+  batch.withRow(testCf,key).setTimestamp(firstUUID.timestamp()).deleteColumn(colname);
+  batch.execute();
+  col=keyspace.prepareQuery(testCf).getKey(key).getColumn(colname).execute().getResult();
+  assertEquals(colname,col.getName());
+  assertEquals(colvalue,col.getStringValue());
+  batch=keyspace.prepareMutationBatch();
+  batch.withRow(testCf,key).setTimestamp(thirdUUID.timestamp()).deleteColumn(colname);
+  batch.execute();
+  deleted=false;
+  try {
+    keyspace.prepareQuery(testCf).getKey(key).getColumn(colname).execute().getResult();
+  }
+ catch (  NotFoundException nfe) {
+    deleted=true;
+  }
+  assertTrue(deleted);
+}

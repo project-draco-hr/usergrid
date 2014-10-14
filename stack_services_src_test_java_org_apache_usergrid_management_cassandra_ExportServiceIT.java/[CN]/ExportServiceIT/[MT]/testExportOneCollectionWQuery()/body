@@ -9,6 +9,7 @@
   f.deleteOnExit();
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
   em.createApplicationCollection("baconators");
+  em.refreshIndex();
   Map<String,Object> userProperties=null;
   Entity[] entity;
   entity=new Entity[entitiesToCreate];
@@ -29,6 +30,7 @@
   JobData jobData=jobDataCreator(payload,exportUUID,s3Export);
   JobExecution jobExecution=mock(JobExecution.class);
   when(jobExecution.getJobData()).thenReturn(jobData);
+  em.refreshIndex();
   exportService.doExport(jobExecution);
   JSONParser parser=new JSONParser();
   org.json.simple.JSONArray a=(org.json.simple.JSONArray)parser.parse(new FileReader(f));

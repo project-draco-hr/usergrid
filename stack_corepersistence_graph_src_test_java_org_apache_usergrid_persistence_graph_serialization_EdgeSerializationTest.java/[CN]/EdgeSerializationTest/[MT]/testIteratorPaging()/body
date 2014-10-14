@@ -1,0 +1,25 @@
+{
+  final Id sourceId=createId("source");
+  final String edgeType="edge";
+  final Id targetId=createId("target");
+  int writeCount=graphFig.getScanPageSize() * 3;
+  final MutationBatch batch=keyspace.prepareMutationBatch();
+  long timestamp=10000l;
+  for (int i=0; i < writeCount; i++) {
+    final MarkedEdge edge=createEdge(sourceId,edgeType,targetId,timestamp);
+    batch.mergeShallow(serialization.writeEdge(scope,edge,UUIDGenerator.newTimeUUID()));
+    timestamp++;
+  }
+  log.info("Flushing edges");
+  batch.execute();
+  Iterator<MarkedEdge> results=serialization.getEdgeVersions(scope,createGetByEdge(sourceId,edgeType,targetId,timestamp,null));
+  verify(results,writeCount);
+  results=serialization.getEdgesFromSource(scope,createSearchByEdge(sourceId,edgeType,timestamp,null));
+  verify(results,writeCount);
+  results=serialization.getEdgesFromSourceByTargetType(scope,createSearchByEdgeAndId(sourceId,edgeType,timestamp,targetId.getType(),null));
+  verify(results,writeCount);
+  results=serialization.getEdgesToTarget(scope,createSearchByEdge(targetId,edgeType,timestamp,null));
+  verify(results,writeCount);
+  results=serialization.getEdgesToTargetBySourceType(scope,createSearchByEdgeAndId(targetId,edgeType,timestamp,sourceId.getType(),null));
+  verify(results,writeCount);
+}

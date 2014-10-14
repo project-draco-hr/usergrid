@@ -1,11 +1,16 @@
 {
-  if ((organizationName == null) || (user == null)) {
+  if (organizationName == null) {
+    logger.debug("organizationName = null");
     return null;
   }
-  Lock groupLock=getUniqueUpdateLock(lockManager,MANAGEMENT_APPLICATION_ID,organizationName,"groups","path");
-  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
-  if (!em.isPropertyValueUniqueForEntity("group","path",organizationName)) {
-    throw new DuplicateUniquePropertyExistsException("group","path",organizationName);
+  if (user == null) {
+    logger.debug("user = null");
+    return null;
+  }
+  Lock groupLock=getUniqueUpdateLock(lockManager,smf.getManagementAppId(),organizationName,"groups",PROPERTY_PATH);
+  EntityManager em=emf.getEntityManager(smf.getManagementAppId());
+  if (!em.isPropertyValueUniqueForEntity("group",PROPERTY_PATH,organizationName)) {
+    throw new DuplicateUniquePropertyExistsException("group",PROPERTY_PATH,organizationName);
   }
   try {
     groupLock.lock();

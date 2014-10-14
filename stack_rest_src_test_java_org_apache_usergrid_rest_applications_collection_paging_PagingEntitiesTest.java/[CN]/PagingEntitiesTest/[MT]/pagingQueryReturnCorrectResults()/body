@@ -1,0 +1,32 @@
+{
+  CustomCollection activities=context.collection("activities");
+  long created=0;
+  int maxSize=23;
+  long[] verifyCreated=new long[maxSize];
+  Map actor=hashMap("displayName","Erin");
+  Map props=new HashMap();
+  props.put("actor",actor);
+  props.put("content","bragh");
+  for (int i=0; i < maxSize; i++) {
+    if (i > 17 && i < 23) {
+      props.put("verb","stop");
+    }
+ else {
+      props.put("verb","go");
+    }
+    props.put("ordinal",i);
+    JsonNode activity=activities.create(props);
+    verifyCreated[i]=activity.findValue("created").longValue();
+    if (i == 18) {
+      created=activity.findValue("created").longValue();
+    }
+  }
+  refreshIndex(context.getOrgName(),context.getAppName());
+  String query="select * where created >= " + created + " or verb = 'stop'";
+  JsonNode node=activities.withQuery(query).get();
+  for (int index=0; index < 5; index++) {
+    assertEquals(verifyCreated[maxSize - 1 - index],node.get("entities").get(index).get("created").longValue());
+  }
+  int totalEntitiesContained=activities.countEntities(query);
+  assertEquals(5,totalEntitiesContained);
+}

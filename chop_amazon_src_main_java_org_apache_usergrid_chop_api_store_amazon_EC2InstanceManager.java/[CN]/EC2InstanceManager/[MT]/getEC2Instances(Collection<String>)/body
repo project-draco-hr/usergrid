@@ -1,0 +1,22 @@
+{
+  if (instanceIds == null || instanceIds.size() == 0) {
+    return new ArrayList<com.amazonaws.services.ec2.model.Instance>();
+  }
+  Collection<com.amazonaws.services.ec2.model.Instance> instances=new LinkedList<com.amazonaws.services.ec2.model.Instance>();
+  DescribeInstancesRequest request=new DescribeInstancesRequest();
+  request=request.withInstanceIds(instanceIds);
+  DescribeInstancesResult result=null;
+  try {
+    result=client.describeInstances(request);
+  }
+ catch (  Exception e) {
+    LOG.error("Error while getting instance information from AWS.",e);
+    return Collections.EMPTY_LIST;
+  }
+  for (  Reservation reservation : result.getReservations()) {
+    for (    com.amazonaws.services.ec2.model.Instance in : reservation.getInstances()) {
+      instances.add(in);
+    }
+  }
+  return instances;
+}

@@ -1,0 +1,27 @@
+{
+  GraphManager em=emf.createEdgeManager(scope);
+  Edge edge=createEdge("source","test","target");
+  Edge last=em.writeEdge(edge).toBlocking().last();
+  assertEquals(edge,last);
+  Id sourceNode=edge.getSourceNode();
+  Id targetNode=edge.getTargetNode();
+  final long deleteBefore=System.currentTimeMillis();
+  nodeSerialization.mark(scope,targetNode,deleteBefore).execute();
+  int count=deleteListener.receive(scope,targetNode,UUIDGenerator.newTimeUUID()).toBlocking().last();
+  assertEquals(1,count);
+  long now=System.currentTimeMillis();
+  Iterator<MarkedEdge> returned=edgeSerialization.getEdgesFromSource(scope,createSearchByEdge(sourceNode,edge.getType(),now,null));
+  assertFalse("No source should be returned",returned.hasNext());
+  returned=edgeSerialization.getEdgesToTarget(scope,createSearchByEdge(targetNode,edge.getType(),now,null));
+  assertFalse("No target should be returned",returned.hasNext());
+  returned=edgeSerialization.getEdgeVersions(scope,createGetByEdge(sourceNode,edge.getType(),targetNode,now,null));
+  assertFalse("No version should be returned",returned.hasNext());
+  Iterator<String> types=edgeMetadataSerialization.getEdgeTypesFromSource(scope,createSearchEdge(sourceNode,null));
+  assertFalse(types.hasNext());
+  types=edgeMetadataSerialization.getEdgeTypesToTarget(scope,createSearchEdge(targetNode,null));
+  assertFalse(types.hasNext());
+  Iterator<String> idTypes=edgeMetadataSerialization.getIdTypesFromSource(scope,createSearchIdType(sourceNode,edge.getType(),null));
+  assertFalse(idTypes.hasNext());
+  idTypes=edgeMetadataSerialization.getIdTypesToTarget(scope,createSearchIdType(targetNode,edge.getType(),null));
+  assertFalse(idTypes.hasNext());
+}

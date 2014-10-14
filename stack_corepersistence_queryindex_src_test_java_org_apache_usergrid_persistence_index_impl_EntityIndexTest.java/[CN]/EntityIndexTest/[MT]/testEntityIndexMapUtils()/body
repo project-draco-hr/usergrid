@@ -1,0 +1,14 @@
+{
+  InputStream is=this.getClass().getResourceAsStream("/sample-small.json");
+  ObjectMapper mapper=new ObjectMapper();
+  List<Object> contacts=mapper.readValue(is,new TypeReference<List<Object>>(){
+  }
+);
+  for (  Object o : contacts) {
+    Map<String,Object> map1=(Map<String,Object>)o;
+    Entity entity1=EntityIndexMapUtils.fromMap(map1);
+    Map map2=EntityIndexMapUtils.toMap(entity1);
+    Map diff=Maps.difference(map1,map2).entriesDiffering();
+    assertEquals(0,diff.size());
+  }
+}

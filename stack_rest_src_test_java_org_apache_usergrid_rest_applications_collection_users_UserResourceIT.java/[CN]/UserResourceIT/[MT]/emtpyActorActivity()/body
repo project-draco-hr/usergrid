@@ -1,0 +1,18 @@
+{
+  UserRepo.INSTANCE.load(resource(),access_token);
+  UUID userId=UserRepo.INSTANCE.getByUserName("user1");
+  refreshIndex("test-organization","test-app");
+  Activity activity=new Activity();
+  activity.setProperty("email","rod@rodsimpson.com");
+  activity.setProperty("verb","POST");
+  activity.setProperty("content","Look! more new content");
+  ApiResponse response=client.postUserActivity(userId.toString(),activity);
+  assertNull("Error was: " + response.getErrorDescription(),response.getError());
+  Entity entity=response.getEntities().get(0);
+  UUID activityId=entity.getUuid();
+  assertNotNull(activityId);
+  JsonNode actor=getActor(entity);
+  UUID actorId=UUIDUtils.tryGetUUID(actor.get("uuid").textValue());
+  assertEquals(userId,actorId);
+  assertEquals("user1@apigee.com",actor.get("email").asText());
+}

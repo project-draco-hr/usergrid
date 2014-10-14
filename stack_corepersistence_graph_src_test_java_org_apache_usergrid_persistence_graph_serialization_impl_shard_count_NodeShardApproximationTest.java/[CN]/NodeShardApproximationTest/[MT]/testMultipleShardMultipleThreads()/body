@@ -1,0 +1,33 @@
+{
+  NodeShardCounterSerialization serialization=new TestNodeShardCounterSerialization();
+  final NodeShardApproximation approximation=new NodeShardApproximationImpl(new TestGraphFig(),serialization,new TestTimeService());
+  final int increments=1000000;
+  final int workers=Runtime.getRuntime().availableProcessors() * 2;
+  final Id id=createId("test");
+  final String type="type";
+  final String type2="subType";
+  final AtomicLong shardIdCounter=new AtomicLong();
+  final DirectedEdgeMeta directedEdgeMeta=DirectedEdgeMeta.fromTargetNodeSourceType(id,type,type2);
+  ExecutorService executor=Executors.newFixedThreadPool(workers);
+  List<Future<Shard>> futures=new ArrayList<>(workers);
+  for (int i=0; i < workers; i++) {
+    final Future<Shard> future=executor.submit(new Callable<Shard>(){
+      @Override public Shard call() throws Exception {
+        final long threadShardId=shardIdCounter.incrementAndGet();
+        final Shard shard=new Shard(threadShardId,0,true);
+        for (int i=0; i < increments; i++) {
+          approximation.increment(scope,shard,1,directedEdgeMeta);
+        }
+        return shard;
+      }
+    }
+);
+    futures.add(future);
+  }
+  for (  Future<Shard> future : futures) {
+    final Shard shardId=future.get();
+    waitForFlush(approximation);
+    final long returnedCount=approximation.getCount(scope,shardId,directedEdgeMeta);
+    assertEquals(increments,returnedCount);
+  }
+}

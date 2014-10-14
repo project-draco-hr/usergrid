@@ -9,17 +9,18 @@
     Entity created=em.create("user",properties);
     users.add(created);
   }
-  List<UUID> deviceIds=new ArrayList<UUID>();
+  List<EntityRef> deviceRefs=new ArrayList<EntityRef>();
   for (  Entity user : users) {
     for (int i=0; i < 5; i++) {
       Map<String,Object> properties=new LinkedHashMap<String,Object>();
       properties.put("index",i);
       Entity created=em.create("device",properties);
-      deviceIds.add(created.getUuid());
+      deviceRefs.add(created);
       em.addToCollection(user,"devices",created);
     }
   }
-  Results devices=em.getCollection(users.get(10),"devices",null,20,Results.Level.IDS,false);
+  em.refreshIndex();
+  Results devices=em.getCollection(users.get(10),"devices",null,20,Level.IDS,false);
   assertEquals(5,devices.size());
   int pageSize=10;
   Query userQuery=new Query();
@@ -33,7 +34,7 @@
   int count=2;
   while (pri.hasNext()) {
     Entity e=(Entity)pri.next();
-    assertEquals(count++,((Long)e.getProperty("index")).intValue());
+    assertEquals(count++,e.getProperty("index"));
   }
   assertEquals(count,expectedUserQuerySize + 2);
   Query deviceQuery=new Query();
@@ -41,7 +42,7 @@
   deviceQuery.setLimit(pageSize);
   deviceQuery.addFilter("index >= 2");
   int expectedDeviceQuerySize=3;
-  PathQuery<UUID> usersPQ=new PathQuery<UUID>(em.getApplicationRef(),userQuery);
+  PathQuery<EntityRef> usersPQ=new PathQuery<EntityRef>(new SimpleEntityRef(em.getApplicationRef()),userQuery);
   PathQuery<Entity> devicesPQ=usersPQ.chain(deviceQuery);
   HashSet set=new HashSet(expectedUserQuerySize * expectedDeviceQuerySize);
   Iterator<Entity> i=devicesPQ.iterator(em);

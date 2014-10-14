@@ -1,0 +1,15 @@
+{
+  Preconditions.checkNotNull("shard cannot be null",shard);
+  final int size=shards.size();
+  if (size == 0) {
+    addShardInternal(shard);
+    return true;
+  }
+  final Shard minShard=shards.get(size - 1);
+  Preconditions.checkArgument(minShard.compareTo(shard) > 0,"shard must be less than the current max");
+  if (!minShard.isCompacted()) {
+    addShardInternal(shard);
+    return true;
+  }
+  return false;
+}

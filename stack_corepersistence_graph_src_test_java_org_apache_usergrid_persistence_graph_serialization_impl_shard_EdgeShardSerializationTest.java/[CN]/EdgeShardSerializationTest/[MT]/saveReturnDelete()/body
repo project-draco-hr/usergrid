@@ -1,0 +1,29 @@
+{
+  final Id now=createId("test");
+  final long timestamp=10000l;
+  final Shard shard1=new Shard(1000l,timestamp,false);
+  final Shard shard2=new Shard(shard1.getShardIndex() * 2,timestamp,true);
+  final Shard shard3=new Shard(shard2.getShardIndex() * 2,timestamp,false);
+  final DirectedEdgeMeta sourceEdgeMeta=DirectedEdgeMeta.fromSourceNodeTargetType(now,"edgeType","subType");
+  MutationBatch batch=edgeShardSerialization.writeShardMeta(scope,shard1,sourceEdgeMeta);
+  batch.mergeShallow(edgeShardSerialization.writeShardMeta(scope,shard2,sourceEdgeMeta));
+  batch.mergeShallow(edgeShardSerialization.writeShardMeta(scope,shard3,sourceEdgeMeta));
+  batch.execute();
+  Iterator<Shard> results=edgeShardSerialization.getShardMetaData(scope,Optional.<Shard>absent(),sourceEdgeMeta);
+  assertEquals(shard3,results.next());
+  assertEquals(shard2,results.next());
+  assertEquals(shard1,results.next());
+  assertFalse(results.hasNext());
+  final DirectedEdgeMeta targetEdgeMeta=DirectedEdgeMeta.fromTargetNodeSourceType(now,"edgeType","subType");
+  results=edgeShardSerialization.getShardMetaData(scope,Optional.<Shard>absent(),targetEdgeMeta);
+  assertFalse(results.hasNext());
+  edgeShardSerialization.removeShardMeta(scope,shard1,sourceEdgeMeta).execute();
+  results=edgeShardSerialization.getShardMetaData(scope,Optional.<Shard>absent(),sourceEdgeMeta);
+  assertEquals(shard3,results.next());
+  assertEquals(shard2,results.next());
+  assertFalse(results.hasNext());
+  edgeShardSerialization.removeShardMeta(scope,shard2,sourceEdgeMeta).execute();
+  edgeShardSerialization.removeShardMeta(scope,shard3,sourceEdgeMeta).execute();
+  results=edgeShardSerialization.getShardMetaData(scope,Optional.<Shard>absent(),sourceEdgeMeta);
+  assertFalse(results.hasNext());
+}

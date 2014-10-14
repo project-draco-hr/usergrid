@@ -1,0 +1,115 @@
+{
+  for (  Class<?> iterationTest : iterationChopClasses) {
+synchronized (lock) {
+      currentDriver=new IterationDriver(iterationTest);
+      currentDriver.setTimeout(project.getTestStopTimeout());
+      currentDriver.start();
+      lock.notifyAll();
+    }
+    LOG.info("Started new IterationDriver driver: controller state = {}",state);
+    while (currentDriver.blockTilDone(project.getTestStopTimeout())) {
+      if (state == State.STOPPED) {
+        LOG.info("Got the signal to stop running.");
+synchronized (lock) {
+          currentDriver.stop();
+          currentDriver=null;
+          lock.notifyAll();
+        }
+        return;
+      }
+    }
+    LOG.info("Out of while loop. controller state = {}, currentDriver is running = {}",state,currentDriver.isRunning());
+    if (currentDriver.isComplete()) {
+      BasicSummary summary=new BasicSummary(runNumber);
+      summary.setIterationTracker(((IterationDriver)currentDriver).getTracker());
+      try {
+        runManager.store(project,summary,currentDriver.getResultsFile(),currentDriver.getTracker().getTestClass());
+      }
+ catch (      Exception e) {
+        LOG.error("Failed to store project results file " + currentDriver.getResultsFile() + " with runManager",e);
+      }
+      long startWaitingForLagers=System.currentTimeMillis();
+      while (state == State.RUNNING) {
+        Collection<Runner> lagers=getLagers(runNumber,iterationTest);
+        if (lagers.size() > 0) {
+          LOG.info("IterationChop test {} completed but waiting on lagging runners:\n{}",iterationTest.getName(),lagers);
+        }
+ else {
+          LOG.info("IterationChop test {} completed and there are NO lagging runners.",iterationTest.getName());
+          break;
+        }
+synchronized (lock) {
+          try {
+            lock.wait(project.getTestStopTimeout());
+          }
+ catch (          InterruptedException e) {
+            LOG.error("Awe snap! Someone woke me up before it was time!");
+          }
+        }
+        boolean waitTimeoutReached=(System.currentTimeMillis() - startWaitingForLagers) > DEFAULT_LAGER_WAIT_TIMEOUT_MILLIS;
+        if (waitTimeoutReached && (lagers.size() > 0)) {
+          LOG.warn("Timeout reached. Not waiting anymore for lagers: {}",lagers);
+          break;
+        }
+      }
+    }
+  }
+  for (  Class<?> timeTest : timeChopClasses) {
+synchronized (lock) {
+      currentDriver=new TimeDriver(timeTest);
+      currentDriver.setTimeout(project.getTestStopTimeout());
+      currentDriver.start();
+      lock.notifyAll();
+    }
+    LOG.info("Started new TimeDriver driver: controller state = {}",state);
+    while (currentDriver.blockTilDone(project.getTestStopTimeout())) {
+      if (state == State.STOPPED) {
+        LOG.info("Got the signal to stop running.");
+synchronized (lock) {
+          currentDriver.stop();
+          currentDriver=null;
+          lock.notifyAll();
+        }
+        return;
+      }
+    }
+    LOG.info("Out of while loop. controller state = {}, currentDriver is running = {}",state,currentDriver.isRunning());
+    if (currentDriver.isComplete()) {
+      BasicSummary summary=new BasicSummary(runNumber);
+      summary.setTimeTracker(((TimeDriver)currentDriver).getTracker());
+      try {
+        runManager.store(project,summary,currentDriver.getResultsFile(),currentDriver.getTracker().getTestClass());
+      }
+ catch (      Exception e) {
+        LOG.error("Failed to store project results file " + currentDriver.getResultsFile() + " with runManager",e);
+      }
+      long startWaitingForLagers=System.currentTimeMillis();
+      while (state == State.RUNNING) {
+        Collection<Runner> lagers=getLagers(runNumber,timeTest);
+        if (lagers.size() > 0) {
+          LOG.warn("TimeChop test {} completed but waiting on lagging runners:\n{}",timeTest.getName(),lagers);
+        }
+ else {
+          LOG.info("TimeChop test {} completed and there are NO lagging runners.",timeTest.getName());
+          break;
+        }
+synchronized (lock) {
+          try {
+            lock.wait(project.getTestStopTimeout());
+          }
+ catch (          InterruptedException e) {
+            LOG.error("Awe snap! Someone woke me up before it was time!");
+          }
+        }
+        boolean waitTimeoutReached=(System.currentTimeMillis() - startWaitingForLagers) > DEFAULT_LAGER_WAIT_TIMEOUT_MILLIS;
+        if (waitTimeoutReached && (lagers.size() > 0)) {
+          LOG.warn("Timeout reached. Not waiting anymore for lagers: {}",lagers);
+          break;
+        }
+      }
+    }
+  }
+  LOG.info("The controller has completed.");
+  currentDriver=null;
+  state=state.next(Signal.COMPLETED);
+}

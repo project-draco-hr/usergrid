@@ -1,5 +1,5 @@
 {
-  LOG.info("testKeywordsOrQuery");
+  LOG.debug("testKeywordsOrQuery");
   UUID applicationId=setup.createApplication("testOrganization","testKeywordsAndQuery");
   assertNotNull(applicationId);
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
@@ -16,6 +16,7 @@
   properties.put("title","Hot Shots Extreme");
   properties.put("keywords","Action, New");
   Entity thirdGame=em.create("game",properties);
+  em.refreshIndex();
   Query query=Query.fromQL("select * where keywords contains 'new' and title contains 'extreme'");
   Results r=em.searchCollection(em.getApplicationRef(),"games",query);
   LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));

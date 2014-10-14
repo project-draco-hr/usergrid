@@ -1,0 +1,11 @@
+{
+  CoordinatedStack stack=findCoordinatedStack(commitId,artifactId,groupId,version,user);
+  if (stack == null) {
+    File runnerJar=CoordinatorUtils.getRunnerJar(chopUiFig.getContextPath(),user,groupId,artifactId,version,commitId);
+    if (!runnerJar.exists()) {
+      return SetupStackState.JarNotFound;
+    }
+    return SetupStackState.NotSetUp;
+  }
+  return stack.getSetupState();
+}

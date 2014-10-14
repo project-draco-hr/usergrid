@@ -1,4 +1,5 @@
 {
+  LOG.debug("ApplicationResource /authorize: {}/{}",username,password);
   try {
     responseType=response_type;
     clientId=client_id;
@@ -17,6 +18,7 @@ catch (    DisabledAdminUserException daue) {
       errorDescription="user disabled";
     }
 catch (    Exception e1) {
+      logger.warn("Unexpected exception in authorize username/password verification",e1);
     }
     if ((user != null) && isNotBlank(redirect_uri)) {
       String authorizationCode=management.getAccessTokenForAppUser(services.getApplicationId(),user.getUuid(),0);
@@ -28,12 +30,13 @@ catch (    Exception e1) {
     }
     ApplicationInfo app=management.getApplicationInfo(applicationId);
     applicationName=app.getName();
-    return handleViewable("authorize_form",this);
+    return Response.ok(handleViewable("authorize_form",this)).build();
   }
  catch (  RedirectionException e) {
     throw e;
   }
 catch (  Exception e) {
-    return handleViewable("error",e);
+    LOG.debug("handleAuthorizeForm failed",e);
+    return Response.ok(handleViewable("error",this)).build();
   }
 }

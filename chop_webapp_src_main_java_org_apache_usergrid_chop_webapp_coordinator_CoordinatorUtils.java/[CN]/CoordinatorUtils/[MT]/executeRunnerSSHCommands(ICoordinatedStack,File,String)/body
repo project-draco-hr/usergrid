@@ -1,0 +1,38 @@
+{
+  Collection<SshValues> sshValues=new HashSet<SshValues>(stack.getRunnerCount());
+  StringBuilder sb=new StringBuilder();
+  Collection<Command> commands=new ArrayList<Command>();
+  LOG.info("Deploying and starting runner.jar to runner instances of {}",stack.getName());
+  for (  Instance instance : stack.getRunnerInstances()) {
+    sshValues.add(new InstanceValues(instance,keyFile));
+  }
+  sb.append("/home/").append(Utils.DEFAULT_USER).append("/").append(runnerJar.getName());
+  String destFile=sb.toString();
+  commands.add(new SCPCommand(runnerJar.getAbsolutePath(),destFile));
+  sb=new StringBuilder();
+  for (  Cluster cluster : stack.getClusters()) {
+    for (    Object obj : cluster.getInstanceSpec().getScriptEnvironment().keySet()) {
+      String envVar=obj.toString();
+      String value=cluster.getInstanceSpec().getScriptEnvironment().getProperty(envVar);
+      sb.append("export ").append(envVar).append("=\"").append(value).append("\";");
+    }
+    String exportVars=sb.toString();
+    for (    URL scriptFile : cluster.getInstanceSpec().getRunnerScripts()) {
+      File file=new File(scriptFile.getPath());
+      File fileToSave=new File(runnerJar.getParentFile(),file.getName());
+      writeToFile(getResourceAsStreamFromRunnerJar(runnerJar,file.getName()),fileToSave.getPath());
+      sb=new StringBuilder();
+      sb.append("/home/").append(Utils.DEFAULT_USER).append("/").append(fileToSave.getName());
+      String destinationFile=sb.toString();
+      commands.add(new SCPCommand(fileToSave.getAbsolutePath(),destinationFile));
+      sb=new StringBuilder();
+      sb.append("chmod 0755 ").append("/home/").append(Utils.DEFAULT_USER).append("/").append(fileToSave.getName()).append(";");
+      sb.append(exportVars).append("sudo -E ").append(destinationFile);
+      commands.add(new SSHCommand(sb.toString()));
+    }
+  }
+  sb=new StringBuilder();
+  sb.append("sudo su -c \"nohup /usr/bin/java -Darchaius.deployment.environment=CHOP -jar ").append(destFile).append(" > /var/log/chop-runner.log 2>&1 &\"");
+  commands.add(new SSHCommand(sb.toString()));
+  return executeSSHCommands(sshValues,commands);
+}

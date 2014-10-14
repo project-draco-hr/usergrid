@@ -1,0 +1,32 @@
+{
+  if (t instanceof CollectionRuntimeException) {
+    CollectionRuntimeException cre=(CollectionRuntimeException)t;
+    final MvccEntity mvccEntity=cre.getEntity();
+    final CollectionScope scope=cre.getCollectionScope();
+    MutationBatch rollbackMb=null;
+    final Optional<Entity> entity=mvccEntity.getEntity();
+    if (entity.isPresent()) {
+      for (      final Field field : entity.get().getFields()) {
+        if (field.isUnique()) {
+          UniqueValue toDelete=new UniqueValueImpl(field,entity.get().getId(),mvccEntity.getVersion());
+          MutationBatch deleteMb=uniqueValueStrat.delete(scope,toDelete);
+          if (rollbackMb == null) {
+            rollbackMb=deleteMb;
+          }
+ else {
+            rollbackMb.mergeShallow(deleteMb);
+          }
+        }
+      }
+      if (rollbackMb != null) {
+        try {
+          rollbackMb.execute();
+        }
+ catch (        ConnectionException ex) {
+          throw new RuntimeException("Error rolling back changes",ex);
+        }
+      }
+      logEntryStrat.delete(scope,entity.get().getId(),mvccEntity.getVersion());
+    }
+  }
+}

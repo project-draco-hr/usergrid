@@ -1,0 +1,41 @@
+{
+  final UUID maxVersion=version;
+  Observable<MvccLogEntry> versions=Observable.create(new ObservableIterator("versionIterators"){
+    @Override protected Iterator getIterator(){
+      return new LogEntryIterator(logEntrySerializationStrategy,scope,entityId,maxVersion,serializationFig.getBufferSize());
+    }
+  }
+);
+  versions.map(new Func1<MvccLogEntry,UUID>(){
+    @Override public UUID call(    final MvccLogEntry mvccLogEntry){
+      return mvccLogEntry.getVersion();
+    }
+  }
+).buffer(serializationFig.getBufferSize()).doOnNext(new Action1<List<UUID>>(){
+    @Override public void call(    final List<UUID> versions){
+      fireEvents(versions);
+      MutationBatch entityBatch=keyspace.prepareMutationBatch();
+      MutationBatch logBatch=keyspace.prepareMutationBatch();
+      for (      UUID version : versions) {
+        final MutationBatch entityDelete=entitySerializationStrategy.delete(scope,entityId,version);
+        entityBatch.mergeShallow(entityDelete);
+        final MutationBatch logDelete=logEntrySerializationStrategy.delete(scope,entityId,version);
+        logBatch.mergeShallow(logDelete);
+      }
+      try {
+        entityBatch.execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException("Unable to delete entities in cleanup",e);
+      }
+      try {
+        logBatch.execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException("Unable to delete entities from the log",e);
+      }
+    }
+  }
+).count().toBlocking().last();
+  return null;
+}

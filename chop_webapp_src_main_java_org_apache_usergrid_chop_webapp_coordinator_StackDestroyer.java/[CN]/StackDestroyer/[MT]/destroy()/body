@@ -1,0 +1,21 @@
+{
+  providerParamsDao=InjectorFactory.getInstance(ProviderParamsDao.class);
+  ProviderParams providerParams=providerParamsDao.getByUser(stack.getUser().getUsername());
+  AmazonFig amazonFig=InjectorFactory.getInstance(AmazonFig.class);
+  amazonFig.bypass(AmazonFig.AWS_ACCESS_KEY,providerParams.getAccessKey());
+  amazonFig.bypass(AmazonFig.AWS_SECRET_KEY,providerParams.getSecretKey());
+  InstanceManager instanceManager=InjectorFactory.getInstance(InstanceManager.class);
+  instanceManager.setDataCenter(stack.getDataCenter());
+  Collection<String> instances=new LinkedList<String>();
+  for (  Instance instance : stack.getRunnerInstances()) {
+    instances.add(instance.getId());
+  }
+  for (  ICoordinatedCluster cluster : stack.getClusters()) {
+    for (    Instance instance : cluster.getInstances()) {
+      instances.add(instance.getId());
+    }
+  }
+  LOG.info("Destroying all {} cluster and runner instances of {} stack...",instances.size(),stack.getName());
+  instanceManager.terminateInstances(instances);
+  LOG.info("Destroyed {} stack.",stack.getName());
+}

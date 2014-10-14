@@ -1,0 +1,19 @@
+{
+  ValidationUtils.validateApplicationScope(scope);
+  GraphValidation.validateEdge(edge);
+  final Id source=edge.getSourceNode();
+  final Id target=edge.getTargetNode();
+  final String edgeType=edge.getType();
+  final long timestamp=edge.getTimestamp();
+  final MutationBatch batch=keyspace.prepareMutationBatch().withConsistencyLevel(cassandraConfig.getWriteCL()).withTimestamp(timestamp);
+  final ScopedRowKey<ApplicationScope,Id> sourceKey=new ScopedRowKey<ApplicationScope,Id>(scope,source);
+  batch.withRow(CF_SOURCE_EDGE_TYPES,sourceKey).putColumn(edgeType,HOLDER);
+  EdgeIdTypeKey tk=new EdgeIdTypeKey(source,edgeType);
+  final ScopedRowKey<ApplicationScope,EdgeIdTypeKey> sourceTypeKey=new ScopedRowKey<ApplicationScope,EdgeIdTypeKey>(scope,tk);
+  batch.withRow(CF_SOURCE_EDGE_ID_TYPES,sourceTypeKey).putColumn(target.getType(),HOLDER);
+  final ScopedRowKey<ApplicationScope,Id> targetKey=new ScopedRowKey<ApplicationScope,Id>(scope,target);
+  batch.withRow(CF_TARGET_EDGE_TYPES,targetKey).putColumn(edgeType,HOLDER);
+  final ScopedRowKey<ApplicationScope,EdgeIdTypeKey> targetTypeKey=new ScopedRowKey<ApplicationScope,EdgeIdTypeKey>(scope,new EdgeIdTypeKey(target,edgeType));
+  batch.withRow(CF_TARGET_EDGE_ID_TYPES,targetTypeKey).putColumn(source.getType(),HOLDER);
+  return batch;
+}

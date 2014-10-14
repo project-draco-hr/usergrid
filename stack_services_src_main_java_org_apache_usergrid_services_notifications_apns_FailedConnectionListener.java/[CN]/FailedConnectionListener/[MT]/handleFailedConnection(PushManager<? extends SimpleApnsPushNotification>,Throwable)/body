@@ -1,0 +1,46 @@
+{
+  List<SimpleApnsPushNotification> notifications=new ArrayList<SimpleApnsPushNotification>();
+  if (cause instanceof SSLException || cause instanceof SSLHandshakeException) {
+    if (!pushManager.isShutDown()) {
+      pushManager.unregisterFailedConnectionListener(this);
+      try {
+        BlockingQueue notificationQueue=pushManager.getQueue();
+        if (notificationQueue != null) {
+          LinkedBlockingQueue<SimpleApnsPushNotification> queue=(LinkedBlockingQueue<SimpleApnsPushNotification>)notificationQueue;
+          Object[] objectMess=queue.toArray();
+          for (          Object o : objectMess) {
+            if (o instanceof SimpleApnsPushNotification) {
+              notifications.add((SimpleApnsPushNotification)o);
+            }
+          }
+        }
+        pushManager.shutdown();
+      }
+ catch (      InterruptedException ie) {
+        logger.error("Failed to stop push services",ie);
+      }
+    }
+ else {
+      return;
+    }
+  }
+  if (notifications != null) {
+    for (    SimpleApnsPushNotification notification : notifications) {
+      if (notification instanceof APNsNotification) {
+        try {
+          ((APNsNotification)notification).messageSendFailed(cause);
+        }
+ catch (        Exception e) {
+          logger.error("failed to track notification in failed connection listener",e);
+        }
+      }
+      if (notification instanceof TestAPNsNotification) {
+        TestAPNsNotification testAPNsNotification=((TestAPNsNotification)notification);
+        testAPNsNotification.setReason(cause);
+        testAPNsNotification.countdown();
+      }
+    }
+    pushManager.getQueue().clear();
+  }
+  logger.error("Failed to register push connection",cause);
+}

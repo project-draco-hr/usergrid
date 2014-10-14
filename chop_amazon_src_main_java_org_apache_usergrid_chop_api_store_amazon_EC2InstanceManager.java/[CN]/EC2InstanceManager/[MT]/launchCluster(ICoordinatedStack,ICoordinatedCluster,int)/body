@@ -1,0 +1,49 @@
+{
+  RunInstancesResult runInstancesResult=null;
+  try {
+    RunInstancesRequest runInstancesRequest=new RunInstancesRequest();
+    runInstancesRequest.withImageId(cluster.getInstanceSpec().getImageId()).withInstanceType(cluster.getInstanceSpec().getType()).withMinCount(cluster.getSize()).withMaxCount(cluster.getSize()).withKeyName(cluster.getInstanceSpec().getKeyName()).withSecurityGroups(stack.getIpRuleSet().getName());
+    if (stack.getDataCenter() != null && !stack.getDataCenter().isEmpty()) {
+      runInstancesRequest=runInstancesRequest.withPlacement(new Placement(stack.getDataCenter()));
+      client.setEndpoint(AmazonUtils.getEndpoint(stack.getDataCenter()));
+    }
+    runInstancesResult=client.runInstances(runInstancesRequest);
+  }
+ catch (  Exception e) {
+    LOG.error("Error while launching cluster instances.",e);
+    return new EC2LaunchResult(cluster.getInstanceSpec(),Collections.EMPTY_LIST);
+  }
+  LOG.info("Created instances, setting the names now...");
+  List<String> instanceIds=new ArrayList<String>(cluster.getSize());
+  String instanceNames=getInstanceName(stack,cluster);
+  int i=0;
+  for (  com.amazonaws.services.ec2.model.Instance instance : runInstancesResult.getReservation().getInstances()) {
+    try {
+      instanceIds.add(i,instance.getInstanceId());
+      LOG.debug("Setting name of cluster instance with id: {}",instanceIds.get(i));
+      List<Tag> tags=new ArrayList<Tag>();
+      Tag t=new Tag();
+      t.setKey("Name");
+      t.setValue(instanceNames);
+      tags.add(t);
+      CreateTagsRequest ctr=new CreateTagsRequest();
+      ctr.setTags(tags);
+      ctr.withResources(instanceIds.get(i));
+      client.createTags(ctr);
+    }
+ catch (    Exception e) {
+      LOG.warn("Error while setting names",e);
+    }
+    i++;
+  }
+  LOG.info("Names of the instances are set");
+  if (timeout > SLEEP_LENGTH) {
+    LOG.info("Waiting for maximum {} msec until all instances are running",timeout);
+    boolean stateCheck=waitUntil(instanceIds,InstanceState.Running,timeout);
+    if (!stateCheck) {
+      LOG.warn("Waiting for instances to get into Running state has timed out");
+    }
+  }
+  Collection<Instance> instances=toInstances(getEC2Instances(instanceIds));
+  return new EC2LaunchResult(cluster.getInstanceSpec(),instances);
+}

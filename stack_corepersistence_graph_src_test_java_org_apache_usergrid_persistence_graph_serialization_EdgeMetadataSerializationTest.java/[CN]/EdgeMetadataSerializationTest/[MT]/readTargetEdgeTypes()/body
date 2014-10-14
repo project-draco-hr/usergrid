@@ -1,0 +1,16 @@
+{
+  final Edge edge1=createEdge("source","edge","target");
+  final Id sourceId=edge1.getSourceNode();
+  final Edge edge2=createEdge(sourceId,"edge",createId("target2"));
+  final Edge edge3=createEdge(sourceId,"edge2",createId("target3"));
+  serialization.writeEdge(scope,edge1).execute();
+  serialization.writeEdge(scope,edge2).execute();
+  serialization.writeEdge(scope,edge3).execute();
+  Iterator<String> edges=serialization.getEdgeTypesFromSource(scope,createSearchEdge(sourceId,null));
+  assertEquals("edge",edges.next());
+  assertEquals("edge2",edges.next());
+  assertFalse(edges.hasNext());
+  edges=serialization.getEdgeTypesFromSource(scope,createSearchEdge(sourceId,"edge"));
+  assertEquals("edge2",edges.next());
+  assertFalse(edges.hasNext());
+}

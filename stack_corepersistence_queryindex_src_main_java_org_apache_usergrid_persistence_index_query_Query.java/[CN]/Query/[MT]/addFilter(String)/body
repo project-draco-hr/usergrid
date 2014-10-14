@@ -1,0 +1,17 @@
+{
+  ANTLRStringStream in=new ANTLRStringStream(filter);
+  CpQueryFilterLexer lexer=new CpQueryFilterLexer(in);
+  TokenRewriteStream tokens=new TokenRewriteStream(lexer);
+  CpQueryFilterParser parser=new CpQueryFilterParser(tokens);
+  Operand root=null;
+  try {
+    root=parser.ql().query.getRootOperand();
+  }
+ catch (  RecognitionException e) {
+    throw new RuntimeException("Unknown operation: " + filter,e);
+  }
+  if (root != null) {
+    addClause(root);
+  }
+  return this;
+}

@@ -1,0 +1,79 @@
+{
+  if (Thread.currentThread().isDaemon()) {
+    Thread.currentThread().setDaemon(true);
+  }
+  Thread.currentThread().setName("Notifications_Processor" + UUID.randomUUID());
+  final AtomicInteger consecutiveExceptions=new AtomicInteger();
+  LOG.info("QueueListener: Starting execute process.");
+  Meter meter=metricsService.getMeter(QueueListener.class,"queue");
+  com.codahale.metrics.Timer timer=metricsService.getTimer(QueueListener.class,"dequeue");
+  while (true) {
+    try {
+      svcMgr=smf.getServiceManager(smf.getManagementAppId());
+      LOG.info("getting from queue {} ",queueName);
+      QueueScope queueScope=new QueueScopeImpl(new SimpleId(smf.getManagementAppId(),ApplicationQueueManager.QUEUE_PREFIX),queueName);
+      QueueManager queueManager=TEST_QUEUE_MANAGER != null ? TEST_QUEUE_MANAGER : queueManagerFactory.getQueueManager(queueScope);
+      Timer.Context timerContext=timer.time();
+      List<QueueMessage> messages=queueManager.getMessages(getBatchSize(),MESSAGE_TRANSACTION_TIMEOUT,5000,ApplicationQueueMessage.class);
+      LOG.info("retrieved batch of {} messages from queue {} ",messages.size(),queueName);
+      if (messages.size() > 0) {
+        HashMap<UUID,List<QueueMessage>> messageMap=new HashMap<>(messages.size());
+        for (        QueueMessage message : messages) {
+          ApplicationQueueMessage queueMessage=(ApplicationQueueMessage)message.getBody();
+          UUID applicationId=queueMessage.getApplicationId();
+          if (!messageMap.containsKey(applicationId)) {
+            List<QueueMessage> applicationQueueMessages=new ArrayList<QueueMessage>();
+            applicationQueueMessages.add(message);
+            messageMap.put(applicationId,applicationQueueMessages);
+          }
+ else {
+            messageMap.get(applicationId).add(message);
+          }
+        }
+        long now=System.currentTimeMillis();
+        Observable merge=null;
+        for (        Map.Entry<UUID,List<QueueMessage>> entry : messageMap.entrySet()) {
+          UUID applicationId=entry.getKey();
+          EntityManager entityManager=emf.getEntityManager(applicationId);
+          ServiceManager serviceManager=smf.getServiceManager(applicationId);
+          final ApplicationQueueManager manager=new ApplicationQueueManager(new JobScheduler(serviceManager,entityManager),entityManager,queueManager,metricsService,properties);
+          LOG.info("send batch for app {} of {} messages",entry.getKey(),entry.getValue().size());
+          Observable current=manager.sendBatchToProviders(entry.getValue(),queueName);
+          if (merge == null)           merge=current;
+ else {
+            merge=Observable.merge(merge,current);
+          }
+        }
+        if (merge != null) {
+          merge.toBlocking().lastOrDefault(null);
+        }
+        queueManager.commitMessages(messages);
+        meter.mark(messages.size());
+        LOG.info("sent batch {} messages duration {} ms",messages.size(),System.currentTimeMillis() - now);
+        if (sleepBetweenRuns > 0) {
+          LOG.info("sleep between rounds...sleep...{}",sleepBetweenRuns);
+          Thread.sleep(sleepBetweenRuns);
+        }
+      }
+ else {
+        LOG.info("no messages...sleep...{}",sleepWhenNoneFound);
+        Thread.sleep(sleepWhenNoneFound);
+      }
+      timerContext.stop();
+      consecutiveExceptions.set(0);
+    }
+ catch (    Exception ex) {
+      LOG.error("failed to dequeue",ex);
+      try {
+        long sleeptime=sleepWhenNoneFound * consecutiveExceptions.incrementAndGet();
+        long maxSleep=15000;
+        sleeptime=sleeptime > maxSleep ? maxSleep : sleeptime;
+        LOG.info("sleeping due to failures {} ms",sleeptime);
+        Thread.sleep(sleeptime);
+      }
+ catch (      InterruptedException ie) {
+        LOG.info("sleep interrupted");
+      }
+    }
+  }
+}

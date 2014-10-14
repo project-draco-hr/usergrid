@@ -1,0 +1,18 @@
+{
+  return Observable.from(node).flatMap(new Func1<Id,Observable<Integer>>(){
+    @Override public Observable<Integer> call(    final Id node){
+      final Optional<Long> maxVersion=nodeSerialization.getMaxVersion(scope,node);
+      LOG.debug("Node with id {} has max version of {}",node,maxVersion.orNull());
+      if (!maxVersion.isPresent()) {
+        return Observable.empty();
+      }
+      return doDeletes(node,scope,maxVersion.get(),timestamp).count().doOnCompleted(new Action0(){
+        @Override public void call(){
+          HystrixCassandra.async(nodeSerialization.delete(scope,node,maxVersion.get()));
+        }
+      }
+);
+    }
+  }
+).defaultIfEmpty(0);
+}

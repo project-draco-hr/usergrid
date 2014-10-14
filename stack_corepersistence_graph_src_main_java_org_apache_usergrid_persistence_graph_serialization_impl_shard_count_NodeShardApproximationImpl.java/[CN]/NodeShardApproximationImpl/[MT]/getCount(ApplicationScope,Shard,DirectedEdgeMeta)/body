@@ -1,0 +1,12 @@
+{
+  final ShardKey key=new ShardKey(scope,shard,directedEdgeMeta);
+  readLock.lock();
+  long count;
+  try {
+    count=currentCounter.get(key);
+  }
+  finally {
+    readLock.unlock();
+  }
+  return count + nodeShardCounterSerialization.getCount(key);
+}

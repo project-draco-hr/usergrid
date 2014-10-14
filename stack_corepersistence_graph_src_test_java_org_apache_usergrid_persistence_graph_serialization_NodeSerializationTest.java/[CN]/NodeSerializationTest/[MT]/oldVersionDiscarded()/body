@@ -1,0 +1,17 @@
+{
+  final Id nodeId=createId("test");
+  final long version1=System.currentTimeMillis();
+  final long version2=version1 + 1;
+  serialization.mark(scope,nodeId,version2).execute();
+  Optional<Long> returned=serialization.getMaxVersion(scope,nodeId);
+  assertEquals(version2,returned.get().longValue());
+  serialization.mark(scope,nodeId,version1).execute();
+  returned=serialization.getMaxVersion(scope,nodeId);
+  assertEquals(version2,returned.get().longValue());
+  serialization.delete(scope,nodeId,version1).execute();
+  returned=serialization.getMaxVersion(scope,nodeId);
+  assertEquals(version2,returned.get().longValue());
+  serialization.delete(scope,nodeId,version2).execute();
+  returned=serialization.getMaxVersion(scope,nodeId);
+  assertFalse(returned.isPresent());
+}

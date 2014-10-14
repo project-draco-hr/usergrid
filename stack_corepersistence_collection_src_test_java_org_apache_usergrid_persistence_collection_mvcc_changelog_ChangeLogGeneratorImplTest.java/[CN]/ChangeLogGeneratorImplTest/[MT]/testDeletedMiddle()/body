@@ -1,0 +1,27 @@
+{
+  LOG.info("ChangeLogGeneratorImpl test");
+  final Id entityId=new SimpleId("test");
+  Entity e1=new Entity(entityId);
+  e1.setField(new StringField("name","name1"));
+  e1.setField(new IntegerField("count",1));
+  e1.setField(new BooleanField("single",true));
+  final MvccEntity mvccEntity1=new MvccEntityImpl(entityId,UUIDGenerator.newTimeUUID(),MvccEntity.Status.COMPLETE,e1);
+  Entity e2=new Entity(entityId);
+  e2.setField(new StringField("name","name2"));
+  e2.setField(new IntegerField("count",2));
+  e2.setField(new StringField("nickname","buddy"));
+  e2.setField(new BooleanField("cool",false));
+  final MvccEntity mvccEntity2=new MvccEntityImpl(entityId,UUIDGenerator.newTimeUUID(),MvccEntity.Status.DELETED,e2);
+  Entity e3=new Entity(entityId);
+  e3.setField(new StringField("name","name3"));
+  e3.setField(new IntegerField("count",2));
+  e3.setField(new BooleanField("single",true));
+  final MvccEntity mvccEntity3=new MvccEntityImpl(entityId,UUIDGenerator.newTimeUUID(),MvccEntity.Status.PARTIAL,e3);
+  ChangeLogGeneratorImpl instance=new ChangeLogGeneratorImpl();
+  ChangeLog result=instance.getChangeLog(Arrays.asList(mvccEntity1,mvccEntity2,mvccEntity3));
+  assertEquals("All changes present",0,result.getSize());
+  Collection<Field> changes=result.getWrites();
+  assertEquals(0,changes.size());
+  Set<String> deletes=result.getDeletes();
+  assertEquals(0,deletes.size());
+}

@@ -1,0 +1,48 @@
+{
+  MockSuccessfulProviderAdapter.uninstall(ns);
+  app.clear();
+  app.put("payloads","{asdf}");
+  app.put("debug",true);
+  try {
+    Entity e=app.testRequest(ServiceAction.POST,1,"notifications").getEntity();
+    fail("invalid payload should have been rejected");
+  }
+ catch (  IllegalArgumentException ex) {
+  }
+  Map<String,String> payloads=new HashMap<String,String>(2);
+  app.put("payloads",payloads);
+  payloads.put("xxx","");
+  try {
+    Entity e=app.testRequest(ServiceAction.POST,1,"notifications").getEntity();
+    fail("invalid payload should have been rejected");
+  }
+ catch (  IllegalArgumentException ex) {
+  }
+  app.clear();
+  app.put("name","apNS2");
+  app.put("provider","apple");
+  app.put("environment","development");
+  InputStream fis=getClass().getClassLoader().getResourceAsStream("pushtest_dev_recent.p12");
+  byte[] certBytes=IOUtils.toByteArray(fis);
+  app.put("p12Certificate",certBytes);
+  fis.close();
+  Entity e=app.testRequest(ServiceAction.POST,1,"notifiers").getEntity();
+  Notifier notifier2=app.getEm().get(e.getUuid(),Notifier.class);
+  payloads.clear();
+  StringBuilder sb=new StringBuilder();
+  sb.append("{\"x\":\"");
+  while (sb.length() < 2048) {
+    sb.append("x");
+  }
+  sb.append("\"}");
+  payloads.put(notifier2.getUuid().toString(),sb.toString());
+  app.clear();
+  app.put("payloads",payloads);
+  try {
+    app.testRequest(ServiceAction.POST,1,"notifications").getEntity();
+    fail("invalid payload should have been rejected");
+  }
+ catch (  Exception ex) {
+    assertEquals(ex.getMessage(),"java.lang.IllegalArgumentException: Apple APNs payloads must be 2048 characters or less");
+  }
+}

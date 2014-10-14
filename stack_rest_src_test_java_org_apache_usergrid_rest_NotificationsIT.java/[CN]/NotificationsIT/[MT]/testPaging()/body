@@ -1,0 +1,82 @@
+{
+  int numDevices=10;
+  int numNotifications=100;
+  token=userToken("ed@anuff.com","sesame");
+  Map<String,Object> notifier=new HashMap<String,Object>(){
+{
+      put("name","mynotifier");
+      put("provider","noop");
+    }
+  }
+;
+  JsonNode notifierNode=mapper.readTree(resource().path(orgapp + "/notifier").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).post(String.class,notifier));
+  assertEquals("noop",notifierNode.withArray("entities").get(0).get("provider").asText());
+  refreshIndex(org,app);
+  int devicesCount=0;
+  List<String> deviceIds=new ArrayList();
+  for (int i=0; i < numDevices; i++) {
+    final int deviceNum=i;
+    Map<String,Object> device=new HashMap<String,Object>(){
+{
+        put("name","device" + deviceNum);
+        put("deviceModel","iPhone6+");
+        put("deviceOSVersion","iOS 8");
+        put("devicePlatform","Apple");
+        put("deviceOSVersion","8");
+        put("mynotifier.notifier.id","pushtoken" + deviceNum);
+      }
+    }
+;
+    JsonNode deviceNode=mapper.readTree(resource().path(orgapp + "/devices").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).post(String.class,device));
+    assertEquals("device" + i,deviceNode.withArray("entities").get(0).get("name").asText());
+    deviceIds.add(deviceNode.withArray("entities").get(0).get("uuid").asText());
+    devicesCount++;
+  }
+  refreshIndex(org,app);
+  String postMeterName=getClass().getSimpleName() + ".postNotifications";
+  Meter postMeter=registry.meter(postMeterName);
+  int notificationCount=0;
+  List<String> notificationUuids=new ArrayList<String>();
+  for (int i=0; i < numNotifications; i++) {
+    for (int j=0; j < deviceIds.size(); j++) {
+      final String deviceId=deviceIds.get(j);
+      Map<String,Object> notification=new HashMap<String,Object>(){
+{
+          put("payloads",new HashMap<String,Object>(){
+{
+              put("mynotifier","Hello device " + deviceId);
+            }
+          }
+);
+        }
+      }
+;
+      JsonNode notificationNode=mapper.readTree(resource().path(orgapp + "/notifications").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).post(String.class,notification));
+      postMeter.mark();
+      Thread.sleep(writeDelayMs);
+      notificationUuids.add(notificationNode.withArray("entities").get(0).get("uuid").asText());
+    }
+    notificationCount++;
+    if (notificationCount % 100 == 0) {
+      logger.debug("Created {} notifications",notificationCount);
+    }
+  }
+  registry.remove(postMeterName);
+  refreshIndex(org,app);
+  logger.info("Waiting for all notifications to be sent");
+  StopWatch sw=new StopWatch();
+  sw.start();
+  boolean allSent=false;
+  while (!allSent) {
+    Thread.sleep(100);
+    int finished=pageThroughAllNotifications("FINISHED");
+    if (finished == (numDevices * numNotifications)) {
+      allSent=true;
+    }
+  }
+  sw.stop();
+  int nc=numDevices * numNotifications;
+  logger.info("Processed {} notifications in {}ms",nc,sw.getTime());
+  logger.info("Processing Notifications throughput = {} TPS",((float)nc) / (sw.getTime() / 1000));
+  logger.info("Successfully Paged through {} notifications",pageThroughAllNotifications("FINISHED"));
+}

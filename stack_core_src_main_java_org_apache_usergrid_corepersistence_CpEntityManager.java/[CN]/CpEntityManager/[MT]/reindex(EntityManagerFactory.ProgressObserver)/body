@@ -1,0 +1,24 @@
+{
+  CpWalker walker=new CpWalker();
+  walker.walkCollections(this,application,new CpVisitor(){
+    @Override public void visitCollectionEntry(    EntityManager em,    String collName,    Entity source,    Entity target){
+      try {
+        em.update(target);
+        po.onProgress(source,target,collName);
+      }
+ catch (      Exception ex) {
+        logger.error("Error repersisting entity",ex);
+      }
+    }
+    @Override public void visitConnectionEntry(    EntityManager em,    String connType,    Entity source,    Entity target){
+      try {
+        em.update(target);
+        po.onProgress(source,target,connType);
+      }
+ catch (      Exception ex) {
+        logger.error("Error repersisting entity",ex);
+      }
+    }
+  }
+);
+}

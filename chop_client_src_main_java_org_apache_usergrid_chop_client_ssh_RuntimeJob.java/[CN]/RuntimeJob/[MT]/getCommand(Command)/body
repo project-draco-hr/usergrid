@@ -1,0 +1,10 @@
+{
+  StringBuilder execution=new StringBuilder();
+  if (command instanceof SSHCommand) {
+    execution.append("/usr/bin/ssh -i ").append(value.getSshKeyFile()).append(" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ").append(Utils.DEFAULT_USER).append("@").append(value.getPublicIpAddress()).append(" ").append(((SSHCommand)command).getCommand());
+  }
+ else   if (command instanceof SCPCommand) {
+    execution.append("/usr/bin/scp -i ").append(value.getSshKeyFile()).append(" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ").append(((SCPCommand)command).getSourceFilePath()).append(" ").append(Utils.DEFAULT_USER).append("@").append(value.getPublicIpAddress()).append(":").append(((SCPCommand)command).getDestinationFilePath());
+  }
+  return execution.toString();
+}

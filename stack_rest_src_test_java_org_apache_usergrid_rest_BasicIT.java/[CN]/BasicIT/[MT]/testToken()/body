@@ -2,7 +2,7 @@
   JsonNode node=null;
   boolean err_thrown=false;
   try {
-    node=resource().path("/management/token").queryParam("grant_type","password").queryParam("username","test@usergrid.com").queryParam("password","blahblah").accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
+    node=mapper.readTree(resource().path("/management/token").queryParam("grant_type","password").queryParam("username","test@usergrid.com").queryParam("password","blahblah").accept(MediaType.APPLICATION_JSON).get(String.class));
   }
  catch (  UniformInterfaceException e) {
     assertEquals("Should receive a 400 Bad Request",400,e.getResponse().getStatus());
@@ -10,12 +10,12 @@
   }
   assertTrue("Error should have been thrown",err_thrown);
   String mgmtToken=adminToken();
-  node=resource().path("/management/users/test@usergrid.com").queryParam("access_token",mgmtToken).accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
+  node=mapper.readTree(resource().path("/management/users/test@usergrid.com").queryParam("access_token",mgmtToken).accept(MediaType.APPLICATION_JSON).get(String.class));
   logNode(node);
-  assertEquals("Test User",node.get("data").get("organizations").get("test-organization").get("users").get("test").get("name").getTextValue());
+  assertEquals("Test User",node.get("data").get("organizations").get("test-organization").get("users").get("test").get("name").textValue());
   err_thrown=false;
   try {
-    node=resource().path("/test-app/token").queryParam("grant_type","password").queryParam("username","ed@anuff.com").queryParam("password","blahblah").accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
+    node=mapper.readTree(resource().path("/test-app/token").queryParam("grant_type","password").queryParam("username","ed@anuff.com").queryParam("password","blahblah").accept(MediaType.APPLICATION_JSON).get(String.class));
   }
  catch (  UniformInterfaceException e) {
     assertEquals("Should receive a 400 Bad Request",400,e.getResponse().getStatus());
@@ -24,20 +24,20 @@
   assertTrue("Error should have been thrown",err_thrown);
   err_thrown=false;
   try {
-    node=resource().path("/test-app/token").queryParam("grant_type","pin").queryParam("username","ed@anuff.com").queryParam("pin","4321").accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
+    node=mapper.readTree(resource().path("/test-app/token").queryParam("grant_type","pin").queryParam("username","ed@anuff.com").queryParam("pin","4321").accept(MediaType.APPLICATION_JSON).get(String.class));
   }
  catch (  UniformInterfaceException e) {
     assertEquals("Should receive a 400 Bad Request",400,e.getResponse().getStatus());
     err_thrown=true;
   }
   assertTrue("Error should have been thrown",err_thrown);
-  node=resource().path("/test-organization/test-app/token").queryParam("grant_type","password").queryParam("username","ed@anuff.com").queryParam("password","sesame").accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
+  node=mapper.readTree(resource().path("/test-organization/test-app/token").queryParam("grant_type","password").queryParam("username","ed@anuff.com").queryParam("password","sesame").accept(MediaType.APPLICATION_JSON).get(String.class));
   logNode(node);
-  String user_access_token=node.get("access_token").getTextValue();
+  String user_access_token=node.get("access_token").textValue();
   assertTrue(isNotBlank(user_access_token));
   err_thrown=false;
   try {
-    node=resource().path("/test-organization/test-app/users").queryParam("access_token",user_access_token).accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
+    node=mapper.readTree(resource().path("/test-organization/test-app/users").queryParam("access_token",user_access_token).accept(MediaType.APPLICATION_JSON).get(String.class));
   }
  catch (  UniformInterfaceException e) {
     if (e.getResponse().getStatus() != 401) {
@@ -45,12 +45,12 @@
     }
     err_thrown=true;
   }
-  node=resource().path("/test-organization/test-app/users/edanuff").queryParam("access_token",user_access_token).accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
+  node=mapper.readTree(resource().path("/test-organization/test-app/users/edanuff").queryParam("access_token",user_access_token).accept(MediaType.APPLICATION_JSON).get(String.class));
   logNode(node);
   assertEquals(1,node.get("entities").size());
   err_thrown=false;
   try {
-    node=resource().path("/test-organization/test-app/users").queryParam("access_token","blahblahblah").accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
+    node=mapper.readTree(resource().path("/test-organization/test-app/users").queryParam("access_token","blahblahblah").accept(MediaType.APPLICATION_JSON).get(String.class));
   }
  catch (  UniformInterfaceException e) {
     if (e.getResponse().getStatus() != 401) {
@@ -61,37 +61,42 @@
   assertTrue("Error should have been thrown",err_thrown);
   err_thrown=false;
   try {
-    node=resource().path("/test-organization/test-app/users").accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
+    node=mapper.readTree(resource().path("/test-organization/test-app/users").accept(MediaType.APPLICATION_JSON).get(String.class));
   }
  catch (  UniformInterfaceException e) {
     assertEquals("Should receive a 401 Unauthorized",401,e.getResponse().getStatus());
     err_thrown=true;
   }
   assertTrue("Error should have been thrown",err_thrown);
-  node=resource().path("/test-organization/test-app/token").queryParam("grant_type","pin").queryParam("username","ed@anuff.com").queryParam("pin","1234").accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
+  node=mapper.readTree(resource().path("/test-organization/test-app/token").queryParam("grant_type","pin").queryParam("username","ed@anuff.com").queryParam("pin","1234").accept(MediaType.APPLICATION_JSON).get(String.class));
   logNode(node);
-  user_access_token=node.get("access_token").getTextValue();
+  user_access_token=node.get("access_token").textValue();
   assertTrue(isNotBlank(user_access_token));
   MultivaluedMap<String,String> formData=new MultivaluedMapImpl();
   formData.add("pin","5678");
-  node=resource().path("/test-organization/test-app/users/ed@anuff.com/setpin").queryParam("access_token",user_access_token).type("application/x-www-form-urlencoded").post(JsonNode.class,formData);
-  node=resource().path("/test-organization/test-app/token").queryParam("grant_type","pin").queryParam("username","ed@anuff.com").queryParam("pin","5678").accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
+  node=mapper.readTree(resource().path("/test-organization/test-app/users/ed@anuff.com/setpin").queryParam("access_token",user_access_token).type("application/x-www-form-urlencoded").post(String.class,formData));
+  refreshIndex("test-organization","test-app");
+  node=mapper.readTree(resource().path("/test-organization/test-app/token").queryParam("grant_type","pin").queryParam("username","ed@anuff.com").queryParam("pin","5678").accept(MediaType.APPLICATION_JSON).get(String.class));
   logNode(node);
-  user_access_token=node.get("access_token").getTextValue();
+  user_access_token=node.get("access_token").textValue();
   assertTrue(isNotBlank(user_access_token));
-  node=resource().path("/test-organization/test-app/users/ed@anuff.com/test").get(JsonNode.class);
+  refreshIndex("test-organization","test-app");
+  node=mapper.readTree(resource().path("/test-organization/test-app/users/ed@anuff.com/test").queryParam("access_token",user_access_token).get(String.class));
   logNode(node);
   Map<String,String> payload=hashMap("email","ed.anuff@gmail.com").map("username","ed.anuff").map("name","Ed Anuff").map("password","sesame").map("pin","1234");
-  node=resource().path("/test-organization/test-app/users").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+  node=mapper.readTree(resource().path("/test-organization/test-app/users").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
   logNode(node);
-  assertEquals("ed.anuff",node.get("entities").get(0).get("username").getTextValue());
+  assertNotNull(node.get("entities"));
+  assertNotNull(node.get("entities").get(0));
+  assertNotNull(node.get("entities").get(0).get("username"));
+  assertEquals("ed.anuff",node.get("entities").get(0).get("username").textValue());
   payload=hashMap("foo","bar");
-  node=resource().path("/test-organization/test-app/devices/" + UUID.randomUUID()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(JsonNode.class,payload);
+  node=mapper.readTree(resource().path("/test-organization/test-app/devices/" + UUIDGenerator.newTimeUUID()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(String.class,payload));
   logNode(node);
   payload=hashMap("foo","bar");
   err_thrown=false;
   try {
-    node=resource().path("/test-organization/test-app/items").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+    node=mapper.readTree(resource().path("/test-organization/test-app/items").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
   }
  catch (  UniformInterfaceException e) {
     assertEquals("Should receive a 401 Unauthorized",401,e.getResponse().getStatus());

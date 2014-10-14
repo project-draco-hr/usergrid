@@ -4,54 +4,84 @@
   assertNotNull(applicationId);
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
   assertNotNull(em);
-  Map<String,Object> properties=new LinkedHashMap<String,Object>();
-  properties.put("username","edanuff");
-  properties.put("email","ed@anuff.com");
+  Map<String,Object> properties=new LinkedHashMap<String,Object>(){
+{
+      put("username","edanuff");
+      put("email","ed@anuff.com");
+      put("location",new LinkedHashMap<String,Object>(){
+{
+          put("latitude",37.776753);
+          put("longitude",-122.407846);
+        }
+      }
+);
+    }
+  }
+;
   Entity user=em.create("user",properties);
   assertNotNull(user);
-  EntityLocationRef loc=new EntityLocationRef(user,37.776753,-122.407846);
-  GeoIndexManager geo=em.getGeoIndexManager();
-  geo.storeLocationInCollectionIndex(em.getApplicationRef(),"users",user.getUuid(),"location.coordinates",loc);
+  em.refreshIndex();
   Point center=new Point(37.774277,-122.404744);
-  CollectionGeoSearch connSearch=new CollectionGeoSearch(em,setup.getIbl(),setup.getCassSvc(),em.getApplicationRef(),"users");
-  List<EntityLocationRef> listResults=connSearch.proximitySearch(null,null,center,"location.coordinates",0,200,100).entityLocations;
-  assertEquals(0,listResults.size());
-  listResults=connSearch.proximitySearch(null,null,center,"location.coordinates",0,400,100).entityLocations;
+  Query query=Query.fromQL("select * where location within 200 of " + center.getLat() + ","+ center.getLon());
+  Results listResults=em.searchCollection(em.getApplicationRef(),"users",query);
+  assertEquals("No results less than 200m away from center",0,listResults.size());
+  query=Query.fromQL("select * where location within 400 of " + center.getLat() + ","+ center.getLon());
+  listResults=em.searchCollection(em.getApplicationRef(),"users",query);
   this.dump(listResults);
-  assertEquals(1,listResults.size());
-  geo.removeLocationFromCollectionIndex(em.getApplicationRef(),"users","location.coordinates",loc);
-  listResults=connSearch.proximitySearch(null,null,center,"location.coordinates",0,400,100).entityLocations;
+  assertEquals("1 result less than 400m away from center",1,listResults.size());
+  properties.remove("location");
+  em.updateProperties(user,properties);
+  em.refreshIndex();
+  query=Query.fromQL("select * where location within 400 of " + center.getLat() + ","+ center.getLon());
+  listResults=em.searchCollection(em.getApplicationRef(),"users",query);
   this.dump(listResults);
   assertEquals(0,listResults.size());
   updatePos(em,user,37.426373,-122.14108);
   center=new Point(37.774277,-122.404744);
-  listResults=connSearch.proximitySearch(null,null,center,"location.coordinates",0,200,100).entityLocations;
+  query=Query.fromQL("select * where location within 200 of " + center.getLat() + ","+ center.getLon());
+  listResults=em.searchCollection(em.getApplicationRef(),"users",query);
   assertEquals(0,listResults.size());
   updatePos(em,user,37.774277,-122.404744);
   center=new Point(37.776753,-122.407846);
-  listResults=connSearch.proximitySearch(null,null,center,"location.coordinates",0,1000,100).entityLocations;
+  query=Query.fromQL("select * where location within 1000 of " + center.getLat() + ","+ center.getLon());
+  listResults=em.searchCollection(em.getApplicationRef(),"users",query);
   assertEquals(1,listResults.size());
-  listResults=connSearch.proximitySearch(null,null,center,"location.coordinates",0,Integer.MAX_VALUE,100).entityLocations;
+  query=Query.fromQL("select * where location within " + Integer.MAX_VALUE + " of "+ center.getLat()+ ","+ center.getLon());
+  listResults=em.searchCollection(em.getApplicationRef(),"users",query);
   assertEquals(1,listResults.size());
-  LinkedHashMap<String,Object> properties2=new LinkedHashMap<String,Object>();
-  properties2.put("username","sganyo");
-  properties2.put("email","sganyo@anuff.com");
+  LinkedHashMap<String,Object> properties2=new LinkedHashMap<String,Object>(){
+{
+      put("username","sganyo");
+      put("email","sganyo@anuff.com");
+      put("location",new LinkedHashMap<String,Object>(){
+{
+          put("latitude",31.1);
+          put("longitude",121.2);
+        }
+      }
+);
+    }
+  }
+;
   Entity user2=em.create("user",properties2);
+  em.refreshIndex();
   assertNotNull(user2);
-  EntityLocationRef loc2=new EntityLocationRef(user2,31.1,121.2);
-  geo.storeLocationInCollectionIndex(em.getApplicationRef(),"users",user2.getUuid(),"location.coordinates",loc2);
-  listResults=connSearch.proximitySearch(null,null,center,"location.coordinates",0,10000,100).entityLocations;
+  query=Query.fromQL("select * where location within 10000 of " + center.getLat() + ","+ center.getLon());
+  listResults=em.searchCollection(em.getApplicationRef(),"users",query);
   assertEquals(1,listResults.size());
-  listResults=connSearch.proximitySearch(null,null,center,"location.coordinates",0,Integer.MAX_VALUE,100).entityLocations;
+  query=Query.fromQL("select * where location within " + Integer.MAX_VALUE + " of "+ center.getLat()+ ","+ center.getLon());
+  listResults=em.searchCollection(em.getApplicationRef(),"users",query);
   assertEquals(2,listResults.size());
   center=new Point(31.14,121.27);
-  listResults=connSearch.proximitySearch(null,null,center,"location.coordinates",0,Integer.MAX_VALUE,100).entityLocations;
+  query=Query.fromQL("select * where location within " + Integer.MAX_VALUE + " of "+ center.getLat()+ ","+ center.getLon());
+  listResults=em.searchCollection(em.getApplicationRef(),"users",query);
   assertEquals(2,listResults.size());
   Results emSearchResults=em.searchCollection(em.getApplicationRef(),"users",Query.fromQL("location within 1000 of 37.776753, -122.407846"));
   assertEquals(1,emSearchResults.size());
   updatePos(em,user,37.776753,-122.407846);
   center=new Point(37.428526,-122.140916);
-  listResults=connSearch.proximitySearch(null,null,center,"location.coordinates",0,1000,100).entityLocations;
+  query=Query.fromQL("select * where location within 1000 of " + center.getLat() + ","+ center.getLon());
+  listResults=em.searchCollection(em.getApplicationRef(),"users",query);
   assertEquals(0,listResults.size());
   emSearchResults=em.searchCollection(em.getApplicationRef(),"users",Query.fromQL("location within 1000 of 37.428526, -122.140916"));
   assertEquals(0,emSearchResults.size());
@@ -62,6 +92,7 @@
   Entity restaurant=em.create("restaurant",properties);
   assertNotNull(restaurant);
   em.createConnection(user,"likes",restaurant);
+  em.refreshIndex();
   emSearchResults=em.searchConnectedEntities(user,Query.fromQL("location within 2000 of 37.776753, -122.407846"));
   assertEquals(1,emSearchResults.size());
   emSearchResults=em.searchConnectedEntities(user,Query.fromQL("location within 1000 of 37.776753, -122.407846"));

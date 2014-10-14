@@ -1,0 +1,21 @@
+{
+  final CollectionScope context=mock(CollectionScope.class);
+  final MvccLogEntrySerializationStrategy logStrategy=mock(MvccLogEntrySerializationStrategy.class);
+  final ArgumentCaptor<MvccLogEntry> logEntry=ArgumentCaptor.forClass(MvccLogEntry.class);
+  final MutationBatch mutation=mock(MutationBatch.class);
+  when(logStrategy.write(same(context),logEntry.capture())).thenReturn(mutation);
+  final UUIDService uuidService=mock(UUIDService.class);
+  final UUID version=UUIDGenerator.newTimeUUID();
+  when(uuidService.newTimeUUID()).thenReturn(version);
+  MarkStart newStage=new MarkStart(logStrategy,uuidService);
+  final Id id=TestEntityGenerator.generateId();
+  CollectionIoEvent<MvccEntity> result=newStage.call(new CollectionIoEvent<Id>(context,id));
+  MvccLogEntry entry=logEntry.getValue();
+  assertEquals("id correct",id,entry.getEntityId());
+  assertEquals("version correct",version,entry.getVersion());
+  assertEquals("EventStage is correct",Stage.ACTIVE,entry.getStage());
+  MvccEntity created=result.getEvent();
+  assertSame("id correct",id,created.getId());
+  assertSame("version did not not match entityId",version,created.getVersion());
+  assertFalse("Entity correct",created.getEntity().isPresent());
+}

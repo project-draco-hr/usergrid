@@ -1,13 +1,10 @@
 {
   String queryString="select * where y = 'Foo' AND z = 'Bar'";
   ANTLRStringStream in=new ANTLRStringStream(queryString);
-  QueryFilterLexer lexer=new QueryFilterLexer(in);
+  CpQueryFilterLexer lexer=new CpQueryFilterLexer(in);
   TokenRewriteStream tokens=new TokenRewriteStream(lexer);
-  QueryFilterParser parser=new QueryFilterParser(tokens);
+  CpQueryFilterParser parser=new CpQueryFilterParser(tokens);
   final int limit=105;
   Query query=parser.ql().query;
   query.setLimit(limit);
-  QueryProcessor processor=new QueryProcessor(query,null,null,null);
-  QueryNode slice=processor.getFirstNode();
-  assertEquals(1000,processor.getPageSizeHint(slice));
 }

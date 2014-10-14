@@ -1,0 +1,17 @@
+{
+  SmileFactory smile=new SmileFactory();
+  ObjectMapper smileMapper=new ObjectMapper(smile);
+  Entity entity=createEntity();
+  long writeTime=0;
+  long readTime=0;
+  for (int i=0; i < count; i++) {
+    long writeStart=System.nanoTime();
+    byte[] smileData=smileMapper.writeValueAsBytes(entity);
+    writeTime+=System.nanoTime() - writeStart;
+    long readStart=System.nanoTime();
+    Entity otherValue=smileMapper.readValue(smileData,Entity.class);
+    readTime+=System.nanoTime() - readStart;
+  }
+  logger.info("Smile took {} nanos for writing {} entities",writeTime,count);
+  logger.info("Smile took {} nanos for reading {} entities",readTime,count);
+}

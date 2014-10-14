@@ -1,0 +1,23 @@
+{
+  setProject(project);
+  setRunManager(runManager);
+  if (state != State.INACTIVE) {
+    runNumber=runManager.getNextRunNumber(project);
+    otherRunners=registry.getRunners(me);
+    List<ICoordinatedCluster> clusters=registry.getClusters();
+    if (clusters == null) {
+      LOG.debug("Returned clusters list is null");
+    }
+ else {
+      LOG.info("{} clusters total",clusters.size());
+      for (      ICoordinatedCluster cluster : clusters) {
+        clusterMap.put(cluster.getName(),cluster);
+        LOG.info("Cluster name {}, {} instances",cluster.getName(),cluster.getInstances().size());
+        for (        Instance i : cluster.getInstances()) {
+          LOG.debug("Public: {}, Private: {}",i.getPublicIpAddress(),i.getPrivateIpAddress());
+        }
+      }
+      injectClusters();
+    }
+  }
+}

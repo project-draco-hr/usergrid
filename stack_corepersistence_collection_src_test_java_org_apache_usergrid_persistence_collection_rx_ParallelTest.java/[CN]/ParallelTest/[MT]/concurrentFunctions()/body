@@ -1,0 +1,48 @@
+{
+  final String input="input";
+  final int size=100;
+  final int expected=size - 1;
+  final CountDownLatch latch=new CountDownLatch(size);
+  final Observable<String> observable=Observable.from(input).observeOn(Schedulers.io());
+  Observable<Integer> thing=observable.flatMap(new Func1<String,Observable<Integer>>(){
+    @Override public Observable<Integer> call(    final String s){
+      List<Observable<Integer>> functions=new ArrayList<Observable<Integer>>();
+      logger.info("Creating new set of observables in thread {}",Thread.currentThread().getName());
+      for (int i=0; i < size; i++) {
+        final int index=i;
+        Observable<String> newObservable=Observable.from(input).subscribeOn(Schedulers.io());
+        Observable<Integer> transformed=newObservable.map(new Func1<String,Integer>(){
+          @Override public Integer call(          final String s){
+            final String threadName=Thread.currentThread().getName();
+            logger.info("Invoking parallel task in thread {}",threadName);
+            latch.countDown();
+            try {
+              latch.await();
+            }
+ catch (            InterruptedException e) {
+              throw new RuntimeException("Interrupted",e);
+            }
+            return index;
+          }
+        }
+);
+        functions.add(transformed);
+      }
+      Observable<Integer> zipped=Observable.zip(functions,new FuncN<Integer>(){
+        @Override public Integer call(        final Object... args){
+          logger.info("Invoking zip in thread {}",Thread.currentThread().getName());
+          assertEquals(size,args.length);
+          for (int i=0; i < args.length; i++) {
+            assertEquals("Indexes are returned in order",i,args[i]);
+          }
+          return (Integer)args[args.length - 1];
+        }
+      }
+);
+      return zipped;
+    }
+  }
+);
+  final Integer last=thing.toBlocking().last();
+  assertEquals(expected,last.intValue());
+}

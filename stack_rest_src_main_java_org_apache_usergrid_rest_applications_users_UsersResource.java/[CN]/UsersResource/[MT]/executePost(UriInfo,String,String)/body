@@ -1,0 +1,42 @@
+{
+  LOG.debug("UsersResource.executePost: body = " + body);
+  Object json=readJsonToObject(body);
+  String password=null;
+  String pin=null;
+  Boolean confRequred=(Boolean)this.getServices().getEntityManager().getProperty(this.getServices().getApplicationRef(),"registration_requires_email_confirmation");
+  boolean activated=!((confRequred != null) && confRequred);
+  LOG.debug("Confirmation required: {} Activated: {}",confRequred,activated);
+  if (json instanceof Map) {
+    @SuppressWarnings("unchecked") Map<String,Object> map=(Map<String,Object>)json;
+    password=(String)map.get("password");
+    map.remove("password");
+    pin=(String)map.get("pin");
+    map.remove("pin");
+    map.put("activated",activated);
+  }
+ else   if (json instanceof List) {
+    @SuppressWarnings("unchecked") List<Object> list=(List<Object>)json;
+    for (    Object obj : list) {
+      if (obj instanceof Map) {
+        @SuppressWarnings("unchecked") Map<String,Object> map=(Map<String,Object>)obj;
+        map.remove("password");
+        map.remove("pin");
+      }
+    }
+  }
+  ApiResponse response=(ApiResponse)super.executePostWithObject(ui,json,callback).getJsonSource();
+  if ((response.getEntities() != null) && (response.getEntities().size() == 1)) {
+    Entity entity=response.getEntities().get(0);
+    User user=(User)entity.toTypedEntity();
+    if (isNotBlank(password)) {
+      management.setAppUserPassword(getApplicationId(),user.getUuid(),password);
+    }
+    if (isNotBlank(pin)) {
+      management.setAppUserPin(getApplicationId(),user.getUuid(),pin);
+    }
+    if (!activated) {
+      management.startAppUserActivationFlow(getApplicationId(),user);
+    }
+  }
+  return new JSONWithPadding(response,callback);
+}

@@ -1,0 +1,12 @@
+{
+  final Set<String> indexes=new HashSet<String>();
+  GraphManager gm=managerCache.getGraphManager(applicationScope);
+  String edgeTypePrefix=CpNamingUtils.getEdgeTypeFromCollectionName(collectionName);
+  logger.debug("getCollectionIndexes(): Searching for edge type prefix {} to target {}:{}",new Object[]{edgeTypePrefix,cpHeadEntity.getId().getType(),cpHeadEntity.getId().getUuid()});
+  Observable<String> types=gm.getEdgeTypesFromSource(new SimpleSearchEdgeType(cpHeadEntity.getId(),edgeTypePrefix,null));
+  Iterator<String> iter=types.toBlockingObservable().getIterator();
+  while (iter.hasNext()) {
+    indexes.add(iter.next());
+  }
+  return indexes;
+}

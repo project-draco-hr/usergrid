@@ -1,11 +1,11 @@
 {
   String queryString="select * where (a > 1 and b > 10 and a < 10 and b < 20 ) or ( c >= 20 and d >= 30 and c <= 30 and d " + "<= 40)";
   ANTLRStringStream in=new ANTLRStringStream(queryString);
-  QueryFilterLexer lexer=new QueryFilterLexer(in);
+  CpQueryFilterLexer lexer=new CpQueryFilterLexer(in);
   TokenRewriteStream tokens=new TokenRewriteStream(lexer);
-  QueryFilterParser parser=new QueryFilterParser(tokens);
+  CpQueryFilterParser parser=new CpQueryFilterParser(tokens);
   Query query=parser.ql().query;
-  QueryProcessor processor=new QueryProcessor(query,null,null,null);
+  QueryProcessor processor=new QueryProcessorImpl(query,null,null,null);
   OrNode node=(OrNode)processor.getFirstNode();
   SliceNode sliceNode=(SliceNode)node.getLeft();
   Iterator<QuerySlice> slices=sliceNode.getAllSlices().iterator();

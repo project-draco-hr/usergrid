@@ -1,0 +1,12 @@
+{
+  ObjectMapper mapper=new ObjectMapper();
+  String json=mapper.writeValueAsString(cluster);
+  ICoordinatedCluster derived=mapper.readValue(new StringReader(json),ICoordinatedCluster.class);
+  assertEquals(cluster.getName(),derived.getName());
+  assertEquals(cluster.getSize(),derived.getSize());
+  assertEquals(cluster.getInstanceSpec().getImageId(),derived.getInstanceSpec().getImageId());
+  assertEquals(cluster.getInstanceSpec().getKeyName(),derived.getInstanceSpec().getKeyName());
+  assertEquals(cluster.getInstanceSpec().getType(),derived.getInstanceSpec().getType());
+  assertEquals(cluster.getInstanceSpec().getSetupScripts().size(),derived.getInstanceSpec().getSetupScripts().size());
+  assertEquals(2,derived.getInstances().size());
+}

@@ -1,0 +1,17 @@
+{
+  LOG.debug("ServiceResource.executePost: body = " + body);
+  Object json;
+  if (StringUtils.isEmpty(body)) {
+    json=null;
+  }
+ else {
+    json=readJsonToObject(body);
+  }
+  ApiResponse response=createApiResponse();
+  response.setAction("post");
+  response.setApplication(services.getApplication());
+  response.setParams(ui.getQueryParameters());
+  ServicePayload payload=getPayload(json);
+  executeServiceRequest(ui,response,ServiceAction.POST,payload);
+  return new JSONWithPadding(response,callback);
+}

@@ -1,0 +1,28 @@
+{
+  Id targetId=createId("target");
+  MarkedEdge edge1=createEdge(createId("source1"),"test",targetId);
+  storageEdgeSerialization.writeEdge(scope,edge1,UUIDGenerator.newTimeUUID()).execute();
+  edgeMetadataSerialization.writeEdge(scope,edge1).execute();
+  MarkedEdge edge2=createEdge(createId("source2"),"test",targetId);
+  storageEdgeSerialization.writeEdge(scope,edge2,UUIDGenerator.newTimeUUID()).execute();
+  edgeMetadataSerialization.writeEdge(scope,edge2).execute();
+  MarkedEdge edge3=createEdge(createId("source3"),"test",targetId);
+  storageEdgeSerialization.writeEdge(scope,edge3,UUIDGenerator.newTimeUUID()).execute();
+  edgeMetadataSerialization.writeEdge(scope,edge3).execute();
+  long cleanupVersion=System.currentTimeMillis();
+  int value=edgeMetaRepair.repairTargets(scope,edge1.getTargetNode(),edge1.getType(),cleanupVersion).toBlocking().single();
+  assertEquals("No subtypes removed, edges exist",3,value);
+  storageEdgeSerialization.deleteEdge(scope,edge1,UUIDGenerator.newTimeUUID()).execute();
+  value=edgeMetaRepair.repairTargets(scope,edge1.getTargetNode(),edge1.getType(),cleanupVersion).toBlocking().single();
+  assertEquals("No subtypes removed, edges exist",2,value);
+  storageEdgeSerialization.deleteEdge(scope,edge2,UUIDGenerator.newTimeUUID()).execute();
+  value=edgeMetaRepair.repairTargets(scope,edge1.getTargetNode(),edge1.getType(),cleanupVersion).toBlocking().single();
+  assertEquals("No subtypes removed, edges exist",1,value);
+  storageEdgeSerialization.deleteEdge(scope,edge3,UUIDGenerator.newTimeUUID()).execute();
+  value=edgeMetaRepair.repairTargets(scope,edge1.getTargetNode(),edge1.getType(),cleanupVersion).toBlocking().single();
+  assertEquals("Single subtype should be removed",0,value);
+  Iterator<String> edgeTypes=edgeMetadataSerialization.getEdgeTypesToTarget(scope,new SimpleSearchEdgeType(edge1.getTargetNode(),null,null));
+  assertFalse("No edge types exist",edgeTypes.hasNext());
+  Iterator<String> sourceTypes=edgeMetadataSerialization.getIdTypesToTarget(scope,new SimpleSearchIdType(edge1.getTargetNode(),edge1.getType(),null,null));
+  assertFalse("No edge types exist",sourceTypes.hasNext());
+}

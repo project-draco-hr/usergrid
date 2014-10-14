@@ -1,0 +1,65 @@
+{
+  if (inTestMode(testMode)) {
+    LOG.info("Calling /reset in test mode ...");
+  }
+ else {
+    LOG.info("Calling /reset");
+  }
+  LOG.info("  Commit Id: {}",commitId);
+  LOG.info("  Group Id: {}",groupId);
+  LOG.info("  Artifact Id: {}",artifactId);
+  LOG.info("  Version: {}",version);
+  LOG.info("  User: {}",user);
+  SetupStackState status=stackCoordinator.stackStatus(commitId,artifactId,groupId,version,user);
+  if (inTestMode(testMode)) {
+    return Response.status(Response.Status.CREATED).entity(status).type(MediaType.APPLICATION_JSON).build();
+  }
+  if (!status.equals(SetupStackState.SetUp)) {
+    return Response.status(Response.Status.OK).entity("Stack is " + status.toString() + ", cannot reset tests.").type(MediaType.APPLICATION_JSON).build();
+  }
+  LOG.info("Stack is set up, checking runner states...");
+  String moduleId=BasicModule.createId(groupId,artifactId,version);
+  Collection<Runner> runners=runnerCoordinator.getRunners(user,commitId,moduleId);
+  Map<Runner,State> states=runnerCoordinator.getStates(runners);
+  Collection<Runner> stoppedRunners=new LinkedList<Runner>();
+  StringBuilder sbToReset=new StringBuilder();
+  StringBuilder sbFail=new StringBuilder();
+  sbFail.append("Cannot reset tests.\n");
+  int notAvailable=0;
+  for (  Runner runner : runners) {
+    State state=states.get(runner);
+    if (state == State.STOPPED) {
+      stoppedRunners.add(runner);
+      sbToReset.append("Runner at ").append(runner.getUrl()).append(" is in ").append(state).append(" state.\n");
+    }
+ else     if (state != State.READY) {
+      notAvailable++;
+      sbFail.append("Runner at ").append(runner.getUrl()).append(" is in ").append(state).append(" state.\n");
+    }
+  }
+  if (notAvailable > 0) {
+    sbFail.append(notAvailable).append(" out of ").append(runners.size()).append(" are still running or inactive.");
+    return Response.status(Response.Status.OK).entity(sbFail.toString()).type(MediaType.APPLICATION_JSON).build();
+  }
+  if (stoppedRunners.size() == 0) {
+    return Response.status(Response.Status.OK).entity("No runners are in STOPPED state, will not reset.").type(MediaType.APPLICATION_JSON).build();
+  }
+  LOG.info(sbToReset.toString());
+  LOG.info("Sending reset signal to stopped instances...");
+  states=runnerCoordinator.reset(stoppedRunners);
+  int notReset=0;
+  StringBuilder sb=new StringBuilder();
+  sb.append("Could not reset all runners.\n");
+  for (  Runner runner : stoppedRunners) {
+    State state=states.get(runner);
+    if (state != State.READY) {
+      notReset++;
+      sb.append("Runner at ").append(runner.getUrl()).append(" is in ").append(state).append(" state.\n");
+    }
+  }
+  if (notReset > 0) {
+    sb.append(notReset).append(" out of ").append(stoppedRunners.size()).append(" stopped runners could not be reset.");
+    return Response.status(Response.Status.OK).entity(sb.toString()).type(MediaType.APPLICATION_JSON).build();
+  }
+  return Response.status(Response.Status.CREATED).entity("All stopped runners have been reset.").type(MediaType.APPLICATION_JSON).build();
+}

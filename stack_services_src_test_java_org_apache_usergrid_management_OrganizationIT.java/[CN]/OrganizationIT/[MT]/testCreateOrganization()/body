@@ -3,12 +3,15 @@
   assertNotNull(user);
   OrganizationInfo organization=setup.getMgmtSvc().createOrganization("OrganizationIT",user,false);
   assertNotNull(organization);
+  setup.getEmf().getEntityManager(setup.getSmf().getManagementAppId()).refreshIndex();
   Map<UUID,String> userOrganizations=setup.getMgmtSvc().getOrganizationsForAdminUser(user.getUuid());
   assertEquals("wrong number of organizations",1,userOrganizations.size());
   List<UserInfo> users=setup.getMgmtSvc().getAdminUsersForOrganization(organization.getUuid());
   assertEquals("wrong number of users",1,users.size());
   UUID applicationId=setup.getMgmtSvc().createApplication(organization.getUuid(),"ed-application").getId();
   assertNotNull(applicationId);
+  setup.getEmf().getEntityManager(setup.getSmf().getManagementAppId()).refreshIndex();
+  setup.getEmf().getEntityManager(applicationId).refreshIndex();
   Map<UUID,String> applications=setup.getMgmtSvc().getApplicationsForOrganization(organization.getUuid());
   assertEquals("wrong number of applications",1,applications.size());
   OrganizationInfo organization2=setup.getMgmtSvc().getOrganizationForApplication(applicationId);
@@ -17,6 +20,7 @@
   boolean verified=setup.getMgmtSvc().verifyAdminUserPassword(user.getUuid(),"test");
   assertTrue(verified);
   setup.getMgmtSvc().activateOrganization(organization2);
+  setup.getEmf().getEntityManager(setup.getSmf().getManagementAppId()).refreshIndex();
   UserInfo u=setup.getMgmtSvc().verifyAdminUserPasswordCredentials(user.getUuid().toString(),"test");
   assertNotNull(u);
   String token=setup.getMgmtSvc().getAccessTokenForAdminUser(user.getUuid(),0);

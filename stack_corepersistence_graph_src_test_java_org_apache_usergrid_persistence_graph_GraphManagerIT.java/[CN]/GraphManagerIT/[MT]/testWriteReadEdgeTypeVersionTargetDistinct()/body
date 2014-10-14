@@ -1,0 +1,34 @@
+{
+  GraphManager gm=getHelper(emf.createEdgeManager(scope));
+  final long earlyVersion=10000l;
+  Edge edge1=createEdge("source","test","target",earlyVersion + 1);
+  final Id sourceId=edge1.getSourceNode();
+  final Id targetId=edge1.getTargetNode();
+  gm.writeEdge(edge1).toBlocking().last();
+  Edge edge2=createEdge(sourceId,edge1.getType(),targetId,earlyVersion + 2);
+  gm.writeEdge(edge2).toBlocking().last();
+  Edge edge3=createEdge(sourceId,edge1.getType(),targetId,earlyVersion + 3);
+  gm.writeEdge(edge3).toBlocking().last();
+  SearchByEdgeType search=createSearchByEdge(edge1.getTargetNode(),edge1.getType(),edge3.getTimestamp(),null);
+  Observable<Edge> edges=gm.loadEdgesToTarget(search);
+  Iterator<Edge> returned=edges.toBlocking().getIterator();
+  assertEquals("Correct edge returned",edge3,returned.next());
+  assertEquals("Correct edge returned",edge2,returned.next());
+  assertEquals("Correct edge returned",edge1,returned.next());
+  assertFalse("No more edges",returned.hasNext());
+  search=createSearchByEdge(edge1.getTargetNode(),edge1.getType(),edge2.getTimestamp(),null);
+  edges=gm.loadEdgesToTarget(search);
+  returned=edges.toBlocking().getIterator();
+  assertEquals("Correct edge returned",edge2,returned.next());
+  assertEquals("Correct edge returned",edge1,returned.next());
+  assertFalse("No more edges",returned.hasNext());
+  search=createSearchByEdge(edge1.getTargetNode(),edge1.getType(),edge1.getTimestamp(),null);
+  edges=gm.loadEdgesToTarget(search);
+  returned=edges.toBlocking().getIterator();
+  assertEquals("Correct edge returned",edge1,returned.next());
+  assertFalse("No more edges",returned.hasNext());
+  search=createSearchByEdge(edge1.getTargetNode(),edge1.getType(),earlyVersion,null);
+  edges=gm.loadEdgesToTarget(search);
+  returned=edges.toBlocking().getIterator();
+  assertFalse("No more edges",returned.hasNext());
+}

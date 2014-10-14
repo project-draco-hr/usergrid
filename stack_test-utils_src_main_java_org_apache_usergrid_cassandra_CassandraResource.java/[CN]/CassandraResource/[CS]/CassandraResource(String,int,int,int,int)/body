@@ -12,4 +12,14 @@
     LOG.error("Failed to create temporary directory for Cassandra instance.",e);
     throw new RuntimeException(e);
   }
+  try {
+    String[] locations={"usergrid-properties-context.xml"};
+    ConfigurableApplicationContext appContext=new ClassPathXmlApplicationContext(locations);
+    Properties properties=(Properties)appContext.getBean("properties");
+    String forkString=properties.getProperty("cassandra.startup");
+    forkCassandra="forked".equals(forkString);
+  }
+ catch (  Exception ex) {
+    throw new RuntimeException("Error getting properties",ex);
+  }
 }

@@ -1,0 +1,32 @@
+{
+  Preconditions.checkNotNull(collectionScope,"collectionScope is required");
+  Preconditions.checkNotNull(entityIds,"entityIds is required");
+  Preconditions.checkArgument(entityIds.size() > 0,"entityIds is required");
+  Preconditions.checkNotNull(maxVersion,"version is required");
+  Preconditions.checkArgument(entityIds.size() <= serializationFig.getMaxLoadSize(),"requested size cannot be over configured maximum");
+  final List<ScopedRowKey<CollectionScope,Id>> rowKeys=new ArrayList<>(entityIds.size());
+  for (  final Id entityId : entityIds) {
+    rowKeys.add(ScopedRowKey.fromKey(collectionScope,entityId));
+  }
+  final Iterator<Row<ScopedRowKey<CollectionScope,Id>,UUID>> latestEntityColumns;
+  try {
+    latestEntityColumns=keyspace.prepareQuery(CF_ENTITY_DATA).getKeySlice(rowKeys).withColumnRange(maxVersion,null,false,1).execute().getResult().iterator();
+  }
+ catch (  ConnectionException e) {
+    throw new CollectionRuntimeException(null,collectionScope,"An error occurred connecting to cassandra",e);
+  }
+  final EntitySetImpl entitySetResults=new EntitySetImpl(entityIds.size());
+  while (latestEntityColumns.hasNext()) {
+    final Row<ScopedRowKey<CollectionScope,Id>,UUID> row=latestEntityColumns.next();
+    final ColumnList<UUID> columns=row.getColumns();
+    if (columns.size() == 0) {
+      continue;
+    }
+    final Id entityId=row.getKey().getKey();
+    final Column<UUID> column=columns.getColumnByIndex(0);
+    final MvccEntity parsedEntity=new MvccColumnParser(entityId).parseColumn(column);
+    final MvccEntity maybeRepaired=repair.maybeRepair(collectionScope,parsedEntity);
+    entitySetResults.addEntity(maybeRepaired);
+  }
+  return entitySetResults;
+}

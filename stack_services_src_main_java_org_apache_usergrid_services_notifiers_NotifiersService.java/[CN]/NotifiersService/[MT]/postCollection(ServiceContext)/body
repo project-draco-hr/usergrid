@@ -1,0 +1,24 @@
+{
+  ServicePayload payload=context.getPayload();
+  NotificationsService ns=(NotificationsService)sm.getService("notifications");
+  Set<String> providers=ns.getProviders();
+  String provider=payload.getStringProperty("provider");
+  if (!providers.contains(provider)) {
+    throw new IllegalArgumentException("provider must be one of: " + Arrays.toString(providers.toArray()));
+  }
+  ProviderAdapter providerAdapter=ns.providerAdapters.get(provider);
+  providerAdapter.validateCreateNotifier(payload);
+  ServiceResults results=super.postCollection(context);
+  Notifier notifier=(Notifier)results.getEntity();
+  if (notifier != null) {
+    try {
+      ns.testConnection(notifier);
+    }
+ catch (    Exception e) {
+      logger.info("notifier testConnection() failed",e);
+      em.delete(notifier);
+      throw e;
+    }
+  }
+  return results;
+}

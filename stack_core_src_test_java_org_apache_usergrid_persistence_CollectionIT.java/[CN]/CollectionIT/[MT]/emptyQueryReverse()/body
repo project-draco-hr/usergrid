@@ -1,5 +1,6 @@
 {
-  UUID applicationId=setup.createApplication("testOrganization","testEmptyQueryReverse");
+  LOG.debug("emptyQueryReverse");
+  UUID applicationId=setup.createApplication("emptyQueryReverseOrg","testEmptyQueryReverseApp");
   assertNotNull(applicationId);
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
   assertNotNull(em);
@@ -15,6 +16,7 @@
   properties.put("email","djacobs@gmail.com");
   Entity user2=em.create("user",properties);
   assertNotNull(user2);
+  em.refreshIndex();
   Query query=new Query();
   query.setReversed(true);
   Results r=em.searchCollection(em.getApplicationRef(),"users",query);

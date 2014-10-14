@@ -1,0 +1,20 @@
+{
+  Preconditions.checkNotNull(collectionScope,"collectionScope is required");
+  Preconditions.checkNotNull(entity,"entity is required");
+  final UUID colName=entity.getVersion();
+  final Id entityId=entity.getId();
+  return doWrite(collectionScope,entityId,new RowOp(){
+    @Override public void doOp(    final ColumnListMutation<UUID> colMutation){
+      try {
+        colMutation.putColumn(colName,ENTITY_JSON_SER.toByteBuffer(new EntityWrapper(entity.getStatus(),entity.getEntity())));
+      }
+ catch (      Exception e) {
+        if (entity != null || entity.getEntity().get() != null) {
+          throw new CollectionRuntimeException(entity,collectionScope,e);
+        }
+        throw e;
+      }
+    }
+  }
+);
+}

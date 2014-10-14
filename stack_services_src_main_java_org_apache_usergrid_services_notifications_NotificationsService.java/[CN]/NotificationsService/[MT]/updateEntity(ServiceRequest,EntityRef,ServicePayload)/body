@@ -1,0 +1,28 @@
+{
+  validate(ref,payload);
+  Notification notification=em.get(ref,Notification.class);
+  if ("restart".equals(payload.getProperty("restart"))) {
+    payload.getProperties().clear();
+    payload.setProperty("restart","");
+    payload.setProperty("errorMessage","");
+    payload.setProperty("deliver",System.currentTimeMillis() + gracePeriod);
+  }
+ else   if (notification.getFinished() != null) {
+    throw new ForbiddenServiceOperationException(request,"Notification immutable once sent.");
+  }
+ else   if (notification.getStarted() != null) {
+    if (payload.getProperty("canceled") != Boolean.TRUE) {
+      throw new ForbiddenServiceOperationException(request,"Notification has started. You may only set canceled.");
+    }
+    payload.getProperties().clear();
+    payload.setProperty("canceled",Boolean.TRUE);
+  }
+  Entity response=super.updateEntity(request,ref,payload);
+  Long deliver=(Long)payload.getProperty("deliver");
+  if (deliver != null) {
+    if (!deliver.equals(notification.getDeliver())) {
+      notificationQueueManager.queueNotification((Notification)response,null);
+    }
+  }
+  return response;
+}

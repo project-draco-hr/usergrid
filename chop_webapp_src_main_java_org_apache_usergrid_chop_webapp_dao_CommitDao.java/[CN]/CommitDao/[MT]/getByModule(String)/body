@@ -1,0 +1,13 @@
+{
+  LOG.debug("moduleId: {}",moduleId);
+  SearchResponse response=getRequest(DAO_INDEX_KEY,DAO_TYPE_KEY).setQuery(termQuery("moduleId",moduleId)).setSize(MAX_RESULT_SIZE).execute().actionGet();
+  TreeMap<Date,Commit> commitMap=new TreeMap<Date,Commit>();
+  for (  SearchHit hit : response.getHits().hits()) {
+    Map<String,Object> json=hit.getSource();
+    BasicCommit commit=new BasicCommit(hit.getId(),Util.getString(json,"moduleId"),Util.getString(json,"md5"),Util.toDate(Util.getString(json,"createTime")),Util.getString(json,"runnerPath"));
+    commitMap.put(commit.getCreateTime(),commit);
+  }
+  ArrayList<Commit> commitList=new ArrayList<Commit>(commitMap.values());
+  LOG.debug("commits: {}",commitList.size());
+  return commitList;
+}

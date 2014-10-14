@@ -1,0 +1,10 @@
+{
+  final KeyspaceDefinition keyspaceDefinition=keyspace.describeKeyspace();
+  final ColumnFamilyDefinition existing=keyspaceDefinition.getColumnFamily(columnFamily.getColumnFamily().getName());
+  if (existing != null) {
+    return;
+  }
+  keyspace.createColumnFamily(columnFamily.getColumnFamily(),columnFamily.getOptions());
+  logger.info("Created column family {}",columnFamily.getColumnFamily().getName());
+  waitForMigration();
+}

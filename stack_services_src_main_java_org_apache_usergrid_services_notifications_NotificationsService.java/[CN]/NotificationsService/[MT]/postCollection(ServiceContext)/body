@@ -1,0 +1,30 @@
+{
+  LOG.info("NotificationService: start request.");
+  Timer.Context timer=postTimer.time();
+  postMeter.mark();
+  try {
+    validate(null,context.getPayload());
+    PathQuery<Device> pathQuery=TEST_PATH_QUERY != null ? TEST_PATH_QUERY : getPathQuery(context.getRequest().getOriginalParameters());
+    context.getProperties().put("state",Notification.State.CREATED);
+    context.getProperties().put("pathQuery",pathQuery);
+    context.setOwner(sm.getApplication());
+    ServiceResults results=super.postCollection(context);
+    Notification notification=(Notification)results.getEntity();
+    if (notification.getStarted() == null || notification.getStarted() == 0) {
+      long now=System.currentTimeMillis();
+      notification.setStarted(System.currentTimeMillis());
+      Map<String,Object> properties=new HashMap<String,Object>(2);
+      properties.put("started",notification.getStarted());
+      properties.put("state",notification.getState());
+      notification.addProperties(properties);
+      LOG.info("ApplicationQueueMessage: notification {} properties updated in duration {} ms",notification.getUuid(),System.currentTimeMillis() - now);
+    }
+    long now=System.currentTimeMillis();
+    notificationQueueManager.queueNotification(notification,null);
+    LOG.info("NotificationService: notification {} post queue duration {} ms ",notification.getUuid(),System.currentTimeMillis() - now);
+    return results;
+  }
+  finally {
+    timer.stop();
+  }
+}

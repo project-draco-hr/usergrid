@@ -1,0 +1,16 @@
+{
+  String payload;
+  if (objPayload instanceof String) {
+    payload=(String)objPayload;
+    if (!payload.startsWith("{")) {
+      payload="{\"aps\":{\"alert\":\"" + payload + "\"}}";
+    }
+  }
+ else {
+    payload=JSON.toString(objPayload);
+  }
+  if (payload.length() > 2048) {
+    throw new IllegalArgumentException("Apple APNs payloads must be 2048 characters or less");
+  }
+  return payload;
+}

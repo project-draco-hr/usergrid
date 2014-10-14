@@ -1,0 +1,16 @@
+{
+  if (inTestMode(testMode)) {
+    LOG.info("Calling /runners/unregister ...");
+    return Response.ok(false).build();
+  }
+  Preconditions.checkNotNull(runnerUrl,"The 'runnerUrl' MUST NOT be null.");
+  LOG.info("Calling /runners/unregister ...");
+  boolean result=runnerCoordinator.unregister(runnerUrl);
+  if (result) {
+    LOG.info("Unregistered runner at {}",runnerUrl);
+  }
+ else {
+    LOG.warn("Failed to unregister runner at {}",runnerUrl);
+  }
+  return Response.ok(result).build();
+}

@@ -1,0 +1,16 @@
+{
+  while (sourceIterator.hasNext()) {
+    if (next == null) {
+      next=new ShardEntryGroup(minDelta);
+    }
+    final Shard shard=sourceIterator.next();
+    if (next.addShard(shard)) {
+      continue;
+    }
+    sourceIterator.pushback(shard);
+    break;
+  }
+  if (next != null) {
+    shardGroupCompaction.evaluateShardGroup(scope,directedEdgeMeta,next);
+  }
+}

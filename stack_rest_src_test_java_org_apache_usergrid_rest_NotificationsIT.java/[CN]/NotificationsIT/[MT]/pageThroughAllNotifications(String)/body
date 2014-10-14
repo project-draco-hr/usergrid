@@ -1,0 +1,22 @@
+{
+  JsonNode initialNode=mapper.readTree(resource().path(orgapp + "/notifications").queryParam("ql","select * where state='" + state + "'").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).get(String.class));
+  int count=initialNode.get("count").asInt();
+  if (initialNode.get("cursor") != null) {
+    String cursor=initialNode.get("cursor").asText();
+    assertTrue(count == 10 || count == 0);
+    while (cursor != null) {
+      JsonNode anotherNode=mapper.readTree(resource().path(orgapp + "/notifications").queryParam("ql","select * where state='" + state + "'").queryParam("access_token",token).queryParam("cursor",cursor).accept(MediaType.APPLICATION_JSON).get(String.class));
+      int returnCount=anotherNode.get("count").asInt();
+      count+=returnCount;
+      if (anotherNode.get("cursor") != null) {
+        assertTrue(returnCount == 10 || returnCount == 0);
+        cursor=anotherNode.get("cursor").asText();
+        Thread.sleep(readDelayMs);
+      }
+ else {
+        cursor=null;
+      }
+    }
+  }
+  return count;
+}

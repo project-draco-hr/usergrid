@@ -1,0 +1,45 @@
+{
+  ValidationUtils.validateApplicationScope(scope);
+  GraphValidation.validateShardEntryGroup(shardEntryGroup);
+  GraphValidation.validateDirectedEdgeMeta(directedEdgeMeta);
+  Preconditions.checkNotNull(shardEntryGroup,"shardEntryGroup cannot be null");
+  if (shardEntryGroup.isCompactionPending()) {
+    return false;
+  }
+  if (shardEntryGroup.entrySize() != 1) {
+    return false;
+  }
+  final Shard shard=shardEntryGroup.getMinShard();
+  if (shard.getCreatedTime() >= getMinTime()) {
+    return false;
+  }
+  final long count=nodeShardApproximation.getCount(scope,shard,directedEdgeMeta);
+  final long shardSize=graphFig.getShardSize();
+  if (count < shardSize) {
+    return false;
+  }
+  final Iterator<MarkedEdge> edges=directedEdgeMeta.loadEdges(shardedEdgeSerialization,edgeColumnFamilies,scope,shardEntryGroup.getReadShards(),0,SearchByEdgeType.Order.ASCENDING);
+  if (!edges.hasNext()) {
+    LOG.warn("Tried to allocate a new shard for edge meta data {}, " + "but no max value could be found in that row",directedEdgeMeta);
+    return false;
+  }
+  MarkedEdge marked=null;
+  for (long i=1; edges.hasNext(); i++) {
+    if (i % shardSize == 0) {
+      marked=edges.next();
+    }
+ else {
+      edges.next();
+    }
+  }
+  if (marked == null) {
+    LOG.warn("Incorrect shard count for shard group {}",shardEntryGroup);
+    return false;
+  }
+  final long createTimestamp=timeService.getCurrentTime();
+  final Shard newShard=new Shard(marked.getTimestamp(),createTimestamp,false);
+  LOG.info("Allocating new shard {} for edge meta {}",newShard,directedEdgeMeta);
+  final MutationBatch batch=this.edgeShardSerialization.writeShardMeta(scope,newShard,directedEdgeMeta);
+  HystrixCassandra.user(batch);
+  return true;
+}

@@ -1,0 +1,19 @@
+{
+  logger.info("NotifiersResource.addNameParameter");
+  logger.info("Current segment is " + itemName.getPath());
+  if (itemName.getPath().startsWith("{")) {
+    Query query=Query.fromJsonString(itemName.getPath());
+    if (query != null) {
+      addParameter(getServiceParameters(),query);
+    }
+    addMatrixParams(getServiceParameters(),ui,itemName);
+    return getSubResource(ServiceResource.class);
+  }
+  addParameter(getServiceParameters(),itemName.getPath());
+  addMatrixParams(getServiceParameters(),ui,itemName);
+  Identifier id=Identifier.from(itemName.getPath());
+  if (id == null) {
+    throw new IllegalArgumentException("Not a valid Notifier identifier: " + itemName.getPath());
+  }
+  return getSubResource(NotifierResource.class).init(id);
+}

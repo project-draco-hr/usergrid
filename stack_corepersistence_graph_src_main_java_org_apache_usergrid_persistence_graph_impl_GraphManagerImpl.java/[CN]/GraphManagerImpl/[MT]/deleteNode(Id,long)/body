@@ -1,0 +1,13 @@
+{
+  return Observable.from(node).map(new Func1<Id,Id>(){
+    @Override public Id call(    final Id id){
+      final UUID eventTimestamp=UUIDGenerator.newTimeUUID();
+      final MutationBatch nodeMutation=nodeSerialization.mark(scope,id,timestamp);
+      LOG.debug("Marking node {} as deleted to node mark",node);
+      HystrixCassandra.user(nodeMutation);
+      nodeDeleteListener.receive(scope,id,eventTimestamp).subscribeOn(Schedulers.io()).subscribe(nodeDelete);
+      return id;
+    }
+  }
+);
+}

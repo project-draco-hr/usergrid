@@ -1,0 +1,26 @@
+{
+  Preconditions.checkArgument(mvccEntities.size() > 0,"You must specify at least 1 entities for a change log");
+  final ChangeLogImpl changeLog=new ChangeLogImpl(50);
+  Iterator<MvccEntity> iterator=mvccEntities.iterator();
+  Set<String> previousFieldNames=getFieldNames(iterator.next().getEntity());
+  Set<String> currentFieldNames=null;
+  while (iterator.hasNext()) {
+    final MvccEntity mvccEntity=iterator.next();
+    currentFieldNames=getFieldNames(mvccEntity.getEntity());
+    if (mvccEntity.getStatus() == MvccEntity.Status.DELETED) {
+      changeLog.clear();
+      continue;
+    }
+    final Entity currentEntity=mvccEntity.getEntity().orNull();
+    final Set<String> deletedFields=Sets.difference(previousFieldNames,currentFieldNames);
+    changeLog.addDeletes(deletedFields);
+    for (    String addedField : currentFieldNames) {
+      changeLog.addWrite(currentEntity.getField(addedField));
+    }
+    previousFieldNames=currentFieldNames;
+  }
+  if (currentFieldNames != null) {
+    changeLog.clear(currentFieldNames);
+  }
+  return changeLog;
+}

@@ -1,0 +1,28 @@
+{
+  EntityManager em=getEntityManager(SYSTEM_APP_ID);
+  Query q=Query.fromQL("select *");
+  Results results=null;
+  try {
+    results=em.searchCollection(em.getApplicationRef(),"propertymaps",q);
+  }
+ catch (  Exception ex) {
+    logger.error("Error getting service property for delete of property: " + name,ex);
+    return false;
+  }
+  org.apache.usergrid.persistence.Entity propsEntity=null;
+  if (!results.isEmpty()) {
+    propsEntity=results.getEntity();
+  }
+ else {
+    propsEntity=EntityFactory.newEntity(UUIDUtils.newTimeUUID(),"propertymap");
+  }
+  try {
+    ((AbstractEntity)propsEntity).clearDataset(name);
+    em.update(propsEntity);
+  }
+ catch (  Exception ex) {
+    logger.error("Error deleting service property name: " + name,ex);
+    return false;
+  }
+  return true;
+}

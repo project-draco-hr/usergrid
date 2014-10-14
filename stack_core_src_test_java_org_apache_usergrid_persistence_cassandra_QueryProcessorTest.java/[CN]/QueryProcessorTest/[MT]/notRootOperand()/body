@@ -1,11 +1,11 @@
 {
   String queryString="select * where not b = 2";
   ANTLRStringStream in=new ANTLRStringStream(queryString);
-  QueryFilterLexer lexer=new QueryFilterLexer(in);
+  CpQueryFilterLexer lexer=new CpQueryFilterLexer(in);
   TokenRewriteStream tokens=new TokenRewriteStream(lexer);
-  QueryFilterParser parser=new QueryFilterParser(tokens);
+  CpQueryFilterParser parser=new CpQueryFilterParser(tokens);
   Query query=parser.ql().query;
-  QueryProcessor processor=new QueryProcessor(query,null,null,null);
+  QueryProcessor processor=new QueryProcessorImpl(query,null,null,null);
   NotNode rootNode=(NotNode)processor.getFirstNode();
   SliceNode sliceNode=(SliceNode)rootNode.getSubtractNode();
   Iterator<QuerySlice> slices=sliceNode.getAllSlices().iterator();

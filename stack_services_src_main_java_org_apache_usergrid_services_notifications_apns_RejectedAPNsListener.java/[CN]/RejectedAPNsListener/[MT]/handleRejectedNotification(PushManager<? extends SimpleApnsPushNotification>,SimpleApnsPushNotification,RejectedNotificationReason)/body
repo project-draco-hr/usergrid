@@ -1,0 +1,17 @@
+{
+  try {
+    if (notification instanceof APNsNotification) {
+      ((APNsNotification)notification).messageSendFailed(rejectionReason);
+    }
+    if (notification instanceof TestAPNsNotification) {
+      TestAPNsNotification testAPNsNotification=(TestAPNsNotification)notification;
+      testAPNsNotification.setReason(rejectionReason);
+      testAPNsNotification.countdown();
+      logger.error("Failed to connect to APN's service",testAPNsNotification);
+    }
+  }
+ catch (  Exception e) {
+    logger.error("Failed to track rejected listener",e);
+  }
+  System.out.format("%s was rejected with rejection reason %s\n",notification,rejectionReason);
+}

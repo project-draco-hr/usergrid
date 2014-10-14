@@ -1,0 +1,23 @@
+{
+  UUID id=UUIDUtils.newTimeUUID();
+  String username1="username1" + id;
+  String name1="name1" + id;
+  String email1="email1" + id + "@usergrid.org";
+  ApiResponse response=client.createUser(username1,name1,email1,"password");
+  assertNull("Error was: " + response.getErrorDescription(),response.getError());
+  refreshIndex("test-organization","test-app");
+  UUID firstCreatedId=response.getEntities().get(0).getUuid();
+  String username2="username2" + id;
+  String name2="name2" + id;
+  String email2="email2" + id + "@usergrid.org";
+  response=client.createUser(username2,name2,email2,"password");
+  assertNull("Error was: " + response.getErrorDescription(),response.getError());
+  refreshIndex("test-organization","test-app");
+  UUID secondCreatedId=response.getEntities().get(0).getUuid();
+  String path=String.format("/test-organization/test-app/users/%s/conn1/users/%s",firstCreatedId,username2);
+  JsonNode node=mapper.readTree(resource().path(path).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class));
+  assertEquals(secondCreatedId.toString(),getEntity(node,0).get("uuid").asText());
+  path=String.format("/test-organization/test-app/users/%s/conn2/users/%s",username1,username2);
+  node=mapper.readTree(resource().path(path).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class));
+  assertEquals(secondCreatedId.toString(),getEntity(node,0).get("uuid").asText());
+}

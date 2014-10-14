@@ -1,0 +1,31 @@
+{
+  final Id organizationId=new SimpleId("organization");
+  final Id applicationId=new SimpleId("application");
+  final String name="test";
+  CollectionScope context=new CollectionScopeImpl(organizationId,applicationId,name);
+  final Id id=new SimpleId("test");
+  int count=10;
+  final UUID[] versions=new UUID[count];
+  final Stage COMPLETE=Stage.COMPLETE;
+  final MvccLogEntry[] entries=new MvccLogEntry[count];
+  for (int i=0; i < count; i++) {
+    versions[i]=UUIDGenerator.newTimeUUID();
+    entries[i]=new MvccLogEntryImpl(id,versions[i],COMPLETE,MvccLogEntry.State.COMPLETE);
+    logEntryStrategy.write(context,entries[i]).execute();
+    MvccLogEntry returned=logEntryStrategy.load(context,Collections.singleton(id),versions[i]).getMaxVersion(id);
+    assertNotNull("Returned value should not be null",returned);
+    assertEquals("Returned should equal the saved",entries[i],returned);
+  }
+  List<MvccLogEntry> results=logEntryStrategy.load(context,id,versions[count - 1],count);
+  assertEquals(count,results.size());
+  for (int i=0; i < count; i++) {
+    final MvccLogEntry saved=entries[count - i - 1];
+    final MvccLogEntry returned=results.get(i);
+    assertEquals("Entry was not equal to the saved value",saved,returned);
+  }
+  for (int i=0; i < count; i++) {
+    logEntryStrategy.delete(context,id,versions[i]).execute();
+  }
+  results=logEntryStrategy.load(context,id,versions[versions.length - 1],versions.length);
+  assertEquals("All log entries were deleted",0,results.size());
+}

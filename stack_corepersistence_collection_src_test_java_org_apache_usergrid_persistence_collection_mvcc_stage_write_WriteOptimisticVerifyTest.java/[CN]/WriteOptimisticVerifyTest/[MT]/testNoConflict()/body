@@ -1,0 +1,17 @@
+{
+  final CollectionScope collectionScope=mock(CollectionScope.class);
+  when(collectionScope.getApplication()).thenReturn(new SimpleId(UUIDGenerator.newTimeUUID(),"organization"));
+  when(collectionScope.getOwner()).thenReturn(new SimpleId(UUIDGenerator.newTimeUUID(),"owner"));
+  final Entity entity=generateEntity();
+  entity.setField(new StringField("name","FOO",true));
+  entity.setField(new StringField("identifier","BAR",true));
+  final MvccEntity mvccEntity=fromEntity(entity);
+  List<MvccLogEntry> logEntries=new ArrayList<MvccLogEntry>();
+  logEntries.add(new MvccLogEntryImpl(entity.getId(),UUIDGenerator.newTimeUUID(),Stage.ACTIVE,MvccLogEntry.State.COMPLETE));
+  logEntries.add(new MvccLogEntryImpl(entity.getId(),UUIDGenerator.newTimeUUID(),Stage.COMMITTED,MvccLogEntry.State.COMPLETE));
+  MvccLogEntrySerializationStrategy noConflictLog=mock(MvccLogEntrySerializationStrategy.class);
+  when(noConflictLog.load(collectionScope,entity.getId(),entity.getVersion(),2)).thenReturn(logEntries);
+  UniqueValueSerializationStrategy uvstrat=mock(UniqueValueSerializationStrategy.class);
+  WriteOptimisticVerify newStage=new WriteOptimisticVerify(noConflictLog);
+  newStage.call(new CollectionIoEvent<>(collectionScope,mvccEntity));
+}

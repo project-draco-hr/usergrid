@@ -1,0 +1,15 @@
+{
+  ValidationUtils.validateApplicationScope(scope);
+  ValidationUtils.verifyIdentity(node);
+  ColumnFamilyQuery<ScopedRowKey<ApplicationScope,Id>,Boolean> query=keyspace.prepareQuery(GRAPH_DELETE).setConsistencyLevel(fig.getReadCL());
+  try {
+    Column<Boolean> result=HystrixCassandra.user(query.getKey(ScopedRowKey.fromKey(scope,node)).getColumn(COLUMN_NAME)).getResult();
+    return Optional.of(result.getLongValue());
+  }
+ catch (  RuntimeException re) {
+    if (re.getCause().getCause() instanceof NotFoundException) {
+      return Optional.absent();
+    }
+    throw re;
+  }
+}

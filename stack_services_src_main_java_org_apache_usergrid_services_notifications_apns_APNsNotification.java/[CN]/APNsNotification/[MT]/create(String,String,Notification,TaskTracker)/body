@@ -1,0 +1,11 @@
+{
+  Calendar date=Calendar.getInstance();
+  date.add(Calendar.SECOND,notification.getExpireTimeInSeconds());
+  try {
+    final byte[] token=TokenUtil.tokenStringToByteArray(providerId);
+    return new APNsNotification(tracker,date.getTime(),token,payload,notification);
+  }
+ catch (  MalformedTokenStringException mtse) {
+    throw new RuntimeException("Exception converting token",mtse);
+  }
+}

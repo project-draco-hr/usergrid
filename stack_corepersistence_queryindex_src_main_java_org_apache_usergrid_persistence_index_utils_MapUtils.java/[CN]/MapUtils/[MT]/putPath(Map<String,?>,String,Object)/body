@@ -1,0 +1,27 @@
+{
+  if (map == null) {
+    map=new HashMap<String,Object>();
+  }
+  int i=path.indexOf('.');
+  if (i < 0) {
+    ((Map<String,Object>)map).put(path,value);
+    return map;
+  }
+  String segment=path.substring(0,i).trim();
+  if (isNotBlank(segment)) {
+    Object o=map.get(segment);
+    if ((o != null) && (!(o instanceof Map))) {
+      return map;
+    }
+    Map<String,Object> subMap=(Map<String,Object>)o;
+    if (subMap == null) {
+      subMap=new HashMap<String,Object>();
+      ((Map<String,Object>)map).put(segment,subMap);
+    }
+    String subPath=path.substring(i + 1);
+    if (isNotBlank(subPath)) {
+      putPath(subMap,subPath,value);
+    }
+  }
+  return map;
+}

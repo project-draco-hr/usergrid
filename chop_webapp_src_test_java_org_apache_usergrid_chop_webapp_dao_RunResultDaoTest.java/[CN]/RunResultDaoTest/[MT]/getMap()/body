@@ -1,0 +1,14 @@
+{
+  LOG.info("\n===RunResultDaoTest.getMap===\n");
+  Map<String,Run> runs=ESSuiteTest.runDao.getMap(ESSuiteTest.COMMIT_ID_1,2,ESSuiteTest.TEST_NAME_2);
+  Run run=runs.get(ESSuiteTest.RUN_ID_5);
+  assertNotNull(run);
+  assertEquals(ESSuiteTest.RUNNER_HOSTNAME_3,run.getRunner());
+  Map<Run,List<RunResult>> runResults=ESSuiteTest.runResultDao.getMap(runs);
+  List<RunResult> results=runResults.get(run);
+  assertEquals(3,results.size());
+  for (  RunResult result : results) {
+    LOG.info(result.toString());
+    assertEquals(ESSuiteTest.RESULT_RUN_COUNT,result.getRunCount());
+  }
+}

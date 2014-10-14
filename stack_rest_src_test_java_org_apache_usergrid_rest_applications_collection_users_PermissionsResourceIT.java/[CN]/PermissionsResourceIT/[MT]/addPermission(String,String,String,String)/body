@@ -1,0 +1,15 @@
+{
+  Map<String,String> props=hashMap("permission",grant);
+  String rolePath=String.format("/%s/%s/roles/%s/permissions",orgname,appname,rolename);
+  JsonNode node=mapper.readTree(resource().path(rolePath).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(String.class,props));
+  assertNull(getError(node));
+  node=mapper.readTree(resource().path(rolePath).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
+  ArrayNode data=(ArrayNode)node.get("data");
+  Iterator<JsonNode> iterator=data.elements();
+  while (iterator.hasNext()) {
+    if (grant.equals(iterator.next().asText())) {
+      return;
+    }
+  }
+  fail(String.format("didn't find grant %s in the results",grant));
+}

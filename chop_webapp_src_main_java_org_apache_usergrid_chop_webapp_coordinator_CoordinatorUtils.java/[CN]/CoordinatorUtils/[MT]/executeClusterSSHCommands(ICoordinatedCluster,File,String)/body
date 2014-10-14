@@ -1,0 +1,43 @@
+{
+  Collection<SshValues> sshValues=new HashSet<SshValues>(cluster.getSize());
+  StringBuilder sb=new StringBuilder();
+  Collection<Command> commands=new ArrayList<Command>();
+  LOG.info("Starting the execution of setup scripts on cluster {}",cluster.getName());
+  for (  Instance instance : cluster.getInstances()) {
+    sshValues.add(new InstanceValues(instance,keyFile));
+  }
+  for (  Object obj : cluster.getInstanceSpec().getScriptEnvironment().keySet()) {
+    String envVar=obj.toString();
+    String value=cluster.getInstanceSpec().getScriptEnvironment().getProperty(envVar);
+    sb.append("export ").append(envVar).append("=\"").append(value).append("\";");
+  }
+  StringBuilder ipList=new StringBuilder();
+  StringBuilder privateIpList=new StringBuilder();
+  StringBuilder hostList=new StringBuilder();
+  StringBuilder privateHostList=new StringBuilder();
+  for (  Instance temp : cluster.getInstances()) {
+    ipList.append(temp.getPublicIpAddress()).append(" ");
+    privateIpList.append(temp.getPrivateIpAddress()).append(" ");
+    hostList.append(temp.getPublicDnsName()).append(" ");
+    privateHostList.append(temp.getPrivateDnsName()).append(" ");
+  }
+  sb.append("export ").append(cluster.getName().toUpperCase()).append("_ADDRS=\"").append(ipList.substring(0,ipList.toString().length() - 1)).append("\";");
+  sb.append("export ").append(cluster.getName().toUpperCase()).append("_PRIVATE_ADDRS=\"").append(privateIpList.substring(0,privateIpList.toString().length() - 1)).append("\";");
+  sb.append("export ").append(cluster.getName().toUpperCase()).append("_HOSTS=\"").append(hostList.substring(0,hostList.toString().length() - 1)).append("\";");
+  sb.append("export ").append(cluster.getName().toUpperCase()).append("_PRIVATE_HOSTS=\"").append(privateHostList.substring(0,privateHostList.toString().length() - 1)).append("\";");
+  String exportVars=sb.toString();
+  for (  URL scriptFile : cluster.getInstanceSpec().getSetupScripts()) {
+    File file=new File(scriptFile.getPath());
+    File fileToSave=new File(runnerJar.getParentFile(),file.getName());
+    writeToFile(getResourceAsStreamFromRunnerJar(runnerJar,file.getName()),fileToSave.getPath());
+    sb=new StringBuilder();
+    sb.append("/home/").append(Utils.DEFAULT_USER).append("/").append(fileToSave.getName());
+    String destFile=sb.toString();
+    commands.add(new SCPCommand(fileToSave.getAbsolutePath(),destFile));
+    sb=new StringBuilder();
+    sb.append("chmod 0755 ").append("/home/").append(Utils.DEFAULT_USER).append("/").append(fileToSave.getName()).append(";");
+    sb.append(exportVars).append("sudo -E ").append(destFile);
+    commands.add(new SSHCommand(sb.toString()));
+  }
+  return executeSSHCommands(sshValues,commands);
+}

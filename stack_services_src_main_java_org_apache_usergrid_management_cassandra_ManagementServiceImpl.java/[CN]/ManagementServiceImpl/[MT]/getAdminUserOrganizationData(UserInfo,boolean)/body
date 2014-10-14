@@ -4,8 +4,9 @@
   Map<String,Map<String,Object>> jsonOrganizations=new HashMap<String,Map<String,Object>>();
   json.put("organizations",jsonOrganizations);
   Map<UUID,String> organizations;
-  AccountCreationProps.SuperUser superUser=properties.getSuperUser();
-  if (superUser.isEnabled() && superUser.getUsername().equals(user.getUsername())) {
+  boolean superuser_enabled=getBooleanProperty(PROPERTIES_SYSADMIN_LOGIN_ALLOWED);
+  String superuser_username=properties.getProperty(PROPERTIES_SYSADMIN_LOGIN_NAME);
+  if (superuser_enabled && (superuser_username != null) && superuser_username.equals(user.getUsername())) {
     organizations=buildOrgBiMap(getOrganizations(null,10));
   }
  else {

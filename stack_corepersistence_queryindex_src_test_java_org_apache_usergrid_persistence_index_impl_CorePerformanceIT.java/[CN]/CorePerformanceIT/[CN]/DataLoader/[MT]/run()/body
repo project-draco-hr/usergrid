@@ -1,0 +1,61 @@
+{
+  CollectionScope collectionScope=new CollectionScopeImpl(applicationScope.getApplication(),indexScope.getOwner(),indexScope.getName());
+  EntityCollectionManager ecm=ecmf.createCollectionManager(collectionScope);
+  EntityIndex eci=ecif.createEntityIndex(applicationScope);
+  FileReader fr;
+  try {
+    fr=new FileReader("../../resources/finefoods.txt");
+  }
+ catch (  FileNotFoundException ex) {
+    throw new RuntimeException("Error opening file",ex);
+  }
+  BufferedReader br=new BufferedReader(fr);
+  String s=null;
+  Entity current=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),"review"));
+  int count=0;
+  EntityIndexBatch entityIndexBatch=eci.createBatch();
+  try {
+    while ((s=br.readLine()) != null && count < maxEntities) {
+      try {
+        if (s.trim().equals("")) {
+          ecm.write(current).toBlocking().last();
+          entityIndexBatch.index(indexScope,current);
+          if (maxEntities < 20) {
+            log.info("Index written for {}",current.getId());
+            log.info("---");
+          }
+          current=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),"review"));
+          count++;
+          if (count % 1000 == 0) {
+            entityIndexBatch.execute();
+          }
+          if (count % 100000 == 0) {
+            log.info("Indexed {} reviews in {} / {} ",new Object[]{count,applicationScope,indexScope.getOwner()});
+          }
+          continue;
+        }
+        String name=s.substring(0,s.indexOf(":")).replace("/","_").toLowerCase();
+        String value=s.substring(s.indexOf(":") + 1).trim();
+        if (maxEntities < 20) {
+          log.info("Indexing {} = {}",name,value);
+        }
+        if (NumberUtils.isNumber(value) && value.contains(".")) {
+          current.setField(new DoubleField(name,Double.parseDouble(value)));
+        }
+ else         if (NumberUtils.isNumber(value)) {
+          current.setField(new LongField(name,Long.parseLong(value)));
+        }
+ else {
+          current.setField(new StringField(name,value.toString()));
+        }
+      }
+ catch (      Exception e) {
+        log.info("Error on line " + count);
+      }
+    }
+  }
+ catch (  IOException ex) {
+    throw new RuntimeException("Error reading file",ex);
+  }
+  eci.refresh();
+}
