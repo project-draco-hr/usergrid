@@ -1,0 +1,27 @@
+{
+  if (entityRef == null) {
+    return;
+  }
+  try {
+    List<ConnectionRef> connections=new ArrayList<ConnectionRef>();
+    List<ConnectionRef> refs=em.getConnectedEntities(entityRef,"devices","users",Query.Level.IDS).getConnections();
+    if (refs != null) {
+      connections.addAll(refs);
+    }
+    refs=em.getConnectingEntities(entityRef,"users","devices",Query.Level.IDS).getConnections();
+    if (refs != null) {
+      connections.addAll(refs);
+    }
+    for (    ConnectionRef connectionRef : connections) {
+      try {
+        em.deleteConnection(connectionRef);
+      }
+ catch (      Exception e) {
+        logger.error("Failed to delete connection " + connectionRef.toString(),e);
+      }
+    }
+  }
+ catch (  Exception e) {
+    logger.error("failed to get connection",e);
+  }
+}
