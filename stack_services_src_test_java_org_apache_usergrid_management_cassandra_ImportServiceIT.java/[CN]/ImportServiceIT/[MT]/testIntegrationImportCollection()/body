@@ -6,10 +6,10 @@
     userProperties=new LinkedHashMap<String,Object>();
     userProperties.put("username","user" + i);
     userProperties.put("email","user" + i + "@test.com");
-    entity[i]=em.create("users",userProperties);
+    entity[i]=em.create("user",userProperties);
   }
-  em.createConnection(em.getRef(entity[0].getUuid()),"related",em.getRef(entity[1].getUuid()));
-  em.createConnection(em.getRef(entity[1].getUuid()),"related",em.getRef(entity[0].getUuid()));
+  em.createConnection(new SimpleEntityRef("user",entity[0].getUuid()),"related",new SimpleEntityRef("user",entity[1].getUuid()));
+  em.createConnection(new SimpleEntityRef("user",entity[1].getUuid()),"related",new SimpleEntityRef("user",entity[0].getUuid()));
   ExportService exportService=setup.getExportService();
   S3Export s3Export=new S3ExportImpl();
   HashMap<String,Object> payload=payloadBuilder();
@@ -36,19 +36,19 @@
   }
   try {
     assertThat(importService.getEphemeralFile().size(),is(not(0)));
-    Results collections=em.getCollection(applicationId,"users",null,Results.Level.ALL_PROPERTIES);
+    Results collections=em.getCollection(applicationId,"users",null,Level.ALL_PROPERTIES);
     List<Entity> entities=collections.getEntities();
     Results r;
     List<ConnectionRef> connections;
     for (int i=0; i < 2; i++) {
-      r=em.getConnectedEntities(entities.get(i).getUuid(),"related",null,Results.Level.IDS);
+      r=em.getConnectedEntities(entities.get(i),"related",null,Level.IDS);
       connections=r.getConnections();
       assertNotNull(connections);
     }
     EntityRef er;
     Map<Object,Object> dictionaries1, dictionaries2;
     for (int i=0; i < 3; i++) {
-      er=em.getRef(entities.get(i).getUuid());
+      er=entities.get(i);
       dictionaries1=em.getDictionaryAsMap(er,"connected_types");
       dictionaries2=em.getDictionaryAsMap(er,"connecting_types");
       if (i == 2) {

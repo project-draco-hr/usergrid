@@ -9,8 +9,8 @@
     entity[i]=em.create("usertests",userProperties);
     em.getCollections(entity[i]).contains("usertests");
   }
-  ConnectedEntityRef ref=em.createConnection(em.getRef(entity[0].getUuid()),"related",em.getRef(entity[1].getUuid()));
-  em.createConnection(em.getRef(entity[1].getUuid()),"related",em.getRef(entity[0].getUuid()));
+  ConnectedEntityRef ref=em.createConnection(entity[0],"related",entity[1]);
+  em.createConnection(entity[1],"related",entity[0]);
   createAndSetup2ndApplication();
   ExportService exportService=setup.getExportService();
   S3Export s3Export=new S3ExportImpl();
@@ -44,20 +44,20 @@
       Iterator<String> itr=collections.iterator();
       while (itr.hasNext()) {
         String collectionName=itr.next();
-        Results collection=em.getCollection(appID,collectionName,null,Results.Level.ALL_PROPERTIES);
+        Results collection=em.getCollection(appID,collectionName,null,Level.ALL_PROPERTIES);
         List<Entity> entities=collection.getEntities();
         if (collectionName.equals("usertests")) {
           Results r;
           List<ConnectionRef> connections;
           for (int i=0; i < 2; i++) {
-            r=em.getConnectedEntities(entities.get(i).getUuid(),"related",null,Results.Level.IDS);
+            r=em.getConnectedEntities(entities.get(i),"related",null,Level.IDS);
             connections=r.getConnections();
             assertNotNull(connections);
           }
           EntityRef er;
           Map<Object,Object> dictionaries1, dictionaries2;
           for (int i=0; i < 3; i++) {
-            er=em.getRef(entities.get(i).getUuid());
+            er=entities.get(i);
             dictionaries1=em.getDictionaryAsMap(er,"connected_types");
             dictionaries2=em.getDictionaryAsMap(er,"connecting_types");
             if (i == 2) {

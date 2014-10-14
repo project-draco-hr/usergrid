@@ -6,10 +6,10 @@
     userProperties=new LinkedHashMap<String,Object>();
     userProperties.put("parameter1","user" + i);
     userProperties.put("parameter2","user" + i + "@test.com");
-    entity[i]=em.create("customs",userProperties);
+    entity[i]=em.create("custom",userProperties);
   }
-  em.createConnection(em.getRef(entity[0].getUuid()),"related",em.getRef(entity[1].getUuid()));
-  em.createConnection(em.getRef(entity[1].getUuid()),"related",em.getRef(entity[0].getUuid()));
+  em.createConnection(new SimpleEntityRef("custom",entity[0].getUuid()),"related",new SimpleEntityRef("custom",entity[1].getUuid()));
+  em.createConnection(new SimpleEntityRef("custom",entity[1].getUuid()),"related",new SimpleEntityRef("custom",entity[0].getUuid()));
   ExportService exportService=setup.getExportService();
   S3Export s3Export=new S3ExportImpl();
   HashMap<String,Object> payload=payloadBuilder();
@@ -39,19 +39,19 @@
     Iterator<String> collectionsItr=collections.iterator();
     while (collectionsItr.hasNext()) {
       String collectionName=collectionsItr.next();
-      Results collection=em.getCollection(applicationId,collectionName,null,Results.Level.ALL_PROPERTIES);
+      Results collection=em.getCollection(applicationId,collectionName,null,Level.ALL_PROPERTIES);
       List<Entity> entities=collection.getEntities();
       for (      Entity eachEntity : entities) {
         EntityRef er;
         Map<Object,Object> dictionaries;
         if (collectionName.equals("roles")) {
           if (eachEntity.getName().equalsIgnoreCase("admin")) {
-            er=em.getRef(eachEntity.getUuid());
+            er=eachEntity;
             dictionaries=em.getDictionaryAsMap(er,"permissions");
             assertThat(dictionaries.size(),is(0));
           }
  else {
-            er=em.getRef(eachEntity.getUuid());
+            er=eachEntity;
             dictionaries=em.getDictionaryAsMap(er,"permissions");
             assertThat(dictionaries.size(),is(not(0)));
           }
@@ -61,7 +61,7 @@
         Results r;
         List<ConnectionRef> connections;
         for (int i=0; i < 2; i++) {
-          r=em.getConnectedEntities(entities.get(i).getUuid(),"related",null,Results.Level.IDS);
+          r=em.getConnectedEntities(entities.get(i),"related",null,Level.IDS);
           connections=r.getConnections();
           assertNotNull(connections);
         }
