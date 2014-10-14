@@ -11,17 +11,17 @@
   MvccLogEntrySerializationStrategy mvccLog=mock(MvccLogEntrySerializationStrategy.class);
   when(mvccLog.load(scope,entity.getId(),entity.getVersion(),2)).thenReturn(logEntries);
   UniqueValueSerializationStrategy uvstrat=mock(UniqueValueSerializationStrategy.class);
-  UniqueValue uv1=new UniqueValueImpl(scope,entity.getField("name"),entity.getId(),entity.getVersion());
-  UniqueValue uv2=new UniqueValueImpl(scope,entity.getField("identifier"),entity.getId(),entity.getVersion());
+  UniqueValue uv1=new UniqueValueImpl(entity.getField("name"),entity.getId(),entity.getVersion());
+  UniqueValue uv2=new UniqueValueImpl(entity.getField("identifier"),entity.getId(),entity.getVersion());
   MutationBatch mb=mock(MutationBatch.class);
-  when(uvstrat.delete(uv1)).thenReturn(mb);
-  when(uvstrat.delete(uv2)).thenReturn(mb);
+  when(uvstrat.delete(scope,uv1)).thenReturn(mb);
+  when(uvstrat.delete(scope,uv2)).thenReturn(mb);
   final MvccEntity mvccEntity=fromEntity(entity);
   boolean conflictDetected=false;
   WriteOptimisticVerify newStage=new WriteOptimisticVerify(mvccLog);
   RollbackAction rollbackAction=new RollbackAction(mvccLog,uvstrat);
   try {
-    newStage.call(new CollectionIoEvent<MvccEntity>(scope,mvccEntity));
+    newStage.call(new CollectionIoEvent<>(scope,mvccEntity));
   }
  catch (  WriteOptimisticVerifyException e) {
     log.info("Error",e);
@@ -29,6 +29,6 @@
     rollbackAction.call(e);
   }
   assertTrue(conflictDetected);
-  verify(uvstrat,times(1)).delete(uv1);
-  verify(uvstrat,times(1)).delete(uv2);
+  verify(uvstrat,times(1)).delete(scope,uv1);
+  verify(uvstrat,times(1)).delete(scope,uv2);
 }

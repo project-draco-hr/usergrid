@@ -1,0 +1,17 @@
+{
+  EntityManager em=getEntityManager(SYSTEM_APP_ID);
+  try {
+    if (em.getApplication() == null) {
+      logger.info("Creating system application");
+      Map sysAppProps=new HashMap<String,Object>();
+      sysAppProps.put(PROPERTY_NAME,"systemapp");
+      em.create(SYSTEM_APP_ID,TYPE_APPLICATION,sysAppProps);
+      em.createIndex();
+      em.getApplication();
+      em.refreshIndex();
+    }
+  }
+ catch (  Exception ex) {
+    throw new RuntimeException("Fatal error creating system application",ex);
+  }
+}

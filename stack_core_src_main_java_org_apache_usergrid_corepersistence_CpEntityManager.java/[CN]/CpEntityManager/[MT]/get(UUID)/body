@@ -1,6 +1,18 @@
 {
-  Query q=Query.fromQL("select * where " + PROPERTY_UUID + " = '"+ id.toString()+ "'");
-  q.setResultsLevel(Level.ALL_PROPERTIES);
-  Results r=getRelationManager(getApplication()).searchConnectedEntities(q);
-  return r.getEntity();
+  MapManager mm=getMapManagerForTypes();
+  String entityType=mm.getString(uuid.toString());
+  final Entity entity;
+  if (entityType == null) {
+    Query q=Query.fromQL("select * where " + PROPERTY_UUID + " = '"+ uuid.toString()+ "'");
+    q.setResultsLevel(Level.ALL_PROPERTIES);
+    Results r=getRelationManager(getApplication()).searchConnectedEntities(q);
+    entity=r.getEntity();
+    if (entity != null) {
+      mm.putString(uuid.toString(),entity.getType());
+    }
+  }
+ else {
+    entity=get(new SimpleEntityRef(entityType,uuid));
+  }
+  return entity;
 }

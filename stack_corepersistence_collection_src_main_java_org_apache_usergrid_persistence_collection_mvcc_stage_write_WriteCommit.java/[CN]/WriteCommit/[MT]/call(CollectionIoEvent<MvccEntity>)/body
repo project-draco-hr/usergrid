@@ -6,15 +6,15 @@
   final CollectionScope collectionScope=ioEvent.getEntityCollection();
   EntityUtils.setVersion(mvccEntity.getEntity().get(),version);
   MvccValidationUtils.verifyMvccEntityWithEntity(ioEvent.getEvent());
-  ValidationUtils.verifyTimeUuid(ioEvent.getEvent().getVersion(),"version");
+  ValidationUtils.verifyTimeUuid(version,"version");
   final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,Stage.COMMITTED,MvccLogEntry.State.COMPLETE);
   MutationBatch logMutation=logEntryStrat.write(collectionScope,startEntry);
   MutationBatch entityMutation=entityStrat.write(collectionScope,mvccEntity);
   logMutation.mergeShallow(entityMutation);
   for (  Field field : mvccEntity.getEntity().get().getFields()) {
     if (field.isUnique()) {
-      UniqueValue written=new UniqueValueImpl(ioEvent.getEntityCollection(),field,mvccEntity.getEntity().get().getId(),mvccEntity.getEntity().get().getVersion());
-      MutationBatch mb=uniqueValueStrat.write(written);
+      UniqueValue written=new UniqueValueImpl(field,entityId,version);
+      MutationBatch mb=uniqueValueStrat.write(collectionScope,written);
       LOG.debug("Finalizing {} unqiue value {}",field.getName(),field.getValue().toString());
       logMutation.mergeShallow(mb);
     }

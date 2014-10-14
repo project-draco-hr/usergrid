@@ -12,6 +12,7 @@
   payloads.put(notifier.getName().toString(),payload);
   app.put("payloads",payloads);
   app.put("queued",System.currentTimeMillis());
+  app.put("debug",true);
   Entity e=app.testRequest(ServiceAction.POST,1,"notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
   Notification notification=app.getEm().get(e.getUuid(),Notification.class);
@@ -20,7 +21,6 @@
   query.addEqualityFilter("state",Notification.State.STARTED.toString());
   Results results=app.getEm().searchCollection(app.getEm().getApplicationRef(),"notifications",query);
   Entity entity=results.getEntitiesMap().get(notification.getUuid());
-  assertNotNull(entity);
   notification=scheduleNotificationAndWait(notification);
   app.getEm().refreshIndex();
   query=new Query();

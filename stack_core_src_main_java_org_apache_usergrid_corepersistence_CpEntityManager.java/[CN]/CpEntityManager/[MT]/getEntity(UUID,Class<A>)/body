@@ -1,8 +1,8 @@
 {
   String type=Schema.getDefaultSchema().getEntityType(entityClass);
   Id id=new SimpleId(entityId,type);
-  String collectionName=getCollectionScopeNameFromEntityType(type);
-  CollectionScope collectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),collectionName);
+  String collectionName=CpNamingUtils.getCollectionScopeNameFromEntityType(type);
+  CollectionScope collectionScope=new CollectionScopeImpl(getApplicationScope().getApplication(),getApplicationScope().getApplication(),collectionName);
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(id).toBlocking().last();
   if (cpEntity == null) {

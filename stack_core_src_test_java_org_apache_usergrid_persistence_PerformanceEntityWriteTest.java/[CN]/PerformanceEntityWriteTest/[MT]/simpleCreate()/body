@@ -1,0 +1,18 @@
+{
+  final EntityManager em=app.getEntityManager();
+  final long stopTime=System.currentTimeMillis() + RUNTIME;
+  final Map<String,Object> addToCollectionEntity=new HashMap<>();
+  addToCollectionEntity.put("key1",1000);
+  addToCollectionEntity.put("key2",2000);
+  addToCollectionEntity.put("key3","Some value");
+  int i=0;
+  final String meterName=this.getClass().getSimpleName() + ".simpleCreate";
+  final Meter meter=registry.meter(meterName);
+  while (System.currentTimeMillis() < stopTime) {
+    addToCollectionEntity.put("key",i);
+    final Entity created=em.create("testType",addToCollectionEntity);
+    meter.mark();
+    i++;
+  }
+  registry.remove(meterName);
+}

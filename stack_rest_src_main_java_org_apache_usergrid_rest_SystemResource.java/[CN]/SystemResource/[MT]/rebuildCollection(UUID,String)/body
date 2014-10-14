@@ -1,0 +1,11 @@
+{
+  EntityManagerFactory.ProgressObserver po=new EntityManagerFactory.ProgressObserver(){
+    @Override public void onProgress(    EntityRef s,    EntityRef t,    String etype){
+      logger.info("Indexing from {}:{} to {}:{} edgeType {}",new Object[]{s.getType(),s.getUuid(),t.getType(),t.getUuid(),etype});
+    }
+  }
+;
+  logger.info("Reindexing for app id: {} and collection {}",applicationId,collectionName);
+  emf.rebuildCollectionIndex(applicationId,collectionName,po);
+  emf.refreshIndex();
+}

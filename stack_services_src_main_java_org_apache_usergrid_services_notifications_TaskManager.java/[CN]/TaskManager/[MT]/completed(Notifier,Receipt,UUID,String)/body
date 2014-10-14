@@ -1,17 +1,14 @@
 {
   LOG.debug("REMOVED {}",deviceUUID);
   try {
+    LOG.debug("notification {} removing device {} from remaining",notification.getUuid(),deviceUUID);
     EntityRef deviceRef=new SimpleEntityRef(Device.ENTITY_TYPE,deviceUUID);
     if (receipt != null) {
       LOG.debug("notification {} sent to device {}. saving receipt.",notification.getUuid(),deviceUUID);
-      successes.incrementAndGet();
       receipt.setSent(System.currentTimeMillis());
-      this.saveReceipt(notification,deviceRef,receipt);
+      this.saveReceipt(notification,deviceRef,receipt,false);
       LOG.debug("notification {} receipt saved for device {}",notification.getUuid(),deviceUUID);
-    }
-    if (remaining.containsKey(deviceUUID)) {
-      LOG.debug("notification {} removing device {} from remaining",notification.getUuid(),deviceUUID);
-      qm.commitTransaction(path,remaining.get(deviceUUID).getTransaction(),null);
+      successes.incrementAndGet();
     }
     if (newProviderId != null) {
       LOG.debug("notification {} replacing device {} notifierId",notification.getUuid(),deviceUUID);
@@ -21,13 +18,8 @@
   }
   finally {
     LOG.debug("COUNT is: {}",successes.get());
-    remaining.remove(deviceUUID);
-    if (remaining.size() == 0) {
-      long successesCopy=successes.get();
-      long failuresCopy=failures.get();
-      if (successesCopy > 0 || failuresCopy > 0 || skips.get() > 0) {
-        ns.finishedBatch(notification,successesCopy,failuresCopy);
-      }
+    if (hasFinished) {
+      finishedBatch();
     }
   }
 }

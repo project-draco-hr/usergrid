@@ -1,5 +1,6 @@
 {
   Id appId=new SimpleId("application");
+  ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
   CollectionScope muffinScope=new CollectionScopeImpl(appId,appId,"muffins");
   Entity muffin=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),muffinScope.getName()));
   muffin=EntityIndexMapUtils.fromMap(muffin,new HashMap<String,Object>(){
@@ -22,11 +23,12 @@
   EntityUtils.setVersion(person,UUIDGenerator.newTimeUUID());
   assertNotNull(person.getId());
   assertNotNull(person.getId().getUuid());
-  IndexScope scope=new IndexScopeImpl(appId,person.getId(),"likes");
-  EntityIndex personLikesIndex=ecif.createEntityIndex(scope);
-  personLikesIndex.index(muffin);
-  personLikesIndex.refresh();
-  CandidateResults likes=personLikesIndex.search(Query.fromQL("select *"));
+  IndexScope scope=new IndexScopeImpl(person.getId(),"likes");
+  EntityIndex personLikesIndex=ecif.createEntityIndex(applicationScope);
+  EntityIndexBatch batch=personLikesIndex.createBatch();
+  batch.index(scope,muffin);
+  batch.executeAndRefresh();
+  CandidateResults likes=personLikesIndex.search(scope,Query.fromQL("select *"));
   assertEquals(1,likes.size());
   assertEquals(muffin.getId(),likes.get(0).getId());
 }

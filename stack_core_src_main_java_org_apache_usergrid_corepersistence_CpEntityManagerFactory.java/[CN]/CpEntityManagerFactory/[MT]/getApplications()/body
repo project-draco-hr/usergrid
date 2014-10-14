@@ -1,14 +1,21 @@
 {
-  Query q=Query.fromQL("select *");
-  EntityCollectionManager em=getManagerCache().getEntityCollectionManager(SYSTEM_APP_SCOPE);
-  EntityIndex ei=getManagerCache().getEntityIndex(SYSTEM_APPS_INDEX_SCOPE);
-  CandidateResults results=ei.search(q);
   Map<String,UUID> appMap=new HashMap<String,UUID>();
-  Iterator<CandidateResult> iter=results.iterator();
+  ApplicationScope appScope=getApplicationScope(SYSTEM_APP_ID);
+  GraphManager gm=managerCache.getGraphManager(appScope);
+  EntityManager em=getEntityManager(SYSTEM_APP_ID);
+  Application app=em.getApplication();
+  Id fromEntityId=new SimpleId(app.getUuid(),app.getType());
+  String edgeType=CpNamingUtils.getEdgeTypeFromCollectionName("appinfos");
+  logger.debug("getApplications(): Loading edges of edgeType {} from {}:{}",new Object[]{edgeType,fromEntityId.getType(),fromEntityId.getUuid()});
+  Observable<Edge> edges=gm.loadEdgesFromSource(new SimpleSearchByEdgeType(fromEntityId,edgeType,Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING,null));
+  Iterator<Edge> iter=edges.toBlockingObservable().getIterator();
   while (iter.hasNext()) {
-    CandidateResult cr=iter.next();
-    Entity e=em.load(cr.getId()).toBlockingObservable().last();
-    appMap.put((String)e.getField(PROPERTY_NAME).getValue(),(UUID)e.getField(PROPERTY_UUID).getValue());
+    Edge edge=iter.next();
+    Id targetId=edge.getTargetNode();
+    logger.debug("getApplications(): Processing edge from {}:{} to {}:{}",new Object[]{edge.getSourceNode().getType(),edge.getSourceNode().getUuid(),edge.getTargetNode().getType(),edge.getTargetNode().getUuid()});
+    CollectionScope collScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),CpNamingUtils.getCollectionScopeNameFromCollectionName("appinfos"));
+    org.apache.usergrid.persistence.model.entity.Entity e=managerCache.getEntityCollectionManager(collScope).load(targetId).toBlockingObservable().lastOrDefault(null);
+    appMap.put((String)e.getField(PROPERTY_NAME).getValue(),(UUID)e.getField("applicationUuid").getValue());
   }
   return appMap;
 }

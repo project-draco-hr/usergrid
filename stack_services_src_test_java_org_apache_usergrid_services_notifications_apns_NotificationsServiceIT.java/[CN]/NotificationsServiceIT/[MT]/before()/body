@@ -1,7 +1,7 @@
 {
   super.before();
   app.clear();
-  app.put("name","apNs");
+  app.put("name",notifierName);
   app.put("provider",PROVIDER);
   app.put("environment",USE_REAL_CONNECTIONS ? "development" : "mock");
   InputStream fis=getClass().getClassLoader().getResourceAsStream("pushtest_dev_recent.p12");
@@ -23,6 +23,9 @@
   app.put("name","device2");
   e=app.testRequest(ServiceAction.POST,1,"devices").getEntity();
   device2=app.getEm().get(e.getUuid(),Device.class);
+  Map<String,Object> props=app.getEm().getProperties(e);
+  assertEquals(device2.getProperty(notifierKey),PUSH_TOKEN);
+  app.getEm().refreshIndex();
   user1=new User();
   user1.setUsername("user1");
   user1.setEmail("user1@usergrid.org");
@@ -34,13 +37,17 @@
   group1=app.getEm().create(group1);
   app.getEm().createConnection(group1,"users",user1);
   ns=getNotificationService();
+  TestQueueManager qm=new TestQueueManager();
+  ns.TEST_QUEUE_MANAGER=qm;
   Query query=new Query();
   query.setLimit(100);
   query.setCollection("devices");
   query.setResultsLevel(Query.Level.ALL_PROPERTIES);
   PathQuery pathQuery=new PathQuery(new SimpleEntityRef(app.getEm().getApplicationRef()),query);
   ns.TEST_PATH_QUERY=pathQuery;
-  ApplicationQueueManager.QUEUE_NAME="notifications/test/" + UUID.randomUUID().toString();
+  app.getEm().refreshIndex();
   listener=new QueueListener(ns.getServiceManagerFactory(),ns.getEntityManagerFactory(),ns.getMetricsFactory(),new Properties());
-  listener.run();
+  listener.TEST_QUEUE_MANAGER=qm;
+  listener.DEFAULT_SLEEP=200;
+  listener.start();
 }

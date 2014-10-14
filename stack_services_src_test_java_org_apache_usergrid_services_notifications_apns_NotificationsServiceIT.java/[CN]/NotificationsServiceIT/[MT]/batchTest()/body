@@ -1,7 +1,7 @@
 {
   final int NUM_DEVICES=50;
-  int oldBatchSize=ApplicationQueueManager.BATCH_SIZE;
-  ApplicationQueueManager.BATCH_SIZE=10;
+  int oldBatchSize=listener.getBatchSize();
+  listener.setBatchSize(10);
   app.clear();
   app.put("name",UUID.randomUUID().toString());
   app.put("provider","noop");
@@ -23,6 +23,7 @@
   payloads.put(notifier.getUuid().toString(),payload);
   app.put("payloads",payloads);
   app.put("queued",System.currentTimeMillis());
+  app.put("debug",true);
   entity=app.testRequest(ServiceAction.POST,1,"notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",entity.getUuid());
   app.getEm().refreshIndex();
@@ -31,8 +32,7 @@
     scheduleNotificationAndWait(notification);
   }
   finally {
-    ApplicationQueueManager.BATCH_SIZE=oldBatchSize;
+    listener.setBatchSize(oldBatchSize);
   }
   checkReceipts(notification,NUM_DEVICES);
-  checkStatistics(notification,NUM_DEVICES,0);
 }

@@ -4,6 +4,7 @@
       put("username","bart");
       put("employer","Brawndo");
       put("email","bart@personal-email.example.com");
+      put("location",geolocation);
     }
   }
 ;
@@ -12,16 +13,46 @@
   String uuid=userNode.withArray("entities").get(0).get("uuid").asText();
   assertNotNull(uuid);
   refreshIndex("test-organization","test-app");
-  Map<String,Object> updateProperties=new LinkedHashMap<String,Object>(){
+  Map<String,Object> updateProperties=new LinkedHashMap<String,Object>();
+  for (int i=1; i < 10; i++) {
+    geolocation.put("latitude",latitude+=0.00001);
+    geolocation.put("longitude",longitude+=0.00001);
+    updateProperties.put("employer","Initech");
+    updateProperties.put("location",geolocation);
+    try {
+      JsonNode updatedNode=mapper.readTree(resource().path("/test-organization/test-app/user/" + uuid).queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).put(String.class,updateProperties));
+      assertNotNull(updatedNode);
+    }
+ catch (    UniformInterfaceException uie) {
+      fail("Update failed due to: " + uie.getResponse().getEntity(String.class));
+    }
+    refreshIndex("test-organization","test-app");
+    userNode=mapper.readTree(resource().path("/test-organization/test-app/users/" + uuid).queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).get(String.class));
+    log.info(userNode.toString());
+    assertNotNull(userNode);
+    assertEquals("Initech",userNode.withArray("entities").get(0).get("employer").asText());
+    assertNotNull(userNode.withArray("entities").get(0).get("location"));
+    assertNotNull(userNode.withArray("entities").get(0).get("location").get("latitude"));
+    assertNotNull(userNode.withArray("entities").get(0).get("location").get("longitude"));
+    assertNotSame(latitude,userNode.withArray("entities").get(0).get("location").get("latitude").asDouble());
+    assertNotSame(longitude,userNode.withArray("entities").get(0).get("location").get("longitude").asDouble());
+  }
+  updateProperties=new LinkedHashMap<String,Object>(){
 {
-      put("employer","Initech");
+      put("employer","ACME Corporation");
     }
   }
 ;
-  try {
-    JsonNode updatedNode=mapper.readTree(resource().path("/test-organization/test-app/user/" + uuid).queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).put(String.class,updateProperties));
-  }
- catch (  UniformInterfaceException uie) {
-    fail("Update failed due to: " + uie.getResponse().getEntity(String.class));
+  for (int i=1; i < 10; i++) {
+    try {
+      mapper.readTree(resource().path("/test-organization/test-app/users/bart").queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).put(String.class,updateProperties));
+    }
+ catch (    UniformInterfaceException uie) {
+      fail("Update failed due to: " + uie.getResponse().getEntity(String.class));
+    }
+    refreshIndex("test-organization","test-app");
+    userNode=mapper.readTree(resource().path("/test-organization/test-app/users/bart").queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).get(String.class));
+    assertNotNull(userNode);
+    assertEquals("ACME Corporation",userNode.withArray("entities").get(0).get("employer").asText());
   }
 }

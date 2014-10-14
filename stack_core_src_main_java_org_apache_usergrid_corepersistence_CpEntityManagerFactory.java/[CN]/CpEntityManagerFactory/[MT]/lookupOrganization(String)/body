@@ -1,9 +1,13 @@
 {
-  Query q=Query.fromQL(PROPERTY_NAME + " = '" + name+ "'");
-  EntityIndex ei=getManagerCache().getEntityIndex(SYSTEM_ORGS_INDEX_SCOPE);
-  CandidateResults results=ei.search(q);
-  if (results.isEmpty()) {
+  init();
+  EntityManager em=getEntityManager(SYSTEM_APP_ID);
+  final EntityRef alias=em.getAlias("organizations",name);
+  if (alias == null) {
     return null;
   }
-  return results.iterator().next().getId().getUuid();
+  final Entity entity=em.get(alias);
+  if (entity == null) {
+    return null;
+  }
+  return entity.getUuid();
 }

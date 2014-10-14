@@ -2,13 +2,15 @@
   super.init(info);
   smf=getApplicationContext().getBean(ServiceManagerFactory.class);
   emf=getApplicationContext().getBean(EntityManagerFactory.class);
+  Properties props=(Properties)getApplicationContext().getBean("properties");
   metricsService=getApplicationContext().getBean(MetricsFactory.class);
-  sendMeter=metricsService.getMeter(NotificationsService.class,"send");
   postMeter=metricsService.getMeter(NotificationsService.class,"requests");
   postTimer=metricsService.getTimer(this.getClass(),"execution_rest");
-  queueSize=metricsService.getHistogram(NotificationsService.class,"queue_size");
-  outstandingQueue=metricsService.getCounter(NotificationsService.class,"current_queue");
   JobScheduler jobScheduler=new JobScheduler(sm,em);
-  notificationQueueManager=new ApplicationQueueManager(jobScheduler,em,smf.getServiceManager(smf.getManagementAppId()).getQueueManager(),metricsService);
+  String name=ApplicationQueueManager.getQueueNames(props);
+  QueueScope queueScope=new QueueScopeImpl(new SimpleId(smf.getManagementAppId(),ApplicationQueueManager.QUEUE_PREFIX),name);
+  queueManagerFactory=CpSetup.getInjector().getInstance(QueueManagerFactory.class);
+  QueueManager queueManager=TEST_QUEUE_MANAGER != null ? TEST_QUEUE_MANAGER : queueManagerFactory.getQueueManager(queueScope);
+  notificationQueueManager=new ApplicationQueueManager(jobScheduler,em,queueManager,metricsService,props);
   gracePeriod=jobScheduler.SCHEDULER_GRACE_PERIOD;
 }
