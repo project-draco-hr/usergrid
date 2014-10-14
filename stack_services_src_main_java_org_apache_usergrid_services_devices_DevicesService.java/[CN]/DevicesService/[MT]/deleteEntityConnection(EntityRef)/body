@@ -3,23 +3,24 @@
     return;
   }
   try {
-    List<ConnectionRef> connections=new ArrayList<ConnectionRef>();
-    List<ConnectionRef> refs=em.getConnectedEntities(entityRef,"devices","users",Query.Level.IDS).getConnections();
-    if (refs != null) {
-      connections.addAll(refs);
-    }
-    refs=em.getConnectingEntities(entityRef,"users","devices",Query.Level.IDS).getConnections();
-    if (refs != null) {
-      connections.addAll(refs);
-    }
-    for (    ConnectionRef connectionRef : connections) {
-      try {
-        em.deleteConnection(connectionRef);
+    Results entities=em.getCollection(entityRef,"users",null,100,Query.Level.REFS,false);
+    Observable.from(entities.getEntities()).map(new Func1<Entity,Entity>(){
+      @Override public Entity call(      Entity user){
+        try {
+          Results devicesResults=em.getCollection(user,"devices",null,100,Query.Level.REFS,false);
+          List<Entity> devices=devicesResults.getEntities();
+          for (          EntityRef device : devices) {
+            em.removeFromCollection(user,"devices",device);
+          }
+          em.removeFromCollection(entityRef,"users",user);
+        }
+ catch (        Exception e) {
+          logger.error("Failed to delete connection " + user.toString(),e);
+        }
+        return user;
       }
- catch (      Exception e) {
-        logger.error("Failed to delete connection " + connectionRef.toString(),e);
-      }
     }
+).toBlocking().lastOrDefault(null);
   }
  catch (  Exception e) {
     logger.error("failed to get connection",e);
