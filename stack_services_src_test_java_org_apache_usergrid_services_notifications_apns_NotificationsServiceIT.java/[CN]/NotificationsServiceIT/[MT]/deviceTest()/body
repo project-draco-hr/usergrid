@@ -1,0 +1,12 @@
+{
+  app.clear();
+  Entity e=app.testRequest(ServiceAction.POST,1,"users",user2.getUuid(),"devices",device1.getUuid()).getEntity();
+  app.clear();
+  e=app.testRequest(ServiceAction.POST,1,"users",user1.getUuid(),"devices",device1.getUuid()).getEntity();
+  app.clear();
+  e=app.testRequest(ServiceAction.POST,1,"users",user1.getUuid(),"devices",device2.getUuid()).getEntity();
+  List device1Users=app.getEm().getCollection(device1,"users",null,100,Query.Level.REFS,false).getEntities();
+  assertEquals(device1Users.size(),1);
+  List user1Devices=app.getEm().getCollection(user1,"devices",null,100,Query.Level.REFS,false).getEntities();
+  assertEquals(user1Devices.size(),2);
+}
