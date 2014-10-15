@@ -2,7 +2,7 @@
   app.clear();
   app.put("username","asdf");
   app.put("email","asdf@adsf.com");
-  Entity user=app.testRequest(ServiceAction.POST,1,"users").getEntity();
+  User user=(User)app.testRequest(ServiceAction.POST,1,"users").getEntity();
   assertNotNull(user);
   Entity device=app.testRequest(ServiceAction.POST,1,"users",user.getUuid(),"devices",device1.getUuid()).getEntity();
   assertEquals(device.getUuid(),device1.getUuid());
@@ -12,7 +12,7 @@
   app.put("payloads",payloads);
   app.put("queued",System.currentTimeMillis());
   app.put("debug",true);
-  Entity e=app.testRequest(ServiceAction.POST,1,"users","asdf","notifications").getEntity();
+  Entity e=app.testRequest(ServiceAction.POST,1,"users",user.getUuid(),"notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
   app.getEm().refreshIndex();
   Notification notification=app.getEm().get(e.getUuid(),Notification.class);
