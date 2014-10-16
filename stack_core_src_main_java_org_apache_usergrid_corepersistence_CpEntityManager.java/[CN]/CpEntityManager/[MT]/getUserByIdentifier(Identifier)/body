@@ -11,20 +11,12 @@
     return this.getAlias(new SimpleEntityRef(Application.ENTITY_TYPE,applicationId),"user",identifier.getName());
   }
   if (identifier.isEmail()) {
-    Query query=new Query();
-    query.setEntityType("user");
-    query.addEqualityFilter("email",identifier.getEmail());
-    query.setLimit(1);
-    query.setResultsLevel(REFS);
-    Results r=getRelationManager(ref(Application.ENTITY_TYPE,applicationId)).searchCollection("users",query);
-    if (r != null && r.getRef() != null) {
-      logger.debug("Got entity ref!");
-      return r.getRef();
+    final Iterable<EntityRef> emailProperty=getEntityRefsForUniqueProperty(Schema.defaultCollectionName("user"),"email",identifier.getEmail());
+    for (    EntityRef firstRef : emailProperty) {
+      return firstRef;
     }
- else {
-      logger.debug("return alias");
-      return this.getAlias(new SimpleEntityRef(Application.ENTITY_TYPE,applicationId),"user",identifier.getEmail());
-    }
+    logger.debug("return alias");
+    return this.getAlias(new SimpleEntityRef(Application.ENTITY_TYPE,applicationId),"user",identifier.getEmail());
   }
   return null;
 }

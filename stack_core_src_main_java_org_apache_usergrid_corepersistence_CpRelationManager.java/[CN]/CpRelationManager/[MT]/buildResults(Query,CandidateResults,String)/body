@@ -1,6 +1,8 @@
 {
   logger.debug("buildResults() for {} from {} candidates",collName,crs.size());
-  final Results results=this.resultsLoaderFactory.getLoader(applicationScope,this.headEntity,query.getResultsLevel()).getResults(crs);
+  final ResultsLoader resultsLoader=this.resultsLoaderFactory.getLoader(applicationScope,this.headEntity,query.getResultsLevel());
+  final Results results=resultsLoader.loadResults(crs);
+  resultsLoader.postProcess();
   results.setCursor(crs.getCursor());
   results.setQueryProcessor(new CpQueryProcessor(em,query,headEntity,collName));
   logger.debug("Returning results size {}",results.size());
