@@ -1,0 +1,37 @@
+{
+  if (deviceRef == null) {
+    return;
+  }
+  try {
+    Results entities=em.getCollection(deviceRef,"users",null,100,Query.Level.REFS,false);
+    Observable.from(entities.getEntities()).map(new Func1<Entity,Boolean>(){
+      @Override public Boolean call(      Entity user){
+        boolean removed=false;
+        try {
+          if (!user.getUuid().equals(owner.getUuid())) {
+            Results devicesResults=em.getCollection(user,"devices",null,100,Query.Level.REFS,false);
+            List<Entity> userDevices=devicesResults.getEntities();
+            for (            EntityRef userDevice : userDevices) {
+              if (userDevice.getUuid().equals(deviceRef.getUuid())) {
+                em.removeFromCollection(user,"devices",userDevice);
+              }
+            }
+            em.removeFromCollection(deviceRef,"users",user);
+            removed=true;
+          }
+ else {
+            removed=false;
+          }
+        }
+ catch (        Exception e) {
+          logger.error("Failed to delete connection " + user.toString(),e);
+        }
+        return removed;
+      }
+    }
+).toBlocking().lastOrDefault(null);
+  }
+ catch (  Exception e) {
+    logger.error("failed to get connection",e);
+  }
+}
