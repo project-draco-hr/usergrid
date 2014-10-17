@@ -80,17 +80,22 @@
   final Meter meter=registry.meter(meterName);
   EntityManagerFactory.ProgressObserver po=new EntityManagerFactory.ProgressObserver(){
     int counter=0;
-    @Override public void onProgress(    EntityRef s,    EntityRef t,    String etype){
+    @Override public void onProgress(    final EntityRef entity){
       meter.mark();
-      if (!logger.isDebugEnabled() && counter % 10 == 0) {
+      logger.debug("Indexing {}:{}",entity.getType(),entity.getUuid());
+      if (!logger.isDebugEnabled() && counter % 100 == 0) {
         logger.info("Reindexed {} entities",counter);
       }
       counter++;
+    }
+    @Override public long getWriteDelayTime(){
+      return 0;
     }
   }
 ;
   try {
     setup.getEmf().rebuildAllIndexes(po);
+    reporter.report();
     registry.remove(meterName);
     logger.info("Rebuilt index");
   }
