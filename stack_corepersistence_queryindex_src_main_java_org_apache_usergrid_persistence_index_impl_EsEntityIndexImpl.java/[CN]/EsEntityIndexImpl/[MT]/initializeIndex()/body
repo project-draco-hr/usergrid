@@ -5,12 +5,8 @@
     }
     AdminClient admin=client.admin();
     CreateIndexResponse cir=admin.indices().prepareCreate(indexName).execute().actionGet();
-    log.debug("Created new Index Name [{}] ACK=[{}]",indexName,cir.isAcknowledged());
-    RefreshResponse response;
-    do {
-      response=admin.indices().prepareRefresh(indexName).execute().actionGet();
-    }
- while (response.getFailedShards() != 0);
+    log.info("Created new Index Name [{}] ACK=[{}]",indexName,cir.isAcknowledged());
+    testNewIndex();
   }
  catch (  IndexAlreadyExistsException expected) {
   }
