@@ -1,0 +1,23 @@
+{
+  Preconditions.checkNotNull(value,"value is required");
+  Preconditions.checkNotNull(timeToLive,"timeToLive is required");
+  final Id entityId=value.getEntityId();
+  final UUID entityVersion=value.getEntityVersion();
+  ValidationUtils.verifyIdentity(entityId);
+  ValidationUtils.verifyVersion(entityVersion);
+  log.debug("Writing unique value scope={} id={} version={} name={} value={} ttl={} ",new Object[]{scope.getName(),entityId,entityVersion,value.getField().getName(),value.getField().getValue(),timeToLive});
+  final EntityVersion ev=new EntityVersion(value.getEntityId(),value.getEntityVersion());
+  final Integer ttl;
+  if (timeToLive.equals(Integer.MAX_VALUE)) {
+    ttl=null;
+  }
+ else {
+    ttl=timeToLive;
+  }
+  return doWrite(scope,value.getField(),new UniqueValueSerializationStrategyImpl.RowOp(){
+    @Override public void doOp(    final ColumnListMutation<EntityVersion> colMutation){
+      colMutation.putColumn(ev,0x0,ttl);
+    }
+  }
+);
+}

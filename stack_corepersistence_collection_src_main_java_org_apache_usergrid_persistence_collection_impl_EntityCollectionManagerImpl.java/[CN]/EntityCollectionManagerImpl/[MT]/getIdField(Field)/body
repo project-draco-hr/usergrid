@@ -1,0 +1,18 @@
+{
+  final List<Field> fields=Collections.singletonList(field);
+  return rx.Observable.from(fields).map(new Func1<Field,Id>(){
+    @Override public Id call(    Field field){
+      try {
+        UniqueValueSet set=uniqueValueSerializationStrategy.load(collectionScope,fields);
+        UniqueValue value=set.getValue(field.getName());
+        Id id=value == null ? null : value.getEntityId();
+        return id;
+      }
+ catch (      ConnectionException e) {
+        log.error("Failed to getIdField",e);
+        throw new RuntimeException(e);
+      }
+    }
+  }
+);
+}

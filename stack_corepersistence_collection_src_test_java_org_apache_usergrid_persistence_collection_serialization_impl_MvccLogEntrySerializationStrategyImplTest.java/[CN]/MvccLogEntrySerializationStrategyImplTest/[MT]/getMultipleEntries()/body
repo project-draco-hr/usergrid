@@ -3,7 +3,7 @@
   final Id applicationId=new SimpleId("application");
   final String name="test";
   CollectionScope context=new CollectionScopeImpl(organizationId,applicationId,name);
-  final SimpleId id=new SimpleId("test");
+  final Id id=new SimpleId("test");
   int count=10;
   final UUID[] versions=new UUID[count];
   final Stage COMPLETE=Stage.COMPLETE;
@@ -12,7 +12,7 @@
     versions[i]=UUIDGenerator.newTimeUUID();
     entries[i]=new MvccLogEntryImpl(id,versions[i],COMPLETE,MvccLogEntry.State.COMPLETE);
     logEntryStrategy.write(context,entries[i]).execute();
-    MvccLogEntry returned=logEntryStrategy.load(context,id,versions[i]);
+    MvccLogEntry returned=logEntryStrategy.load(context,Collections.singleton(id),versions[i]).getMaxVersion(id);
     assertNotNull("Returned value should not be null",returned);
     assertEquals("Returned should equal the saved",entries[i],returned);
   }

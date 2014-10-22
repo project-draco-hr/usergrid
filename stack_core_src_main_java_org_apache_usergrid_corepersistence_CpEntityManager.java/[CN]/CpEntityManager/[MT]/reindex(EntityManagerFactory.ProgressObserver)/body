@@ -1,5 +1,18 @@
 {
-  Stack stack=new Stack();
-  stack.push(getApplication());
-  indexEntityConnectionsAndCollections(getApplication(),po,stack);
+  CpWalker walker=new CpWalker(po.getWriteDelayTime());
+  walker.walkCollections(this,application,new CpVisitor(){
+    @Override public void visitCollectionEntry(    EntityManager em,    String collName,    Entity entity){
+      try {
+        em.update(entity);
+        po.onProgress(entity);
+      }
+ catch (      WriteOptimisticVerifyException wo) {
+        logger.warn("Someone beat us to updating entity {} in collection {}.  Ignoring.",entity.getName(),collName);
+      }
+catch (      Exception ex) {
+        logger.error("Error repersisting entity",ex);
+      }
+    }
+  }
+);
 }

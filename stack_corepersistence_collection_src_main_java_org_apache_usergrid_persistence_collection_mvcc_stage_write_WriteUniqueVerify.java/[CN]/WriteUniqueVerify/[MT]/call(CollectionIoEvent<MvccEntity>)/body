@@ -1,53 +1,49 @@
 {
   MvccValidationUtils.verifyMvccEntityWithEntity(ioevent.getEvent());
   final MvccEntity mvccEntity=ioevent.getEvent();
+  final Id entityId=mvccEntity.getId();
+  final UUID entityVersion=mvccEntity.getVersion();
   final Entity entity=mvccEntity.getEntity().get();
-  final List<Observable<FieldUniquenessResult>> fields=new ArrayList<Observable<FieldUniquenessResult>>();
-  for (  final Field field : entity.getFields()) {
+  final CollectionScope scope=ioevent.getEntityCollection();
+  final Collection<Field> entityFields=entity.getFields();
+  final List<Field> uniqueFields=new ArrayList<>(entityFields.size());
+  final MutationBatch batch=keyspace.prepareMutationBatch();
+  for (  final Field field : entityFields) {
     if (field.isUnique()) {
-      Observable<FieldUniquenessResult> result=Observable.from(field).subscribeOn(Schedulers.io()).map(new Func1<Field,FieldUniquenessResult>(){
-        @Override public FieldUniquenessResult call(        Field field){
-          UniqueValue written=new UniqueValueImpl(ioevent.getEntityCollection(),field,entity.getId(),mvccEntity.getVersion());
-          MutationBatch mb=uniqueValueStrat.write(written,serializationFig.getTimeout());
-          try {
-            mb.execute();
-          }
- catch (          ConnectionException ex) {
-            throw new RuntimeException("Unable to write to cassandra",ex);
-          }
-          UniqueValue loaded;
-          try {
-            loaded=uniqueValueStrat.load(ioevent.getEntityCollection(),field);
-          }
- catch (          ConnectionException ex) {
-            throw new RuntimeException("Unable to read from cassandra",ex);
-          }
-          return new FieldUniquenessResult(field,loaded.getEntityId().equals(written.getEntityId()));
-        }
-      }
-);
-      fields.add(result);
+      final UniqueValue written=new UniqueValueImpl(field,entityId,entityVersion);
+      final MutationBatch mb=uniqueValueStrat.write(scope,written,serializationFig.getTimeout());
+      batch.mergeShallow(mb);
+      uniqueFields.add(field);
     }
   }
-  if (fields.size() == 0) {
-    return Observable.from(ioevent);
+  if (uniqueFields.size() == 0) {
+    return;
   }
-  final FuncN<CollectionIoEvent<MvccEntity>> zipFunction=new FuncN<CollectionIoEvent<MvccEntity>>(){
-    @Override public CollectionIoEvent<MvccEntity> call(    final Object... args){
-      Map<String,Field> uniquenessVioloations=new HashMap<String,Field>();
-      for (      Object resultObj : args) {
-        FieldUniquenessResult result=(FieldUniquenessResult)resultObj;
-        if (!result.isUnique()) {
-          Field field=result.getField();
-          uniquenessVioloations.put(field.getName(),field);
-        }
-      }
-      if (!uniquenessVioloations.isEmpty()) {
-        throw new WriteUniqueVerifyException(mvccEntity,ioevent.getEntityCollection(),uniquenessVioloations);
-      }
-      return ioevent;
+  try {
+    batch.execute();
+  }
+ catch (  ConnectionException ex) {
+    throw new RuntimeException("Unable to write to cassandra",ex);
+  }
+  final UniqueValueSet uniqueValues;
+  try {
+    uniqueValues=uniqueValueStrat.load(scope,uniqueFields);
+  }
+ catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to read from cassandra",e);
+  }
+  final Map<String,Field> uniquenessViolations=new HashMap<>(uniqueFields.size());
+  for (  final Field field : uniqueFields) {
+    final UniqueValue uniqueValue=uniqueValues.getValue(field.getName());
+    if (uniqueValue == null) {
+      throw new RuntimeException(String.format("Could not retrieve unique value for field %s, unable to verify",field.getName()));
+    }
+    final Id returnedEntityId=uniqueValue.getEntityId();
+    if (!entityId.equals(returnedEntityId)) {
+      uniquenessViolations.put(field.getName(),field);
     }
   }
-;
-  return Observable.zip(fields,zipFunction);
+  if (!uniquenessViolations.isEmpty()) {
+    throw new WriteUniqueVerifyException(mvccEntity,ioevent.getEntityCollection(),uniquenessViolations);
+  }
 }

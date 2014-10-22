@@ -27,7 +27,8 @@
   payloads.put(notifier2.getUuid().toString(),payload);
   app.put("payloads",payloads);
   app.put("queued",System.currentTimeMillis());
-  e=app.testRequest(ServiceAction.POST,1,"notifications").getEntity();
+  app.put("debug",true);
+  e=app.testRequest(ServiceAction.POST,1,"devices",device1.getUuid(),"notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
   app.getEm().refreshIndex();
   Notification notification=app.getEm().get(e.getUuid(),Notification.class);
@@ -36,5 +37,5 @@
   app.getEm().refreshIndex();
   notification=scheduleNotificationAndWait(notification);
   app.getEm().refreshIndex();
-  checkReceipts(notification,2);
+  checkReceipts(notification,1);
 }

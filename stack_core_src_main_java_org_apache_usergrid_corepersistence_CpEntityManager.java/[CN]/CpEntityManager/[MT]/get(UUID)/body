@@ -1,7 +1,5 @@
 {
-  Id mapOwner=new SimpleId(applicationId,TYPE_APPLICATION);
-  MapScope ms=new MapScopeImpl(mapOwner,TYPES_BY_UUID_MAP);
-  MapManager mm=managerCache.getMapManager(ms);
+  MapManager mm=getMapManagerForTypes();
   String entityType=mm.getString(uuid.toString());
   final Entity entity;
   if (entityType == null) {
@@ -9,7 +7,9 @@
     q.setResultsLevel(Level.ALL_PROPERTIES);
     Results r=getRelationManager(getApplication()).searchConnectedEntities(q);
     entity=r.getEntity();
-    mm.putString(uuid.toString(),entity.getType());
+    if (entity != null) {
+      mm.putString(uuid.toString(),entity.getType());
+    }
   }
  else {
     entity=get(new SimpleEntityRef(entityType,uuid));
