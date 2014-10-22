@@ -10,14 +10,14 @@
     }
     this.hasFinished=true;
     if (fetch)     notification=em.get(this.notification.getUuid(),Notification.class);
-    notification.setModified(System.currentTimeMillis());
     Map<String,Long> stats=new HashMap<>(2);
     stats.put("sent",successes);
     stats.put("errors",failures);
     notification.updateStatistics(successes,failures);
     long totals=(notification.getStatistics().get("sent") + notification.getStatistics().get("errors"));
-    Map<String,Object> properties=new HashMap<>();
+    notification.setModified(System.currentTimeMillis());
     notification.setFinished(notification.getModified());
+    Map<String,Object> properties=new HashMap<>();
     properties.put("finished",notification.getModified());
     properties.put("state",notification.getState());
     notification.addProperties(properties);
