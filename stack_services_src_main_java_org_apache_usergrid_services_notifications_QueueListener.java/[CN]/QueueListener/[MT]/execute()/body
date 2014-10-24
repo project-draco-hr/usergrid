@@ -17,6 +17,7 @@
       List<QueueMessage> messages=queueManager.getMessages(getBatchSize(),MESSAGE_TRANSACTION_TIMEOUT,5000,ApplicationQueueMessage.class);
       LOG.info("retrieved batch of {} messages from queue {} ",messages.size(),queueName);
       if (messages.size() > 0) {
+        Map<UUID,ApplicationQueueManager> queueManagerMap=new ConcurrentHashMap<>();
         HashMap<UUID,List<QueueMessage>> messageMap=new HashMap<>(messages.size());
         for (        QueueMessage message : messages) {
           ApplicationQueueMessage queueMessage=(ApplicationQueueMessage)message.getBody();
@@ -36,7 +37,11 @@
           UUID applicationId=entry.getKey();
           EntityManager entityManager=emf.getEntityManager(applicationId);
           ServiceManager serviceManager=smf.getServiceManager(applicationId);
-          final ApplicationQueueManager manager=new ApplicationQueueManager(new JobScheduler(serviceManager,entityManager),entityManager,queueManager,metricsService,properties);
+          ApplicationQueueManager manager=queueManagerMap.get(applicationId);
+          if (manager == null) {
+            manager=new ApplicationQueueManager(new JobScheduler(serviceManager,entityManager),entityManager,queueManager,metricsService,properties);
+            queueManagerMap.put(applicationId,manager);
+          }
           LOG.info("send batch for app {} of {} messages",entry.getKey(),entry.getValue().size());
           Observable current=manager.sendBatchToProviders(entry.getValue(),queueName);
           if (merge == null)           merge=current;
@@ -48,6 +53,9 @@
           merge.toBlocking().lastOrDefault(null);
         }
         queueManager.commitMessages(messages);
+        for (        ApplicationQueueManager applicationQueueManager : queueManagerMap.values()) {
+          applicationQueueManager.asyncCheckForInactiveDevices();
+        }
         meter.mark(messages.size());
         LOG.info("sent batch {} messages duration {} ms",messages.size(),System.currentTimeMillis() - now);
         if (sleepBetweenRuns > 0) {

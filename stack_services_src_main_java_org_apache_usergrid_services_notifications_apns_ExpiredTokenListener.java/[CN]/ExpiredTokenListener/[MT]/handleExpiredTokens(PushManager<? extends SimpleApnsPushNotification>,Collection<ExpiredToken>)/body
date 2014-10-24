@@ -1,0 +1,12 @@
+{
+  Map<String,Date> inactiveDeviceMap=new HashMap<>();
+  for (  ExpiredToken token : expiredTokens) {
+    String expiredToken=new String(token.getToken());
+    inactiveDeviceMap.put(expiredToken,token.getExpiration());
+  }
+  if (pushManager instanceof EntityPushManager) {
+    EntityPushManager entityPushManager=(EntityPushManager)pushManager;
+    InactiveDeviceManager inactiveDeviceManager=new InactiveDeviceManager(entityPushManager.getNotifier());
+    inactiveDeviceManager.removeInactiveDevices(inactiveDeviceMap);
+  }
+}

@@ -1,0 +1,16 @@
+{
+  Collection<Notifier> notifiers=getNotifierMap().values();
+  for (  final Notifier notifier : notifiers) {
+    try {
+      ProviderAdapter providerAdapter=providerAdapters.get(notifier.getProvider());
+      if (providerAdapter != null) {
+        LOG.debug("checking notifier {} for inactive devices",notifier);
+        providerAdapter.removeInactiveDevices(notifier,em);
+        LOG.debug("finished checking notifier {} for inactive devices",notifier);
+      }
+    }
+ catch (    Exception e) {
+      LOG.error("checkForInactiveDevices",e);
+    }
+  }
+}
