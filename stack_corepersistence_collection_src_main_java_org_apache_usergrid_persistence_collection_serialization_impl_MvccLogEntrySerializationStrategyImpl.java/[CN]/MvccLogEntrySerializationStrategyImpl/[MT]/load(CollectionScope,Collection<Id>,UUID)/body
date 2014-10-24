@@ -4,11 +4,16 @@
   Preconditions.checkArgument(entityIds.size() > 0,"You must specify an Id");
   Preconditions.checkNotNull(maxVersion,"maxVersion is required");
   Preconditions.checkArgument(entityIds.size() <= fig.getMaxLoadSize(),"requested size cannot be over configured maximum");
-  final List<ScopedRowKey<CollectionScope,Id>> rowKeys=new ArrayList<>(entityIds.size());
+  final Id applicationId=collectionScope.getApplication();
+  final Id ownerId=collectionScope.getOwner();
+  final String collectionName=collectionScope.getName();
+  final List<ScopedRowKey<CollectionPrefixedKey<Id>>> rowKeys=new ArrayList<>(entityIds.size());
   for (  final Id entityId : entityIds) {
-    rowKeys.add(ScopedRowKey.fromKey(collectionScope,entityId));
+    final CollectionPrefixedKey<Id> collectionPrefixedKey=new CollectionPrefixedKey<>(collectionName,ownerId,entityId);
+    final ScopedRowKey<CollectionPrefixedKey<Id>> rowKey=ScopedRowKey.fromKey(applicationId,collectionPrefixedKey);
+    rowKeys.add(rowKey);
   }
-  final Iterator<Row<ScopedRowKey<CollectionScope,Id>,UUID>> latestEntityColumns;
+  final Iterator<Row<ScopedRowKey<CollectionPrefixedKey<Id>>,UUID>> latestEntityColumns;
   try {
     latestEntityColumns=keyspace.prepareQuery(CF_ENTITY_LOG).getKeySlice(rowKeys).withColumnRange(maxVersion,null,false,1).execute().getResult().iterator();
   }
@@ -17,12 +22,12 @@
   }
   final VersionSetImpl versionResults=new VersionSetImpl(entityIds.size());
   while (latestEntityColumns.hasNext()) {
-    final Row<ScopedRowKey<CollectionScope,Id>,UUID> row=latestEntityColumns.next();
+    final Row<ScopedRowKey<CollectionPrefixedKey<Id>>,UUID> row=latestEntityColumns.next();
     final ColumnList<UUID> columns=row.getColumns();
     if (columns.size() == 0) {
       continue;
     }
-    final Id entityId=row.getKey().getKey();
+    final Id entityId=row.getKey().getKey().getSubKey();
     final Column<UUID> column=columns.getColumnByIndex(0);
     final UUID version=column.getName();
     final StageStatus stageStatus=column.getValue(SER);

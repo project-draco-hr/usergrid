@@ -1,8 +1,9 @@
 {
   final MutationBatch batch=keyspace.prepareMutationBatch();
-  final ScopedRowKey<ApplicationScope,MapEntryKey> entryRowKey=MapEntryKey.fromKey(scope,key);
+  final ScopedRowKey<MapEntryKey> entryRowKey=MapEntryKey.fromKey(scope,key);
   batch.withRow(MAP_ENTRIES,entryRowKey).delete();
-  final ScopedRowKey<ApplicationScope,String> keyRowKey=ScopedRowKey.fromKey((ApplicationScope)scope,key);
-  batch.withRow(MAP_KEYS,keyRowKey).delete();
+  final int bucket=BUCKET_LOCATOR.getBucket(key);
+  final BucketScopedRowKey<String> rowKey=BucketScopedRowKey.fromKey(scope.getApplication(),key,bucket);
+  batch.withRow(MAP_KEYS,rowKey).deleteColumn(key);
   executeBatch(batch);
 }
