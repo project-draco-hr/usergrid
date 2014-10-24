@@ -9,7 +9,7 @@
   com.codahale.metrics.Timer timer=metricsService.getTimer(QueueListener.class,"dequeue");
   svcMgr=smf.getServiceManager(smf.getManagementAppId());
   LOG.info("getting from queue {} ",queueName);
-  QueueScope queueScope=new QueueScopeImpl(new SimpleId(smf.getManagementAppId(),ApplicationQueueManager.QUEUE_PREFIX),queueName);
+  QueueScope queueScope=queueScopeFactory.getScope(smf.getManagementAppId(),queueName);
   QueueManager queueManager=TEST_QUEUE_MANAGER != null ? TEST_QUEUE_MANAGER : queueManagerFactory.getQueueManager(queueScope);
   while (true) {
     try {
