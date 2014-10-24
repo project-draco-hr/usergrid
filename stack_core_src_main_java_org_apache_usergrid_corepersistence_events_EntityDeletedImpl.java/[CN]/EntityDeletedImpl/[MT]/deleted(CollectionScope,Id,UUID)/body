@@ -1,37 +1,8 @@
 {
   logger.debug("Entering deleted for entity {}:{} v {} " + "scope\n   name: {}\n   owner: {}\n   app: {}",new Object[]{entityId.getType(),entityId.getUuid(),version,scope.getName(),scope.getOwner(),scope.getApplication()});
   CpEntityManagerFactory emf=(CpEntityManagerFactory)CpSetup.getInjector().getInstance(EntityManagerFactory.class);
-  CpEntityManager em=(CpEntityManager)emf.getEntityManager(scope.getOwner().getUuid());
-  EntityCollectionManager ecm=emf.getManagerCache().getEntityCollectionManager(scope);
-  org.apache.usergrid.persistence.model.entity.Entity entity=ecm.load(entityId).toBlocking().last();
-  SimpleEntityRef entityRef=new SimpleEntityRef(entityId.getType(),entityId.getUuid());
-  if (entity != null) {
-    RelationManager rm=em.getRelationManager(entityRef);
-    Map<String,Map<UUID,Set<String>>> owners=null;
-    try {
-      owners=rm.getOwners();
-      logger.debug("Deleting indexes of all {} collections owning the entity {}:{}",new Object[]{owners.keySet().size(),entityId.getType(),entityId.getUuid()});
-      final EntityIndex ei=emf.getManagerCache().getEntityIndex(scope);
-      final EntityIndexBatch batch=ei.createBatch();
-      for (      String ownerType : owners.keySet()) {
-        Map<UUID,Set<String>> collectionsByUuid=owners.get(ownerType);
-        for (        UUID uuid : collectionsByUuid.keySet()) {
-          Set<String> collectionNames=collectionsByUuid.get(uuid);
-          for (          String coll : collectionNames) {
-            IndexScope indexScope=new IndexScopeImpl(new SimpleId(uuid,ownerType),CpNamingUtils.getCollectionScopeNameFromCollectionName(coll));
-            batch.index(indexScope,entity);
-          }
-        }
-      }
-      IndexScope defaultIndexScope=new IndexScopeImpl(scope.getApplication(),CpNamingUtils.getCollectionScopeNameFromEntityType(entityRef.getType()));
-      batch.deindex(defaultIndexScope,entity);
-      IndexScope allTypesIndexScope=new IndexScopeImpl(scope.getApplication(),CpNamingUtils.ALL_TYPES);
-      batch.deindex(allTypesIndexScope,entity);
-      batch.execute();
-    }
- catch (    Exception e) {
-      logger.error("Cannot deindex from owners of entity {}:{}",entityId.getType(),entityId.getUuid());
-      logger.error("The exception",e);
-    }
-  }
+  final EntityIndex ei=emf.getManagerCache().getEntityIndex(scope);
+  EntityIndexBatch batch=ei.createBatch();
+  batch.deleteEntity(entityId);
+  batch.execute();
 }

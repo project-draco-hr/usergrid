@@ -1,12 +1,12 @@
 {
   IndexValidationUtils.validateIndexScope(indexScope);
   final String indexType=createCollectionScopeTypeName(indexScope);
-  if (log.isDebugEnabled()) {
-    log.debug("De-indexing entity {}:{} in scope\n   app {}\n   owner {}\n   " + "name {} type {}",new Object[]{id.getType(),id.getUuid(),applicationScope.getApplication(),indexScope.getOwner(),indexScope.getName(),indexType});
+  if (logger.isDebugEnabled()) {
+    logger.debug("De-indexing entity {}:{} in scope\n   app {}\n   owner {}\n   " + "name {} type {}",new Object[]{id.getType(),id.getUuid(),applicationScope.getApplication(),indexScope.getOwner(),indexScope.getName(),indexType});
   }
   String indexId=createIndexDocId(id,version);
   bulkRequest.add(client.prepareDelete(indexName,indexType,indexId).setRefresh(refresh));
-  log.debug("Deindexed Entity with index id " + indexId);
+  logger.debug("Deindexed Entity with index id " + indexId);
   maybeFlush();
   return this;
 }
