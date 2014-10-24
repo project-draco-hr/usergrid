@@ -11,13 +11,15 @@
   LOG.info("getting from queue {} ",queueName);
   QueueScope queueScope=queueScopeFactory.getScope(smf.getManagementAppId(),queueName);
   QueueManager queueManager=TEST_QUEUE_MANAGER != null ? TEST_QUEUE_MANAGER : queueManagerFactory.getQueueManager(queueScope);
+  long runCount=0;
+  Map<UUID,ApplicationQueueManager> queueManagerMap=new ConcurrentHashMap<>();
   while (true) {
     try {
       Timer.Context timerContext=timer.time();
       List<QueueMessage> messages=queueManager.getMessages(getBatchSize(),MESSAGE_TRANSACTION_TIMEOUT,5000,ApplicationQueueMessage.class);
       LOG.info("retrieved batch of {} messages from queue {} ",messages.size(),queueName);
       if (messages.size() > 0) {
-        Map<UUID,ApplicationQueueManager> queueManagerMap=new ConcurrentHashMap<>();
+        runCount++;
         HashMap<UUID,List<QueueMessage>> messageMap=new HashMap<>(messages.size());
         for (        QueueMessage message : messages) {
           ApplicationQueueMessage queueMessage=(ApplicationQueueMessage)message.getBody();
@@ -53,14 +55,18 @@
           merge.toBlocking().lastOrDefault(null);
         }
         queueManager.commitMessages(messages);
-        for (        ApplicationQueueManager applicationQueueManager : queueManagerMap.values()) {
-          applicationQueueManager.asyncCheckForInactiveDevices();
-        }
         meter.mark(messages.size());
         LOG.info("sent batch {} messages duration {} ms",messages.size(),System.currentTimeMillis() - now);
         if (sleepBetweenRuns > 0) {
           LOG.info("sleep between rounds...sleep...{}",sleepBetweenRuns);
           Thread.sleep(sleepBetweenRuns);
+        }
+        if (runCount % 100 == 0) {
+          for (          ApplicationQueueManager applicationQueueManager : queueManagerMap.values()) {
+            applicationQueueManager.asyncCheckForInactiveDevices();
+          }
+          queueManagerMap.clear();
+          runCount=0;
         }
       }
  else {
