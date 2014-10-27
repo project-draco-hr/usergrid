@@ -19,7 +19,6 @@
       List<QueueMessage> messages=queueManager.getMessages(getBatchSize(),MESSAGE_TRANSACTION_TIMEOUT,5000,ApplicationQueueMessage.class);
       LOG.info("retrieved batch of {} messages from queue {} ",messages.size(),queueName);
       if (messages.size() > 0) {
-        runCount++;
         HashMap<UUID,List<QueueMessage>> messageMap=new HashMap<>(messages.size());
         for (        QueueMessage message : messages) {
           ApplicationQueueMessage queueMessage=(ApplicationQueueMessage)message.getBody();
@@ -61,9 +60,14 @@
           LOG.info("sleep between rounds...sleep...{}",sleepBetweenRuns);
           Thread.sleep(sleepBetweenRuns);
         }
-        if (runCount % 100 == 0) {
+        if (runCount++ % consecutiveCallsToRemoveDevices == 0) {
           for (          ApplicationQueueManager applicationQueueManager : queueManagerMap.values()) {
-            applicationQueueManager.asyncCheckForInactiveDevices();
+            try {
+              applicationQueueManager.asyncCheckForInactiveDevices();
+            }
+ catch (            Exception inactiveDeviceException) {
+              LOG.error("Inactive Device Get failed",inactiveDeviceException);
+            }
           }
           queueManagerMap.clear();
           runCount=0;
