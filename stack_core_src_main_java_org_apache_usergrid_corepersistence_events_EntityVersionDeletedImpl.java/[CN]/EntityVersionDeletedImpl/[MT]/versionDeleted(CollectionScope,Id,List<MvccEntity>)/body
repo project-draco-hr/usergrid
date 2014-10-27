@@ -1,14 +1,15 @@
 {
-  CpEntityManagerFactory emf=(CpEntityManagerFactory)CpSetup.getInjector().getInstance(EntityManagerFactory.class);
-  final EntityIndex ei=emf.getManagerCache().getEntityIndex(scope);
-  final EntityIndexBatch entityIndexBatch=ei.createBatch();
+  HybridEntityManagerFactory hemf=(HybridEntityManagerFactory)CpSetup.getEntityManagerFactory();
+  CpEntityManagerFactory cpemf=(CpEntityManagerFactory)hemf.getImplementation();
+  final EntityIndex ei=cpemf.getManagerCache().getEntityIndex(scope);
+  final EntityIndexBatch eibatch=ei.createBatch();
   final IndexScope indexScope=new IndexScopeImpl(new SimpleId(scope.getOwner().getUuid(),scope.getOwner().getType()),scope.getName());
   rx.Observable.from(entityVersions).subscribeOn(Schedulers.io()).buffer(serializationFig.getBufferSize()).map(new Func1<List<MvccEntity>,List<MvccEntity>>(){
     @Override public List<MvccEntity> call(    List<MvccEntity> entityList){
       for (      MvccEntity entity : entityList) {
-        entityIndexBatch.deindex(indexScope,entityId,entity.getVersion());
+        eibatch.deindex(indexScope,entityId,entity.getVersion());
       }
-      entityIndexBatch.execute();
+      eibatch.execute();
       return entityList;
     }
   }

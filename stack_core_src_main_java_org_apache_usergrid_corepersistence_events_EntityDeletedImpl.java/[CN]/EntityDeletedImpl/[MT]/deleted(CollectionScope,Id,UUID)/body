@@ -1,7 +1,8 @@
 {
   logger.debug("Entering deleted for entity {}:{} v {} " + "scope\n   name: {}\n   owner: {}\n   app: {}",new Object[]{entityId.getType(),entityId.getUuid(),version,scope.getName(),scope.getOwner(),scope.getApplication()});
-  CpEntityManagerFactory emf=(CpEntityManagerFactory)CpSetup.getInjector().getInstance(EntityManagerFactory.class);
-  final EntityIndex ei=emf.getManagerCache().getEntityIndex(scope);
+  HybridEntityManagerFactory hemf=(HybridEntityManagerFactory)CpSetup.getEntityManagerFactory();
+  CpEntityManagerFactory cpemf=(CpEntityManagerFactory)hemf.getImplementation();
+  final EntityIndex ei=cpemf.getManagerCache().getEntityIndex(scope);
   EntityIndexBatch batch=ei.createBatch();
   batch.deleteEntity(entityId);
   batch.execute();
