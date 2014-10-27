@@ -4,10 +4,10 @@
     return;
   }
   if (listenerSize == 1) {
-    listeners.get(0).versionDeleted(scope,entityId,versions);
+    listeners.iterator().next().versionDeleted(scope,entityId,versions);
     return;
   }
-  LOG.debug("Started firing {} listeners",listenerSize);
+  logger.debug("Started firing {} listeners",listenerSize);
   Observable.from(listeners).parallel(new Func1<Observable<EntityVersionDeleted>,Observable<EntityVersionDeleted>>(){
     @Override public Observable<EntityVersionDeleted> call(    final Observable<EntityVersionDeleted> entityVersionDeletedObservable){
       return entityVersionDeletedObservable.doOnNext(new Action1<EntityVersionDeleted>(){
@@ -19,5 +19,5 @@
     }
   }
 ,Schedulers.io()).toBlocking().last();
-  LOG.debug("Finished firing {} listeners",listenerSize);
+  logger.debug("Finished firing {} listeners",listenerSize);
 }
