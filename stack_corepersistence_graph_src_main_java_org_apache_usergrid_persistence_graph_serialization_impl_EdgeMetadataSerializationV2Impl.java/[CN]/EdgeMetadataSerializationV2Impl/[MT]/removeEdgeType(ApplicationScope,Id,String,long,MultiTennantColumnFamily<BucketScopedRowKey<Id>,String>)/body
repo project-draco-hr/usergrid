@@ -1,0 +1,7 @@
+{
+  final int currentShard=idExpandingShardLocator.getCurrentBucket(rowKeyId);
+  final BucketScopedRowKey<Id> rowKey=BucketScopedRowKey.fromKey(scope.getApplication(),rowKeyId,currentShard);
+  final MutationBatch batch=keyspace.prepareMutationBatch().withTimestamp(version);
+  batch.withRow(cf,rowKey).deleteColumn(edgeType);
+  return batch;
+}

@@ -1,0 +1,15 @@
+{
+  final TreeSet<T> mergedResults=new TreeSet<>(comparator);
+  for (  final R key : result.getKeys()) {
+    final ColumnList<C> columns=result.getRow(key).getColumns();
+    for (    final Column<C> column : columns) {
+      final T returnedValue=columnParser.parseColumn(column);
+      mergedResults.add(returnedValue);
+      while (mergedResults.size() > maxSize) {
+        mergedResults.pollLast();
+      }
+    }
+    LOG.trace("Candidate result set size is {}",mergedResults.size());
+  }
+  return mergedResults.iterator();
+}

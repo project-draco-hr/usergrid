@@ -1,0 +1,8 @@
+{
+  final EdgeIdTypeKey edgeIdTypeKey=new EdgeIdTypeKey(rowId,edgeType);
+  final int currentShard=edgeTypeExpandingShardLocator.getCurrentBucket(edgeIdTypeKey);
+  final MutationBatch batch=keyspace.prepareMutationBatch().withTimestamp(version);
+  final BucketScopedRowKey<EdgeIdTypeKey> rowKey=BucketScopedRowKey.fromKey(scope.getApplication(),edgeIdTypeKey,currentShard);
+  batch.withRow(cf,rowKey).deleteColumn(idType);
+  return batch;
+}

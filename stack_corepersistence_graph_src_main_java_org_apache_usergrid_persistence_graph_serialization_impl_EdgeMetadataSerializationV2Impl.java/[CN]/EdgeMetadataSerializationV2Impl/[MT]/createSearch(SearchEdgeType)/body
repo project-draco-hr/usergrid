@@ -1,0 +1,23 @@
+{
+  return new ColumnSearch<String>(){
+    @Override public void buildRange(    final RangeBuilder rangeBuilder,    final String value){
+      rangeBuilder.setLimit(graphFig.getScanPageSize());
+      if (value != null) {
+        rangeBuilder.setStart(value);
+      }
+ else       if (search.getLast().isPresent()) {
+        rangeBuilder.setStart(search.getLast().get());
+      }
+ else       if (search.prefix().isPresent()) {
+        rangeBuilder.setStart(search.prefix().get());
+      }
+      if (search.prefix().isPresent()) {
+        rangeBuilder.setEnd(search.prefix().get() + "\uffff");
+      }
+    }
+    @Override public void buildRange(    final RangeBuilder rangeBuilder){
+      buildRange(rangeBuilder,null);
+    }
+  }
+;
+}
