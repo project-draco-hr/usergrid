@@ -5,7 +5,7 @@
   final Id searchNode=search.getNode();
   final EdgeIdTypeKey edgeIdTypeKey=new EdgeIdTypeKey(searchNode,search.getEdgeType());
   final int[] bucketIds=edgeTypeExpandingShardLocator.getAllBuckets(edgeIdTypeKey);
-  final List<BucketScopedRowKey<Id>> buckets=BucketScopedRowKey.fromRange(applicationId,searchNode,bucketIds);
+  final List<BucketScopedRowKey<EdgeIdTypeKey>> buckets=BucketScopedRowKey.fromRange(applicationId,edgeIdTypeKey,bucketIds);
   final ColumnSearch<String> columnSearch=createSearch(search);
   return new MultiRowColumnIterator(keyspace,cf,cassandraConfig.getReadCL(),PARSER,columnSearch,STRING_COMPARATOR,buckets,graphFig.getScanPageSize());
 }
