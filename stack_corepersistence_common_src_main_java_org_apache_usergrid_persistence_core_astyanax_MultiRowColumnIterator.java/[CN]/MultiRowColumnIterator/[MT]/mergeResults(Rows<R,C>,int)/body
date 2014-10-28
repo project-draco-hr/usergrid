@@ -1,15 +1,23 @@
 {
-  final TreeSet<T> mergedResults=new TreeSet<>(comparator);
+  final List<T> mergedResults=new ArrayList<>(maxSize);
   for (  final R key : result.getKeys()) {
     final ColumnList<C> columns=result.getRow(key).getColumns();
     for (    final Column<C> column : columns) {
       final T returnedValue=columnParser.parseColumn(column);
-      mergedResults.add(returnedValue);
+      int searchIndex=Collections.binarySearch(mergedResults,returnedValue,comparator);
+      if (searchIndex > -1) {
+        continue;
+      }
+      final int insertIndex=(searchIndex + 1) * -1;
+      if (insertIndex >= maxSize) {
+        continue;
+      }
+      mergedResults.add(insertIndex,returnedValue);
       while (mergedResults.size() > maxSize) {
-        mergedResults.pollLast();
+        mergedResults.remove(mergedResults.size() - 1);
       }
     }
     LOG.trace("Candidate result set size is {}",mergedResults.size());
   }
-  return mergedResults.iterator();
+  return mergedResults;
 }

@@ -1,5 +1,4 @@
 {
-  this.lastReturnCount=0;
   final boolean skipFirstColumn=startColumn != null;
   final int selectSize=skipFirstColumn ? pageSize + 1 : pageSize;
   final RangeBuilder rangeBuilder=new RangeBuilder();
@@ -12,20 +11,24 @@
   rangeBuilder.setLimit(selectSize);
   final RowSliceQuery<R,C> query=keyspace.prepareQuery(cf).setConsistencyLevel(consistencyLevel).getKeySlice(rowKeys).withColumnRange(rangeBuilder.build());
   final Rows<R,C> result=HystrixCassandra.user(query).getResult();
-  final Iterator<T> mergedResults;
+  final List<T> mergedResults;
   if (containsSingleRowOnly(result)) {
     mergedResults=singleRowResult(result);
   }
  else {
     mergedResults=mergeResults(result,selectSize);
   }
-  PushbackIterator<T> iterator=new PushbackIterator<>(mergedResults);
-  if (skipFirstColumn && iterator.hasNext()) {
-    final T firstResult=iterator.next();
-    if (comparator.compare(startColumn,firstResult) != 0) {
-      iterator.pushback(firstResult);
+  final int size=mergedResults.size();
+  moreToReturn=size == selectSize;
+  if (size > 0) {
+    final T firstResult=mergedResults.get(0);
+    if (columnSearch.skipFirst(firstResult) || (skipFirstColumn && comparator.compare(startColumn,firstResult) == 0)) {
+      mergedResults.remove(0);
     }
   }
-  currentColumnIterator=iterator;
+  if (moreToReturn && mergedResults.size() > 0) {
+    startColumn=mergedResults.get(mergedResults.size() - 1);
+  }
+  currentColumnIterator=mergedResults.iterator();
   LOG.trace("Finished parsing {} rows for results",rowKeys.size());
 }

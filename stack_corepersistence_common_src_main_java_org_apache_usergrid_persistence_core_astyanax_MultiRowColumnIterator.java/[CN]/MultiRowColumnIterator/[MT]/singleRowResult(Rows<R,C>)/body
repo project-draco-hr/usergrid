@@ -1,9 +1,14 @@
 {
   for (  R key : result.getKeys()) {
     final ColumnList<C> columnList=result.getRow(key).getColumns();
-    if (columnList.size() > 0) {
-      return new SingleRowIterator(columnList);
+    final int size=columnList.size();
+    if (size > 0) {
+      final List<T> results=new ArrayList<>(size);
+      for (      Column<C> column : columnList) {
+        results.add(columnParser.parseColumn(column));
+      }
+      return results;
     }
   }
-  return Collections.<T>emptyList().iterator();
+  return Collections.<T>emptyList();
 }
