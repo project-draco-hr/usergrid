@@ -1,7 +1,14 @@
 {
-  ids.add(id);
-  trackers.add(tracker);
-  if (ids.size() == BATCH_SIZE) {
-    send();
+synchronized (this) {
+    if (!ids.contains(id)) {
+      ids.add(id);
+      trackers.add(tracker);
+      if (ids.size() == BATCH_SIZE) {
+        send();
+      }
+    }
+ else {
+      tracker.completed();
+    }
   }
 }
