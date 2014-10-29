@@ -1,8 +1,8 @@
 {
   LOG.info("sending batch of {} notifications.",messages.size());
   final Meter sendMeter=metricsFactory.getMeter(NotificationsService.class,"send");
-  final Map<Object,ProviderAdapter> notifierMap=getNotifierMap();
-  final ApplicationQueueManager proxy=this;
+  final Map<Object,ProviderAdapter> notifierMap=getAdapterMap();
+  final ApplicationQueueManagerImpl proxy=this;
   final ConcurrentHashMap<UUID,TaskManager> taskMap=new ConcurrentHashMap<UUID,TaskManager>(messages.size());
   final ConcurrentHashMap<UUID,Notification> notificationMap=new ConcurrentHashMap<UUID,Notification>(messages.size());
   final Func1<QueueMessage,ApplicationQueueMessage> func=new Func1<QueueMessage,ApplicationQueueMessage>(){
@@ -20,7 +20,7 @@
         }
         TaskManager taskManager=taskMap.get(message.getNotificationId());
         if (taskManager == null) {
-          taskManager=new TaskManager(em,proxy,notification);
+          taskManager=new TaskManager(em,notification);
           taskMap.putIfAbsent(message.getNotificationId(),taskManager);
           taskManager=taskMap.get(message.getNotificationId());
         }

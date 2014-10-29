@@ -3,7 +3,7 @@
     em.update(notification);
     return;
   }
-  final Meter queueMeter=metricsFactory.getMeter(ApplicationQueueManager.class,"queue");
+  final Meter queueMeter=metricsFactory.getMeter(ApplicationQueueManagerImpl.class,"queue");
   long startTime=System.currentTimeMillis();
   if (notification.getCanceled() == Boolean.TRUE) {
     LOG.info("notification " + notification.getUuid() + " canceled");
@@ -16,8 +16,8 @@
   final PathQuery<Device> pathQuery=notification.getPathQuery();
   final AtomicInteger deviceCount=new AtomicInteger();
   final ConcurrentLinkedQueue<String> errorMessages=new ConcurrentLinkedQueue<String>();
-  final HashMap<Object,ProviderAdapter> notifierMap=getNotifierMap();
   if (pathQuery != null) {
+    final HashMap<Object,ProviderAdapter> notifierMap=getAdapterMap();
     LOG.info("notification {} start query",notification.getUuid());
     final Iterator<Device> iterator=pathQuery.iterator(em);
     if (iterator instanceof ResultsIterator && ((ResultsIterator)iterator).hasPages() && jobExecution == null) {
@@ -110,7 +110,7 @@
   long now=System.currentTimeMillis();
   LOG.info("notification {} updated notification duration {} ms",notification.getUuid(),System.currentTimeMillis() - now);
   if (deviceCount.get() <= 0 || !notification.getDebug()) {
-    TaskManager taskManager=new TaskManager(em,this,notification);
+    TaskManager taskManager=new TaskManager(em,notification);
     taskManager.finishedBatch(false,true);
   }
  else {
