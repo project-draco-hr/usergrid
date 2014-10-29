@@ -5,7 +5,7 @@
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   EntityIndex ei=managerCache.getEntityIndex(getApplicationScope());
   Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
-  org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(entityId).toBlocking().last();
+  org.apache.usergrid.persistence.model.entity.Entity cpEntity=load(new EntityScope(collectionScope,entityId));
   cpEntity.removeField(propertyName);
   logger.debug("About to Write {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
   cpEntity=ecm.write(cpEntity).toBlockingObservable().last();

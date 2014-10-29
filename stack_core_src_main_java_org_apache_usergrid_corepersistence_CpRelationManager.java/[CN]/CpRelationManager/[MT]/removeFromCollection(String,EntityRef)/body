@@ -18,7 +18,8 @@
   if (logger.isDebugEnabled()) {
     logger.debug("Loading entity to remove from collection " + "{}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{itemRef.getType(),itemRef.getUuid(),memberScope.getApplication(),memberScope.getOwner(),memberScope.getName()});
   }
-  org.apache.usergrid.persistence.model.entity.Entity memberEntity=memberMgr.load(new SimpleId(itemRef.getUuid(),itemRef.getType())).toBlockingObservable().last();
+  Id entityId=new SimpleId(itemRef.getUuid(),itemRef.getType());
+  org.apache.usergrid.persistence.model.entity.Entity memberEntity=((CpEntityManager)em).load(new CpEntityManager.EntityScope(memberScope,entityId));
   final EntityIndex ei=managerCache.getEntityIndex(applicationScope);
   final EntityIndexBatch batch=ei.createBatch();
   IndexScope indexScope=new IndexScopeImpl(cpHeadEntity.getId(),CpNamingUtils.getCollectionScopeNameFromCollectionName(collName));
