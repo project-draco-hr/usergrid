@@ -1,0 +1,27 @@
+{
+  return CacheBuilder.newBuilder().expireAfterAccess(10,TimeUnit.MINUTES).removalListener(new RemovalListener<UUID,ApplicationQueueManager>(){
+    @Override public void onRemoval(    RemovalNotification<UUID,ApplicationQueueManager> queueManagerNotifiication){
+      try {
+        queueManagerNotifiication.getValue().stop();
+      }
+ catch (      Exception ie) {
+        LOG.error("Failed to shutdown from cache",ie);
+      }
+    }
+  }
+).build(new CacheLoader<UUID,ApplicationQueueManager>(){
+    @Override public ApplicationQueueManager load(    final UUID applicationId){
+      try {
+        EntityManager entityManager=emf.getEntityManager(applicationId);
+        ServiceManager serviceManager=smf.getServiceManager(applicationId);
+        ApplicationQueueManager manager=new ApplicationQueueManager(new JobScheduler(serviceManager,entityManager),entityManager,queueManager,metricsService,properties);
+        return manager;
+      }
+ catch (      Exception e) {
+        LOG.error("Could not instantiate queue manager",e);
+        return null;
+      }
+    }
+  }
+);
+}

@@ -16,7 +16,7 @@
   final PathQuery<Device> pathQuery=notification.getPathQuery();
   final AtomicInteger deviceCount=new AtomicInteger();
   final ConcurrentLinkedQueue<String> errorMessages=new ConcurrentLinkedQueue<String>();
-  final HashMap<Object,Notifier> notifierMap=getNotifierMap();
+  final HashMap<Object,ProviderAdapter> notifierMap=getNotifierMap();
   if (pathQuery != null) {
     LOG.info("notification {} start query",notification.getUuid());
     final Iterator<Device> iterator=pathQuery.iterator(em);
@@ -47,9 +47,9 @@
             String notifierId=null;
             String notifierKey=null;
             for (            Map.Entry<String,Object> entry : payloads.entrySet()) {
-              Notifier notifier=notifierMap.get(entry.getKey().toLowerCase());
+              ProviderAdapter adapter=notifierMap.get(entry.getKey().toLowerCase());
               now=System.currentTimeMillis();
-              String providerId=getProviderId(deviceRef,notifier);
+              String providerId=getProviderId(deviceRef,adapter.getNotifier());
               if (providerId != null) {
                 notifierId=providerId;
                 notifierKey=entry.getKey().toLowerCase();

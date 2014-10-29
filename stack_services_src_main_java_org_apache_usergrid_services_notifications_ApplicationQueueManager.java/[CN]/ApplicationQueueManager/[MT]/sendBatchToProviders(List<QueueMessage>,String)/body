@@ -1,7 +1,7 @@
 {
   LOG.info("sending batch of {} notifications.",messages.size());
   final Meter sendMeter=metricsFactory.getMeter(NotificationsService.class,"send");
-  final Map<Object,Notifier> notifierMap=getNotifierMap();
+  final Map<Object,ProviderAdapter> notifierMap=getNotifierMap();
   final ApplicationQueueManager proxy=this;
   final ConcurrentHashMap<UUID,TaskManager> taskMap=new ConcurrentHashMap<UUID,TaskManager>(messages.size());
   final ConcurrentHashMap<UUID,Notification> notificationMap=new ConcurrentHashMap<UUID,Notification>(messages.size());
@@ -29,10 +29,10 @@
         LOG.info("sending notification for device {} for Notification: {}",deviceUUID,notification.getUuid());
         try {
           String notifierName=message.getNotifierKey().toLowerCase();
-          Notifier notifier=notifierMap.get(notifierName.toLowerCase());
+          ProviderAdapter providerAdapter=notifierMap.get(notifierName.toLowerCase());
           Object payload=translatedPayloads.get(notifierName);
           Receipt receipt=new Receipt(notification.getUuid(),message.getNotifierId(),payload,deviceUUID);
-          TaskTracker tracker=new TaskTracker(notifier,taskManager,receipt,deviceUUID);
+          TaskTracker tracker=new TaskTracker(providerAdapter.getNotifier(),taskManager,receipt,deviceUUID);
           if (!isOkToSend(notification)) {
             tracker.failed(0,"Notification is duplicate/expired/cancelled.");
           }
@@ -44,8 +44,7 @@
  else {
               long now=System.currentTimeMillis();
               try {
-                ProviderAdapter providerAdapter=providerAdapters.get(notifier.getProvider());
-                providerAdapter.sendNotification(message.getNotifierId(),notifier,payload,notification,tracker);
+                providerAdapter.sendNotification(message.getNotifierId(),payload,notification,tracker);
               }
  catch (              Exception e) {
                 tracker.failed(0,e.getMessage());
@@ -83,7 +82,7 @@
   }
 ,Schedulers.io()).buffer(messages.size()).map(new Func1<List<ApplicationQueueMessage>,HashMap<UUID,ApplicationQueueMessage>>(){
     @Override public HashMap<UUID,ApplicationQueueMessage> call(    List<ApplicationQueueMessage> queueMessages){
-      for (      ProviderAdapter providerAdapter : providerAdapters.values()) {
+      for (      ProviderAdapter providerAdapter : notifierMap.values()) {
         try {
           providerAdapter.doneSendingNotifications();
         }
