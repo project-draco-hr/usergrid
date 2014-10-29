@@ -1,3 +1,9 @@
 {
-  return null;
+  if (isOldVersion()) {
+    final MutationBatch aggregateBatch=keyspace.prepareMutationBatch();
+    aggregateBatch.mergeShallow(previous.removeEdgeTypeFromSource(scope,sourceNode,type,timestamp));
+    aggregateBatch.mergeShallow(current.removeEdgeTypeFromSource(scope,sourceNode,type,timestamp));
+    return aggregateBatch;
+  }
+  return current.removeEdgeTypeFromSource(scope,sourceNode,type,timestamp);
 }
