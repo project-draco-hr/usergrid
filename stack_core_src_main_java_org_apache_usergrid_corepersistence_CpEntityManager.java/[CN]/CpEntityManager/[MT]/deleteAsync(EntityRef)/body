@@ -2,7 +2,7 @@
   CollectionScope collectionScope=new CollectionScopeImpl(getApplicationScope().getApplication(),getApplicationScope().getApplication(),CpNamingUtils.getCollectionScopeNameFromEntityType(entityRef.getType()));
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
-  org.apache.usergrid.persistence.model.entity.Entity entity=ecm.load(entityId).toBlocking().last();
+  org.apache.usergrid.persistence.model.entity.Entity entity=load(new EntityScope(collectionScope,entityId));
   if (entity != null) {
     decrementEntityCollection(Schema.defaultCollectionName(entityId.getType()));
     return ecm.delete(entityId);
