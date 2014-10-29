@@ -1,8 +1,9 @@
 {
-  if (pushManager != null && !pushManager.isStarted() && pushManager.isShutDown()) {
+  if (pushManager == null || !pushManager.isStarted() || pushManager.isShutDown()) {
     PushManagerConfiguration config=new PushManagerConfiguration();
     config.setConcurrentConnectionCount(Runtime.getRuntime().availableProcessors() * 2);
-    EntityPushManager pushManager=new EntityPushManager(notifier,entityManager,config);
+    queue=new LinkedBlockingQueue<SimpleApnsPushNotification>();
+    pushManager=new EntityPushManager(notifier,entityManager,queue,config);
     pushManager.registerRejectedNotificationListener(new RejectedAPNsListener());
     pushManager.registerFailedConnectionListener(new FailedConnectionListener());
     pushManager.registerExpiredTokenListener(new ExpiredTokenListener());
@@ -14,7 +15,6 @@
  catch (    IllegalStateException ise) {
       logger.debug("failed to start",ise);
     }
-    return pushManager;
   }
   return pushManager;
 }
