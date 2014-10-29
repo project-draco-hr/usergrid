@@ -1,0 +1,28 @@
+{
+  final String notfierPostFix=ApplicationQueueManagerImpl.NOTIFIER_ID_POSTFIX;
+  if (inactiveDeviceMap != null && inactiveDeviceMap.size() > 0) {
+    LOG.debug("processing {} inactive devices",inactiveDeviceMap.size());
+    Map<String,Object> clearPushtokenMap=new HashMap<String,Object>(2);
+    clearPushtokenMap.put(notifier.getName() + notfierPostFix,"");
+    clearPushtokenMap.put(notifier.getUuid() + notfierPostFix,"");
+    for (    Map.Entry<String,Date> entry : inactiveDeviceMap.entrySet()) {
+      try {
+        Query query=new Query();
+        query.addEqualityFilter(notifier.getName() + notfierPostFix,entry.getKey());
+        Results results=entityManager.searchCollection(entityManager.getApplication(),"devices",query);
+        for (        Entity e : results.getEntities()) {
+          entityManager.updateProperties(e,clearPushtokenMap);
+        }
+        query=new Query();
+        query.addEqualityFilter(notifier.getUuid() + notfierPostFix,entry.getKey());
+        results=entityManager.searchCollection(entityManager.getApplication(),"devices",query);
+        for (        Entity e : results.getEntities()) {
+          entityManager.updateProperties(e,clearPushtokenMap);
+        }
+      }
+ catch (      Exception e) {
+        LOG.error("failed to remove token",e);
+      }
+    }
+  }
+}
