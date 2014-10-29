@@ -1,0 +1,13 @@
+{
+  this.migrationInfoSerialization=migrationInfoSerialization;
+  for (  DataMigration migration : migrations) {
+    final int version=migration.getVersion();
+    final DataMigration existing=migrationTreeMap.get(version);
+    if (existing != null) {
+      final Class<? extends DataMigration> existingClass=existing.getClass();
+      final Class<? extends DataMigration> currentClass=migration.getClass();
+      throw new DataMigrationException(String.format("Data migrations must be unique.  Both classes %s and %s have version %d",existingClass,currentClass,version));
+    }
+    migrationTreeMap.put(version,migration);
+  }
+}
