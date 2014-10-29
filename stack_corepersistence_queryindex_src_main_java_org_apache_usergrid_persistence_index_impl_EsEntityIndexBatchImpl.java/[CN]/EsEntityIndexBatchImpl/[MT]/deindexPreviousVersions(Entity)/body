@@ -1,0 +1,7 @@
+{
+  FilteredQueryBuilder fqb=QueryBuilders.filteredQuery(QueryBuilders.termQuery(STRING_PREFIX + ENTITYID_FIELDNAME,entity.getId().getUuid().toString().toLowerCase()),FilterBuilders.rangeFilter("version").lt(entity.getId().getUuid().timestamp()));
+  DeleteByQueryResponse response=client.prepareDeleteByQuery("test").setQuery(fqb).execute().actionGet();
+  logger.debug("Deleted entity {}:{} from all index scopes with response status = {}",new Object[]{entity.getId().getType(),entity.getId().getUuid(),response.status().toString()});
+  maybeFlush();
+  return this;
+}
