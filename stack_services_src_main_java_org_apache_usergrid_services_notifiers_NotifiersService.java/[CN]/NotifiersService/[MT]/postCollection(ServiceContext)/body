@@ -1,7 +1,5 @@
 {
   ServicePayload payload=context.getPayload();
-  NotificationsService ns=(NotificationsService)sm.getService("notifications");
-  String provider=payload.getStringProperty("provider");
   ServiceResults results=super.postCollection(context);
   Notifier notifier=(Notifier)results.getEntity();
   if (notifier != null) {
@@ -11,6 +9,7 @@
         throw new IllegalArgumentException("provider must be one of: " + Arrays.toString(ProviderAdapterFactory.getValidProviders()));
       }
       providerAdapter.validateCreateNotifier(payload);
+      NotificationsService ns=(NotificationsService)sm.getService("notifications");
       ns.testConnection(notifier);
     }
  catch (    Exception e) {
