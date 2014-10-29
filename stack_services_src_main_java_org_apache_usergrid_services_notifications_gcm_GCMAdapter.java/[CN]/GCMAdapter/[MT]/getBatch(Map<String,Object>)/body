@@ -1,8 +1,9 @@
 {
-  Batch batch=notifierBatches.get(notifier);
+  long hash=MurmurHash.hash64(payload);
+  Batch batch=batches.get(hash);
   if (batch == null && payload != null) {
     batch=new Batch(notifier,payload);
-    notifierBatches.put(notifier,batch);
+    batches.put(hash,batch);
   }
   return batch;
 }
