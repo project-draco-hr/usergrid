@@ -11,6 +11,8 @@
   LOG.info("getting from queue {} ",queueName);
   QueueScope queueScope=queueScopeFactory.getScope(smf.getManagementAppId(),queueName);
   QueueManager queueManager=TEST_QUEUE_MANAGER != null ? TEST_QUEUE_MANAGER : queueManagerFactory.getQueueManager(queueScope);
+  long runCount=0;
+  LoadingCache<UUID,ApplicationQueueManager> queueManagerMap=getQueueManagerCache(queueManager);
   while (true) {
     try {
       Timer.Context timerContext=timer.time();
@@ -34,9 +36,7 @@
         Observable merge=null;
         for (        Map.Entry<UUID,List<QueueMessage>> entry : messageMap.entrySet()) {
           UUID applicationId=entry.getKey();
-          EntityManager entityManager=emf.getEntityManager(applicationId);
-          ServiceManager serviceManager=smf.getServiceManager(applicationId);
-          final ApplicationQueueManager manager=new ApplicationQueueManager(new JobScheduler(serviceManager,entityManager),entityManager,queueManager,metricsService,properties);
+          ApplicationQueueManager manager=queueManagerMap.get(applicationId);
           LOG.info("send batch for app {} of {} messages",entry.getKey(),entry.getValue().size());
           Observable current=manager.sendBatchToProviders(entry.getValue(),queueName);
           if (merge == null)           merge=current;
@@ -53,6 +53,17 @@
         if (sleepBetweenRuns > 0) {
           LOG.info("sleep between rounds...sleep...{}",sleepBetweenRuns);
           Thread.sleep(sleepBetweenRuns);
+        }
+        if (++runCount % consecutiveCallsToRemoveDevices == 0) {
+          for (          ApplicationQueueManager applicationQueueManager : queueManagerMap.asMap().values()) {
+            try {
+              applicationQueueManager.asyncCheckForInactiveDevices();
+            }
+ catch (            Exception inactiveDeviceException) {
+              LOG.error("Inactive Device Get failed",inactiveDeviceException);
+            }
+          }
+          runCount=0;
         }
       }
  else {

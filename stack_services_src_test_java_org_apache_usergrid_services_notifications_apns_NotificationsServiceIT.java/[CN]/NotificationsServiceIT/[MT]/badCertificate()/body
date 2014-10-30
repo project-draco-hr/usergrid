@@ -10,13 +10,6 @@
   Entity e=app.testRequest(ServiceAction.POST,1,"notifiers").getEntity();
   notifier=app.getEm().get(e.getUuid(),Notifier.class);
   if (!USE_REAL_CONNECTIONS) {
-    ns.providerAdapters.put("apple",new MockSuccessfulProviderAdapter(){
-      @Override public void testConnection(      Notifier notifier) throws ConnectionException {
-        Exception e=new SocketException("Connection closed by remote host");
-        throw new ConnectionException(e.getMessage(),e);
-      }
-    }
-);
   }
   app.clear();
   String payload=getPayload();
