@@ -6,7 +6,7 @@
   }
   SearchResponse searchResponse;
   if (query.getCursor() == null) {
-    SearchRequestBuilder srb=client.prepareSearch(indexName).setTypes(indexType).setScroll(cursorTimeout + "m").setQuery(qb);
+    SearchRequestBuilder srb=esProvider.getClient().prepareSearch(indexName).setTypes(indexType).setScroll(cursorTimeout + "m").setQuery(qb);
     FilterBuilder fb=query.createFilterBuilder();
     if (fb != null) {
       log.debug("   Filter: {} ",fb.toString());
@@ -34,7 +34,15 @@
       srb.addSort(booleanSort);
       log.debug("   Sort: {} order by {}",booleanFieldName,order.toString());
     }
-    searchResponse=srb.execute().actionGet();
+    try {
+      searchResponse=srb.execute().actionGet();
+    }
+ catch (    Throwable t) {
+      log.error("Unable to communicate with elasticsearch");
+      failureMonitor.fail("Unable to execute batch",t);
+      throw t;
+    }
+    failureMonitor.success();
   }
  else {
     String scrollId=query.getCursor();
@@ -45,8 +53,16 @@
       scrollId=scrollId.substring(0,scrollId.length() - 1);
     }
     log.debug("Executing query with cursor: {} ",scrollId);
-    SearchScrollRequestBuilder ssrb=client.prepareSearchScroll(scrollId).setScroll(cursorTimeout + "m");
-    searchResponse=ssrb.execute().actionGet();
+    SearchScrollRequestBuilder ssrb=esProvider.getClient().prepareSearchScroll(scrollId).setScroll(cursorTimeout + "m");
+    try {
+      searchResponse=ssrb.execute().actionGet();
+    }
+ catch (    Throwable t) {
+      log.error("Unable to communicate with elasticsearch");
+      failureMonitor.fail("Unable to execute batch",t);
+      throw t;
+    }
+    failureMonitor.success();
   }
   SearchHits hits=searchResponse.getHits();
   log.debug("   Hit count: {} Total hits: {}",hits.getHits().length,hits.getTotalHits());

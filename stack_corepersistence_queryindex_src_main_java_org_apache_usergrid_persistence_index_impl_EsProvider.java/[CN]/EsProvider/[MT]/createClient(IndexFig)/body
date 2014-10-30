@@ -1,0 +1,30 @@
+{
+  if (client != null && node != null) {
+    return;
+  }
+  String allHosts="";
+  if ("remote".equals(fig.getStartUp())) {
+    String SEP="";
+    for (    String host : fig.getHosts().split(",")) {
+      allHosts=allHosts + SEP + host+ ":"+ fig.getPort();
+      SEP=",";
+    }
+  }
+ else {
+    allHosts="localhost:" + System.getProperty(LOCAL_ES_PORT_PROPNAME);
+  }
+  String nodeName=fig.getNodeName();
+  if ("default".equals(nodeName)) {
+    try {
+      nodeName=InetAddress.getLocalHost().getHostName();
+    }
+ catch (    UnknownHostException ex) {
+      nodeName="client-" + RandomStringUtils.randomAlphabetic(8);
+      log.warn("Couldn't get hostname to use as ES node name, using " + nodeName);
+    }
+  }
+  Settings settings=ImmutableSettings.settingsBuilder().put("cluster.name",fig.getClusterName()).put("discovery.zen.ping.unicast.hosts",allHosts).put("discovery.zen.ping.multicast.enabled","false").put("http.enabled",false).put("client.transport.ping_timeout",2000).put("client.transport.nodes_sampler_interval",100).put("network.tcp.blocking",true).put("node.client",true).put("node.name",nodeName).build();
+  log.debug("Creating ElasticSearch client with settings: " + settings.getAsMap());
+  node=NodeBuilder.nodeBuilder().settings(settings).client(true).node();
+  client=node.client();
+}
