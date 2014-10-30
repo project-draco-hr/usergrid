@@ -3,9 +3,10 @@
   Preconditions.checkNotNull(key,"key is required");
   Preconditions.checkNotNull(value,"value is required");
   final MutationBatch batch=keyspace.prepareMutationBatch();
-  final ScopedRowKey<ApplicationScope,MapEntryKey> entryRowKey=MapEntryKey.fromKey(scope,key);
+  final ScopedRowKey<MapEntryKey> entryRowKey=MapEntryKey.fromKey(scope,key);
   batch.withRow(MAP_ENTRIES,entryRowKey).putColumn(true,value);
-  final ScopedRowKey<ApplicationScope,String> keyRowKey=ScopedRowKey.fromKey((ApplicationScope)scope,key);
+  final int bucket=BUCKET_LOCATOR.getCurrentBucket(key);
+  final BucketScopedRowKey<String> keyRowKey=BucketScopedRowKey.fromKey(scope.getApplication(),key,bucket);
   batch.withRow(MAP_KEYS,keyRowKey).putColumn(key,true);
   executeBatch(batch);
 }

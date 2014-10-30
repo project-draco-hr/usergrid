@@ -1,0 +1,9 @@
+{
+  if (isOldVersion()) {
+    final MutationBatch aggregateBatch=keyspace.prepareMutationBatch();
+    aggregateBatch.mergeShallow(previous.removeIdTypeToTarget(scope,edge));
+    aggregateBatch.mergeShallow(current.removeIdTypeToTarget(scope,edge));
+    return aggregateBatch;
+  }
+  return current.removeIdTypeToTarget(scope,edge);
+}

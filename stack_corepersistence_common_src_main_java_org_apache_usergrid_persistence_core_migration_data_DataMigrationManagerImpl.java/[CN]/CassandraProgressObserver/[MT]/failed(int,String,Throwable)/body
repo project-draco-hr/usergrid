@@ -1,0 +1,9 @@
+{
+  StringWriter stackTrace=new StringWriter();
+  throwable.printStackTrace(new PrintWriter(stackTrace));
+  final String storedMessage=String.format("Failed to migrate, reason is appended.  Error '%s' %s",reason,stackTrace.toString());
+  update(migrationVersion,storedMessage);
+  LOG.error("Unable to migrate version {} due to reason {}.",migrationVersion,reason,throwable);
+  failed=true;
+  migrationInfoSerialization.setStatusCode(StatusCode.ERROR.status);
+}

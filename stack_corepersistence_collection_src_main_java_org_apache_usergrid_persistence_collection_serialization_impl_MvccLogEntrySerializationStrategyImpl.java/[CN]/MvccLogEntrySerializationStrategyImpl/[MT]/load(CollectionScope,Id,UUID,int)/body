@@ -3,9 +3,14 @@
   Preconditions.checkNotNull(entityId,"entity id is required");
   Preconditions.checkNotNull(version,"version is required");
   Preconditions.checkArgument(maxSize > 0,"max Size must be greater than 0");
-  ColumnList<UUID> columns=null;
+  ColumnList<UUID> columns;
   try {
-    columns=keyspace.prepareQuery(CF_ENTITY_LOG).getKey(ScopedRowKey.fromKey(collectionScope,entityId)).withColumnRange(version,null,false,maxSize).execute().getResult();
+    final Id applicationId=collectionScope.getApplication();
+    final Id ownerId=collectionScope.getOwner();
+    final String collectionName=collectionScope.getName();
+    final CollectionPrefixedKey<Id> collectionPrefixedKey=new CollectionPrefixedKey<>(collectionName,ownerId,entityId);
+    final ScopedRowKey<CollectionPrefixedKey<Id>> rowKey=ScopedRowKey.fromKey(applicationId,collectionPrefixedKey);
+    columns=keyspace.prepareQuery(CF_ENTITY_LOG).getKey(rowKey).withColumnRange(version,null,false,maxSize).execute().getResult();
   }
  catch (  ConnectionException e) {
     throw new RuntimeException("Unable to load log entries",e);

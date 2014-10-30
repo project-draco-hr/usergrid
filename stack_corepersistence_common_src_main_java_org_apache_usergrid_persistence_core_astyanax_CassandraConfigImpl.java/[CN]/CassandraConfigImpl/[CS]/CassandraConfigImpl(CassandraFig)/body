@@ -1,6 +1,7 @@
 {
   this.readCl=ConsistencyLevel.valueOf(cassandraFig.getReadCL());
   this.writeCl=ConsistencyLevel.valueOf(cassandraFig.getWriteCL());
+  this.shardSettings=parseShardSettings(cassandraFig.getShardValues());
   cassandraFig.addPropertyChangeListener(new PropertyChangeListener(){
     @Override public void propertyChange(    final PropertyChangeEvent evt){
       final String propName=evt.getPropertyName();
@@ -9,6 +10,9 @@
       }
  else       if (CassandraFig.WRITE_CL.equals(propName)) {
         writeCl=ConsistencyLevel.valueOf(evt.getNewValue().toString());
+      }
+ else       if (CassandraFig.SHARD_VALUES.equals(propName)) {
+        shardSettings=parseShardSettings(cassandraFig.getShardValues());
       }
     }
   }

@@ -1,16 +1,20 @@
 {
   Preconditions.checkNotNull(fields,"fields are required");
   Preconditions.checkArgument(fields.size() > 0,"More than 1 field msut be specified");
-  final List<ScopedRowKey<CollectionScope,Field>> keys=new ArrayList<>(fields.size());
+  final List<ScopedRowKey<CollectionPrefixedKey<Field>>> keys=new ArrayList<>(fields.size());
+  final Id applicationId=colScope.getApplication();
+  final Id ownerId=colScope.getOwner();
+  final String collectionName=colScope.getName();
   for (  Field field : fields) {
-    final ScopedRowKey<CollectionScope,Field> rowKey=ScopedRowKey.fromKey(colScope,field);
+    final CollectionPrefixedKey<Field> collectionPrefixedKey=new CollectionPrefixedKey<>(collectionName,ownerId,field);
+    final ScopedRowKey<CollectionPrefixedKey<Field>> rowKey=ScopedRowKey.fromKey(applicationId,collectionPrefixedKey);
     keys.add(rowKey);
   }
   final UniqueValueSetImpl uniqueValueSet=new UniqueValueSetImpl(fields.size());
-  Iterator<Row<ScopedRowKey<CollectionScope,Field>,EntityVersion>> results=keyspace.prepareQuery(CF_UNIQUE_VALUES).getKeySlice(keys).withColumnRange(new RangeBuilder().setLimit(1).build()).execute().getResult().iterator();
+  Iterator<Row<ScopedRowKey<CollectionPrefixedKey<Field>>,EntityVersion>> results=keyspace.prepareQuery(CF_UNIQUE_VALUES).getKeySlice(keys).withColumnRange(new RangeBuilder().setLimit(1).build()).execute().getResult().iterator();
   while (results.hasNext()) {
-    final Row<ScopedRowKey<CollectionScope,Field>,EntityVersion> unique=results.next();
-    final Field field=unique.getKey().getKey();
+    final Row<ScopedRowKey<CollectionPrefixedKey<Field>>,EntityVersion> unique=results.next();
+    final Field field=unique.getKey().getKey().getSubKey();
     final Iterator<Column<EntityVersion>> columnList=unique.getColumns().iterator();
     if (!columnList.hasNext()) {
       continue;

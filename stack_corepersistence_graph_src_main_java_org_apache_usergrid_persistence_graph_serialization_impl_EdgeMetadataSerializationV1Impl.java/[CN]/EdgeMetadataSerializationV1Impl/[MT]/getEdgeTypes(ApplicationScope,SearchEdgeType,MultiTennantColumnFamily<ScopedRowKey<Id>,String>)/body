@@ -1,0 +1,8 @@
+{
+  ValidationUtils.validateApplicationScope(scope);
+  GraphValidation.validateSearchEdgeType(search);
+  final ScopedRowKey<Id> sourceKey=new ScopedRowKey<>(scope.getApplication(),search.getNode());
+  final RangeBuilder rangeBuilder=createRange(search);
+  RowQuery<ScopedRowKey<Id>,String> query=keyspace.prepareQuery(cf).getKey(sourceKey).autoPaginate(true).withColumnRange(rangeBuilder.build());
+  return new ColumnNameIterator<>(query,PARSER,search.getLast().isPresent());
+}
