@@ -1,5 +1,5 @@
 {
-  logger.info("Started testStaleIndexCleanup()");
+  logger.info("Started testCleanupOnUpdate()");
   final EntityManager em=app.getEntityManager();
   final int numEntities=10;
   final int numUpdates=3;
@@ -36,10 +36,6 @@
   em.refreshIndex();
   crs=queryCollectionCp("things","select *");
   Assert.assertEquals("Expect stale candidates",numEntities * (numUpdates + 1),crs.size());
-  for (  Entity thing : things) {
-    em.delete(thing);
-  }
-  em.refreshIndex();
   count=0;
   do {
     Thread.sleep(100);
