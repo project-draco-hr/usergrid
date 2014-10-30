@@ -1,0 +1,116 @@
+{
+  LOG.info("sending batch of {} notifications.",messages.size());
+  final Meter sendMeter=metricsFactory.getMeter(NotificationsService.class,"send");
+  final Map<Object,ProviderAdapter> notifierMap=getAdapterMap();
+  final ApplicationQueueManagerImpl proxy=this;
+  final ConcurrentHashMap<UUID,TaskManager> taskMap=new ConcurrentHashMap<UUID,TaskManager>(messages.size());
+  final ConcurrentHashMap<UUID,Notification> notificationMap=new ConcurrentHashMap<UUID,Notification>(messages.size());
+  final Func1<QueueMessage,ApplicationQueueMessage> func=new Func1<QueueMessage,ApplicationQueueMessage>(){
+    @Override public ApplicationQueueMessage call(    QueueMessage queueMessage){
+      boolean messageCommitted=false;
+      ApplicationQueueMessage message=null;
+      try {
+        message=(ApplicationQueueMessage)queueMessage.getBody();
+        LOG.info("start sending notification for device {} for Notification: {} on thread " + Thread.currentThread().getId(),message.getDeviceId(),message.getNotificationId());
+        UUID deviceUUID=message.getDeviceId();
+        Notification notification=notificationMap.get(message.getNotificationId());
+        if (notification == null) {
+          notification=em.get(message.getNotificationId(),Notification.class);
+          notificationMap.put(message.getNotificationId(),notification);
+        }
+        TaskManager taskManager=taskMap.get(message.getNotificationId());
+        if (taskManager == null) {
+          taskManager=new TaskManager(em,notification);
+          taskMap.putIfAbsent(message.getNotificationId(),taskManager);
+          taskManager=taskMap.get(message.getNotificationId());
+        }
+        final Map<String,Object> payloads=notification.getPayloads();
+        final Map<String,Object> translatedPayloads=translatePayloads(payloads,notifierMap);
+        LOG.info("sending notification for device {} for Notification: {}",deviceUUID,notification.getUuid());
+        try {
+          String notifierName=message.getNotifierKey().toLowerCase();
+          ProviderAdapter providerAdapter=notifierMap.get(notifierName.toLowerCase());
+          Object payload=translatedPayloads.get(notifierName);
+          Receipt receipt=new Receipt(notification.getUuid(),message.getNotifierId(),payload,deviceUUID);
+          TaskTracker tracker=new TaskTracker(providerAdapter.getNotifier(),taskManager,receipt,deviceUUID);
+          if (!isOkToSend(notification)) {
+            tracker.failed(0,"Notification is duplicate/expired/cancelled.");
+          }
+ else {
+            if (payload == null) {
+              LOG.debug("selected device {} for notification {} doesn't have a valid payload. skipping.",deviceUUID,notification.getUuid());
+              tracker.failed(0,"failed to match payload to " + message.getNotifierId() + " notifier");
+            }
+ else {
+              long now=System.currentTimeMillis();
+              try {
+                providerAdapter.sendNotification(message.getNotifierId(),payload,notification,tracker);
+              }
+ catch (              Exception e) {
+                tracker.failed(0,e.getMessage());
+              }
+ finally {
+                LOG.info("sending to device {} for Notification: {} duration " + (System.currentTimeMillis() - now) + " ms",deviceUUID,notification.getUuid());
+              }
+            }
+          }
+          messageCommitted=true;
+        }
+  finally {
+          sendMeter.mark();
+        }
+      }
+ catch (      Exception e) {
+        LOG.error("Failure while sending",e);
+        try {
+          if (!messageCommitted && queuePath != null) {
+            qm.commitMessage(queueMessage);
+          }
+        }
+ catch (        Exception queueException) {
+          LOG.error("Failed to commit message.",queueException);
+        }
+      }
+      return message;
+    }
+  }
+;
+  Observable o=rx.Observable.from(messages).parallel(new Func1<rx.Observable<QueueMessage>,rx.Observable<ApplicationQueueMessage>>(){
+    @Override public rx.Observable<ApplicationQueueMessage> call(    rx.Observable<QueueMessage> messageObservable){
+      return messageObservable.map(func);
+    }
+  }
+,Schedulers.io()).buffer(messages.size()).map(new Func1<List<ApplicationQueueMessage>,HashMap<UUID,ApplicationQueueMessage>>(){
+    @Override public HashMap<UUID,ApplicationQueueMessage> call(    List<ApplicationQueueMessage> queueMessages){
+      for (      ProviderAdapter providerAdapter : notifierMap.values()) {
+        try {
+          providerAdapter.doneSendingNotifications();
+        }
+ catch (        Exception e) {
+          LOG.error("providerAdapter.doneSendingNotifications: ",e);
+        }
+      }
+      HashMap<UUID,ApplicationQueueMessage> notifications=new HashMap<UUID,ApplicationQueueMessage>();
+      for (      ApplicationQueueMessage message : queueMessages) {
+        if (notifications.get(message.getNotificationId()) == null) {
+          try {
+            TaskManager taskManager=taskMap.get(message.getNotificationId());
+            notifications.put(message.getNotificationId(),message);
+            taskManager.finishedBatch();
+          }
+ catch (          Exception e) {
+            LOG.error("Failed to finish batch",e);
+          }
+        }
+      }
+      return notifications;
+    }
+  }
+).doOnError(new Action1<Throwable>(){
+    @Override public void call(    Throwable throwable){
+      LOG.error("Failed while sending",throwable);
+    }
+  }
+);
+  return o;
+}

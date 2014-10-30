@@ -1,0 +1,27 @@
+{
+  if (notifierHashMap == null) {
+    long now=System.currentTimeMillis();
+    notifierHashMap=new HashMap<Object,ProviderAdapter>();
+    Query query=new Query();
+    query.setCollection("notifiers");
+    query.setLimit(100);
+    PathQuery<Notifier> pathQuery=new PathQuery<Notifier>(new SimpleEntityRef(em.getApplicationRef()),query);
+    Iterator<Notifier> notifierIterator=pathQuery.iterator(em);
+    int count=0;
+    while (notifierIterator.hasNext()) {
+      Notifier notifier=notifierIterator.next();
+      String name=notifier.getName() != null ? notifier.getName() : "";
+      UUID uuid=notifier.getUuid() != null ? notifier.getUuid() : UUID.randomUUID();
+      ProviderAdapter providerAdapter=ProviderAdapterFactory.getProviderAdapter(notifier,em);
+      notifierHashMap.put(name.toLowerCase(),providerAdapter);
+      notifierHashMap.put(uuid,providerAdapter);
+      notifierHashMap.put(uuid.toString(),providerAdapter);
+      if (count++ >= 100) {
+        LOG.error("ApplicationQueueManager: too many notifiers...breaking out ",notifierHashMap.size());
+        break;
+      }
+    }
+    LOG.info("ApplicationQueueManager: fetching notifiers finished size={}, duration {} ms",notifierHashMap.size(),System.currentTimeMillis() - now);
+  }
+  return notifierHashMap;
+}

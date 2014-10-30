@@ -17,7 +17,8 @@
   if (logger.isDebugEnabled()) {
     logger.debug("Loading head entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{headEntity.getType(),headEntity.getUuid(),headEntityScope.getApplication(),headEntityScope.getOwner(),headEntityScope.getName()});
   }
-  this.cpHeadEntity=ecm.load(new SimpleId(headEntity.getUuid(),headEntity.getType())).toBlocking().lastOrDefault(null);
+  Id entityId=new SimpleId(headEntity.getUuid(),headEntity.getType());
+  this.cpHeadEntity=((CpEntityManager)em).load(new CpEntityManager.EntityScope(headEntityScope,entityId));
   Assert.notNull(cpHeadEntity,"cpHeadEntity cannot be null");
   this.resultsLoaderFactory=new ResultsLoaderFactoryImpl(managerCache);
   return this;
