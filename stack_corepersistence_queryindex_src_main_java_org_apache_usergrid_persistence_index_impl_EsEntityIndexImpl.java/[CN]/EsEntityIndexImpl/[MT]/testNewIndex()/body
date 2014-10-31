@@ -1,12 +1,12 @@
 {
-  log.info("Refreshing Created new Index Name [{}]",indexName);
+  logger.info("Refreshing Created new Index Name [{}]",indexName);
   final RetryOperation retryOperation=new RetryOperation(){
     @Override public boolean doOp(){
       final String tempId=UUIDGenerator.newTimeUUID().toString();
       client.prepareIndex(indexName,VERIFY_TYPE,tempId).setSource(DEFAULT_PAYLOAD).get();
-      log.info("Successfully created new document with docId {} in index {} and type {}",tempId,indexName,VERIFY_TYPE);
+      logger.info("Successfully created new document with docId {} in index {} and type {}",tempId,indexName,VERIFY_TYPE);
       client.prepareDeleteByQuery(indexName).setTypes(VERIFY_TYPE).setQuery(MATCH_ALL_QUERY_BUILDER).get();
-      log.info("Successfully deleted all documents in index {} and type {}",indexName,VERIFY_TYPE);
+      logger.info("Successfully deleted all documents in index {} and type {}",indexName,VERIFY_TYPE);
       return true;
     }
   }
