@@ -1,13 +1,10 @@
 {
-  if (client != null && node != null) {
+  if (client != null) {
     return;
   }
-  String allHosts="";
-  String SEP="";
-  for (  String host : fig.getHosts().split(",")) {
-    allHosts=allHosts + SEP + host+ ":"+ fig.getPort();
-    SEP=",";
-  }
+  final String clusterName=fig.getClusterName();
+  final int port=fig.getPort();
+  ImmutableSettings.Builder settings=ImmutableSettings.settingsBuilder().put("cluster.name",clusterName).put("client.transport.sniff",true);
   String nodeName=fig.getNodeName();
   if ("default".equals(nodeName)) {
     try {
@@ -18,8 +15,10 @@
       log.warn("Couldn't get hostname to use as ES node name, using " + nodeName);
     }
   }
-  Settings settings=ImmutableSettings.settingsBuilder().put("cluster.name",fig.getClusterName()).put("discovery.zen.ping.unicast.hosts",allHosts).put("discovery.zen.ping.multicast.enabled","false").put("http.enabled",false).put("client.transport.ping_timeout",2000).put("client.transport.nodes_sampler_interval",100).put("network.tcp.blocking",true).put("node.client",true).put("node.name",nodeName).build();
-  log.debug("Creating ElasticSearch client with settings: " + settings.getAsMap());
-  node=NodeBuilder.nodeBuilder().settings(settings).client(true).node();
-  client=node.client();
+  settings.put("node.name",nodeName);
+  TransportClient transportClient=new TransportClient(settings.build());
+  for (  String host : fig.getHosts().split(",")) {
+    transportClient.addTransportAddress(new InetSocketTransportAddress(host,port));
+  }
+  client=transportClient;
 }
