@@ -1,5 +1,5 @@
 {
-  log.debug("Starting update process");
+  logger.debug("Starting update process");
   Preconditions.checkNotNull(entity,"Entity is required in the new stage of the mvcc write");
   final Id entityId=entity.getId();
   ValidationUtils.verifyIdentity(entityId);
@@ -7,7 +7,7 @@
   Observable<CollectionIoEvent<MvccEntity>> observable=stageRunner(writeData,writeUpdate);
   return observable.map(writeCommit).doOnNext(new Action1<Entity>(){
     @Override public void call(    final Entity entity){
-      log.debug("sending entity to the queue");
+      logger.debug("sending entity to the queue");
     }
   }
 ).doOnError(rollback);
