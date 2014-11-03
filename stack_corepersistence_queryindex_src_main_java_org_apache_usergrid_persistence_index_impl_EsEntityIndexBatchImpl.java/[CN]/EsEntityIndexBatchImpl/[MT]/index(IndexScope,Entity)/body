@@ -7,6 +7,7 @@
   ValidationUtils.verifyEntityWrite(entity);
   Map<String,Object> entityAsMap=entityToMap(entity);
   entityAsMap.put(STRING_PREFIX + ENTITYID_FIELDNAME,entity.getId().getUuid().toString().toLowerCase());
+  entityAsMap.put(ENTITYVERSION_FIELDNAME,entity.getVersion().timestamp());
   String indexId=createIndexDocId(entity);
   logger.debug("Indexing entity id {} data {} ",indexId,entityAsMap);
   bulkRequest.add(client.prepareIndex(indexName,indexType,indexId).setSource(entityAsMap));
