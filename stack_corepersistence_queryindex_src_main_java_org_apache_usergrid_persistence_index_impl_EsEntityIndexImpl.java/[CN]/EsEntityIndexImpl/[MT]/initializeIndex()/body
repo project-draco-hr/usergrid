@@ -4,7 +4,13 @@
       createMappings();
     }
     AdminClient admin=client.admin();
-    CreateIndexResponse cir=admin.indices().prepareCreate(indexName).execute().actionGet();
+    CreateIndexResponse cir=admin.indices().prepareCreate(indexName).setSettings(new HashMap<String,Object>(){
+{
+        put("index.number_of_shards",config.getNumberOfShards());
+        put("index.number_of_replicas",config.numberOfReplicas());
+      }
+    }
+).execute().actionGet();
     logger.info("Created new Index Name [{}] ACK=[{}]",indexName,cir.isAcknowledged());
     testNewIndex();
   }

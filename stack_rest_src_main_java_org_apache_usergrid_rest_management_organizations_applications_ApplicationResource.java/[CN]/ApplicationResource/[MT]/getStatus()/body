@@ -1,0 +1,19 @@
+{
+  Map<String,Object> statusMap=new HashMap<String,Object>();
+  EntityManager em=emf.getEntityManager(applicationId);
+  if (!em.getIndexHealth().equals(Health.RED)) {
+    statusMap.put("message","Index Health Status RED for application " + applicationId);
+    return Response.status(SC_INTERNAL_SERVER_ERROR).entity(statusMap).build();
+  }
+  try {
+    if (em.getApplication() == null) {
+      statusMap.put("message","Appliction " + applicationId + " not found");
+      return Response.status(SC_NOT_FOUND).entity(statusMap).build();
+    }
+  }
+ catch (  Exception ex) {
+    statusMap.put("message","Error looking up appliction " + applicationId);
+    return Response.status(SC_INTERNAL_SERVER_ERROR).entity(statusMap).build();
+  }
+  return Response.status(SC_OK).entity(null).build();
+}
