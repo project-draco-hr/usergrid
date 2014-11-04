@@ -4,6 +4,8 @@
   CpEntityManagerFactory cpemf=(CpEntityManagerFactory)hemf.getImplementation();
   final EntityIndex ei=cpemf.getManagerCache().getEntityIndex(scope);
   EntityIndexBatch batch=ei.createBatch();
-  batch.deindexPreviousVersions(entity);
-  batch.execute();
+  if (System.getProperty("allow.stale.entities","false").equals("false")) {
+    batch.deindexPreviousVersions(entity);
+    batch.execute();
+  }
 }

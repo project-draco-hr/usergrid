@@ -1,0 +1,26 @@
+{
+  final int sizeToReturn=3;
+  final Set<EntityVersionCreated> listeners=mock(Set.class);
+  final Iterator<EntityVersionCreated> helper=mock(Iterator.class);
+  when(listeners.size()).thenReturn(3);
+  when(listeners.iterator()).thenReturn(helper);
+  final Id applicationId=new SimpleId("application");
+  final CollectionScope appScope=new CollectionScopeImpl(applicationId,applicationId,"users");
+  final Id entityId=new SimpleId("user");
+  final Entity entity=new Entity(entityId);
+  EntityVersionCreatedTask entityVersionCreatedTask=new EntityVersionCreatedTask(appScope,listeners,entity);
+  final CountDownLatch latch=new CountDownLatch(sizeToReturn);
+  final EntityVersionCreatedTest listener1=new EntityVersionCreatedTest(latch);
+  final EntityVersionCreatedTest listener2=new EntityVersionCreatedTest(latch);
+  final EntityVersionCreatedTest listener3=new EntityVersionCreatedTest(latch);
+  when(helper.next()).thenReturn(listener1,listener2,listener3);
+  ListenableFuture<Void> future=taskExecutor.submit(entityVersionCreatedTask);
+  try {
+    future.get();
+  }
+ catch (  Exception e) {
+    ;
+  }
+  verify(listeners).size();
+  verify(listeners).iterator();
+}
