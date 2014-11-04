@@ -1,5 +1,6 @@
 {
   logger.info("Started testStaleIndexCleanup()");
+  System.setProperty("allow.stale.entities","true");
   final EntityManager em=app.getEntityManager();
   final int numEntities=10;
   final int numUpdates=3;
@@ -45,6 +46,6 @@
     Thread.sleep(100);
     crs=queryCollectionCp("things","select *");
   }
- while (crs.size() > 0 || count++ < 14);
+ while (crs.size() > 0 && count++ < 14);
   Assert.assertEquals("Expect no candidates",0,crs.size());
 }
