@@ -7,7 +7,11 @@
   final Id entityId=new SimpleId("user");
   final Entity entity=new Entity(entityId);
   EntityVersionCreatedTask entityVersionCreatedTask=new EntityVersionCreatedTask(appScope,listeners,entity);
-  ListenableFuture<Void> future=taskExecutor.submit(entityVersionCreatedTask);
-  future.get();
+  try {
+    entityVersionCreatedTask.call();
+  }
+ catch (  Exception e) {
+    Assert.fail(e.getMessage());
+  }
   verify(listeners).size();
 }
