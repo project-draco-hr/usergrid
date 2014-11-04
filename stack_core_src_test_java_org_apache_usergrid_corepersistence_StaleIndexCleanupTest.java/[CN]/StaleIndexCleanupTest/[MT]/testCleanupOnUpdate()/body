@@ -1,5 +1,4 @@
 {
-  System.setProperty("allow.stale.entities","false");
   logger.info("Started testCleanupOnUpdate()");
   final EntityManager em=app.getEntityManager();
   final int numEntities=10;
@@ -37,11 +36,4 @@
   em.refreshIndex();
   crs=queryCollectionCp("things","select *");
   Assert.assertEquals("Expect candidates without earlier stale entities",numEntities,crs.size());
-  do {
-    Thread.sleep(100);
-    crs=queryCollectionCp("things","select *");
-  }
- while (crs.size() > 0);
-  Assert.assertEquals("Expect no candidates",0,crs.size());
-  System.clearProperty("allow.stale.entities");
 }
