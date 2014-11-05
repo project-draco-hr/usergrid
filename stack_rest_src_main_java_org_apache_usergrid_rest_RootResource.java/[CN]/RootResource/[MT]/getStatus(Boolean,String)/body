@@ -1,0 +1,23 @@
+{
+  ApiResponse response=createApiResponse();
+  if (!ignoreError) {
+    if (!emf.getEntityStoreHealth().equals(Health.GREEN)) {
+      throw new RuntimeException("Error connecting to datastore");
+    }
+    EntityManager em=emf.getEntityManager(emf.getManagementAppId());
+    if (em.getIndexHealth().equals(Health.RED)) {
+      throw new RuntimeException("Management app index is status RED");
+    }
+  }
+  ObjectNode node=JsonNodeFactory.instance.objectNode();
+  node.put("started",started);
+  node.put("uptime",System.currentTimeMillis() - started);
+  node.put("version",usergridSystemMonitor.getBuildNumber());
+  node.put("cassandraAvailable",usergridSystemMonitor.getIsCassandraAlive());
+  node.put("cassandraStatus",emf.getEntityStoreHealth().toString());
+  EntityManager em=emf.getEntityManager(emf.getManagementAppId());
+  node.put("managementAppIndexStatus",em.getIndexHealth().toString());
+  dumpMetrics(node);
+  response.setProperty("status",node);
+  return new JSONWithPadding(response,callback);
+}
