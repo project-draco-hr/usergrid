@@ -1,0 +1,68 @@
+{
+  Id appId=new SimpleId("entityindextest");
+  Id ownerId=new SimpleId("multivaluedtype");
+  ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
+  IndexScope appScope=new IndexScopeImpl(ownerId,"user");
+  EntityIndex ei=eif.createEntityIndex(applicationScope);
+  ei.createBatch();
+  Map billMap=new HashMap(){
+{
+      put("username","bill");
+      put("email","bill@example.com");
+      put("age","thirtysomething");
+      put("favorites","scallops, croquet, wine");
+      put("retirementGoal",100000);
+    }
+  }
+;
+  Entity bill=EntityIndexMapUtils.fromMap(billMap);
+  EntityUtils.setId(bill,new SimpleId(UUIDGenerator.newTimeUUID(),"user"));
+  EntityUtils.setVersion(bill,UUIDGenerator.newTimeUUID());
+  EntityIndexBatch batch=ei.createBatch();
+  batch.index(appScope,bill);
+  Map fredMap=new HashMap(){
+{
+      put("username","fred");
+      put("email","fred@example.com");
+      put("age",41);
+      put("favorites",new HashMap<String,Object>(){
+{
+          put("food","cheezewiz");
+          put("sport","nascar");
+          put("beer","budwizer");
+        }
+      }
+);
+      put("retirementGoal",new HashMap<String,Object>(){
+{
+          put("car","Firebird");
+          put("home","Mobile");
+        }
+      }
+);
+    }
+  }
+;
+  Entity fred=EntityIndexMapUtils.fromMap(fredMap);
+  EntityUtils.setId(fred,new SimpleId(UUIDGenerator.newTimeUUID(),"user"));
+  EntityUtils.setVersion(fred,UUIDGenerator.newTimeUUID());
+  batch.index(appScope,fred);
+  batch.executeAndRefresh();
+  final SearchTypes searchTypes=SearchTypes.fromTypes("user");
+  Query query=new Query();
+  query.addEqualityFilter("username","bill");
+  CandidateResults r=ei.search(appScope,searchTypes,query);
+  assertEquals(bill.getId(),r.get(0).getId());
+  query=new Query();
+  query.addEqualityFilter("username","fred");
+  r=ei.search(appScope,searchTypes,query);
+  assertEquals(fred.getId(),r.get(0).getId());
+  query=new Query();
+  query.addEqualityFilter("age",41);
+  r=ei.search(appScope,searchTypes,query);
+  assertEquals(fred.getId(),r.get(0).getId());
+  query=new Query();
+  query.addEqualityFilter("age","thirtysomething");
+  r=ei.search(appScope,searchTypes,query);
+  assertEquals(bill.getId(),r.get(0).getId());
+}

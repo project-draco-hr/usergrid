@@ -1,0 +1,37 @@
+{
+  final int MAX_ENTITIES=100;
+  Id appId=new SimpleId("application");
+  ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
+  IndexScope indexScope=new IndexScopeImpl(appId,"things");
+  final String entityType="thing";
+  final SearchTypes searchTypes=SearchTypes.fromTypes(entityType);
+  EntityIndex entityIndex=eif.createEntityIndex(applicationScope);
+  entityIndex.initializeIndex();
+  InputStream is=this.getClass().getResourceAsStream("/sample-large.json");
+  ObjectMapper mapper=new ObjectMapper();
+  List<Object> sampleJson=mapper.readValue(is,new TypeReference<List<Object>>(){
+  }
+);
+  int count=0;
+  StopWatch timer=new StopWatch();
+  timer.start();
+  final EntityIndexBatch batch=entityIndex.createBatch();
+  for (  Object o : sampleJson) {
+    Map<String,Object> item=(Map<String,Object>)o;
+    Entity entity=new Entity(entityType);
+    entity=EntityIndexMapUtils.fromMap(entity,item);
+    EntityUtils.setVersion(entity,UUIDGenerator.newTimeUUID());
+    batch.index(indexScope,entity);
+    if (count % 1000 == 0) {
+      batch.execute();
+    }
+    if (count++ > MAX_ENTITIES) {
+      break;
+    }
+  }
+  batch.execute();
+  timer.stop();
+  log.info("Total time to index {} entries {}ms, average {}ms/entry",new Object[]{count,timer.getTime(),timer.getTime() / count});
+  entityIndex.refresh();
+  testQueries(indexScope,searchTypes,entityIndex);
+}

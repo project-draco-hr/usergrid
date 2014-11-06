@@ -1,19 +1,18 @@
 {
   final String context=IndexingUtils.createContextName(indexScope);
   final String[] entityTypes=searchTypes.getTypeNames();
-  QueryBuilder qb=query.createQueryBuilder();
-  if (logger.isDebugEnabled()) {
-    logger.debug("Searching index {}\n  scope{} \n type {}\n   query {} limit {}",new Object[]{this.indexName,context,entityTypes,qb.toString().replace("\n"," "),query.getLimit()});
-  }
+  QueryBuilder qb=query.createQueryBuilder(context);
   SearchResponse searchResponse;
   if (query.getCursor() == null) {
     SearchRequestBuilder srb=esProvider.getClient().prepareSearch(indexName).setTypes(entityTypes).setScroll(cursorTimeout + "m").setQuery(qb);
-    final TermFilterBuilder contextFilter=FilterBuilders.termFilter(IndexingUtils.ENTITY_CONTEXT,context);
+    ;
+    if (logger.isDebugEnabled()) {
+      logger.debug("Searching index {}\n  scope{} \n type {}\n   query {} limit {}",new Object[]{this.indexName,context,entityTypes,qb.toString().replace("\n"," "),query.getLimit()});
+    }
     final FilterBuilder fb=query.createFilterBuilder();
     if (fb != null) {
       logger.debug("   Filter: {} ",fb.toString());
-    }
- else {
+      srb=srb.setPostFilter(fb);
     }
     srb=srb.setFrom(0).setSize(query.getLimit());
     for (    Query.SortPredicate sp : query.getSortPredicates()) {
@@ -71,7 +70,7 @@
   logger.debug("   Hit count: {} Total hits: {}",hits.getHits().length,hits.getTotalHits());
   List<CandidateResult> candidates=new ArrayList<CandidateResult>();
   for (  SearchHit hit : hits.getHits()) {
-    String[] idparts=hit.getId().split(DOC_ID_SEPARATOR_SPLITTER);
+    String[] idparts=hit.getId().split(SPLITTER);
     String id=idparts[0];
     String type=idparts[1];
     String version=idparts[2];
