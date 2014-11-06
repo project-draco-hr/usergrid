@@ -1,15 +1,15 @@
 {
   IndexValidationUtils.validateIndexScope(indexScope);
-  final String indexType=createCollectionScopeTypeName(indexScope);
+  final String context=createContextName(indexScope);
+  final String entityType=entity.getId().getType();
   if (log.isDebugEnabled()) {
-    log.debug("Indexing entity {}:{} in scope\n   app {}\n   " + "owner {}\n   name {}\n   type {}",new Object[]{entity.getId().getType(),entity.getId().getUuid(),applicationScope.getApplication(),indexScope.getOwner(),indexScope.getName(),indexType});
+    log.debug("Indexing entity {}:{} in scope\n   app {}\n   " + "owner {}\n   name {}\n   type {} \n scope type{}",new Object[]{entity.getId().getType(),entity.getId().getUuid(),applicationScope.getApplication(),indexScope.getOwner(),indexScope.getName(),entityType,context});
   }
   ValidationUtils.verifyEntityWrite(entity);
-  Map<String,Object> entityAsMap=entityToMap(entity);
-  entityAsMap.put(STRING_PREFIX + ENTITYID_FIELDNAME,entity.getId().getUuid().toString().toLowerCase());
-  String indexId=createIndexDocId(entity);
+  Map<String,Object> entityAsMap=entityToMap(entity,context);
+  String indexId=createIndexDocId(entity,context);
   log.debug("Indexing entity id {} data {} ",indexId,entityAsMap);
-  bulkRequest.add(client.prepareIndex(indexName,indexType,indexId).setSource(entityAsMap));
+  bulkRequest.add(client.prepareIndex(indexName,entityType,indexId).setSource(entityAsMap));
   maybeFlush();
   return this;
 }
