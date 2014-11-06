@@ -1,3 +1,14 @@
 {
   super(Env.UNIT);
+  try {
+    Properties props=new Properties();
+    props.load(ClassLoader.getSystemResourceAsStream("project.properties"));
+    host=(String)props.getProperty("elasticsearch.host","127.0.0.1");
+    port=Integer.valueOf(props.getProperty("elasticsearch.port","9300")).intValue();
+    String forkString=props.getProperty("elasticsearch.startup");
+    externalElasticSearch="external".equals(forkString);
+  }
+ catch (  Exception ex) {
+    throw new RuntimeException("Error getting properties",ex);
+  }
 }
