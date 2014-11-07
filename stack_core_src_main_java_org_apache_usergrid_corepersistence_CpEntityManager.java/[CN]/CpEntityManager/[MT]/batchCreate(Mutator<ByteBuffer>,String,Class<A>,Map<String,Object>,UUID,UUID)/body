@@ -100,6 +100,7 @@
     logger.debug("About to Write {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
     cpEntity=ecm.write(cpEntity).toBlocking().last();
     logger.debug("Wrote {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
+    entityCache.put(new EntityScope(collectionScope,cpEntity.getId()),cpEntity);
   }
  catch (  WriteUniqueVerifyException wuve) {
     handleWriteUniqueVerifyException(entity,wuve);
@@ -115,7 +116,8 @@ catch (  HystrixRuntimeException hre) {
   entity.addProperties(entityMap);
   if (!is_application) {
     String collectionName=Schema.defaultCollectionName(eType);
-    getRelationManager(getApplication()).addToCollection(collectionName,entity);
+    CpRelationManager cpr=(CpRelationManager)getRelationManager(getApplication());
+    cpr.addToCollection(collectionName,entity,cpEntity,false);
     incrementEntityCollection(collectionName,timestamp);
   }
   MapManager mm=getMapManagerForTypes();
