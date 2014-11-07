@@ -7,11 +7,17 @@
     shutdown=new Thread(){
       @Override public void run(){
         try {
-          Thread.currentThread().sleep(100L);
+          Thread.currentThread();
+          Thread.sleep(100L);
         }
  catch (        InterruptedException ignored) {
         }
-        LOG.info("Shutting down Cassandra instance in {}",tempDir.toString());
+        if (externalCassandra) {
+          LOG.info("Cleaning up external Cassandra instance");
+        }
+ else {
+          LOG.info("Shutting down Cassandra instance in {}",tempDir.toString());
+        }
         if (schemaManager != null) {
           LOG.info("Destroying schemaManager...");
           try {
@@ -25,7 +31,7 @@
         applicationContext.stop();
         LOG.info("ApplicationContext stopped...");
         try {
-          if (cassandraDaemon != null) {
+          if (!externalCassandra && cassandraDaemon != null) {
             LOG.info("Deactivating CassandraDaemon...");
             cassandraDaemon.deactivate();
           }
