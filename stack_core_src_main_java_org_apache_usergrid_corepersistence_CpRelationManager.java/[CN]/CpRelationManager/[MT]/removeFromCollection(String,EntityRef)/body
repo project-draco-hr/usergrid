@@ -22,9 +22,9 @@
   org.apache.usergrid.persistence.model.entity.Entity memberEntity=((CpEntityManager)em).load(new CpEntityManager.EntityScope(memberScope,entityId));
   final EntityIndex ei=managerCache.getEntityIndex(applicationScope);
   final EntityIndexBatch batch=ei.createBatch();
-  IndexScope indexScope=new IndexScopeImpl(cpHeadEntity.getId(),CpNamingUtils.getCollectionScopeNameFromCollectionName(collName),entityType);
+  IndexScope indexScope=new IndexScopeImpl(cpHeadEntity.getId(),CpNamingUtils.getCollectionScopeNameFromCollectionName(collName));
   batch.deindex(indexScope,memberEntity);
-  IndexScope itemScope=new IndexScopeImpl(memberEntity.getId(),CpNamingUtils.getCollectionScopeNameFromCollectionName(Schema.defaultCollectionName(cpHeadEntity.getId().getType())),entityType);
+  IndexScope itemScope=new IndexScopeImpl(memberEntity.getId(),CpNamingUtils.getCollectionScopeNameFromCollectionName(Schema.defaultCollectionName(cpHeadEntity.getId().getType())));
   batch.deindex(itemScope,cpHeadEntity);
   batch.execute();
   GraphManager gm=managerCache.getGraphManager(applicationScope);

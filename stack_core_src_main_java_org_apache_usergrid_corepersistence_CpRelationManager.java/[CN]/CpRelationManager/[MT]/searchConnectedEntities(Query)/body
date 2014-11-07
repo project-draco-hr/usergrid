@@ -3,18 +3,11 @@
     query=new Query();
   }
   headEntity=em.validate(headEntity);
-  if (query.getEntityType() == null) {
-    IndexScope indexScope=new IndexScopeImpl(cpHeadEntity.getId(),CpNamingUtils.ALL_TYPES,entityType);
-    EntityIndex ei=managerCache.getEntityIndex(applicationScope);
-    logger.debug("Searching connections from the all-types scope {}:{}",indexScope.getOwner().toString(),indexScope.getName());
-    query=adjustQuery(query);
-    CandidateResults crs=ei.search(indexScope,query);
-    return buildConnectionResults(query,crs,query.getConnectionType());
-  }
-  IndexScope indexScope=new IndexScopeImpl(cpHeadEntity.getId(),CpNamingUtils.getConnectionScopeName(query.getEntityType(),query.getConnectionType()),entityType);
+  final IndexScope indexScope=new IndexScopeImpl(cpHeadEntity.getId(),CpNamingUtils.getConnectionScopeName(query.getConnectionType()));
+  final SearchTypes searchTypes=SearchTypes.fromNullableTypes(query.getEntityType());
   EntityIndex ei=managerCache.getEntityIndex(applicationScope);
-  logger.debug("Searching connections from the scope {}:{}",indexScope.getOwner().toString(),indexScope.getName());
+  logger.debug("Searching connections from the scope {}:{} with types {}",new Object[]{indexScope.getOwner().toString(),indexScope.getName(),searchTypes});
   query=adjustQuery(query);
-  CandidateResults crs=ei.search(indexScope,query);
+  CandidateResults crs=ei.search(indexScope,searchTypes,query);
   return buildConnectionResults(query,crs,query.getConnectionType());
 }

@@ -7,8 +7,9 @@
   if (collection == null) {
     throw new RuntimeException("Cannot find collection-info for '" + collName + "' of "+ headEntity.getType()+ ":"+ headEntity.getUuid());
   }
-  IndexScope indexScope=new IndexScopeImpl(cpHeadEntity.getId(),CpNamingUtils.getCollectionScopeNameFromCollectionName(collName),entityType);
-  EntityIndex ei=managerCache.getEntityIndex(applicationScope);
+  final IndexScope indexScope=new IndexScopeImpl(cpHeadEntity.getId(),CpNamingUtils.getCollectionScopeNameFromCollectionName(collName));
+  final EntityIndex ei=managerCache.getEntityIndex(applicationScope);
+  final SearchTypes types=SearchTypes.fromTypes(collection.getType());
   logger.debug("Searching scope {}:{}",indexScope.getOwner().toString(),indexScope.getName());
   query.setEntityType(collection.getType());
   query=adjustQuery(query);
@@ -18,7 +19,7 @@
   int queryCount=0;
   boolean satisfied=false;
   while (!satisfied && queryCount++ < maxQueries) {
-    CandidateResults crs=ei.search(indexScope,query);
+    CandidateResults crs=ei.search(indexScope,types,query);
     if (results == null) {
       logger.debug("Calling build results 1");
       results=buildResults(query,crs,collName);
