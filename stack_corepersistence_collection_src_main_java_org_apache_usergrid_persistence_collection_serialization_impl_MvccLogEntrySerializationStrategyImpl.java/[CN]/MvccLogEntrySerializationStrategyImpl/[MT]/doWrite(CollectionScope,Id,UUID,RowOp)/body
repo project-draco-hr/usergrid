@@ -2,6 +2,11 @@
   final MutationBatch batch=keyspace.prepareMutationBatch();
   final long timestamp=version.timestamp();
   LOG.debug("Writing version with timestamp '{}'",timestamp);
-  op.doOp(batch.withRow(CF_ENTITY_LOG,ScopedRowKey.fromKey(context,entityId)));
+  final Id applicationId=collectionScope.getApplication();
+  final Id ownerId=collectionScope.getOwner();
+  final String collectionName=collectionScope.getName();
+  final CollectionPrefixedKey<Id> collectionPrefixedKey=new CollectionPrefixedKey<>(collectionName,ownerId,entityId);
+  final ScopedRowKey<CollectionPrefixedKey<Id>> rowKey=ScopedRowKey.fromKey(applicationId,collectionPrefixedKey);
+  op.doOp(batch.withRow(CF_ENTITY_LOG,rowKey));
   return batch;
 }

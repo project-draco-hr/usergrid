@@ -1,5 +1,6 @@
 {
   final MutationBatch batch=keyspace.prepareMutationBatch();
-  op.doOp(batch.withRow(CF_UNIQUE_VALUES,ScopedRowKey.fromKey(context,field)));
+  final CollectionPrefixedKey<Field> collectionPrefixedKey=new CollectionPrefixedKey<>(context.getName(),context.getOwner(),field);
+  op.doOp(batch.withRow(CF_UNIQUE_VALUES,ScopedRowKey.fromKey(context.getApplication(),collectionPrefixedKey)));
   return batch;
 }

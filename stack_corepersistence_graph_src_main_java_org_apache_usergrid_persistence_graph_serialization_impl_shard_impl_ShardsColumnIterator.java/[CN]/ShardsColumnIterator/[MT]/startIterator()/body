@@ -1,12 +1,6 @@
 {
   final RangeBuilder rangeBuilder=new RangeBuilder().setLimit(pageSize);
   searcher.buildRange(rangeBuilder);
-  final List<ScopedRowKey<ApplicationScope,R>> rowKeys=searcher.getRowKeys();
-  if (rowKeys.size() == 1) {
-    final RowQuery<ScopedRowKey<ApplicationScope,R>,C> query=keyspace.prepareQuery(cf).setConsistencyLevel(consistencyLevel).getKey(rowKeys.get(0)).autoPaginate(true).withColumnRange(rangeBuilder.build());
-    currentColumnIterator=new ColumnNameIterator<>(query,searcher,searcher.hasPage());
-  }
- else {
-    currentColumnIterator=new MultiRowColumnIterator<>(keyspace,cf,consistencyLevel,searcher,searcher,searcher.getComparator(),rowKeys,pageSize);
-  }
+  final List<ScopedRowKey<R>> rowKeys=searcher.getRowKeys();
+  currentColumnIterator=new MultiRowColumnIterator<>(keyspace,cf,consistencyLevel,searcher,searcher,searcher.getComparator(),rowKeys,pageSize);
 }

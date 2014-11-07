@@ -8,7 +8,7 @@
     GraphValidation.valiateShard(shard);
     rangeBuilder.setStart(shard.getShardIndex());
   }
-  final ScopedRowKey rowKey=ScopedRowKey.fromKey(scope,metaData);
-  final RowQuery<ScopedRowKey<ApplicationScope,DirectedEdgeMeta>,Long> query=keyspace.prepareQuery(EDGE_SHARDS).setConsistencyLevel(cassandraConfig.getReadCL()).getKey(rowKey).autoPaginate(true).withColumnRange(rangeBuilder.build());
+  final ScopedRowKey rowKey=ScopedRowKey.fromKey(scope.getApplication(),metaData);
+  final RowQuery<ScopedRowKey<DirectedEdgeMeta>,Long> query=keyspace.prepareQuery(EDGE_SHARDS).setConsistencyLevel(cassandraConfig.getReadCL()).getKey(rowKey).autoPaginate(true).withColumnRange(rangeBuilder.build());
   return new ColumnNameIterator<>(query,COLUMN_PARSER,false);
 }

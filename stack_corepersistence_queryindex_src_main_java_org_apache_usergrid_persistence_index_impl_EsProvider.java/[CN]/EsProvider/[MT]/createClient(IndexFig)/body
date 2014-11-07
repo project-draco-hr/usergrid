@@ -1,0 +1,24 @@
+{
+  if (client != null) {
+    return;
+  }
+  final String clusterName=fig.getClusterName();
+  final int port=fig.getPort();
+  ImmutableSettings.Builder settings=ImmutableSettings.settingsBuilder().put("cluster.name",clusterName).put("client.transport.sniff",true);
+  String nodeName=fig.getNodeName();
+  if ("default".equals(nodeName)) {
+    try {
+      nodeName=InetAddress.getLocalHost().getHostName();
+    }
+ catch (    UnknownHostException ex) {
+      nodeName="client-" + RandomStringUtils.randomAlphabetic(8);
+      log.warn("Couldn't get hostname to use as ES node name, using " + nodeName);
+    }
+  }
+  settings.put("node.name",nodeName);
+  TransportClient transportClient=new TransportClient(settings.build());
+  for (  String host : fig.getHosts().split(",")) {
+    transportClient.addTransportAddress(new InetSocketTransportAddress(host,port));
+  }
+  client=transportClient;
+}

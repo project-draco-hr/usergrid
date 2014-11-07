@@ -4,5 +4,6 @@
   final Id scopeId=ID_SER.fromComposite(parser);
   final String scopeName=parser.readString();
   final K value=keySerializer.fromComposite(parser);
-  return new ScopedRowKey<CollectionScope,K>(new CollectionScopeImpl(orgId,scopeId,scopeName),value);
+  final CollectionPrefixedKey<K> collectionPrefixedKey=new CollectionPrefixedKey<>(scopeName,scopeId,value);
+  return new ScopedRowKey<>(orgId,collectionPrefixedKey);
 }

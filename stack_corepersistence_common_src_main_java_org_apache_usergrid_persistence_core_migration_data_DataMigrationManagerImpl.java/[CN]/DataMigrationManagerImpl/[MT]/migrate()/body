@@ -1,0 +1,31 @@
+{
+  if (migrationTreeMap.isEmpty()) {
+    LOG.warn("No migrations found to run, exiting");
+    return;
+  }
+  final int currentVersion=migrationInfoSerialization.getVersion();
+  LOG.info("Saved schema version is {}, max migration version is {}",currentVersion,migrationTreeMap.lastKey());
+  final NavigableMap<Integer,DataMigration> migrationsToRun=migrationTreeMap.tailMap(currentVersion,false);
+  CassandraProgressObserver observer=new CassandraProgressObserver();
+  for (  DataMigration migration : migrationsToRun.values()) {
+    migrationInfoSerialization.setStatusCode(StatusCode.RUNNING.status);
+    final int migrationVersion=migration.getVersion();
+    LOG.info("Running migration version {}",migrationVersion);
+    observer.update(migrationVersion,"Starting migration");
+    try {
+      migration.migrate(observer);
+    }
+ catch (    Throwable throwable) {
+      observer.failed(migrationVersion,"Exception thrown during migration",throwable);
+      LOG.error("Unable to migration version {}.",migrationVersion,throwable);
+      return;
+    }
+    if (observer.failed) {
+      return;
+    }
+    migrationInfoSerialization.setVersion(migrationVersion);
+    versionCache.invalidateAll();
+    observer.update(migrationVersion,"Completed successfully");
+  }
+  migrationInfoSerialization.setStatusCode(StatusCode.COMPLETE.status);
+}

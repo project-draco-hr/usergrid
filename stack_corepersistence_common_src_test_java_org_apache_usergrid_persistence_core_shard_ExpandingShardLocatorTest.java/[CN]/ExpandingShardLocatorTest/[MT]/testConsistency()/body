@@ -1,0 +1,13 @@
+{
+  final ExpandingShardLocator<String> expandingShardLocator1=new ExpandingShardLocator<>(ShardLocatorTest.STRING_FUNNEL,20,10,1);
+  final ExpandingShardLocator<String> expandingShardLocator2=new ExpandingShardLocator<>(ShardLocatorTest.STRING_FUNNEL,20,10,1);
+  final String key="mytestkey";
+  int[] results1=expandingShardLocator1.getAllBuckets(key);
+  int[] results2=expandingShardLocator2.getAllBuckets(key);
+  assertTrue("Same results returned",Arrays.equals(results1,results2));
+  assertTrue("Within bounds",results1[0] <= 19);
+  assertTrue("Within bounds",results1[1] <= 9);
+  assertTrue("Within bounds",results1[2] <= 0);
+  int newestBucket=expandingShardLocator1.getCurrentBucket(key);
+  assertEquals("Same bucket returned",results1[0],newestBucket);
+}
