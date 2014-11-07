@@ -1,15 +1,16 @@
 {
   ValidationUtils.validateApplicationScope(scope);
   Preconditions.checkNotNull(edges,"edges cannot be null");
-  final ColumnFamilyQuery<ScopedRowKey<ApplicationScope,Id>,Boolean> query=keyspace.prepareQuery(GRAPH_DELETE).setConsistencyLevel(fig.getReadCL());
-  final List<ScopedRowKey<ApplicationScope,Id>> keys=new ArrayList<ScopedRowKey<ApplicationScope,Id>>(edges.size());
+  final ColumnFamilyQuery<ScopedRowKey<Id>,Boolean> query=keyspace.prepareQuery(GRAPH_DELETE).setConsistencyLevel(fig.getReadCL());
+  final List<ScopedRowKey<Id>> keys=new ArrayList<>(edges.size());
   final Map<Id,Long> versions=new HashMap<>(edges.size());
+  final Id scopeId=scope.getApplication();
   for (  final Edge edge : edges) {
-    keys.add(ScopedRowKey.fromKey(scope,edge.getSourceNode()));
-    keys.add(ScopedRowKey.fromKey(scope,edge.getTargetNode()));
+    keys.add(ScopedRowKey.fromKey(scopeId,edge.getSourceNode()));
+    keys.add(ScopedRowKey.fromKey(scopeId,edge.getTargetNode()));
   }
-  final Rows<ScopedRowKey<ApplicationScope,Id>,Boolean> results=HystrixCassandra.user(query.getRowSlice(keys).withColumnSlice(Collections.singletonList(COLUMN_NAME))).getResult();
-  for (  Row<ScopedRowKey<ApplicationScope,Id>,Boolean> row : results) {
+  final Rows<ScopedRowKey<Id>,Boolean> results=HystrixCassandra.user(query.getRowSlice(keys).withColumnSlice(Collections.singletonList(COLUMN_NAME))).getResult();
+  for (  Row<ScopedRowKey<Id>,Boolean> row : results) {
     Column<Boolean> column=row.getColumns().getColumnByName(COLUMN_NAME);
     if (column != null) {
       versions.put(row.getKey().getKey(),column.getLongValue());

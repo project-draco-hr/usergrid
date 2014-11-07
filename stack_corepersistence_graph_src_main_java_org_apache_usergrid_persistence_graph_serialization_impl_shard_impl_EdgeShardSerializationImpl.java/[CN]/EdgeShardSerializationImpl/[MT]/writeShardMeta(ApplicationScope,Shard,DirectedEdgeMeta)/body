@@ -5,7 +5,7 @@
   Preconditions.checkNotNull(shard);
   Preconditions.checkArgument(shard.getShardIndex() > -1,"shardid must be greater than -1");
   Preconditions.checkArgument(shard.getCreatedTime() > -1,"createdTime must be greater than -1");
-  final ScopedRowKey rowKey=ScopedRowKey.fromKey(scope,metaData);
+  final ScopedRowKey rowKey=ScopedRowKey.fromKey(scope.getApplication(),metaData);
   final MutationBatch batch=keyspace.prepareMutationBatch();
   batch.withTimestamp(shard.getCreatedTime()).withRow(EDGE_SHARDS,rowKey).putColumn(shard.getShardIndex(),shard.isCompacted());
   return batch;

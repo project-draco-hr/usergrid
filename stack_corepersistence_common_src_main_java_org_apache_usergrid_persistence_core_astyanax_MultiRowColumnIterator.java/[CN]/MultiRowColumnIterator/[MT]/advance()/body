@@ -1,5 +1,6 @@
 {
-  final int selectSize=startColumn == null ? pageSize : pageSize + 1;
+  final boolean skipFirstColumn=startColumn != null;
+  final int selectSize=skipFirstColumn ? pageSize + 1 : pageSize;
   final RangeBuilder rangeBuilder=new RangeBuilder();
   if (startColumn == null) {
     columnSearch.buildRange(rangeBuilder);
@@ -10,32 +11,24 @@
   rangeBuilder.setLimit(selectSize);
   final RowSliceQuery<R,C> query=keyspace.prepareQuery(cf).setConsistencyLevel(consistencyLevel).getKeySlice(rowKeys).withColumnRange(rangeBuilder.build());
   final Rows<R,C> result=HystrixCassandra.user(query).getResult();
-  final TreeSet<T> mergedResults=new TreeSet<>(comparator);
-  for (  final R key : result.getKeys()) {
-    final ColumnList<C> columns=result.getRow(key).getColumns();
-    final int size=columns.size();
-    int readIndex=0;
-    if (startColumn != null && size > 0) {
-      final T returnedValue=columnParser.parseColumn(columns.getColumnByIndex(0));
-      if (comparator.compare(returnedValue,startColumn) == 0) {
-        readIndex++;
-      }
-    }
-    for (; readIndex < size; readIndex++) {
-      final Column<C> column=columns.getColumnByIndex(readIndex);
-      final T returnedValue=columnParser.parseColumn(column);
-      mergedResults.add(returnedValue);
-      while (mergedResults.size() > pageSize) {
-        mergedResults.pollLast();
-      }
-    }
-    LOG.trace("Read {} columns from row key {}",readIndex,key);
-    LOG.trace("Candidate result set size is {}",mergedResults.size());
+  final List<T> mergedResults;
+  if (containsSingleRowOnly(result)) {
+    mergedResults=singleRowResult(result);
   }
-  if (!mergedResults.isEmpty()) {
-    startColumn=mergedResults.last();
+ else {
+    mergedResults=mergeResults(result,selectSize);
   }
-  moreToFollow=mergedResults.size() == pageSize;
+  final int size=mergedResults.size();
+  moreToReturn=size == selectSize;
+  if (size > 0) {
+    final T firstResult=mergedResults.get(0);
+    if (columnSearch.skipFirst(firstResult) || (skipFirstColumn && comparator.compare(startColumn,firstResult) == 0)) {
+      mergedResults.remove(0);
+    }
+  }
+  if (moreToReturn && mergedResults.size() > 0) {
+    startColumn=mergedResults.get(mergedResults.size() - 1);
+  }
   currentColumnIterator=mergedResults.iterator();
-  LOG.trace("Finished parsing {} rows for a total of {} results",rowKeys.size(),mergedResults.size());
+  LOG.trace("Finished parsing {} rows for results",rowKeys.size());
 }

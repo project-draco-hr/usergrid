@@ -4,7 +4,7 @@
   for (  Map.Entry<ShardKey,AtomicLong> entry : counter.getEntries()) {
     final ShardKey key=entry.getKey();
     final long value=entry.getValue().get();
-    final ScopedRowKey rowKey=ScopedRowKey.fromKey(key.scope,key);
+    final ScopedRowKey rowKey=ScopedRowKey.fromKey(key.scope.getApplication(),key);
     batch.withRow(EDGE_SHARD_COUNTS,rowKey).incrementCounterColumn(true,value);
   }
   return batch;

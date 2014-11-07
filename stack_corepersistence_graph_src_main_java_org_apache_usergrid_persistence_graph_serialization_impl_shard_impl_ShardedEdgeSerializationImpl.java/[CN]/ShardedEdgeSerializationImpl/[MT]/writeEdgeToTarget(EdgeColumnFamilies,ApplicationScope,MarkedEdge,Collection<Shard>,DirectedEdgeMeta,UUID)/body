@@ -3,8 +3,8 @@
   GraphValidation.validateEdge(markedEdge);
   ValidationUtils.verifyTimeUuid(timestamp,"timestamp");
   return new TargetWriteOp(columnFamilies,markedEdge){
-    @Override void writeEdge(    final MutationBatch batch,    final MultiTennantColumnFamily<ApplicationScope,RowKey,DirectedEdge> columnFamily,    final ApplicationScope scope,    final RowKey rowKey,    final DirectedEdge edge,    final Shard shard,    final boolean isDeleted){
-      batch.withRow(columnFamily,ScopedRowKey.fromKey(scope,rowKey)).putColumn(edge,isDeleted);
+    @Override void writeEdge(    final MutationBatch batch,    final MultiTennantColumnFamily<ScopedRowKey<RowKey>,DirectedEdge> columnFamily,    final ApplicationScope scope,    final RowKey rowKey,    final DirectedEdge edge,    final Shard shard,    final boolean isDeleted){
+      batch.withRow(columnFamily,ScopedRowKey.fromKey(scope.getApplication(),rowKey)).putColumn(edge,isDeleted);
       if (!isDeleted) {
         writeEdgeShardStrategy.increment(scope,shard,1,targetEdgeMeta);
       }

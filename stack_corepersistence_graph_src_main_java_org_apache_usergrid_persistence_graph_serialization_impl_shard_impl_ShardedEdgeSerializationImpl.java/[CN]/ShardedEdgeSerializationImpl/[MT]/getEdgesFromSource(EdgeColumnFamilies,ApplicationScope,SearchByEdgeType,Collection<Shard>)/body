@@ -4,7 +4,7 @@
   final Id sourceId=search.getNode();
   final String type=search.getType();
   final long maxTimestamp=search.getMaxTimestamp();
-  final MultiTennantColumnFamily<ApplicationScope,RowKey,DirectedEdge> columnFamily=columnFamilies.getSourceNodeCfName();
+  final MultiTennantColumnFamily<ScopedRowKey<RowKey>,DirectedEdge> columnFamily=columnFamilies.getSourceNodeCfName();
   final Serializer<DirectedEdge> serializer=columnFamily.getColumnSerializer();
   final OrderedComparator<MarkedEdge> comparator=new OrderedComparator<>(TargetDirectedEdgeDescendingComparator.INSTANCE,search.getOrder());
   final EdgeSearcher<RowKey,DirectedEdge,MarkedEdge> searcher=new EdgeSearcher<RowKey,DirectedEdge,MarkedEdge>(scope,shards,search.getOrder(),comparator,maxTimestamp,search.last().transform(TRANSFORM)){
