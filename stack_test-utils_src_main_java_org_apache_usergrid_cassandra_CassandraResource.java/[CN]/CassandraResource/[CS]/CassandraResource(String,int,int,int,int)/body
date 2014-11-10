@@ -16,8 +16,10 @@
     String[] locations={"usergrid-properties-context.xml"};
     ConfigurableApplicationContext appContext=new ClassPathXmlApplicationContext(locations);
     Properties properties=(Properties)appContext.getBean("properties");
+    properties.putAll(ArrayUtils.toMap(this.getProjectProperties().entrySet().toArray(new Object[]{})));
     String forkString=properties.getProperty("cassandra.startup");
     forkCassandra="forked".equals(forkString);
+    externalCassandra="external".equals(forkString);
   }
  catch (  Exception ex) {
     throw new RuntimeException("Error getting properties",ex);
