@@ -5,9 +5,6 @@
   SearchResponse searchResponse;
   if (query.getCursor() == null) {
     SearchRequestBuilder srb=esProvider.getClient().prepareSearch(indexName).setTypes(entityTypes).setScroll(cursorTimeout + "m").setQuery(qb);
-    if (logger.isDebugEnabled()) {
-      logger.debug("Searching index {}\n  scope{} \n type {}\n   query {} limit {}",new Object[]{this.indexName,context,entityTypes,qb.toString().replace("\n"," "),query.getLimit()});
-    }
     final FilterBuilder fb=query.createFilterBuilder();
     if (fb != null) {
       logger.debug("   Filter: {} ",fb.toString());
@@ -35,11 +32,14 @@
       srb.addSort(booleanSort);
       logger.debug("   Sort: {} order by {}",booleanFieldName,order.toString());
     }
+    if (logger.isDebugEnabled()) {
+      logger.debug("Searching index {}\n  scope{} \n type {}\n   query {} ",new Object[]{this.indexName,context,entityTypes,srb});
+    }
     try {
       searchResponse=srb.execute().actionGet();
     }
  catch (    Throwable t) {
-      logger.error("Unable to communicate with elasticsearch");
+      logger.error("Unable to communicate with elasticsearch",t);
       failureMonitor.fail("Unable to execute batch",t);
       throw t;
     }
@@ -59,7 +59,7 @@
       searchResponse=ssrb.execute().actionGet();
     }
  catch (    Throwable t) {
-      logger.error("Unable to communicate with elasticsearch");
+      logger.error("Unable to communicate with elasticsearch",t);
       failureMonitor.fail("Unable to execute batch",t);
       throw t;
     }
