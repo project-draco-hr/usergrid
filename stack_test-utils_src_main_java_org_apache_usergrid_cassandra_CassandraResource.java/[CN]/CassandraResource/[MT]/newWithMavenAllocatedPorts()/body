@@ -1,5 +1,8 @@
 {
 synchronized (lock) {
+    if (instance != null) {
+      return instance;
+    }
     Properties props=new Properties();
     try {
       props.load(ClassLoader.getSystemResourceAsStream("project.properties"));
@@ -23,7 +26,7 @@ synchronized (lock) {
     System.setProperty("cassandra." + SSL_STORAGE_PORT_KEY,Integer.toString(sslStoragePort));
     System.setProperty("cassandra." + NATIVE_TRANSPORT_PORT_KEY,Integer.toString(nativeTransportPort));
     LOG.info("project.properties loaded properties for ports : " + "[rpc, storage, sslStorage, native] = [{}, {}, {}, {}]",new Object[]{rpcPort,storagePort,sslStoragePort,nativeTransportPort});
-    instance=new CassandraResource(null,rpcPort,storagePort,sslStoragePort,nativeTransportPort);
+    instance=new CassandraResource(rpcPort,storagePort,sslStoragePort,nativeTransportPort);
     LOG.info("Created a new instance of CassandraResource: {}",instance);
     LOG.info("Cassandra using ports {} and {}",storagePort,sslStoragePort);
     return instance;
