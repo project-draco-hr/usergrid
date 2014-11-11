@@ -1,7 +1,7 @@
 {
-  String mgmtToken=superAdminToken();
+  String mgmtToken=context.getActiveUser().getToken();
   Map<String,String> payload=hashMap("username","test-user-2").map("name","Test User 2").map("email","test-user-2@mockserver.com").map("password","password");
-  JsonNode node=mapper.readTree(resource().path("/management/organizations/test-organization/users").queryParam("access_token",mgmtToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
+  JsonNode node=mapper.readTree(resource().path("/management/organizations/" + context.getOrgName() + "/users").queryParam("access_token",mgmtToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
   logNode(node);
   assertNotNull(node);
   String username=node.get("data").get("user").get("username").asText();
