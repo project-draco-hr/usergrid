@@ -1,16 +1,17 @@
 {
-  Map<String,String> payload=hashMap("email","create-duplicate-org@mockserver.com").map("password","password").map("organization","create-duplicate-orgname-org");
+  String timeuuid=UUIDUtils.newTimeUUID().toString();
+  Map<String,String> payload=hashMap("email","create-duplicate-org" + timeuuid + "@mockserver.com").map("password","password").map("organization","create-duplicate-orgname-org" + timeuuid);
   JsonNode node=mapper.readTree(resource().path("/management/organizations").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
   logNode(node);
   assertNotNull(node);
-  refreshIndex("create-duplicate-orgname-org","dummy");
-  payload=hashMap("email","create-duplicate-org2@mockserver.com").map("username","create-dupe-orgname2").map("password","password").map("organization","create-duplicate-orgname-org");
+  refreshIndex("create-duplicate-orgname-org" + timeuuid,"dummy");
+  payload=hashMap("email","create-duplicate-org2@mockserver.com").map("username","create-dupe-orgname2").map("password","password").map("organization","create-duplicate-orgname-org" + timeuuid);
   try {
     node=mapper.readTree(resource().path("/management/organizations").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
   }
  catch (  Exception ex) {
   }
-  refreshIndex("create-duplicate-orgname-org","dummy");
+  refreshIndex("create-duplicate-orgname-org" + timeuuid,"dummy");
   payload=hashMap("grant_type","password").map("username","create-dupe-orgname2").map("password","password");
   try {
     node=mapper.readTree(resource().path("/management/token").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
@@ -19,7 +20,7 @@
  catch (  Exception ex) {
   }
   logNode(node);
-  refreshIndex("create-duplicate-orgname-org","dummy");
+  refreshIndex("create-duplicate-orgname-org" + timeuuid,"dummy");
   payload=hashMap("username","create-duplicate-org@mockserver.com").map("grant_type","password").map("password","password");
   node=mapper.readTree(resource().path("/management/token").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
   logNode(node);

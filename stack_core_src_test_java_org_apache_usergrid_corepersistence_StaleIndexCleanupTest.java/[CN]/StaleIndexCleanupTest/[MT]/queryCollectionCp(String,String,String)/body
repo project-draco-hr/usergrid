@@ -1,0 +1,10 @@
+{
+  EntityManager em=app.getEntityManager();
+  EntityIndexFactory eif=CpSetup.getInjector().getInstance(EntityIndexFactory.class);
+  ApplicationScope as=new ApplicationScopeImpl(new SimpleId(em.getApplicationId(),TYPE_APPLICATION));
+  EntityIndex ei=eif.createEntityIndex(as);
+  IndexScope is=new IndexScopeImpl(new SimpleId(em.getApplicationId(),TYPE_APPLICATION),CpNamingUtils.getCollectionScopeNameFromCollectionName(collName));
+  Query rcq=Query.fromQL(query);
+  rcq.setLimit(10000);
+  return ei.search(is,SearchTypes.fromTypes(type),rcq);
+}

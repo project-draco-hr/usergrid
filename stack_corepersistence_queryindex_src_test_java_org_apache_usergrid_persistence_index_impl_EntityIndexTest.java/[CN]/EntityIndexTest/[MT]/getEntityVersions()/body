@@ -2,7 +2,7 @@
   Id appId=new SimpleId("application");
   Id ownerId=new SimpleId("owner");
   ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
-  IndexScope indexScope=new IndexScopeImpl(ownerId,"user");
+  IndexScope indexScope=new IndexScopeImpl(ownerId,"users");
   EntityIndex entityIndex=eif.createEntityIndex(applicationScope);
   entityIndex.initializeIndex();
   final String middleName="middleName" + UUIDUtils.newTimeUUID();
@@ -18,8 +18,9 @@
     }
   }
 ;
+  final Id userId=new SimpleId("user");
   Entity user=EntityIndexMapUtils.fromMap(entityMap);
-  EntityUtils.setId(user,new SimpleId("edanuff"));
+  EntityUtils.setId(user,userId);
   EntityUtils.setVersion(user,UUIDGenerator.newTimeUUID());
   final EntityIndexBatch batch=entityIndex.createBatch();
   batch.index(indexScope,user);

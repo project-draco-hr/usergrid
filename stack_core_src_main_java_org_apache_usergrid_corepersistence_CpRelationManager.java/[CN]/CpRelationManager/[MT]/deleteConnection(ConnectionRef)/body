@@ -18,9 +18,7 @@
   gm.deleteEdge(edge).toBlockingObservable().last();
   final EntityIndex ei=managerCache.getEntityIndex(applicationScope);
   final EntityIndexBatch batch=ei.createBatch();
-  IndexScope indexScope=new IndexScopeImpl(new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),CpNamingUtils.getConnectionScopeName(targetEntity.getId().getType(),connectionType));
+  IndexScope indexScope=new IndexScopeImpl(new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),CpNamingUtils.getConnectionScopeName(connectionType));
   batch.deindex(indexScope,targetEntity);
-  IndexScope allTypesIndexScope=new IndexScopeImpl(new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),CpNamingUtils.ALL_TYPES);
-  batch.deindex(allTypesIndexScope,targetEntity);
   batch.execute();
 }

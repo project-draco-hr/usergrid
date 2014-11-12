@@ -21,7 +21,7 @@
     final UUID currentVersion=currentCandidate.getVersion();
     if (UUIDComparator.staticCompare(currentVersion,previousMaxVersion) > 0) {
       logger.debug("Stale version of Entity uuid:{} type:{}, stale v:{}, latest v:{}",new Object[]{entityId.getUuid(),entityId.getType(),previousMaxVersion,currentVersion});
-      deIndex(indexBatch,ownerId,previousMax);
+      indexBatch.deindex(indexScope,previousMax);
       groupedByScopes.remove(collectionType,previousMax);
       maxCandidateMapping.put(entityId,currentCandidate);
       orderIndex.put(entityId,i);
@@ -43,7 +43,7 @@
     for (    final Id requestedId : idsToLoad) {
       final CandidateResult cr=maxCandidateMapping.get(requestedId);
       if (!resultsVerifier.isValid(cr)) {
-        deIndex(indexBatch,ownerId,cr);
+        indexBatch.deindex(indexScope,cr);
         continue;
       }
       final int candidateIndex=orderIndex.get(requestedId);

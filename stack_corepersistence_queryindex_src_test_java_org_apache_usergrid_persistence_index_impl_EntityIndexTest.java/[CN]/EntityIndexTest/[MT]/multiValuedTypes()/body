@@ -48,20 +48,21 @@
   EntityUtils.setVersion(fred,UUIDGenerator.newTimeUUID());
   batch.index(appScope,fred);
   batch.executeAndRefresh();
+  final SearchTypes searchTypes=SearchTypes.fromTypes("user");
   Query query=new Query();
   query.addEqualityFilter("username","bill");
-  CandidateResults r=ei.search(appScope,query);
+  CandidateResults r=ei.search(appScope,searchTypes,query);
   assertEquals(bill.getId(),r.get(0).getId());
   query=new Query();
   query.addEqualityFilter("username","fred");
-  r=ei.search(appScope,query);
+  r=ei.search(appScope,searchTypes,query);
   assertEquals(fred.getId(),r.get(0).getId());
   query=new Query();
   query.addEqualityFilter("age",41);
-  r=ei.search(appScope,query);
+  r=ei.search(appScope,searchTypes,query);
   assertEquals(fred.getId(),r.get(0).getId());
   query=new Query();
   query.addEqualityFilter("age","thirtysomething");
-  r=ei.search(appScope,query);
+  r=ei.search(appScope,searchTypes,query);
   assertEquals(bill.getId(),r.get(0).getId());
 }
