@@ -1,6 +1,7 @@
 {
   if (query == null) {
     query=new Query();
+    query.setCollection(collName);
   }
   headEntity=em.validate(headEntity);
   CollectionInfo collection=getDefaultSchema().getCollection(headEntity.getType(),collName);
@@ -22,11 +23,11 @@
     CandidateResults crs=ei.search(indexScope,types,query);
     if (results == null) {
       logger.debug("Calling build results 1");
-      results=buildResults(query,crs,collName);
+      results=buildResults(indexScope,query,crs,collName);
     }
  else {
       logger.debug("Calling build results 2");
-      Results newResults=buildResults(query,crs,collName);
+      Results newResults=buildResults(indexScope,query,crs,collName);
       results.merge(newResults);
     }
     if (crs.isEmpty() || !crs.hasCursor()) {

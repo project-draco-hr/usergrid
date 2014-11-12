@@ -1,0 +1,61 @@
+{
+  Id appId=new SimpleId("application");
+  ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
+  Entity muffin=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),"muffin"));
+  muffin=EntityIndexMapUtils.fromMap(muffin,new HashMap<String,Object>(){
+{
+      put("size","Large");
+      put("flavor","Blueberry");
+      put("stars",5);
+    }
+  }
+);
+  EntityUtils.setVersion(muffin,UUIDGenerator.newTimeUUID());
+  Entity egg=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),"egg"));
+  egg=EntityIndexMapUtils.fromMap(egg,new HashMap<String,Object>(){
+{
+      put("size","Large");
+      put("type","scramble");
+      put("stars",5);
+    }
+  }
+);
+  EntityUtils.setVersion(egg,UUIDGenerator.newTimeUUID());
+  Entity oj=new Entity(new SimpleId(UUIDGenerator.newTimeUUID(),"juice"));
+  oj=EntityIndexMapUtils.fromMap(oj,new HashMap<String,Object>(){
+{
+      put("size","Large");
+      put("type","pulpy");
+      put("stars",3);
+    }
+  }
+);
+  EntityUtils.setVersion(oj,UUIDGenerator.newTimeUUID());
+  Id personId=new SimpleId(UUIDGenerator.newTimeUUID(),"person");
+  assertNotNull(personId);
+  assertNotNull(personId.getType());
+  assertNotNull(personId.getUuid());
+  IndexScope searchScope=new IndexScopeImpl(personId,"likes");
+  IndexScope otherIndexScope=new IndexScopeImpl(new SimpleId(UUIDGenerator.newTimeUUID(),"animal"),"likes");
+  EntityIndex personLikesIndex=ecif.createEntityIndex(applicationScope);
+  EntityIndexBatch batch=personLikesIndex.createBatch();
+  batch.index(searchScope,muffin);
+  batch.index(otherIndexScope,muffin);
+  batch.index(searchScope,egg);
+  batch.index(otherIndexScope,egg);
+  batch.index(searchScope,oj);
+  batch.index(otherIndexScope,oj);
+  batch.executeAndRefresh();
+  personLikesIndex.refresh();
+  CandidateResults likes=personLikesIndex.search(searchScope,SearchTypes.fromTypes(muffin.getId().getType(),egg.getId().getType(),oj.getId().getType()),Query.fromQL("select *"));
+  assertEquals(3,likes.size());
+  assertContains(egg.getId(),likes);
+  assertContains(muffin.getId(),likes);
+  assertContains(oj.getId(),likes);
+  batch.deindex(searchScope,egg);
+  batch.deindex(searchScope,muffin);
+  batch.deindex(searchScope,oj);
+  batch.executeAndRefresh();
+  likes=personLikesIndex.search(searchScope,SearchTypes.fromTypes(muffin.getId().getType(),egg.getId().getType(),oj.getId().getType()),Query.fromQL("select *"));
+  assertEquals(0,likes.size());
+}
