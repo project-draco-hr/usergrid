@@ -2,8 +2,11 @@
   JsonNode node=null;
   ClientResponse.Status responseStatus=ClientResponse.Status.OK;
   HashMap<String,Object> payload=new HashMap<String,Object>();
+  String orgName=context.getOrgName();
+  String appName=context.getAppName();
+  String token=context.getActiveUser().getToken();
   try {
-    node=mapper.readTree(resource().path("/management/orgs/test-organization/apps/test-app/collection/users/export").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
+    node=mapper.readTree(resource().path("/management/orgs/" + orgName + "/apps/"+ appName+ "/collection/users/export").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
   }
  catch (  UniformInterfaceException uie) {
     responseStatus=uie.getResponse().getClientResponseStatus();

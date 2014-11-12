@@ -1,6 +1,9 @@
 {
   ClientResponse.Status responseStatus=ClientResponse.Status.OK;
   JsonNode node=null;
+  String orgName=context.getOrgName();
+  String appName=context.getAppName();
+  String token=context.getActiveUser().getToken();
   HashMap<String,Object> payload=new HashMap<String,Object>();
   Map<String,Object> properties=new HashMap<String,Object>();
   Map<String,Object> storage_info=new HashMap<String,Object>();
@@ -9,10 +12,10 @@
   payload.put("properties",properties);
   for (int i=0; i < 100; i++) {
     Map<String,String> userCreation=hashMap("type","app_user").map("name","fred" + i);
-    node=mapper.readTree(resource().path("/test-organization/test-app/app_users").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,userCreation));
+    node=mapper.readTree(resource().path("/test-organization/" + appName + "/app_users").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,userCreation));
   }
   try {
-    node=mapper.readTree(resource().path("/management/orgs/test-organization/apps/test-app/export").queryParam("access_token",adminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
+    node=mapper.readTree(resource().path("/management/orgs/test-organization/apps/" + appName + "/export").queryParam("access_token",adminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
   }
  catch (  UniformInterfaceException uie) {
     responseStatus=uie.getResponse().getClientResponseStatus();

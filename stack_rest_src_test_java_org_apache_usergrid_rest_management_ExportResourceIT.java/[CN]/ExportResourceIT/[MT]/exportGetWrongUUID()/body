@@ -1,9 +1,12 @@
 {
   JsonNode node=null;
+  String orgName=context.getOrgName();
+  String appName=context.getAppName();
+  String token=context.getActiveUser().getToken();
   ClientResponse.Status responseStatus=ClientResponse.Status.OK;
   UUID fake=UUID.fromString("AAAAAAAA-FFFF-FFFF-FFFF-AAAAAAAAAAAA");
   try {
-    node=mapper.readTree(resource().path("/management/orgs/test-organization/export/" + fake).queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
+    node=mapper.readTree(resource().path("/management/orgs/" + orgName + "/export/"+ fake).queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   }
  catch (  UniformInterfaceException uie) {
     responseStatus=uie.getResponse().getClientResponseStatus();
