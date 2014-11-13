@@ -1,0 +1,23 @@
+{
+  final Observable<Id> systemIds=Observable.from(Arrays.asList(generateApplicationId(CpNamingUtils.DEFAULT_APPLICATION_ID),generateApplicationId(CpNamingUtils.MANAGEMENT_APPLICATION_ID),generateApplicationId(CpNamingUtils.SYSTEM_APP_ID)));
+  final ApplicationScope appScope=getApplicationScope(CpNamingUtils.SYSTEM_APP_ID);
+  final CollectionScope appInfoCollectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),CpNamingUtils.getCollectionScopeNameFromCollectionName(CpNamingUtils.APPINFOS));
+  final EntityCollectionManager collectionManager=managerCache.getEntityCollectionManager(appInfoCollectionScope);
+  final GraphManager gm=managerCache.getGraphManager(appScope);
+  String edgeType=CpNamingUtils.getEdgeTypeFromCollectionName(CpNamingUtils.APPINFOS);
+  Id rootAppId=appScope.getApplication();
+  Observable<Id> appIds=gm.loadEdgesFromSource(new SimpleSearchByEdgeType(rootAppId,edgeType,Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING,null)).flatMap(new Func1<Edge,Observable<Id>>(){
+    @Override public Observable<Id> call(    final Edge edge){
+      final Id appInfo=edge.getTargetNode();
+      return collectionManager.load(appInfo).map(new Func1<org.apache.usergrid.persistence.model.entity.Entity,Id>(){
+        @Override public Id call(        final org.apache.usergrid.persistence.model.entity.Entity entity){
+          final UUID uuid=(UUID)entity.getField("applicationUuid").getValue();
+          return CpNamingUtils.generateApplicationId(uuid);
+        }
+      }
+);
+    }
+  }
+);
+  return Observable.merge(systemIds,appIds);
+}

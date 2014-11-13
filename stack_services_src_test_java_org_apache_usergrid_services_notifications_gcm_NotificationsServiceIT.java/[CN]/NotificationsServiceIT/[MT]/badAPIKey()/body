@@ -8,9 +8,9 @@
   app.put("debug",true);
   Entity e=app.testRequest(ServiceAction.POST,1,"devices",device1.getUuid(),"notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
-  Notification notification=app.getEm().get(e.getUuid(),Notification.class);
+  Notification notification=app.getEntityManager().get(e.getUuid(),Notification.class);
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
   ns.addDevice(notification,device1);
-  app.getEm().setProperty(notifier,"apiKey",API_KEY + "x");
+  app.getEntityManager().setProperty(notifier,"apiKey",API_KEY + "x");
   fail("Should have received a ConnectionException");
 }

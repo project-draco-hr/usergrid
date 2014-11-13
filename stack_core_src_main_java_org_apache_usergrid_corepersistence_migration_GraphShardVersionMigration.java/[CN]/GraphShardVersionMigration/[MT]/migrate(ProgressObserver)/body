@@ -1,10 +1,10 @@
 {
   final AtomicLong counter=new AtomicLong();
-  AllEntitiesInSystemObservable.getAllEntitiesInSystem(graphManagerFactory).flatMap(new Func1<AllEntitiesInSystemObservable.EntityData,Observable<List<Edge>>>(){
+  AllEntitiesInSystemObservable.getAllEntitiesInSystem(managerCache).flatMap(new Func1<AllEntitiesInSystemObservable.EntityData,Observable<List<Edge>>>(){
     @Override public Observable<List<Edge>> call(    final AllEntitiesInSystemObservable.EntityData entityData){
       logger.info("Migrating edges from node {} in scope {}",entityData.entityId,entityData.applicationScope);
-      final GraphManager gm=graphManagerFactory.createEdgeManager(entityData.applicationScope);
-      return EdgesFromSourceObservable.edgesFromSource(entityData.applicationScope,entityData.entityId,gm).buffer(1000).doOnNext(new Action1<List<Edge>>(){
+      final GraphManager gm=managerCache.getGraphManager(entityData.applicationScope);
+      return EdgesFromSourceObservable.edgesFromSource(gm,entityData.entityId).buffer(1000).doOnNext(new Action1<List<Edge>>(){
         @Override public void call(        final List<Edge> edges){
           final MutationBatch batch=keyspace.prepareMutationBatch();
           for (          final Edge edge : edges) {
