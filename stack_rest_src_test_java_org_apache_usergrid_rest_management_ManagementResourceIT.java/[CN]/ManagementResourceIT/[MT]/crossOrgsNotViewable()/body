@@ -1,9 +1,14 @@
 {
-  OrganizationOwnerInfo orgInfo=setup.getMgmtSvc().createOwnerAndOrganization("crossOrgsNotViewable","crossOrgsNotViewable","TestName","crossOrgsNotViewable@usergrid.org","password");
-  refreshIndex("test-organization","test-app");
+  String username="test" + UUIDUtils.newTimeUUID();
+  String name=username;
+  String email=username + "@usergrid.com";
+  String password="password";
+  String orgName=username;
+  Map payload=hashMap("email",email).map("username",username).map("name",name).map("password",password).map("organization",orgName).map("company","Apigee");
+  JsonNode node=mapper.readTree(resource().path("/management/organizations").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
   Status status=null;
   try {
-    resource().path(String.format("/management/orgs/%s",orgInfo.getOrganization().getName())).queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
+    resource().path(String.format("/management/orgs/%s",orgName)).queryParam("access_token",context.getActiveUser().getToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getClientResponseStatus();
@@ -12,25 +17,15 @@
   assertEquals(Status.UNAUTHORIZED,status);
   status=null;
   try {
-    resource().path(String.format("/management/orgs/%s",orgInfo.getOrganization().getUuid())).queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
-  }
- catch (  UniformInterfaceException uie) {
-    status=uie.getResponse().getClientResponseStatus();
-  }
-  assertNotNull(status);
-  assertEquals(Status.UNAUTHORIZED,status);
-  status=null;
-  try {
-    resource().path("/management/orgs/test-organization").queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
+    resource().path("/management/orgs/" + context.getOrgName()).queryParam("access_token",context.getActiveUser().getToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getClientResponseStatus();
   }
   assertNull(status);
-  OrganizationInfo org=setup.getMgmtSvc().getOrganizationByName("test-organization");
   status=null;
   try {
-    resource().path(String.format("/management/orgs/%s",org.getUuid())).queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
+    resource().path(String.format("/management/orgs/%s",context.getOrgUuid())).queryParam("access_token",context.getActiveUser().getToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getClientResponseStatus();
