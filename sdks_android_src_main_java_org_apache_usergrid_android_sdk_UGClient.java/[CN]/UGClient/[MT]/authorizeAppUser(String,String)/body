@@ -1,0 +1,26 @@
+{
+  validateNonEmptyParam(usernameOrEmail,"email");
+  validateNonEmptyParam(password,"password");
+  assertValidApplicationId();
+  loggedInUser=null;
+  accessToken=null;
+  currentOrganization=null;
+  Map<String,Object> formData=new HashMap<String,Object>();
+  formData.put("grant_type","password");
+  formData.put("username",usernameOrEmail);
+  formData.put("password",password);
+  ApiResponse response=apiRequest(HTTP_METHOD_POST,formData,null,organizationId,applicationId,"token");
+  if (response == null) {
+    return response;
+  }
+  if (!isEmpty(response.getAccessToken()) && (response.getUser() != null)) {
+    loggedInUser=response.getUser();
+    accessToken=response.getAccessToken();
+    currentOrganization=null;
+    logInfo("authorizeAppUser(): Access token: " + accessToken);
+  }
+ else {
+    logInfo("authorizeAppUser(): Response: " + response);
+  }
+  return response;
+}

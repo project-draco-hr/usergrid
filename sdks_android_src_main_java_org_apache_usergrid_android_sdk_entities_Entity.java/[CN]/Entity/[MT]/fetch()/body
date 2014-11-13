@@ -1,0 +1,50 @@
+{
+  ApiResponse response=new ApiResponse();
+  String type=this.getType();
+  UUID uuid=this.getUuid();
+  String entityId=null;
+  if (uuid != null) {
+    entityId=uuid.toString();
+  }
+ else {
+    if (User.isSameType(type)) {
+      String username=this.getStringProperty(User.PROPERTY_USERNAME);
+      if ((username != null) && (username.length() > 0)) {
+        entityId=username;
+      }
+ else {
+        String error="no_username_specified";
+        this.client.writeLog(error);
+        response.setError(error);
+        return response;
+      }
+    }
+ else {
+      String name=this.getStringProperty(PROPERTY_NAME);
+      if ((name != null) && (name.length() > 0)) {
+        entityId=name;
+      }
+ else {
+        String error="no_name_specified";
+        this.client.writeLog(error);
+        response.setError(error);
+        return response;
+      }
+    }
+  }
+  Query q=this.client.queryEntitiesRequest("GET",null,null,this.client.getOrganizationId(),this.client.getApplicationId(),type,entityId);
+  response=q.getResponse();
+  if (response.getError() != null) {
+    this.client.writeLog("Could not get entity.");
+  }
+ else {
+    if (response.getUser() != null) {
+      this.addProperties(response.getUser().getProperties());
+    }
+ else     if (response.getEntityCount() > 0) {
+      Entity entity=response.getFirstEntity();
+      this.setProperties(entity.getProperties());
+    }
+  }
+  return response;
+}
