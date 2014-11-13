@@ -1,0 +1,23 @@
+{
+  ApiResponse response=new ApiResponse();
+  String type=getType();
+  String uuidAsString=null;
+  UUID uuid=getUuid();
+  if (uuid != null) {
+    uuidAsString=uuid.toString();
+  }
+ else {
+    String error="Error trying to delete object: No UUID specified.";
+    this.client.writeLog(error);
+    response.setError(error);
+    return response;
+  }
+  response=this.client.removeEntity(type,uuidAsString);
+  if ((response != null) && (response.getError() != null)) {
+    this.client.writeLog("Entity could not be deleted.");
+  }
+ else {
+    this.properties.clear();
+  }
+  return response;
+}
