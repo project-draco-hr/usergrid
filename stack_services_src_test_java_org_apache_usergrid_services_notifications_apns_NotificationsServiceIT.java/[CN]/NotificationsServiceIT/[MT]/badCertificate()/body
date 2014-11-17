@@ -8,7 +8,7 @@
   app.put("p12Certificate",certBytes);
   fis.close();
   Entity e=app.testRequest(ServiceAction.POST,1,"notifiers").getEntity();
-  notifier=app.getEm().get(e.getUuid(),Notifier.class);
+  notifier=app.getEntityManager().get(e.getUuid(),Notifier.class);
   if (!USE_REAL_CONNECTIONS) {
   }
   app.clear();
@@ -20,7 +20,7 @@
   app.put("debug",true);
   e=app.testRequest(ServiceAction.POST,1,"devices",device1.getUuid(),"notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
-  Notification notification=app.getEm().get(e.getUuid(),Notification.class);
+  Notification notification=app.getEntityManager().get(e.getUuid(),Notification.class);
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
   try {
     scheduleNotificationAndWait(notification);
@@ -30,7 +30,7 @@
   }
   Query query=new Query();
   query.addEqualityFilter("state",Notification.State.FAILED.toString());
-  Results results=app.getEm().searchCollection(app.getEm().getApplicationRef(),"notifications",query);
+  Results results=app.getEntityManager().searchCollection(app.getEntityManager().getApplicationRef(),"notifications",query);
   Entity entity=results.getEntitiesMap().get(notification.getUuid());
   assertNotNull(entity);
 }

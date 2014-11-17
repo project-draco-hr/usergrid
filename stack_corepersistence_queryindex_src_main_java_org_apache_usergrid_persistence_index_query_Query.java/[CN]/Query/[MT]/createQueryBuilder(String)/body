@@ -1,0 +1,20 @@
+{
+  QueryBuilder queryBuilder=null;
+  if (getRootOperand() != null) {
+    QueryVisitor v=new EsQueryVistor();
+    try {
+      getRootOperand().visit(v);
+    }
+ catch (    IndexException ex) {
+      throw new RuntimeException("Error building ElasticSearch query",ex);
+    }
+    queryBuilder=v.getQueryBuilder();
+  }
+  if (queryBuilder != null) {
+    queryBuilder=QueryBuilders.boolQuery().must(queryBuilder).must(QueryBuilders.termQuery(IndexingUtils.ENTITY_CONTEXT_FIELDNAME,context));
+  }
+ else {
+    queryBuilder=QueryBuilders.termQuery(IndexingUtils.ENTITY_CONTEXT_FIELDNAME,context);
+  }
+  return queryBuilder;
+}

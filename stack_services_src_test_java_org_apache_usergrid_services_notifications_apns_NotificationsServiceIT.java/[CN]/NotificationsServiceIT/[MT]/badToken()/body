@@ -8,14 +8,14 @@
   properties.put("debug",true);
   Entity e=app.testRequest(ServiceAction.POST,1,"devices",device1.getUuid(),"notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
-  Notification notification=app.getEm().get(e.getUuid(),Notification.class);
+  Notification notification=app.getEntityManager().get(e.getUuid(),Notification.class);
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
   ns.addDevice(notification,device1);
   notification=scheduleNotificationAndWait(notification);
   checkStatistics(notification,0,1);
-  notification=(Notification)app.getEm().get(notification).toTypedEntity();
+  notification=(Notification)app.getEntityManager().get(notification).toTypedEntity();
   checkReceipts(notification,1);
   List<EntityRef> receipts=getNotificationReceipts(notification);
-  Receipt receipt=app.getEm().get(receipts.get(0),Receipt.class);
+  Receipt receipt=app.getEntityManager().get(receipts.get(0),Receipt.class);
   assertEquals(8,((Long)receipt.getErrorCode()).longValue());
 }

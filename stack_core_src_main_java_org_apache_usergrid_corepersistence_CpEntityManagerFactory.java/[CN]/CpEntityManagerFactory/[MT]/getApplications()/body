@@ -1,11 +1,11 @@
 {
   Map<String,UUID> appMap=new HashMap<String,UUID>();
-  ApplicationScope appScope=getApplicationScope(SYSTEM_APP_ID);
+  ApplicationScope appScope=CpNamingUtils.getApplicationScope(CpNamingUtils.SYSTEM_APP_ID);
   GraphManager gm=managerCache.getGraphManager(appScope);
-  EntityManager em=getEntityManager(SYSTEM_APP_ID);
+  EntityManager em=getEntityManager(CpNamingUtils.SYSTEM_APP_ID);
   Application app=em.getApplication();
   Id fromEntityId=new SimpleId(app.getUuid(),app.getType());
-  String edgeType=CpNamingUtils.getEdgeTypeFromCollectionName("appinfos");
+  String edgeType=CpNamingUtils.getEdgeTypeFromCollectionName(CpNamingUtils.APPINFOS);
   logger.debug("getApplications(): Loading edges of edgeType {} from {}:{}",new Object[]{edgeType,fromEntityId.getType(),fromEntityId.getUuid()});
   Observable<Edge> edges=gm.loadEdgesFromSource(new SimpleSearchByEdgeType(fromEntityId,edgeType,Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING,null));
   Iterator<Edge> iter=edges.toBlockingObservable().getIterator();
@@ -13,7 +13,7 @@
     Edge edge=iter.next();
     Id targetId=edge.getTargetNode();
     logger.debug("getApplications(): Processing edge from {}:{} to {}:{}",new Object[]{edge.getSourceNode().getType(),edge.getSourceNode().getUuid(),edge.getTargetNode().getType(),edge.getTargetNode().getUuid()});
-    CollectionScope collScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),CpNamingUtils.getCollectionScopeNameFromCollectionName("appinfos"));
+    CollectionScope collScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),CpNamingUtils.getCollectionScopeNameFromCollectionName(CpNamingUtils.APPINFOS));
     org.apache.usergrid.persistence.model.entity.Entity e=managerCache.getEntityCollectionManager(collScope).load(targetId).toBlockingObservable().lastOrDefault(null);
     appMap.put((String)e.getField(PROPERTY_NAME).getValue(),(UUID)e.getField("applicationUuid").getValue());
   }

@@ -1,0 +1,64 @@
+{
+  assertEquals("version 2 expected",2,graphShardVersionMigration.getVersion());
+  keyspace.dropColumnFamily(MigrationInfoSerializationImpl.CF_MIGRATION_INFO);
+  migrationManager.migrate();
+  final EntityManager newAppEm=app.getEntityManager();
+  final String type1="type1thing";
+  final String type2="type2thing";
+  final int size=10;
+  final Set<Id> type1Identities=EntityWriteHelper.createTypes(newAppEm,type1,size);
+  final Set<Id> type2Identities=EntityWriteHelper.createTypes(newAppEm,type2,size);
+  final Set<Id> allEntities=new HashSet<>();
+  allEntities.addAll(type1Identities);
+  allEntities.addAll(type2Identities);
+  final TestProgressObserver progressObserver=new TestProgressObserver();
+  final Multimap<Id,String> sourceTypes=HashMultimap.create(10000,10);
+  final Multimap<Id,String> targetTypes=HashMultimap.create(10000,10);
+  AllEntitiesInSystemObservable.getAllEntitiesInSystem(managerCache).doOnNext(new Action1<AllEntitiesInSystemObservable.EntityData>(){
+    @Override public void call(    final AllEntitiesInSystemObservable.EntityData entity){
+      final GraphManager gm=managerCache.getGraphManager(entity.applicationScope);
+      gm.getEdgeTypesFromSource(new SimpleSearchEdgeType(entity.entityId,null,null)).doOnNext(new Action1<String>(){
+        @Override public void call(        final String s){
+          sourceTypes.put(entity.entityId,s);
+        }
+      }
+).toBlocking().lastOrDefault(null);
+      gm.getEdgeTypesToTarget(new SimpleSearchEdgeType(entity.entityId,null,null)).doOnNext(new Action1<String>(){
+        @Override public void call(        final String s){
+          targetTypes.put(entity.entityId,s);
+        }
+      }
+).toBlocking().lastOrDefault(null);
+      allEntities.remove(entity.entityId);
+    }
+  }
+).toBlocking().lastOrDefault(null);
+  graphShardVersionMigration.migrate(progressObserver);
+  assertEquals("Newly saved entities encounterd",0,allEntities.size());
+  assertFalse("Progress observer should not have failed",progressObserver.getFailed());
+  assertTrue("Progress observer should have update messages",progressObserver.getUpdates().size() > 0);
+  migrationInfoSerialization.setStatusCode(DataMigrationManagerImpl.StatusCode.COMPLETE.status);
+  migrationInfoSerialization.setVersion(graphShardVersionMigration.getVersion());
+  dataMigrationManager.invalidate();
+  assertEquals("New version saved, and we should get new implementation",graphShardVersionMigration.getVersion(),dataMigrationManager.getCurrentVersion());
+  AllEntitiesInSystemObservable.getAllEntitiesInSystem(managerCache).doOnNext(new Action1<AllEntitiesInSystemObservable.EntityData>(){
+    @Override public void call(    final AllEntitiesInSystemObservable.EntityData entity){
+      final GraphManager gm=managerCache.getGraphManager(entity.applicationScope);
+      gm.getEdgeTypesFromSource(new SimpleSearchEdgeType(entity.entityId,null,null)).doOnNext(new Action1<String>(){
+        @Override public void call(        final String s){
+          sourceTypes.remove(entity.entityId,s);
+        }
+      }
+).toBlocking().lastOrDefault(null);
+      gm.getEdgeTypesToTarget(new SimpleSearchEdgeType(entity.entityId,null,null)).doOnNext(new Action1<String>(){
+        @Override public void call(        final String s){
+          targetTypes.remove(entity.entityId,s);
+        }
+      }
+).toBlocking().lastOrDefault(null);
+    }
+  }
+).toBlocking().lastOrDefault(null);
+  assertEquals("All source types migrated",0,sourceTypes.size());
+  assertEquals("All target types migrated",0,targetTypes.size());
+}

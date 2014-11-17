@@ -1,0 +1,69 @@
+{
+  final String context=IndexingUtils.createContextName(indexScope);
+  final String[] entityTypes=searchTypes.getTypeNames();
+  QueryBuilder qb=query.createQueryBuilder(context);
+  SearchResponse searchResponse;
+  if (query.getCursor() == null) {
+    SearchRequestBuilder srb=esProvider.getClient().prepareSearch(indexName).setTypes(entityTypes).setScroll(cursorTimeout + "m").setQuery(qb);
+    final FilterBuilder fb=query.createFilterBuilder();
+    if (fb != null) {
+      logger.debug("   Filter: {} ",fb.toString());
+      srb=srb.setPostFilter(fb);
+    }
+    srb=srb.setFrom(0).setSize(query.getLimit());
+    for (    Query.SortPredicate sp : query.getSortPredicates()) {
+      final SortOrder order;
+      if (sp.getDirection().equals(Query.SortDirection.ASCENDING)) {
+        order=SortOrder.ASC;
+      }
+ else {
+        order=SortOrder.DESC;
+      }
+      final String stringFieldName=STRING_PREFIX + sp.getPropertyName();
+      final FieldSortBuilder stringSort=SortBuilders.fieldSort(stringFieldName).order(order).ignoreUnmapped(true);
+      srb.addSort(stringSort);
+      logger.debug("   Sort: {} order by {}",stringFieldName,order.toString());
+      final String numberFieldName=NUMBER_PREFIX + sp.getPropertyName();
+      final FieldSortBuilder numberSort=SortBuilders.fieldSort(numberFieldName).order(order).ignoreUnmapped(true);
+      srb.addSort(numberSort);
+      logger.debug("   Sort: {} order by {}",numberFieldName,order.toString());
+      final String booleanFieldName=BOOLEAN_PREFIX + sp.getPropertyName();
+      final FieldSortBuilder booleanSort=SortBuilders.fieldSort(booleanFieldName).order(order).ignoreUnmapped(true);
+      srb.addSort(booleanSort);
+      logger.debug("   Sort: {} order by {}",booleanFieldName,order.toString());
+    }
+    if (logger.isDebugEnabled()) {
+      logger.debug("Searching index {}\n  scope{} \n type {}\n   query {} ",new Object[]{this.indexName,context,entityTypes,srb});
+    }
+    try {
+      searchResponse=srb.execute().actionGet();
+    }
+ catch (    Throwable t) {
+      logger.error("Unable to communicate with elasticsearch",t);
+      failureMonitor.fail("Unable to execute batch",t);
+      throw t;
+    }
+    failureMonitor.success();
+  }
+ else {
+    String scrollId=query.getCursor();
+    if (scrollId.startsWith("\"")) {
+      scrollId=scrollId.substring(1);
+    }
+    if (scrollId.endsWith("\"")) {
+      scrollId=scrollId.substring(0,scrollId.length() - 1);
+    }
+    logger.debug("Executing query with cursor: {} ",scrollId);
+    SearchScrollRequestBuilder ssrb=esProvider.getClient().prepareSearchScroll(scrollId).setScroll(cursorTimeout + "m");
+    try {
+      searchResponse=ssrb.execute().actionGet();
+    }
+ catch (    Throwable t) {
+      logger.error("Unable to communicate with elasticsearch",t);
+      failureMonitor.fail("Unable to execute batch",t);
+      throw t;
+    }
+    failureMonitor.success();
+  }
+  return parseResults(searchResponse,query);
+}

@@ -1,8 +1,6 @@
 {
   LOG.info("GeoIT.testGeo");
-  UUID applicationId=setup.createApplication("testOrganization","testGeo");
-  assertNotNull(applicationId);
-  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  EntityManager em=app.getEntityManager();
   assertNotNull(em);
   Map<String,Object> properties=new LinkedHashMap<String,Object>(){
 {
@@ -93,8 +91,8 @@
   assertNotNull(restaurant);
   em.createConnection(user,"likes",restaurant);
   em.refreshIndex();
-  emSearchResults=em.searchConnectedEntities(user,Query.fromQL("location within 2000 of 37.776753, -122.407846"));
+  emSearchResults=em.searchConnectedEntities(user,Query.fromQL("location within 2000 of 37.776753, -122.407846").setConnectionType("likes"));
   assertEquals(1,emSearchResults.size());
-  emSearchResults=em.searchConnectedEntities(user,Query.fromQL("location within 1000 of 37.776753, -122.407846"));
+  emSearchResults=em.searchConnectedEntities(user,Query.fromQL("location within 1000 of 37.776753, -122.407846").setConnectionType("likes"));
   assertEquals(0,emSearchResults.size());
 }
