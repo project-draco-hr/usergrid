@@ -9,9 +9,8 @@
   final Set<Id> allEntities=new HashSet<>();
   allEntities.addAll(type1Identities);
   allEntities.addAll(type2Identities);
-  keyspace.dropColumnFamily(MapSerializationImpl.MAP_ENTRIES);
-  keyspace.dropColumnFamily(MapSerializationImpl.MAP_KEYS);
-  migrationManager.migrate();
+  keyspace.truncateColumnFamily(MapSerializationImpl.MAP_ENTRIES);
+  keyspace.truncateColumnFamily(MapSerializationImpl.MAP_KEYS);
   final TestProgressObserver progressObserver=new TestProgressObserver();
   entityTypeMappingMigration.migrate(progressObserver);
   AllEntitiesInSystemObservable.getAllEntitiesInSystem(managerCache).doOnNext(new Action1<AllEntitiesInSystemObservable.EntityData>(){

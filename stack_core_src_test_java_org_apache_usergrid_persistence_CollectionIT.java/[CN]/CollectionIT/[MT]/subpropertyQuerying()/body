@@ -1,4 +1,6 @@
 {
+  EntityManager em=app.getEntityManager();
+  assertNotNull(em);
   LOG.debug("subpropertyQuerying");
   Map<String,Object> root=new HashMap<String,Object>();
   Map<String,Object> subEntity=new HashMap<String,Object>();
@@ -6,10 +8,6 @@
   subEntity.put("intprop",10);
   subEntity.put("substring","I'm a tokenized string that should be indexed");
   root.put("subentity",subEntity);
-  UUID applicationId=setup.createApplication("testOrganization","subpropertyQuerying");
-  assertNotNull(applicationId);
-  EntityManager em=setup.getEmf().getEntityManager(applicationId);
-  assertNotNull(em);
   Entity saved=em.create("test",root);
   em.refreshIndex();
   Query query=new Query();
