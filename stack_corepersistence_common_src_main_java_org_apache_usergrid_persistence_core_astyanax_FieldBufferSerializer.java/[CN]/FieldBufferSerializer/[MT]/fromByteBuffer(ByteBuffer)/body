@@ -1,0 +1,23 @@
+{
+  final int totalSize=byteBuffer.remaining();
+  final byte version=byteBuffer.get();
+  if (version != VERSION) {
+    throw new SerializationException("Unable to de-serialze. Expected version " + VERSION + " but was version "+ version);
+  }
+  final int expectedTotalSize=byteBuffer.getInt();
+  if (totalSize != expectedTotalSize) {
+    throw new SerializationException("The total size we expected was different.  Stored total size is " + expectedTotalSize + " but actual buffer size is "+ totalSize);
+  }
+  final int numberFields=byteBuffer.getInt();
+  final FieldBuffer buffer=new FieldBuffer(numberFields);
+  for (int i=0; i < numberFields; i++) {
+    final int bufferLength=byteBuffer.getInt();
+    final int startPosition=byteBuffer.position();
+    final int newLimit=startPosition + bufferLength;
+    final ByteBuffer fieldData=byteBuffer.duplicate();
+    fieldData.limit(newLimit);
+    byteBuffer.position(newLimit);
+    buffer.add(fieldData);
+  }
+  return buffer;
+}
