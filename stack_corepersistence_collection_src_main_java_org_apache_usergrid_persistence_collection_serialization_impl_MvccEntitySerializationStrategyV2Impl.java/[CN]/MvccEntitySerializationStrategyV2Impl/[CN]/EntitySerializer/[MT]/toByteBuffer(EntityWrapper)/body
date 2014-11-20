@@ -2,17 +2,17 @@
   if (wrapper == null) {
     return null;
   }
-  CompositeBuilder builder=Composites.newCompositeBuilder();
-  builder.addBytes(VERSION);
+  FieldBufferBuilder builder=new FieldBufferBuilder(3);
+  builder.addByte(VERSION);
   if (!wrapper.entity.isPresent()) {
-    builder.addBytes(STATE_DELETED);
-    return builder.build();
+    builder.addByte(STATE_DELETED);
+    return FIELD_BUFFER_SERIALIZER.toByteBuffer(builder.build());
   }
   if (wrapper.status == MvccEntity.Status.COMPLETE) {
-    builder.addBytes(STATE_COMPLETE);
+    builder.addByte(STATE_COMPLETE);
   }
  else {
-    builder.addBytes(STATE_PARTIAL);
+    builder.addByte(STATE_PARTIAL);
   }
   try {
     final byte[] entityBytes=mapper.writeValueAsBytes(wrapper.entity.get());
@@ -21,5 +21,5 @@
  catch (  Exception e) {
     throw new RuntimeException("Unable to serialize entity",e);
   }
-  return builder.build();
+  return FIELD_BUFFER_SERIALIZER.toByteBuffer(builder.build());
 }
