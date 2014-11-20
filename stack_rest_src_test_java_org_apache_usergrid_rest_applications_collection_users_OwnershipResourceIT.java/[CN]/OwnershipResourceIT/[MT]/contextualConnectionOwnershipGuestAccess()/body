@@ -1,14 +1,14 @@
 {
-  context.application().collection("roles").entity("guest").collection("permissions").create(MapUtils.hashMap("permission","get,put,post,delete:/**"));
+  context.application().customCollection("roles").entity("guest").collection("permissions").create(MapUtils.hashMap("permission","get,put,post,delete:/**"));
   context.clearUser();
-  JsonNode city=context.application().collection("cities").create(MapUtils.hashMap("name","tempe"));
+  JsonNode city=context.application().customCollection("cities").create(MapUtils.hashMap("name","tempe"));
   refreshIndex(context.getOrgName(),context.getAppName());
   String cityId=getEntity(city,0).get("uuid").asText();
-  JsonNode data=context.application().collection("cities").entity("tempe").connection("likes").collection("restaurants").create(MapUtils.hashMap("name","4peaks"));
+  JsonNode data=context.application().customCollection("cities").entity("tempe").connection("likes").collection("restaurants").create(MapUtils.hashMap("name","4peaks"));
   String peaksId=getEntity(data,0).get("uuid").asText();
-  data=context.application().collection("cities").entity("tempe").connection("likes").collection("restaurants").create(MapUtils.hashMap("name","arrogantbutcher"));
+  data=context.application().customCollection("cities").entity("tempe").connection("likes").collection("restaurants").create(MapUtils.hashMap("name","arrogantbutcher"));
   String arrogantButcherId=getEntity(data,0).get("uuid").asText();
-  Connection likeRestaurants=context.application().collection("cities").entity("tempe").connection("likes");
+  Connection likeRestaurants=context.application().customCollection("cities").entity("tempe").connection("likes");
   refreshIndex(context.getOrgName(),context.getAppName());
   data=likeRestaurants.entity(peaksId).get();
   assertNotNull(data);
