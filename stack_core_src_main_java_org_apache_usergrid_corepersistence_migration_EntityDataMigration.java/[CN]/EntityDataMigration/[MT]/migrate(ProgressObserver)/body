@@ -1,4 +1,5 @@
 {
+  final AtomicLong atomicLong=new AtomicLong();
   AllEntitiesInSystemObservable.getAllEntitiesInSystem(managerCache,1000).doOnNext(new Action1<AllEntitiesInSystemObservable.ApplicationEntityGroup>(){
     @Override public void call(    final AllEntitiesInSystemObservable.ApplicationEntityGroup applicationEntityGroup){
       final UUID now=UUIDGenerator.newTimeUUID();
@@ -11,22 +12,12 @@
           final MvccEntity version=allVersions.next();
           final MutationBatch versionBatch=v2Serialization.write(currentScope,version);
           totalBatch.mergeShallow(versionBatch);
-          if (totalBatch.getRowCount() >= 50) {
-            try {
-              totalBatch.execute();
-            }
- catch (            ConnectionException e) {
-              throw new DataMigrationException("Unable to migrate batches ",e);
-            }
+          if (atomicLong.incrementAndGet() % 50 == 0) {
+            executeBatch(totalBatch,observer,atomicLong);
           }
         }
       }
-      try {
-        totalBatch.execute();
-      }
- catch (      ConnectionException e) {
-        throw new DataMigrationException("Unable to migrate batches ",e);
-      }
+      executeBatch(totalBatch,observer,atomicLong);
     }
   }
 ).toBlocking().last();
