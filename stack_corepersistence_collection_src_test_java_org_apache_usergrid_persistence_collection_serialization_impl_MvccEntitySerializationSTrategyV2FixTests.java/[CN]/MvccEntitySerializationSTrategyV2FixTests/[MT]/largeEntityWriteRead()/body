@@ -7,7 +7,7 @@
   final MvccEntity.Status status=MvccEntity.Status.COMPLETE;
   final MvccEntity mvccEntity=new MvccEntityImpl(simpleId,version,status,entity);
   getMvccEntitySerializationStrategy().write(context,mvccEntity).execute();
-  final Iterator<MvccEntity> loaded=getMvccEntitySerializationStrategy().loadHistory(context,entity.getId(),version,100);
+  final Iterator<MvccEntity> loaded=getMvccEntitySerializationStrategy().loadAscendingHistory(context,entity.getId(),version,100);
   assertTrue(loaded.hasNext());
   final MvccEntity loadedEntity=loaded.next();
   assertEquals("The loaded entity should match the stored entity",mvccEntity,loadedEntity);
