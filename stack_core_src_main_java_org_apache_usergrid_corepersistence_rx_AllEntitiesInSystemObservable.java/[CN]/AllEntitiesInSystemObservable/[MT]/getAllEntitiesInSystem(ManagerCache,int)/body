@@ -1,0 +1,17 @@
+{
+  return ApplicationObservable.getAllApplicationIds(managerCache).flatMap(new Func1<Id,Observable<ApplicationEntityGroup>>(){
+    @Override public Observable<ApplicationEntityGroup> call(    final Id applicationId){
+      final ApplicationScope applicationScope=new ApplicationScopeImpl(applicationId);
+      final GraphManager gm=managerCache.getGraphManager(applicationScope);
+      final Observable<Id> entityNodes=TargetIdObservable.getTargetNodes(gm,applicationId);
+      final Observable<Id> applicationNode=Observable.just(applicationId);
+      return Observable.merge(applicationNode,entityNodes).buffer(bufferSize).map(new Func1<List<Id>,ApplicationEntityGroup>(){
+        @Override public ApplicationEntityGroup call(        final List<Id> id){
+          return new ApplicationEntityGroup(applicationScope,id);
+        }
+      }
+);
+    }
+  }
+);
+}
