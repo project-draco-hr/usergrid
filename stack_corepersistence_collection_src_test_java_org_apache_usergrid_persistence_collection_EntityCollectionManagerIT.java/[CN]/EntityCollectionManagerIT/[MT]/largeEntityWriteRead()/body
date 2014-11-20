@@ -1,0 +1,21 @@
+{
+  final int setSize=65535 * 2;
+  int currentLength=0;
+  final Entity entity=new Entity(new SimpleId("test"));
+  StringBuilder builder=new StringBuilder();
+  for (int i=0; i < 100; i++) {
+    builder.append(UUIDGenerator.newTimeUUID().toString());
+  }
+  final String value=builder.toString();
+  for (int i=0; currentLength < setSize; i++) {
+    final String key="newStringField" + i;
+    entity.setField(new StringField(key,value));
+    currentLength+=key.length() + value.length();
+  }
+  CollectionScope context=new CollectionScopeImpl(new SimpleId("organization"),new SimpleId("test"),"test");
+  final EntityCollectionManager manager=factory.createCollectionManager(context);
+  final Entity saved=manager.write(entity).toBlocking().last();
+  assertEquals(entity,saved);
+  final Entity loaded=manager.load(entity.getId()).toBlocking().last();
+  assertEquals(entity,loaded);
+}
