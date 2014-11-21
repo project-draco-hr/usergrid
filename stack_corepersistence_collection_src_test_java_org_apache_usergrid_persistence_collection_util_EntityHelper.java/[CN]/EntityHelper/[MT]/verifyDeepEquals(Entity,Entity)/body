@@ -1,0 +1,12 @@
+{
+  assertEquals("Expected same entity equality",expected,returned);
+  final Collection<Field> expectedFields=expected.getFields();
+  final Map<String,Field> returnedFields=new HashMap<>(returned.getFieldMap());
+  for (  Field expectedField : expectedFields) {
+    final Field returnedField=returnedFields.get(expectedField.getName());
+    assertNotNull("Field " + expectedField.getName() + " exists in returned entity",returnedField);
+    assertEquals("Field values should match",expectedField.getValue(),returnedField.getValue());
+    returnedFields.remove(expectedField.getName());
+  }
+  assertEquals("There are no additional fields in the returned entity",0,returnedFields.size());
+}

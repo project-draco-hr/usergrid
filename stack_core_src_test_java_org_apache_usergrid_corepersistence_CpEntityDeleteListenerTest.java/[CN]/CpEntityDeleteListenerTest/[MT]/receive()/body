@@ -13,7 +13,7 @@
   ArrayList<MvccEntity> entityList=new ArrayList<>();
   entityList.add(entity);
   when(mvccEntitySerializationStrategy.delete(scope,entityId,id)).thenReturn(batch);
-  when(mvccEntitySerializationStrategy.loadHistory(scope,entityId,id,serializationFig.getHistorySize())).thenReturn(entityList.iterator());
+  when(mvccEntitySerializationStrategy.loadAscendingHistory(scope,entityId,id,serializationFig.getHistorySize())).thenReturn(entityList.iterator());
   Observable<EntityVersion> observable=listener.receive(entityEvent);
   EntityVersion entityEventReturned=observable.toBlocking().last();
   assertEquals(entity.getVersion(),entityEventReturned.getVersion());

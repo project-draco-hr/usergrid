@@ -1,5 +1,5 @@
 {
-  CollectionScope collectionScope=new CollectionScopeImpl(getApplicationScope().getApplication(),getApplicationScope().getApplication(),CpNamingUtils.getCollectionScopeNameFromEntityType(entityRef.getType()));
+  CollectionScope collectionScope=getCollectionScopeNameFromEntityType(applicationScope.getApplication(),entityRef.getType());
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
   org.apache.usergrid.persistence.model.entity.Entity entity=load(new EntityScope(collectionScope,entityId));
@@ -19,7 +19,7 @@
         }
       }
     }
-    IndexScope defaultIndexScope=new IndexScopeImpl(getApplicationScope().getApplication(),CpNamingUtils.getCollectionScopeNameFromEntityType(entityRef.getType()));
+    IndexScope defaultIndexScope=new IndexScopeImpl(getApplicationScope().getApplication(),getCollectionScopeNameFromEntityType(entityRef.getType()));
     batch.deindex(defaultIndexScope,entity);
     batch.execute();
     decrementEntityCollection(Schema.defaultCollectionName(entityId.getType()));

@@ -13,22 +13,24 @@
   final TestProgressObserver progressObserver=new TestProgressObserver();
   final Multimap<Id,String> sourceTypes=HashMultimap.create(10000,10);
   final Multimap<Id,String> targetTypes=HashMultimap.create(10000,10);
-  AllEntitiesInSystemObservable.getAllEntitiesInSystem(managerCache).doOnNext(new Action1<AllEntitiesInSystemObservable.EntityData>(){
-    @Override public void call(    final AllEntitiesInSystemObservable.EntityData entity){
+  AllEntitiesInSystemObservable.getAllEntitiesInSystem(managerCache,1000).doOnNext(new Action1<AllEntitiesInSystemObservable.ApplicationEntityGroup>(){
+    @Override public void call(    final AllEntitiesInSystemObservable.ApplicationEntityGroup entity){
       final GraphManager gm=managerCache.getGraphManager(entity.applicationScope);
-      gm.getEdgeTypesFromSource(new SimpleSearchEdgeType(entity.entityId,null,null)).doOnNext(new Action1<String>(){
-        @Override public void call(        final String s){
-          sourceTypes.put(entity.entityId,s);
+      for (      final Id id : entity.entityIds) {
+        gm.getEdgeTypesFromSource(new SimpleSearchEdgeType(id,null,null)).doOnNext(new Action1<String>(){
+          @Override public void call(          final String s){
+            sourceTypes.put(id,s);
+          }
         }
-      }
 ).toBlocking().lastOrDefault(null);
-      gm.getEdgeTypesToTarget(new SimpleSearchEdgeType(entity.entityId,null,null)).doOnNext(new Action1<String>(){
-        @Override public void call(        final String s){
-          targetTypes.put(entity.entityId,s);
+        gm.getEdgeTypesToTarget(new SimpleSearchEdgeType(id,null,null)).doOnNext(new Action1<String>(){
+          @Override public void call(          final String s){
+            targetTypes.put(id,s);
+          }
         }
-      }
 ).toBlocking().lastOrDefault(null);
-      allEntities.remove(entity.entityId);
+        allEntities.remove(id);
+      }
     }
   }
 ).toBlocking().lastOrDefault(null);
@@ -40,21 +42,23 @@
   migrationInfoSerialization.setVersion(graphShardVersionMigration.getVersion());
   dataMigrationManager.invalidate();
   assertEquals("New version saved, and we should get new implementation",graphShardVersionMigration.getVersion(),dataMigrationManager.getCurrentVersion());
-  AllEntitiesInSystemObservable.getAllEntitiesInSystem(managerCache).doOnNext(new Action1<AllEntitiesInSystemObservable.EntityData>(){
-    @Override public void call(    final AllEntitiesInSystemObservable.EntityData entity){
+  AllEntitiesInSystemObservable.getAllEntitiesInSystem(managerCache,1000).doOnNext(new Action1<AllEntitiesInSystemObservable.ApplicationEntityGroup>(){
+    @Override public void call(    final AllEntitiesInSystemObservable.ApplicationEntityGroup entity){
       final GraphManager gm=managerCache.getGraphManager(entity.applicationScope);
-      gm.getEdgeTypesFromSource(new SimpleSearchEdgeType(entity.entityId,null,null)).doOnNext(new Action1<String>(){
-        @Override public void call(        final String s){
-          sourceTypes.remove(entity.entityId,s);
+      for (      final Id id : entity.entityIds) {
+        gm.getEdgeTypesFromSource(new SimpleSearchEdgeType(id,null,null)).doOnNext(new Action1<String>(){
+          @Override public void call(          final String s){
+            sourceTypes.remove(id,s);
+          }
         }
-      }
 ).toBlocking().lastOrDefault(null);
-      gm.getEdgeTypesToTarget(new SimpleSearchEdgeType(entity.entityId,null,null)).doOnNext(new Action1<String>(){
-        @Override public void call(        final String s){
-          targetTypes.remove(entity.entityId,s);
+        gm.getEdgeTypesToTarget(new SimpleSearchEdgeType(id,null,null)).doOnNext(new Action1<String>(){
+          @Override public void call(          final String s){
+            targetTypes.remove(id,s);
+          }
         }
-      }
 ).toBlocking().lastOrDefault(null);
+      }
     }
   }
 ).toBlocking().lastOrDefault(null);

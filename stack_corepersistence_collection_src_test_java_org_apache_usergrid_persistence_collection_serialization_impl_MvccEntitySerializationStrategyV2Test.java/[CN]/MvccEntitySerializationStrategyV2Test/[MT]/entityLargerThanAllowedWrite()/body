@@ -1,0 +1,11 @@
+{
+  final int setSize=serializationFig.getMaxEntitySize() + 1;
+  final Entity entity=EntityHelper.generateEntity(setSize);
+  CollectionScope context=new CollectionScopeImpl(new SimpleId("organization"),new SimpleId("parent"),"tests");
+  final Id id=entity.getId();
+  ValidationUtils.verifyIdentity(id);
+  final UUID version=UUIDGenerator.newTimeUUID();
+  final MvccEntity.Status status=MvccEntity.Status.COMPLETE;
+  final MvccEntity mvccEntity=new MvccEntityImpl(id,version,status,entity);
+  getMvccEntitySerializationStrategy().write(context,mvccEntity).execute();
+}

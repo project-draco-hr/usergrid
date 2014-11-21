@@ -16,7 +16,7 @@
   EntityUtils.setVersion(entityv1,version2);
   MvccEntity savedV2=new MvccEntityImpl(id,version2,MvccEntity.Status.COMPLETE,Optional.of(entityv2));
   serializationStrategy.write(context,savedV2).execute();
-  Iterator<MvccEntity> entities=serializationStrategy.loadHistory(context,id,savedV2.getVersion(),20);
+  Iterator<MvccEntity> entities=serializationStrategy.loadAscendingHistory(context,id,savedV2.getVersion(),20);
   assertTrue(entities.hasNext());
   assertEquals(saved.getVersion(),entities.next().getVersion());
   assertEquals(savedV2.getVersion(),entities.next().getVersion());
