@@ -1,10 +1,10 @@
 {
-  logger.info("Refreshing Created new Index Name [{}]",indexName);
+  logger.info("Refreshing Created new Index Name [{}]",aliasName);
   final RetryOperation retryOperation=new RetryOperation(){
     @Override public boolean doOp(){
       try {
-        esProvider.getClient().admin().indices().prepareRefresh(indexName).execute().actionGet();
-        logger.debug("Refreshed index: " + indexName);
+        esProvider.getClient().admin().indices().prepareRefresh(aliasName).execute().actionGet();
+        logger.debug("Refreshed index: " + aliasName);
         return true;
       }
  catch (      IndexMissingException e) {
@@ -15,5 +15,5 @@
   }
 ;
   doInRetry(retryOperation);
-  logger.debug("Refreshed index: " + indexName);
+  logger.debug("Refreshed index: " + aliasName);
 }

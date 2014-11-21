@@ -4,7 +4,7 @@
   QueryBuilder qb=query.createQueryBuilder(context);
   SearchResponse searchResponse;
   if (query.getCursor() == null) {
-    SearchRequestBuilder srb=esProvider.getClient().prepareSearch(indexName).setTypes(entityTypes).setScroll(cursorTimeout + "m").setQuery(qb);
+    SearchRequestBuilder srb=esProvider.getClient().prepareSearch(aliasName).setTypes(entityTypes).setScroll(cursorTimeout + "m").setQuery(qb);
     final FilterBuilder fb=query.createFilterBuilder();
     if (fb != null) {
       logger.debug("   Filter: {} ",fb.toString());
@@ -33,7 +33,7 @@
       logger.debug("   Sort: {} order by {}",booleanFieldName,order.toString());
     }
     if (logger.isDebugEnabled()) {
-      logger.debug("Searching index {}\n  scope{} \n type {}\n   query {} ",new Object[]{this.indexName,context,entityTypes,srb});
+      logger.debug("Searching index {}\n  scope{} \n type {}\n   query {} ",new Object[]{this.aliasName,context,entityTypes,srb});
     }
     try {
       searchResponse=srb.execute().actionGet();

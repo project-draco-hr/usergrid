@@ -7,8 +7,7 @@
     final int numberOfShards=config.getNumberOfShards();
     final int numberOfReplicas=config.getNumberOfReplicas();
     Settings settings=ImmutableSettings.settingsBuilder().put("index.number_of_shards",numberOfShards).put("index.number_of_replicas",numberOfReplicas).build();
-    final CreateIndexResponse cir=admin.indices().prepareCreate(indexName).setSettings(settings).execute().actionGet();
-    logger.info("Created new Index Name [{}] ACK=[{}]",indexName,cir.isAcknowledged());
+    createIndexAndAlias(admin,settings);
     testNewIndex();
   }
  catch (  IndexAlreadyExistsException expected) {
