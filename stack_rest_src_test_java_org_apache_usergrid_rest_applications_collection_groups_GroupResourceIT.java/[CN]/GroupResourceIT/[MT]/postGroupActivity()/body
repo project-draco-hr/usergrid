@@ -1,26 +1,2 @@
 {
-  UUID id=UUIDUtils.newTimeUUID();
-  String groupPath="groupPath" + id;
-  String groupTitle="groupTitle " + id;
-  String groupName="groupName" + id;
-  ApiResponse response=client.createGroup(groupPath,groupTitle,groupName);
-  assertNull("Error was: " + response.getErrorDescription(),response.getError());
-  refreshIndex("test-organization","test-app");
-  UUID newId=response.getEntities().get(0).getUuid();
-  Query results=client.queryGroups(String.format("name='%s'",groupName));
-  response=results.getResponse();
-  UUID entityId=response.getEntities().get(0).getUuid();
-  assertEquals(newId,entityId);
-  results=client.queryGroups(String.format("title='%s'",groupTitle));
-  response=results.getResponse();
-  entityId=response.getEntities().get(0).getUuid();
-  assertEquals(newId,entityId);
-  results=client.queryGroups(String.format("title contains '%s'",id));
-  response=results.getResponse();
-  entityId=response.getEntities().get(0).getUuid();
-  assertEquals(newId,entityId);
-  results=client.queryGroups(String.format("path='%s'",groupPath));
-  response=results.getResponse();
-  entityId=response.getEntities().get(0).getUuid();
-  assertEquals(newId,entityId);
 }
