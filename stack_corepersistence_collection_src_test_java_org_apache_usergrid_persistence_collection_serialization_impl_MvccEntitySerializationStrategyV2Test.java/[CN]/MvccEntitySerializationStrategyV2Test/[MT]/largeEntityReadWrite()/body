@@ -1,0 +1,24 @@
+{
+  final int thriftBuffer=cassandraFig.getThriftBufferSize();
+  final int maxEntitySize=(int)((thriftBuffer * .9) / 20);
+  SetConfigTestBypass.setValueByPass(serializationFig,"getMaxEntitySize",maxEntitySize + "");
+  final int size=100;
+  final HashMap<Id,MvccEntity> entities=new HashMap<>(size);
+  CollectionScope context=new CollectionScopeImpl(new SimpleId("organization"),new SimpleId("parent"),"tests");
+  for (int i=0; i < size; i++) {
+    final Entity entity=EntityHelper.generateEntity((int)(maxEntitySize * .4));
+    final Id id=entity.getId();
+    ValidationUtils.verifyIdentity(id);
+    final UUID version=UUIDGenerator.newTimeUUID();
+    final MvccEntity.Status status=MvccEntity.Status.COMPLETE;
+    final MvccEntity mvccEntity=new MvccEntityImpl(id,version,status,entity);
+    getMvccEntitySerializationStrategy().write(context,mvccEntity).execute();
+    entities.put(id,mvccEntity);
+  }
+  final EntitySet loaded=getMvccEntitySerializationStrategy().load(context,entities.keySet(),UUIDGenerator.newTimeUUID());
+  assertNotNull("Entity set was loaded",loaded);
+  for (  Map.Entry<Id,MvccEntity> entry : entities.entrySet()) {
+    final MvccEntity returned=loaded.getEntity(entry.getKey());
+    assertLargeEntity(entry.getValue(),returned);
+  }
+}
