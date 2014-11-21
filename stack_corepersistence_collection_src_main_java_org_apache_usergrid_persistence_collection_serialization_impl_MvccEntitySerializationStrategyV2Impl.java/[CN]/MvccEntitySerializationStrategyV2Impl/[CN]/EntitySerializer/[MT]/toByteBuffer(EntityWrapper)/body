@@ -14,12 +14,18 @@
  else {
     builder.addByte(STATE_PARTIAL);
   }
+  final Entity entity=wrapper.entity.get();
+  final byte[] entityBytes;
   try {
-    final byte[] entityBytes=mapper.writeValueAsBytes(wrapper.entity.get());
-    builder.addBytes(entityBytes);
+    entityBytes=MAPPER.writeValueAsBytes(entity);
   }
- catch (  Exception e) {
+ catch (  JsonProcessingException e) {
     throw new RuntimeException("Unable to serialize entity",e);
   }
+  final int maxEntrySize=serializationFig.getMaxEntitySize();
+  if (entityBytes.length > maxEntrySize) {
+    throw new EntityTooLargeException(entity,maxEntrySize,entityBytes.length,"Your entity cannot exceed " + maxEntrySize + " bytes. The entity you tried to save was "+ entityBytes.length+ " bytes");
+  }
+  builder.addBytes(entityBytes);
   return FIELD_BUFFER_SERIALIZER.toByteBuffer(builder.build());
 }

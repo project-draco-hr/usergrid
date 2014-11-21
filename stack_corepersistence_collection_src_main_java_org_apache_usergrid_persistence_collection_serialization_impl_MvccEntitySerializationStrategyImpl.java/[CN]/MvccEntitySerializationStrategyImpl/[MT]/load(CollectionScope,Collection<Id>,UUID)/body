@@ -3,7 +3,9 @@
   Preconditions.checkNotNull(entityIds,"entityIds is required");
   Preconditions.checkArgument(entityIds.size() > 0,"entityIds is required");
   Preconditions.checkNotNull(maxVersion,"version is required");
-  Preconditions.checkArgument(entityIds.size() <= serializationFig.getMaxLoadSize(),"requested size cannot be over configured maximum");
+  if (entityIds.size() > serializationFig.getMaxLoadSize()) {
+    throw new IllegalArgumentException("requested load size cannot be over configured maximum of " + serializationFig.getMaxLoadSize());
+  }
   final Id applicationId=collectionScope.getApplication();
   final Id ownerId=collectionScope.getOwner();
   final String collectionName=collectionScope.getName();
@@ -29,7 +31,7 @@
     }
     final Id entityId=row.getKey().getKey().getSubKey();
     final Column<UUID> column=columns.getColumnByIndex(0);
-    final MvccEntity parsedEntity=new MvccColumnParser(entityId,entityJsonSerializer).parseColumn(column);
+    final MvccEntity parsedEntity=new MvccColumnParser(entityId,getEntitySerializer()).parseColumn(column);
     final MvccEntity maybeRepaired=repair.maybeRepair(collectionScope,parsedEntity);
     entitySetResults.addEntity(maybeRepaired);
   }
