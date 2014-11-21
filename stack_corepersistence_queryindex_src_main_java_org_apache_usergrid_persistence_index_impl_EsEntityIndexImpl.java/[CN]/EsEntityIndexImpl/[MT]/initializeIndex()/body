@@ -3,11 +3,7 @@
     if (!mappingsCreated.getAndSet(true)) {
       createMappings();
     }
-    final AdminClient admin=esProvider.getClient().admin();
-    final int numberOfShards=config.getNumberOfShards();
-    final int numberOfReplicas=config.getNumberOfReplicas();
-    Settings settings=ImmutableSettings.settingsBuilder().put("index.number_of_shards",numberOfShards).put("index.number_of_replicas",numberOfReplicas).build();
-    createIndexAndAlias(admin,settings);
+    createIndexAndAlias();
     testNewIndex();
   }
  catch (  IndexAlreadyExistsException expected) {

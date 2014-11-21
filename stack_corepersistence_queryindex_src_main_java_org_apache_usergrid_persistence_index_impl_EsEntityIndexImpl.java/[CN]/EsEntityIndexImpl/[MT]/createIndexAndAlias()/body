@@ -1,0 +1,15 @@
+{
+  final int numberOfShards=config.getNumberOfShards();
+  final int numberOfReplicas=config.getNumberOfReplicas();
+  final AdminClient admin=esProvider.getClient().admin();
+  Settings settings=ImmutableSettings.settingsBuilder().put("index.number_of_shards",numberOfShards).put("index.number_of_replicas",numberOfReplicas).build();
+  String indexVersionName=indexIdentifier.getIndex(0);
+  if (!admin.indices().exists(new IndicesExistsRequest(indexVersionName)).actionGet().isExists()) {
+    final CreateIndexResponse cir=admin.indices().prepareCreate(indexVersionName).setSettings(settings).execute().actionGet();
+    logger.info("Created new Index Name [{}] ACK=[{}]",indexVersionName,cir.isAcknowledged());
+  }
+  if (!admin.indices().aliasesExist(new GetAliasesRequest(aliasName)).actionGet().exists()) {
+    final Boolean isAck=admin.indices().prepareAliases().addAlias(indexVersionName,aliasName).execute().actionGet().isAcknowledged();
+    logger.info("Created new Alias Name [{}] ACK=[{}]",aliasName,isAck);
+  }
+}
