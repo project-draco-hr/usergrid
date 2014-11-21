@@ -1,28 +1,13 @@
 {
   JsonNode node=null;
   String collectionName="testFarAwayLocation";
-  Map store1=entityMapLocationCreator(-33.746369,150.952183);
-  store1.put("name","usergrid");
-  Map store2=entityMapLocationCreator(-33.889058,151.124024);
-  store2.put("name","usergrid");
   Point center=new Point(37.776753,-122.407846);
-  Query queryClose=locationQuery(10000,center);
-  Query queryFar=locationQuery(40000000,center);
-  try {
-    node=context.collection(collectionName).post(store1);
-  }
- catch (  UniformInterfaceException e) {
-    JsonNode nodeError=mapper.readTree(e.getResponse().getEntity(String.class));
-    fail(node.get("error").textValue());
-  }
-  assertNotNull(node);
-  assertEquals("usergrid",node.get("name").asText());
-  try {
-    node=context.collection(collectionName).post(store2);
-  }
- catch (  UniformInterfaceException e) {
-    JsonNode nodeError=mapper.readTree(e.getResponse().getEntity(String.class));
-    fail(node.get("error").textValue());
-  }
-  refreshIndex(context.getOrgName(),context.getAppName());
+  String queryClose=locationQuery(10000,center);
+  String queryFar=locationQuery(40000000,center);
+  createGeoUser("usergrid",collectionName,-33.746369,150.952183);
+  createGeoUser("usergrid2",collectionName,-33.889058,151.124024);
+  node=queryCollection(collectionName,queryClose);
+  assertEquals("Results from nearby, should return nothing",0,node.get("entities").size());
+  node=queryCollection(collectionName,queryFar);
+  assertEquals("Results from center point to ridiculously far",2,node.get("entities").size());
 }

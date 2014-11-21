@@ -1,0 +1,12 @@
+{
+  JsonNode node=null;
+  try {
+    node=context.collection(collectionName).withQuery(query).get();
+  }
+ catch (  UniformInterfaceException e) {
+    JsonNode nodeError=mapper.readTree(e.getResponse().getEntity(String.class));
+    fail(node.get("error").textValue());
+  }
+  assertNotNull(node);
+  return node;
+}
