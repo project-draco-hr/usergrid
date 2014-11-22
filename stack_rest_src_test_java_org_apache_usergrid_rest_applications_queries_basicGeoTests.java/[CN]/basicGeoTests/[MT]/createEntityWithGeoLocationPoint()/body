@@ -1,0 +1,20 @@
+{
+  String collectionType="stores";
+  JsonNode node=null;
+  Double lat=37.776753;
+  Double lon=-122.407846;
+  Map<String,Double> latLon=hashMap("latitude",lat);
+  latLon.put("longitude",lon);
+  Map<String,Object> entityData=new HashMap<String,Object>();
+  entityData.put("location",latLon);
+  try {
+    node=context.collection(collectionType).post(entityData);
+  }
+ catch (  UniformInterfaceException e) {
+    JsonNode nodeError=mapper.readTree(e.getResponse().getEntity(String.class));
+    fail(node.get("error").textValue());
+  }
+  assertNotNull(node);
+  assertEquals(lat.toString(),node.get("location").get("latitude").asText());
+  assertEquals(lon.toString(),node.get("location").get("longitude").asText());
+}
