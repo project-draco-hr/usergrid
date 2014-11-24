@@ -5,7 +5,7 @@
   TestUser user1=new TestAppUser(email,"password",email).create(context);
   refreshIndex(context.getOrgName(),context.getAppName());
   user1.login(context).makeActive(context);
-  JsonNode data=context.application().collection("restaurants").create(MapUtils.hashMap("name","4peaks"));
+  JsonNode data=context.application().customCollection("restaurants").create(MapUtils.hashMap("name","4peaks"));
   refreshIndex(context.getOrgName(),context.getAppName());
   data=context.application().users().user("me").connection("likes").collection("restaurants").entity("4peaks").post();
   refreshIndex(context.getOrgName(),context.getAppName());
@@ -16,7 +16,7 @@
   refreshIndex(context.getOrgName(),context.getAppName());
   user2.login(context).makeActive(context);
   refreshIndex(context.getOrgName(),context.getAppName());
-  data=context.application().collection("restaurants").create(MapUtils.hashMap("name","arrogantbutcher"));
+  data=context.application().customCollection("restaurants").create(MapUtils.hashMap("name","arrogantbutcher"));
   refreshIndex(context.getOrgName(),context.getAppName());
   data=context.application().users().user("me").connection("likes").collection("restaurants").entity("arrogantbutcher").post();
   refreshIndex(context.getOrgName(),context.getAppName());
@@ -50,14 +50,14 @@
   data=likeRestaurants.get();
   assertEquals("arrogantbutcher",getEntity(data,0).get("name").asText());
   assertNull(getEntity(data,1));
-  CustomCollection restaurants=context.withUser(user1).application().collection("restaurants");
+  CustomCollection restaurants=context.withUser(user1).application().customCollection("restaurants");
   data=restaurants.entity("4peaks").get();
   assertNotNull(data);
   assertEquals("4peaks",getEntity(data,0).get("name").asText());
   data=restaurants.entity("arrogantbutcher").get();
   assertNotNull(data);
   assertEquals("arrogantbutcher",getEntity(data,0).get("name").asText());
-  restaurants=context.withUser(user1).application().collection("restaurants");
+  restaurants=context.withUser(user1).application().customCollection("restaurants");
   data=restaurants.entity("4peaks").get();
   assertNotNull(data);
   assertEquals("4peaks",getEntity(data,0).get("name").asText());
