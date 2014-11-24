@@ -1,0 +1,30 @@
+{
+  String collectionType="stores";
+  JsonNode node=null;
+  Double lat=37.776753;
+  Double lon=-122.407846;
+  Map<String,Double> misspelledLatitude=hashMap("latitudee",lat);
+  misspelledLatitude.put("longitude",lon);
+  Map<String,Object> misspelledLatitudeEntityData=new HashMap<String,Object>();
+  misspelledLatitudeEntityData.put("location",misspelledLatitude);
+  try {
+    node=context.collection(collectionType).post(misspelledLatitudeEntityData);
+    fail("System allowed misspelled location property - latitudee, which it should not");
+  }
+ catch (  UniformInterfaceException e) {
+    JsonNode nodeError=mapper.readTree(e.getResponse().getEntity(String.class));
+    assertEquals("illegal_argument",nodeError.get("error").textValue());
+  }
+  Map<String,Double> misspelledLongitude=hashMap("latitude",lat);
+  misspelledLongitude.put("longitudee",lon);
+  Map<String,Object> misspelledLongitudeEntityData=new HashMap<String,Object>();
+  misspelledLongitudeEntityData.put("location",misspelledLongitude);
+  try {
+    node=context.collection(collectionType).post(misspelledLongitudeEntityData);
+    fail("System allowed misspelled location property - longitudee, which it should not");
+  }
+ catch (  UniformInterfaceException e) {
+    JsonNode nodeError=mapper.readTree(e.getResponse().getEntity(String.class));
+    assertEquals("illegal_argument",nodeError.get("error").textValue());
+  }
+}
