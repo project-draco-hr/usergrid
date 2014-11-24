@@ -16,7 +16,7 @@
     Thread.sleep(writeDelayMs);
   }
   em.refreshIndex();
-  CandidateResults crs=queryCollectionCp("things","select *");
+  CandidateResults crs=queryCollectionCp("things","thing","select *");
   Assert.assertEquals("Expect no stale candidates yet",numEntities,crs.size());
   int count=0;
   List<Entity> maxVersions=new ArrayList<>(numEntities);
@@ -35,7 +35,7 @@
     maxVersions.add(toUpdate);
   }
   em.refreshIndex();
-  crs=queryCollectionCp("things","select *");
+  crs=queryCollectionCp("things","thing","select *");
   Assert.assertEquals("Expect stale candidates",numEntities * (numUpdates + 1),crs.size());
   for (  Entity thing : things) {
     em.delete(thing);
@@ -44,7 +44,7 @@
   count=0;
   do {
     Thread.sleep(100);
-    crs=queryCollectionCp("things","select *");
+    crs=queryCollectionCp("things","thing","select *");
   }
  while (crs.size() > 0 && count++ < 14);
   Assert.assertEquals("Expect no candidates",0,crs.size());
