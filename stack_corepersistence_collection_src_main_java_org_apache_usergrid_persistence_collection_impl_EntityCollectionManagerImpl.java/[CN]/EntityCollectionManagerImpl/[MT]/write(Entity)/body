@@ -4,12 +4,11 @@
   ValidationUtils.verifyIdentity(entityId);
   final CollectionIoEvent<Entity> writeData=new CollectionIoEvent<Entity>(collectionScope,entity);
   Observable<CollectionIoEvent<MvccEntity>> observable=stageRunner(writeData,writeStart);
-  observable.map(writeCommit).doOnNext(new Action1<Entity>(){
+  return observable.map(writeCommit).doOnNext(new Action1<Entity>(){
     @Override public void call(    final Entity entity){
       taskExecutor.submit(entityVersionCreatedFactory.getTask(collectionScope,entity));
       taskExecutor.submit(entityVersionCleanupFactory.getTask(collectionScope,entityId,entity.getVersion()));
     }
   }
 ).doOnError(rollback);
-  return observable.map(writeCommit).doOnError(rollback);
 }

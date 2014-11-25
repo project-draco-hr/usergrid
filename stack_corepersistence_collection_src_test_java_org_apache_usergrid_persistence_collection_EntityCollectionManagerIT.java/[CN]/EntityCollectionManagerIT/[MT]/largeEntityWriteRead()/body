@@ -1,0 +1,13 @@
+{
+  final int setSize=65535 * 2;
+  final int currentMaxSize=serializationFig.getMaxEntitySize();
+  SetConfigTestBypass.setValueByPass(serializationFig,"getMaxEntitySize",65535 * 10 + "");
+  final Entity entity=EntityHelper.generateEntity(setSize);
+  CollectionScope context=new CollectionScopeImpl(new SimpleId("organization"),new SimpleId("test"),"test");
+  final EntityCollectionManager manager=factory.createCollectionManager(context);
+  final Entity saved=manager.write(entity).toBlocking().last();
+  assertEquals(entity,saved);
+  final Entity loaded=manager.load(entity.getId()).toBlocking().last();
+  EntityHelper.verifyDeepEquals(entity,loaded);
+  SetConfigTestBypass.setValueByPass(serializationFig,"getMaxEntitySize",currentMaxSize + "");
+}

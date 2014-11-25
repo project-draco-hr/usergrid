@@ -1,0 +1,14 @@
+{
+  LOG.debug("testLargeEntityCrud");
+  SetConfigTestBypass.setValueByPass(serializationFig,"getMaxEntitySize",641814 + "");
+  final URL resource=this.getClass().getClassLoader().getResource(TEST_DATA_FILE);
+  final byte[] fileData=Files.readAllBytes(Paths.get(resource.toURI()));
+  final String fileAsString=new String(fileData,Charset.forName("UTF-8"));
+  final Map<String,Object> json=(Map<String,Object>)JsonUtils.parse(fileAsString);
+  final EntityManager em=app.getEntityManager();
+  final Entity createReturned=em.create("test",json);
+  final Entity loadReturnedRef=em.get(createReturned);
+  assertEquals("Entities should be equal",createReturned,loadReturnedRef);
+  final Entity loadReturnedId=em.get(createReturned.getUuid());
+  assertEquals("Entities should be equal",createReturned,loadReturnedId);
+}

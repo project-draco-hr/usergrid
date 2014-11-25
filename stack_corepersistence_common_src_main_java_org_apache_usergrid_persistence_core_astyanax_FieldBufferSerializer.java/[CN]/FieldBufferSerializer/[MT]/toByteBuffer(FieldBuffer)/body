@@ -1,0 +1,20 @@
+{
+  final List<ByteBuffer> fields=obj.getFields();
+  final int fieldCount=fields.size();
+  int totalLength=9;
+  for (  ByteBuffer fieldData : fields) {
+    final int bufferLength=fieldData.remaining();
+    totalLength+=4 + bufferLength;
+  }
+  ByteBuffer buffer=ByteBuffer.allocate(totalLength);
+  buffer.put(VERSION);
+  buffer.putInt(totalLength);
+  buffer.putInt(fieldCount);
+  for (  ByteBuffer fieldData : fields) {
+    final int bufferLength=fieldData.limit();
+    buffer.putInt(bufferLength);
+    buffer.put(fieldData);
+  }
+  buffer.rewind();
+  return buffer;
+}

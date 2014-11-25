@@ -1,0 +1,25 @@
+{
+  if (wrapper == null) {
+    return null;
+  }
+  CompositeBuilder builder=Composites.newCompositeBuilder();
+  builder.addBytes(VERSION);
+  if (!wrapper.entity.isPresent()) {
+    builder.addBytes(STATE_DELETED);
+    return builder.build();
+  }
+  if (wrapper.status == MvccEntity.Status.COMPLETE) {
+    builder.addBytes(STATE_COMPLETE);
+  }
+ else {
+    builder.addBytes(STATE_PARTIAL);
+  }
+  try {
+    final byte[] entityBytes=mapper.writeValueAsBytes(wrapper.entity.get());
+    builder.addBytes(entityBytes);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Unable to serialize entity",e);
+  }
+  return builder.build();
+}

@@ -1,0 +1,21 @@
+{
+  final int maxShortSize=65535;
+  final int lengthOfArray=maxShortSize + 1;
+  final byte setByte=2;
+  final int setInteger=400;
+  final byte[] setByteArray=generateByteArray(lengthOfArray);
+  FieldBufferBuilder builder=new FieldBufferBuilder(1);
+  builder.addBytes(setByteArray);
+  builder.addByte(setByte);
+  builder.addInteger(setInteger);
+  final FieldBufferSerializer serializer=new FieldBufferSerializer();
+  final ByteBuffer serialized=serializer.toByteBuffer(builder.build());
+  final FieldBuffer parsed=serializer.fromByteBuffer(serialized);
+  FieldBufferParser parser=new FieldBufferParser(parsed);
+  final byte[] returnedArray=parser.readBytes();
+  assertArrayEquals(setByteArray,returnedArray);
+  final byte returnedByte=parser.readByte();
+  assertEquals("Bytes should be equal",setByte,returnedByte);
+  final int returnedInt=parser.readInteger();
+  assertEquals("Integer should be equal",setInteger,returnedInt);
+}
