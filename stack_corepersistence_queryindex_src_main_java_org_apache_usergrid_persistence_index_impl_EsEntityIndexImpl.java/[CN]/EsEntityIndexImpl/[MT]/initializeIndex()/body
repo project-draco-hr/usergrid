@@ -1,14 +1,5 @@
 {
-  try {
-    if (!mappingsCreated.getAndSet(true)) {
-      createMappings();
-    }
-    createIndexAndAlias();
-    testNewIndex();
-  }
- catch (  IndexAlreadyExistsException expected) {
-  }
-catch (  IOException e) {
-    throw new RuntimeException("Unable to initialize index",e);
-  }
+  final int numberOfShards=config.getNumberOfShards();
+  final int numberOfReplicas=config.getNumberOfReplicas();
+  createIndexAddToAlias(null,numberOfShards,numberOfReplicas);
 }
