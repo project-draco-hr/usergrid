@@ -1,0 +1,12 @@
+{
+  ApiResponse response=createApiResponse();
+  final UUID appId=UUIDUtils.tryExtractUUID(applicationIdStr);
+  if (config.containsKey("indexSuffix")) {
+    emf.addIndex(appId,config.get("indexSuffix").toString(),config);
+    response.setAction("Add index to alias");
+  }
+ else {
+    throw new IllegalArgumentException("Please add an indexSuffix to your post");
+  }
+  return new JSONWithPadding(response,callback);
+}
