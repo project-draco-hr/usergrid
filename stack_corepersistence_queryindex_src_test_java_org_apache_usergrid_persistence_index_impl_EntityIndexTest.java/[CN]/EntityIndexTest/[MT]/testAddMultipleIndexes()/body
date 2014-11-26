@@ -9,7 +9,10 @@
   insertJsonBlob(entityIndex,entityType,indexScope,"/sample-large.json",100,0);
   entityIndex.refresh();
   testQueries(indexScope,searchTypes,entityIndex);
-  entityIndex.createIndexAddToAlias("v2",1,0);
+  HashMap<String,Object> config=new HashMap<>();
+  config.put("replicas",0);
+  config.put("shards",1);
+  entityIndex.addIndex("v2",config);
   insertJsonBlob(entityIndex,entityType,indexScope,"/sample-large.json",100,100);
   entityIndex.refresh();
   testQuery(indexScope,searchTypes,entityIndex,"name = 'Hilda Young'",1);
