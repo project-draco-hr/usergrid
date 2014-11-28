@@ -1,0 +1,35 @@
+{
+  if (this.cursor != null) {
+    this.qs.put("cursor",this.cursor);
+  }
+  Query query=this.client.queryEntitiesRequest("GET",this.qs,null,this.client.getOrganizationId(),this.client.getApplicationId(),this.type);
+  ApiResponse response=query.getResponse();
+  if (response.getError() != null) {
+    this.client.writeLog("Error getting collection.");
+  }
+ else {
+    String theCursor=response.getCursor();
+    int count=response.getEntityCount();
+    UUID nextUUID=response.getNext();
+    if (nextUUID != null) {
+      this.next=nextUUID.toString();
+    }
+ else {
+      this.next=null;
+    }
+    this.cursor=theCursor;
+    this.saveCursor(theCursor);
+    if (count > 0) {
+      this.resetEntityPointer();
+      this.list=new ArrayList<Entity>();
+      List<Entity> retrievedEntities=response.getEntities();
+      for (      Entity retrievedEntity : retrievedEntities) {
+        if (retrievedEntity.getUuid() != null) {
+          retrievedEntity.setType(this.type);
+          this.list.add(retrievedEntity);
+        }
+      }
+    }
+  }
+  return response;
+}

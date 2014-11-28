@@ -1,0 +1,26 @@
+{
+  validateNonEmptyParam(clientId,"client identifier");
+  validateNonEmptyParam(clientSecret,"client secret");
+  assertValidApplicationId();
+  loggedInUser=null;
+  accessToken=null;
+  currentOrganization=null;
+  Map<String,Object> formData=new HashMap<String,Object>();
+  formData.put("grant_type","client_credentials");
+  formData.put("client_id",clientId);
+  formData.put("client_secret",clientSecret);
+  ApiResponse response=apiRequest(HTTP_METHOD_POST,formData,null,organizationId,applicationId,"token");
+  if (response == null) {
+    return response;
+  }
+  if (!isEmpty(response.getAccessToken())) {
+    loggedInUser=null;
+    accessToken=response.getAccessToken();
+    currentOrganization=null;
+    logInfo("authorizeAppClient(): Access token: " + accessToken);
+  }
+ else {
+    logInfo("authorizeAppClient(): Response: " + response);
+  }
+  return response;
+}
