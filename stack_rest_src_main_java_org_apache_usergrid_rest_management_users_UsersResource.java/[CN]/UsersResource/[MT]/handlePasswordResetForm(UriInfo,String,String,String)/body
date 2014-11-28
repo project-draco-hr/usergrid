@@ -4,10 +4,19 @@
       errorMsg="No email provided, try again...";
       return handleViewable("resetpw_email_form",this);
     }
-    ReCaptchaImpl reCaptcha=new ReCaptchaImpl();
-    reCaptcha.setPrivateKey(properties.getRecaptchaPrivate());
-    ReCaptchaResponse reCaptchaResponse=reCaptcha.checkAnswer(httpServletRequest.getRemoteAddr(),challenge,uresponse);
-    if (!useReCaptcha() || reCaptchaResponse.isValid()) {
+    boolean reCaptchaPassed=false;
+    if (useReCaptcha()) {
+      ReCaptchaImpl reCaptcha=new ReCaptchaImpl();
+      reCaptcha.setPrivateKey(properties.getRecaptchaPrivate());
+      ReCaptchaResponse reCaptchaResponse=reCaptcha.checkAnswer(httpServletRequest.getRemoteAddr(),challenge,uresponse);
+      if (reCaptchaResponse.isValid()) {
+        reCaptchaPassed=true;
+      }
+    }
+ else {
+      reCaptchaPassed=true;
+    }
+    if (reCaptchaPassed) {
       user=management.findAdminUser(email);
       if (user != null) {
         management.startAdminUserPasswordResetFlow(user);

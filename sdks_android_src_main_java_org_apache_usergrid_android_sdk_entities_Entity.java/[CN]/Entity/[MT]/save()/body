@@ -1,0 +1,33 @@
+{
+  ApiResponse response=null;
+  UUID uuid=this.getUuid();
+  boolean entityAlreadyExists=false;
+  if (client.isUuidValid(uuid)) {
+    entityAlreadyExists=true;
+  }
+  Map<String,Object> data=new HashMap<String,Object>();
+  Set<String> keySet=this.properties.keySet();
+  Iterator<String> keySetIter=keySet.iterator();
+  while (keySetIter.hasNext()) {
+    String key=keySetIter.next();
+    if (!key.equals(PROPERTY_METADATA) && !key.equals(PROPERTY_CREATED) && !key.equals(PROPERTY_MODIFIED)&& !key.equals(PROPERTY_ACTIVATED)&& !key.equals(PROPERTY_UUID)) {
+      data.put(key,this.properties.get(key));
+    }
+  }
+  if (entityAlreadyExists) {
+    response=this.client.updateEntity(uuid.toString(),data);
+  }
+ else {
+    response=this.client.createEntity(data);
+  }
+  if (response.getError() != null) {
+    this.client.writeLog("Could not save entity.");
+  }
+ else {
+    if (response.getEntityCount() > 0) {
+      Entity entity=response.getFirstEntity();
+      this.setProperties(entity.getProperties());
+    }
+  }
+  return response;
+}
