@@ -4,7 +4,14 @@
   data.put("replicas",0);
   data.put("shards",1);
   UUID appId=this.context.getAppUuid();
-  JsonNode node=mapper.readTree(resource().path("/index/" + appId).queryParam("access_token",superToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,data));
+  JsonNode node=null;
+  try {
+    node=mapper.readTree(resource().path("/system/index/" + appId).queryParam("access_token",superToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,data));
+  }
+ catch (  Exception e) {
+    LOG.error("failed",e);
+    fail(e.toString());
+  }
   assertNull(getError(node));
   refreshIndex("test-organization","test-app");
 }
