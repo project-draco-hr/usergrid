@@ -1,0 +1,51 @@
+{
+  EntityManager em=app.getEntityManager();
+  assertNotNull(em);
+  Map<String,Object> properties=new LinkedHashMap<String,Object>(){
+{
+      put("username","edanuff");
+      put("email","ed@anuff.com");
+      put("location",new LinkedHashMap<String,Object>(){
+{
+          put("latitude",37.776753);
+          put("longitude",-122.407846);
+        }
+      }
+);
+    }
+  }
+;
+  Entity user=em.create("user",properties);
+  assertNotNull(user);
+  LinkedHashMap<String,Object> properties2=new LinkedHashMap<String,Object>(){
+{
+      put("username","sganyo");
+      put("email","sganyo@anuff.com");
+      put("location",new LinkedHashMap<String,Object>(){
+{
+          put("latitude",31.1);
+          put("longitude",121.2);
+        }
+      }
+);
+    }
+  }
+;
+  Entity user2=em.create("user",properties2);
+  assertNotNull(user2);
+  em.refreshIndex();
+  Point center=new Point(37.776753,-122.407846);
+  Query query=Query.fromQL("select * where location within 10000 of " + center.getLat() + ","+ center.getLon());
+  Results listResults=em.searchCollection(em.getApplicationRef(),"users",query);
+  assertEquals(1,listResults.size());
+  query=Query.fromQL("select * where location within " + Integer.MAX_VALUE + " of "+ center.getLat()+ ","+ center.getLon());
+  listResults=em.searchCollection(em.getApplicationRef(),"users",query);
+  assertEquals(2,listResults.size());
+  updatePos(em,user,37.776753,-122.407846);
+  center=new Point(37.428526,-122.140916);
+  query=Query.fromQL("select * where location within 1000 of " + center.getLat() + ","+ center.getLon());
+  listResults=em.searchCollection(em.getApplicationRef(),"users",query);
+  assertEquals(0,listResults.size());
+  em.delete(user);
+  em.delete(user2);
+}

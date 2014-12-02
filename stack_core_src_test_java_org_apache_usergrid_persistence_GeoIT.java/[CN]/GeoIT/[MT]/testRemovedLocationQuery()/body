@@ -1,0 +1,34 @@
+{
+  EntityManager em=app.getEntityManager();
+  assertNotNull(em);
+  Map<String,Object> properties=new LinkedHashMap<String,Object>(){
+{
+      put("username","edanuff");
+      put("email","ed@anuff.com");
+      put("location",new LinkedHashMap<String,Object>(){
+{
+          put("latitude",37.776753);
+          put("longitude",-122.407846);
+        }
+      }
+);
+    }
+  }
+;
+  Entity user=em.create("user",properties);
+  assertNotNull(user);
+  em.refreshIndex();
+  Point center=new Point(37.774277,-122.404744);
+  Query query=Query.fromQL("select * where location within 400 of " + center.getLat() + ","+ center.getLon());
+  Results listResults=em.searchCollection(em.getApplicationRef(),"users",query);
+  this.dump(listResults);
+  assertEquals("1 result less than 400m away from center",1,listResults.size());
+  properties.remove("location");
+  em.updateProperties(user,properties);
+  em.refreshIndex();
+  query=Query.fromQL("select * where location within 400 of " + center.getLat() + ","+ center.getLon());
+  listResults=em.searchCollection(em.getApplicationRef(),"users",query);
+  this.dump(listResults);
+  assertEquals(0,listResults.size());
+  em.delete(user);
+}
