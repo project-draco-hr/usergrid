@@ -18,17 +18,13 @@
   Entity user=em.create("user",properties);
   assertNotNull(user);
   em.refreshIndex();
-  Point center=new Point(37.774277,-122.404744);
-  Query query=Query.fromQL("select * where location within 400 of " + center.getLat() + ","+ center.getLon());
+  Query query=Query.fromQL("select * where location within " + Integer.MAX_VALUE + " of 0, 0");
   Results listResults=em.searchCollection(em.getApplicationRef(),"users",query);
-  this.dump(listResults);
-  assertEquals("1 result less than 400m away from center",1,listResults.size());
+  assertEquals("1 result returned",1,listResults.size());
   properties.remove("location");
   em.updateProperties(user,properties);
   em.refreshIndex();
-  query=Query.fromQL("select * where location within 400 of " + center.getLat() + ","+ center.getLon());
   listResults=em.searchCollection(em.getApplicationRef(),"users",query);
-  this.dump(listResults);
   assertEquals(0,listResults.size());
   em.delete(user);
 }
