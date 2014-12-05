@@ -1,0 +1,17 @@
+{
+  EntityManager em=app.getEntityManager();
+  assertNotNull(em);
+  for (  Map<String,Object> location : LOCATION_PROPERTIES) {
+    Entity entity=em.create("store",location);
+    assertNotNull(entity);
+    LOG.debug("Entity {} created",entity.getProperty("name"));
+  }
+  em.refreshIndex();
+  Query query=new Query();
+  Results listResults=em.searchCollection(em.getApplicationRef(),"stores",query);
+  assertEquals("total number of 'stores'",LOCATION_PROPERTIES.size(),listResults.size());
+  for (  Entity entity : listResults.entities) {
+    Location location=(Location)entity.getProperty("location");
+    assertNotNull(location);
+  }
+}
