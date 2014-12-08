@@ -1,5 +1,12 @@
 {
   EntityManager em=setup.getEmf().getEntityManager(setup.getEmf().getManagementAppId());
+  Query query=new Query();
+  query.addCounterFilter("admin.logins:*:*:*");
+  query.setStartTime(ts);
+  query.setFinishTime(System.currentTimeMillis());
+  query.setResolution(CounterResolution.SIX_HOUR);
+  Results or=em.getAggregateCounters(query);
+  long originalCount=or.getCounters().get(0).getValues().get(0).getValue();
   Map<String,Long> counts=em.getApplicationCounters();
   long originalAdminLoginsCount=counts.get("admin.logins").longValue();
   String randomSuffix=RandomStringUtils.randomAlphabetic(20);
@@ -26,12 +33,7 @@
   Results r=em.getAggregateCounters(null,null,null,"admin.logins",CounterResolution.ALL,ts,System.currentTimeMillis(),false);
   LOG.info(JsonUtils.mapToJsonString(r.getCounters()));
   assertEquals(1,r.getCounters().get(0).getValues().get(0).getValue() - originalAdminLoginsCount);
-  Query query=new Query();
-  query.addCounterFilter("admin.logins:*:*:*");
-  query.setStartTime(ts);
-  query.setFinishTime(System.currentTimeMillis());
-  query.setResolution(CounterResolution.SIX_HOUR);
   r=em.getAggregateCounters(query);
   LOG.info(JsonUtils.mapToJsonString(r.getCounters()));
-  assertEquals(1,r.getCounters().get(0).getValues().get(0).getValue());
+  assertEquals(1,r.getCounters().get(0).getValues().get(0).getValue() - originalCount);
 }
