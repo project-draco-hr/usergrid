@@ -4,12 +4,18 @@
   ValidationUtils.verifyVersion(version);
   final String context=createContextName(indexScope);
   final String entityType=id.getType();
-  String indexId=createIndexDocId(id,version,context);
+  final String indexId=createIndexDocId(id,version,context);
   if (log.isDebugEnabled()) {
     log.debug("De-indexing entity {}:{} in scope\n   app {}\n   owner {}\n   " + "name {} context{}, type {},",new Object[]{id.getType(),id.getUuid(),applicationScope.getApplication(),indexScope.getOwner(),indexScope.getName(),context,entityType});
   }
   log.debug("De-indexing type {} with documentId '{}'",entityType,indexId);
-  bulkRequest.add(client.prepareDelete(alias.getWriteAlias(),entityType,indexId).setRefresh(refresh));
+  final String[] indexes=entityIndex.getIndexes(alias.getReadAlias());
+  Observable.from(indexes).subscribeOn(Schedulers.io()).forEach(new Action1<String>(){
+    @Override public void call(    String index){
+      bulkRequest.add(client.prepareDelete(index,entityType,indexId).setRefresh(refresh));
+    }
+  }
+);
   log.debug("Deindexed Entity with index id " + indexId);
   maybeFlush();
   return this;
