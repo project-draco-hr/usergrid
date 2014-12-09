@@ -13,7 +13,6 @@
   if (indexes == null || indexes.length == 0) {
     indexes=new String[]{indexIdentifier.getIndex(null)};
   }
-  final AtomicInteger errorCount=new AtomicInteger();
   Observable.from(indexes).subscribeOn(Schedulers.io()).map(new Func1<String,Object>(){
     @Override public Object call(    String index){
       try {
@@ -21,15 +20,12 @@
       }
  catch (      Exception e) {
         log.error("failed to deindex",e);
-        errorCount.incrementAndGet();
+        throw e;
       }
       return index;
     }
   }
 ).toBlocking().last();
-  if (errorCount.get() > 0) {
-    log.error("Failed to flush some indexes");
-  }
   log.debug("Deindexed Entity with index id " + indexId);
   maybeFlush();
   return this;
