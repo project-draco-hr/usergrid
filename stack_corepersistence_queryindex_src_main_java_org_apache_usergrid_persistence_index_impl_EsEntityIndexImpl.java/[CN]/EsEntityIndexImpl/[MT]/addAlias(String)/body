@@ -3,8 +3,7 @@
     Boolean isAck;
     String indexName=indexIdentifier.getIndex(indexSuffix);
     final AdminClient adminClient=esProvider.getClient().admin();
-    ImmutableOpenMap<String,List<AliasMetaData>> aliasMap=adminClient.indices().getAliases(new GetAliasesRequest(alias.getWriteAlias())).actionGet().getAliases();
-    String[] indexNames=aliasMap.keys().toArray(String.class);
+    String[] indexNames=getIndexes(AliasType.Write);
     for (    String currentIndex : indexNames) {
       isAck=adminClient.indices().prepareAliases().removeAlias(currentIndex,alias.getWriteAlias()).execute().actionGet().isAcknowledged();
       logger.info("Removed Index Name [{}] from Alias=[{}] ACK=[{}]",currentIndex,alias,isAck);
@@ -13,6 +12,7 @@
     logger.info("Created new read Alias Name [{}] ACK=[{}]",alias,isAck);
     isAck=adminClient.indices().prepareAliases().addAlias(indexName,alias.getWriteAlias()).execute().actionGet().isAcknowledged();
     logger.info("Created new write Alias Name [{}] ACK=[{}]",alias,isAck);
+    aliasCache.invalidate(alias);
   }
  catch (  Exception e) {
     logger.warn("Failed to create alias ",e);
