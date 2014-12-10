@@ -1,8 +1,12 @@
 {
-  OrganizationOwnerInfo orgOwner=setup.getMgmtSvc().createOwnerAndOrganization("appcreatortestcustom","nate-appcreatortestcustom","Nate","nate+appcreatortestcustom@apigee.com","password",true,false);
+  final String orgName="appcreatortest" + newUUIDString();
+  final String appName="nate-appcreatortest" + newUUIDString();
+  final String sampleAppName="messagee";
+  final String expectedName=orgName + "/" + sampleAppName;
+  OrganizationOwnerInfo orgOwner=setup.getMgmtSvc().createOwnerAndOrganization(orgName,appName,"Nate","nate+appcreatortestcustom" + newUUIDString() + "@apigee.com","password",true,false);
   ApplicationCreatorImpl customCreator=new ApplicationCreatorImpl(setup.getEmf(),setup.getMgmtSvc());
-  customCreator.setSampleAppName("messagee");
+  customCreator.setSampleAppName(sampleAppName);
   ApplicationInfo appInfo=customCreator.createSampleFor(orgOwner.getOrganization());
   assertNotNull(appInfo);
-  assertEquals("appcreatortestcustom/messagee",appInfo.getName());
+  assertEquals(expectedName,appInfo.getName());
 }
