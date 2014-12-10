@@ -1,5 +1,8 @@
 {
-  logger.debug("Entering deleted for entity {}:{} v {} " + "scope\n   name: {}\n   owner: {}\n   app: {}",new Object[]{entityId.getType(),entityId.getUuid(),version,scope.getName(),scope.getOwner(),scope.getApplication()});
+  if (System.getProperty(EVENTS_DISABLED,"false").equals("true")) {
+    return;
+  }
+  logger.debug("Handling deleted event for entity {}:{} v {} " + "scope\n   name: {}\n   owner: {}\n   app: {}",new Object[]{entityId.getType(),entityId.getUuid(),version,scope.getName(),scope.getOwner(),scope.getApplication()});
   CpEntityManagerFactory cpemf=(CpEntityManagerFactory)emf;
   final EntityIndex ei=cpemf.getManagerCache().getEntityIndex(scope);
   ei.deleteAllVersionsOfEntity(entityId);

@@ -1,6 +1,6 @@
 {
   logger.info("Started testStaleIndexCleanup()");
-  System.setProperty("allow.stale.entities","true");
+  System.setProperty(EVENTS_DISABLED,"true");
   final EntityManager em=app.getEntityManager();
   final int numEntities=10;
   final int numUpdates=3;
@@ -37,15 +37,16 @@
   em.refreshIndex();
   crs=queryCollectionCp("things","thing","select *");
   Assert.assertEquals("Expect stale candidates",numEntities * (numUpdates + 1),crs.size());
+  System.setProperty(EVENTS_DISABLED,"false");
   for (  Entity thing : things) {
     em.delete(thing);
   }
-  em.refreshIndex();
   count=0;
   do {
     Thread.sleep(100);
     crs=queryCollectionCp("things","thing","select *");
+    em.refreshIndex();
   }
- while (crs.size() > 0 && count++ < 14);
+ while (crs.size() > 0 && count++ < 15);
   Assert.assertEquals("Expect no candidates",0,crs.size());
 }

@@ -1,5 +1,6 @@
 {
   logger.info("Started testCleanupOnUpdate()");
+  System.setProperty(EVENTS_DISABLED,"true");
   final EntityManager em=app.getEntityManager();
   final int numEntities=10;
   final int numUpdates=3;
@@ -15,8 +16,9 @@
     Thread.sleep(writeDelayMs);
   }
   em.refreshIndex();
-  CandidateResults crs=queryCollectionCp("things","things","select *");
+  CandidateResults crs=queryCollectionCp("things","thing","select *");
   Assert.assertEquals("Expect no stale candidates yet",numEntities,crs.size());
+  System.setProperty(EVENTS_DISABLED,"false");
   int count=0;
   List<Entity> maxVersions=new ArrayList<>(numEntities);
   for (  Entity thing : things) {
@@ -34,6 +36,13 @@
     maxVersions.add(toUpdate);
   }
   em.refreshIndex();
+  count=0;
+  do {
+    Thread.sleep(100);
+    crs=queryCollectionCp("things","thing","select *");
+    em.refreshIndex();
+  }
+ while (crs.size() > 0 && count++ < 15);
   crs=queryCollectionCp("things","thing","select *");
   Assert.assertEquals("Expect candidates without earlier stale entities",numEntities,crs.size());
 }

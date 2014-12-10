@@ -1,8 +1,9 @@
 {
-  logger.debug("Entering deleted for entity {}:{} v {} " + "scope\n   name: {}\n   owner: {}\n   app: {}",new Object[]{entity.getId().getType(),entity.getId().getUuid(),entity.getVersion(),scope.getName(),scope.getOwner(),scope.getApplication()});
+  if (System.getProperty(EVENTS_DISABLED,"false").equals("true")) {
+    return;
+  }
+  logger.debug("Handling versionCreated for entity {}:{} v {} " + "scope\n   name: {}\n   owner: {}\n   app: {}",new Object[]{entity.getId().getType(),entity.getId().getUuid(),entity.getVersion(),scope.getName(),scope.getOwner(),scope.getApplication()});
   CpEntityManagerFactory cpemf=(CpEntityManagerFactory)emf;
   final EntityIndex ei=cpemf.getManagerCache().getEntityIndex(scope);
-  if (System.getProperty("allow.stale.entities","false").equals("false")) {
-    ei.deletePreviousVersions(entity.getId(),entity.getVersion());
-  }
+  ei.deletePreviousVersions(entity.getId(),entity.getVersion());
 }
