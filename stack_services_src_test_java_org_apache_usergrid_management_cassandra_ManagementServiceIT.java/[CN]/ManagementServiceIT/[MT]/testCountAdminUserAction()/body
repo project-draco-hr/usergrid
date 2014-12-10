@@ -2,11 +2,17 @@
   SimpleBatcher batcher=cassandraResource.getBean(SimpleBatcher.class);
   batcher.setBlockingSubmit(true);
   batcher.setBatchSize(1);
-  setup.getMgmtSvc().countAdminUserAction(adminUser,"login");
   EntityManager em=setup.getEmf().getEntityManager(setup.getEmf().getManagementAppId());
   Map<String,Long> counts=em.getApplicationCounters();
   LOG.info(JsonUtils.mapToJsonString(counts));
   LOG.info(JsonUtils.mapToJsonString(em.getCounterNames()));
   assertNotNull(counts.get("admin_logins"));
-  assertEquals(1,counts.get("admin_logins").intValue());
+  final long startCount=counts.get("admin_logins");
+  setup.getMgmtSvc().countAdminUserAction(adminUser,"login");
+  counts=em.getApplicationCounters();
+  LOG.info(JsonUtils.mapToJsonString(counts));
+  LOG.info(JsonUtils.mapToJsonString(em.getCounterNames()));
+  assertNotNull(counts.get("admin_logins"));
+  final long newCount=counts.get("admin_logins");
+  assertEquals(1l,newCount - startCount);
 }
