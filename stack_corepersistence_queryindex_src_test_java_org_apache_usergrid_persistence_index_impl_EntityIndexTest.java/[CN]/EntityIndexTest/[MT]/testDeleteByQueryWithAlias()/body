@@ -1,0 +1,21 @@
+{
+  Id appId=new SimpleId("application");
+  ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
+  AliasedEntityIndex entityIndex=(AliasedEntityIndex)eif.createEntityIndex(applicationScope);
+  entityIndex.initializeIndex();
+  final String entityType="thing";
+  IndexScope indexScope=new IndexScopeImpl(appId,"things");
+  final SearchTypes searchTypes=SearchTypes.fromTypes(entityType);
+  insertJsonBlob(entityIndex,entityType,indexScope,"/sample-large.json",1,0);
+  entityIndex.refresh();
+  entityIndex.addIndex("v2",1,0);
+  insertJsonBlob(entityIndex,entityType,indexScope,"/sample-large.json",1,0);
+  entityIndex.refresh();
+  CandidateResults crs=testQuery(indexScope,searchTypes,entityIndex,"name = 'Bowers Oneil'",2);
+  EntityIndexBatch entityIndexBatch=entityIndex.createBatch();
+  entityIndexBatch.deindex(indexScope,crs.get(0));
+  entityIndexBatch.deindex(indexScope,crs.get(1));
+  entityIndexBatch.executeAndRefresh();
+  entityIndex.refresh();
+  testQuery(indexScope,searchTypes,entityIndex,"name = 'Bowers Oneil'",0);
+}
