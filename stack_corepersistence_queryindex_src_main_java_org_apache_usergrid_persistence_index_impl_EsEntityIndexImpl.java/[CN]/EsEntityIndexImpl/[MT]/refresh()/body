@@ -2,7 +2,14 @@
   final RetryOperation retryOperation=new RetryOperation(){
     @Override public boolean doOp(){
       try {
-        esProvider.getClient().admin().indices().prepareRefresh(alias.getWriteAlias()).execute().actionGet();
+        String[] indexes=getIndexes(AliasType.Read);
+        Observable.from(indexes).map(new Func1<String,String>(){
+          @Override public String call(          String index){
+            esProvider.getClient().admin().indices().prepareRefresh(index).execute().actionGet();
+            return index;
+          }
+        }
+).toBlocking().last();
         logger.debug("Refreshed index: " + alias);
         return true;
       }
