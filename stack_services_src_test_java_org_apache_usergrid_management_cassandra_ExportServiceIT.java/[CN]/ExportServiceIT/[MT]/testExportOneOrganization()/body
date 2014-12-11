@@ -20,11 +20,13 @@
   S3Export s3Export=new MockS3ExportImpl("exportOneOrganization.json");
   ExportService exportService=setup.getExportService();
   HashMap<String,Object> payload=payloadBuilder();
+  final String uniqueOrg=uniqueOrg();
+  final String uniqueApp=uniqueApp();
   OrganizationInfo orgMade=null;
   ApplicationInfo appMade=null;
   for (int i=0; i < 10; i++) {
-    orgMade=setup.getMgmtSvc().createOrganization("superboss" + i,adminUser,true);
-    appMade=setup.getMgmtSvc().createApplication(orgMade.getUuid(),"superapp" + i);
+    orgMade=setup.getMgmtSvc().createOrganization(uniqueOrg + i,adminUser,true);
+    appMade=setup.getMgmtSvc().createApplication(orgMade.getUuid(),uniqueApp + i);
     EntityManager customMaker=setup.getEmf().getEntityManager(appMade.getId());
     customMaker.createApplicationCollection("superappCol" + i);
     Map<String,Object> entityLevelProperties=null;
