@@ -1,0 +1,17 @@
+{
+  if (lock != null) {
+    throw new IllegalStateException("You already have a lock, you cannot get a lock again");
+  }
+  File file=new File(fileName);
+  if (!file.exists()) {
+    file.createNewFile();
+  }
+  FileChannel fileChannel=new RandomAccessFile(file,"rw").getChannel();
+  try {
+    lock=fileChannel.tryLock();
+  }
+ catch (  OverlappingFileLockException ofle) {
+    return false;
+  }
+  return hasLock();
+}
