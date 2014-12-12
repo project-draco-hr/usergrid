@@ -4,12 +4,15 @@
   setup.set(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
   setup.set(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"true");
   setup.set(PROPERTIES_SYSADMIN_EMAIL,"sysadmin-2@mockserver.com");
-  OrganizationOwnerInfo org_owner=createOwnerAndOrganization(ORGANIZATION_NAME_2,"test-user-2","Test User","test-user-2@mockserver.com","testpassword",false,false);
+  final String orgName=uniqueOrg();
+  final String userName=uniqueUsername();
+  final String email=uniqueEmail();
+  OrganizationOwnerInfo org_owner=createOwnerAndOrganization(orgName,userName,"Test User",email,"testpassword",false,false);
   assertNotNull(org_owner);
-  List<Message> user_inbox=Mailbox.get("test-user-2@mockserver.com");
+  List<Message> user_inbox=Mailbox.get(email);
   assertFalse(user_inbox.isEmpty());
   Message confirmation=user_inbox.get(0);
-  assertEquals("User Account Confirmation: test-user-2@mockserver.com",confirmation.getSubject());
+  assertEquals("User Account Confirmation: " + email,confirmation.getSubject());
   String token=getTokenFromMessage(confirmation);
   LOG.info(token);
   ActivationState state=setup.getMgmtSvc().handleConfirmationTokenForAdminUser(org_owner.owner.getUuid(),token);
@@ -22,7 +25,7 @@
   List<Message> sysadmin_inbox=Mailbox.get("sysadmin-2@mockserver.com");
   assertFalse(sysadmin_inbox.isEmpty());
   Message activation=sysadmin_inbox.get(0);
-  assertEquals("Request For Admin User Account Activation test-user-2@mockserver.com",activation.getSubject());
+  assertEquals("Request For Admin User Account Activation " + email,activation.getSubject());
   token=getTokenFromMessage(activation);
   LOG.info(token);
   state=setup.getMgmtSvc().handleActivationTokenForAdminUser(org_owner.owner.getUuid(),token);
