@@ -1,5 +1,4 @@
 {
-  context.management().tokenGet(context.getActiveUser().getUser(),context.getActiveUser().getPassword());
   String username="createOrgAndOwner" + UUIDUtils.newTimeUUID();
   String name=username;
   String password="password";
@@ -7,20 +6,8 @@
   String email=username + "@usergrid.com";
   Map<String,Object> organizationProperties=new HashMap<String,Object>();
   organizationProperties.put("securityLevel",5);
-  Map payload=hashMap("email",email).map("username",username).map("name",name).map("password",password).map("organization",orgName).map("company","Apigee");
-  Map payload2=hashMap("grant_type","password").map("username",username).map("password",password);
-  payload.put(OrganizationsResource.ORGANIZATION_PROPERTIES,organizationProperties);
-  JsonNode node=mapper.readTree(resource().path("/management/organizations").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
-  UUID userUuid=UUID.fromString(node.get("data").get("owner").get("uuid").asText());
-  node=mapper.readTree(resource().path("/management/token").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload2));
-  node=mapper.readTree(resource().path("/management/organizations/" + orgName + "/apps/sandbox").queryParam("access_token",node.get("access_token").textValue()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-  assertNotNull(node);
-  Set<String> rolePerms=setup.getEmf().getEntityManager(UUID.fromString(node.get("entities").get(0).get("uuid").asText())).getRolePermissions("guest");
-  assertNotNull(rolePerms);
-  assertTrue(rolePerms.contains("get,post,put,delete:/**"));
-  logNode(node);
-  EntityManager em=setup.getEmf().getEntityManager(setup.getEmf().getManagementAppId());
-  User user=em.get(userUuid,User.class);
-  assertEquals(name,user.getName());
-  assertEquals("Apigee",user.getProperty("company"));
+  organizationProperties.put("company","Apigee");
+  Organization organization=new Organization(orgName,username,email,name,password,organizationProperties);
+  OrgOwner orgOwner=clientSetup.getRestClient().management().orgs().post(organization);
+  assertNotNull(orgOwner);
 }
