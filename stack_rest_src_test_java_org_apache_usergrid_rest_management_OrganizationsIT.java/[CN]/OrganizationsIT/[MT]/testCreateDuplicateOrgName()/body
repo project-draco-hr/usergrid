@@ -1,0 +1,30 @@
+{
+  String username="testCreateDuplicateOrgName" + UUIDUtils.newTimeUUID();
+  String name=username;
+  String password="password";
+  String orgName=username;
+  String email=username + "@usergrid.com";
+  Organization orgPayload=new Organization(orgName,username,email,name,password,null);
+  Organization orgCreatedResponse=clientSetup.getRestClient().management().orgs().post(orgPayload);
+  assertNotNull(orgCreatedResponse);
+  Organization orgTestDuplicatePayload=new Organization(orgName,username + "test",email + "test",name + "test",password,null);
+  Organization orgTestDuplicateResponse=null;
+  try {
+    orgTestDuplicateResponse=clientSetup.getRestClient().management().orgs().post(orgTestDuplicatePayload);
+  }
+ catch (  Exception ex) {
+  }
+  Token tokenPayload=new Token("password",username + "test",password);
+  Token tokenError=null;
+  try {
+    tokenError=clientSetup.getRestClient().management().token().post(tokenPayload);
+    fail("Should not have created user");
+  }
+ catch (  UniformInterfaceException ex) {
+    System.out.println();
+  }
+  assertNull(tokenError);
+  tokenPayload=new Token("password",username,password);
+  Token tokenReturned=clientSetup.getRestClient().management().token().post(tokenPayload);
+  assertNotNull(tokenReturned);
+}
