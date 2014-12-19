@@ -1,0 +1,22 @@
+{
+  String groupName="testgroup";
+  String groupPath="testgroup";
+  String newGroupPath="newtestgroup";
+  Entity payload=new Entity();
+  payload.put("name",groupName);
+  payload.put("path",groupPath);
+  Entity group=this.app().collection("groups").post(payload);
+  assertEquals(group.get("path"),groupPath);
+  group.put("path",newGroupPath);
+  this.app().collection("groups").entity(group).put(group);
+  assertEquals(group.get("path"),newGroupPath);
+  ApiResponse response=this.app().collection("groups").entity(group).delete();
+  try {
+    Entity newGroup=this.app().collection("groups").uniqueID(groupName).get();
+    fail("Entity still exists");
+  }
+ catch (  UniformInterfaceException e) {
+    JsonNode node=mapper.readTree(e.getResponse().getEntity(String.class));
+    assertEquals("illegal_argument",node.get("error").textValue());
+  }
+}
