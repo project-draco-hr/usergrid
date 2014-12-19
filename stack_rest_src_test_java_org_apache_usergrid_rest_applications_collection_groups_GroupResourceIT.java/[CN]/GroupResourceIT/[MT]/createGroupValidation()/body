@@ -1,8 +1,10 @@
 {
   String groupName="testgroup";
   String groupPath="testgroup";
-  Group group=new Group(groupName,groupPath);
-  Group testGroup=this.app().groups().post(group);
-  assertNull(testGroup.get("errors"));
-  assertEquals(testGroup.get("path"),groupPath);
+  Entity group=new Entity();
+  group.put("name",groupName);
+  group.put("path",groupPath);
+  Entity groupResponse=this.app().collection("groups").post(group);
+  assertEquals(groupResponse.get("path"),groupPath);
+  assertEquals(groupResponse.get("name"),groupName);
 }
