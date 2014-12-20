@@ -1,0 +1,37 @@
+{
+  String groupName="testgroup";
+  String groupPath="testgroup";
+  Entity group=this.createGroup(groupName,groupPath);
+  String roleName="tester";
+  String roleTitle="tester";
+  Entity role=this.createRole(roleName,roleTitle);
+  Entity response=this.app().collection("role").entity(role).connection().collection("groups").entity(group).post();
+  assertEquals(response.get("name"),roleName);
+  this.refreshIndex();
+  Collection collection=this.app().collection("groups").entity(group).connection().collection("roles").get();
+  Entity entity=collection.next();
+  assertEquals(entity.get("name"),roleName);
+  ApiResponse responseDel=this.app().collection("role").entity(role).connection().collection("groups").entity(group).delete();
+  this.refreshIndex();
+  collection=this.app().collection("groups").entity(group).connection().collection("roles").get();
+  try {
+    collection.next();
+    fail("Entity still exists");
+  }
+ catch (  UniformInterfaceException e) {
+    JsonNode node=mapper.readTree(e.getResponse().getEntity(String.class));
+    assertEquals("service_resource_not_found",node.get("error").textValue());
+  }
+  role=this.app().collection("roles").uniqueID(roleName).get();
+  assertEquals(role.get("name"),roleName);
+  ApiResponse responseDel2=this.app().collection("role").entity(role).delete();
+  this.refreshIndex();
+  try {
+    this.app().collection("role").entity(role).get();
+    fail("Entity still exists");
+  }
+ catch (  UniformInterfaceException e) {
+    JsonNode node=mapper.readTree(e.getResponse().getEntity(String.class));
+    assertEquals("service_resource_not_found",node.get("error").textValue());
+  }
+}

@@ -1,0 +1,23 @@
+{
+  String groupName="testgroup";
+  String groupPath="testgroup";
+  Entity group=this.createGroup(groupName,groupPath);
+  String username="fred";
+  String email="fred@usergrid.com";
+  Entity user=this.createUser(username,email);
+  Entity response=this.app().collection("users").entity(user).connection().collection("groups").entity(group).post();
+  assertEquals(response.get("name"),groupName);
+  this.refreshIndex();
+  Collection collection=this.app().collection("groups").entity(group).connection().collection("users").get();
+  Entity entity=collection.next();
+  assertEquals(entity.get("username"),username);
+  collection=this.app().collection("users").entity(user).connection().collection("groups").get();
+  entity=collection.next();
+  assertEquals(entity.get("name"),groupName);
+  ApiResponse responseDel=this.app().collection("group").entity(group).connection().collection("users").entity(user).delete();
+  this.refreshIndex();
+  collection=this.app().collection("group").entity(group).connection().collection("users").get();
+  assertEquals(collection.hasNext(),false);
+  Entity userEntity=this.app().collection("user").entity(user).get();
+  assertEquals(userEntity.get("username"),username);
+}
