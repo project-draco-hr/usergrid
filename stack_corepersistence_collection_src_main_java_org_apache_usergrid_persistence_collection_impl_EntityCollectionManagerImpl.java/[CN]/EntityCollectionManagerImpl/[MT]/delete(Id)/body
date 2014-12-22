@@ -2,10 +2,14 @@
   Preconditions.checkNotNull(entityId,"Entity id is required in this stage");
   Preconditions.checkNotNull(entityId.getUuid(),"Entity id is required in this stage");
   Preconditions.checkNotNull(entityId.getType(),"Entity type is required in this stage");
-  return Observable.from(new CollectionIoEvent<Id>(collectionScope,entityId)).map(markStart).doOnNext(markCommit).map(new Func1<CollectionIoEvent<MvccEntity>,Void>(){
-    @Override public Void call(    final CollectionIoEvent<MvccEntity> mvccEntityCollectionIoEvent){
-      return null;
+  Observable<Id> o=Observable.from(new CollectionIoEvent<Id>(collectionScope,entityId)).map(markStart).doOnNext(markCommit).map(new Func1<CollectionIoEvent<MvccEntity>,Id>(){
+    @Override public Id call(    final CollectionIoEvent<MvccEntity> mvccEntityCollectionIoEvent){
+      MvccEntity entity=mvccEntityCollectionIoEvent.getEvent();
+      Task<Void> task=entityDeletedFactory.getTask(collectionScope,entity.getId(),entity.getVersion());
+      taskExecutor.submit(task);
+      return entity.getId();
     }
   }
 );
+  return o;
 }

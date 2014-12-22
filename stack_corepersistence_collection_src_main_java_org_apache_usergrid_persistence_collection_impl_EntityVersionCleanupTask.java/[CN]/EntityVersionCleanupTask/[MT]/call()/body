@@ -1,27 +1,41 @@
 {
-  final UUID maxVersion=version;
-  Observable<MvccLogEntry> versions=Observable.create(new ObservableIterator("versionIterators"){
-    @Override protected Iterator getIterator(){
-      return new LogEntryIterator(logEntrySerializationStrategy,scope,entityId,maxVersion,serializationFig.getBufferSize());
+  Observable<List<MvccEntity>> deleteFieldsObservable=Observable.create(new ObservableIterator<MvccEntity>("deleteColumns"){
+    @Override protected Iterator<MvccEntity> getIterator(){
+      Iterator<MvccEntity> entities=entitySerializationStrategy.loadDescendingHistory(scope,entityId,version,1000);
+      return entities;
     }
   }
-);
-  versions.map(new Func1<MvccLogEntry,UUID>(){
-    @Override public UUID call(    final MvccLogEntry mvccLogEntry){
-      return mvccLogEntry.getVersion();
-    }
-  }
-).buffer(serializationFig.getBufferSize()).doOnNext(new Action1<List<UUID>>(){
-    @Override public void call(    final List<UUID> versions){
-      fireEvents(versions);
-      MutationBatch entityBatch=keyspace.prepareMutationBatch();
-      MutationBatch logBatch=keyspace.prepareMutationBatch();
-      for (      UUID version : versions) {
-        final MutationBatch entityDelete=entitySerializationStrategy.delete(scope,entityId,version);
+).skip(1).buffer(serializationFig.getBufferSize()).doOnNext(new Action1<List<MvccEntity>>(){
+    @Override public void call(    final List<MvccEntity> mvccEntities){
+      final MutationBatch batch=keyspace.prepareMutationBatch();
+      final MutationBatch entityBatch=keyspace.prepareMutationBatch();
+      final MutationBatch logBatch=keyspace.prepareMutationBatch();
+      for (      MvccEntity mvccEntity : mvccEntities) {
+        if (!mvccEntity.getEntity().isPresent()) {
+          continue;
+        }
+        final UUID entityVersion=mvccEntity.getVersion();
+        final Entity entity=mvccEntity.getEntity().get();
+        for (        final Field field : entity.getFields()) {
+          if (!field.isUnique()) {
+            continue;
+          }
+          final UniqueValue unique=new UniqueValueImpl(field,entityId,entityVersion);
+          final MutationBatch deleteMutation=uniqueValueSerializationStrategy.delete(scope,unique);
+          batch.mergeShallow(deleteMutation);
+        }
+        final MutationBatch entityDelete=entitySerializationStrategy.delete(scope,entityId,mvccEntity.getVersion());
         entityBatch.mergeShallow(entityDelete);
         final MutationBatch logDelete=logEntrySerializationStrategy.delete(scope,entityId,version);
         logBatch.mergeShallow(logDelete);
       }
+      try {
+        batch.execute();
+      }
+ catch (      ConnectionException e1) {
+        throw new RuntimeException("Unable to execute " + "unique value " + "delete",e1);
+      }
+      fireEvents(mvccEntities);
       try {
         entityBatch.execute();
       }
@@ -36,6 +50,8 @@
       }
     }
   }
-).count().toBlocking().last();
+);
+  final int removedCount=deleteFieldsObservable.count().toBlocking().last();
+  logger.debug("Removed unique values for {} entities of entity {}",removedCount,entityId);
   return null;
 }

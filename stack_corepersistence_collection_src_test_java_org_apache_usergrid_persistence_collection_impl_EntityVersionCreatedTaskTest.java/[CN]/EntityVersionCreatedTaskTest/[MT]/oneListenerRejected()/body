@@ -1,0 +1,20 @@
+{
+  final TaskExecutor taskExecutor=new NamedTaskExecutorImpl("test",0,0);
+  final int sizeToReturn=1;
+  final CountDownLatch latch=new CountDownLatch(sizeToReturn);
+  final EntityVersionCreatedTest eventListener=new EntityVersionCreatedTest(latch);
+  final Set<EntityVersionCreated> listeners=mock(Set.class);
+  final Iterator<EntityVersionCreated> helper=mock(Iterator.class);
+  when(listeners.size()).thenReturn(1);
+  when(listeners.iterator()).thenReturn(helper);
+  when(helper.next()).thenReturn(eventListener);
+  final Id applicationId=new SimpleId("application");
+  final CollectionScope appScope=new CollectionScopeImpl(applicationId,applicationId,"users");
+  final Id entityId=new SimpleId("user");
+  final Entity entity=new Entity(entityId);
+  EntityVersionCreatedTask entityVersionCreatedTask=new EntityVersionCreatedTask(appScope,listeners,entity);
+  entityVersionCreatedTask.rejected();
+  verify(listeners).size();
+  verify(listeners).iterator();
+  verify(helper).next();
+}
