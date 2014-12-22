@@ -1,0 +1,48 @@
+{
+  logger.info("Started testCleanupOnUpdate()");
+  System.setProperty(EVENTS_DISABLED,"true");
+  final EntityManager em=app.getEntityManager();
+  final int numEntities=10;
+  final int numUpdates=3;
+  final List<Entity> things=new ArrayList<Entity>(numEntities);
+  for (int i=0; i < numEntities; i++) {
+    final String thingName="thing" + i;
+    things.add(em.create("thing",new HashMap<String,Object>(){
+{
+        put("name",thingName);
+      }
+    }
+));
+    Thread.sleep(writeDelayMs);
+  }
+  em.refreshIndex();
+  CandidateResults crs=queryCollectionCp("things","thing","select *");
+  Assert.assertEquals("Expect no stale candidates yet",numEntities,crs.size());
+  System.setProperty(EVENTS_DISABLED,"false");
+  int count=0;
+  List<Entity> maxVersions=new ArrayList<>(numEntities);
+  for (  Entity thing : things) {
+    Entity toUpdate=null;
+    for (int j=0; j < numUpdates; j++) {
+      toUpdate=em.get(thing.getUuid());
+      toUpdate.setProperty("property" + j,RandomStringUtils.randomAlphanumeric(10));
+      em.update(toUpdate);
+      Thread.sleep(writeDelayMs);
+      count++;
+      if (count % 100 == 0) {
+        logger.info("Updated {} of {} times",count,numEntities * numUpdates);
+      }
+    }
+    maxVersions.add(toUpdate);
+  }
+  em.refreshIndex();
+  count=0;
+  do {
+    Thread.sleep(100);
+    crs=queryCollectionCp("things","thing","select *");
+    em.refreshIndex();
+  }
+ while (crs.size() > 0 && count++ < 15);
+  crs=queryCollectionCp("things","thing","select *");
+  Assert.assertEquals("Expect candidates without earlier stale entities",numEntities,crs.size());
+}
