@@ -4,7 +4,6 @@
   String password="password";
   String orgName=username;
   String email=username + "@usergrid.com";
-  UUID timeUuid=UUIDUtils.newTimeUUID();
   QueryParameters queryParameters=new QueryParameters();
   queryParameters.setKeyValue("organization",orgName);
   queryParameters.setKeyValue("username",username);
@@ -13,6 +12,7 @@
   queryParameters.setKeyValue("name",name);
   queryParameters.setKeyValue("password",password);
   Organization organization=clientSetup.getRestClient().management().orgs().post(queryParameters);
+  this.refreshIndex();
   assertNotNull(organization);
   assertEquals(orgName,organization.getName());
 }

@@ -6,11 +6,11 @@
   String email=username + "@usergrid.com";
   Organization orgPayload=new Organization(orgName,username,email,name,password,null);
   Organization orgCreatedResponse=clientSetup.getRestClient().management().orgs().post(orgPayload);
+  this.refreshIndex();
   assertNotNull(orgCreatedResponse);
   Organization orgTestDuplicatePayload=new Organization(orgName,username + "test",email + "test",name + "test",password,null);
-  Organization orgTestDuplicateResponse=null;
   try {
-    orgTestDuplicateResponse=clientSetup.getRestClient().management().orgs().post(orgTestDuplicatePayload);
+    Organization orgTestDuplicateResponse=clientSetup.getRestClient().management().orgs().post(orgTestDuplicatePayload);
     fail("Should not have been able to create duplicate organization");
   }
  catch (  UniformInterfaceException ex) {
