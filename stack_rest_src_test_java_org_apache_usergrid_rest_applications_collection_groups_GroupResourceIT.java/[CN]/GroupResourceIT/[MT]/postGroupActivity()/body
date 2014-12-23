@@ -1,2 +1,29 @@
 {
+  String groupName="testgroup";
+  String groupPath="testgroup";
+  Entity group=this.createGroup(groupName,groupPath);
+  String username="fred";
+  String email="fred@usergrid.com";
+  String password="password";
+  Entity user1=this.createUser(username,email,password);
+  username="barney";
+  email="fred@usergrid.com";
+  password="password";
+  Entity user2=this.createUser(username,email,password);
+  Entity addUser1Response=this.app().collection("users").entity(user1).connection().collection("groups").entity(group).post();
+  assertEquals(addUser1Response.get("name"),groupName);
+  Entity addUser2Response=this.app().collection("users").entity(user2).connection().collection("groups").entity(group).post();
+  assertEquals(addUser2Response.get("name"),groupName);
+  Entity payload=new Entity();
+  payload.put("displayName","fred");
+  payload.put("uuid",user1.get("uuid"));
+  payload.put("username","fred");
+  Entity activity=new Entity();
+  activity.put("actor",payload);
+  activity.put("verb","post");
+  activity.put("content","content");
+  Entity activityResponse=this.app().collection("users").post(activity);
+  assertEquals(activityResponse.get("content"),"content");
+  assertEquals(activityResponse,activity);
+  this.refreshIndex();
 }

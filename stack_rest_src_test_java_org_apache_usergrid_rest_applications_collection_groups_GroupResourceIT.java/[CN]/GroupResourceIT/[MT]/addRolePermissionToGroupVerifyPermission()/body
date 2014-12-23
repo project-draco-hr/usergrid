@@ -10,20 +10,16 @@
   String roleTitle="tester";
   Entity role=this.createRole(roleName,roleTitle);
   Entity payload=new Entity();
-  payload.put("permission","get,post:/cats");
+  payload.put("permission","get,post:/cats/*");
   Entity permission=this.app().collection("roles").uniqueID(roleName).connection("permissions").post(payload);
-  assertEquals(permission.get("data"),"get,post:/cats");
-  this.refreshIndex();
+  assertEquals(permission.get("data"),"get,post:/cats/*");
   Entity addRoleResponse=this.app().collection("groups").entity(group).connection().collection("roles").entity(role).post();
   assertEquals(addRoleResponse.get("name"),roleName);
-  this.refreshIndex();
   Entity addUserResponse=this.app().collection("users").entity(user).connection().collection("groups").entity(group).post();
   assertEquals(addUserResponse.get("name"),groupName);
-  this.refreshIndex();
-  ApiResponse responseDelDefault=this.app().collection("role").uniqueID("Default").delete();
-  this.refreshIndex();
-  ApiResponse responseDelGuest=this.app().collection("role").uniqueID("Guest").delete();
-  this.refreshIndex();
+  this.app().collection("role").uniqueID("Default").delete();
+  this.app().collection("role").uniqueID("Guest").delete();
+  this.getAppUserToken(username,password);
   String catName="fluffy";
   payload=new Entity();
   payload.put("name",catName);
@@ -39,7 +35,7 @@
   }
  catch (  UniformInterfaceException e) {
     JsonNode node=mapper.readTree(e.getResponse().getEntity(String.class));
-    assertEquals("improper credentials or something",node.get("error").textValue());
+    assertEquals("unauthorized",node.get("error").textValue());
   }
   try {
     this.app().collection("cats").uniqueID(catName).delete();
@@ -47,6 +43,6 @@
   }
  catch (  UniformInterfaceException e) {
     JsonNode node=mapper.readTree(e.getResponse().getEntity(String.class));
-    assertEquals("improper credentials or something",node.get("error").textValue());
+    assertEquals("unauthorized",node.get("error").textValue());
   }
 }

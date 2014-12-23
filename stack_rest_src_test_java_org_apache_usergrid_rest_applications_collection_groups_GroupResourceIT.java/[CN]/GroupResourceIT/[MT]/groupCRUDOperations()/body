@@ -2,14 +2,16 @@
   String groupName="testgroup";
   String groupPath="testgroup";
   Entity group=this.createGroup(groupName,groupPath);
+  Entity groupResponseGET=this.app().collection("groups").entity(group).get();
+  assertEquals(groupResponseGET.get("path"),groupPath);
   String newGroupPath="newtestgroup";
   group.put("path",newGroupPath);
   Entity groupResponse=this.app().collection("groups").entity(group).put(group);
   assertEquals(groupResponse.get("path"),newGroupPath);
   this.refreshIndex();
-  Entity groupResponseGET=this.app().collection("groups").entity(group).get();
+  groupResponseGET=this.app().collection("groups").entity(group).get();
   assertEquals(groupResponseGET.get("path"),newGroupPath);
-  ApiResponse response=this.app().collection("groups").entity(group).delete();
+  this.app().collection("groups").entity(group).delete();
   try {
     this.app().collection("groups").uniqueID(groupName).get();
     fail("Entity still exists");

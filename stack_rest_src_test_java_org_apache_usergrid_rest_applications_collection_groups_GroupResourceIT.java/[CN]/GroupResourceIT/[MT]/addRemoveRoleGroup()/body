@@ -5,27 +5,25 @@
   String roleName="tester";
   String roleTitle="tester";
   Entity role=this.createRole(roleName,roleTitle);
+  this.refreshIndex();
   Entity response=this.app().collection("role").entity(role).connection().collection("groups").entity(group).post();
-  assertEquals(response.get("name"),roleName);
+  assertEquals(response.get("name"),groupName);
   this.refreshIndex();
   Collection collection=this.app().collection("groups").entity(group).connection().collection("roles").get();
   Entity entity=collection.next();
   assertEquals(entity.get("name"),roleName);
-  ApiResponse responseDel=this.app().collection("role").entity(role).connection().collection("groups").entity(group).delete();
+  this.app().collection("groups").entity(group).connection().collection("roles").entity(role).delete();
   this.refreshIndex();
   collection=this.app().collection("groups").entity(group).connection().collection("roles").get();
   try {
     collection.next();
     fail("Entity still exists");
   }
- catch (  UniformInterfaceException e) {
-    JsonNode node=mapper.readTree(e.getResponse().getEntity(String.class));
-    assertEquals("service_resource_not_found",node.get("error").textValue());
+ catch (  NoSuchElementException e) {
   }
   role=this.app().collection("roles").uniqueID(roleName).get();
   assertEquals(role.get("name"),roleName);
-  ApiResponse responseDel2=this.app().collection("role").entity(role).delete();
-  this.refreshIndex();
+  this.app().collection("role").entity(role).delete();
   try {
     this.app().collection("role").entity(role).get();
     fail("Entity still exists");
