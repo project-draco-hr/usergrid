@@ -28,22 +28,18 @@
   Entity activity=new Entity();
   activity.put("actor",payload);
   activity.put("verb","post");
-  activity.put("content","content");
+  String content="content";
+  activity.put("content",content);
   Entity activityResponse=this.app().collection("groups").uniqueID(groupName).connection("activities").post(activity);
-  assertEquals(activityResponse.get("content"),"content");
+  assertEquals(activityResponse.get("content"),content);
   this.refreshIndex();
   this.app().collection("role").uniqueID("Default").delete();
-  payload=new Entity();
-  String permission="get,post,put,delete:/groups/${group}/**";
-  payload.put("permission",permission);
-  Entity permissionResponse=this.app().collection("groups").entity(group).connection("permissions").post(payload);
-  assertEquals(permissionResponse.get("data"),permission);
   this.getAppUserToken(user1Username,password);
   Collection user1ActivityResponse=this.app().collection("groups").entity(group).connection("activities").get();
   boolean found=false;
   while (user1ActivityResponse.hasNext()) {
     Entity tempActivity=user1ActivityResponse.next();
-    if (tempActivity.get("type").equals("activity") && tempActivity.get("content").equals("content")) {
+    if (tempActivity.get("type").equals("activity") && tempActivity.get("content").equals(content)) {
       found=true;
     }
   }
@@ -53,7 +49,7 @@
   found=false;
   while (user2ActivityResponse.hasNext()) {
     Entity tempActivity=user2ActivityResponse.next();
-    if (tempActivity.get("type").equals("activity") && tempActivity.get("content").equals("content")) {
+    if (tempActivity.get("type").equals("activity") && tempActivity.get("content").equals(content)) {
       found=true;
     }
   }

@@ -15,11 +15,8 @@
   this.app().collection("groups").entity(group).connection().collection("roles").entity(role).delete();
   this.refreshIndex();
   collection=this.app().collection("groups").entity(group).connection().collection("roles").get();
-  try {
-    collection.next();
+  if (collection.hasNext()) {
     fail("Entity still exists");
-  }
- catch (  NoSuchElementException e) {
   }
   role=this.app().collection("roles").uniqueID(roleName).get();
   assertEquals(role.get("name"),roleName);
