@@ -1,0 +1,35 @@
+{
+  long created=0;
+  int maxSize=20;
+  Map<String,Object> entityPayload=new HashMap<String,Object>();
+  List<Entity> entityPayloadVerifier=new LinkedList<>();
+  long createdTimestamp=0;
+  String collectionName="merp" + createdTimestamp;
+  for (created=0; created < maxSize; created++) {
+    if (created >= 15 && created < 20) {
+      entityPayload.put("verb","stop");
+    }
+ else {
+      entityPayload.put("verb","go");
+    }
+    entityPayload.put("name","value" + created);
+    Entity entity=new Entity(entityPayload);
+    entityPayloadVerifier.add(entity);
+    if (created == 15)     createdTimestamp=System.currentTimeMillis();
+    this.app().collection(collectionName).post(entity);
+  }
+  this.refreshIndex();
+  String query="select * where created >= " + createdTimestamp + " or verb = 'stop'";
+  QueryParameters queryParameters=new QueryParameters();
+  queryParameters.setQuery(query);
+  Collection queryCollection=this.app().collection(collectionName).get(queryParameters);
+  assertNotNull(queryCollection);
+  assertNull(queryCollection.getCursor());
+  assertEquals(5,queryCollection.getResponse().getEntities().size());
+  for (int i=15; i < maxSize; i++) {
+    Entity correctEntity=entityPayloadVerifier.get(i);
+    Entity returnedEntity=queryCollection.next();
+    assertEquals(correctEntity.get("name"),returnedEntity.get("name"));
+    assertEquals(correctEntity.get("verb"),returnedEntity.get("verb"));
+  }
+}

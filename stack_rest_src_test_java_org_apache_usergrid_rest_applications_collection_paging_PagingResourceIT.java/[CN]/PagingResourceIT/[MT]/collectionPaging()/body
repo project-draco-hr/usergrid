@@ -1,25 +1,21 @@
 {
-  CustomCollection things=context.application().customCollection("test1things");
+  String collectionName="testCollectionPaging" + UUIDUtils.newTimeUUID();
   int size=40;
-  List<Map<String,String>> created=new ArrayList<Map<String,String>>(size);
   for (int i=0; i < size; i++) {
-    Map<String,String> entity=hashMap("name",String.valueOf(i));
-    things.create(entity);
-    created.add(entity);
+    Map<String,Object> entityPayload=new HashMap<String,Object>();
+    entityPayload.put("name",String.valueOf(i));
+    Entity entity=new Entity(entityPayload);
+    this.app().collection(collectionName).post(entity);
   }
-  refreshIndex(context.getOrgName(),context.getAppName());
-  ApiResponse response=null;
-  Iterator<Map<String,String>> entityItr=created.iterator();
-  do {
-    response=parse(things.get());
-    for (    Entity e : response.getEntities()) {
-      assertTrue(entityItr.hasNext());
-      assertEquals(entityItr.next().get("name"),e.getProperties().get("name").asText());
-      logger.debug("Got item value {}",e.getProperties().get("name").asText());
+  this.refreshIndex();
+  Collection testCollections=this.app().collection(collectionName).get();
+  int index=0;
+  for (int i=0; i < 4; i++) {
+    while (testCollections.hasNext()) {
+      Entity returnedEntity=testCollections.next();
+      assertEquals(String.valueOf(index++),returnedEntity.get("name"));
     }
-    logger.debug("response cursor: " + response.getCursor());
-    things=things.withCursor(response.getCursor());
+    testCollections=this.app().collection(collectionName).getNextPage(testCollections,true);
   }
- while (response != null && response.getCursor() != null);
-  assertFalse("Should have paged them all",entityItr.hasNext());
+  assertNull(testCollections.getCursor());
 }
