@@ -1,20 +1,14 @@
 {
   UUID userId=userRepo.getByUserName("user1");
-  Entity activity=new Entity();
-  activity.put("email","rod@rodsimpson.com");
-  activity.put("verb","POST");
-  activity.put("content","Look! more new content");
-  Entity entity=usersResource.entity(userId.toString()).connection("activities").post(activity);
+  ActivityEntity activity=new ActivityEntity("rod@rodsimpson.com","POST","Look! more new content");
+  Entity entity=usersResource.entity(userId.toString()).activities().post(activity);
   refreshIndex();
   UUID firstActivityId=entity.getUuid();
-  activity=new Entity();
-  activity.put("email","rod@rodsimpson.com");
-  activity.put("verb","POST");
-  activity.put("content","activity 2");
-  Entity entity=usersResource.entity(userId.toString()).connection("activities").post(activity);
+  activity=new ActivityEntity("rod@rodsimpson.com","POST","activity 2");
+  entity=usersResource.entity(userId.toString()).activities().post(activity);
   refreshIndex();
   UUID secondActivityId=entity.getUuid();
-  Collection activities=usersResource.entity(userId.toString()).connection("activities").get();
+  Collection activities=usersResource.entity(userId.toString()).activities().get();
   entity=(Entity)activities.getResponse().getEntities().get(0);
   assertEquals(secondActivityId,entity.getUuid());
   entity=(Entity)activities.getResponse().getEntities().get(1);

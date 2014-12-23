@@ -1,14 +1,11 @@
 {
   UUID userId=userRepo.getByUserName("user1");
-  Entity activity=new Entity();
-  activity.put("email","rod@rodsimpson.com");
-  activity.put("verb","POST");
-  activity.put("content","Look! more new content");
-  Entity entity=usersResource.entity(userId.toString()).connection("activities").post(activity);
+  ActivityEntity activity=new ActivityEntity("rod@rodsimpson.com","POST","Look! more new content");
+  Entity entity=usersResource.entity(userId.toString()).activities().post(activity);
   UUID activityId=(UUID)entity.get("uuid");
   assertNotNull(activityId);
-  JsonNode actor=getActor(entity);
-  UUID actorId=UUIDUtils.tryGetUUID(actor.get("uuid").textValue());
+  Map<String,Object> actor=(Map<String,Object>)entity.get("actor");
+  UUID actorId=UUIDUtils.tryGetUUID(actor.get("uuid").toString());
   assertEquals(userId,actorId);
-  assertEquals("user1@apigee.com",actor.get("email").asText());
+  assertEquals("user1@apigee.com",actor.get("email").toString());
 }

@@ -2,10 +2,10 @@
   UUID id=UUIDUtils.newTimeUUID();
   String username="username" + id;
   String name="name" + id;
-  Entity entity=new Entity().chainPut("username",username).chainPut("name",name).chainPut("email",id + "@usergrid.org").chainPut("password","password");
-  entity=usersResource.post(entity);
+  User user=new User(username,name,id + "@usergrid.org","password");
+  Entity entity=usersResource.post(user);
   UUID createdId=entity.getUuid();
   Collection results=usersResource.get(new QueryParameters().setQuery(String.format("name = '%s'",name)));
-  Entity user=(Entity)results.getResponse().getEntities().get(0);
-  assertEquals(createdId,user.getUuid());
+  entity=new User(results.getResponse().getEntities().get(0));
+  assertEquals(createdId,entity.getUuid());
 }
