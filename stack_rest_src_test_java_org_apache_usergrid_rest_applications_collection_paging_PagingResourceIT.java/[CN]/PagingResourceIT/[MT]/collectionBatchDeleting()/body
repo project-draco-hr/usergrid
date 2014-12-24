@@ -1,21 +1,12 @@
 {
-  String collectionName="testCollectionBatchDeleting" + UUIDUtils.newTimeUUID();
-  int size=40;
-  for (int i=0; i < size; i++) {
-    Map<String,Object> entityPayload=new HashMap<String,Object>();
-    entityPayload.put("name",String.valueOf(i));
-    Entity entity=new Entity(entityPayload);
-    this.app().collection(collectionName).post(entity);
-  }
-  this.refreshIndex();
+  String collectionName="testCollectionBatchDeleting";
+  int numOfEntities=40;
+  createEntities(collectionName,numOfEntities);
   int deletePageSize=10;
+  int totalNumOfPages=numOfEntities / deletePageSize;
   QueryParameters queryParameters=new QueryParameters();
   queryParameters.setLimit(deletePageSize);
-  for (int i=0; i < size / deletePageSize; i++) {
-    ApiResponse response=this.app().collection(collectionName).delete(queryParameters);
-    this.refreshIndex();
-    assertEquals("Only 10 entities should have been deleted",10,response.getEntityCount());
-  }
+  deleteByPage(deletePageSize,totalNumOfPages,collectionName,queryParameters);
   Collection getCollection=this.app().collection(collectionName).get();
   assertEquals("All entities should have been removed",0,getCollection.getResponse().getEntityCount());
   ApiResponse response=this.app().collection(collectionName).delete(queryParameters);

@@ -1,21 +1,7 @@
 {
-  String collectionName="testCollectionPaging" + UUIDUtils.newTimeUUID();
+  String collectionName="testCollectionPaging";
   int size=40;
-  for (int i=0; i < size; i++) {
-    Map<String,Object> entityPayload=new HashMap<String,Object>();
-    entityPayload.put("name",String.valueOf(i));
-    Entity entity=new Entity(entityPayload);
-    this.app().collection(collectionName).post(entity);
-  }
-  this.refreshIndex();
-  Collection testCollections=this.app().collection(collectionName).get();
-  int index=0;
-  for (int i=0; i < 4; i++) {
-    while (testCollections.hasNext()) {
-      Entity returnedEntity=testCollections.next();
-      assertEquals(String.valueOf(index++),returnedEntity.get("name"));
-    }
-    testCollections=this.app().collection(collectionName).getNextPage(testCollections,true);
-  }
-  assertNull(testCollections.getCursor());
+  int numOfPages=4;
+  createEntities(collectionName,size);
+  pageAndVerifyEntities(collectionName,null,numOfPages);
 }

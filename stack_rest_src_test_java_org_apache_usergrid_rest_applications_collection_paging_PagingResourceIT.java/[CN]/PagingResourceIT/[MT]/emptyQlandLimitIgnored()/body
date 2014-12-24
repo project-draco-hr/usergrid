@@ -1,13 +1,8 @@
 {
-  String collectionName="testEmptyQAndLimitIgnored" + UUIDUtils.newTimeUUID();
-  Map<String,Object> entityPayload=new HashMap<String,Object>();
-  entityPayload.put("name","thing1");
-  Entity entity=new Entity(entityPayload);
-  this.app().collection(collectionName).post(entity);
-  this.refreshIndex();
+  String collectionName="testEmptyQAndLimitIgnored";
+  List<Entity> entities=createEntities(collectionName,1);
   QueryParameters parameters=new QueryParameters();
   parameters.setKeyValue("ql","");
   parameters.setKeyValue("limit","");
-  Entity testEntity=this.app().collection(collectionName).uniqueID((String)entity.get("name")).get(parameters,true);
-  assertEquals(entity.get("name"),testEntity.get("name"));
+  pageAndVerifyEntities(collectionName,parameters,1);
 }

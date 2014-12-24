@@ -1,8 +1,9 @@
 {
   long created=0;
   int maxSize=100;
+  int totalPagesExpected=10;
   Map<String,Object> entityPayload=new HashMap<String,Object>();
-  String collectionName="merp" + UUIDUtils.newTimeUUID();
+  String collectionName="testPagingEntities" + UUIDUtils.newTimeUUID();
   for (created=0; created < maxSize; created++) {
     entityPayload.put("name","value" + created);
     Entity entity=new Entity(entityPayload);
@@ -12,11 +13,11 @@
   Collection sandboxCollection=this.app().collection(collectionName).get();
   assertNotNull(sandboxCollection);
   created=0;
-  for (int i=0; i < 10; i++) {
+  for (int i=0; i < totalPagesExpected; i++) {
     while (sandboxCollection.hasNext()) {
       Entity returnedEntity=sandboxCollection.next();
       assertEquals("value" + created++,returnedEntity.get("name"));
     }
-    sandboxCollection=this.app().collection(collectionName).getNextPage(sandboxCollection,true);
+    sandboxCollection=this.app().collection(collectionName).getNextPage(sandboxCollection,null,true);
   }
 }
