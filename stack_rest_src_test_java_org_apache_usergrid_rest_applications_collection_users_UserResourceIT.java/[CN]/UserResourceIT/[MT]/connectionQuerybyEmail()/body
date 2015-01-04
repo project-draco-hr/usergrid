@@ -29,13 +29,13 @@
   assertEquals(userId.toString(),((Entity)userRoles.iterator().next()).getUuid().toString());
   userRoles=this.app().collection("roles").entity(roleId1).connection("users").get(new QueryParameters().setQuery("select%20*%20where%20username%20=%20'" + email + "'"));
   assertEquals(userId.toString(),((Entity)userRoles.iterator().next()).getUuid().toString());
-  Entity roleEntity=this.app().collection("roles").entity(roleId1).get();
+  this.app().collection("roles").entity(roleId1).delete();
   try {
     userRoles=this.app().collection("roles").entity(roleId1).connection("users").get(new QueryParameters().setQuery("select%20*%20where%20username%20=%20'" + email + "'"));
     assertNull(userRoles);
   }
  catch (  UniformInterfaceException e) {
-    assertEquals(Status.NOT_FOUND,e.getResponse().getStatus());
+    assertEquals(Status.NOT_FOUND.getStatusCode(),e.getResponse().getStatus());
   }
   userRoles=this.app().collection("roles").entity(roleId2).connection("users").get(new QueryParameters().setQuery("select%20*%20where%20username%20=%20'" + email + "'"));
   assertEquals(userId.toString(),userRoles.getResponse().getEntities().get(0).getUuid().toString());

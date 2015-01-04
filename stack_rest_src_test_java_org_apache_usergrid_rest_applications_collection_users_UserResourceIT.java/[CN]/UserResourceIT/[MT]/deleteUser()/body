@@ -7,7 +7,9 @@
   UUID createdId=entity.getUuid();
   refreshIndex();
   Entity newEntity=usersResource.entity(createdId.toString()).get();
-  Collection results=usersResource.get(new QueryParameters().setQuery(String.format("username = '%s'",name)));
+  userResource.entity(newEntity).delete();
+  refreshIndex();
+  Collection results=usersResource.get(new QueryParameters().setQuery(String.format("username = '%s'",username)));
   assertEquals(0,results.getResponse().getEntities().size());
   entity=new User(usersResource.post(entity));
   createdId=entity.getUuid();

@@ -1,9 +1,10 @@
 {
+  usersResource.post(new User("edanuff","edanuff","edanuff@email.com","sesame"));
   String newPassword="foo";
-  Entity data=new Entity();
-  data.put("newpassword",newPassword);
-  Entity node=usersResource.entity("edanuff").connection("password").post(data);
+  refreshIndex();
+  Entity node=usersResource.entity("edanuff").connection("password").post(new ChangePasswordEntity(newPassword));
   assertNotNull(node);
-  Token response=this.app().token().post(new Token("ed@anuff.com",newPassword));
+  refreshIndex();
+  Token response=this.app().token().post(new Token("edanuff",newPassword));
   assertNotNull(response);
 }

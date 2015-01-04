@@ -1,9 +1,8 @@
 {
-  UUID id=UUIDUtils.newTimeUUID();
-  String roleName="rolename" + id;
-  String username="username" + id;
-  String name="name" + id;
-  String email="email" + id + "@usergrid.org";
+  String roleName="rolename";
+  String username="username";
+  String name="name";
+  String email="email" + "@usergrid.org";
   User user=new User(username,name,email,"password");
   user=new User(usersResource.post(user));
   UUID createdId=user.getUuid();
@@ -20,6 +19,11 @@
   assertNotNull(role.get("name"));
   assertEquals(role.get("name").toString(),roleName);
   ApiResponse response=usersResource.entity(createdId).collection("roles").entity(roleName).delete();
-  role=usersResource.entity(createdId).collection("roles").entity(roleName).get();
-  assertNull(role);
+  try {
+    role=usersResource.entity(createdId).collection("roles").entity(roleName).get();
+    assertNull(role);
+  }
+ catch (  UniformInterfaceException e) {
+    assertEquals(e.getResponse().getStatus(),Status.NOT_FOUND.getStatusCode());
+  }
 }
