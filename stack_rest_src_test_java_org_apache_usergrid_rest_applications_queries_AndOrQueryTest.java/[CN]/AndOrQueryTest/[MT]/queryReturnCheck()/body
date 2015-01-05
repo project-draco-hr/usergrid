@@ -1,10 +1,15 @@
 {
-  CustomCollection madeupStuff=context.customCollection("imagination");
-  Map character=hashMap("WhoHelpedYou","Ruff");
-  int numOfEntities=1000;
-  JsonNode[] correctValues=madeupStuff.createEntitiesWithOrdinal(character,numOfEntities);
-  this.refreshIndex(context.getAppUuid());
-  String inquisitiveQuery="select * where Ordinal >= 0 and Ordinal <= 2000 or WhoHelpedYou = 'Ruff'";
-  int totalEntitiesContained=madeupStuff.verificationOfQueryResults(correctValues,true,inquisitiveQuery);
+  int numOfEntities=20;
+  String collectionName="imagination" + RandomStringUtils.randomAlphabetic(5);
+  Entity[] correctValues=new Entity[numOfEntities];
+  Entity props=new Entity();
+  props.put("WhoHelpedYou","Ruff");
+  for (int i=0; i < numOfEntities; i++) {
+    props.put("ordinal",i);
+    correctValues[i]=this.app().collection(collectionName).post(props);
+  }
+  this.refreshIndex();
+  String inquisitiveQuery="select * where ordinal >= 0 and ordinal <= 2000 or WhoHelpedYou = 'Ruff'";
+  int totalEntitiesContained=verificationOfQueryResults(collectionName,correctValues,true,inquisitiveQuery);
   assertEquals(numOfEntities,totalEntitiesContained);
 }

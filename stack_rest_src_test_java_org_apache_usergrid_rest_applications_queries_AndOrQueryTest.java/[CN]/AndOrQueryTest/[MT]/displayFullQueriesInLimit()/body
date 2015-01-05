@@ -1,25 +1,30 @@
 {
-  CustomCollection activities=context.customCollection("activities");
-  Map actor=hashMap("displayName","Erin");
-  Map props=new HashMap();
+  int numValuesTested=20;
+  Entity actor=new Entity();
+  actor.put("displayName","Erin");
+  Entity props=new Entity();
   props.put("actor",actor);
+  props.put("verb","go");
   props.put("content","bragh");
-  for (int i=0; i < 20; i++) {
-    if (i < 10) {
+  for (int i=0; i < numValuesTested; i++) {
+    if (i < numValuesTested / 2) {
       props.put("verb","go");
     }
  else {
       props.put("verb","stop");
     }
     props.put("ordinal",i);
-    JsonNode activity=activities.create(props);
+    this.app().collection("activities").post(props);
   }
-  this.refreshIndex(context.getAppUuid());
+  this.refreshIndex();
   String query="select * where not verb = 'go'";
-  JsonNode incorrectNode=activities.query(query,"limit",Integer.toString(10));
-  assertEquals(10,incorrectNode.get("entities").size());
-  for (int i=0; i < 10; i++) {
-    assertEquals(19 - i,incorrectNode.get("entities").get(i).get("ordinal").intValue());
-    assertEquals("stop",incorrectNode.get("entities").get(i).get("verb").textValue());
+  QueryParameters params=new QueryParameters();
+  params.setQuery(query);
+  Collection activities=this.app().collection("activities").get(params);
+  assertEquals(numValuesTested / 2,activities.response.getEntityCount());
+  List entities=activities.response.getEntities();
+  for (int i=0; i < numValuesTested / 2; i++) {
+    assertEquals(numValuesTested - i,Integer.parseInt(((LinkedHashMap<String,Object>)entities.get(i)).get("ordinal").toString()));
+    assertEquals("stop",((LinkedHashMap<String,Object>)entities.get(i)).get("verb").toString());
   }
 }
