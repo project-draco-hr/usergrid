@@ -1,20 +1,15 @@
 {
-  UserRepo.INSTANCE.load(resource(),access_token);
-  refreshIndex("test-organization","test-app");
-  UUID userId1=UserRepo.INSTANCE.getByUserName("user1");
-  UUID userId2=UserRepo.INSTANCE.getByUserName("user2");
-  UUID userId3=UserRepo.INSTANCE.getByUserName("user3");
-  Query query=client.queryUsers();
-  ApiResponse response=query.getResponse();
-  assertNull("Error was: " + response.getErrorDescription(),response.getError());
-  int nonOrderedSize=response.getEntities().size();
-  query=client.queryUsers("order by username");
-  response=query.getResponse();
-  int orderedSize=response.getEntities().size();
+  UUID userId1=userRepo.getByUserName("user1");
+  UUID userId2=userRepo.getByUserName("user2");
+  UUID userId3=userRepo.getByUserName("user3");
+  Collection collection=usersResource.get();
+  int nonOrderedSize=collection.getResponse().getEntities().size();
+  collection=usersResource.get(new QueryParameters().setQuery("order by username"));
+  int orderedSize=collection.getResponse().getEntities().size();
   assertEquals("Sizes match",nonOrderedSize,orderedSize);
-  int firstEntityIndex=getEntityIndex(userId1,response);
-  int secondEntityIndex=getEntityIndex(userId2,response);
-  int thirdEntityIndex=getEntityIndex(userId3,response);
+  int firstEntityIndex=getEntityIndex(userId1,collection);
+  int secondEntityIndex=getEntityIndex(userId2,collection);
+  int thirdEntityIndex=getEntityIndex(userId3,collection);
   assertTrue("Ordered correctly",firstEntityIndex < secondEntityIndex);
   assertTrue("Ordered correctly",secondEntityIndex < thirdEntityIndex);
 }

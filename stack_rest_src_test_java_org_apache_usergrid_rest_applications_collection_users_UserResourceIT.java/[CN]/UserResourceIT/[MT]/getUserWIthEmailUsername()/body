@@ -3,16 +3,16 @@
   String username="username-email" + "@usergrid.org";
   String name="name" + id;
   String email="email" + id + "@usergrid.org";
-  ApiResponse response=client.createUser(username,name,email,"password");
-  assertNull("Error was: " + response.getErrorDescription(),response.getError());
-  refreshIndex("test-organization","test-app");
-  Entity userEntity=response.getEntities().get(0);
-  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/users/" + username).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-  assertEquals(username,node.get("entities").get(0).get("username").asText());
-  assertEquals(name,node.get("entities").get(0).get("name").asText());
-  assertEquals(email,node.get("entities").get(0).get("email").asText());
-  node=mapper.readTree(resource().path("/test-organization/test-app/users/" + email).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-  assertEquals(username,node.get("entities").get(0).get("username").asText());
-  assertEquals(name,node.get("entities").get(0).get("name").asText());
-  assertEquals(email,node.get("entities").get(0).get("email").asText());
+  User map=new User(username,name,email,null);
+  map.put("email",email);
+  Entity userEntity=usersResource.post(new Entity(map));
+  refreshIndex();
+  Entity testUser=usersResource.entity(username).get();
+  assertEquals(username,testUser.get("username").toString());
+  assertEquals(name,testUser.get("name").toString());
+  assertEquals(email,testUser.get("email").toString());
+  testUser=usersResource.entity(email).get();
+  assertEquals(username,testUser.get("username").toString());
+  assertEquals(name,testUser.get("name").toString());
+  assertEquals(email,testUser.get("email").toString());
 }

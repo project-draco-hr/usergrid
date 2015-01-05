@@ -1,8 +1,10 @@
 {
+  Entity entity=usersResource.post(new User("edanuff","edanuff","edanuff@email.com","sesame"));
+  this.app().token().post(new Token("edanuff","sesame"));
+  refreshIndex();
   boolean fail=false;
   try {
-    ApiResponse changeResponse=client.changePassword("edanuff","foo","bar");
-    fail=changeResponse.getError() != null;
+    Entity changeResponse=usersResource.entity("edanuff").collection("password").post(new ChangePasswordEntity("foo","bar"));
   }
  catch (  Exception e) {
     fail=true;

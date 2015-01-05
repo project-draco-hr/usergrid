@@ -1,0 +1,23 @@
+{
+  String groupName="testgroup";
+  String groupPath="testgroup";
+  Entity group=this.createGroup(groupName,groupPath);
+  Entity groupResponseGET=this.app().collection("groups").entity(group).get();
+  assertEquals(groupResponseGET.get("path"),groupPath);
+  String newGroupPath="newtestgroup";
+  group.put("path",newGroupPath);
+  Entity groupResponse=this.app().collection("groups").entity(group).put(group);
+  assertEquals(groupResponse.get("path"),newGroupPath);
+  this.refreshIndex();
+  groupResponseGET=this.app().collection("groups").entity(group).get();
+  assertEquals(groupResponseGET.get("path"),newGroupPath);
+  this.app().collection("groups").entity(group).delete();
+  try {
+    this.app().collection("groups").uniqueID(groupName).get();
+    fail("Entity still exists");
+  }
+ catch (  UniformInterfaceException e) {
+    JsonNode node=mapper.readTree(e.getResponse().getEntity(String.class));
+    assertEquals("service_resource_not_found",node.get("error").textValue());
+  }
+}

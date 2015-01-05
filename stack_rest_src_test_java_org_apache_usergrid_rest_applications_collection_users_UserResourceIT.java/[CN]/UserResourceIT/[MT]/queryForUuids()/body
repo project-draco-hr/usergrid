@@ -1,15 +1,13 @@
 {
 {
-    final JsonNode response=mapper.readTree(resource().path("/test-organization/test-app/users/").queryParam("ql","select *").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-    assertNotNull("Entities must exist",response.get("entities"));
-    assertTrue("Must be some entities",response.get("entities").size() > 0);
-    assertEquals("Must be users","user",response.get("entities").get(0).get("type").asText());
-    assertNull("List must not exist",response.get("list"));
+    final Collection response=usersResource.get(new QueryParameters().setQuery("select *"));
+    assertNotNull("Entities must exist",response.getResponse().getEntities());
+    assertTrue("Must be some entities",response.getResponse().getEntities().size() > 0);
+    assertEquals("Must be users","user",response.getResponse().getEntities().get(0).get("type").toString());
   }
 {
-    final JsonNode response=mapper.readTree(resource().path("/test-organization/test-app/users/").queryParam("ql","select uuid").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-    assertNotNull("List must exist",response.get("list"));
-    assertTrue("Must be some list items",response.get("list").size() > 0);
-    assertNull("Entities must not exist",response.get("entries"));
+    final Collection response=usersResource.get(new QueryParameters().setQuery("select uuid"));
+    assertNotNull("List must exist",response.getResponse().list());
+    assertTrue("Must be some list items",response.getResponse().list().size() > 0);
   }
 }

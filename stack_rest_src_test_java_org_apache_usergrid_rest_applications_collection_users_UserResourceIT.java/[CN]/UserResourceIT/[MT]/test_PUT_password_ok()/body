@@ -1,8 +1,10 @@
 {
-  ApiResponse response=client.changePassword("edanuff","sesame","sesame1");
-  assertNull(response.getError());
-  response=client.authorizeAppUser("ed@anuff.com","sesame1");
-  assertNull(response.getError());
-  response=client.changePassword("edanuff","sesame1","sesame");
-  assertNull(response.getError());
+  Entity entity=usersResource.post(new User("edanuff","edanuff","edanuff@email.com","sesame"));
+  refreshIndex();
+  usersResource.entity(entity).collection("password").post(new ChangePasswordEntity("sesame","sesame1"));
+  refreshIndex();
+  this.app().token().post(new Token("edanuff","sesame1"));
+  Entity changeResponse=usersResource.entity("edanuff").collection("password").post(new ChangePasswordEntity("sesame1","sesame"));
+  refreshIndex();
+  assertNotNull(changeResponse);
 }
