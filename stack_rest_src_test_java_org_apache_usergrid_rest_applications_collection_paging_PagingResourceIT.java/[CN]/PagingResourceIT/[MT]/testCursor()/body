@@ -1,25 +1,11 @@
 {
   int widgetsSize=11;
   Map<String,Object> entityPayload=new HashMap<String,Object>();
-  String collectionName="testCursor" + UUIDUtils.newTimeUUID();
-  for (int i=0; i < widgetsSize; i++) {
-    entityPayload.put("name","value" + i);
-    Entity entity=new Entity(entityPayload);
-    this.app().collection(collectionName).post(entity);
-  }
-  this.refreshIndex();
-  Collection testCollection=this.app().collection(collectionName).get();
-  assertNotNull(testCollection.getCursor());
-  assertEquals(10,testCollection.getResponse().getEntityCount());
-  String trinketCollectionName="trinkets" + UUIDUtils.newTimeUUID();
+  String collectionName="testCursor";
+  createEntities(collectionName,widgetsSize);
+  pageAndVerifyEntities(collectionName,null,2);
+  String trinketCollectionName="trinkets";
   int trinketsSize=5;
-  for (int i=0; i < trinketsSize; i++) {
-    entityPayload.put("name","value" + i);
-    Entity entity=new Entity(entityPayload);
-    this.app().collection(trinketCollectionName).post(entity);
-  }
-  this.refreshIndex();
-  testCollection=this.app().collection(trinketCollectionName).get();
-  assertNull(testCollection.getCursor());
-  assertEquals(5,testCollection.getResponse().getEntityCount());
+  createEntities(trinketCollectionName,trinketsSize);
+  pageAndVerifyEntities(trinketCollectionName,null,1);
 }

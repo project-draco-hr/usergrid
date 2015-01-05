@@ -6,7 +6,9 @@
       Entity returnedEntity=testCollections.next();
       assertEquals(String.valueOf(index++),returnedEntity.get("name"));
     }
-    testCollections=this.app().collection(collectionName).getNextPage(testCollections,queryParameters,true);
+    if (testCollections.getCursor() != null) {
+      testCollections=this.app().collection(collectionName).getNextPage(testCollections,queryParameters,true);
+    }
   }
   assertNull(testCollections.getCursor());
   return testCollections;
