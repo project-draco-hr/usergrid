@@ -1,15 +1,13 @@
 {
-  UserRepo.INSTANCE.load(resource(),access_token);
-  refreshIndex("test-organization","test-app");
-  Status status=null;
-  String ql="uuid = " + UserRepo.INSTANCE.getByUserName("user1");
-  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/users").queryParam("ql",ql).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-  Map<String,String> payload=hashMap("name","Austin").map("state","TX");
-  node=mapper.readTree(resource().path("/test-organization/test-app/curts").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
-  UUID userId=UUID.fromString(node.get("entities").get(0).get("uuid").asText());
+  int status=0;
+  String ql="uuid = " + userRepo.getByUserName("user1");
+  usersResource.get(new QueryParameters().setQuery(ql));
+  Entity payload=new Entity().chainPut("name","Austin").chainPut("state","TX");
+  Entity responseEntity=this.app().collection("curts").post(payload);
+  UUID userId=UUID.fromString(responseEntity.getUuid().toString());
   assertNotNull(userId);
-  refreshIndex("test-organization","test-app");
+  refreshIndex();
   ql="uuid = " + userId;
-  node=mapper.readTree(resource().path("/test-organization/test-app/curts").queryParam("ql",ql).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-  assertNotNull(node.get("entities").get(0).get("uuid"));
+  Collection response=this.app().collection("curts").get(new QueryParameters().setQuery(ql));
+  assertEquals(response.getResponse().getEntities().get(0).get("uuid").toString(),userId.toString());
 }
