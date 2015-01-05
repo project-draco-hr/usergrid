@@ -1,0 +1,14 @@
+{
+  final MultiProcessLocalLock lock=new MultiProcessLocalLock(LOCK_NAME);
+  final MultiProcessBarrier barrier=new MultiProcessBarrier(START_BARRIER_NAME);
+  if (lock.tryLock()) {
+    initSystem();
+    barrier.proceed();
+  }
+  barrier.await(ONE_MINUTE);
+  if (lock.hasLock()) {
+    deleteFile(LOCK_NAME);
+    deleteFile(START_BARRIER_NAME);
+    lock.releaseLock();
+  }
+}
