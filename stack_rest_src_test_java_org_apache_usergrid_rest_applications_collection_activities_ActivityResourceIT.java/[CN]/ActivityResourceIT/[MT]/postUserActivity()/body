@@ -1,20 +1,11 @@
 {
-  User current=client.getLoggedInUser();
-  String activityTitle="testTitle" + UUIDUtils.newTimeUUID();
-  String activityDesc="testActivity" + UUIDUtils.newTimeUUID();
-  client.postUserActivity("POST",activityTitle,activityDesc,"testCategory",current,null,null,null,null);
-  refreshIndex("test-organization","test-app");
-  Query results=client.queryActivityFeedForUser(USER);
+  usersResource.entity(current).activities().post(activity);
+  refreshIndex();
+  Collection results=usersResource.entity(current).activities().get();
   ApiResponse response=results.getResponse();
-  Entity result=response.getEntities().get(0);
-  assertEquals("POST",result.getProperties().get("verb").asText());
-  assertEquals(activityTitle,result.getProperties().get("title").asText());
-  assertEquals(activityDesc,result.getProperties().get("content").asText());
-  assertEquals(current.getUuid().toString(),result.getProperties().get("actor").get("uuid").asText());
-  results=client.queryActivity();
-  response=results.getResponse();
-  result=response.getEntities().get(0);
-  assertEquals("POST",result.getProperties().get("verb").asText());
-  assertEquals(activityTitle,result.getProperties().get("title").asText());
-  assertEquals(activityDesc,result.getProperties().get("content").asText());
+  ActivityEntity result=new ActivityEntity(response.getEntities().get(0));
+  assertEquals("POST",result.get("verb").toString());
+  assertEquals(activityTitle,result.get("title").toString());
+  assertEquals(activityDesc,result.get("content").toString());
+  assertEquals(current.getUuid().toString(),result.getActor().get("uuid").toString());
 }

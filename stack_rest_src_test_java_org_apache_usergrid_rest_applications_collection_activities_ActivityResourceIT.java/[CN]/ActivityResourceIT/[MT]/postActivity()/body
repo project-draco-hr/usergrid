@@ -1,14 +1,11 @@
 {
-  User current=client.getLoggedInUser();
-  String activityTitle="testTitle" + UUIDUtils.newTimeUUID();
-  String activityDesc="testActivity" + UUIDUtils.newTimeUUID();
-  client.postActivity("POST",activityTitle,activityDesc,"testCategory",current,null,null,null,null);
-  refreshIndex("test-organization","test-app");
-  Query results=client.queryActivity();
+  this.app().collection("activities").post(activity);
+  refreshIndex();
+  Collection results=this.app().collection("activities").get();
   ApiResponse response=results.getResponse();
-  Entity result=response.getEntities().get(0);
-  assertEquals("POST",result.getProperties().get("verb").asText());
-  assertEquals(activityTitle,result.getProperties().get("title").asText());
-  assertEquals(activityDesc,result.getProperties().get("content").asText());
-  assertEquals(current.getUuid().toString(),result.getProperties().get("actor").get("uuid").asText());
+  ActivityEntity result=new ActivityEntity(response.getEntities().get(0));
+  assertEquals("POST",result.get("verb").toString());
+  assertEquals(activityTitle,result.get("title").toString());
+  assertEquals(activityDesc,result.get("content").toString());
+  assertEquals(current.getUuid().toString(),result.getActor().get("uuid").toString());
 }
