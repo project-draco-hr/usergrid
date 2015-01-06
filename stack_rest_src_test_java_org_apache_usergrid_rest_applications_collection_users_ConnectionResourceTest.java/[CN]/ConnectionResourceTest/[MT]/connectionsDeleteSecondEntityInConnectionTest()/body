@@ -1,11 +1,11 @@
 {
-  CustomCollection things=context.customCollection("things");
-  UUID thing1Id=getEntityId(things.create(hashMap("name","thing1")),0);
-  UUID thing2Id=getEntityId(things.create(hashMap("name","thing2")),0);
-  refreshIndex(context.getOrgName(),context.getAppName());
+  CollectionEndpoint things=this.app().collection("things");
+  UUID thing1Id=things.post(new Entity().chainPut("name","thing1")).getUuid();
+  UUID thing2Id=things.post(new Entity().chainPut("name","thing2")).getUuid();
+  refreshIndex();
   things.entity(thing1Id).connection("likes").entity(thing2Id).post();
-  JsonNode response=things.entity("thing2").delete();
-  refreshIndex(context.getOrgName(),context.getAppName());
-  JsonNode node=things.entity("thing2").get();
+  ApiResponse response=things.entity("thing2").delete();
+  refreshIndex();
+  Entity node=things.entity("thing2").get();
   assertNull(node);
 }

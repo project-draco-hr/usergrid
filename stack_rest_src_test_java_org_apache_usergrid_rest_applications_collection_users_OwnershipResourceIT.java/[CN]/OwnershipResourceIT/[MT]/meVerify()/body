@@ -1,19 +1,14 @@
 {
-  context.clearUser();
-  String email="testuser1@usergrid.org";
-  TestUser user1=new TestAppUser(email,"password",email).create(context);
-  refreshIndex(context.getOrgName(),context.getAppName());
-  user1.login(context).makeActive(context);
-  refreshIndex(context.getOrgName(),context.getAppName());
-  String token=user1.getToken();
-  JsonNode userNode=context.application().users().user("me").get();
+  this.app().token().clearToken();
+  Token token=this.app().token().post(new Token(user1.getUsername(),"password"));
+  Entity userNode=usersResource.entity("me").get();
   assertNotNull(userNode);
-  String uuid=userNode.get("entities").get(0).get("uuid").textValue();
+  String uuid=userNode.getUuid().toString();
   assertNotNull(uuid);
-  setup.getMgmtSvc().revokeAccessTokenForAppUser(token);
-  refreshIndex(context.getOrgName(),context.getAppName());
+  usersResource.entity(user1).connection("revoketokens").post(new Entity().chainPut("token",token.getAccessToken()));
+  refreshIndex();
   try {
-    context.application().users().user("me").get();
+    userNode=usersResource.entity("me").get();
     fail();
   }
  catch (  Exception ex) {

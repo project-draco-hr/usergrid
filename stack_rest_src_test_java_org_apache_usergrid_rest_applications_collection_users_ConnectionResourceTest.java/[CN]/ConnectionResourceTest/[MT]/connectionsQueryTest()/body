@@ -1,22 +1,22 @@
 {
-  CustomCollection activities=context.customCollection("peeps");
-  Map stuff=hashMap("type","chicken");
-  activities.create(stuff);
-  Map<String,Object> payload=new LinkedHashMap<String,Object>();
+  CollectionEndpoint activities=this.app().collection("peeps");
+  Entity stuff=new Entity().chainPut("type","chicken");
+  activities.post(stuff);
+  Entity payload=new Entity();
   payload.put("username","todd");
-  Map<String,Object> objectOfDesire=new LinkedHashMap<String,Object>();
+  Entity objectOfDesire=new Entity();
   objectOfDesire.put("codingmunchies","doritoes");
-  resource().path("/test-organization/test-app/users").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload);
+  Entity entity=this.app().collection("users").post(payload);
   payload.put("username","scott");
-  resource().path("/test-organization/test-app/users").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload);
-  refreshIndex("test-organization","test-app");
-  ClientResponse toddWant=resource().path("/test-organization/test-app/users/todd/likes/peeps").queryParam("access_token",access_token).accept(MediaType.TEXT_HTML).type(MediaType.APPLICATION_JSON_TYPE).post(ClientResponse.class,objectOfDesire);
-  assertEquals(200,toddWant.getStatus());
-  refreshIndex("test-organization","test-app");
-  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/peeps").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-  String uuid=node.get("entities").get(0).get("uuid").textValue();
+  entity=this.app().collection("users").post(payload);
+  refreshIndex();
+  entity=this.app().collection("users").entity("todd").connection("likes").entity("peeps").post();
+  assertNotNull(entity);
+  refreshIndex();
+  Collection collection=this.app().collection("peeps").get();
+  String uuid=collection.next().get("uuid").toString();
   try {
-    node=mapper.readTree(resource().path("/test-organization/test-app/users/scott/likes/" + uuid).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
+    entity=this.app().collection("users").entity("scott").connection("likes").entity(uuid).get();
     assert(false);
   }
  catch (  UniformInterfaceException uie) {
