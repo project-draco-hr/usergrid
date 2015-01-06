@@ -1,16 +1,14 @@
 {
   CollectionEndpoint activities=this.app().collection("peeps");
-  Entity stuff=new Entity().chainPut("type","chicken");
+  Entity stuff=new Entity().chainPut("name","chicken").chainPut("type","chicken");
   activities.post(stuff);
-  Entity payload=new Entity();
+  User payload=new User("todd","todd","todd@apigee.com","password");
   payload.put("username","todd");
-  Entity objectOfDesire=new Entity();
-  objectOfDesire.put("codingmunchies","doritoes");
-  Entity entity=this.app().collection("users").post(payload);
-  payload.put("username","scott");
-  entity=this.app().collection("users").post(payload);
+  this.app().collection("users").post(payload);
+  payload=new User("scott","scott","scott@apigee.com","password");
+  this.app().collection("users").post(payload);
   refreshIndex();
-  entity=this.app().collection("users").entity("todd").connection("likes").entity("peeps").post();
+  Entity entity=this.app().collection("users").entity("todd").connection("likes").collection("peeps").entity("chicken").post();
   assertNotNull(entity);
   refreshIndex();
   Collection collection=this.app().collection("peeps").get();

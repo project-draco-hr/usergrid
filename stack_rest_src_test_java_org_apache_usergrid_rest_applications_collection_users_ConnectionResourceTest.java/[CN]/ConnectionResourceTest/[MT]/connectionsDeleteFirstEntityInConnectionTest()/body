@@ -6,6 +6,12 @@
   things.entity(thing1Id).connection("likes").entity(thing2Id).post();
   ApiResponse response=things.entity("thing1").delete();
   refreshIndex();
-  Entity node=things.entity("thing1").get();
-  assertNull(node);
+  int status=0;
+  try {
+    Entity node=things.entity("thing1").get();
+  }
+ catch (  UniformInterfaceException e) {
+    status=e.getResponse().getStatus();
+  }
+  assertEquals(404,status);
 }
