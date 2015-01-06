@@ -12,8 +12,14 @@
   Entity data=devices.entity("device1").get();
   assertNotNull(data);
   assertEquals("device1",data.get("name").toString());
-  data=devices.entity("device2").get();
-  assertNull(data);
+  int status=0;
+  try {
+    data=devices.entity("device2").get();
+  }
+ catch (  UniformInterfaceException e) {
+    status=e.getResponse().getStatus();
+  }
+  assertEquals(status,404);
   Collection devicesData=devices.get();
   assertEquals("device1",devicesData.next().get("name").toString());
   assertTrue(!devicesData.hasNext());
@@ -22,13 +28,19 @@
   data=devices.entity("device2").get();
   assertNotNull(data);
   assertEquals("device2",data.get("name").toString());
-  data=devices.entity("device1").get();
-  assertNull(data);
+  status=0;
+  try {
+    data=devices.entity("device1").get();
+  }
+ catch (  UniformInterfaceException e) {
+    status=e.getResponse().getStatus();
+  }
+  assertEquals(status,404);
   devicesData=devices.get();
   assertEquals("device2",devicesData.next().get("name").toString());
   assertTrue(!devicesData.hasNext());
+  devices=this.app().collection("devices");
   token=this.app().token().post(new Token(user1.getUsername(),"password"));
-  devices=usersResource.entity(user1).collection("devices");
   data=devices.entity("device1").get();
   assertNotNull(data);
   assertEquals("device1",data.get("name").toString());
@@ -36,7 +48,7 @@
   assertNotNull(data);
   assertEquals("device2",data.get("name").toString());
   token=this.app().token().post(new Token(user2.getUsername(),"password"));
-  data=usersResource.entity(user2).collection("devices").entity("device1").get();
+  data=devices.entity("device1").get();
   assertNotNull(data);
   assertEquals("device1",data.get("name").toString());
   data=devices.entity("device2").get();

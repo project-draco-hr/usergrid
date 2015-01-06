@@ -21,13 +21,25 @@
   data=likeRestaurants.entity("4peaks").get();
   assertNotNull(data);
   assertEquals("4peaks",data.get("name").toString());
-  data=likeRestaurants.entity("arrogantbutcher").get();
-  assertNull(data);
-  data=likeRestaurants.entity(arrogantButcherId).get();
-  assertNull(data);
+  int status=200;
+  try {
+    data=likeRestaurants.entity("arrogantbutcher").get();
+  }
+ catch (  UniformInterfaceException e) {
+    status=e.getResponse().getStatus();
+  }
+  assertEquals(status,404);
+  status=200;
+  try {
+    data=likeRestaurants.entity(arrogantButcherId).get();
+  }
+ catch (  UniformInterfaceException e) {
+    status=e.getResponse().getStatus();
+  }
+  assertEquals(status,404);
   Collection collectionData=likeRestaurants.get();
   assertEquals("4peaks",collectionData.next().get("name").toString());
-  assertNull(collectionData.next());
+  assertTrue(!collectionData.hasNext());
   this.app().token().post(new Token(user2.getUsername(),"password"));
   likeRestaurants=usersResource.entity("me").connection("likes").collection("restaurants");
   data=likeRestaurants.entity(arrogantButcherId).get();
@@ -36,13 +48,24 @@
   data=likeRestaurants.entity("arrogantbutcher").get();
   assertNotNull(data);
   assertEquals("arrogantbutcher",data.get("name").toString());
-  data=likeRestaurants.entity("4peaks").get();
-  assertNull(data);
-  data=likeRestaurants.entity(peaksId).get();
-  assertNull(data);
+  status=200;
+  try {
+    data=likeRestaurants.entity("4peaks").get();
+  }
+ catch (  UniformInterfaceException e) {
+    status=e.getResponse().getStatus();
+  }
+  assertEquals(status,404);
+  status=200;
+  try {
+    data=likeRestaurants.entity(peaksId).get();
+  }
+ catch (  UniformInterfaceException e) {
+    status=e.getResponse().getStatus();
+  }
   collectionData=likeRestaurants.get();
   assertEquals("arrogantbutcher",collectionData.next().get("name").toString());
-  assertNull(collectionData.next());
+  assertTrue(!collectionData.hasNext());
   this.app().token().post(new Token(user1.getUsername(),"password"));
   CollectionEndpoint restaurants=this.app().collection("restaurants");
   data=restaurants.entity("4peaks").get();
