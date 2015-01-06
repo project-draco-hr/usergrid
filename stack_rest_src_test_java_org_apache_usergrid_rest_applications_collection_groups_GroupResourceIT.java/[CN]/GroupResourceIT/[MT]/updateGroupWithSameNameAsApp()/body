@@ -1,0 +1,17 @@
+{
+  String groupPath=this.clientSetup.getAppName();
+  String groupName=this.clientSetup.getAppName();
+  String title="Old Title";
+  Entity group=this.createGroup(groupName,groupPath,title);
+  String newTitle="New Title";
+  group.put("title",newTitle);
+  Entity groupResponse=this.app().collection("groups").entity(group).put(group);
+  assertEquals(groupResponse.get("title"),newTitle);
+  this.refreshIndex();
+  String evenNewerTitle="Even New Title";
+  group.put("title",newTitle);
+  String uuid=group.getString("uuid");
+  groupResponse=this.app().collection("groups").uniqueID(uuid).put(group);
+  assertEquals(groupResponse.get("title"),evenNewerTitle);
+  this.refreshIndex();
+}
