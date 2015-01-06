@@ -1,0 +1,17 @@
+{
+  RestClient restClient=clientSetup.getRestClient();
+  Map<String,Object> properties=new HashMap<String,Object>();
+  properties.put("securityLevel",5);
+  Organization orgPayload=clientSetup.getOrganization();
+  orgPayload.put("properties",properties);
+  restClient.management().orgs().organization(clientSetup.getOrganizationName()).put(orgPayload);
+  this.refreshIndex();
+  Organization orgResponse=restClient.management().orgs().organization(clientSetup.getOrganizationName()).get();
+  assertEquals(5,orgResponse.getProperties().get("securityLevel"));
+  properties.put("securityLevel",6);
+  orgPayload.put("properties",properties);
+  restClient.management().orgs().organization(clientSetup.getOrganizationName()).put(orgPayload);
+  this.refreshIndex();
+  orgResponse=restClient.management().orgs().organization(clientSetup.getOrganizationName()).get();
+  assertEquals(6,orgResponse.getProperties().get("securityLevel"));
+}
