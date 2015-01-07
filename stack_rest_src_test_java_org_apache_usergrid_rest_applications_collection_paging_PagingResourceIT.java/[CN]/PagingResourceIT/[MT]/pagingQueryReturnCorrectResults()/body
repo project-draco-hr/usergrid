@@ -1,12 +1,12 @@
 {
   long created=0;
   int indexForChangedEntities=15;
-  int maxSize=20;
-  int numOfChangedEntities=maxSize - indexForChangedEntities;
+  int numOfEntities=20;
+  int numOfChangedEntities=numOfEntities - indexForChangedEntities;
   Map<String,Object> entityPayload=new HashMap<String,Object>();
   String collectionName="merp";
-  for (created=0; created < maxSize; created++) {
-    if (created >= indexForChangedEntities && created < maxSize) {
+  for (created=0; created < numOfEntities; created++) {
+    if (created >= indexForChangedEntities && created < numOfEntities) {
       entityPayload.put("verb","stop");
     }
  else {
@@ -16,7 +16,7 @@
     Entity entity=new Entity(entityPayload);
     this.app().collection(collectionName).post(entity);
   }
-  this.refreshIndex();
+  refreshIndex();
   String query="select * where verb = 'stop'";
   QueryParameters queryParameters=new QueryParameters();
   queryParameters.setQuery(query);
