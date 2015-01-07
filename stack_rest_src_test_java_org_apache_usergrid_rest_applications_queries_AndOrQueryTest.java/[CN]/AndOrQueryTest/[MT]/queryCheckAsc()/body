@@ -11,9 +11,9 @@
   String inquisitiveQuery="select * where Ordinal gte 0 and Ordinal lte 10 " + "or WhoHelpedYou eq 'Ruff' ORDER BY Ordinal asc";
   QueryParameters params=new QueryParameters().setQuery(inquisitiveQuery).setLimit(numOfEntities / 2);
   Collection activities=this.app().collection(collectionName).get(params);
-  assertEquals(numOfEntities / 2,activities.response.getEntityCount());
-  List entities=activities.response.getEntities();
+  assertEquals(numOfEntities / 2,activities.getResponse().getEntityCount());
+  List<Entity> entities=activities.getResponse().getEntities();
   for (int i=0; i < numOfEntities / 2; i++) {
-    assertEquals(i,Integer.parseInt(((LinkedHashMap<String,Object>)entities.get(i)).get("ordinal").toString()));
+    assertEquals(i,Integer.parseInt(entities.get(i).get("ordinal").toString()));
   }
 }

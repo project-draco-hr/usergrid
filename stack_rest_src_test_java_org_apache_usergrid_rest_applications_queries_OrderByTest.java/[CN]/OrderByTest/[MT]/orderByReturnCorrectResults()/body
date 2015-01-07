@@ -22,9 +22,9 @@
   QueryParameters params=new QueryParameters().setQuery(errorQuery);
   Collection activitiesResponse=this.app().collection("activities").get(params);
   do {
-    int returnSize=activitiesResponse.response.getEntityCount();
+    int returnSize=activitiesResponse.getResponse().getEntityCount();
     for (int i=0; i < returnSize; i++, index--) {
-      assertEquals(((LinkedHashMap<String,Object>)activitiesResponse.response.getEntities().get(i)).get("uuid").toString(),(activities[index]).get("uuid").toString());
+      assertEquals(activitiesResponse.getResponse().getEntities().get(i).get("uuid").toString(),(activities[index]).get("uuid").toString());
     }
     activitiesResponse=this.app().getNextPage(activitiesResponse,true);
   }
