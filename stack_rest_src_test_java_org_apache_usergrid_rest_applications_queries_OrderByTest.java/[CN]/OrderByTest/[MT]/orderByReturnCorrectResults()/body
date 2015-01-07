@@ -18,14 +18,13 @@
   ArrayUtils.reverse(activities);
   long lastCreated=Long.parseLong(activities[0].get("created").toString());
   String errorQuery=String.format("select * where created <= %d order by created desc",lastCreated);
-  String cursor=null;
   int index=size - 1;
   QueryParameters params=new QueryParameters().setQuery(errorQuery);
   Collection activitiesResponse=this.app().collection("activities").get(params);
   do {
     int returnSize=activitiesResponse.response.getEntityCount();
     for (int i=0; i < returnSize; i++, index--) {
-      assertEquals(((LinkedHashMap<String,Object>)activitiesResponse.response.getEntities().get(i)).get("uuid").toString(),((Entity)activities[index]).get("uuid").toString());
+      assertEquals(((LinkedHashMap<String,Object>)activitiesResponse.response.getEntities().get(i)).get("uuid").toString(),(activities[index]).get("uuid").toString());
     }
     activitiesResponse=this.app().getNextPage(activitiesResponse,true);
   }
