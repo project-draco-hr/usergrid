@@ -13,12 +13,11 @@
   }
   this.refreshIndex();
   String inCorrectQuery="select * where ordinal >= 10 order by ordinal asc";
-  QueryParameters params=new QueryParameters();
-  params.setQuery(inCorrectQuery);
+  QueryParameters params=new QueryParameters().setQuery(inCorrectQuery).setLimit(numValuesTested / 2);
   Collection activities=this.app().collection("activities").get(params);
-  assertEquals(10,activities.response.getEntityCount());
+  assertEquals(numValuesTested / 2,activities.response.getEntityCount());
   List entities=activities.response.getEntities();
-  for (int i=0; i < 10; i++) {
-    assertEquals(10 + i,Integer.parseInt(((LinkedHashMap<String,Object>)entities.get(i)).get("ordinal").toString()));
+  for (int i=0; i < numValuesTested / 2; i++) {
+    assertEquals(numValuesTested / 2 + i,Integer.parseInt(((LinkedHashMap<String,Object>)entities.get(i)).get("ordinal").toString()));
   }
 }

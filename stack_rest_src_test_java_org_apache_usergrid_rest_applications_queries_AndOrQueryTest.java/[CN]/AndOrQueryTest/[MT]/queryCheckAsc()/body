@@ -1,6 +1,6 @@
 {
-  int numOfEntities=10;
-  String collectionName="imagination" + RandomStringUtils.randomAlphabetic(5);
+  int numOfEntities=20;
+  String collectionName="imagination";
   Entity[] correctValues=new Entity[numOfEntities];
   Entity props=new Entity();
   props.put("WhoHelpedYou","Ruff");
@@ -10,6 +10,11 @@
   }
   this.refreshIndex();
   String inquisitiveQuery="select * where Ordinal gte 0 and Ordinal lte 10 " + "or WhoHelpedYou eq 'Ruff' ORDER BY Ordinal asc";
-  int totalEntitiesContained=verificationOfQueryResults(collectionName,correctValues,false,inquisitiveQuery);
-  assertEquals(numOfEntities,totalEntitiesContained);
+  QueryParameters params=new QueryParameters().setQuery(inquisitiveQuery).setLimit(numOfEntities / 2);
+  Collection activities=this.app().collection(collectionName).get(params);
+  assertEquals(numOfEntities / 2,activities.response.getEntityCount());
+  List entities=activities.response.getEntities();
+  for (int i=0; i < numOfEntities / 2; i++) {
+    assertEquals(i,Integer.parseInt(((LinkedHashMap<String,Object>)entities.get(i)).get("ordinal").toString()));
+  }
 }

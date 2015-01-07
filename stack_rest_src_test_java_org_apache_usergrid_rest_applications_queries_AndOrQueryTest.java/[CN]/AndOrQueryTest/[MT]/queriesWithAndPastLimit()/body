@@ -1,4 +1,5 @@
 {
+  int numValuesTested=40;
   long created=0;
   Entity actor=new Entity();
   actor.put("displayName","Erin");
@@ -6,8 +7,8 @@
   props.put("actor",actor);
   props.put("verb","go");
   props.put("content","bragh");
-  for (int i=0; i < 20; i++) {
-    if (i < 10) {
+  for (int i=0; i < numValuesTested; i++) {
+    if (i < numValuesTested / 2) {
       props.put("madeup",false);
     }
  else {
@@ -21,8 +22,10 @@
   }
   this.refreshIndex();
   String errorQuery="select * where created >= " + created + "AND madeup = true";
-  QueryParameters params=new QueryParameters();
-  params.setQuery(errorQuery);
+  QueryParameters params=new QueryParameters().setQuery(errorQuery).setLimit(numValuesTested / 2);
   Collection activities=this.app().collection("activities").get(params);
-  assertEquals(10,activities.response.getEntityCount());
+  assertEquals(numValuesTested / 2,activities.response.getEntityCount());
+  while (activities.hasNext()) {
+    assertTrue(Boolean.parseBoolean(activities.next().get("madeup").toString()));
+  }
 }

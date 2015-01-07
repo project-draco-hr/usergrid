@@ -7,7 +7,7 @@
   props.put("verb","go");
   props.put("content","bragh");
   for (int i=0; i < numValuesTested; i++) {
-    if (i < numValuesTested / 2) {
+    if (i % 2 == 0) {
       props.put("verb","go");
     }
  else {
@@ -18,13 +18,10 @@
   }
   this.refreshIndex();
   String query="select * where not verb = 'go'";
-  QueryParameters params=new QueryParameters();
-  params.setQuery(query);
+  QueryParameters params=new QueryParameters().setQuery(query).setLimit(numValuesTested / 2);
   Collection activities=this.app().collection("activities").get(params);
   assertEquals(numValuesTested / 2,activities.response.getEntityCount());
-  List entities=activities.response.getEntities();
-  for (int i=0; i < numValuesTested / 2; i++) {
-    assertEquals(numValuesTested - i,Integer.parseInt(((LinkedHashMap<String,Object>)entities.get(i)).get("ordinal").toString()));
-    assertEquals("stop",((LinkedHashMap<String,Object>)entities.get(i)).get("verb").toString());
+  while (activities.hasNext()) {
+    assertEquals("stop",activities.next().get("verb").toString());
   }
 }
