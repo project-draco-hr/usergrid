@@ -1,42 +1,29 @@
 {
-  JsonNode node=null;
-  Map user1Coordinates=entityMapLocationCreator(-33.746369,150.952183);
-  Map user2Coordinates=entityMapLocationCreator(-33.889058,151.124024);
-  try {
-    node=context.users().post("norwest","norwest@usergrid.com","norwest",user1Coordinates);
-  }
- catch (  UniformInterfaceException e) {
-    JsonNode nodeError=mapper.readTree(e.getResponse().getEntity(String.class));
-    fail(node.get("error").textValue());
-  }
-  try {
-    node=context.users().post("ashfield","ashfield@usergrid.com","ashfield",user2Coordinates);
-  }
- catch (  UniformInterfaceException e) {
-    JsonNode nodeError=mapper.readTree(e.getResponse().getEntity(String.class));
-    fail(node.get("error").textValue());
-  }
-  refreshIndex(context.getOrgName(),context.getAppName());
+  Entity props=new Entity();
+  props.put("username","norwest");
+  props.put("displayName","norwest");
+  props.put("email","norwest@usergrid.com");
+  props.put("location",new MapUtils.HashMapBuilder<String,Double>().map("latitude",-33.746369).map("longitude",150.952183));
+  this.app().collection("users").post(props);
+  props.put("username","ashfield");
+  props.put("displayName","ashfield");
+  props.put("email","ashfield@usergrid.com");
+  props.put("location",new MapUtils.HashMapBuilder<String,Double>().map("latitude",-33.746369).map("longitude",150.952183));
+  this.app().collection("users").post(props);
+  this.refreshIndex();
   List<Point> points=new ArrayList<Point>();
   points.add(new Point(33.746369,-89));
   points.add(new Point(33.746369,-91));
   points.add(new Point(-1.000000,102.000000));
   points.add(new Point(-90.000000,90.000000));
   points.add(new Point(90,90));
-  for (int i=-90; i <= 90; i++) {
-    for (int j=-180; j <= 180; j++) {
-      points.add(new Point(i,j));
-    }
-  }
   Iterator<Point> pointIterator=points.iterator();
   for (Point p=pointIterator.next(); pointIterator.hasNext(); p=pointIterator.next()) {
     Point center=new Point(p.getLat(),p.getLon());
-    String query=locationQuery(10000,center);
-    try {
-    }
- catch (    UniformInterfaceException e) {
-      JsonNode nodeError=mapper.readTree(e.getResponse().getEntity(String.class));
-      fail(nodeError.get("error").textValue());
-    }
+    String query="select * where location within 10000 of " + center.getLat() + ", "+ center.getLon();
+    QueryParameters params=new QueryParameters();
+    params.setQuery(query);
+    Collection collection=this.app().collection("users").get(params);
+    assertEquals("Expected 0 results",0,collection.response.getEntityCount());
   }
 }
