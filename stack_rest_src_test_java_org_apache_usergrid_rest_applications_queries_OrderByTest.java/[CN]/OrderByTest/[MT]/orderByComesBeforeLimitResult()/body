@@ -1,21 +1,17 @@
 {
-  CustomCollection activities=context.customCollection("activities");
-  Map actor=hashMap("displayName","Erin");
-  Map props=new HashMap();
-  int checkResultsNum=0;
+  Entity actor=new Entity();
+  actor.put("displayName","Erin");
+  Entity props=new Entity();
   props.put("actor",actor);
   props.put("verb","go");
   props.put("content","bragh");
   for (int i=0; i < 20; i++) {
     props.put("ordinal",i);
-    JsonNode activity=activities.create(props);
+    this.app().collection("activity").post(props);
   }
-  refreshIndex(context.getOrgName(),context.getAppName());
+  refreshIndex();
   String query="select * where created > " + 1 + " order by created desc";
-  JsonNode incorrectNode=activities.withQuery(query).withLimit(5).get();
-  assertEquals(5,incorrectNode.get("entities").size());
-  while (checkResultsNum < 5) {
-    assertEquals(activities.entityIndex(query,checkResultsNum),activities.entityIndexLimit(query,5,checkResultsNum));
-    checkResultsNum++;
-  }
+  QueryParameters params=new QueryParameters().setQuery(query).setLimit(5);
+  Collection activities=this.app().collection("activities").get(params);
+  assertEquals(5,activities.response.getEntityCount());
 }
