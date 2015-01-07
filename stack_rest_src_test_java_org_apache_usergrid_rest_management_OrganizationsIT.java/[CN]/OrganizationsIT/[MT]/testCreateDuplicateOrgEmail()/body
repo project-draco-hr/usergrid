@@ -8,6 +8,9 @@
   Organization orgCreatedResponse=clientSetup.getRestClient().management().orgs().post(orgPayload);
   this.refreshIndex();
   assertNotNull(orgCreatedResponse);
+  Token tokenPayload=new Token("password",username,password);
+  Token tokenReturned=clientSetup.getRestClient().management().token().post(tokenPayload);
+  assertNotNull(tokenReturned);
   orgPayload=new Organization(orgName + "test",username + "test",email,name + "test",password + "test",null);
   try {
     clientSetup.getRestClient().management().orgs().post(orgPayload);
@@ -16,7 +19,7 @@
  catch (  UniformInterfaceException ex) {
     errorParse(400,duplicateUniquePropertyExistsErrorMessage,ex);
   }
-  Token tokenPayload=new Token("password",username + "test",password);
+  tokenPayload=new Token("password",username + "test",password);
   Token tokenError=null;
   try {
     tokenError=clientSetup.getRestClient().management().token().post(tokenPayload);
@@ -26,7 +29,4 @@
     errorParse(400,invalidGrantErrorMessage,ex);
   }
   assertNull(tokenError);
-  tokenPayload=new Token("password",username,password);
-  Token tokenReturned=clientSetup.getRestClient().management().token().post(tokenPayload);
-  assertNotNull(tokenReturned);
 }

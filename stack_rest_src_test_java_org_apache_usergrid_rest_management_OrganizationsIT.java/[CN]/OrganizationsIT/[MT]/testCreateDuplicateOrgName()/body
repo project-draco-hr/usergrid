@@ -7,10 +7,10 @@
   Organization orgPayload=new Organization(orgName,username,email,name,password,null);
   Organization orgCreatedResponse=clientSetup.getRestClient().management().orgs().post(orgPayload);
   this.refreshIndex();
+  assertNotNull(orgCreatedResponse);
   Token tokenPayload=new Token("password",username,password);
   Token tokenReturned=clientSetup.getRestClient().management().token().post(tokenPayload);
   assertNotNull(tokenReturned);
-  assertNotNull(orgCreatedResponse);
   Organization orgTestDuplicatePayload=new Organization(orgName,username + "test",email + "test",name + "test",password,null);
   try {
     clientSetup.getRestClient().management().orgs().post(orgTestDuplicatePayload);
