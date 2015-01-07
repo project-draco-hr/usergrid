@@ -1,14 +1,20 @@
 {
-  final MultiProcessLocalLock lock=new MultiProcessLocalLock(LOCK_NAME);
-  final MultiProcessBarrier barrier=new MultiProcessBarrier(START_BARRIER_NAME);
   if (lock.tryLock()) {
-    initSystem();
+    new CassandraResource().start();
+    new ElasticSearchResource().start();
+    SpringResource.getInstance().migrate();
     barrier.proceed();
   }
   barrier.await(ONE_MINUTE);
   if (lock.hasLock()) {
-    deleteFile(LOCK_NAME);
-    deleteFile(START_BARRIER_NAME);
+    Runtime.getRuntime().addShutdownHook(new Thread(){
+      public void run(){
+        System.out.println("Shutdown Hook is running !");
+        deleteFile(LOCK_NAME);
+        deleteFile(START_BARRIER_NAME);
+      }
+    }
+);
     lock.releaseLock();
   }
 }
