@@ -1,0 +1,25 @@
+{
+  long created=0;
+  int numOfEntities=100;
+  int numOfPages=10;
+  Entity connectedEntity=null;
+  Map<String,Object> entityPayload=new HashMap<String,Object>();
+  String collectionName="pageThroughConnectedEntities";
+  for (created=1; created <= numOfEntities; created++) {
+    entityPayload.put("name","value" + created);
+    Entity entity=new Entity(entityPayload);
+    entity=this.app().collection(collectionName).post(entity);
+    refreshIndex();
+    if (created == 1) {
+      connectedEntity=entity;
+    }
+ else     if (created > 0) {
+      this.app().collection(collectionName).entity(connectedEntity).connection("likes").entity(entity).post();
+    }
+  }
+  refreshIndex();
+  Collection colConnection=this.app().collection(collectionName).entity(connectedEntity).connection("likes").get();
+  assertNotNull(colConnection);
+  assertNotNull(colConnection.getCursor());
+  pageAndVerifyEntities(collectionName,null,numOfPages,numOfEntities);
+}
