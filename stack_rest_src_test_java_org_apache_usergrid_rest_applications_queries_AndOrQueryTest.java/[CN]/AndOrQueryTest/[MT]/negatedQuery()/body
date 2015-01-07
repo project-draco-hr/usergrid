@@ -7,16 +7,21 @@
   props.put("verb","go");
   props.put("content","bragh");
   for (int i=0; i < numValuesTested; i++) {
+    if (i % 2 == 0) {
+      props.put("verb","go");
+    }
+ else {
+      props.put("verb","stop");
+    }
     props.put("ordinal",i);
     this.app().collection("activities").post(props);
   }
   this.refreshIndex();
-  String inCorrectQuery="select * where ordinal >= 10 order by ordinal asc";
-  QueryParameters params=new QueryParameters().setQuery(inCorrectQuery).setLimit(numValuesTested / 2);
+  String query="select * where not verb = 'go'";
+  QueryParameters params=new QueryParameters().setQuery(query).setLimit(numValuesTested / 2);
   Collection activities=this.app().collection("activities").get(params);
   assertEquals(numValuesTested / 2,activities.getResponse().getEntityCount());
-  List<Entity> entities=activities.getResponse().getEntities();
-  for (int i=0; i < numValuesTested / 2; i++) {
-    assertEquals(numValuesTested / 2 + i,Integer.parseInt(entities.get(i).get("ordinal").toString()));
+  while (activities.hasNext()) {
+    assertEquals("stop",activities.next().get("verb").toString());
   }
 }

@@ -1,33 +1,32 @@
 {
-  CustomCollection activities=context.customCollection("activities");
-  int size=200;
-  Map<String,String> actor=hashMap("displayName","Erin");
-  Map<String,Object> props=new HashMap<String,Object>();
+  int size=20;
+  Entity[] activities=new Entity[size];
+  Entity actor=new Entity();
+  actor.put("displayName","Erin");
+  Entity props=new Entity();
   props.put("actor",actor);
   props.put("verb","go");
   props.put("content","bragh");
-  List<JsonNode> activites=new ArrayList<JsonNode>(size);
   for (int i=0; i < size; i++) {
     props.put("ordinal",i);
-    JsonNode activity=activities.create(props).get("entities").get(0);
-    activites.add(activity);
+    Entity e=this.app().collection("activity").post(props);
+    activities[i]=e;
+    log.info(String.valueOf(e.get("uuid").toString()));
+    log.info(String.valueOf(Long.parseLong(activities[0].get("created").toString())));
   }
-  refreshIndex(context.getOrgName(),context.getAppName());
-  long lastCreated=activites.get(activites.size() - 1).get("created").asLong();
+  refreshIndex();
+  ArrayUtils.reverse(activities);
+  long lastCreated=Long.parseLong(activities[0].get("created").toString());
   String errorQuery=String.format("select * where created <= %d order by created desc",lastCreated);
-  String cursor=null;
   int index=size - 1;
+  QueryParameters params=new QueryParameters().setQuery(errorQuery);
+  Collection activitiesResponse=this.app().collection("activities").get(params);
   do {
-    JsonNode response=activities.withQuery(errorQuery).get();
-    JsonNode cursorNode=response.get("cursor");
-    cursor=cursorNode != null ? cursorNode.asText() : null;
-    JsonNode entities=response.get("entities");
-    int returnSize=entities.size();
+    int returnSize=activitiesResponse.getResponse().getEntityCount();
     for (int i=0; i < returnSize; i++, index--) {
-      assertEquals(activites.get(index),entities.get(i));
+      assertEquals(activitiesResponse.getResponse().getEntities().get(i).get("uuid").toString(),(activities[i]).get("uuid").toString());
     }
-    activities=activities.withCursor(cursor);
+    activitiesResponse=this.app().getNextPage(activitiesResponse,params,true);
   }
- while (cursor != null && cursor.length() > 0);
-  assertEquals("Paged to last result",-1,index);
+ while (activitiesResponse.getCursor() != null);
 }
