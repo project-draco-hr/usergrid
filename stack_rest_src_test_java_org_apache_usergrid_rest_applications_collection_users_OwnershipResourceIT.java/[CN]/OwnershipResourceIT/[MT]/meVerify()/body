@@ -3,13 +3,14 @@
   Token token=this.app().token().post(new Token(user1.getUsername(),"password"));
   Entity userNode=usersResource.entity("me").get();
   assertNotNull(userNode);
+  assertEquals(user1.getName(),userNode.get("username"));
   String uuid=userNode.getUuid().toString();
   assertNotNull(uuid);
   usersResource.entity(user1).connection("revoketokens").post(new Entity().chainPut("token",token.getAccessToken()));
   refreshIndex();
   try {
-    userNode=usersResource.entity("me").get();
-    fail();
+    usersResource.entity("me").get();
+    fail("This should not work after we've revoked the usertoken");
   }
  catch (  Exception ex) {
     ex.printStackTrace();
