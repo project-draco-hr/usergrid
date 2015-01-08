@@ -24,20 +24,18 @@
   String reviewId=review.get("uuid").toString();
   refreshIndex();
   this.app().collection("users").entity("me").connection("wrote").collection("review").entity(reviewId).post();
-  refreshIndex();
   this.app().collection("users").entity("me").connection("reviewed").collection("books").entity(bookId).post();
   refreshIndex();
   this.app().collection("books").entity(bookId).collection("review").entity(reviewId).post();
   refreshIndex();
   int status=0;
   try {
-    this.app().collection("books").post();
+    this.app().collection("books").post(book);
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getStatus();
   }
   assertEquals(Status.UNAUTHORIZED.getStatusCode(),status);
-  refreshIndex();
   this.app().collection("users").entity("me").connection("reviewed").collection("books").get();
   this.app().collection("reviews").entity(reviewId).get();
   this.app().collection("users").entity("me").connection("wrote").get();

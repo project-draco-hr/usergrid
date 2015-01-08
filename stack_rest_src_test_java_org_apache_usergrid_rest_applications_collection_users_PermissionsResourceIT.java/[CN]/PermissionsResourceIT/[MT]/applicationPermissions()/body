@@ -1,6 +1,6 @@
 {
-  UUID secondUserId=createRoleUser("reviewer2","reviewer2@usergrid.com");
-  UUID userId=createRoleUser("reviewer1","reviewer1@usergrid.com");
+  createRoleUser("reviewer1","reviewer1@usergrid.com");
+  createRoleUser("reviewer2","reviewer2@usergrid.com");
   Entity data=new Entity().chainPut("name","reviewer");
   Entity node=this.app().collection("roles").post(data);
   assertNull(node.getError());
@@ -17,40 +17,39 @@
   refreshIndex();
   this.app().collection("users").entity("reviewer2").collection("groups").entity("reviewergroup").post();
   refreshIndex();
-  Entity userRole=this.app().collection("users").entity("reviewer1").collection("roles").entity("reviewer").post();
+  this.app().collection("users").entity("reviewer1").collection("roles").entity("reviewer").post();
   refreshIndex();
   this.app().token().post(new Token("reviewer1","password"));
   Entity review=new Entity().chainPut("rating","4").chainPut("name","noca").chainPut("review","Excellent service and food");
   this.app().collection("reviews").post(review);
-  refreshIndex();
   review=new Entity().chainPut("rating","4").chainPut("name","4peaks").chainPut("review","Huge beer selection");
   this.app().collection("reviews").post(review);
   refreshIndex();
   Collection reviews=this.app().collection("reviews").get();
   assertEquals("noca",reviews.next().get("name"));
-  assertEquals("4peaks",reviews.next().get("name").toString());
+  assertEquals("4peaks",reviews.next().get("name"));
   int status=0;
   try {
     this.app().collection("reviews").entity("noca").delete();
+    fail("this should have failed due to having insufficient permissions");
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getStatus();
   }
   assertEquals(Status.UNAUTHORIZED.getStatusCode(),status);
-  refreshIndex();
   status=0;
   try {
     this.app().collection("reviews").entity("4peaks").delete();
+    fail("this should have failed due to having insufficient permissions");
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getStatus();
   }
   assertEquals(Status.UNAUTHORIZED.getStatusCode(),status);
   refreshIndex();
-  Token secondUserToken=this.app().token().post(new Token("reviewer2","password"));
+  this.app().token().post(new Token("reviewer2","password"));
   review=new Entity().chainPut("rating","4").chainPut("name","cowboyciao").chainPut("review","Great atmosphoere");
   this.app().collection("reviews").post(review);
-  refreshIndex();
   review=new Entity().chainPut("rating","4").chainPut("name","currycorner").chainPut("review","Authentic");
   this.app().collection("reviews").post(review);
   refreshIndex();
@@ -62,6 +61,7 @@
   status=0;
   try {
     this.app().collection("reviews").entity("cowboyciao").delete();
+    fail("this should have failed due to having insufficient permissions");
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getStatus();
@@ -71,6 +71,7 @@
   status=0;
   try {
     this.app().collection("reviews").entity("currycorner").delete();
+    fail("this should have failed due to having insufficient permissions");
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getStatus();
