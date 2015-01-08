@@ -3,7 +3,6 @@
   Entity stuff=new Entity().chainPut("name","chicken").chainPut("type","chicken");
   activities.post(stuff);
   User payload=new User("todd","todd","todd@apigee.com","password");
-  payload.put("username","todd");
   this.app().collection("users").post(payload);
   payload=new User("scott","scott","scott@apigee.com","password");
   this.app().collection("users").post(payload);
@@ -14,10 +13,10 @@
   Collection collection=this.app().collection("peeps").get();
   String uuid=collection.next().get("uuid").toString();
   try {
-    entity=this.app().collection("users").entity("scott").connection("likes").entity(uuid).get();
+    this.app().collection("users").entity("scott").connection("likes").entity(uuid).get();
     assert(false);
   }
  catch (  UniformInterfaceException uie) {
-    assertEquals(404,uie.getResponse().getClientResponseStatus().getStatusCode());
+    assertEquals(404,uie.getResponse().getStatus());
   }
 }
