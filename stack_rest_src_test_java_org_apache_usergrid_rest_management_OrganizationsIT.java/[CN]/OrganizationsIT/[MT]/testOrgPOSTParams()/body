@@ -14,4 +14,9 @@
   Organization organization=clientSetup.getRestClient().management().orgs().post(queryParameters);
   assertNotNull(organization);
   assertEquals(orgName,organization.getName());
+  Token tokenPayload=new Token("password",username,password);
+  Token tokenReturned=clientSetup.getRestClient().management().token().post(tokenPayload);
+  assertNotNull(tokenReturned);
+  Organization returnedOrg=clientSetup.getRestClient().management().orgs().organization(orgName).get();
+  assertTrue(returnedOrg != null && returnedOrg.getName().equals(orgName));
 }
