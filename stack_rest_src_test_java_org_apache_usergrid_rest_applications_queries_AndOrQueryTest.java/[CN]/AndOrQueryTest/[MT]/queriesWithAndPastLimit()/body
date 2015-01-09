@@ -1,27 +1,8 @@
 {
   int numValuesTested=40;
   long created=0;
-  Entity actor=new Entity();
-  actor.put("displayName","Erin");
-  Entity props=new Entity();
-  props.put("actor",actor);
-  props.put("verb","go");
-  props.put("content","bragh");
-  for (int i=0; i < numValuesTested; i++) {
-    if (i < numValuesTested / 2) {
-      props.put("madeup",false);
-    }
- else {
-      props.put("madeup",true);
-    }
-    props.put("ordinal",i);
-    Entity activity=this.app().collection("activities").post(props);
-    if (i == 0) {
-      created=Long.parseLong(activity.get("created").toString());
-    }
-  }
-  this.refreshIndex();
-  String errorQuery="select * where created >= " + created + "AND madeup = true";
+  Entity[] entities=generateTestEntities(numValuesTested,"activities");
+  String errorQuery="select * where madeup = true";
   QueryParameters params=new QueryParameters().setQuery(errorQuery).setLimit(numValuesTested / 2);
   Collection activities=this.app().collection("activities").get(params);
   assertEquals(numValuesTested / 2,activities.getResponse().getEntityCount());

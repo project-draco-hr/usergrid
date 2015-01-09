@@ -1,0 +1,24 @@
+{
+  int numOfEntities=20;
+  String collectionName="activities";
+  Entity[] entities=generateTestEntities(numOfEntities,collectionName);
+  QueryParameters params=new QueryParameters().setQuery("select * where madeup = false OR ordinal >= " + (numOfEntities - numOfEntities / 4)).setLimit((numOfEntities));
+  Collection activities=this.app().collection("activities").get(params);
+  int index=numOfEntities - 1;
+  int count=0;
+  int returnSize=activities.getResponse().getEntityCount();
+  for (int i=0; i < returnSize; i++, index--) {
+    count++;
+    Entity activity=activities.getResponse().getEntities().get(i);
+    log.info(String.valueOf(activity.get("ordinal")) + " " + String.valueOf(activity.get("madeup")));
+    if (index < numOfEntities / 2) {
+      assertFalse(Boolean.parseBoolean(String.valueOf(activity.get("madeup"))));
+    }
+ else     if (index >= (numOfEntities - numOfEntities / 4)) {
+      assertTrue(Boolean.parseBoolean(String.valueOf(activity.get("madeup"))));
+    }
+    long ordinal=Long.parseLong(String.valueOf(activity.get("ordinal")));
+    assertTrue(ordinal < (numOfEntities / 2) || ordinal >= (numOfEntities - numOfEntities / 4));
+  }
+  assertEquals(3 * numOfEntities / 4,count);
+}

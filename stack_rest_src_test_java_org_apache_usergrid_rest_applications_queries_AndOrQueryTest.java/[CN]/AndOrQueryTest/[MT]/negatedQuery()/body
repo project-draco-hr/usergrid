@@ -1,22 +1,6 @@
 {
   int numValuesTested=20;
-  Entity actor=new Entity();
-  actor.put("displayName","Erin");
-  Entity props=new Entity();
-  props.put("actor",actor);
-  props.put("verb","go");
-  props.put("content","bragh");
-  for (int i=0; i < numValuesTested; i++) {
-    if (i % 2 == 0) {
-      props.put("verb","go");
-    }
- else {
-      props.put("verb","stop");
-    }
-    props.put("ordinal",i);
-    this.app().collection("activities").post(props);
-  }
-  this.refreshIndex();
+  Entity[] entities=generateTestEntities(numValuesTested,"activities");
   String query="select * where not verb = 'go'";
   QueryParameters params=new QueryParameters().setQuery(query).setLimit(numValuesTested / 2);
   Collection activities=this.app().collection("activities").get(params);

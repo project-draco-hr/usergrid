@@ -1,0 +1,18 @@
+{
+  int numOfEntities=20;
+  String collectionName="activities";
+  Entity[] entities=generateTestEntities(numOfEntities,collectionName);
+  QueryParameters params=new QueryParameters().setQuery("select * order by madeup asc").setLimit(numOfEntities);
+  Collection activities=this.app().collection("activities").get(params);
+  assertEquals(numOfEntities,activities.getResponse().getEntityCount());
+  int index=0;
+  while (activities.hasNext()) {
+    Entity activity=activities.next();
+    if (index++ < numOfEntities / 2) {
+      assertEquals("false",activity.get("madeup").toString());
+    }
+ else {
+      assertEquals("true",activity.get("madeup").toString());
+    }
+  }
+}
