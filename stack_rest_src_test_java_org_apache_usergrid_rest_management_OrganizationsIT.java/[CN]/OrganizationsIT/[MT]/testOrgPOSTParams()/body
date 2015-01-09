@@ -1,22 +1,18 @@
 {
-  String username="testCreateDuplicateOrgEmail" + UUIDUtils.newTimeUUID();
-  String name=username;
-  String password="password";
-  String orgName=username;
-  String email=username + "@usergrid.com";
+  Organization organization=createOrgPayload("testOrgPOSTParams",null);
   QueryParameters queryParameters=new QueryParameters();
-  queryParameters.setKeyValue("organization",orgName);
-  queryParameters.setKeyValue("username",username);
-  queryParameters.setKeyValue("grant_type",password);
-  queryParameters.setKeyValue("email",email);
-  queryParameters.setKeyValue("name",name);
-  queryParameters.setKeyValue("password",password);
-  Organization organization=clientSetup.getRestClient().management().orgs().post(queryParameters);
-  assertNotNull(organization);
-  assertEquals(orgName,organization.getName());
-  Token tokenPayload=new Token("password",username,password);
+  queryParameters.setKeyValue("organization",organization.getOrganization());
+  queryParameters.setKeyValue("username",organization.getUsername());
+  queryParameters.setKeyValue("grant_type","password");
+  queryParameters.setKeyValue("email",organization.getEmail());
+  queryParameters.setKeyValue("name",organization.getName());
+  queryParameters.setKeyValue("password",organization.getPassword());
+  Organization organizationReturned=clientSetup.getRestClient().management().orgs().post(queryParameters);
+  assertNotNull(organizationReturned);
+  assertEquals(organization.getOrganization(),organizationReturned.getName());
+  Token tokenPayload=new Token("password",organization.getName(),organization.getPassword());
   Token tokenReturned=clientSetup.getRestClient().management().token().post(tokenPayload);
   assertNotNull(tokenReturned);
-  Organization returnedOrg=clientSetup.getRestClient().management().orgs().organization(orgName).get();
-  assertTrue(returnedOrg != null && returnedOrg.getName().equals(orgName));
+  Organization returnedOrg=clientSetup.getRestClient().management().orgs().organization(organization.getOrganization()).get();
+  assertTrue(returnedOrg != null && returnedOrg.getName().equals(organization.getOrganization()));
 }
