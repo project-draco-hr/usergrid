@@ -1,0 +1,31 @@
+{
+  long created=0;
+  int indexForChangedEntities=15;
+  int numOfEntities=20;
+  int numOfChangedEntities=numOfEntities - indexForChangedEntities;
+  Map<String,Object> entityPayload=new HashMap<String,Object>();
+  String collectionName="merp";
+  for (created=0; created < numOfEntities; created++) {
+    if (created >= indexForChangedEntities && created < numOfEntities) {
+      entityPayload.put("verb","stop");
+    }
+ else {
+      entityPayload.put("verb","go");
+    }
+    entityPayload.put("name","value" + created);
+    Entity entity=new Entity(entityPayload);
+    this.app().collection(collectionName).post(entity);
+  }
+  refreshIndex();
+  String query="select * where verb = 'stop'";
+  QueryParameters queryParameters=new QueryParameters();
+  queryParameters.setQuery(query);
+  Collection queryCollection=this.app().collection(collectionName).get(queryParameters);
+  assertNotNull(queryCollection);
+  assertNull(queryCollection.getCursor());
+  assertEquals(numOfChangedEntities,queryCollection.getNumOfEntities());
+  for (int i=0; i < numOfChangedEntities; i++) {
+    assertEquals("stop",queryCollection.next().get("verb"));
+  }
+  assertFalse(queryCollection.hasNext());
+}
