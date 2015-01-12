@@ -1,8 +1,8 @@
 {
   String[] passwords=new String[]{"password1","password2","password3","password4","password5"};
-  UserInfo user=setup.getMgmtSvc().createAdminUser("edanuff3","Ed Anuff","ed2@anuff.com2",passwords[0],true,false);
+  UserInfo user=setup.getMgmtSvc().createAdminUser(uniqueUsername(),"Ed Anuff",uniqueEmail(),passwords[0],true,false);
   assertNotNull(user);
-  OrganizationInfo organization=setup.getMgmtSvc().createOrganization("OrganizationTest2",user,true);
+  OrganizationInfo organization=setup.getMgmtSvc().createOrganization(uniqueOrg(),user,true);
   assertNotNull(organization);
   setup.getEmf().getEntityManager(setup.getSmf().getManagementAppId());
   setup.getMgmtSvc().setAdminUserPassword(user.getUuid(),passwords[1]);
@@ -19,7 +19,7 @@
   setup.getMgmtSvc().setAdminUserPassword(user.getUuid(),passwords[0]);
   setup.getEmf().getEntityManager(setup.getSmf().getManagementAppId());
   try {
-    setup.getMgmtSvc().setAdminUserPassword(user.getUuid(),passwords[2]);
+    setup.getMgmtSvc().setAdminUserPassword(user.getUuid(),passwords[3]);
     fail("password change should fail");
   }
  catch (  RecentlyUsedPasswordException e) {
@@ -61,7 +61,7 @@
   }
  catch (  RecentlyUsedPasswordException e) {
   }
-  OrganizationInfo organization2=setup.getMgmtSvc().createOrganization("OrganizationTest3",user,false);
+  OrganizationInfo organization2=setup.getMgmtSvc().createOrganization(uniqueOrg(),user,false);
   assertNotNull(organization2);
   setup.getEmf().getEntityManager(setup.getSmf().getManagementAppId()).refreshIndex();
   Map<UUID,String> userOrganizations=setup.getMgmtSvc().getOrganizationsForAdminUser(user.getUuid());

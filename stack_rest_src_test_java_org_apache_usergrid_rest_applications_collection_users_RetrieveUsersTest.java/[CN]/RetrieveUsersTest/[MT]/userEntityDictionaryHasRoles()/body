@@ -1,12 +1,11 @@
 {
-  CustomCollection users=context.customCollection("users");
-  Map props=new HashMap();
+  CollectionEndpoint users=this.app().collection("users");
+  Entity props=new Entity();
   props.put("username","Nina");
-  JsonNode response=users.create(props);
-  refreshIndex(context.getOrgName(),context.getAppName());
-  JsonNode entity=response.get("entities").get(0);
-  JsonNode metadata=entity.get("metadata");
-  JsonNode sets=metadata.get("sets");
-  JsonNode rolenames=sets.get("rolenames");
-  Assert.assertTrue("rolenames URL ends with /roles",rolenames.asText().endsWith("/roles"));
+  Entity entity=users.post(props);
+  refreshIndex();
+  Map<String,Object> metadata=(Map)entity.get("metadata");
+  Map<String,Object> sets=(Map)metadata.get("sets");
+  Map<String,Object> rolenames=(Map)sets.get("rolenames");
+  Assert.assertTrue("rolenames URL ends with /roles",rolenames.toString().endsWith("/roles"));
 }

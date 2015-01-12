@@ -1,9 +1,10 @@
 {
+  usersResource.post(new User("edanuff","edanuff","edanuff@email.com","sesame"));
   String newPassword="foo";
-  Map<String,String> data=new HashMap<String,String>();
-  data.put("newpassword",newPassword);
-  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/users/edanuff/password").queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,data));
-  assertNull(getError(node));
-  ApiResponse response=client.authorizeAppUser("ed@anuff.com",newPassword);
-  assertNull(response.getError());
+  refreshIndex();
+  Entity node=usersResource.entity("edanuff").connection("password").post(new ChangePasswordEntity(newPassword));
+  assertNotNull(node);
+  refreshIndex();
+  Token response=this.app().token().post(new Token("edanuff",newPassword));
+  assertNotNull(response);
 }

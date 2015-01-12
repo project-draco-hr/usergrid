@@ -1,12 +1,9 @@
 {
-  String mgmtToken=context.getActiveUser().getToken();
-  ClientResponse.Status status=null;
-  JsonNode node=null;
   try {
-    node=mapper.readTree(resource().path(context.getOrgName()).queryParam("access_token",mgmtToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).delete(String.class));
+    clientSetup.getRestClient().management().orgs().organization(clientSetup.getOrganizationName()).delete();
+    fail("Delete is not implemented yet");
   }
  catch (  UniformInterfaceException uie) {
-    status=uie.getResponse().getClientResponseStatus();
+    assertEquals(ClientResponse.Status.NOT_IMPLEMENTED,uie.getResponse().getStatus());
   }
-  assertEquals(ClientResponse.Status.NOT_IMPLEMENTED,status);
 }

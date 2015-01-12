@@ -1,19 +1,5 @@
 {
-  try {
-    if (!mappingsCreated.getAndSet(true)) {
-      createMappings();
-    }
-    final AdminClient admin=esProvider.getClient().admin();
-    final int numberOfShards=config.getNumberOfShards();
-    final int numberOfReplicas=config.getNumberOfReplicas();
-    Settings settings=ImmutableSettings.settingsBuilder().put("index.number_of_shards",numberOfShards).put("index.number_of_replicas",numberOfReplicas).build();
-    final CreateIndexResponse cir=admin.indices().prepareCreate(indexName).setSettings(settings).execute().actionGet();
-    logger.info("Created new Index Name [{}] ACK=[{}]",indexName,cir.isAcknowledged());
-    testNewIndex();
-  }
- catch (  IndexAlreadyExistsException expected) {
-  }
-catch (  IOException e) {
-    throw new RuntimeException("Unable to initialize index",e);
-  }
+  final int numberOfShards=config.getNumberOfShards();
+  final int numberOfReplicas=config.getNumberOfReplicas();
+  addIndex(null,numberOfShards,numberOfReplicas);
 }

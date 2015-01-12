@@ -1,18 +1,24 @@
 {
-  UUID id=UUIDUtils.newTimeUUID();
-  String groupPath="groupPath" + id;
-  Map<String,String> data=hashMap("type","group").map("path",groupPath);
-  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/groups").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,data));
+  String groupPath="groupPath";
+  Entity data=new Entity().chainPut("name",groupPath).chainPut("type","group").chainPut("path",groupPath);
+  Entity node=this.app().collection("groups").post(data);
   assertNull(node.get("error"));
-  refreshIndex("test-organization","test-app");
-  node=mapper.readTree(resource().path("/test-organization/test-app/groups/" + groupPath + "/users/"+ USER).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class));
+  refreshIndex();
+  node=this.app().collection("groups").entity(groupPath).collection("users").entity(USER).post();
   assertNull(node.get("error"));
-  refreshIndex("test-organization","test-app");
-  Map<String,Group> groups=client.getGroupsForUser(USER);
-  assertNotNull(groups.get(groupPath));
-  node=mapper.readTree(resource().path("/test-organization/test-app/groups/" + groupPath + "/users/"+ USER).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).delete(String.class));
-  assertNull(node.get("error"));
-  refreshIndex("test-organization","test-app");
-  groups=client.getGroupsForUser(USER);
-  assertNull(groups.get(groupPath));
+  refreshIndex();
+  Collection groups=this.app().collection("users").entity(USER).collection("groups").get();
+  assertEquals(groups.next().get("name"),groupPath);
+  ApiResponse response=this.app().collection("groups").entity(groupPath).collection("users").entity(USER).delete();
+  assertNull(response.getError());
+  refreshIndex();
+  int status=0;
+  try {
+    groups=this.app().collection("users").entity(USER).collection("groups").get();
+    assertFalse(groups.hasNext());
+  }
+ catch (  UniformInterfaceException e) {
+    status=e.getResponse().getStatus();
+    fail();
+  }
 }

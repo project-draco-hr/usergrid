@@ -1,0 +1,23 @@
+{
+  final int listenerSize=listeners.size();
+  if (listenerSize == 0) {
+    return;
+  }
+  if (listenerSize == 1) {
+    listeners.iterator().next().versionCreated(collectionScope,entity);
+    return;
+  }
+  logger.debug("Started firing {} listeners",listenerSize);
+  Observable.from(listeners).parallel(new Func1<Observable<EntityVersionCreated>,Observable<EntityVersionCreated>>(){
+    @Override public Observable<EntityVersionCreated> call(    final Observable<EntityVersionCreated> entityVersionCreatedObservable){
+      return entityVersionCreatedObservable.doOnNext(new Action1<EntityVersionCreated>(){
+        @Override public void call(        final EntityVersionCreated listener){
+          listener.versionCreated(collectionScope,entity);
+        }
+      }
+);
+    }
+  }
+,Schedulers.io()).toBlocking().last();
+  logger.debug("Finished firing {} listeners",listenerSize);
+}

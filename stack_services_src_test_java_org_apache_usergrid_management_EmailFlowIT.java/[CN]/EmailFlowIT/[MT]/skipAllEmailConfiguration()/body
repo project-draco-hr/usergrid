@@ -3,7 +3,10 @@
   setup.set(PROPERTIES_ORGANIZATIONS_REQUIRE_CONFIRMATION,"false");
   setup.set(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"false");
   setup.set(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"false");
-  OrganizationOwnerInfo ooi=setup.getMgmtSvc().createOwnerAndOrganization("org-skipallemailtest","user-skipallemailtest","name-skipallemailtest","nate+skipallemailtest@apigee.com","password");
+  final String orgName=uniqueOrg();
+  final String userName=uniqueUsername();
+  final String email=uniqueEmail();
+  OrganizationOwnerInfo ooi=setup.getMgmtSvc().createOwnerAndOrganization(orgName,userName,"Test User",email,"testpassword");
   EntityManager em=setup.getEmf().getEntityManager(setup.getEmf().getManagementAppId());
   User user=em.get(ooi.getOwner().getUuid(),User.class);
   assertTrue(user.activated());

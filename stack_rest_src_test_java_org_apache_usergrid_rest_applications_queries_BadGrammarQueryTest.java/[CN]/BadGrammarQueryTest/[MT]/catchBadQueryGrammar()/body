@@ -1,19 +1,18 @@
 {
-  CustomCollection things=context.customCollection("things");
-  Map actor=hashMap("displayName","Erin");
-  Map props=new HashMap();
+  Entity actor=new Entity();
+  actor.put("displayName","Erin");
+  Entity props=new Entity();
   props.put("actor",actor);
   props.put("content","bragh");
-  JsonNode activity=things.create(props);
-  refreshIndex(context.getOrgName(),context.getAppName());
+  this.app().collection("things").post(props);
+  refreshIndex();
   String query="select * where name != 'go'";
-  ClientResponse.Status status=null;
   try {
-    JsonNode incorrectNode=things.query(query,"limit",Integer.toString(10));
+    QueryParameters params=new QueryParameters().setQuery(query);
+    this.app().collection("things").get(params);
     fail("This should throw an exception");
   }
  catch (  UniformInterfaceException uie) {
-    status=uie.getResponse().getClientResponseStatus();
+    assertEquals(400,uie.getResponse().getStatus());
   }
-  assertEquals(400,status.getStatusCode());
 }

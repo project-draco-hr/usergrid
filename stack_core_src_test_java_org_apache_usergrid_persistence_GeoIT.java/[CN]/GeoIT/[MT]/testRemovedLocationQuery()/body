@@ -1,0 +1,30 @@
+{
+  EntityManager em=app.getEntityManager();
+  assertNotNull(em);
+  Map<String,Object> properties=new LinkedHashMap<String,Object>(){
+{
+      put("username","edanuff");
+      put("email","ed@anuff.com");
+      put("location",new LinkedHashMap<String,Object>(){
+{
+          put("latitude",37.776753);
+          put("longitude",-122.407846);
+        }
+      }
+);
+    }
+  }
+;
+  Entity user=em.create("user",properties);
+  assertNotNull(user);
+  em.refreshIndex();
+  Query query=Query.fromQL("select * where location within " + Integer.MAX_VALUE + " of 0, 0");
+  Results listResults=em.searchCollection(em.getApplicationRef(),"users",query);
+  assertEquals("1 result returned",1,listResults.size());
+  properties.remove("location");
+  em.updateProperties(user,properties);
+  em.refreshIndex();
+  listResults=em.searchCollection(em.getApplicationRef(),"users",query);
+  assertEquals(0,listResults.size());
+  em.delete(user);
+}

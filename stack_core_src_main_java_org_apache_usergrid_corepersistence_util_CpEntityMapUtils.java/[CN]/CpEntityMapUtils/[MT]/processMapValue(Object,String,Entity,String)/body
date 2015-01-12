@@ -1,7 +1,11 @@
 {
   if ("location".equals(fieldName.toString().toLowerCase())) {
-    Map<String,Object> m=(Map<String,Object>)value;
-    if (m.size() == 2) {
+    Map<String,Object> origMap=(Map<String,Object>)value;
+    Map<String,Object> m=new HashMap<String,Object>();
+    for (    String key : origMap.keySet()) {
+      m.put(key.toLowerCase(),origMap.get(key));
+    }
+    if (m.size() >= 2) {
       Double lat=null;
       Double lon=null;
       if (m.get("latitude") != null && m.get("longitude") != null) {
@@ -19,21 +23,21 @@
           lon=Double.parseDouble(m.get("lon").toString());
         }
  catch (        NumberFormatException ignored) {
-          throw new IllegalArgumentException("Latitude and longitude must be doubles (e.g. 32.1234).");
+          throw new IllegalArgumentException("" + "Latitude and longitude must be doubles (e.g. 32.1234).");
         }
       }
  else {
-        throw new IllegalArgumentException("Location properties require two fields - latitude and longitude, or lat and lon");
+        throw new IllegalArgumentException("Location properties require two fields - " + "latitude and longitude, or lat and lon");
       }
       if (lat != null && lon != null) {
         entity.setField(new LocationField(fieldName,new Location(lat,lon)));
       }
  else {
-        throw new IllegalArgumentException("Unable to parse location field properties - make sure they conform - lat and lon, and should be doubles.");
+        throw new IllegalArgumentException("Unable to parse location field properties " + "- make sure they conform - lat and lon, and should be doubles.");
       }
     }
  else {
-      throw new IllegalArgumentException("Location properties require two fields - latitude and longitude, or lat and lon.");
+      throw new IllegalArgumentException("Location properties requires two fields - " + "latitude and longitude, or lat and lon.");
     }
   }
  else {

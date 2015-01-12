@@ -1,0 +1,47 @@
+{
+  String groupName="testgroup";
+  String groupPath="testgroup";
+  Entity group=this.createGroup(groupName,groupPath);
+  String username="fred";
+  String email="fred@usergrid.com";
+  String password="password";
+  Entity user=this.createUser(username,email,password);
+  String roleName="tester";
+  String roleTitle="tester";
+  Entity role=this.createRole(roleName,roleTitle);
+  Entity payload=new Entity();
+  payload.put("permission","get,post:/cats/*");
+  Entity permission=this.app().collection("roles").uniqueID(roleName).connection("permissions").post(payload);
+  assertEquals(permission.get("data"),"get,post:/cats/*");
+  Entity addRoleResponse=this.app().collection("groups").entity(group).connection().collection("roles").entity(role).post();
+  assertEquals(addRoleResponse.get("name"),roleName);
+  Entity addUserResponse=this.app().collection("users").entity(user).connection().collection("groups").entity(group).post();
+  assertEquals(addUserResponse.get("name"),groupName);
+  this.app().collection("role").uniqueID("Default").delete();
+  this.getAppUserToken(username,password);
+  String catName="fluffy";
+  payload=new Entity();
+  payload.put("name",catName);
+  Entity fluffy=this.app().collection("cats").post(payload);
+  assertEquals(fluffy.get("name"),catName);
+  this.refreshIndex();
+  fluffy=this.app().collection("cats").uniqueID(catName).get();
+  assertEquals(fluffy.get("name"),catName);
+  fluffy.put("color","brown");
+  try {
+    this.app().collection("cats").uniqueID(catName).put(fluffy);
+    fail("permissions should not allow this");
+  }
+ catch (  UniformInterfaceException e) {
+    JsonNode node=mapper.readTree(e.getResponse().getEntity(String.class));
+    assertEquals("unauthorized",node.get("error").textValue());
+  }
+  try {
+    this.app().collection("cats").uniqueID(catName).delete();
+    fail("permissions should not allow this");
+  }
+ catch (  UniformInterfaceException e) {
+    JsonNode node=mapper.readTree(e.getResponse().getEntity(String.class));
+    assertEquals("unauthorized",node.get("error").textValue());
+  }
+}
