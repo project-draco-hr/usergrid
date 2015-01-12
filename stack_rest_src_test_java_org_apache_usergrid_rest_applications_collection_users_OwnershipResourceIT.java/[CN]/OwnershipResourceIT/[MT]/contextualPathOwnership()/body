@@ -1,50 +1,57 @@
 {
-  context.clearUser();
-  refreshIndex(context.getOrgName(),context.getAppName());
-  TestUser user1=new TestAppUser("testuser1@usergrid.org","password","testuser1@usergrid.org").create(context);
-  refreshIndex(context.getOrgName(),context.getAppName());
-  user1.login(context);
-  user1.makeActive(context);
-  refreshIndex(context.getOrgName(),context.getAppName());
-  context.application().users().user("me").devices().create(MapUtils.hashMap("name","device1").map("number","5551112222"));
-  context.clearUser();
-  refreshIndex(context.getOrgName(),context.getAppName());
-  TestUser user2=new TestAppUser("testuser2@usergrid.org","password","testuser2@usergrid.org").create(context);
-  refreshIndex(context.getOrgName(),context.getAppName());
-  user2.login(context);
-  user2.makeActive(context);
-  refreshIndex(context.getOrgName(),context.getAppName());
-  context.application().users().user("me").devices().create(MapUtils.hashMap("name","device2").map("number","5552223333"));
-  refreshIndex(context.getOrgName(),context.getAppName());
-  DevicesCollection devices=context.withUser(user1).application().users().user("me").devices();
-  JsonNode data=devices.device("device1").get();
+  this.app().token().clearToken();
+  this.app().token().post(new Token(user1.getUsername(),"password"));
+  usersResource.entity("me").collection("devices").post(new Entity().chainPut("name","device1").chainPut("number","5551112222"));
+  refreshIndex();
+  this.app().token().clearToken();
+  Token token=this.app().token().post(new Token(user2.getUsername(),"password"));
+  usersResource.entity("me").collection("devices").post(new Entity().chainPut("name","device2").chainPut("number","5552223333"));
+  refreshIndex();
+  token=this.app().token().post(new Token(user1.getUsername(),"password"));
+  CollectionEndpoint devices=usersResource.entity(user1).collection("devices");
+  Entity data=devices.entity("device1").get();
   assertNotNull(data);
-  assertEquals("device1",getEntity(data,0).get("name").asText());
-  data=devices.device("device2").get();
-  assertNull(data);
-  data=devices.get();
-  assertEquals("device1",getEntity(data,0).get("name").asText());
-  assertNull(getEntity(data,1));
-  devices=context.withUser(user2).application().users().user("me").devices();
-  data=devices.device("device2").get();
+  assertEquals("device1",data.get("name").toString());
+  int status=0;
+  try {
+    data=devices.entity("device2").get();
+  }
+ catch (  UniformInterfaceException e) {
+    status=e.getResponse().getStatus();
+  }
+  assertEquals(status,404);
+  Collection devicesData=devices.get();
+  assertEquals("device1",devicesData.next().get("name").toString());
+  assertTrue(!devicesData.hasNext());
+  token=this.app().token().post(new Token(user2.getUsername(),"password"));
+  devices=usersResource.entity("me").collection("devices");
+  data=devices.entity("device2").get();
   assertNotNull(data);
-  assertEquals("device2",getEntity(data,0).get("name").asText());
-  data=devices.device("device1").get();
-  assertNull(data);
-  data=devices.get();
-  assertEquals("device2",getEntity(data,0).get("name").asText());
-  assertNull(getEntity(data,1));
-  devices=context.withUser(user1).application().devices();
-  data=devices.device("device1").get();
+  assertEquals("device2",data.get("name").toString());
+  status=0;
+  try {
+    data=devices.entity("device1").get();
+  }
+ catch (  UniformInterfaceException e) {
+    status=e.getResponse().getStatus();
+  }
+  assertEquals(status,404);
+  devicesData=devices.get();
+  assertEquals("device2",devicesData.next().get("name").toString());
+  assertTrue(!devicesData.hasNext());
+  devices=this.app().collection("devices");
+  token=this.app().token().post(new Token(user1.getUsername(),"password"));
+  data=devices.entity("device1").get();
   assertNotNull(data);
-  assertEquals("device1",getEntity(data,0).get("name").asText());
-  data=devices.device("device2").get();
+  assertEquals("device1",data.get("name").toString());
+  data=devices.entity("device2").get();
   assertNotNull(data);
-  assertEquals("device2",getEntity(data,0).get("name").asText());
-  data=context.withUser(user2).application().devices().device("device1").get();
+  assertEquals("device2",data.get("name").toString());
+  token=this.app().token().post(new Token(user2.getUsername(),"password"));
+  data=devices.entity("device1").get();
   assertNotNull(data);
-  assertEquals("device1",getEntity(data,0).get("name").asText());
-  data=devices.device("device2").get();
+  assertEquals("device1",data.get("name").toString());
+  data=devices.entity("device2").get();
   assertNotNull(data);
-  assertEquals("device2",getEntity(data,0).get("name").asText());
+  assertEquals("device2",data.get("name").toString());
 }
