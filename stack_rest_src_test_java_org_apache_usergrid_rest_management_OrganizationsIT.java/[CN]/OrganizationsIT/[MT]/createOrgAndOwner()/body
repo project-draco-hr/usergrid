@@ -1,19 +1,14 @@
 {
-  String username="createOrgAndOwner" + UUIDUtils.newTimeUUID();
-  String name=username;
-  String password="password";
-  String orgName=username;
-  String email=username + "@usergrid.com";
   Map<String,Object> userProperties=new HashMap<String,Object>();
   userProperties.put("company","Apigee");
-  Organization organization=new Organization(orgName,username,email,name,password,userProperties);
+  Organization organization=createOrgPayload("createOrgAndOwner",userProperties);
   Organization organizationResponse=clientSetup.getRestClient().management().orgs().post(organization);
   assertNotNull(organizationResponse);
-  Token token=clientSetup.getRestClient().management().token().post(new Token("password",username,password));
+  Token token=clientSetup.getRestClient().management().token().post(new Token("password",organization.getUsername(),organization.getPassword()));
   assertNotNull(token);
-  assertNotNull(clientSetup.getRestClient().getContext().getToken());
-  Organization returnedOrg=clientSetup.getRestClient().management().orgs().organization(orgName).get();
-  assertTrue(returnedOrg != null && returnedOrg.getName().equals(orgName));
+  Organization returnedOrg=clientSetup.getRestClient().management().orgs().organization(organization.getOrganization()).get();
+  assertTrue(returnedOrg != null && returnedOrg.getName().equals(organization.getOrganization()));
   User returnedUser=returnedOrg.getOwner();
+  assertNotNull(returnedUser);
   assertEquals("Apigee",returnedUser.getProperties().get("company"));
 }

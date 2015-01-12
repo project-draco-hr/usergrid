@@ -1,22 +1,20 @@
 {
-  String username="testCreateDuplicateOrgName" + UUIDUtils.newTimeUUID();
-  String name=username;
-  String password="password";
-  String orgName=username;
-  String email=username + "@usergrid.com";
-  Organization orgPayload=new Organization(orgName,username,email,name,password,null);
-  Organization orgCreatedResponse=clientSetup.getRestClient().management().orgs().post(orgPayload);
+  Organization organization=createOrgPayload("testCreateDuplicateOrgName",null);
+  Organization orgCreatedResponse=clientSetup.getRestClient().management().orgs().post(organization);
+  this.refreshIndex();
   assertNotNull(orgCreatedResponse);
-  Organization orgTestDuplicatePayload=new Organization(orgName,username + "test",email + "test",name + "test",password,null);
-  Organization orgTestDuplicateResponse=null;
+  Token tokenPayload=new Token("password",organization.getUsername(),organization.getPassword());
+  Token tokenReturned=clientSetup.getRestClient().management().token().post(tokenPayload);
+  assertNotNull(tokenReturned);
+  Organization orgTestDuplicatePayload=new Organization(organization.getOrganization(),organization.getUsername() + "test",organization.getEmail() + "test",organization.getName() + "test",organization.getPassword(),null);
   try {
-    orgTestDuplicateResponse=clientSetup.getRestClient().management().orgs().post(orgTestDuplicatePayload);
+    clientSetup.getRestClient().management().orgs().post(orgTestDuplicatePayload);
     fail("Should not have been able to create duplicate organization");
   }
  catch (  UniformInterfaceException ex) {
     errorParse(400,duplicateUniquePropertyExistsErrorMessage,ex);
   }
-  Token tokenPayload=new Token("password",username + "test",password);
+  tokenPayload=new Token("password",organization.getName() + "test",organization.getPassword());
   Token tokenError=null;
   try {
     tokenError=clientSetup.getRestClient().management().token().post(tokenPayload);
@@ -26,7 +24,4 @@
     errorParse(400,invalidGrantErrorMessage,ex);
   }
   assertNull(tokenError);
-  tokenPayload=new Token("password",username,password);
-  Token tokenReturned=clientSetup.getRestClient().management().token().post(tokenPayload);
-  assertNotNull(tokenReturned);
 }
