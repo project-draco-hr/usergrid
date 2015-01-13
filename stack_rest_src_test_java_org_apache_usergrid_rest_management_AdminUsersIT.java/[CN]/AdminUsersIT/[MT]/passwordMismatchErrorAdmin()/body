@@ -1,0 +1,17 @@
+{
+  String username=clientSetup.getUsername();
+  String password=clientSetup.getPassword();
+  Map<String,Object> passwordPayload=new HashMap<String,Object>();
+  passwordPayload.put("newpassword","testPassword");
+  passwordPayload.put("oldpassword",password);
+  management.users().user(username).password().post(passwordPayload);
+  this.refreshIndex();
+  management.token().post(new Token(username,"testPassword"));
+  try {
+    management.users().user(username).password().post(passwordPayload);
+    fail("We shouldn't be able to change the password with the same payload");
+  }
+ catch (  UniformInterfaceException uie) {
+    errorParse(ClientResponse.Status.BAD_REQUEST.getStatusCode(),"auth_invalid_username_or_password",uie);
+  }
+}
