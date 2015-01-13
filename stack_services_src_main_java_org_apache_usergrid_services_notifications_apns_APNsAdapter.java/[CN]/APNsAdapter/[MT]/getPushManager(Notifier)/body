@@ -1,8 +1,20 @@
 {
-  PushManager<SimpleApnsPushNotification> pushManager=apnsServiceMap.get(notifier);
-  if (pushManager != null && !pushManager.isStarted() && pushManager.isShutDown()) {
-    apnsServiceMap.invalidate(notifier);
-    pushManager=apnsServiceMap.get(notifier);
+  if (pushManager == null || !pushManager.isStarted() || pushManager.isShutDown()) {
+    PushManagerConfiguration config=new PushManagerConfiguration();
+    config.setConcurrentConnectionCount(Runtime.getRuntime().availableProcessors() * 2);
+    queue=new ArrayBlockingQueue<>(10000);
+    pushManager=new EntityPushManager(notifier,entityManager,queue,config);
+    pushManager.registerRejectedNotificationListener(new RejectedAPNsListener());
+    pushManager.registerFailedConnectionListener(new FailedConnectionListener());
+    pushManager.registerExpiredTokenListener(new ExpiredTokenListener());
+    try {
+      if (!pushManager.isStarted()) {
+        pushManager.start();
+      }
+    }
+ catch (    IllegalStateException ise) {
+      logger.debug("failed to start",ise);
+    }
   }
   return pushManager;
 }

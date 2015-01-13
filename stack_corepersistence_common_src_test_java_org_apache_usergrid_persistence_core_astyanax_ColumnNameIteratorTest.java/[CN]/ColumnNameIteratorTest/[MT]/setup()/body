@@ -6,9 +6,12 @@
     @Override public ConsistencyLevel getWriteCL(){
       return ConsistencyLevel.CL_QUORUM;
     }
+    @Override public int[] getShardSettings(){
+      return new int[]{20};
+    }
   }
 ;
-  AstyanaxKeyspaceProvider astyanaxKeyspaceProvider=new AstyanaxKeyspaceProvider(rule.getCassandraFig(),cassandraConfig);
+  AstyanaxKeyspaceProvider astyanaxKeyspaceProvider=new AstyanaxKeyspaceProvider(cassandraFig,cassandraConfig);
   keyspace=astyanaxKeyspaceProvider.get();
   TestUtils.createKeyspace(keyspace);
   TestUtils.createColumnFamiliy(keyspace,COLUMN_FAMILY,new HashMap<String,Object>());

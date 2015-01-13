@@ -1,23 +1,31 @@
 {
-  CustomCollection activities=context.collection("activities");
   long created=0;
-  Map actor=hashMap("displayName","Erin");
-  Map props=new HashMap();
+  Entity actor=new Entity();
+  actor.put("displayName","Erin");
+  Entity props=new Entity();
   props.put("actor",actor);
   props.put("verb","go");
   props.put("content","bragh");
   for (int i=0; i < 20; i++) {
     props.put("ordinal",i);
-    JsonNode activity=activities.create(props);
+    Entity activity=this.app().collection("activity").post(props);
+    log.info("Created",activity.get("created").toString());
     if (i == 5) {
-      created=activity.findValue("created").longValue();
+      created=Long.parseLong(activity.get("created").toString());
     }
   }
-  refreshIndex(context.getOrgName(),context.getAppName());
+  refreshIndex();
   String query="select * where created > " + created;
-  JsonNode node=activities.withQuery(query).get();
-  assertEquals(10,node.get("entities").size());
+  QueryParameters params=new QueryParameters().setQuery(query);
+  Collection activitiesWithoutOrderBy=this.app().collection("activities").get(params);
+  assertEquals(10,activitiesWithoutOrderBy.getResponse().getEntityCount());
   query=query + " order by created desc";
-  node=activities.withQuery(query).get();
-  assertEquals(10,node.get("entities").size());
+  params.setQuery(query);
+  Collection activitiesWithOrderBy=this.app().collection("activities").get(params);
+  assertEquals(10,activitiesWithOrderBy.getResponse().getEntityCount());
+  while (activitiesWithoutOrderBy.hasNext() && activitiesWithOrderBy.hasNext()) {
+    Entity activityWithoutOrderBy=activitiesWithoutOrderBy.next();
+    Entity activityWithOrderBy=activitiesWithOrderBy.next();
+    assertEquals(activityWithoutOrderBy.get("uuid").toString(),activityWithOrderBy.get("uuid").toString());
+  }
 }

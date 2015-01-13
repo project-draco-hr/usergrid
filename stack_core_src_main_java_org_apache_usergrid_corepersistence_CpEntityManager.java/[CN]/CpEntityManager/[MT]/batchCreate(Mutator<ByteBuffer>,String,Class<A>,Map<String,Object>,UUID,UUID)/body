@@ -91,7 +91,7 @@
     return entity;
   }
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=entityToCpEntity(entity,importId);
-  CollectionScope collectionScope=new CollectionScopeImpl(applicationScope.getApplication(),applicationScope.getApplication(),CpNamingUtils.getCollectionScopeNameFromEntityType(eType));
+  CollectionScope collectionScope=getCollectionScopeNameFromEntityType(applicationScope.getApplication(),eType);
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   if (logger.isDebugEnabled()) {
     logger.debug("Writing entity {}:{} into scope\n   app {}\n   owner {}\n   name {} data {}",new Object[]{entity.getType(),entity.getUuid(),collectionScope.getApplication(),collectionScope.getOwner(),collectionScope.getName(),CpEntityMapUtils.toMap(cpEntity)});
@@ -100,6 +100,7 @@
     logger.debug("About to Write {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
     cpEntity=ecm.write(cpEntity).toBlocking().last();
     logger.debug("Wrote {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
+    entityCache.put(new EntityScope(collectionScope,cpEntity.getId()),cpEntity);
   }
  catch (  WriteUniqueVerifyException wuve) {
     handleWriteUniqueVerifyException(entity,wuve);
@@ -115,7 +116,8 @@ catch (  HystrixRuntimeException hre) {
   entity.addProperties(entityMap);
   if (!is_application) {
     String collectionName=Schema.defaultCollectionName(eType);
-    getRelationManager(getApplication()).addToCollection(collectionName,entity);
+    CpRelationManager cpr=(CpRelationManager)getRelationManager(getApplication());
+    cpr.addToCollection(collectionName,entity,cpEntity,false);
     incrementEntityCollection(collectionName,timestamp);
   }
   MapManager mm=getMapManagerForTypes();

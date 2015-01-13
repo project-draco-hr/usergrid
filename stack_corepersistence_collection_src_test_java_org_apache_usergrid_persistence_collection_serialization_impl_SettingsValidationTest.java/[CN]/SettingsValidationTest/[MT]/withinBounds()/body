@@ -1,0 +1,11 @@
+{
+  CassandraFig cassandraFig=mock(CassandraFig.class);
+  final int thriftSize=15728640;
+  final int usableThriftSize=(int)(thriftSize * .9);
+  when(cassandraFig.getThriftBufferSize()).thenReturn(thriftSize);
+  SerializationFig serializationFig=mock(SerializationFig.class);
+  when(serializationFig.getMaxEntitySize()).thenReturn(usableThriftSize);
+  new SettingsValidation(cassandraFig,serializationFig);
+  when(serializationFig.getMaxEntitySize()).thenReturn(usableThriftSize - 1);
+  new SettingsValidation(cassandraFig,serializationFig);
+}

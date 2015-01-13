@@ -1,5 +1,6 @@
 {
   EntityManager em=app.getEntityManager();
+  em.refreshIndex();
   Query q=Query.fromQL("select * where key1=1000");
   q.setLimit(40);
   Results results=em.searchCollection(em.getApplicationRef(),collectionName,q);
@@ -7,7 +8,7 @@
   while (true) {
     for (    Entity e : results.getEntities()) {
       assertEquals(2000,e.getProperty("key2"));
-      Results catResults=em.searchConnectedEntities(e,Query.fromQL("select *"));
+      Results catResults=em.searchConnectedEntities(e,Query.fromQL("select *").setConnectionType("herds"));
       assertEquals(3,catResults.size());
       if (count % 100 == 0) {
         logger.info("read {} entities",count);

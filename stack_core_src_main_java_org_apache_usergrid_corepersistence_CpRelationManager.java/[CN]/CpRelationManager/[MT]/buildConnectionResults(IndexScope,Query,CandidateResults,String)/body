@@ -1,0 +1,13 @@
+{
+  if (query.getLevel().equals(Level.ALL_PROPERTIES)) {
+    return buildResults(indexScope,query,crs,connectionType);
+  }
+  final EntityRef sourceRef=new SimpleEntityRef(headEntity.getType(),headEntity.getUuid());
+  List<ConnectionRef> refs=new ArrayList<ConnectionRef>(crs.size());
+  for (  CandidateResult cr : crs) {
+    SimpleEntityRef targetRef=new SimpleEntityRef(cr.getId().getType(),cr.getId().getUuid());
+    final ConnectionRef ref=new ConnectionRefImpl(sourceRef,connectionType,targetRef);
+    refs.add(ref);
+  }
+  return Results.fromConnections(refs);
+}

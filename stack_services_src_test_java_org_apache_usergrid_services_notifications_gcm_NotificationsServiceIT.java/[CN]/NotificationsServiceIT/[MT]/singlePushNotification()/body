@@ -1,10 +1,4 @@
 {
-  Query pQuery=new Query();
-  pQuery.setLimit(100);
-  pQuery.setCollection("devices");
-  pQuery.setResultsLevel(Query.Level.ALL_PROPERTIES);
-  pQuery.addIdentifier(new ServiceParameter.NameParameter(device1.getUuid().toString()).getIdentifier());
-  ns.TEST_PATH_QUERY=new PathQuery(new SimpleEntityRef(app.getEm().getApplicationRef()),pQuery);
   app.clear();
   String payload="Hello, World!";
   Map<String,String> payloads=new HashMap<String,String>(1);
@@ -12,10 +6,10 @@
   app.put("payloads",payloads);
   app.put("queued",System.currentTimeMillis());
   app.put("debug",true);
-  Entity e=app.testRequest(ServiceAction.POST,1,"notifications").getEntity();
+  Entity e=app.testRequest(ServiceAction.POST,1,"devices",device1.getUuid(),"notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
-  Notification notification=app.getEm().get(e.getUuid(),Notification.class);
+  Notification notification=app.getEntityManager().get(e.getUuid(),Notification.class);
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
   notification=scheduleNotificationAndWait(notification);
-  checkReceipts(notification,1);
+  checkReceipts(notification,2);
 }

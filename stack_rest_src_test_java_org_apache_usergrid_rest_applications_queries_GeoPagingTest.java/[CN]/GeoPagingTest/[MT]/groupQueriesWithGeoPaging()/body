@@ -1,25 +1,38 @@
 {
-  CustomCollection groups=context.application().collection("test1groups");
   int maxRangeLimit=2000;
   long[] index=new long[maxRangeLimit];
-  Map actor=hashMap("displayName","Erin");
-  Map props=new HashMap();
+  Double lat=37.0;
+  Double lon=-75.0;
+  Entity actor=new Entity();
+  actor.put("displayName","Erin");
+  actor.put("location",new MapUtils.HashMapBuilder<String,Double>().map("latitude",lat).map("longitude",lon));
+  Entity props=new Entity();
   props.put("actor",actor);
-  Map location=hashMap("latitude",37);
-  location.put("longitude",-75);
-  props.put("location",location);
   props.put("verb","go");
   props.put("content","bragh");
   for (int i=0; i < 5; i++) {
     String newPath=String.format("/kero" + i);
     props.put("path",newPath);
     props.put("ordinal",i);
-    JsonNode activity=groups.create(props);
-    index[i]=activity.findValue("created").longValue();
+    Entity activity=this.app().collection("groups").post(props);
+    activity=this.app().collection("groups").entity(activity).get();
+    index[i]=(Long)activity.get("created");
+    log.debug("Activity {} created at {}",i,index[i]);
   }
-  refreshIndex(context.getOrgName(),context.getAppName());
-  String query="select * where location within 20000 of 37,-75 " + " and created > " + index[2] + " and created < "+ index[4]+ "";
-  JsonNode node=groups.withQuery(query).get();
-  assertEquals(1,node.get("entities").size());
-  assertEquals(index[3],node.get("entities").get(0).get("created").longValue());
+  this.refreshIndex();
+  String query="select * where location within 20000 of 37.0,-75.0 " + " and created > " + (index[0]) + " and created < "+ (index[2])+ " order by created";
+  QueryParameters params=new QueryParameters();
+  params.setQuery(query);
+  Collection collection=this.app().collection("groups").get(params);
+  assertEquals("Query should have returned 1 entity",1,collection.getResponse().getEntityCount());
+  Entity entity=collection.next();
+  assertNotNull("Query should have returned 1 entity",entity);
+  assertEquals(index[1],Long.parseLong(entity.get("created").toString()));
+  assertFalse("Query should have returned only 1 entity",collection.hasNext());
+  try {
+    entity=collection.next();
+    fail("Query should have returned only 1 entity");
+  }
+ catch (  NoSuchElementException nse) {
+  }
 }

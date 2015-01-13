@@ -1,10 +1,19 @@
 {
+  Preconditions.checkNotNull(emf,"emf must not be null");
+  Preconditions.checkNotNull(applicationId,"applicationId must not be null");
   this.emf=(CpEntityManagerFactory)emf;
   this.managerCache=this.emf.getManagerCache();
   this.applicationId=applicationId;
-  applicationScope=this.emf.getApplicationScope(applicationId);
+  applicationScope=CpNamingUtils.getApplicationScope(applicationId);
   this.cass=this.emf.cass;
   this.counterUtils=this.emf.counterUtils;
   this.skipAggregateCounters=false;
-  applicationScope=this.emf.getApplicationScope(applicationId);
+  int entityCacheSize=Integer.parseInt(cass.getProperties().getProperty("usergrid.entity_cache_size","100"));
+  int entityCacheTimeout=Integer.parseInt(cass.getProperties().getProperty("usergrid.entity_cache_timeout_ms","500"));
+  this.entityCache=CacheBuilder.newBuilder().maximumSize(entityCacheSize).expireAfterWrite(entityCacheTimeout,TimeUnit.MILLISECONDS).build(new CacheLoader<EntityScope,org.apache.usergrid.persistence.model.entity.Entity>(){
+    public org.apache.usergrid.persistence.model.entity.Entity load(    EntityScope es){
+      return managerCache.getEntityCollectionManager(es.scope).load(es.entityId).toBlocking().lastOrDefault(null);
+    }
+  }
+);
 }

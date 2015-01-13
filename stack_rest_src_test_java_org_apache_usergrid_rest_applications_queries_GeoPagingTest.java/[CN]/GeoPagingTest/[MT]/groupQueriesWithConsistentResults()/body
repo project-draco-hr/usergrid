@@ -1,31 +1,31 @@
 {
-  CustomCollection groups=context.application().collection("test2groups");
   int maxRangeLimit=20;
-  JsonNode[] saved=new JsonNode[maxRangeLimit];
-  Map<String,String> actor=hashMap("displayName","Erin");
-  Map<String,Object> props=new HashMap<String,Object>();
+  Entity[] saved=new Entity[maxRangeLimit];
+  Entity actor=new Entity();
+  actor.put("displayName","Erin");
+  actor.put("location",new MapUtils.HashMapBuilder<String,Double>().map("latitude",37.0).map("longitude",-75.0));
+  Entity props=new Entity();
   props.put("actor",actor);
-  Map<String,Integer> location=hashMap("latitude",37);
-  location.put("longitude",-75);
-  props.put("location",location);
   props.put("verb","go");
   props.put("content","bragh");
   for (int i=0; i < 20; i++) {
     String newPath=String.format("/kero" + i);
     props.put("path",newPath);
     props.put("ordinal",i);
-    JsonNode activity=groups.create(props).get("entities").get(0);
-    saved[i]=activity;
+    saved[i]=this.app().collection("groups").post(props);
   }
-  refreshIndex(context.getOrgName(),context.getAppName());
-  JsonNode node=null;
+  this.refreshIndex();
+  QueryParameters params=new QueryParameters();
   for (int consistent=0; consistent < 20; consistent++) {
-    String query=String.format("select * where location within 100 of 37, -75 and ordinal >= %d and ordinal < %d",saved[7].get("ordinal").asLong(),saved[10].get("ordinal").asLong());
-    node=groups.withQuery(query).get();
-    JsonNode entities=node.get("entities");
-    assertEquals(3,entities.size());
+    String query=String.format("select * where location within 100 of 37, -75 and ordinal >= %d and ordinal < %d",saved[7].get("ordinal"),saved[10].get("ordinal"));
+    params.setQuery(query);
+    Collection collection=this.app().collection("groups").get(params);
+    assertEquals(3,collection.getResponse().getEntityCount());
+    List entities=collection.getResponse().getEntities();
     for (int i=0; i < 3; i++) {
-      assertEquals(saved[7 + i],entities.get(i));
+      LinkedHashMap<String,Object> entity=(LinkedHashMap<String,Object>)entities.get(i);
+      Entity savedEntity=saved[7 + i];
+      assertEquals(savedEntity.get("uuid"),entity.get("uuid"));
     }
   }
 }

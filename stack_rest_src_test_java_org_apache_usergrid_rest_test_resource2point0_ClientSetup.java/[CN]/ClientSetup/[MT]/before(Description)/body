@@ -1,0 +1,11 @@
+{
+  String testClass=description.getTestClass().getName();
+  String methodName=description.getMethodName();
+  String name=testClass + "." + methodName;
+  username="user_" + name + UUIDUtils.newTimeUUID();
+  orgName="org_" + name + UUIDUtils.newTimeUUID();
+  appName="app_" + name + UUIDUtils.newTimeUUID();
+  organization=restClient.management().orgs().post(new Organization(orgName,username,username + "@usergrid.com",username,username,null));
+  restClient.management().token().post(new Token(username,username));
+  restClient.management().orgs().organization(organization.getName()).app().post(new Application(appName));
+}

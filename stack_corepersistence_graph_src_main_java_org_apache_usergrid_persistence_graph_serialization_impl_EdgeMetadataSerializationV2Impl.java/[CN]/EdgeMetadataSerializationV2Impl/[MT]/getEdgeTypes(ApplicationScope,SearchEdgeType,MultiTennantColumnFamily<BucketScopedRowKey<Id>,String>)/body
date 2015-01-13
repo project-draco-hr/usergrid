@@ -1,0 +1,10 @@
+{
+  ValidationUtils.validateApplicationScope(scope);
+  GraphValidation.validateSearchEdgeType(search);
+  final Id applicationId=scope.getApplication();
+  final Id searchNode=search.getNode();
+  final int[] bucketIds=idExpandingShardLocator.getAllBuckets(searchNode);
+  final List<BucketScopedRowKey<Id>> buckets=BucketScopedRowKey.fromRange(applicationId,searchNode,bucketIds);
+  final ColumnSearch<String> columnSearch=createSearch(search);
+  return new MultiRowColumnIterator(keyspace,cf,cassandraConfig.getReadCL(),PARSER,columnSearch,STRING_COMPARATOR,buckets,graphFig.getScanPageSize());
+}

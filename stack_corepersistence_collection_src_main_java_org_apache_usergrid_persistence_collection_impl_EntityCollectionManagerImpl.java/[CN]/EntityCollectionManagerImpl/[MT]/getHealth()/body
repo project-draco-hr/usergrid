@@ -1,0 +1,13 @@
+{
+  try {
+    ColumnFamily<String,String> CF_SYSTEM_LOCAL=new ColumnFamily<String,String>("system.local",StringSerializer.get(),StringSerializer.get(),StringSerializer.get());
+    OperationResult<CqlResult<String,String>> result=keyspace.prepareQuery(CF_SYSTEM_LOCAL).withCql("SELECT now() FROM system.local;").execute();
+    if (result.getResult().getRows().size() == 1) {
+      return Health.GREEN;
+    }
+  }
+ catch (  ConnectionException ex) {
+    logger.error("Error connecting to Cassandra",ex);
+  }
+  return Health.RED;
+}

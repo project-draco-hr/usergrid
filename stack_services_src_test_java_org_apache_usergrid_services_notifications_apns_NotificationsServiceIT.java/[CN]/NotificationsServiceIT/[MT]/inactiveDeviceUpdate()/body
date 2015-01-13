@@ -1,11 +1,5 @@
 {
   if (!USE_REAL_CONNECTIONS) {
-    ns.providerAdapters.put("apple",new MockSuccessfulProviderAdapter(){
-      @Override public Map<String,Date> getInactiveDevices(      Notifier notifier,      EntityManager em) throws Exception {
-        return Collections.singletonMap(PUSH_TOKEN,new Date());
-      }
-    }
-);
   }
   app.clear();
   String payload=getPayload();
@@ -14,15 +8,15 @@
   app.put("payloads",payloads);
   app.put("queued",System.currentTimeMillis());
   app.put("debug",true);
-  Entity e=app.testRequest(ServiceAction.POST,1,"notifications").getEntity();
+  Entity e=app.testRequest(ServiceAction.POST,1,"devices",device1.getUuid(),"notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
-  Notification notification=app.getEm().get(e.getUuid(),Notification.class);
+  Notification notification=app.getEntityManager().get(e.getUuid(),Notification.class);
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
   assertNotNull(device1.getProperty(notifier.getName() + NOTIFIER_ID_POSTFIX));
   assertNotNull(device2.getProperty(notifier.getName() + NOTIFIER_ID_POSTFIX));
   scheduleNotificationAndWait(notification);
-  device1=app.getEm().get(device1,Device.class);
+  device1=app.getEntityManager().get(device1,Device.class);
   assertNull(device1.getProperty(notifier.getName() + NOTIFIER_ID_POSTFIX));
-  device2=app.getEm().get(device2,Device.class);
+  device2=app.getEntityManager().get(device2,Device.class);
   assertNull(device2.getProperty(notifier.getName() + NOTIFIER_ID_POSTFIX));
 }

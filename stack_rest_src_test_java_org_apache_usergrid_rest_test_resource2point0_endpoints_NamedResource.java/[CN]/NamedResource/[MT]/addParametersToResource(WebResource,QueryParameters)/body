@@ -1,0 +1,28 @@
+{
+  if (parameters == null) {
+    return resource;
+  }
+  if (parameters.getQuery() != null) {
+    resource=resource.queryParam("ql",parameters.getQuery());
+  }
+  if (parameters.getCursor() != null) {
+    resource=resource.queryParam("cursor",parameters.getCursor());
+  }
+  if (parameters.getStart() != null) {
+    resource=resource.queryParam("start",parameters.getStart().toString());
+  }
+  if (parameters.getLimit() != null) {
+    resource=resource.queryParam("limit",parameters.getLimit().toString());
+  }
+  if (parameters.getFormPostData().size() > 0) {
+    Map<String,String> formData=parameters.getFormPostData();
+    Set<String> keySet=formData.keySet();
+    Iterator<String> keyIterator=keySet.iterator();
+    while (keyIterator.hasNext()) {
+      String key=keyIterator.next();
+      String value=formData.get(key);
+      resource=resource.queryParam(key,value);
+    }
+  }
+  return resource;
+}

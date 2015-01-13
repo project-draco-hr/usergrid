@@ -3,11 +3,12 @@
   EntityCollectionManager ecm=ecmf.createCollectionManager(new CollectionScopeImpl(scope.getApplication(),indexScope.getOwner(),indexScope.getName()));
   Query query=Query.fromQL("review_score > 0");
   query.withLimit(maxEntities < 1000 ? maxEntities : 1000);
-  CandidateResults candidateResults=eci.search(indexScope,query);
+  final SearchTypes searchType=SearchTypes.fromTypes("review");
+  CandidateResults candidateResults=eci.search(indexScope,searchType,query);
   int count=candidateResults.size();
   while (candidateResults.hasCursor() && count < maxEntities) {
     query.setCursor(candidateResults.getCursor());
-    candidateResults=eci.search(indexScope,query);
+    candidateResults=eci.search(indexScope,searchType,query);
     count+=candidateResults.size();
     EntityResults entityResults=new EntityResults(candidateResults,ecm,UUIDGenerator.newTimeUUID());
     while (entityResults.hasNext()) {

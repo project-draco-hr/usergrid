@@ -3,10 +3,8 @@
     return null;
   }
   Id id=new SimpleId(entityRef.getUuid(),entityRef.getType());
-  String collectionName=CpNamingUtils.getCollectionScopeNameFromEntityType(entityRef.getType());
-  CollectionScope collectionScope=new CollectionScopeImpl(getApplicationScope().getApplication(),getApplicationScope().getApplication(),collectionName);
-  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
-  org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(id).toBlockingObservable().last();
+  CollectionScope collectionScope=getCollectionScopeNameFromEntityType(applicationScope.getApplication(),entityRef.getType());
+  org.apache.usergrid.persistence.model.entity.Entity cpEntity=load(new EntityScope(collectionScope,id));
   if (cpEntity == null) {
     if (logger.isDebugEnabled()) {
       logger.debug("FAILED to load entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{id.getType(),id.getUuid(),collectionScope.getApplication(),collectionScope.getOwner(),collectionScope.getName()});

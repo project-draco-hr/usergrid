@@ -1,20 +1,5 @@
 {
-  try {
-    if (!mappingsCreated.getAndSet(true)) {
-      createMappings();
-    }
-    AdminClient admin=client.admin();
-    CreateIndexResponse cir=admin.indices().prepareCreate(indexName).execute().actionGet();
-    log.debug("Created new Index Name [{}] ACK=[{}]",indexName,cir.isAcknowledged());
-    RefreshResponse response;
-    do {
-      response=admin.indices().prepareRefresh(indexName).execute().actionGet();
-    }
- while (response.getFailedShards() != 0);
-  }
- catch (  IndexAlreadyExistsException expected) {
-  }
-catch (  IOException e) {
-    throw new RuntimeException("Unable to initialize index",e);
-  }
+  final int numberOfShards=config.getNumberOfShards();
+  final int numberOfReplicas=config.getNumberOfReplicas();
+  addIndex(null,numberOfShards,numberOfReplicas);
 }

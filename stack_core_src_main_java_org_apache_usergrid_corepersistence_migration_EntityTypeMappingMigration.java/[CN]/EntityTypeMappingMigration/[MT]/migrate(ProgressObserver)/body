@@ -1,0 +1,18 @@
+{
+  final AtomicLong atomicLong=new AtomicLong();
+  AllEntitiesInSystemObservable.getAllEntitiesInSystem(managerCache,1000).doOnNext(new Action1<AllEntitiesInSystemObservable.ApplicationEntityGroup>(){
+    @Override public void call(    final AllEntitiesInSystemObservable.ApplicationEntityGroup applicationEntityGroup){
+      final MapScope ms=CpNamingUtils.getEntityTypeMapScope(applicationEntityGroup.applicationScope.getApplication());
+      final MapManager mapManager=managerCache.getMapManager(ms);
+      for (      Id entityId : applicationEntityGroup.entityIds) {
+        final UUID entityUuid=entityId.getUuid();
+        final String entityType=entityId.getType();
+        mapManager.putString(entityUuid.toString(),entityType);
+        if (atomicLong.incrementAndGet() % 100 == 0) {
+          updateStatus(atomicLong,observer);
+        }
+      }
+    }
+  }
+).toBlocking().lastOrDefault(null);
+}

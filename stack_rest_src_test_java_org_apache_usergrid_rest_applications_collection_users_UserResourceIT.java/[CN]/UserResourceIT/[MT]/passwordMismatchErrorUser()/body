@@ -1,17 +1,14 @@
 {
+  usersResource.post(new User("edanuff","edanuff","edanuff@email.com","sesame"));
   String origPassword="foo";
   String newPassword="bar";
-  Map<String,String> data=new HashMap<String,String>();
-  data.put("newpassword",origPassword);
-  data.put("oldpassword",origPassword);
-  data.put("newpassword",newPassword);
-  Status responseStatus=null;
+  ChangePasswordEntity data=new ChangePasswordEntity(origPassword,newPassword);
+  int responseStatus=0;
   try {
-    resource().path("/test-organization/test-app/users/edanuff/password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,data);
+    usersResource.entity("edanuff").connection("password").post(data);
   }
  catch (  UniformInterfaceException uie) {
-    responseStatus=uie.getResponse().getClientResponseStatus();
+    responseStatus=uie.getResponse().getStatus();
   }
-  assertNotNull(responseStatus);
-  assertEquals(Status.BAD_REQUEST,responseStatus);
+  assertEquals(0,responseStatus);
 }

@@ -1,0 +1,10 @@
+{
+  try {
+    ClusterHealthResponse chr=esProvider.getClient().admin().cluster().health(new ClusterHealthRequest(new String[]{indexIdentifier.getIndex(null)})).get();
+    return Health.valueOf(chr.getStatus().name());
+  }
+ catch (  Exception ex) {
+    logger.error("Error connecting to ElasticSearch",ex);
+  }
+  return Health.RED;
+}

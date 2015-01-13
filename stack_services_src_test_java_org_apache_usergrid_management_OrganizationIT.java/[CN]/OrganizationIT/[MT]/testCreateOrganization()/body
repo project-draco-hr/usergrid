@@ -1,7 +1,7 @@
 {
-  UserInfo user=setup.getMgmtSvc().createAdminUser("edanuff2","Ed Anuff","ed@anuff.com2","test",false,false);
+  UserInfo user=setup.getMgmtSvc().createAdminUser(uniqueUsername(),"Ed Anuff",uniqueEmail(),"test",false,false);
   assertNotNull(user);
-  OrganizationInfo organization=setup.getMgmtSvc().createOrganization("OrganizationIT",user,false);
+  OrganizationInfo organization=setup.getMgmtSvc().createOrganization(uniqueOrg(),user,false);
   assertNotNull(organization);
   setup.getEmf().getEntityManager(setup.getSmf().getManagementAppId()).refreshIndex();
   Map<UUID,String> userOrganizations=setup.getMgmtSvc().getOrganizationsForAdminUser(user.getUuid());
@@ -28,7 +28,7 @@
   AuthPrincipalInfo principal=((ManagementServiceImpl)setup.getMgmtSvc()).getPrincipalFromAccessToken(token,null,null);
   assertNotNull(principal);
   assertEquals(user.getUuid(),principal.getUuid());
-  UserInfo new_user=setup.getMgmtSvc().createAdminUser("test-user-133","Test User","test-user-133@mockserver.com","testpassword",true,true);
+  UserInfo new_user=setup.getMgmtSvc().createAdminUser(uniqueUsername(),"Test User",uniqueEmail(),"testpassword",true,true);
   assertNotNull(new_user);
   setup.getMgmtSvc().addAdminUserToOrganization(new_user,organization2,false);
 }

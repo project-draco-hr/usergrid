@@ -1,13 +1,11 @@
 {
+  EntityManager em=app.getEntityManager();
+  assertNotNull(em);
   LOG.debug("arrayQuerying");
   Map<String,Object> root=new HashMap<String,Object>();
   root.put("intprop",10);
   root.put("array",new String[]{"val1","val2","val3 with spaces"});
   Map<String,Object> jsonData=(Map<String,Object>)JsonUtils.parse(JsonUtils.mapToJsonString(root));
-  UUID applicationId=setup.createApplication("testOrganization","arrayQuerying");
-  assertNotNull(applicationId);
-  EntityManager em=setup.getEmf().getEntityManager(applicationId);
-  assertNotNull(em);
   Entity saved=em.create("test",jsonData);
   em.refreshIndex();
   Query query=new Query();

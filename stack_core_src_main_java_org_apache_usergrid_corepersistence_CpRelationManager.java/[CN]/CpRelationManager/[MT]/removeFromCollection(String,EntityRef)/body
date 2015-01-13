@@ -13,12 +13,12 @@
     em.delete(itemRef);
     return;
   }
-  CollectionScope memberScope=new CollectionScopeImpl(this.applicationScope.getApplication(),this.applicationScope.getApplication(),CpNamingUtils.getCollectionScopeNameFromEntityType(itemRef.getType()));
-  EntityCollectionManager memberMgr=managerCache.getEntityCollectionManager(memberScope);
+  CollectionScope memberScope=getCollectionScopeNameFromEntityType(applicationScope.getApplication(),itemRef.getType());
   if (logger.isDebugEnabled()) {
     logger.debug("Loading entity to remove from collection " + "{}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{itemRef.getType(),itemRef.getUuid(),memberScope.getApplication(),memberScope.getOwner(),memberScope.getName()});
   }
-  org.apache.usergrid.persistence.model.entity.Entity memberEntity=memberMgr.load(new SimpleId(itemRef.getUuid(),itemRef.getType())).toBlockingObservable().last();
+  Id entityId=new SimpleId(itemRef.getUuid(),itemRef.getType());
+  org.apache.usergrid.persistence.model.entity.Entity memberEntity=((CpEntityManager)em).load(new CpEntityManager.EntityScope(memberScope,entityId));
   final EntityIndex ei=managerCache.getEntityIndex(applicationScope);
   final EntityIndexBatch batch=ei.createBatch();
   IndexScope indexScope=new IndexScopeImpl(cpHeadEntity.getId(),CpNamingUtils.getCollectionScopeNameFromCollectionName(collName));
@@ -27,9 +27,9 @@
   batch.deindex(itemScope,cpHeadEntity);
   batch.execute();
   GraphManager gm=managerCache.getGraphManager(applicationScope);
-  Edge collectionToItemEdge=new SimpleEdge(cpHeadEntity.getId(),CpNamingUtils.getEdgeTypeFromCollectionName(collName),memberEntity.getId(),memberEntity.getId().getUuid().timestamp());
+  Edge collectionToItemEdge=new SimpleEdge(cpHeadEntity.getId(),CpNamingUtils.getEdgeTypeFromCollectionName(collName),memberEntity.getId(),UUIDUtils.getUUIDLong(memberEntity.getId().getUuid()));
   gm.deleteEdge(collectionToItemEdge).toBlockingObservable().last();
-  Edge itemToCollectionEdge=new SimpleEdge(memberEntity.getId(),CpNamingUtils.getEdgeTypeFromCollectionName(Schema.defaultCollectionName(cpHeadEntity.getId().getType())),cpHeadEntity.getId(),cpHeadEntity.getId().getUuid().timestamp());
+  Edge itemToCollectionEdge=new SimpleEdge(memberEntity.getId(),CpNamingUtils.getEdgeTypeFromCollectionName(Schema.defaultCollectionName(cpHeadEntity.getId().getType())),cpHeadEntity.getId(),UUIDUtils.getUUIDLong(cpHeadEntity.getId().getUuid()));
   gm.deleteEdge(itemToCollectionEdge).toBlockingObservable().last();
   if (headEntity.getType().equals(Group.ENTITY_TYPE)) {
     if (collName.equals(COLLECTION_ROLES)) {

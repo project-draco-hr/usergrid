@@ -7,15 +7,15 @@
   app.put("provider","noop");
   app.put("environment","mock");
   Entity entity=app.testRequest(ServiceAction.POST,1,"notifiers").getEntity();
-  Notifier notifier=app.getEm().get(entity.getUuid(),Notifier.class);
+  Notifier notifier=app.getEntityManager().get(entity.getUuid(),Notifier.class);
   final String notifierKey=notifier.getName() + NOTIFIER_ID_POSTFIX;
-  app.getEm().refreshIndex();
+  app.getEntityManager().refreshIndex();
   for (int i=0; i < NUM_DEVICES; i++) {
     app.clear();
     app.put(notifierKey,PUSH_TOKEN);
     app.put("name","device" + i * 10);
     app.testRequest(ServiceAction.POST,1,"devices").getEntity();
-    app.getEm().refreshIndex();
+    app.getEntityManager().refreshIndex();
   }
   app.clear();
   String payload=getPayload();
@@ -24,9 +24,9 @@
   app.put("payloads",payloads);
   app.put("queued",System.currentTimeMillis());
   app.put("debug",true);
-  entity=app.testRequest(ServiceAction.POST,1,"notifications").getEntity();
+  entity=app.testRequest(ServiceAction.POST,1,"devices","notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",entity.getUuid());
-  app.getEm().refreshIndex();
+  app.getEntityManager().refreshIndex();
   final Notification notification=(Notification)entity.toTypedEntity();
   try {
     scheduleNotificationAndWait(notification);

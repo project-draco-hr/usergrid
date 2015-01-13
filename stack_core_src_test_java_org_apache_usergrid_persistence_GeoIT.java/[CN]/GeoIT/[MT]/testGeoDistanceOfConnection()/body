@@ -1,0 +1,34 @@
+{
+  EntityManager em=app.getEntityManager();
+  assertNotNull(em);
+  Map<String,Object> restaurantProps=new LinkedHashMap<String,Object>();
+  restaurantProps.put("name","Brickhouse");
+  restaurantProps.put("address","426 Brannan Street");
+  restaurantProps.put("location",getLocation(37.779632,-122.395131));
+  Entity restaurant=em.create("restaurant",restaurantProps);
+  assertNotNull(restaurant);
+  Map<String,Object> userProperties=new LinkedHashMap<String,Object>(){
+{
+      put("username","edanuff");
+      put("email","ed@anuff.com");
+      put("location",new LinkedHashMap<String,Object>(){
+{
+          put("latitude",37.776753);
+          put("longitude",-122.407846);
+        }
+      }
+);
+    }
+  }
+;
+  Entity user=em.create("user",userProperties);
+  assertNotNull(user);
+  em.createConnection(user,"likes",restaurant);
+  em.refreshIndex();
+  Results emSearchResults=em.searchConnectedEntities(user,Query.fromQL("location within 2000 of " + ((LinkedHashMap<String,Object>)userProperties.get("location")).get("latitude") + ", "+ ((LinkedHashMap<String,Object>)userProperties.get("location")).get("longitude")).setConnectionType("likes"));
+  assertEquals(1,emSearchResults.size());
+  emSearchResults=em.searchConnectedEntities(user,Query.fromQL("location within 1000 of " + ((LinkedHashMap<String,Object>)userProperties.get("location")).get("latitude") + ", "+ ((LinkedHashMap<String,Object>)userProperties.get("location")).get("longitude")).setConnectionType("likes"));
+  assertEquals(0,emSearchResults.size());
+  em.delete(user);
+  em.delete(restaurant);
+}

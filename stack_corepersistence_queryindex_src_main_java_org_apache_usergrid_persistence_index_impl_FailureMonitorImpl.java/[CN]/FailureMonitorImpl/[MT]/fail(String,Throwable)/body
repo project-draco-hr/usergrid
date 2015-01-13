@@ -1,0 +1,12 @@
+{
+  if (!isNetworkException(throwable)) {
+    return;
+  }
+  final int fails=failCounter.incrementAndGet();
+  final int maxCount=indexFig.getFailRefreshCount();
+  if (fails > maxCount) {
+    LOG.error("Unable to connect to elasticsearch.  Reason is {}",message,throwable);
+    LOG.warn("We have failed to connect to Elastic Search {} times.  " + "Max allowed is {}.  Resetting connection",fails,maxCount);
+    esProvider.releaseClient();
+  }
+}

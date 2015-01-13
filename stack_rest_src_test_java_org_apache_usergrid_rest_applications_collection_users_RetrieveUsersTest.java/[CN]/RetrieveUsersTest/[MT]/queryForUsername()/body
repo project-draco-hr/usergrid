@@ -1,12 +1,12 @@
 {
-  CustomCollection users=context.collection("users");
-  Map props=new HashMap();
+  CollectionEndpoint users=this.app().collection("users");
+  Entity props=new Entity();
   props.put("username","Alica");
-  users.create(props);
+  users.post(props);
   props.put("username","Bob");
-  users.create(props);
-  refreshIndex(context.getOrgName(),context.getAppName());
+  users.post(props);
+  refreshIndex();
   String query="select *";
   String incorrectQuery="select * where username = 'Alica'";
-  assertEquals(users.entityValue(query,"username",0),users.entityValue(incorrectQuery,"username",0));
+  assertEquals(users.get(new QueryParameters().setQuery(query)).next().get("username").toString(),users.get(new QueryParameters().setQuery(incorrectQuery)).next().get("username").toString());
 }

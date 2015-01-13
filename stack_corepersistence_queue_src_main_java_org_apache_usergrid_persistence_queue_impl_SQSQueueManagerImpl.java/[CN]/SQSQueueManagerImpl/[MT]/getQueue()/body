@@ -1,16 +1,9 @@
 {
-  if (queue == null) {
-    ListQueuesResult result=sqs.listQueues();
-    for (    String queueUrl : result.getQueueUrls()) {
-      boolean found=queueUrl.contains(getName());
-      if (found) {
-        queue=new Queue(queueUrl);
-        break;
-      }
-    }
+  try {
+    Queue queue=urlMap.get(new SqsLoader(getName(),sqs));
+    return queue;
   }
-  if (queue == null) {
-    queue=createQueue();
+ catch (  ExecutionException ee) {
+    throw new RuntimeException(ee);
   }
-  return queue;
 }

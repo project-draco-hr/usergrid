@@ -1,7 +1,15 @@
 {
-  final EntityWrapper deSerialized=column.getValue(ENTITY_JSON_SER);
+  final EntityWrapper deSerialized;
+  final UUID version=column.getName();
+  try {
+    deSerialized=column.getValue(entityJsonSerializer);
+  }
+ catch (  DataCorruptionException e) {
+    log.error("DATA CORRUPTION DETECTED when de-serializing entity with Id {} and version {}.  This means the" + " write was truncated.",id,version,e);
+    return new MvccEntityImpl(id,version,MvccEntity.Status.DELETED,Optional.<Entity>absent());
+  }
   if (deSerialized.entity.isPresent()) {
     EntityUtils.setId(deSerialized.entity.get(),id);
   }
-  return new MvccEntityImpl(id,column.getName(),deSerialized.status,deSerialized.entity);
+  return new MvccEntityImpl(id,version,deSerialized.status,deSerialized.entity);
 }

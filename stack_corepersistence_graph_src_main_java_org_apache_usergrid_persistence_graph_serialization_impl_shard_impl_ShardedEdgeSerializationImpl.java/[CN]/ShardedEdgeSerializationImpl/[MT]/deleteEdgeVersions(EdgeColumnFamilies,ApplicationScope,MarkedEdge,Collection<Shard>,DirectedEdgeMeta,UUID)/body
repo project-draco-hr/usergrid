@@ -1,7 +1,7 @@
 {
   return new EdgeVersions(columnFamilies,markedEdge){
-    @Override void writeEdge(    final MutationBatch batch,    final MultiTennantColumnFamily<ApplicationScope,EdgeRowKey,Long> columnFamily,    final ApplicationScope scope,    final EdgeRowKey rowKey,    final Long column,    final Shard shard,    final boolean isDeleted){
-      batch.withRow(columnFamilies.getGraphEdgeVersions(),ScopedRowKey.fromKey(scope,rowKey)).deleteColumn(column);
+    @Override void writeEdge(    final MutationBatch batch,    final MultiTennantColumnFamily<ScopedRowKey<EdgeRowKey>,Long> columnFamily,    final ApplicationScope scope,    final EdgeRowKey rowKey,    final Long column,    final Shard shard,    final boolean isDeleted){
+      batch.withRow(columnFamilies.getGraphEdgeVersions(),ScopedRowKey.fromKey(scope.getApplication(),rowKey)).deleteColumn(column);
       writeEdgeShardStrategy.increment(scope,shard,-1,directedEdgeMeta);
     }
   }

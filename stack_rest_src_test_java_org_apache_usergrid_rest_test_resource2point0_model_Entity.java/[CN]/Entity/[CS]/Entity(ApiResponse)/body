@@ -1,0 +1,25 @@
+{
+  this.response=response;
+  if (response.getEntities() != null && response.getEntities().size() >= 1) {
+    List<Entity> entities=response.getEntities();
+    Map<String,Object> entity=entities.get(0);
+    this.putAll(entity);
+  }
+ else   if (response.getData() != null) {
+    if (response.getData() instanceof LinkedHashMap) {
+      LinkedHashMap dataResponse=(LinkedHashMap)response.getData();
+      if (dataResponse.get("user") != null) {
+        this.putAll((Map<? extends String,?>)dataResponse.get("user"));
+      }
+ else {
+        this.putAll(dataResponse);
+      }
+    }
+ else     if (response.getData() instanceof ArrayList) {
+      ArrayList<String> data=(ArrayList<String>)response.getData();
+      Entity entity=new Entity();
+      entity.put("data",data.get(0));
+      this.putAll(entity);
+    }
+  }
+}

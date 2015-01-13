@@ -1,6 +1,17 @@
 {
-  Query query=new Query();
-  query.addEqualityFilter(ENTITYID_FIELDNAME,id.getUuid().toString());
-  CandidateResults results=search(scope,query);
-  return results;
+  final String context=IndexingUtils.createContextName(scope);
+  final SearchTypes searchTypes=SearchTypes.fromTypes(id.getType());
+  final QueryBuilder queryBuilder=QueryBuilders.termQuery(IndexingUtils.ENTITY_CONTEXT_FIELDNAME,context);
+  final SearchRequestBuilder srb=esProvider.getClient().prepareSearch(alias.getReadAlias()).setTypes(searchTypes.getTypeNames()).setScroll(cursorTimeout + "m").setQuery(queryBuilder);
+  final SearchResponse searchResponse;
+  try {
+    searchResponse=srb.execute().actionGet();
+  }
+ catch (  Throwable t) {
+    logger.error("Unable to communicate with elasticsearch");
+    failureMonitor.fail("Unable to execute batch",t);
+    throw t;
+  }
+  failureMonitor.success();
+  return parseResults(searchResponse,new Query());
 }

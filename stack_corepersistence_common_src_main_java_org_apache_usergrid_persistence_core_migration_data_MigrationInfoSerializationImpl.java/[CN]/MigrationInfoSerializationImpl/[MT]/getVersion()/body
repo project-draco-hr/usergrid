@@ -1,0 +1,11 @@
+{
+  try {
+    return keyspace.prepareQuery(CF_MIGRATION_INFO).getKey(ROW_KEY).getColumn(COLUMN_VERSION).execute().getResult().getIntegerValue();
+  }
+ catch (  NotFoundException nfe) {
+    return 0;
+  }
+catch (  ConnectionException e) {
+    throw new DataMigrationException("Unable to retrieve status",e);
+  }
+}

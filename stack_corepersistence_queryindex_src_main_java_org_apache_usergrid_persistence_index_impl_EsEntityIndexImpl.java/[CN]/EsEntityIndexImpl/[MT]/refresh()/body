@@ -1,4 +1,25 @@
 {
-  client.admin().indices().prepareRefresh(indexName).execute().actionGet();
-  log.debug("Refreshed index: " + indexName);
+  final RetryOperation retryOperation=new RetryOperation(){
+    @Override public boolean doOp(){
+      try {
+        String[] indexes=getIndexes(AliasType.Read);
+        Observable.from(indexes).map(new Func1<String,String>(){
+          @Override public String call(          String index){
+            esProvider.getClient().admin().indices().prepareRefresh(index).execute().actionGet();
+            return index;
+          }
+        }
+).toBlocking().last();
+        logger.debug("Refreshed index: " + alias);
+        return true;
+      }
+ catch (      IndexMissingException e) {
+        logger.error("Unable to refresh index. Waiting before sleeping.",e);
+        throw e;
+      }
+    }
+  }
+;
+  doInRetry(retryOperation);
+  logger.debug("Refreshed index: " + alias);
 }

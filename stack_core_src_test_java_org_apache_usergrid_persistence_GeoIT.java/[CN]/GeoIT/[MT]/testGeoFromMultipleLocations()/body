@@ -1,0 +1,20 @@
+{
+  LOG.info("GeoIT.testGeoFromMultipleLocations");
+  EntityManager em=loadGeolocationTestEntities();
+  List<Point> points=new ArrayList<Point>();
+  points.add(new Point(-90.000000,90.000000));
+  points.add(new Point(90,90));
+  points.add(new Point(33.746369,-89));
+  points.add(new Point(34.35,58.22));
+  points.add(new Point(39.55,116.25));
+  points.add(new Point(44.52,20.32));
+  points.add(new Point(-1.000000,102.000000));
+  for (  Point center : points) {
+    Query query=Query.fromQL("select * where location within 10000 of " + center.getLat() + ","+ center.getLon());
+    Results listResults=em.searchCollection(em.getApplicationRef(),"stores",query);
+    assertEquals("Results less than 10000m away from center",0,listResults.size());
+    Query query2=Query.fromQL("select * where location within 40000000 of " + center.getLat() + ","+ center.getLon());
+    listResults=em.searchCollection(em.getApplicationRef(),"stores",query2);
+    assertEquals("Results from center point to ridiculously far",LOCATION_PROPERTIES.size(),listResults.size());
+  }
+}

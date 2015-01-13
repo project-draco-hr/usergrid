@@ -1,0 +1,25 @@
+{
+  Collection testCollections=this.app().collection(collectionName).get(queryParameters);
+  int entityIndex=1;
+  int pageIndex=0;
+  while (testCollections.getCursor() != null) {
+    while (testCollections.hasNext()) {
+      Entity returnedEntity=testCollections.next();
+      assertEquals(String.valueOf(entityIndex),returnedEntity.get("name"));
+      entityIndex++;
+    }
+    testCollections=this.app().collection(collectionName).getNextPage(testCollections,queryParameters,true);
+    pageIndex++;
+  }
+  if (testCollections.hasNext()) {
+    pageIndex++;
+  }
+  while (testCollections.hasNext()) {
+    Entity returnedEntity=testCollections.next();
+    assertEquals(String.valueOf(entityIndex),returnedEntity.get("name"));
+    entityIndex++;
+  }
+  assertEquals(numOfEntities,entityIndex - 1);
+  assertEquals(numOfPages,pageIndex);
+  return testCollections;
+}

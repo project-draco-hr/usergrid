@@ -2,7 +2,7 @@
   Id appId=new SimpleId("application");
   ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
   IndexScope indexScope=new IndexScopeImpl(appId,"fastcars");
-  EntityIndex entityIndex=cif.createEntityIndex(applicationScope);
+  EntityIndex entityIndex=eif.createEntityIndex(applicationScope);
   entityIndex.initializeIndex();
   Map entityMap=new HashMap(){
 {
@@ -16,10 +16,12 @@
   EntityUtils.setId(entity,new SimpleId("fastcar"));
   EntityUtils.setVersion(entity,UUIDGenerator.newTimeUUID());
   entityIndex.createBatch().index(indexScope,entity).executeAndRefresh();
-  CandidateResults candidateResults=entityIndex.search(indexScope,Query.fromQL("name contains 'Ferrari*'"));
+  CandidateResults candidateResults=entityIndex.search(indexScope,SearchTypes.fromTypes(entity.getId().getType()),Query.fromQL("name contains 'Ferrari*'"));
   assertEquals(1,candidateResults.size());
-  entityIndex.createBatch().deindex(indexScope,entity).execute();
+  EntityIndexBatch batch=entityIndex.createBatch();
+  batch.deindex(indexScope,entity).execute();
+  batch.executeAndRefresh();
   entityIndex.refresh();
-  candidateResults=entityIndex.search(indexScope,Query.fromQL("name contains 'Ferrari*'"));
+  candidateResults=entityIndex.search(indexScope,SearchTypes.fromTypes(entity.getId().getType()),Query.fromQL("name contains 'Ferrari*'"));
   assertEquals(0,candidateResults.size());
 }

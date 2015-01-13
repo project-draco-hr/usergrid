@@ -4,6 +4,8 @@
   }
   if (!cfExists(keyspace,cfDef.getName())) {
     cfDef.setReadRepairChance(0.1d);
+    cfDef.setCompactionStrategy("LeveledCompactionStrategy");
+    cfDef.setCompactionStrategyOptions(new MapUtils.HashMapBuilder().map("sstable_size_in_mb","512"));
     cluster.addColumnFamily(cfDef,true);
     logger.info("Created column family {} in keyspace {}",cfDef.getName(),keyspace);
   }

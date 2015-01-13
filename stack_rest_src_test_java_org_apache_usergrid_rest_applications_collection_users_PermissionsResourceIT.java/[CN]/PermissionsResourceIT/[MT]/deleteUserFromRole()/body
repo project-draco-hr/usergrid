@@ -1,16 +1,22 @@
 {
-  Map<String,String> data=hashMap("name",ROLE);
-  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/roles").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,data));
+  Entity data=new Entity().chainPut("name",ROLE);
+  Entity node=this.app().collection("roles").post(data);
   assertNull(node.get("error"));
-  assertEquals(ROLE,getEntity(node,0).get("name").asText());
-  refreshIndex("test-organization","test-app");
-  node=mapper.readTree(resource().path("/test-organization/test-app/roles/" + ROLE + "/users/"+ USER).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class));
+  assertEquals(ROLE,node.get("name").toString());
+  refreshIndex();
+  node=this.app().collection("roles").entity(node).collection("users").entity(USER).post();
   assertNull(node.get("error"));
-  refreshIndex("test-organization","test-app");
-  node=mapper.readTree(resource().path("/test-organization/test-app/users/" + USER + "/roles").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-  assertEquals(ROLE,getEntity(node,0).get("name").asText());
-  node=mapper.readTree(resource().path("/test-organization/test-app/users/" + USER + "/roles/"+ ROLE).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).delete(String.class));
-  refreshIndex("test-organization","test-app");
-  node=mapper.readTree(resource().path("/test-organization/test-app/users/" + USER + "/roles").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-  assertNull(getEntity(node,0));
+  refreshIndex();
+  node=this.app().collection("users").entity(USER).collection("roles").entity(ROLE).get();
+  assertEquals(ROLE,node.get("name").toString());
+  this.app().collection("users").entity(USER).collection("roles").entity(ROLE).delete();
+  refreshIndex();
+  int status=0;
+  try {
+    node=this.app().collection("users").entity(USER).collection("roles").entity(ROLE).get();
+  }
+ catch (  UniformInterfaceException e) {
+    status=e.getResponse().getStatus();
+  }
+  assertEquals(status,404);
 }

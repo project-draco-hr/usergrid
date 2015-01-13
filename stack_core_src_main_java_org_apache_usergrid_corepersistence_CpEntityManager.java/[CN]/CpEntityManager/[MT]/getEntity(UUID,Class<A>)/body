@@ -1,10 +1,8 @@
 {
   String type=Schema.getDefaultSchema().getEntityType(entityClass);
   Id id=new SimpleId(entityId,type);
-  String collectionName=CpNamingUtils.getCollectionScopeNameFromEntityType(type);
-  CollectionScope collectionScope=new CollectionScopeImpl(getApplicationScope().getApplication(),getApplicationScope().getApplication(),collectionName);
-  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
-  org.apache.usergrid.persistence.model.entity.Entity cpEntity=ecm.load(id).toBlocking().last();
+  CollectionScope collectionScope=getCollectionScopeNameFromEntityType(applicationScope.getApplication(),type);
+  org.apache.usergrid.persistence.model.entity.Entity cpEntity=load(new EntityScope(collectionScope,id));
   if (cpEntity == null) {
     if (logger.isDebugEnabled()) {
       logger.debug("FAILED to load entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{id.getType(),id.getUuid(),collectionScope.getApplication(),collectionScope.getOwner(),collectionScope.getName()});

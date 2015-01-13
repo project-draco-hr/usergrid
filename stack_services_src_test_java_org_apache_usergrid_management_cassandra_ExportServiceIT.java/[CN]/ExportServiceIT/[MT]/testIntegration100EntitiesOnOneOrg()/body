@@ -47,16 +47,21 @@
   overrides.setProperty("s3" + ".credential",secretKey);
   Blob bo=null;
   BlobStore blobStore=null;
-  final Iterable<? extends Module> MODULES=ImmutableSet.of(new JavaUrlHttpCommandExecutorServiceModule(),new Log4JLoggingModule(),new NettyPayloadModule());
-  BlobStoreContext context=ContextBuilder.newBuilder("s3").credentials(accessId,secretKey).modules(MODULES).overrides(overrides).buildView(BlobStoreContext.class);
-  blobStore=context.getBlobStore();
-  if (!blobStore.blobExists(bucketName,s3Export.getFilename())) {
+  try {
+    final Iterable<? extends Module> MODULES=ImmutableSet.of(new JavaUrlHttpCommandExecutorServiceModule(),new Log4JLoggingModule(),new NettyPayloadModule());
+    BlobStoreContext context=ContextBuilder.newBuilder("s3").credentials(accessId,secretKey).modules(MODULES).overrides(overrides).buildView(BlobStoreContext.class);
+    blobStore=context.getBlobStore();
+    if (!blobStore.blobExists(bucketName,s3Export.getFilename())) {
+      assert(false);
+    }
+    Long numOfFiles=blobStore.countBlobs(bucketName);
+    Long numWeWant=Long.valueOf(1);
+    assertEquals(numOfFiles,numWeWant);
+    bo=blobStore.getBlob(bucketName,s3Export.getFilename());
+  }
+ catch (  Exception e) {
     assert(false);
   }
-  Long numOfFiles=blobStore.countBlobs(bucketName);
-  Long numWeWant=Long.valueOf(1);
-  assertEquals(numOfFiles,numWeWant);
-  bo=blobStore.getBlob(bucketName,s3Export.getFilename());
   assertNotNull(bo);
   blobStore.deleteContainer(bucketName);
 }

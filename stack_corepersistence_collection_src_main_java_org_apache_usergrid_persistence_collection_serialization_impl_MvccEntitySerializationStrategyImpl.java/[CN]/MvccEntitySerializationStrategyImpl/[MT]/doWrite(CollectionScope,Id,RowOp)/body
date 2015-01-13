@@ -1,5 +1,10 @@
 {
   final MutationBatch batch=keyspace.prepareMutationBatch();
-  op.doOp(batch.withRow(CF_ENTITY_DATA,ScopedRowKey.fromKey(collectionScope,entityId)));
+  final Id applicationId=collectionScope.getApplication();
+  final Id ownerId=collectionScope.getOwner();
+  final String collectionName=collectionScope.getName();
+  final CollectionPrefixedKey<Id> collectionPrefixedKey=new CollectionPrefixedKey<>(collectionName,ownerId,entityId);
+  final ScopedRowKey<CollectionPrefixedKey<Id>> rowKey=ScopedRowKey.fromKey(applicationId,collectionPrefixedKey);
+  op.doOp(batch.withRow(columnFamily,rowKey));
   return batch;
 }

@@ -1,26 +1,26 @@
 {
-  OrganizationInfo orgInfo=setup.getMgmtSvc().getOrganizationByName("test-organization");
   Map<String,String> data=new HashMap<String,String>();
   data.put("name","mgmt-org-app");
-  JsonNode appdata=mapper.readTree(resource().path("/management/orgs/" + orgInfo.getUuid() + "/applications").queryParam("access_token",adminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,data));
+  String orgName=context.getOrgName();
+  JsonNode appdata=mapper.readTree(resource().path("/management/orgs/" + orgName + "/applications").queryParam("access_token",context.getActiveUser().getToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,data));
   logNode(appdata);
   appdata=getEntity(appdata,0);
-  refreshIndex("test-organization","test-app");
-  assertEquals("test-organization/mgmt-org-app",appdata.get("name").asText());
+  refreshIndex(orgName,context.getAppName());
+  assertEquals(orgName.toLowerCase() + "/mgmt-org-app",appdata.get("name").asText());
   assertNotNull(appdata.get("metadata"));
   assertNotNull(appdata.get("metadata").get("collections"));
   assertNotNull(appdata.get("metadata").get("collections").get("roles"));
   assertNotNull(appdata.get("metadata").get("collections").get("roles").get("title"));
   assertEquals("Roles",appdata.get("metadata").get("collections").get("roles").get("title").asText());
   assertEquals(3,appdata.get("metadata").get("collections").get("roles").get("count").asInt());
-  refreshIndex("test-organization","test-app");
-  appdata=mapper.readTree(resource().path("/management/orgs/" + orgInfo.getUuid() + "/applications/mgmt-org-app").queryParam("access_token",adminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
+  refreshIndex(orgName,context.getAppName());
+  appdata=mapper.readTree(resource().path("/management/orgs/" + context.getOrgUuid() + "/applications/mgmt-org-app").queryParam("access_token",context.getActiveUser().getToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   logNode(appdata);
-  assertEquals("test-organization",appdata.get("organization").asText());
+  assertEquals(orgName.toLowerCase(),appdata.get("organization").asText());
   assertEquals("mgmt-org-app",appdata.get("applicationName").asText());
-  assertEquals("http://sometestvalue/test-organization/mgmt-org-app",appdata.get("uri").textValue());
+  assertEquals("http://sometestvalue/" + orgName.toLowerCase() + "/mgmt-org-app",appdata.get("uri").textValue());
   appdata=getEntity(appdata,0);
-  assertEquals("test-organization/mgmt-org-app",appdata.get("name").asText());
+  assertEquals(orgName.toLowerCase() + "/mgmt-org-app",appdata.get("name").asText());
   assertEquals("Roles",appdata.get("metadata").get("collections").get("roles").get("title").asText());
   assertEquals(3,appdata.get("metadata").get("collections").get("roles").get("count").asInt());
 }

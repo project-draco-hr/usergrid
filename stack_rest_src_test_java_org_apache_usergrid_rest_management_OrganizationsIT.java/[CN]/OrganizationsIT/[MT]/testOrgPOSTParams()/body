@@ -1,4 +1,18 @@
 {
-  JsonNode node=mapper.readTree(resource().path("/management/organizations").queryParam("organization","testOrgPOSTParams").queryParam("username","testOrgPOSTParams").queryParam("grant_type","password").queryParam("email","testOrgPOSTParams@apigee.com").queryParam("name","testOrgPOSTParams").queryParam("password","password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_FORM_URLENCODED).post(String.class));
-  assertEquals("ok",node.get("status").asText());
+  Organization organization=createOrgPayload("testOrgPOSTParams",null);
+  QueryParameters queryParameters=new QueryParameters();
+  queryParameters.setKeyValue("organization",organization.getOrganization());
+  queryParameters.setKeyValue("username",organization.getUsername());
+  queryParameters.setKeyValue("grant_type","password");
+  queryParameters.setKeyValue("email",organization.getEmail());
+  queryParameters.setKeyValue("name",organization.getName());
+  queryParameters.setKeyValue("password",organization.getPassword());
+  Organization organizationReturned=clientSetup.getRestClient().management().orgs().post(queryParameters);
+  assertNotNull(organizationReturned);
+  assertEquals(organization.getOrganization(),organizationReturned.getName());
+  Token tokenPayload=new Token("password",organization.getName(),organization.getPassword());
+  Token tokenReturned=clientSetup.getRestClient().management().token().post(tokenPayload);
+  assertNotNull(tokenReturned);
+  Organization returnedOrg=clientSetup.getRestClient().management().orgs().organization(organization.getOrganization()).get();
+  assertTrue(returnedOrg != null && returnedOrg.getName().equals(organization.getOrganization()));
 }

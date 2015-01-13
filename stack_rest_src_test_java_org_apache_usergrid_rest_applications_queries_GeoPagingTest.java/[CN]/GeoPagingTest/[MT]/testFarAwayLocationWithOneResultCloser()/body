@@ -1,0 +1,21 @@
+{
+  String collectionType="testFarAwayLocationWithOneResultCloser" + UUIDUtils.newTimeUUID();
+  Point center=new Point(-33.746369,150.952183);
+  QueryParameters queryClose=new QueryParameters();
+  queryClose.setQuery("select * where location within 10000 of " + String.valueOf(center.getLat()) + ", "+ String.valueOf(center.getLon())+ "");
+  QueryParameters queryFar=new QueryParameters();
+  queryFar.setQuery("select * where location within " + Integer.MAX_VALUE + " of "+ String.valueOf(center.getLat())+ ", "+ String.valueOf(center.getLon())+ "");
+  Entity props=new Entity();
+  props.put("name","usergrid");
+  props.put("location",new MapUtils.HashMapBuilder<String,Double>().map("latitude",-33.746369).map("longitude",150.952183));
+  this.app().collection(collectionType).post(props);
+  Entity props2=new Entity();
+  props2.put("name","usergrid2");
+  props2.put("location",new MapUtils.HashMapBuilder<String,Double>().map("latitude",-33.889058).map("longitude",151.124024));
+  this.app().collection(collectionType).post(props2);
+  this.refreshIndex();
+  Collection collection=this.app().collection(collectionType).get(queryClose);
+  assertEquals("Results from nearby, should return 1 store",1,collection.getResponse().getEntityCount());
+  collection=this.app().collection(collectionType).get(queryFar);
+  assertEquals("Results from center point to ridiculously far",2,collection.getResponse().getEntityCount());
+}
