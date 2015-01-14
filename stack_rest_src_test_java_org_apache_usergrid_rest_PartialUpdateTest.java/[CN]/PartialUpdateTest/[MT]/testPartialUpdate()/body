@@ -18,7 +18,6 @@
     updateProps.put("location",geolocation);
     try {
       userNode=this.app().collection("users").entity(userNode).put(updateProps);
-      assertNotNull(userNode);
     }
  catch (    UniformInterfaceException uie) {
       fail("Update failed due to: " + uie.getResponse().getEntity(String.class));
@@ -40,16 +39,15 @@
   }
   Entity updateProps=new Entity();
   updateProps.put("employer","ACME Corporation");
-  for (int i=1; i < 10; i++) {
-    try {
-      userNode=this.app().collection("users").entity((String)props.get("username")).put(updateProps);
-    }
- catch (    UniformInterfaceException uie) {
-      fail("Update failed due to: " + uie.getResponse().getEntity(String.class));
-    }
-    refreshIndex();
-    userNode=this.app().collection("users").entity(userNode).get();
-    assertNotNull(userNode);
-    assertEquals("ACME Corporation",userNode.get("employer").toString());
+  try {
+    userNode=this.app().collection("users").entity(props.getString("username")).put(updateProps);
   }
+ catch (  UniformInterfaceException uie) {
+    fail("Update failed due to: " + uie.getResponse().getEntity(String.class));
+  }
+  refreshIndex();
+  userNode=this.app().collection("users").entity(userNode).get();
+  assertNotNull(userNode);
+  assertEquals(updateProps.get("employer"),userNode.get("employer").toString());
+  assertEquals(props.get("username").toString(),userNode.get("username").toString());
 }
