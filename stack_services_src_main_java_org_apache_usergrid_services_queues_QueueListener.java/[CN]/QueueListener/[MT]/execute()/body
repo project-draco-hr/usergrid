@@ -15,20 +15,11 @@
   while (true) {
     try {
       Timer.Context timerContext=timer.time();
-      List<QueueMessage> messages=queueManager.getMessages(getBatchSize(),MESSAGE_TRANSACTION_TIMEOUT,5000,QueueProcessor.class);
+      List<QueueMessage> messages=queueManager.getMessages(getBatchSize(),MESSAGE_TRANSACTION_TIMEOUT,5000,ImportQueueListener.class);
       LOG.info("retrieved batch of {} messages from queue {} ",messages.size(),queueName);
       if (messages.size() > 0) {
-        HashMap<UUID,List<QueueMessage>> messageMap=new HashMap<>(messages.size());
-        for (        QueueMessage message : messages) {
-        }
         long now=System.currentTimeMillis();
-        Observable merge=null;
-        for (        Map.Entry<UUID,List<QueueMessage>> entry : messageMap.entrySet()) {
-          UUID applicationId=entry.getKey();
-        }
-        if (merge != null) {
-          merge.toBlocking().lastOrDefault(null);
-        }
+        onMessage(messages);
         queueManager.commitMessages(messages);
         meter.mark(messages.size());
         LOG.info("sent batch {} messages duration {} ms",messages.size(),System.currentTimeMillis() - now);
