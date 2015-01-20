@@ -1,10 +1,18 @@
 {
   final long stopTime=System.currentTimeMillis() + timeout;
   while (System.currentTimeMillis() < stopTime) {
-    if (barrierFile.exists()) {
+    try {
+      Socket client=new Socket();
+      client.connect(new InetSocketAddress("127.0.0.1",barrierPort),SLEEP_TIME);
+      client.close();
+      finalize();
       return;
     }
-    Thread.sleep(SLEEP_TIME);
+ catch (    IOException e) {
+    }
+catch (    Throwable throwable) {
+      throw new RuntimeException("Something unexpected happened",throwable);
+    }
   }
   throw new TimeoutException("Timeout out after " + timeout + " milliseconds waiting for the file");
 }

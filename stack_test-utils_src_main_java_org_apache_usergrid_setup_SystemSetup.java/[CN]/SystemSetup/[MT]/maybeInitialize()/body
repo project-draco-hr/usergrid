@@ -6,15 +6,5 @@
     barrier.proceed();
   }
   barrier.await(ONE_MINUTE);
-  if (lock.hasLock()) {
-    Runtime.getRuntime().addShutdownHook(new Thread(){
-      public void run(){
-        System.out.println("Shutdown Hook is running !");
-        deleteFile(LOCK_NAME);
-        deleteFile(START_BARRIER_NAME);
-      }
-    }
-);
-    lock.releaseLock();
-  }
+  lock.maybeReleaseLock();
 }
