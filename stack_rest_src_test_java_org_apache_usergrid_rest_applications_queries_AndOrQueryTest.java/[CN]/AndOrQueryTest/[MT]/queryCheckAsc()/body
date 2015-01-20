@@ -1,19 +1,13 @@
 {
   int numOfEntities=20;
   String collectionName="imagination";
-  Entity props=new Entity();
-  props.put("WhoHelpedYou","Ruff");
-  for (int i=0; i < numOfEntities; i++) {
-    props.put("ordinal",i);
-    this.app().collection(collectionName).post(props);
-  }
-  this.refreshIndex();
-  String inquisitiveQuery="select * where Ordinal gte 0 and Ordinal lte 10 " + "or WhoHelpedYou eq 'Ruff' ORDER BY Ordinal asc";
+  generateTestEntities(numOfEntities,collectionName);
+  String inquisitiveQuery="select * where Ordinal gte 0 and Ordinal lte  " + (numOfEntities / 2) + " or WhoHelpedYou eq 'Ruff' ORDER BY Ordinal asc";
   QueryParameters params=new QueryParameters().setQuery(inquisitiveQuery).setLimit(numOfEntities / 2);
   Collection activities=this.app().collection(collectionName).get(params);
   assertEquals(numOfEntities / 2,activities.getResponse().getEntityCount());
-  List<Entity> entities=activities.getResponse().getEntities();
+  List<Entity> entitiesReturned=activities.getResponse().getEntities();
   for (int i=0; i < numOfEntities / 2; i++) {
-    assertEquals(i,Integer.parseInt(entities.get(i).get("ordinal").toString()));
+    assertEquals(i,Integer.parseInt(entitiesReturned.get(i).get("ordinal").toString()));
   }
 }
