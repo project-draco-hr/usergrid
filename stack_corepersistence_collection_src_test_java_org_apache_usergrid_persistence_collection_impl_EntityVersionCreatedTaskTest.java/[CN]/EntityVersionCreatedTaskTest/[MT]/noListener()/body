@@ -1,0 +1,17 @@
+{
+  final int sizeToReturn=0;
+  final Set<EntityVersionCreated> listeners=mock(Set.class);
+  when(listeners.size()).thenReturn(0);
+  final Id applicationId=new SimpleId("application");
+  final CollectionScope appScope=new CollectionScopeImpl(applicationId,applicationId,"users");
+  final Id entityId=new SimpleId("user");
+  final Entity entity=new Entity(entityId);
+  EntityVersionCreatedTask entityVersionCreatedTask=new EntityVersionCreatedTask(appScope,listeners,entity);
+  try {
+    entityVersionCreatedTask.call();
+  }
+ catch (  Exception e) {
+    Assert.fail(e.getMessage());
+  }
+  verify(listeners).size();
+}

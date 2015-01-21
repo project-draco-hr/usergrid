@@ -2,7 +2,7 @@
   if (pushManager == null || !pushManager.isStarted() || pushManager.isShutDown()) {
     PushManagerConfiguration config=new PushManagerConfiguration();
     config.setConcurrentConnectionCount(Runtime.getRuntime().availableProcessors() * 2);
-    queue=new LinkedBlockingQueue<SimpleApnsPushNotification>();
+    queue=new ArrayBlockingQueue<>(10000);
     pushManager=new EntityPushManager(notifier,entityManager,queue,config);
     pushManager.registerRejectedNotificationListener(new RejectedAPNsListener());
     pushManager.registerFailedConnectionListener(new FailedConnectionListener());

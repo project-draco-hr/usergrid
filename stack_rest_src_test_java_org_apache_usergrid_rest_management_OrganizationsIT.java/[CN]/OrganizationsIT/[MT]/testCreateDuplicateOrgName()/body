@@ -1,27 +1,27 @@
 {
-  String timeuuid=UUIDUtils.newTimeUUID().toString();
-  Map<String,String> payload=hashMap("email","create-duplicate-org" + timeuuid + "@mockserver.com").map("password","password").map("organization","create-duplicate-orgname-org" + timeuuid);
-  JsonNode node=mapper.readTree(resource().path("/management/organizations").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
-  logNode(node);
-  assertNotNull(node);
-  refreshIndex("create-duplicate-orgname-org" + timeuuid,"dummy");
-  payload=hashMap("email","create-duplicate-org2@mockserver.com").map("username","create-dupe-orgname2").map("password","password").map("organization","create-duplicate-orgname-org" + timeuuid);
+  Organization organization=createOrgPayload("testCreateDuplicateOrgName",null);
+  Organization orgCreatedResponse=clientSetup.getRestClient().management().orgs().post(organization);
+  this.refreshIndex();
+  assertNotNull(orgCreatedResponse);
+  Token tokenPayload=new Token("password",organization.getUsername(),organization.getPassword());
+  Token tokenReturned=clientSetup.getRestClient().management().token().post(tokenPayload);
+  assertNotNull(tokenReturned);
+  Organization orgTestDuplicatePayload=new Organization(organization.getOrganization(),organization.getUsername() + "test",organization.getEmail() + "test",organization.getName() + "test",organization.getPassword(),null);
   try {
-    node=mapper.readTree(resource().path("/management/organizations").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
+    clientSetup.getRestClient().management().orgs().post(orgTestDuplicatePayload);
+    fail("Should not have been able to create duplicate organization");
   }
- catch (  Exception ex) {
+ catch (  UniformInterfaceException ex) {
+    errorParse(400,duplicateUniquePropertyExistsErrorMessage,ex);
   }
-  refreshIndex("create-duplicate-orgname-org" + timeuuid,"dummy");
-  payload=hashMap("grant_type","password").map("username","create-dupe-orgname2").map("password","password");
+  tokenPayload=new Token("password",organization.getName() + "test",organization.getPassword());
+  Token tokenError=null;
   try {
-    node=mapper.readTree(resource().path("/management/token").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
+    tokenError=clientSetup.getRestClient().management().token().post(tokenPayload);
     fail("Should not have created user");
   }
- catch (  Exception ex) {
+ catch (  UniformInterfaceException ex) {
+    errorParse(400,invalidGrantErrorMessage,ex);
   }
-  logNode(node);
-  refreshIndex("create-duplicate-orgname-org" + timeuuid,"dummy");
-  payload=hashMap("username","create-duplicate-org@mockserver.com").map("grant_type","password").map("password","password");
-  node=mapper.readTree(resource().path("/management/token").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
-  logNode(node);
+  assertNull(tokenError);
 }

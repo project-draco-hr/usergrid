@@ -1,9 +1,13 @@
 {
-  CustomCollection madeupStuff=context.customCollection("imagination");
-  Map character=hashMap("WhoHelpedYou","Ruff");
-  madeupStuff.createEntitiesWithOrdinal(character,1000);
-  this.refreshIndex(context.getAppUuid());
+  int numOfEntities=10;
+  String collectionName="imagination";
+  generateTestEntities(numOfEntities,collectionName);
   String inquisitiveQuery="select * where Ordinal gte 0 and Ordinal lte 2000 or WhoHelpedYou eq 'Ruff'";
-  int totalEntitiesContained=madeupStuff.countEntities(inquisitiveQuery);
-  assertEquals(1000,totalEntitiesContained);
+  QueryParameters params=new QueryParameters().setQuery(inquisitiveQuery);
+  Collection activities=this.app().collection(collectionName).get(params);
+  assertEquals(10,activities.getResponse().getEntityCount());
+  List<Entity> entitiesReturned=activities.getResponse().getEntities();
+  for (int i=0; i < 10; i++) {
+    assertEquals(i,Integer.parseInt(entitiesReturned.get(i).get("ordinal").toString()));
+  }
 }

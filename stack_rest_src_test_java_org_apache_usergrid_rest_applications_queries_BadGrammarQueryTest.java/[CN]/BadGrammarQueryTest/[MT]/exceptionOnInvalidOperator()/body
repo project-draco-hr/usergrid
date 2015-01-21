@@ -1,0 +1,14 @@
+{
+  int numOfEntities=1;
+  String collectionName="things";
+  generateTestEntities(numOfEntities,collectionName);
+  String query="select * where name != 'go'";
+  try {
+    QueryParameters params=new QueryParameters().setQuery(query);
+    this.app().collection(collectionName).get(params);
+    fail("This should throw an exception");
+  }
+ catch (  UniformInterfaceException uie) {
+    assertEquals(400,uie.getResponse().getStatus());
+  }
+}

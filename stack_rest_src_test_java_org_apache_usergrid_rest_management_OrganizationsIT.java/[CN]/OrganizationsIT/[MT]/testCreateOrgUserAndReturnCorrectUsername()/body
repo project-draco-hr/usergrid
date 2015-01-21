@@ -1,16 +1,17 @@
 {
-  String mgmtToken=context.getActiveUser().getToken();
-  Map<String,String> payload=hashMap("username","test-user-2").map("name","Test User 2").map("email","test-user-2@mockserver.com").map("password","password");
-  JsonNode node=mapper.readTree(resource().path("/management/organizations/" + context.getOrgName() + "/users").queryParam("access_token",mgmtToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
-  logNode(node);
-  assertNotNull(node);
-  String username=node.get("data").get("user").get("username").asText();
-  String name=node.get("data").get("user").get("name").asText();
-  String email=node.get("data").get("user").get("email").asText();
-  assertNotNull(username);
-  assertNotNull(name);
-  assertNotNull(email);
-  assertEquals("test-user-2",username);
-  assertEquals("Test User 2",name);
-  assertEquals("test-user-2@mockserver.com",email);
+  RestClient restClient=clientSetup.getRestClient();
+  Entity adminUserPayload=new Entity();
+  String username="testCreateOrgUserAndReturnCorrectUsername" + UUIDUtils.newTimeUUID();
+  adminUserPayload.put("username",username);
+  adminUserPayload.put("name",username);
+  adminUserPayload.put("email",username + "@usergrid.com");
+  adminUserPayload.put("password",username);
+  Entity adminUserResponse=restClient.management().orgs().organization(clientSetup.getOrganizationName()).users().post(adminUserPayload);
+  assertNotNull(adminUserResponse);
+  assertEquals(username,adminUserResponse.get("username"));
+  adminUserResponse=restClient.management().users().entity(username).get(this.getAdminToken(username,username));
+  assertNotNull(adminUserResponse);
+  assertEquals(username,adminUserResponse.get("username"));
+  assertEquals(username,adminUserResponse.get("name"));
+  assertEquals(username + "@usergrid.com",adminUserResponse.get("email"));
 }

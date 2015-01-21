@@ -1,26 +1,16 @@
 {
-  UUID id=UUIDUtils.newTimeUUID();
-  String applicationName="test";
-  String orgname="followingpermissions";
-  String username="permissionadmin" + id;
-  String password="password";
-  String email=String.format("email%s@usergrid.com",id);
-  OrganizationOwnerInfo orgs=setup.getMgmtSvc().createOwnerAndOrganization(orgname,username,"noname",email,password,true,false);
-  ApplicationInfo appInfo=setup.getMgmtSvc().createApplication(orgs.getOrganization().getUuid(),applicationName);
-  assertNotNull(appInfo);
-  String adminToken=setup.getMgmtSvc().getAccessTokenForAdminUser(orgs.getOwner().getUuid(),0);
-  JsonNode node=mapper.readTree(resource().path(String.format("/%s/%s/roles/default",orgname,applicationName)).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).delete(String.class));
-  Map<String,String> data=hashMap("name","patient");
-  node=mapper.readTree(resource().path(String.format("/%s/%s/roles",orgname,applicationName)).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,data));
-  assertNull(getError(node));
-  addPermission(orgname,applicationName,adminToken,"patient","delete,post:/users/*/following/users/${user}");
-  assertNull(getError(node));
-  UUID patientId=createRoleUser(orgs.getOrganization().getUuid(),appInfo.getId(),adminToken,"examplepatient","examplepatient@apigee.com");
+  app().collection("roles").entity("default").delete();
+  Entity data=new Entity().chainPut("name","patient");
+  app().collection("roles").post(data);
+  addPermission("patient","delete,post:/users/*/following/users/${user}");
+  refreshIndex();
+  UUID patientId=createRoleUser("examplepatient","examplepatient@apigee.com");
   assertNotNull(patientId);
-  UUID doctorId=createRoleUser(orgs.getOrganization().getUuid(),appInfo.getId(),adminToken,"exampledoctor","exampledoctor@apigee.com");
+  UUID doctorId=createRoleUser("exampledoctor","exampledoctor@apigee.com");
   assertNotNull(doctorId);
-  node=mapper.readTree(resource().path(String.format("/%s/%s/users/%s/roles/patient",orgname,applicationName,patientId.toString())).queryParam("access_token",adminToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class));
-  String patientToken=setup.getMgmtSvc().getAccessTokenForAppUser(appInfo.getId(),patientId,0);
-  node=mapper.readTree(resource().path(String.format("/%s/%s/users/%s/following/users/%s",orgname,applicationName,"exampledoctor","examplepatient")).queryParam("access_token",patientToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class));
-  logNode(node);
+  refreshIndex();
+  this.app().collection("users").entity(patientId).collection("roles").entity("patient").post();
+  refreshIndex();
+  this.app().token().post(new Token("examplepatient","password"));
+  refreshIndex();
 }

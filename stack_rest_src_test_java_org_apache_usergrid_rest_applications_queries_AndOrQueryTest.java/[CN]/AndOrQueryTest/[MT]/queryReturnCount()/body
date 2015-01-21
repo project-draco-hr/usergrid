@@ -1,13 +1,12 @@
 {
-  CustomCollection activities=context.customCollection("activities");
-  Map actor=hashMap("displayName","Erin");
-  Map props=new HashMap();
   int numValuesTested=20;
-  props.put("actor",actor);
-  props.put("verb","go");
-  props.put("content","bragh");
-  JsonNode[] correctValues=activities.createEntitiesWithOrdinal(props,numValuesTested);
-  this.refreshIndex(context.getAppUuid());
-  String inCorrectQuery="select * where verb = 'go' and ordinal >= 10 ";
-  activities.verificationOfQueryResults(correctValues,true,inCorrectQuery);
+  generateTestEntities(numValuesTested,"activities");
+  String inCorrectQuery="select * where ordinal >= " + (numValuesTested / 2) + " order by ordinal asc";
+  QueryParameters params=new QueryParameters().setQuery(inCorrectQuery).setLimit(numValuesTested / 2);
+  Collection activities=this.app().collection("activities").get(params);
+  assertEquals(numValuesTested / 2,activities.getResponse().getEntityCount());
+  List<Entity> entitiesReturned=activities.getResponse().getEntities();
+  for (int i=0; i < numValuesTested / 2; i++) {
+    assertEquals(numValuesTested / 2 + i,Integer.parseInt(entitiesReturned.get(i).get("ordinal").toString()));
+  }
 }

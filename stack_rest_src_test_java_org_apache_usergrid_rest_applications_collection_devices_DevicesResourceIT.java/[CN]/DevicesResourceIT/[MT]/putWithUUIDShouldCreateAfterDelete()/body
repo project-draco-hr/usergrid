@@ -1,28 +1,25 @@
 {
-  Map<String,String> payload=new HashMap<String,String>();
+  Entity payload=new Entity().chainPut("name","foo");
   UUID uuid=UUID.randomUUID();
-  payload.put("name","foo");
-  String path="devices/" + uuid;
-  refreshIndex("test-organization","test-app");
-  JsonNode response=mapper.readTree(appPath(path).put(String.class,payload));
-  JsonNode entity=getEntity(response,0);
+  refreshIndex();
+  CollectionEndpoint devicesResource=this.app().collection("devices");
+  Entity entity=devicesResource.entity(uuid).put(payload);
   assertNotNull(entity);
-  String newUuid=entity.get("uuid").textValue();
+  String newUuid=entity.getUuid().toString();
   assertEquals(uuid.toString(),newUuid);
-  response=mapper.readTree(appPath(path).delete(String.class));
-  assertNotNull(getEntity(response,0));
-  refreshIndex("test-organization","test-app");
+  ApiResponse deleteResponse=devicesResource.entity(uuid).delete();
+  assertNotNull(deleteResponse.getEntities().get(0));
+  refreshIndex();
   try {
-    response=mapper.readTree(appPath(path).get(String.class));
+    entity=devicesResource.entity(uuid).get();
     fail("should get 404 error");
   }
  catch (  UniformInterfaceException e) {
     assertEquals(404,e.getResponse().getStatus());
   }
-  response=mapper.readTree(appPath(path).put(String.class,payload));
-  entity=getEntity(response,0);
+  entity=devicesResource.entity(uuid).put(payload);
   assertNotNull(entity);
-  refreshIndex("test-organization","test-app");
-  response=mapper.readTree(appPath(path).get(String.class));
-  assertNotNull(getEntity(response,0));
+  refreshIndex();
+  entity=devicesResource.entity(uuid).get();
+  assertNotNull(entity);
 }

@@ -1,67 +1,86 @@
 {
-  context.clearUser();
-  refreshIndex(context.getOrgName(),context.getAppName());
-  String email="testuser1@usergrid.org";
-  TestUser user1=new TestAppUser(email,"password",email).create(context);
-  refreshIndex(context.getOrgName(),context.getAppName());
-  user1.login(context).makeActive(context);
-  JsonNode data=context.application().customCollection("restaurants").create(MapUtils.hashMap("name","4peaks"));
-  refreshIndex(context.getOrgName(),context.getAppName());
-  data=context.application().users().user("me").connection("likes").collection("restaurants").entity("4peaks").post();
-  refreshIndex(context.getOrgName(),context.getAppName());
-  String peaksId=getEntity(data,0).get("uuid").asText();
-  context.clearUser();
-  email="testuser2@usergrid.org";
-  TestUser user2=new TestAppUser(email,"password",email).create(context);
-  refreshIndex(context.getOrgName(),context.getAppName());
-  user2.login(context).makeActive(context);
-  refreshIndex(context.getOrgName(),context.getAppName());
-  data=context.application().customCollection("restaurants").create(MapUtils.hashMap("name","arrogantbutcher"));
-  refreshIndex(context.getOrgName(),context.getAppName());
-  data=context.application().users().user("me").connection("likes").collection("restaurants").entity("arrogantbutcher").post();
-  refreshIndex(context.getOrgName(),context.getAppName());
-  String arrogantButcherId=getEntity(data,0).get("uuid").asText();
-  CustomCollection likeRestaurants=context.withUser(user1).application().users().user("me").connection("likes").collection("restaurants");
-  refreshIndex(context.getOrgName(),context.getAppName());
+  this.app().token().clearToken();
+  this.app().token().post(new Token(user1.getUsername(),"password"));
+  Entity data=this.app().collection("restaurants").post(new Entity().chainPut("name","4peaks"));
+  refreshIndex();
+  data=usersResource.entity("me").connection("likes").collection("restaurants").entity("4peaks").post();
+  refreshIndex();
+  this.app().token().clearToken();
+  this.app().token().post(new Token(user2.getUsername(),"password"));
+  data=this.app().collection("restaurants").post(new Entity().chainPut("name","arrogantbutcher"));
+  refreshIndex();
+  data=usersResource.entity("me").connection("likes").collection("restaurants").entity("arrogantbutcher").post();
+  refreshIndex();
+  String arrogantButcherId=data.getUuid().toString();
+  this.app().token().post(new Token(user1.getUsername(),"password"));
+  CollectionEndpoint likeRestaurants=usersResource.entity("me").connection("likes").collection("restaurants");
+  String peaksId=data.getUuid().toString();
   data=likeRestaurants.entity(peaksId).get();
   assertNotNull(data);
-  assertEquals("4peaks",getEntity(data,0).get("name").asText());
+  assertEquals("4peaks",data.get("name").toString());
   data=likeRestaurants.entity("4peaks").get();
   assertNotNull(data);
-  assertEquals("4peaks",getEntity(data,0).get("name").asText());
-  data=likeRestaurants.entity("arrogantbutcher").get();
-  assertNull(data);
-  data=likeRestaurants.entity(arrogantButcherId).get();
-  assertNull(data);
-  data=likeRestaurants.get();
-  assertEquals("4peaks",getEntity(data,0).get("name").asText());
-  assertNull(getEntity(data,1));
-  likeRestaurants=context.withUser(user2).application().users().user("me").connection("likes").collection("restaurants");
+  assertEquals("4peaks",data.get("name").toString());
+  int status=200;
+  try {
+    likeRestaurants.entity("arrogantbutcher").get();
+  }
+ catch (  UniformInterfaceException e) {
+    status=e.getResponse().getStatus();
+  }
+  assertEquals(status,404);
+  status=200;
+  try {
+    likeRestaurants.entity(arrogantButcherId).get();
+  }
+ catch (  UniformInterfaceException e) {
+    status=e.getResponse().getStatus();
+  }
+  assertEquals(status,404);
+  Collection collectionData=likeRestaurants.get();
+  assertEquals("4peaks",collectionData.next().get("name").toString());
+  assertTrue(!collectionData.hasNext());
+  this.app().token().post(new Token(user2.getUsername(),"password"));
+  likeRestaurants=usersResource.entity("me").connection("likes").collection("restaurants");
   data=likeRestaurants.entity(arrogantButcherId).get();
   assertNotNull(data);
-  assertEquals("arrogantbutcher",getEntity(data,0).get("name").asText());
+  assertEquals("arrogantbutcher",data.get("name").toString());
   data=likeRestaurants.entity("arrogantbutcher").get();
   assertNotNull(data);
-  assertEquals("arrogantbutcher",getEntity(data,0).get("name").asText());
-  data=likeRestaurants.entity("4peaks").get();
-  assertNull(data);
-  data=likeRestaurants.entity(peaksId).get();
-  assertNull(data);
-  data=likeRestaurants.get();
-  assertEquals("arrogantbutcher",getEntity(data,0).get("name").asText());
-  assertNull(getEntity(data,1));
-  CustomCollection restaurants=context.withUser(user1).application().customCollection("restaurants");
+  assertEquals("arrogantbutcher",data.get("name").toString());
+  status=200;
+  try {
+    data=likeRestaurants.entity("4peaks").get();
+  }
+ catch (  UniformInterfaceException e) {
+    status=e.getResponse().getStatus();
+  }
+  assertEquals(status,404);
+  status=200;
+  try {
+    likeRestaurants.entity(peaksId).get();
+  }
+ catch (  UniformInterfaceException e) {
+    status=e.getResponse().getStatus();
+  }
+  assertEquals(status,404);
+  collectionData=likeRestaurants.get();
+  assertEquals("arrogantbutcher",collectionData.next().get("name").toString());
+  assertTrue(!collectionData.hasNext());
+  this.app().token().post(new Token(user1.getUsername(),"password"));
+  CollectionEndpoint restaurants=this.app().collection("restaurants");
   data=restaurants.entity("4peaks").get();
   assertNotNull(data);
-  assertEquals("4peaks",getEntity(data,0).get("name").asText());
+  assertEquals("4peaks",data.get("name").toString());
   data=restaurants.entity("arrogantbutcher").get();
   assertNotNull(data);
-  assertEquals("arrogantbutcher",getEntity(data,0).get("name").asText());
-  restaurants=context.withUser(user1).application().customCollection("restaurants");
+  assertEquals("arrogantbutcher",data.get("name").toString());
+  this.app().token().post(new Token(user2.getUsername(),"password"));
+  restaurants=this.app().collection("restaurants");
   data=restaurants.entity("4peaks").get();
   assertNotNull(data);
-  assertEquals("4peaks",getEntity(data,0).get("name").asText());
+  assertEquals("4peaks",data.get("name").toString());
   data=restaurants.entity("arrogantbutcher").get();
   assertNotNull(data);
-  assertEquals("arrogantbutcher",getEntity(data,0).get("name").asText());
+  assertEquals("arrogantbutcher",data.get("name").toString());
 }
