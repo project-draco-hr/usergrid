@@ -1,0 +1,11 @@
+{
+  int numValuesTested=20;
+  generateTestEntities(numValuesTested,"activities");
+  String query="select * where not verb = 'go'";
+  QueryParameters params=new QueryParameters().setQuery(query).setLimit(numValuesTested / 2);
+  Collection activities=this.app().collection("activities").get(params);
+  assertEquals(numValuesTested / 2,activities.getResponse().getEntityCount());
+  while (activities.hasNext()) {
+    assertEquals("stop",activities.next().get("verb").toString());
+  }
+}

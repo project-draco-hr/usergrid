@@ -1,0 +1,13 @@
+{
+  int numOfEntities=20;
+  String collectionName="activities";
+  generateTestEntities(numOfEntities,collectionName);
+  QueryParameters params=new QueryParameters().setQuery("select * order by ordinal asc").setLimit(numOfEntities);
+  Collection activities=this.app().collection("activities").get(params);
+  assertEquals(numOfEntities,activities.getResponse().getEntityCount());
+  int index=0;
+  while (activities.hasNext()) {
+    Entity activity=activities.next();
+    assertEquals(index++,Long.parseLong(activity.get("ordinal").toString()));
+  }
+}

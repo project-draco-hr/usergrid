@@ -2,6 +2,6 @@
   String idString=IndexingUtils.idString(entityId).toLowerCase();
   final FilteredQueryBuilder fqb=QueryBuilders.filteredQuery(QueryBuilders.termQuery(ENTITYID_ID_FIELDNAME,idString),FilterBuilders.rangeFilter(ENTITY_VERSION_FIELDNAME).lt(version.timestamp()));
   final DeleteByQueryResponse response=esProvider.getClient().prepareDeleteByQuery(alias.getWriteAlias()).setQuery(fqb).execute().actionGet();
-  logger.debug("Deleted entity {}:{} with version {} from all " + "index scopes with response status = {}",new Object[]{entityId.getType(),entityId.getUuid(),version,response.status().toString()});
+  logger.debug("Deleted entity {}:{} with version {} from all " + "index scopes with response status = {}",entityId.getType(),entityId.getUuid(),version,response.status().toString());
   checkDeleteByQueryResponse(fqb,response);
 }

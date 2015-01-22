@@ -1,0 +1,22 @@
+{
+  String rand=RandomStringUtils.randomAlphabetic(20);
+  UUID applicationId=setup.createApplication("test-org-" + rand,"test-app-" + rand);
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  Map<String,Object> properties1=new LinkedHashMap<String,Object>();
+  properties1.put("Name","12 Angry Men");
+  properties1.put("Year",1957);
+  Entity film1=em.create("film",properties1);
+  Map<String,Object> properties2=new LinkedHashMap<String,Object>();
+  properties2.put("Name","Reservoir Dogs");
+  properties2.put("Year",1992);
+  Entity film2=em.create("film",properties2);
+  em.refreshIndex();
+  setup.getEmf().deleteApplication(applicationId);
+  assertNull(setup.getEmf().lookupApplication("test-app-" + rand));
+  Map<String,UUID> appMap=setup.getEmf().getApplications();
+  for (  String appName : appMap.keySet()) {
+    UUID appId=appMap.get(appName);
+    assertNotEquals(appId,applicationId);
+    assertNotEquals(appName,"test-app-" + rand);
+  }
+}
