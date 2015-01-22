@@ -1,11 +1,28 @@
 {
   try {
-    WnsToast toast=new WnsToastBuilder().bindingTemplateToastText01(payload.toString()).build();
-    service.pushToast(providerId,toast);
-    tracker.completed();
-  }
- catch (  Exception e) {
-    tracker.failed(0,e.toString());
-    LOG.error("Failed to send notification",e);
-  }
+    List<TranslatedNotification> translatedNotifications=(List<TranslatedNotification>)payload;
+    for (    TranslatedNotification translatedNotification : translatedNotifications) {
+switch (translatedNotification.getType()) {
+case "toast":
+        WnsToast toast=new WnsToastBuilder().bindingTemplateToastText01(translatedNotification.getMessage().toString()).build();
+      service.pushToast(providerId,toast);
+    break;
+case "badge":
+  WnsBadge badge;
+if (translatedNotification.getMessage() instanceof Integer) {
+  badge=new WnsBadgeBuilder().value((Integer)translatedNotification.getMessage()).build();
+}
+ else {
+  badge=new WnsBadgeBuilder().value(translatedNotification.getMessage().toString()).build();
+}
+service.pushBadge(providerId,badge);
+break;
+}
+}
+tracker.completed();
+}
+ catch (Exception e) {
+tracker.failed(0,e.toString());
+LOG.error("Failed to send notification",e);
+}
 }
