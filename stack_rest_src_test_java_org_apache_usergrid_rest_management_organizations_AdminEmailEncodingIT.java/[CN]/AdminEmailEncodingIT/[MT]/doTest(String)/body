@@ -1,0 +1,21 @@
+{
+  String unique=UUID.randomUUID().toString();
+  String org="org_getTokenDash" + unique;
+  String app="app_getTokenDash" + unique;
+  org=org.toLowerCase();
+  app=app.toLowerCase();
+  String username="testuser" + unique;
+  String password="password" + unique;
+  String email=String.format("test%suser%s@usergrid.com",symbol,unique);
+  Organization orgPayload=new Organization(org,username,email,username,password,null);
+  Organization organization=clientSetup.getRestClient().management().orgs().post(orgPayload);
+  assertNotNull(organization);
+  Token tokenReturned=clientSetup.getRestClient().management().token().post(new Token("password",username,password));
+  assertNotNull(tokenReturned);
+  this.app().token().setToken(tokenReturned);
+  clientSetup.getRestClient().management().orgs().organization(organization.getName()).app().post(new Application(app));
+  Entity me=clientSetup.getRestClient().management().users().entity(username).get();
+  assertEquals(email,me.get("email"));
+  me=clientSetup.getRestClient().management().users().entity(email).get();
+  assertEquals(email,me.get("email"));
+}
