@@ -1,15 +1,22 @@
 {
   try {
+    logger.info("Trying to get a lock to setup system");
     if (lock.tryLock()) {
+      logger.info("Lock acquired, setting up system");
       final SchemaManager schemaManager=SpringResource.getInstance().getBean(SchemaManager.class);
       if (CLEAN_STORAGE) {
+        logger.info("Destroying current database");
         schemaManager.destroy();
       }
+      logger.info("Creating database");
       schemaManager.create();
+      logger.info("Populating database");
       schemaManager.populateBaseData();
       barrier.proceed();
     }
+    logger.info("Waiting for setup to complete");
     barrier.await(ONE_MINUTE);
+    logger.info("Setup to complete");
     lock.maybeReleaseLock();
   }
  catch (  Exception e) {
