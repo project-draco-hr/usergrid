@@ -1,12 +1,12 @@
 {
-  logger.debug("Testing new index name [{}]",alias);
+  logger.debug("Testing new index name: read {} write {}",alias.getReadAlias(),alias.getWriteAlias());
   final RetryOperation retryOperation=new RetryOperation(){
     @Override public boolean doOp(){
       final String tempId=UUIDGenerator.newTimeUUID().toString();
       esProvider.getClient().prepareIndex(alias.getWriteAlias(),VERIFY_TYPE,tempId).setSource(DEFAULT_PAYLOAD).get();
-      logger.info("Successfully created new document with docId {} " + "in index {} and type {}",tempId,alias,VERIFY_TYPE);
+      logger.info("Successfully created new document with docId {} " + "in index read {} write {} and type {}",tempId,alias.getReadAlias(),alias.getWriteAlias(),VERIFY_TYPE);
       esProvider.getClient().prepareDeleteByQuery(alias.getWriteAlias()).setTypes(VERIFY_TYPE).setQuery(MATCH_ALL_QUERY_BUILDER).get();
-      logger.info("Successfully deleted all documents in index {} and type {}",alias,VERIFY_TYPE);
+      logger.info("Successfully deleted all documents in index {} read {} write {} and type {}",alias.getReadAlias(),alias.getWriteAlias(),VERIFY_TYPE);
       return true;
     }
   }
