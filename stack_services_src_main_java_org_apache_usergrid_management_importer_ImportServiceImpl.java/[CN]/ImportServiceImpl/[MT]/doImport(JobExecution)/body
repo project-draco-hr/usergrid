@@ -3,7 +3,7 @@
   Object s3PlaceHolder=jobExecution.getJobData().getProperty("s3Import");
   S3Import s3Import=null;
   if (config == null) {
-    logger.error("Import Information passed through is null");
+    logger.error("doImport(): Import Information passed through is null");
     return;
   }
   UUID importId=(UUID)jobExecution.getJobData().getProperty(IMPORT_ID);
@@ -22,7 +22,7 @@
     }
   }
  catch (  Exception e) {
-    logger.error("S3Import doesn't exist");
+    logger.error("doImport(): S3Import doesn't exist");
     importUG.setErrorMessage(e.getMessage());
     importUG.setState(Import.State.FAILED);
     rooteEm.update(importUG);
@@ -30,7 +30,7 @@
   }
   try {
     if (config.get("organizationId") == null) {
-      logger.error("No organization could be found");
+      logger.error("doImport(): No organization could be found");
       importUG.setErrorMessage("No organization could be found");
       importUG.setState(Import.State.FAILED);
       rooteEm.update(importUG);
