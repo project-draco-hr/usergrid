@@ -1,6 +1,16 @@
 {
   LOG.info("dropping keyspaces");
-  cluster.dropKeyspace(CassandraService.SYSTEM_KEYSPACE);
-  cluster.dropKeyspace(CassandraService.STATIC_APPLICATION_KEYSPACE);
+  try {
+    cluster.dropKeyspace(CassandraService.SYSTEM_KEYSPACE);
+  }
+ catch (  RuntimeException ire) {
+  }
+  try {
+    cluster.dropKeyspace(CassandraService.STATIC_APPLICATION_KEYSPACE);
+  }
+ catch (  RuntimeException ire) {
+  }
   LOG.info("keyspaces dropped");
+  final EsProvider provider=SpringResource.getInstance().getBean(Injector.class).getInstance(EsProvider.class);
+  provider.getClient().admin().indices().prepareDelete("_all").execute().actionGet();
 }

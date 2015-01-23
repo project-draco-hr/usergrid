@@ -8,12 +8,18 @@
   UUID orgUuid=lookupOrganization(organizationName);
   if (orgUuid == null) {
     final String orgName=organizationName;
-    Entity orgInfo=em.create("organization",new HashMap<String,Object>(){
+    final Entity orgInfo;
+    try {
+      orgInfo=em.create("organization",new HashMap<String,Object>(){
 {
-        put(PROPERTY_NAME,orgName);
+          put(PROPERTY_NAME,orgName);
+        }
       }
-    }
 );
+    }
+ catch (    DuplicateUniquePropertyExistsException e) {
+      throw new OrganizationAlreadyExistsException(orgName);
+    }
     em.refreshIndex();
     orgUuid=orgInfo.getUuid();
   }
@@ -27,7 +33,12 @@
     }
   }
 ;
-  Entity appInfo=em.create("appinfo",appInfoMap);
+  try {
+    em.create("appinfo",appInfoMap);
+  }
+ catch (  DuplicateUniquePropertyExistsException e) {
+    throw new ApplicationAlreadyExistsException(appName);
+  }
   em.refreshIndex();
   if (properties == null) {
     properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);

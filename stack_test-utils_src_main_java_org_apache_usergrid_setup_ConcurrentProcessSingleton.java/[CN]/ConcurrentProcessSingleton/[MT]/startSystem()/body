@@ -1,0 +1,18 @@
+{
+  try {
+    if (lock.tryLock()) {
+      final SchemaManager schemaManager=SpringResource.getInstance().getBean(SchemaManager.class);
+      if (CLEAN_STORAGE) {
+        schemaManager.destroy();
+      }
+      schemaManager.create();
+      schemaManager.populateBaseData();
+      barrier.proceed();
+    }
+    barrier.await(ONE_MINUTE);
+    lock.maybeReleaseLock();
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Unable to initialize system",e);
+  }
+}
