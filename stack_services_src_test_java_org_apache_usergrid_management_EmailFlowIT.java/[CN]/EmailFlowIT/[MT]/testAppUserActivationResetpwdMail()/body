@@ -1,23 +1,23 @@
 {
   final String orgName=uniqueOrg();
   final String appName=uniqueApp();
-  final String userName=uniqueUsername();
-  final String email=uniqueEmail();
-  final String passwd="testpassword";
-  OrganizationOwnerInfo orgOwner=createOwnerAndOrganization(orgName,appName,userName,email,passwd,false,false);
+  final String adminUserName=uniqueUsername();
+  final String adminEmail=uniqueEmail();
+  final String adminPasswd="testpassword";
+  OrganizationOwnerInfo orgOwner=createOwnerAndOrganization(orgName,appName,adminUserName,adminEmail,adminPasswd,false,false);
   assertNotNull(orgOwner);
   ApplicationInfo app=setup.getMgmtSvc().createApplication(orgOwner.getOrganization().getUuid(),appName);
   enableAdminApproval(app.getId());
   final String appUserUsername=uniqueUsername();
   final String appUserEmail=uniqueEmail();
-  User user=setupAppUser(app.getId(),appUserUsername,appUserEmail,false);
-  String subject="Request For User Account Activation " + email;
-  String activation_url=String.format(setup.get(PROPERTIES_USER_ACTIVATION_URL),orgName,appName,user.getUuid().toString());
+  User appUser=setupAppUser(app.getId(),appUserUsername,appUserEmail,false);
+  String subject="Request For User Account Activation " + appUserEmail;
+  String activation_url=String.format(setup.get(PROPERTIES_USER_ACTIVATION_URL),orgName,appName,appUser.getUuid().toString());
   setup.getEmf().refreshIndex();
-  setup.getMgmtSvc().startAppUserActivationFlow(app.getId(),user);
-  List<Message> inbox=Mailbox.get(email);
+  setup.getMgmtSvc().startAppUserActivationFlow(app.getId(),appUser);
+  List<Message> inbox=Mailbox.get(adminEmail);
   assertFalse(inbox.isEmpty());
-  MockImapClient client=new MockImapClient("usergrid.com",userName,"somepassword");
+  MockImapClient client=new MockImapClient("usergrid.com",adminUserName,"somepassword");
   client.processMail();
   Message activation=inbox.get(0);
   assertEquals(subject,activation.getSubject());
@@ -26,11 +26,11 @@
   assertTrue(StringUtils.contains(mailContent,activation_url));
   String token=getTokenFromMessage(activation);
   LOG.info(token);
-  ActivationState activeState=setup.getMgmtSvc().handleActivationTokenForAppUser(app.getId(),user.getUuid(),token);
+  ActivationState activeState=setup.getMgmtSvc().handleActivationTokenForAppUser(app.getId(),appUser.getUuid(),token);
   assertEquals(ActivationState.ACTIVATED,activeState);
   subject="Password Reset";
-  String reset_url=String.format(setup.get(PROPERTIES_USER_RESETPW_URL),orgName,appName,user.getUuid().toString());
-  setup.getMgmtSvc().startAppUserPasswordResetFlow(app.getId(),user);
+  String reset_url=String.format(setup.get(PROPERTIES_USER_RESETPW_URL),orgName,appName,appUser.getUuid().toString());
+  setup.getMgmtSvc().startAppUserPasswordResetFlow(app.getId(),appUser);
   inbox=Mailbox.get(appUserEmail);
   assertFalse(inbox.isEmpty());
   client=new MockImapClient("test.com",appUserUsername,"somepassword");
@@ -42,7 +42,7 @@
   assertTrue(StringUtils.contains(mailContent,reset_url));
   token=getTokenFromMessage(reset);
   LOG.info(token);
-  assertTrue(setup.getMgmtSvc().checkPasswordResetTokenForAppUser(app.getId(),user.getUuid(),token));
+  assertTrue(setup.getMgmtSvc().checkPasswordResetTokenForAppUser(app.getId(),appUser.getUuid(),token));
   setup.getMgmtSvc().revokeAccessTokenForAppUser(token);
-  assertFalse(setup.getMgmtSvc().checkPasswordResetTokenForAppUser(app.getId(),user.getUuid(),token));
+  assertFalse(setup.getMgmtSvc().checkPasswordResetTokenForAppUser(app.getId(),appUser.getUuid(),token));
 }
