@@ -1,13 +1,7 @@
 {
-  ClientResponse.Status responseStatus=ClientResponse.Status.ACCEPTED;
-  JsonNode node=null;
-  HashMap<String,Object> payload=payloadBuilder();
-  try {
-    node=mapper.readTree(resource().path("/management/orgs/test-organization/apps/test-app/import").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
-  }
- catch (  UniformInterfaceException uie) {
-    responseStatus=uie.getResponse().getClientResponseStatus();
-  }
-  assertEquals(ClientResponse.Status.ACCEPTED,responseStatus);
-  assertNotNull(node.get("Import Entity"));
+  String org=clientSetup.getOrganizationName();
+  String app=clientSetup.getAppName();
+  Entity payload=payloadBuilder();
+  Entity entity=this.management().orgs().organization(org).apps(app).addToPath("import").post(payload);
+  assertEquals("",entity.getString("Import Entity"));
 }
