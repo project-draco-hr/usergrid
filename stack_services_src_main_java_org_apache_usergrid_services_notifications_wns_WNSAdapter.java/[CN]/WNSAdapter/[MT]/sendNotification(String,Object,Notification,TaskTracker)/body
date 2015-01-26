@@ -1,0 +1,30 @@
+{
+  try {
+    List<TranslatedNotification> translatedNotifications=(List<TranslatedNotification>)payload;
+    for (    TranslatedNotification translatedNotification : translatedNotifications) {
+switch (translatedNotification.getType()) {
+case "toast":
+        WnsToast toast=new WnsToastBuilder().bindingTemplateToastText01(translatedNotification.getMessage().toString()).build();
+      service.pushToast(providerId,toast);
+    break;
+case "badge":
+  WnsBadge badge;
+if (translatedNotification.getMessage() instanceof Integer) {
+  badge=new WnsBadgeBuilder().value((Integer)translatedNotification.getMessage()).build();
+}
+ else {
+  badge=new WnsBadgeBuilder().value(translatedNotification.getMessage().toString()).build();
+}
+service.pushBadge(providerId,badge);
+break;
+default :
+throw new IllegalArgumentException(translatedNotification.getType() + " does not match a valid notification type (toast,badge).");
+}
+}
+tracker.completed();
+}
+ catch (Exception e) {
+tracker.failed(0,e.toString());
+LOG.error("Failed to send notification",e);
+}
+}
