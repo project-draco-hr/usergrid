@@ -1,15 +1,15 @@
 {
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
-  Map<String,Object> userProperties=null;
-  Entity entity[]=new Entity[5];
+  List<Entity> entities=new ArrayList<>();
   for (int i=0; i < 5; i++) {
-    userProperties=new LinkedHashMap<String,Object>();
+    Map<String,Object> userProperties=new LinkedHashMap<>();
     userProperties.put("parameter1","user" + i);
     userProperties.put("parameter2","user" + i + "@test.com");
-    entity[i]=em.create("custom",userProperties);
+    entities.add(em.create("custom",userProperties));
   }
-  em.createConnection(new SimpleEntityRef("custom",entity[0].getUuid()),"related",new SimpleEntityRef("custom",entity[1].getUuid()));
-  em.createConnection(new SimpleEntityRef("custom",entity[1].getUuid()),"related",new SimpleEntityRef("custom",entity[0].getUuid()));
+  em.createConnection(new SimpleEntityRef("custom",entities.get(0).getUuid()),"related",new SimpleEntityRef("custom",entities.get(1).getUuid()));
+  em.createConnection(new SimpleEntityRef("custom",entities.get(1).getUuid()),"related",new SimpleEntityRef("custom",entities.get(0).getUuid()));
+  logger.debug("\n\nExport the application\n\n");
   ExportService exportService=setup.getExportService();
   S3Export s3Export=new S3ExportImpl();
   HashMap<String,Object> payload=payloadBuilder();
@@ -21,8 +21,8 @@
   when(jobExecution.getJobData()).thenReturn(jobData);
   exportService.doExport(jobExecution);
   while (!exportService.getState(exportUUID).equals("FINISHED")) {
-    ;
   }
+  logger.debug("\n\nImport the application\n\n");
   S3Import s3Import=new S3ImportImpl();
   ImportService importService=setup.getImportService();
   UUID importUUID=importService.schedule(payload);
@@ -31,29 +31,28 @@
   when(jobExecution.getJobData()).thenReturn(jobData);
   importService.doImport(jobExecution);
   while (!importService.getState(importUUID).equals("FINISHED")) {
-    ;
   }
+  logger.debug("\n\nVerify Import\n\n");
   try {
     assertThat(importService.getEphemeralFile().size(),is(not(0)));
     Set<String> collections=em.getApplicationCollections();
-    Iterator<String> collectionsItr=collections.iterator();
-    while (collectionsItr.hasNext()) {
-      String collectionName=collectionsItr.next();
+    for (    String collectionName : collections) {
+      logger.debug("Checking collection {}",collectionName);
       Results collection=em.getCollection(applicationId,collectionName,null,Level.ALL_PROPERTIES);
-      List<Entity> entities=collection.getEntities();
-      for (      Entity eachEntity : entities) {
+      for (      Entity eachEntity : collection.getEntities()) {
+        logger.debug("Checking entity {} {}:{}",new Object[]{eachEntity.getName(),eachEntity.getType(),eachEntity.getUuid()});
         EntityRef er;
         Map<Object,Object> dictionaries;
         if (collectionName.equals("roles")) {
           if (eachEntity.getName().equalsIgnoreCase("admin")) {
             er=eachEntity;
             dictionaries=em.getDictionaryAsMap(er,"permissions");
-            assertThat(dictionaries.size(),is(0));
+            assertThat(dictionaries.size(),is(not(0)));
           }
  else {
             er=eachEntity;
             dictionaries=em.getDictionaryAsMap(er,"permissions");
-            assertThat(dictionaries.size(),is(not(0)));
+            assertThat(dictionaries.size(),is(0));
           }
         }
       }
