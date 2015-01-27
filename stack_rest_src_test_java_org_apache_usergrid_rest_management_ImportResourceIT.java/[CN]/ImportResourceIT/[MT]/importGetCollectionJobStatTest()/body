@@ -2,10 +2,10 @@
   String org=clientSetup.getOrganizationName();
   String app=clientSetup.getAppName();
   Entity payload=payloadBuilder();
-  Entity entity=this.management().orgs().organization(org).apps(app).addToPath("collection").addToPath("users").addToPath("import").post(payload);
+  Entity entity=this.management().orgs().organization(org).app().addToPath(app).addToPath("collection").addToPath("users").addToPath("import").post(payload);
   assertEquals("",entity.getString("Import Entity"));
   String uuid=entity.getString("uuid");
   uuid=uuid.replaceAll("\"","");
-  entity=this.management().orgs().organization(org).apps(app).addToPath("collection").addToPath("users").addToPath("import").addToPath(uuid).get();
+  entity=this.management().orgs().organization(org).app().addToPath(app).addToPath("collection").addToPath("users").addToPath("import").addToPath(uuid).get();
   assertEquals("SCHEDULED",entity.getString("state"));
 }
