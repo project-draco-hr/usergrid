@@ -3,9 +3,9 @@
   String app=clientSetup.getAppName();
   Entity payload=payloadBuilder();
   Entity entity=this.management().orgs().organization(org).app().addToPath(app).addToPath("collection").addToPath("users").addToPath("import").post(payload);
-  assertEquals("",entity.getString("Import Entity"));
-  String uuid=entity.getString("uuid");
-  uuid=uuid.replaceAll("\"","");
-  entity=this.management().orgs().organization(org).app().addToPath(app).addToPath("collection").addToPath("users").addToPath("import").addToPath(uuid).get();
+  String importEntity=entity.getString("Import Entity");
+  assertNotNull(entity);
+  assertNotNull(importEntity);
+  entity=this.management().orgs().organization(org).addToPath("import").addToPath(importEntity).get();
   assertEquals("SCHEDULED",entity.getString("state"));
 }
