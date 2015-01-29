@@ -1,0 +1,28 @@
+{
+  String org=clientSetup.getOrganizationName();
+  String app=clientSetup.getAppName();
+  Entity payload=payloadBuilder();
+  Entity entity=this.management().orgs().organization(org).app().addToPath(app).addToPath("collection").addToPath("users").addToPath("import").post(payload);
+  String importEntity=entity.getString("Import Entity");
+  assertNotNull(entity);
+  assertNotNull(importEntity);
+  String newOrgName="org" + UUIDUtils.newTimeUUID();
+  String newOrgUsername="orgusername" + UUIDUtils.newTimeUUID();
+  String newOrgEmail=UUIDUtils.newTimeUUID() + "@usergrid.com";
+  String newOrgPassword="password1";
+  Organization orgPayload=new Organization(newOrgName,newOrgUsername,newOrgEmail,newOrgName,newOrgPassword,null);
+  Organization orgCreatedResponse=clientSetup.getRestClient().management().orgs().post(orgPayload);
+  this.refreshIndex();
+  assertNotNull(orgCreatedResponse);
+  Token tokenPayload=new Token("password",newOrgUsername,newOrgPassword);
+  Token newOrgToken=clientSetup.getRestClient().management().token().post(tokenPayload);
+  Token oldToken=context().getToken();
+  context().setToken(newOrgToken);
+  try {
+    Entity newEntity=this.management().orgs().organization(org).apps(app).addToPath("collection").addToPath("users").addToPath("import").get();
+    fail("Should not be able to read import job with unauthorized token");
+  }
+ catch (  UniformInterfaceException ex) {
+    errorParse(401,"unauthorized",ex);
+  }
+}
