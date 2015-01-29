@@ -1,10 +1,11 @@
 {
   emf=setup.getEmf();
   injector=CpSetup.getInjector();
-  entityDataMigration=injector.getInstance(EntityDataMigration.class);
-  managerCache=injector.getInstance(ManagerCache.class);
+  entityDataMigration=injector.getInstance(MvccEntityDataMigrationImpl.class);
   dataMigrationManager=injector.getInstance(DataMigrationManager.class);
   migrationInfoSerialization=injector.getInstance(MigrationInfoSerialization.class);
-  v1Strategy=injector.getInstance(Key.get(MvccEntitySerializationStrategy.class,PreviousImpl.class));
-  v2Strategy=injector.getInstance(Key.get(MvccEntitySerializationStrategy.class,CurrentImpl.class));
+  MvccEntityMigrationStrategy strategy=injector.getInstance(Key.get(MvccEntityMigrationStrategy.class));
+  allEntitiesInSystemObservable=injector.getInstance(AllEntitiesInSystemObservable.class);
+  v1Strategy=strategy.getMigration().from();
+  v2Strategy=strategy.getMigration().to();
 }

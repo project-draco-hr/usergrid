@@ -1,0 +1,20 @@
+{
+  if (migrationTreeMap.isEmpty()) {
+    for (    DataMigration migration : migrations) {
+      Preconditions.checkNotNull(migration,"A migration instance in the set of migrations was null.  This is not allowed");
+      final int version=migration.getVersion();
+      final DataMigration existing=migrationTreeMap.get(version);
+      if (existing != null) {
+        final Class<? extends DataMigration> existingClass=existing.getClass();
+        final Class<? extends DataMigration> currentClass=migration.getClass();
+        throw new DataMigrationException(String.format("Data migrations must be unique.  Both classes %s and %s have version %d",existingClass,currentClass,version));
+      }
+      migrationTreeMap.put(version,migration);
+    }
+  }
+  if (migrationTreeMap.isEmpty()) {
+    LOG.warn("No migrations found to run, exiting");
+    return false;
+  }
+  return true;
+}

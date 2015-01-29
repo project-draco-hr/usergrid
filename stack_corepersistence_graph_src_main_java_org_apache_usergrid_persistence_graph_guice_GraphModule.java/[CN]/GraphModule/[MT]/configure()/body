@@ -2,7 +2,12 @@
   install(new GuicyFigModule(GraphFig.class));
   bind(NodeSerialization.class).to(NodeSerializationImpl.class);
   bind(TimeService.class).to(TimeServiceImpl.class);
-  install(new FactoryModuleBuilder().implement(GraphManager.class,GraphManagerImpl.class).build(GraphManagerFactory.class));
+  bind(GraphManagerFactory.class).to(GraphManagerFactoryImpl.class);
+  bind(EdgesObservable.class).to(EdgesObservableImpl.class);
+  bind(TargetIdObservable.class).to(TargetIdObservableImpl.class);
+  bind(EdgesObservable.class).to(EdgesObservableImpl.class);
+  bind(EdgeMetadataSerialization.class).to(EdgeMetadataSerializationProxyImpl.class);
+  bind(EdgeMigrationStrategy.class).to(EdgeMetadataSerializationProxyImpl.class);
   bind(NodeShardAllocation.class).to(NodeShardAllocationImpl.class);
   bind(NodeShardApproximation.class).to(NodeShardApproximationImpl.class);
   bind(NodeShardCache.class).to(NodeShardCacheImpl.class);
@@ -10,6 +15,8 @@
   bind(EdgeShardSerialization.class).to(EdgeShardSerializationImpl.class);
   bind(EdgeMetaRepair.class).to(EdgeMetaRepairImpl.class);
   bind(EdgeDeleteRepair.class).to(EdgeDeleteRepairImpl.class);
+  Multibinder<DataMigration> dataMigrationMultibinder=Multibinder.newSetBinder(binder(),DataMigration.class);
+  dataMigrationMultibinder.addBinding().to(EdgeDataMigrationImpl.class);
   bind(NodeDeleteListener.class).to(NodeDeleteListenerImpl.class);
   bind(EdgeDeleteListener.class).to(EdgeDeleteListenerImpl.class);
   bind(EdgeSerialization.class).to(EdgeSerializationImpl.class);
@@ -22,9 +29,10 @@
   migrationBinding.addBinding().to(Key.get(EdgeColumnFamilies.class));
   migrationBinding.addBinding().to(Key.get(EdgeShardSerialization.class));
   migrationBinding.addBinding().to(Key.get(NodeShardCounterSerialization.class));
-  migrationBinding.addBinding().to(Key.get(EdgeMetadataSerialization.class,PreviousImpl.class));
-  migrationBinding.addBinding().to(Key.get(EdgeMetadataSerialization.class,CurrentImpl.class));
-  bind(EdgeMetadataSerialization.class).annotatedWith(PreviousImpl.class).to(EdgeMetadataSerializationV1Impl.class);
-  bind(EdgeMetadataSerialization.class).annotatedWith(CurrentImpl.class).to(EdgeMetadataSerializationV2Impl.class);
+  migrationBinding.addBinding().to(Key.get(EdgeMetadataSerialization.class,V1Impl.class));
+  migrationBinding.addBinding().to(Key.get(EdgeMetadataSerialization.class,V2Impl.class));
+  bind(EdgeMetadataSerialization.class).annotatedWith(V1Impl.class).to(EdgeMetadataSerializationV1Impl.class);
+  bind(EdgeMetadataSerialization.class).annotatedWith(V2Impl.class).to(EdgeMetadataSerializationV2Impl.class);
   bind(EdgeMetadataSerialization.class).annotatedWith(ProxyImpl.class).to(EdgeMetadataSerializationProxyImpl.class);
+  bind(EdgeMigrationStrategy.class).annotatedWith(ProxyImpl.class).to(EdgeMetadataSerializationProxyImpl.class);
 }

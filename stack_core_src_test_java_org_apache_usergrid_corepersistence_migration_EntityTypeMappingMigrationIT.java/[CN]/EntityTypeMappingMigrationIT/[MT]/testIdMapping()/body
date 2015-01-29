@@ -14,11 +14,22 @@
   keyspace.truncateColumnFamily(MapSerializationImpl.MAP_KEYS);
   app.createApplication(GraphShardVersionMigrationIT.class.getSimpleName() + UUIDGenerator.newTimeUUID(),"migrationTest");
   final TestProgressObserver progressObserver=new TestProgressObserver();
-  entityTypeMappingMigration.migrate(progressObserver);
-  AllEntitiesInSystemObservable.getAllEntitiesInSystem(managerCache,1000).doOnNext(new Action1<AllEntitiesInSystemObservable.ApplicationEntityGroup>(){
-    @Override public void call(    final AllEntitiesInSystemObservable.ApplicationEntityGroup entity){
+  allEntitiesInSystemObservable.getAllEntitiesInSystem(1000).doOnNext(new Action1<ApplicationEntityGroup>(){
+    @Override public void call(    final ApplicationEntityGroup entity){
+      try {
+        entityTypeMappingMigration.migrate(entity,progressObserver).toBlocking().last();
+      }
+ catch (      Throwable e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+);
+  allEntitiesInSystemObservable.getAllEntitiesInSystem(1000).doOnNext(new Action1<ApplicationEntityGroup>(){
+    @Override public void call(    final ApplicationEntityGroup entity){
       final EntityManager em=emf.getEntityManager(entity.applicationScope.getApplication().getUuid());
-      for (      final Id id : entity.entityIds) {
+      for (      final EntityIdScope idScope : entity.entityIds) {
+        final Id id=idScope.getId();
         try {
           final Entity returned=em.get(id.getUuid());
           if (returned != null) {

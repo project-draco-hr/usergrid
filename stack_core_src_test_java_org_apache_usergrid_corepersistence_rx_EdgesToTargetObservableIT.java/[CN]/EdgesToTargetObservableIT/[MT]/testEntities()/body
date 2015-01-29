@@ -1,4 +1,5 @@
 {
+  EdgesObservable edgesFromSourceObservable=CpSetup.getInjector().getInstance(EdgesObservable.class);
   final EntityManager em=app.getEntityManager();
   final String type1="type1things";
   final String type2="type2things";
@@ -15,7 +16,7 @@
   final ApplicationScope scope=CpNamingUtils.getApplicationScope(app.getId());
   final Id applicationId=scope.getApplication();
   final GraphManager gm=managerCache.getGraphManager(scope);
-  EdgesFromSourceObservable.edgesFromSource(gm,applicationId).doOnNext(new Action1<Edge>(){
+  edgesFromSourceObservable.edgesFromSource(gm,applicationId).doOnNext(new Action1<Edge>(){
     @Override public void call(    final Edge edge){
       final String edgeType=edge.getType();
       final Id target=edge.getTargetNode();
@@ -34,7 +35,7 @@
 ).toBlocking().lastOrDefault(null);
   assertEquals("Every element should have been encountered",0,type1Identities.size());
   assertEquals("Every element should have been encountered",0,type2Identities.size());
-  EdgesFromSourceObservable.edgesFromSource(gm,source).doOnNext(new Action1<Edge>(){
+  edgesFromSourceObservable.edgesFromSource(gm,source).doOnNext(new Action1<Edge>(){
     @Override public void call(    final Edge edge){
       final String edgeType=edge.getType();
       final Id target=edge.getTargetNode();

@@ -1,4 +1,5 @@
 {
+  TargetIdObservable targetIdObservable=CpSetup.getInjector().getInstance(TargetIdObservable.class);
   final EntityManager em=app.getEntityManager();
   final String type1="type1thing";
   final String type2="type2thing";
@@ -15,7 +16,7 @@
   final ApplicationScope scope=CpNamingUtils.getApplicationScope(app.getId());
   final Id applicationId=scope.getApplication();
   final GraphManager gm=managerCache.getGraphManager(scope);
-  TargetIdObservable.getTargetNodes(gm,applicationId).doOnNext(new Action1<Id>(){
+  targetIdObservable.getTargetNodes(gm,applicationId).doOnNext(new Action1<Id>(){
     @Override public void call(    final Id target){
       if (target.getType().equals(type1)) {
         assertTrue("Element should be present on removal",type1Identities.remove(target));
@@ -28,7 +29,7 @@
 ).toBlocking().lastOrDefault(null);
   assertEquals("Every element should have been encountered",0,type1Identities.size());
   assertEquals("Every element should have been encountered",0,type2Identities.size());
-  TargetIdObservable.getTargetNodes(gm,source).doOnNext(new Action1<Id>(){
+  targetIdObservable.getTargetNodes(gm,source).doOnNext(new Action1<Id>(){
     @Override public void call(    final Id target){
       assertTrue("Element should be present on removal",connections.remove(target));
     }

@@ -1,5 +1,6 @@
 {
   final Application createdApplication=app.getEntityManager().getApplication();
+  ApplicationObservable applicationObservable=CpSetup.getInjector().getInstance(ApplicationObservable.class);
   final Set<UUID> applicationIds=new HashSet<UUID>(){
 {
       add(CpNamingUtils.DEFAULT_APPLICATION_ID);
@@ -10,7 +11,7 @@
   }
 ;
   ManagerCache managerCache=CpSetup.getInjector().getInstance(ManagerCache.class);
-  Observable<Id> appObservable=ApplicationObservable.getAllApplicationIds(managerCache);
+  Observable<Id> appObservable=applicationObservable.getAllApplicationIds();
   appObservable.doOnNext(new Action1<Id>(){
     @Override public void call(    final Id id){
       applicationIds.remove(id.getUuid());

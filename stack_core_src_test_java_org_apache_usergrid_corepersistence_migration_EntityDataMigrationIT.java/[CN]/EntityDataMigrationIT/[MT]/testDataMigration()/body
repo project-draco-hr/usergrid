@@ -13,16 +13,16 @@
   final TestProgressObserver progressObserver=new TestProgressObserver();
   final Set<MvccEntity> savedEntities=new HashSet<>(10000);
   final Set<Id> entityIds=new HashSet<>(10000);
-  AllEntitiesInSystemObservable.getAllEntitiesInSystem(managerCache,1000).doOnNext(new Action1<AllEntitiesInSystemObservable.ApplicationEntityGroup>(){
-    @Override public void call(    final AllEntitiesInSystemObservable.ApplicationEntityGroup entity){
-      for (      final Id id : entity.entityIds) {
-        CollectionScope scope=CpNamingUtils.getCollectionScopeNameFromEntityType(entity.applicationScope.getApplication(),id.getType());
-        final Iterator<MvccEntity> versions=v1Strategy.loadDescendingHistory(scope,id,UUIDGenerator.newTimeUUID(),100);
+  allEntitiesInSystemObservable.getAllEntitiesInSystem(1000).doOnNext(new Action1<ApplicationEntityGroup>(){
+    @Override public void call(    final ApplicationEntityGroup entity){
+      for (      final EntityIdScope id : entity.entityIds) {
+        CollectionScope scope=CpNamingUtils.getCollectionScopeNameFromEntityType(entity.applicationScope.getApplication(),id.getId().getType());
+        final Iterator<MvccEntity> versions=v1Strategy.loadDescendingHistory(scope,id.getId(),UUIDGenerator.newTimeUUID(),100);
         while (versions.hasNext()) {
           final MvccEntity mvccEntity=versions.next();
           savedEntities.add(mvccEntity);
           createdEntityIds.remove(mvccEntity.getId());
-          entityIds.add(id);
+          entityIds.add(id.getId());
         }
       }
     }
@@ -30,18 +30,28 @@
 ).toBlocking().lastOrDefault(null);
   assertEquals("Newly saved entities encountered",0,createdEntityIds.size());
   assertTrue("Saved new entities",savedEntities.size() > 0);
-  entityDataMigration.migrate(progressObserver);
+  allEntitiesInSystemObservable.getAllEntitiesInSystem(1000).doOnNext(new Action1<ApplicationEntityGroup>(){
+    @Override public void call(    ApplicationEntityGroup applicationEntityGroup){
+      try {
+        entityDataMigration.migrate(applicationEntityGroup,progressObserver).toBlocking().last();
+      }
+ catch (      Throwable e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+).toBlocking().last();
   assertFalse("Progress observer should not have failed",progressObserver.getFailed());
   assertTrue("Progress observer should have update messages",progressObserver.getUpdates().size() > 0);
   migrationInfoSerialization.setStatusCode(DataMigrationManagerImpl.StatusCode.COMPLETE.status);
   migrationInfoSerialization.setVersion(entityDataMigration.getVersion());
   dataMigrationManager.invalidate();
   assertEquals("New version saved, and we should get new implementation",entityDataMigration.getVersion(),dataMigrationManager.getCurrentVersion());
-  AllEntitiesInSystemObservable.getAllEntitiesInSystem(managerCache,1000).doOnNext(new Action1<AllEntitiesInSystemObservable.ApplicationEntityGroup>(){
-    @Override public void call(    final AllEntitiesInSystemObservable.ApplicationEntityGroup entity){
-      for (      final Id id : entity.entityIds) {
-        CollectionScope scope=CpNamingUtils.getCollectionScopeNameFromEntityType(entity.applicationScope.getApplication(),id.getType());
-        final Iterator<MvccEntity> versions=v2Strategy.loadDescendingHistory(scope,id,UUIDGenerator.newTimeUUID(),100);
+  allEntitiesInSystemObservable.getAllEntitiesInSystem(1000).doOnNext(new Action1<ApplicationEntityGroup>(){
+    @Override public void call(    final ApplicationEntityGroup entity){
+      for (      final EntityIdScope id : entity.entityIds) {
+        CollectionScope scope=CpNamingUtils.getCollectionScopeNameFromEntityType(entity.applicationScope.getApplication(),id.getId().getType());
+        final Iterator<MvccEntity> versions=v2Strategy.loadDescendingHistory(scope,id.getId(),UUIDGenerator.newTimeUUID(),100);
         while (versions.hasNext()) {
           final MvccEntity mvccEntity=versions.next();
           savedEntities.remove(mvccEntity);
@@ -51,14 +61,14 @@
   }
 ).toBlocking().lastOrDefault(null);
   assertEquals("All entities migrated",0,savedEntities.size());
-  AllEntitiesInSystemObservable.getAllEntitiesInSystem(managerCache,1000).doOnNext(new Action1<AllEntitiesInSystemObservable.ApplicationEntityGroup>(){
-    @Override public void call(    final AllEntitiesInSystemObservable.ApplicationEntityGroup entity){
+  allEntitiesInSystemObservable.getAllEntitiesInSystem(1000).doOnNext(new Action1<ApplicationEntityGroup>(){
+    @Override public void call(    final ApplicationEntityGroup entity){
       final EntityManager em=emf.getEntityManager(entity.applicationScope.getApplication().getUuid());
-      for (      final Id id : entity.entityIds) {
+      for (      final EntityIdScope id : entity.entityIds) {
         try {
-          final Entity emEntity=em.get(SimpleEntityRef.fromId(id));
+          final Entity emEntity=em.get(SimpleEntityRef.fromId(id.getId()));
           if (emEntity != null) {
-            entityIds.remove(id);
+            entityIds.remove(id.getId());
           }
         }
  catch (        Exception e) {
