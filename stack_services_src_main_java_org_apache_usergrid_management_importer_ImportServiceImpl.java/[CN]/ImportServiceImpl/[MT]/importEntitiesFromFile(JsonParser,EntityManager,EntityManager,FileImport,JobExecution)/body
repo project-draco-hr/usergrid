@@ -1,0 +1,16 @@
+{
+  final JsonParserObservable subscribe=new JsonParserObservable(jp,em,rootEm,fileImport);
+  final Observable<WriteEvent> observable=Observable.create(subscribe);
+  final Action1<WriteEvent> doWork=new Action1<WriteEvent>(){
+    @Override public void call(    WriteEvent writeEvent){
+      writeEvent.doWrite(em,jobExecution,fileImport);
+    }
+  }
+;
+  observable.parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
+    @Override public Observable<WriteEvent> call(    Observable<WriteEvent> entityWrapperObservable){
+      return entityWrapperObservable.doOnNext(doWork);
+    }
+  }
+,Schedulers.io()).toBlocking().last();
+}

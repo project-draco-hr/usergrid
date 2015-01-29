@@ -1,4 +1,5 @@
 {
+  logger.debug("doImport()");
   Map<String,Object> config=(Map<String,Object>)jobExecution.getJobData().getProperty("importInfo");
   Object s3PlaceHolder=jobExecution.getJobData().getProperty("s3Import");
   S3Import s3Import=null;
@@ -28,6 +29,8 @@
     rooteEm.update(importUG);
     return;
   }
+  logger.debug("doImport(): updated state");
+  final List<File> files;
   try {
     if (config.get("organizationId") == null) {
       logger.error("doImport(): No organization could be found");
@@ -36,23 +39,19 @@
       rooteEm.update(importUG);
       return;
     }
- else     if (config.get("applicationId") == null) {
-      importApplicationsFromOrg((UUID)config.get("organizationId"),config,jobExecution,s3Import);
-    }
- else     if (config.get("collectionName") == null) {
-      importApplicationFromOrg((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution,s3Import);
-    }
  else {
-      importCollectionFromOrgApp((UUID)config.get("applicationId"),config,jobExecution,s3Import);
+      if (config.get("applicationId") == null) {
+        throw new UnsupportedOperationException("Import applications not supported");
+      }
+ else       if (config.get("collectionName") == null) {
+        throw new UnsupportedOperationException("Import application not supported");
+      }
+ else {
+        files=importCollectionFromOrgApp((UUID)config.get("organizationId"),(UUID)config.get("applicationId"),config,jobExecution,s3Import);
+      }
     }
   }
- catch (  OrganizationNotFoundException e) {
-    importUG.setErrorMessage(e.getMessage());
-    importUG.setState(Import.State.FAILED);
-    rooteEm.update(importUG);
-    return;
-  }
-catch (  ApplicationNotFoundException e) {
+ catch (  OrganizationNotFoundException|ApplicationNotFoundException e) {
     importUG.setErrorMessage(e.getMessage());
     importUG.setState(Import.State.FAILED);
     rooteEm.update(importUG);
@@ -66,10 +65,10 @@ catch (  ApplicationNotFoundException e) {
  else {
     Map<String,Object> fileMetadata=new HashMap<String,Object>();
     ArrayList<Map<String,Object>> value=new ArrayList<Map<String,Object>>();
-    for (    File eachfile : files) {
-      UUID jobID=scheduleFile(eachfile.getPath(),importUG);
+    for (    File file : files) {
+      UUID jobID=scheduleFile(config,file.getPath(),importUG);
       Map<String,Object> fileJobID=new HashMap<String,Object>();
-      fileJobID.put("FileName",eachfile.getName());
+      fileJobID.put("FileName",file.getName());
       fileJobID.put("JobID",jobID.toString());
       value.add(fileJobID);
     }
@@ -77,5 +76,4 @@ catch (  ApplicationNotFoundException e) {
     importUG.addProperties(fileMetadata);
     rooteEm.update(importUG);
   }
-  return;
 }

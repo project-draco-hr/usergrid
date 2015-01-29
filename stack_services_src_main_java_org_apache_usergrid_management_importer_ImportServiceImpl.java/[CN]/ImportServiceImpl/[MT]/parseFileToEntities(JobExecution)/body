@@ -1,15 +1,20 @@
 {
+  logger.debug("parseFileToEntities() for job {} status {}",jobExecution.getJobName(),jobExecution.getStatus().toString());
   FileImport fileImport=getFileImportEntity(jobExecution);
   File file=new File(jobExecution.getJobData().getProperty("File").toString());
-  EntityManager rootEm=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
-  rootEm.update(fileImport);
+  EntityManager emManagementApp=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+  emManagementApp.update(fileImport);
   boolean completed=fileImport.getCompleted();
   if (!completed) {
-    if (isValidJSON(file,rootEm,fileImport)) {
+    if (isValidJSON(file,emManagementApp,fileImport)) {
       fileImport.setState(FileImport.State.STARTED);
-      rootEm.update(fileImport);
-      String applicationName=file.getPath().split("\\.")[0];
-      ApplicationInfo application=managementService.getApplicationInfo(applicationName);
+      emManagementApp.update(fileImport);
+      UUID targetAppId=(UUID)jobExecution.getJobData().getProperty("applicationId");
+      if (emManagementApp.get(targetAppId) == null) {
+        throw new IllegalArgumentException("Application does not exist: " + targetAppId.toString());
+      }
+      EntityManager targetEm=emf.getEntityManager(targetAppId);
+      logger.debug("   importing into app {} file {}",targetAppId.toString(),file.getAbsolutePath());
       JsonParser jp=getJsonParserForFile(file);
       String lastUpdatedUUID=fileImport.getLastUpdatedUUID();
       if (!lastUpdatedUUID.equals(" ")) {
@@ -23,36 +28,35 @@
       while (jp.getCurrentToken() != JsonToken.START_OBJECT) {
         jp.nextToken();
       }
-      EntityManager em=emf.getEntityManager(application.getId());
       while (jp.nextToken() != JsonToken.END_ARRAY) {
-        importEntityStuff(jp,em,rootEm,fileImport,jobExecution);
+        importEntitiesFromFile(jp,targetEm,emManagementApp,fileImport,jobExecution);
       }
       jp.close();
-      if (!fileImport.getState().equals("FAILED")) {
+      if (!fileImport.getState().toString().equals("FAILED")) {
         fileImport.setCompleted(true);
         fileImport.setState(FileImport.State.FINISHED);
-        rootEm.update(fileImport);
-        Results ImportJobResults=rootEm.getConnectingEntities(fileImport,"includes",null,Level.ALL_PROPERTIES);
+        emManagementApp.update(fileImport);
+        Results ImportJobResults=emManagementApp.getConnectingEntities(fileImport,"includes",null,Level.ALL_PROPERTIES);
         List<Entity> importEntity=ImportJobResults.getEntities();
         UUID importId=importEntity.get(0).getUuid();
-        Import importUG=rootEm.get(importId,Import.class);
-        Results entities=rootEm.getConnectedEntities(importUG,"includes",null,Level.ALL_PROPERTIES);
+        Import importUG=emManagementApp.get(importId,Import.class);
+        Results entities=emManagementApp.getConnectedEntities(importUG,"includes",null,Level.ALL_PROPERTIES);
         List<Entity> importFile=entities.getEntities();
         int count=0;
         for (        Entity eachEntity : importFile) {
-          FileImport fi=rootEm.get(eachEntity.getUuid(),FileImport.class);
+          FileImport fi=emManagementApp.get(eachEntity.getUuid(),FileImport.class);
           if (fi.getState().toString().equals("FINISHED")) {
             count++;
           }
  else           if (fi.getState().toString().equals("FAILED")) {
             importUG.setState(Import.State.FAILED);
-            rootEm.update(importUG);
+            emManagementApp.update(importUG);
             break;
           }
         }
         if (count == importFile.size()) {
           importUG.setState(Import.State.FINISHED);
-          rootEm.update(importUG);
+          emManagementApp.update(importUG);
         }
       }
     }

@@ -1,10 +1,11 @@
 {
   EntityManager rootEm=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
   try {
-    logger.debug("Writing imported entity {}:{}",entityType,entityUuid);
+    logger.debug("Writing imported entity {}:{} into app {}",new Object[]{entityType,entityUuid,em.getApplication().getUuid()});
     em.create(entityUuid,entityType,properties);
   }
  catch (  Exception e) {
+    logger.error("Error writing entity",e);
     fileImport.setErrorMessage(e.getMessage());
     try {
       rootEm.update(fileImport);

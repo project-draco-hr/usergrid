@@ -1,0 +1,37 @@
+{
+  logger.debug("scheduleFile() for import {}:{} file {}",new Object[]{importRef.getType(),importRef.getType(),file});
+  EntityManager rootEm=null;
+  try {
+    rootEm=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+  }
+ catch (  Exception e) {
+    logger.error("application doesn't exist within the current context");
+    return null;
+  }
+  FileImport fileImport=new FileImport();
+  fileImport.setFileName(file);
+  fileImport.setCompleted(false);
+  fileImport.setLastUpdatedUUID(" ");
+  fileImport.setErrorMessage(" ");
+  fileImport.setState(FileImport.State.CREATED);
+  fileImport=rootEm.create(fileImport);
+  Import importUG=rootEm.get(importRef,Import.class);
+  try {
+    rootEm.createConnection(importUG,"includes",fileImport);
+  }
+ catch (  Exception e) {
+    logger.error(e.getMessage());
+    return null;
+  }
+  fileImport.setState(FileImport.State.CREATED);
+  rootEm.update(fileImport);
+  JobData jobData=new JobData();
+  jobData.setProperty("File",file);
+  jobData.setProperty(FILE_IMPORT_ID,fileImport.getUuid());
+  jobData.addProperties(config);
+  long soonestPossible=System.currentTimeMillis() + 250;
+  sch.createJob(FILE_IMPORT_JOB_NAME,soonestPossible,jobData);
+  fileImport.setState(FileImport.State.SCHEDULED);
+  rootEm.update(fileImport);
+  return fileImport.getUuid();
+}

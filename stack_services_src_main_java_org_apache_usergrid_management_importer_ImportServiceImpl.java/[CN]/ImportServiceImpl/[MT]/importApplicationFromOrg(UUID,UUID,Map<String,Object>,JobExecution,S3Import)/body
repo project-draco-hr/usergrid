@@ -4,6 +4,10 @@
   if (application == null) {
     throw new ApplicationNotFoundException("Application Not Found");
   }
-  String appFileName=prepareInputFileName("application",application.getName(),null);
-  files=copyFileFromS3(importUG,appFileName,config,s3Import,ImportType.APPLICATION);
+  OrganizationInfo organizationInfo=managementService.getOrganizationByUuid(organizationUUID);
+  if (organizationInfo == null) {
+    throw new OrganizationNotFoundException("Organization Not Found");
+  }
+  String appFileName=prepareApplicationInputFileName(organizationInfo.getName(),application.getName());
+  return copyFileFromS3(importUG,appFileName,config,s3Import,ImportType.APPLICATION);
 }

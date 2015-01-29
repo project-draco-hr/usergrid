@@ -1,4 +1,6 @@
 {
+  logger.debug("copyFileFromS3(): copying file={} type={}",filenamePrefix,type.toString());
+  ArrayList<File> files=new ArrayList<>();
   Map<String,Object> properties=(Map<String,Object>)importInfo.get("properties");
   Map<String,Object> storage_info=(Map<String,Object>)properties.get("storage_info");
   String bucketName=(String)storage_info.get("bucket_location");
@@ -10,35 +12,72 @@
   final Iterable<? extends Module> MODULES=ImmutableSet.of(new JavaUrlHttpCommandExecutorServiceModule(),new Log4JLoggingModule(),new NettyPayloadModule());
   BlobStoreContext context=ContextBuilder.newBuilder("s3").credentials(accessId,secretKey).modules(MODULES).overrides(overrides).buildView(BlobStoreContext.class);
   try {
-    blobStore=context.getBlobStore();
+    BlobStore blobStore=context.getBlobStore();
     PageSet<? extends StorageMetadata> pageSet=blobStore.list(bucketName,new ListContainerOptions().recursive());
+    logger.debug("   Found {} files in bucket {}",pageSet.size(),bucketName);
     Iterator itr=pageSet.iterator();
     while (itr.hasNext()) {
-      String fname=((MutableBlobMetadata)itr.next()).getName();
+      String blobStoreFileName=((MutableBlobMetadata)itr.next()).getName();
+      ParsedFileName pfn=new ParsedFileName(blobStoreFileName);
 switch (type) {
 case COLLECTION:
-        if (fname.contains(filename)) {
-          copyFile(bucketName,fname);
-          i++;
+{
+          List<String> errors=new ArrayList<>();
+          if (pfn.organizationName == null) {
+            errors.add("Filename does not specify organization name");
+          }
+          if (pfn.applicationName == null) {
+            errors.add("Filename does not specify application name");
+          }
+          if (pfn.collectionName == null) {
+            errors.add("Filename does not specify collection name");
+          }
+ else           if (!pfn.collectionName.equals(importInfo.get("collectionName"))) {
+            errors.add("Collection name in input file should be " + pfn.collectionName);
+          }
+          if (!errors.isEmpty()) {
+            throw new IllegalArgumentException("Input errors " + errors.toString());
+          }
+          files.add(copyFile(blobStore,bucketName,blobStoreFileName));
+          break;
         }
-      break;
 case APPLICATION:
-    if (fname.matches(filename + "[0-9]+\\.json")) {
-      copyFile(bucketName,fname);
-      i++;
-    }
-  break;
+{
+        List<String> errors=new ArrayList<>();
+        if (pfn.organizationName == null) {
+          errors.add("Filename does not specify organization name");
+        }
+        if (pfn.applicationName == null) {
+          errors.add("Filename does not specify application name");
+        }
+        if (!errors.isEmpty()) {
+          throw new IllegalArgumentException("Input errors " + errors.toString());
+        }
+        files.add(copyFile(blobStore,bucketName,blobStoreFileName));
+        break;
+      }
 case ORGANIZATION:
-if (fname.matches(filename + "[-a-zA-Z0-9]+\\.[0-9]+\\.json")) {
-  copyFile(bucketName,fname);
-  i++;
-}
-break;
+{
+      List<String> errors=new ArrayList<>();
+      if (pfn.organizationName == null) {
+        errors.add("Filename does not specify organization name");
+      }
+      if (!errors.isEmpty()) {
+        throw new IllegalArgumentException("Input errors " + errors.toString());
+      }
+      files.add(copyFile(blobStore,bucketName,blobStoreFileName));
+      break;
+    }
+default :
+{
+    throw new IllegalArgumentException("Unrecognized import type " + type.toString());
+  }
 }
 }
 }
  catch (Exception e) {
 e.printStackTrace();
 }
+logger.debug("   Returning {} files",files.size());
 return files;
 }
