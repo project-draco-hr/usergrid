@@ -31,6 +31,8 @@
   jobData.addProperties(config);
   long soonestPossible=System.currentTimeMillis() + 250;
   sch.createJob(FILE_IMPORT_JOB_NAME,soonestPossible,jobData);
+  ImportQueueMessage message=new ImportQueueMessage(fileImport.getUuid(),file);
+  qm.sendMessage(message);
   fileImport.setState(FileImport.State.SCHEDULED);
   rootEm.update(fileImport);
   return fileImport.getUuid();
