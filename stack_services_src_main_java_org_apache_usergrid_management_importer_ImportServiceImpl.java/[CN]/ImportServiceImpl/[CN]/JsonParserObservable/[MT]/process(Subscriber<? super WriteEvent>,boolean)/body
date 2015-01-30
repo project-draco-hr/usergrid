@@ -1,0 +1,77 @@
+{
+  logger.debug("process(): entities = " + entities);
+  EntityRef lastEntitySeenRef=null;
+  try {
+    while (!subscriber.isUnsubscribed() && jp.nextToken() != JsonToken.END_OBJECT) {
+      String collectionName=jp.getCurrentName();
+      logger.debug("Processing currentName: " + jp.getCurrentName());
+      if (collectionName != null && collectionName.equals("connections")) {
+        jp.nextToken();
+        while (jp.nextToken() != JsonToken.END_OBJECT) {
+          String connectionType=jp.getCurrentName();
+          jp.nextToken();
+          while (jp.nextToken() != JsonToken.END_ARRAY) {
+            String entryId=jp.getText();
+            if (!entities) {
+              EntityRef entryRef=new SimpleEntityRef(UUID.fromString(entryId));
+              WriteEvent entityWrapper=new ConnectionEvent(lastEntitySeenRef,connectionType,entryRef);
+              subscriber.onNext(entityWrapper);
+            }
+          }
+        }
+      }
+ else       if (collectionName != null && collectionName.equals("dictionaries")) {
+        jp.nextToken();
+        while (jp.nextToken() != JsonToken.END_OBJECT) {
+          String dictionaryName=jp.getCurrentName();
+          jp.nextToken();
+          Map<String,Object> dictionary=jp.readValueAs(HashMap.class);
+          if (!entities) {
+            WriteEvent entityWrapper=new DictionaryEvent(lastEntitySeenRef,dictionaryName,dictionary);
+            subscriber.onNext(entityWrapper);
+          }
+        }
+        subscriber.onCompleted();
+      }
+ else {
+        jp.nextToken();
+        JsonToken token=jp.nextToken();
+        Map<String,Object> properties=new HashMap<>();
+        String entityUuid=null;
+        String entityType=null;
+        while (token != JsonToken.END_OBJECT) {
+          if (token == JsonToken.VALUE_STRING || token == JsonToken.VALUE_NUMBER_INT) {
+            String key=jp.getCurrentName();
+            logger.debug("   currentName: " + jp.getText());
+            if (key.equals("uuid")) {
+              entityUuid=jp.getText();
+            }
+ else             if (key.equals("type")) {
+              entityType=jp.getText();
+            }
+ else             if (key.length() != 0 && jp.getText().length() != 0) {
+              String value=jp.getText();
+              properties.put(key,value);
+            }
+          }
+          token=jp.nextToken();
+        }
+        if (entities) {
+          WriteEvent entityWrapper=new EntityEvent(UUID.fromString(entityUuid),entityType,properties);
+          subscriber.onNext(entityWrapper);
+        }
+        lastEntitySeenRef=new SimpleEntityRef(entityType,UUID.fromString(entityUuid));
+      }
+    }
+  }
+ catch (  Exception e) {
+    fileImport.setErrorMessage(e.getMessage());
+    try {
+      rootEm.update(fileImport);
+    }
+ catch (    Exception ex) {
+      logger.error("Error updating file import record",ex);
+    }
+    subscriber.onError(e);
+  }
+}

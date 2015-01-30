@@ -82,16 +82,13 @@
     logger.debug("\n\nCheck connections\n");
     List<Entity> importedThings=em2.getCollection(appId2,"things",null,Level.ALL_PROPERTIES).getEntities();
     assertTrue(!importedThings.isEmpty());
-    for (int i=0; i < 2; i++) {
-      Results r=em2.getConnectedEntities(importedThings.get(i),"related",null,Level.IDS);
+    int conCount=0;
+    for (    Entity e : importedThings) {
+      Results r=em2.getConnectedEntities(e,"related",null,Level.IDS);
       List<ConnectionRef> connections=r.getConnections();
-      assertTrue(!connections.isEmpty());
+      conCount+=connections.size();
     }
-    for (int i=3; i < 10; i++) {
-      Results r=em2.getConnectedEntities(importedThings.get(i),"related",null,Level.IDS);
-      List<ConnectionRef> connections=r.getConnections();
-      assertTrue(connections.isEmpty());
-    }
+    assertEquals(2,conCount);
     logger.debug("\n\nCheck dictionary\n");
     EntityRef er;
     Map<Object,Object> dictionaries1, dictionaries2;
