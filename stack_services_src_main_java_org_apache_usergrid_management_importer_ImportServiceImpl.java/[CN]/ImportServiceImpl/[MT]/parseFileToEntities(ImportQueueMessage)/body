@@ -1,7 +1,7 @@
 {
-  logger.debug("parseFileToEntities() for job {} status {}",jobExecution.getJobName(),jobExecution.getStatus().toString());
-  FileImport fileImport=getFileImportEntity(jobExecution);
-  File file=new File(jobExecution.getJobData().getProperty("File").toString());
+  logger.debug("parseFileToEntities() for job {} ",queueMessage.getFileName());
+  FileImport fileImport=getFileImportEntity(queueMessage);
+  File file=new File(queueMessage.getFileName());
   EntityManager emManagementApp=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
   emManagementApp.update(fileImport);
   boolean completed=fileImport.getCompleted();
@@ -9,7 +9,7 @@
     if (isValidJSON(file,emManagementApp,fileImport)) {
       fileImport.setState(FileImport.State.STARTED);
       emManagementApp.update(fileImport);
-      UUID targetAppId=(UUID)jobExecution.getJobData().getProperty("applicationId");
+      UUID targetAppId=queueMessage.getApplicationId();
       if (emManagementApp.get(targetAppId) == null) {
         throw new IllegalArgumentException("Application does not exist: " + targetAppId.toString());
       }
@@ -29,7 +29,7 @@
         jp.nextToken();
       }
       while (jp.nextToken() != JsonToken.END_ARRAY) {
-        importEntitiesFromFile(jp,targetEm,emManagementApp,fileImport,jobExecution);
+        importEntitiesFromFile(jp,targetEm,emManagementApp,fileImport);
       }
       jp.close();
       if (!fileImport.getState().toString().equals("FAILED")) {
