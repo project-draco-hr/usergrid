@@ -1,0 +1,45 @@
+{
+  logger.debug("parseFileToEntities() for file {} ",file.getAbsolutePath());
+  EntityManager emManagementApp=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+  emManagementApp.update(fileImport);
+  boolean completed=fileImport.getCompleted();
+  if (!completed) {
+    if (isValidJSON(file,emManagementApp,fileImport)) {
+      fileImport.setState(FileImport.State.STARTED);
+      emManagementApp.update(fileImport);
+      if (emManagementApp.get(targetAppId) == null) {
+        throw new IllegalArgumentException("Application does not exist: " + targetAppId.toString());
+      }
+      EntityManager targetEm=emf.getEntityManager(targetAppId);
+      logger.debug("   importing into app {} file {}",targetAppId.toString(),file.getAbsolutePath());
+      importEntitiesFromFile(file,targetEm,emManagementApp,fileImport);
+      if (!fileImport.getState().toString().equals("FAILED")) {
+        fileImport.setCompleted(true);
+        fileImport.setState(FileImport.State.FINISHED);
+        emManagementApp.update(fileImport);
+        Results ImportJobResults=emManagementApp.getConnectingEntities(fileImport,"includes",null,Level.ALL_PROPERTIES);
+        List<Entity> importEntity=ImportJobResults.getEntities();
+        UUID importId=importEntity.get(0).getUuid();
+        Import importUG=emManagementApp.get(importId,Import.class);
+        Results entities=emManagementApp.getConnectedEntities(importUG,"includes",null,Level.ALL_PROPERTIES);
+        List<Entity> importFile=entities.getEntities();
+        int count=0;
+        for (        Entity eachEntity : importFile) {
+          FileImport fi=emManagementApp.get(eachEntity.getUuid(),FileImport.class);
+          if (fi.getState().toString().equals("FINISHED")) {
+            count++;
+          }
+ else           if (fi.getState().toString().equals("FAILED")) {
+            importUG.setState(Import.State.FAILED);
+            emManagementApp.update(importUG);
+            break;
+          }
+        }
+        if (count == importFile.size()) {
+          importUG.setState(Import.State.FINISHED);
+          emManagementApp.update(importUG);
+        }
+      }
+    }
+  }
+}

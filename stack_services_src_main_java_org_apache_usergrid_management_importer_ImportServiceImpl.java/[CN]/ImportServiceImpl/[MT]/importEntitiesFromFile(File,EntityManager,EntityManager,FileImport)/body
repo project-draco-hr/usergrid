@@ -1,0 +1,32 @@
+{
+  boolean entitiesOnly=true;
+  JsonParser jp=getJsonParserForFile(file);
+  final JsonEntityParserObservable jsonObservableEntities=new JsonEntityParserObservable(jp,em,rootEm,fileImport,entitiesOnly);
+  final Observable<WriteEvent> entityEventObservable=Observable.create(jsonObservableEntities);
+  final Action1<WriteEvent> doWork=new Action1<WriteEvent>(){
+    @Override public void call(    WriteEvent writeEvent){
+      writeEvent.doWrite(em,fileImport);
+    }
+  }
+;
+  entityEventObservable.parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
+    @Override public Observable<WriteEvent> call(    Observable<WriteEvent> entityWrapperObservable){
+      return entityWrapperObservable.doOnNext(doWork);
+    }
+  }
+,Schedulers.io()).toBlocking().last();
+  jp.close();
+  logger.debug("\n\nWrote entities\n");
+  entitiesOnly=false;
+  jp=getJsonParserForFile(file);
+  final JsonEntityParserObservable jsonObservableOther=new JsonEntityParserObservable(jp,em,rootEm,fileImport,entitiesOnly);
+  final Observable<WriteEvent> otherEventObservable=Observable.create(jsonObservableOther);
+  otherEventObservable.parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
+    @Override public Observable<WriteEvent> call(    Observable<WriteEvent> entityWrapperObservable){
+      return entityWrapperObservable.doOnNext(doWork);
+    }
+  }
+,Schedulers.io()).toBlocking().last();
+  jp.close();
+  logger.debug("\n\nWrote others\n");
+}
