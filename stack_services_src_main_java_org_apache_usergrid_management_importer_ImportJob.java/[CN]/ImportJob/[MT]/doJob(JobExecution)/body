@@ -1,11 +1,23 @@
 {
   logger.info("execute ImportJob {}",jobExecution.getJobId().toString());
-  JobData jobData=jobExecution.getJobData();
-  if (jobData == null) {
-    logger.error("jobData cannot be null");
-    return;
+  try {
+    JobData jobData=jobExecution.getJobData();
+    if (jobData == null) {
+      logger.error("jobData cannot be null");
+      return;
+    }
+    jobExecution.heartbeat();
+    importService.doImport(jobExecution);
   }
-  jobExecution.heartbeat();
-  importService.doImport(jobExecution);
+ catch (  Throwable t) {
+    logger.error("Error calling in importJob",t);
+    UUID importId=(UUID)jobExecution.getJobData().getProperty(IMPORT_ID);
+    EntityManager mgmtApp=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+    Import importEntity=mgmtApp.get(importId,Import.class);
+    importEntity.setState(Import.State.FAILED);
+    importEntity.setErrorMessage(t.getMessage());
+    mgmtApp.update(importEntity);
+    throw t;
+  }
   logger.error("Import Service completed job");
 }

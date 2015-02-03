@@ -15,23 +15,7 @@
       }
       EntityManager targetEm=emf.getEntityManager(targetAppId);
       logger.debug("   importing into app {} file {}",targetAppId.toString(),file.getAbsolutePath());
-      JsonParser jp=getJsonParserForFile(file);
-      String lastUpdatedUUID=fileImport.getLastUpdatedUUID();
-      if (!lastUpdatedUUID.equals(" ")) {
-        while (!jp.getText().equals(lastUpdatedUUID)) {
-          jp.nextToken();
-        }
-        while (!(jp.getCurrentToken() == JsonToken.END_OBJECT && jp.nextToken() == JsonToken.START_OBJECT)) {
-          jp.nextToken();
-        }
-      }
-      while (jp.getCurrentToken() != JsonToken.START_OBJECT) {
-        jp.nextToken();
-      }
-      while (jp.nextToken() != JsonToken.END_ARRAY) {
-        importEntitiesFromFile(jp,targetEm,emManagementApp,fileImport,jobExecution);
-      }
-      jp.close();
+      importEntitiesFromFile(file,targetEm,emManagementApp,fileImport,jobExecution);
       if (!fileImport.getState().toString().equals("FAILED")) {
         fileImport.setCompleted(true);
         fileImport.setState(FileImport.State.FINISHED);
