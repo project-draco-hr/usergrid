@@ -2,15 +2,13 @@
   final RetryOperation retryOperation=new RetryOperation(){
     @Override public boolean doOp(){
       try {
-        String[] indexes=getIndexes(AliasType.Read);
-        Observable.from(indexes).map(new Func1<String,String>(){
-          @Override public String call(          String index){
-            esProvider.getClient().admin().indices().prepareRefresh(index).execute().actionGet();
-            return index;
-          }
+        String[] indexes=ArrayUtils.addAll(getIndexes(AliasType.Write),getIndexes(AliasType.Write));
+        if (indexes.length == 0) {
+          logger.debug("Not refreshing indexes, none found for app {}",applicationScope.getApplication().getUuid());
+          return true;
         }
-).toBlocking().last();
-        logger.debug("Refreshed index: " + alias);
+        esProvider.getClient().admin().indices().prepareRefresh(indexes).execute().actionGet();
+        logger.debug("Refreshed indexes: {}",StringUtils.join(indexes,", "));
         return true;
       }
  catch (      IndexMissingException e) {
@@ -21,5 +19,4 @@
   }
 ;
   doInRetry(retryOperation);
-  logger.debug("Refreshed index: " + alias);
 }
