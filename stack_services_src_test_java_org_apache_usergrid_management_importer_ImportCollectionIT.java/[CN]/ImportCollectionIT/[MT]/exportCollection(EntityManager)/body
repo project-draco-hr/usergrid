@@ -1,0 +1,30 @@
+{
+  logger.debug("\n\nExport\n");
+  ExportService exportService=setup.getExportService();
+  UUID exportUUID=exportService.schedule(new HashMap<String,Object>(){
+{
+      put("path",organization.getName() + em.getApplication().getName());
+      put("organizationId",organization.getUuid());
+      put("applicationId",applicationId);
+      put("collectionName","things");
+      put("properties",new HashMap<String,Object>(){
+{
+          put("storage_provider","s3");
+          put("storage_info",new HashMap<String,Object>(){
+{
+              put(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR,System.getProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR));
+              put(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR,System.getProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR));
+              put("bucket_location",System.getProperty("bucketName"));
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+  while (!exportService.getState(exportUUID).equals("FINISHED")) {
+    Thread.sleep(100);
+  }
+}

@@ -1,0 +1,19 @@
+{
+  logger.debug("\n\nCreate things collection\n");
+  for (int i=0; i < 10; i++) {
+    final int count=i;
+    Entity e=em.create("thing",new HashMap<String,Object>(){
+{
+        put("name","thing" + count);
+        put("index",count);
+      }
+    }
+);
+    thingsMap.put(e.getUuid(),e);
+    things.add(e);
+  }
+  logger.debug("\n\nCreate Connections\n");
+  em.createConnection(new SimpleEntityRef("thing",things.get(0).getUuid()),"related",new SimpleEntityRef("thing",things.get(1).getUuid()));
+  em.createConnection(new SimpleEntityRef("thing",things.get(1).getUuid()),"related",new SimpleEntityRef("thing",things.get(0).getUuid()));
+  em.refreshIndex();
+}

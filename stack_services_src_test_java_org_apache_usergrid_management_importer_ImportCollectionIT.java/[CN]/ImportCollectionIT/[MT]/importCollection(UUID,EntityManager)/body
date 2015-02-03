@@ -1,0 +1,31 @@
+{
+  logger.debug("\n\nImport into new app {}\n",appId2);
+  ImportService importService=setup.getImportService();
+  UUID importUUID=importService.schedule(new HashMap<String,Object>(){
+{
+      put("path",organization.getName() + em2.getApplication().getName());
+      put("organizationId",organization.getUuid());
+      put("applicationId",appId2);
+      put("collectionName","things");
+      put("properties",new HashMap<String,Object>(){
+{
+          put("storage_provider","s3");
+          put("storage_info",new HashMap<String,Object>(){
+{
+              put(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR,System.getProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR));
+              put(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR,System.getProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR));
+              put("bucket_location",System.getProperty("bucketName"));
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+  while (!importService.getState(importUUID).equals("FINISHED")) {
+    Thread.sleep(100);
+  }
+  em2.refreshIndex();
+}
