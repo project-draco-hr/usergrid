@@ -1,5 +1,7 @@
 {
   logger.debug("\n\nCreating new {} collection in application {}\n",type,em.getApplication().getName());
+  em.refreshIndex();
+  List<Entity> created=new ArrayList<>();
   for (int i=0; i < 10; i++) {
     final int count=i;
     Entity e=em.create(type,new HashMap<String,Object>(){
@@ -12,8 +14,9 @@
 );
     thingsMap.put(e.getUuid(),e);
     things.add(e);
+    created.add(e);
   }
-  em.createConnection(new SimpleEntityRef("thing",things.get(0).getUuid()),"related",new SimpleEntityRef("thing",things.get(1).getUuid()));
-  em.createConnection(new SimpleEntityRef("thing",things.get(1).getUuid()),"related",new SimpleEntityRef("thing",things.get(0).getUuid()));
+  em.createConnection(new SimpleEntityRef(type,created.get(0).getUuid()),"related",new SimpleEntityRef(type,created.get(1).getUuid()));
+  em.createConnection(new SimpleEntityRef(type,created.get(1).getUuid()),"related",new SimpleEntityRef(type,created.get(0).getUuid()));
   em.refreshIndex();
 }

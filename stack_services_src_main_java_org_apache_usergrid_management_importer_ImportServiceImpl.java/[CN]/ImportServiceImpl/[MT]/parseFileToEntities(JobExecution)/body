@@ -2,5 +2,7 @@
   FileImport fileImport=getFileImportEntity(jobExecution);
   File file=new File(jobExecution.getJobData().getProperty("File").toString());
   UUID targetAppId=(UUID)jobExecution.getJobData().getProperty("applicationId");
-  parseFileToEntities(fileImport,file,targetAppId);
+  Map<String,Object> config=(Map<String,Object>)jobExecution.getJobData().getProperty("importInfo");
+  String collectionName=config.get("collectionName").toString();
+  parseFileToEntities(collectionName,fileImport,file,targetAppId);
 }

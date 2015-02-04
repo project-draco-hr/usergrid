@@ -1,2 +1,14 @@
 {
+  String appName="import-test-" + RandomStringUtils.randomAlphanumeric(10);
+  UUID appId=setup.getMgmtSvc().createApplication(organization.getUuid(),appName).getId();
+  Map<UUID,Entity> catsMap=new HashMap<>();
+  List<Entity> cats=new ArrayList<>();
+  EntityManager emApp=setup.getEmf().getEntityManager(appId);
+  createTestEntities(emApp,catsMap,cats,"cat");
+  exportCollection(emApp,"cats");
+  final EntityManager emDefaultApp=setup.getEmf().getEntityManager(applicationId);
+  importCollection(emDefaultApp,"dogs");
+  List<Entity> importedThings=emDefaultApp.getCollection(emDefaultApp.getApplicationId(),"dogs",null,Level.ALL_PROPERTIES).getEntities();
+  assertTrue(!importedThings.isEmpty());
+  assertEquals(10,importedThings.size());
 }

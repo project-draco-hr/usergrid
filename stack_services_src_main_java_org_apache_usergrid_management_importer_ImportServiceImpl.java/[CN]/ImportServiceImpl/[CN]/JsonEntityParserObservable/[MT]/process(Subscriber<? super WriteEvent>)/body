@@ -1,6 +1,7 @@
 {
   try {
     boolean done=false;
+    String collectionType=InflectionUtils.singularize(collectionName);
     Stack tokenStack=new Stack();
     EntityRef lastEntity=null;
     while (!done) {
@@ -13,12 +14,11 @@
       logger.debug("{}Token {} name {}",new Object[]{indent,token,name});
       if (token.equals(JsonToken.START_OBJECT) && "Metadata".equals(name)) {
         Map<String,Object> entityMap=jp.readValueAs(HashMap.class);
-        String type=(String)entityMap.get("type");
         UUID uuid=UUID.fromString((String)entityMap.get("uuid"));
-        lastEntity=new SimpleEntityRef(type,uuid);
+        lastEntity=new SimpleEntityRef(collectionType,uuid);
         logger.debug("{}Got entity with uuid {}",indent,lastEntity);
         if (entitiesOnly) {
-          WriteEvent event=new EntityEvent(uuid,type,entityMap);
+          WriteEvent event=new EntityEvent(uuid,collectionType,entityMap);
           subscriber.onNext(event);
         }
       }
