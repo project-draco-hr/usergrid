@@ -9,11 +9,13 @@
   for (long i=0; i < expectedCount; i++) {
     fileImportStatistics.entityWritten();
   }
-  fileImportStatistics.complete();
+  fileImportStatistics.fatal("Something bad happened");
   ArgumentCaptor<FileImport> savedFileImport=ArgumentCaptor.forClass(FileImport.class);
   verify(em).update(savedFileImport.capture());
   final FileImport updated=savedFileImport.getValue();
   assertSame("Same instance should be updated",fileImport,updated);
   assertEquals("Same count expected",expectedCount,updated.getImportedEntityCount());
-  assertNull(updated.getErrorMessage());
+  assertEquals("Fail count is 0",0,updated.getFailedEntityCount());
+  assertEquals("Correct expected message","Something bad happened",updated.getErrorMessage());
+  assertEquals("Expected failed state",FileImport.State.FAILED,updated.getState());
 }

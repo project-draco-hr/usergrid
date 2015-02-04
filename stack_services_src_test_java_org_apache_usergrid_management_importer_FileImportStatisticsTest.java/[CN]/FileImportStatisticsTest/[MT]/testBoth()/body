@@ -4,13 +4,19 @@
   final FileImport fileImport=new FileImport();
   fileImport.setUuid(importFileId);
   when(em.get(importFileId,FileImport.class)).thenReturn(fileImport);
-  final FileImportStatistics fileImportStatistics=new FileImportStatistics(importFileId,em);
+  when(em.create(any(FailedImportEntity.class))).thenAnswer(new Answer<FailedImportEntity>(){
+    @Override public FailedImportEntity answer(    final InvocationOnMock invocation) throws Throwable {
+      return (FailedImportEntity)invocation.getArguments()[0];
+    }
+  }
+);
+  final FileImportStatistics fileImportStatistics=new FileImportStatistics(em,importFileId,1000);
   final long expectedSuccess=100;
   for (long i=0; i < expectedSuccess; i++) {
     fileImportStatistics.entityWritten();
   }
-  final long expectedFails=10;
-  for (long i=0; i < expectedFails; i++) {
+  final int expectedFails=10;
+  for (int i=0; i < expectedFails; i++) {
     fileImportStatistics.entityFailed("Failed to write entity " + i);
   }
   fileImportStatistics.complete();
@@ -20,5 +26,13 @@
   assertSame("Same instance should be updated",fileImport,updated);
   assertEquals("Same count expected",expectedSuccess,updated.getImportedEntityCount());
   assertEquals("Same fail expected",expectedFails,updated.getFailedEntityCount());
-  assertEquals("Correct error message","Failed to import " + expectedFails + " entities.  Successfully imported "+ expectedSuccess+ " entities",updated.getErrorMessage());
+  assertEquals("Correct error message","Failed to import some data.  See the import counters and errors.",updated.getErrorMessage());
+  ArgumentCaptor<FailedImportEntity> failedEntities=ArgumentCaptor.forClass(FailedImportEntity.class);
+  verify(em,times(expectedFails)).createConnection(same(fileImport),eq("errors"),failedEntities.capture());
+  final List<FailedImportEntity> args=failedEntities.getAllValues();
+  assertEquals("Same number of error connections created",expectedFails,args.size());
+  for (int i=0; i < expectedFails; i++) {
+    final FailedImportEntity failedImport=args.get(i);
+    assertEquals("Same message expected","Failed to write entity " + i,failedImport.getErrorMessage());
+  }
 }
