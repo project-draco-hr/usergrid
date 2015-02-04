@@ -4,22 +4,30 @@
   final FileImport fileImport=new FileImport();
   fileImport.setUuid(importFileId);
   when(em.get(importFileId,FileImport.class)).thenReturn(fileImport);
-  when(em.create(any(FailedEntityImport.class))).thenAnswer(new Answer<FailedEntityImport>(){
-    @Override public FailedEntityImport answer(    final InvocationOnMock invocation) throws Throwable {
-      return (FailedEntityImport)invocation.getArguments()[0];
+  when(em.create(any(FailedImportConnection.class))).thenAnswer(new Answer<Object>(){
+    @Override public Object answer(    final InvocationOnMock invocation) throws Throwable {
+      return invocation.getArguments()[0];
     }
   }
 );
   final int expectedSuccess=100;
   final int expectedFails=100;
+  final int expectedConnectionSuccess=100;
+  final int expectedConnectionFails=100;
   final int expectedFlushCount=2;
-  final int flushSize=(expectedFails + expectedFails) / expectedFlushCount;
+  final int flushSize=(expectedFails + expectedFails + expectedConnectionSuccess+ expectedConnectionFails) / expectedFlushCount;
   final FileImportStatistics fileImportStatistics=new FileImportStatistics(em,importFileId,flushSize);
   for (long i=0; i < expectedSuccess; i++) {
     fileImportStatistics.entityWritten();
   }
   for (int i=0; i < expectedFails; i++) {
     fileImportStatistics.entityFailed("Failed to write entity " + i);
+  }
+  for (long i=0; i < expectedConnectionSuccess; i++) {
+    fileImportStatistics.connectionWritten();
+  }
+  for (int i=0; i < expectedConnectionFails; i++) {
+    fileImportStatistics.connectionFailed("Failed to write connection " + i);
   }
   fileImportStatistics.complete();
   ArgumentCaptor<FileImport> savedFileImport=ArgumentCaptor.forClass(FileImport.class);
@@ -28,13 +36,19 @@
   assertSame("Same instance should be updated",fileImport,updated);
   assertEquals("Same count expected",expectedSuccess,updated.getImportedEntityCount());
   assertEquals("Same fail expected",expectedFails,updated.getFailedEntityCount());
-  assertEquals("Correct error message","Failed to import " + expectedFails + " entities.  Successfully imported "+ expectedSuccess+ " entities",updated.getErrorMessage());
-  ArgumentCaptor<FailedEntityImport> failedEntities=ArgumentCaptor.forClass(FailedEntityImport.class);
-  verify(em,times(expectedFails)).createConnection(same(fileImport),eq("errors"),failedEntities.capture());
-  final List<FailedEntityImport> args=failedEntities.getAllValues();
-  assertEquals("Same number of error connections created",expectedFails,args.size());
+  assertEquals("Same connection count expected",expectedConnectionSuccess,updated.getImportedConnectionCount());
+  assertEquals("Same connection error count expected",expectedConnectionFails,updated.getFailedConnectionCount());
+  assertEquals("Correct error message","Failed to import some data.  See the import counters and errors.",updated.getErrorMessage());
+  ArgumentCaptor<FailedImport> failedEntities=ArgumentCaptor.forClass(FailedImport.class);
+  verify(em,times(expectedFails + expectedConnectionFails)).createConnection(same(fileImport),eq("errors"),failedEntities.capture());
+  final List<FailedImport> args=failedEntities.getAllValues();
+  assertEquals("Same number of error connections created",expectedFails + expectedConnectionFails,args.size());
   for (int i=0; i < expectedFails; i++) {
-    final FailedEntityImport failedImport=args.get(i);
+    final FailedImport failedImport=args.get(i);
     assertEquals("Same message expected","Failed to write entity " + i,failedImport.getErrorMessage());
+  }
+  for (int i=expectedFails; i < expectedConnectionFails; i++) {
+    final FailedImport failedImport=args.get(i);
+    assertEquals("Same message expected","Failed to write connection " + i,failedImport.getErrorMessage());
   }
 }

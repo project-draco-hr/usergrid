@@ -4,14 +4,15 @@
   final JsonEntityParserObservable jsonObservableEntities=new JsonEntityParserObservable(jp,em,rootEm,fileImport,entitiesOnly);
   final Observable<WriteEvent> entityEventObservable=Observable.create(jsonObservableEntities);
   final FileImportStatistics statistics=new FileImportStatistics(em,fileImport.getUuid(),100);
-  final int numToSkip=statistics.getParsedEntityCount();
+  final int entityNumSkip=(int)statistics.getTotalEntityCount();
+  final int connectionNumSkip=(int)statistics.getTotalConnectionCount();
   final Action1<WriteEvent> doWork=new Action1<WriteEvent>(){
     @Override public void call(    WriteEvent writeEvent){
       writeEvent.doWrite(em,fileImport,statistics);
     }
   }
 ;
-  entityEventObservable.skip(numToSkip).parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
+  entityEventObservable.skip(entityNumSkip).parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
     @Override public Observable<WriteEvent> call(    Observable<WriteEvent> entityWrapperObservable){
       return entityWrapperObservable.doOnNext(doWork);
     }
@@ -23,7 +24,7 @@
   jp=getJsonParserForFile(file);
   final JsonEntityParserObservable jsonObservableOther=new JsonEntityParserObservable(jp,em,rootEm,fileImport,entitiesOnly);
   final Observable<WriteEvent> otherEventObservable=Observable.create(jsonObservableOther);
-  otherEventObservable.parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
+  otherEventObservable.skip(connectionNumSkip).parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
     @Override public Observable<WriteEvent> call(    Observable<WriteEvent> entityWrapperObservable){
       return entityWrapperObservable.doOnNext(doWork);
     }
