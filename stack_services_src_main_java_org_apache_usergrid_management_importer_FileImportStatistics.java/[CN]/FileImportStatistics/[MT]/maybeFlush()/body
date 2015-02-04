@@ -1,0 +1,21 @@
+{
+  final int count=cachedOperations.incrementAndGet();
+  if (count < flushCount) {
+    return;
+  }
+  if (!writeSemaphore.tryAcquire()) {
+    return;
+  }
+  final long failed=entitiesFailed.get();
+  final long written=entitiesWritten.get();
+  final String message;
+  if (failed > 0) {
+    message="Failed to import " + failed + " entities.  Successfully imported "+ written+ " entities";
+  }
+ else {
+    message="Successfully imported " + written + " entities";
+  }
+  updateFileImport(written,failed,FileImport.State.STARTED,message);
+  cachedOperations.addAndGet(flushCount * -1);
+  writeSemaphore.release();
+}

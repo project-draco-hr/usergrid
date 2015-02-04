@@ -10,19 +10,21 @@
     }
   }
 );
-  final FileImportStatistics fileImportStatistics=new FileImportStatistics(em,importFileId,1000);
-  final long expectedSuccess=100;
+  final int expectedSuccess=100;
+  final int expectedFails=100;
+  final int expectedFlushCount=2;
+  final int flushSize=(expectedFails + expectedFails) / expectedFlushCount;
+  final FileImportStatistics fileImportStatistics=new FileImportStatistics(em,importFileId,flushSize);
   for (long i=0; i < expectedSuccess; i++) {
     fileImportStatistics.entityWritten();
   }
-  final int expectedFails=10;
   for (int i=0; i < expectedFails; i++) {
     fileImportStatistics.entityFailed("Failed to write entity " + i);
   }
   fileImportStatistics.complete();
   ArgumentCaptor<FileImport> savedFileImport=ArgumentCaptor.forClass(FileImport.class);
-  verify(em).update(savedFileImport.capture());
-  final FileImport updated=savedFileImport.getValue();
+  verify(em,times(expectedFlushCount + 1)).update(savedFileImport.capture());
+  final FileImport updated=savedFileImport.getAllValues().get(2);
   assertSame("Same instance should be updated",fileImport,updated);
   assertEquals("Same count expected",expectedSuccess,updated.getImportedEntityCount());
   assertEquals("Same fail expected",expectedFails,updated.getFailedEntityCount());
