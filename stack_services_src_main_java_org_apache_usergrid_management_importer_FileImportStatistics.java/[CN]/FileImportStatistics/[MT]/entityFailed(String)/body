@@ -1,3 +1,12 @@
 {
   entitiesFailed.incrementAndGet();
+  FailedEntityImport failedEntityImport=new FailedEntityImport();
+  failedEntityImport.setErrorMessage(message);
+  try {
+    failedEntityImport=entityManager.create(failedEntityImport);
+    entityManager.createConnection(fileImport,ERRORS_CONNECTION_NAME,failedEntityImport);
+  }
+ catch (  Exception e) {
+    throw new PersistenceException("Unable to save failed entity import message",e);
+  }
 }
