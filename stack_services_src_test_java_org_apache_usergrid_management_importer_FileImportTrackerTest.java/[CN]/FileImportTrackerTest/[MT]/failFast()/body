@@ -1,0 +1,13 @@
+{
+  final EntityManager em=mock(EntityManager.class);
+  final UUID importFileId=UUIDGenerator.newTimeUUID();
+  final FileImport fileImport=new FileImport();
+  when(em.get(importFileId,FileImport.class)).thenReturn(fileImport);
+  FileImportTracker statistics=new FileImportTracker(em,importFileId,100);
+  assertFalse(statistics.shouldStopProcessingEntities());
+  assertFalse(statistics.shouldStopProcessingConnections());
+  statistics.entityFailed("test fail");
+  assertTrue("We shouldn't process after a failure",statistics.shouldStopProcessingEntities());
+  statistics.connectionFailed("test fail");
+  assertTrue("We shouldn't process after a failure",statistics.shouldStopProcessingConnections());
+}

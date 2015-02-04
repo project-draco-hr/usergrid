@@ -3,18 +3,18 @@
   JsonParser jp=getJsonParserForFile(file);
   final JsonEntityParserObservable jsonObservableEntities=new JsonEntityParserObservable(jp,em,rootEm,fileImport,entitiesOnly);
   final Observable<WriteEvent> entityEventObservable=Observable.create(jsonObservableEntities);
-  final FileImportStatistics statistics=new FileImportStatistics(em,fileImport.getUuid(),100);
-  final int entityNumSkip=(int)statistics.getTotalEntityCount();
-  final int connectionNumSkip=(int)statistics.getTotalConnectionCount();
+  final FileImportTracker tracker=new FileImportTracker(em,fileImport.getUuid(),100);
+  final int entityNumSkip=(int)tracker.getTotalEntityCount();
+  final int connectionNumSkip=(int)tracker.getTotalConnectionCount();
   final Action1<WriteEvent> doWork=new Action1<WriteEvent>(){
     @Override public void call(    WriteEvent writeEvent){
-      writeEvent.doWrite(em,fileImport,statistics);
+      writeEvent.doWrite(em,fileImport,tracker);
     }
   }
 ;
   entityEventObservable.takeWhile(new Func1<WriteEvent,Boolean>(){
     @Override public Boolean call(    final WriteEvent writeEvent){
-      return !statistics.shouldStopProcessingEntities();
+      return !tracker.shouldStopProcessingEntities();
     }
   }
 ).skip(entityNumSkip).parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
@@ -31,7 +31,7 @@
   final Observable<WriteEvent> otherEventObservable=Observable.create(jsonObservableOther);
   otherEventObservable.takeWhile(new Func1<WriteEvent,Boolean>(){
     @Override public Boolean call(    final WriteEvent writeEvent){
-      return !statistics.shouldStopProcessingConnections();
+      return !tracker.shouldStopProcessingConnections();
     }
   }
 ).skip(connectionNumSkip).parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
@@ -41,6 +41,6 @@
   }
 ,Schedulers.io()).toBlocking().last();
   jp.close();
-  statistics.complete();
+  tracker.complete();
   logger.debug("\n\nWrote others\n");
 }

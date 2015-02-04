@@ -1,0 +1,19 @@
+{
+  final EntityManager em=mock(EntityManager.class);
+  final UUID importFileId=UUIDGenerator.newTimeUUID();
+  final FileImport fileImport=new FileImport();
+  fileImport.setUuid(importFileId);
+  when(em.get(importFileId,FileImport.class)).thenReturn(fileImport);
+  final FileImportTracker fileImportTracker=new FileImportTracker(em,importFileId,1000);
+  final long expectedCount=100;
+  for (long i=0; i < expectedCount; i++) {
+    fileImportTracker.entityWritten();
+  }
+  fileImportTracker.complete();
+  ArgumentCaptor<FileImport> savedFileImport=ArgumentCaptor.forClass(FileImport.class);
+  verify(em).update(savedFileImport.capture());
+  final FileImport updated=savedFileImport.getValue();
+  assertSame("Same instance should be updated",fileImport,updated);
+  assertEquals("Same count expected",expectedCount,updated.getImportedEntityCount());
+  assertNull(updated.getErrorMessage());
+}

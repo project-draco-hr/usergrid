@@ -1,0 +1,14 @@
+{
+  try {
+    if (entityRef.getType() == null) {
+      entityRef=em.get(ownerEntityRef.getUuid());
+    }
+    logger.debug("Creating connection from {}:{} to {}:{}",new Object[]{ownerEntityRef.getType(),ownerEntityRef.getUuid(),entityRef.getType(),entityRef.getUuid()});
+    em.createConnection(ownerEntityRef,connectionType,entityRef);
+    tracker.connectionWritten();
+  }
+ catch (  Exception e) {
+    logger.error("Error writing connection",e);
+    tracker.connectionFailed(e.getMessage());
+  }
+}
