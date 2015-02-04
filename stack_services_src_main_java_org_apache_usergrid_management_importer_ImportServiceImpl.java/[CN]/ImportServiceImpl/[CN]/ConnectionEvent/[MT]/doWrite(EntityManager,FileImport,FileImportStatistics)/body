@@ -1,20 +1,14 @@
 {
-  EntityManager rootEm=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
   try {
     if (entityRef.getType() == null) {
       entityRef=em.get(ownerEntityRef.getUuid());
     }
     logger.debug("Creating connection from {}:{} to {}:{}",new Object[]{ownerEntityRef.getType(),ownerEntityRef.getUuid(),entityRef.getType(),entityRef.getUuid()});
     em.createConnection(ownerEntityRef,connectionType,entityRef);
+    stats.connectionWritten();
   }
  catch (  Exception e) {
     logger.error("Error writing connection",e);
-    fileImport.setErrorMessage(e.getMessage());
-    try {
-      rootEm.update(fileImport);
-    }
- catch (    Exception ex) {
-      logger.error("Error updating file import report with error message: " + fileImport.getErrorMessage(),ex);
-    }
+    stats.connectionFailed(e.getMessage());
   }
 }

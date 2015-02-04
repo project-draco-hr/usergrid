@@ -3,13 +3,15 @@
   JsonParser jp=getJsonParserForFile(file);
   final JsonEntityParserObservable jsonObservableEntities=new JsonEntityParserObservable(jp,em,rootEm,fileImport,entitiesOnly);
   final Observable<WriteEvent> entityEventObservable=Observable.create(jsonObservableEntities);
+  final FileImportStatistics statistics=new FileImportStatistics(em,fileImport.getUuid(),100);
+  final int numToSkip=statistics.getParsedEntityCount();
   final Action1<WriteEvent> doWork=new Action1<WriteEvent>(){
     @Override public void call(    WriteEvent writeEvent){
-      writeEvent.doWrite(em,fileImport);
+      writeEvent.doWrite(em,fileImport,statistics);
     }
   }
 ;
-  entityEventObservable.parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
+  entityEventObservable.skip(numToSkip).parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
     @Override public Observable<WriteEvent> call(    Observable<WriteEvent> entityWrapperObservable){
       return entityWrapperObservable.doOnNext(doWork);
     }
@@ -28,5 +30,6 @@
   }
 ,Schedulers.io()).toBlocking().last();
   jp.close();
+  statistics.complete();
   logger.debug("\n\nWrote others\n");
 }
