@@ -12,7 +12,12 @@
     }
   }
 ;
-  entityEventObservable.skip(entityNumSkip).parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
+  entityEventObservable.takeWhile(new Func1<WriteEvent,Boolean>(){
+    @Override public Boolean call(    final WriteEvent writeEvent){
+      return !statistics.shouldStopProcessingEntities();
+    }
+  }
+).skip(entityNumSkip).parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
     @Override public Observable<WriteEvent> call(    Observable<WriteEvent> entityWrapperObservable){
       return entityWrapperObservable.doOnNext(doWork);
     }
@@ -24,7 +29,12 @@
   jp=getJsonParserForFile(file);
   final JsonEntityParserObservable jsonObservableOther=new JsonEntityParserObservable(jp,em,rootEm,fileImport,entitiesOnly);
   final Observable<WriteEvent> otherEventObservable=Observable.create(jsonObservableOther);
-  otherEventObservable.skip(connectionNumSkip).parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
+  otherEventObservable.takeWhile(new Func1<WriteEvent,Boolean>(){
+    @Override public Boolean call(    final WriteEvent writeEvent){
+      return !statistics.shouldStopProcessingConnections();
+    }
+  }
+).skip(connectionNumSkip).parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
     @Override public Observable<WriteEvent> call(    Observable<WriteEvent> entityWrapperObservable){
       return entityWrapperObservable.doOnNext(doWork);
     }
