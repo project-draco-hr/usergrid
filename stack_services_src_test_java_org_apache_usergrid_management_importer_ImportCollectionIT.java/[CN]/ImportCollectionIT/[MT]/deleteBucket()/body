@@ -6,10 +6,8 @@
   Properties overrides=new Properties();
   overrides.setProperty("s3" + ".identity",accessId);
   overrides.setProperty("s3" + ".credential",secretKey);
-  Blob bo=null;
-  BlobStore blobStore=null;
   final Iterable<? extends Module> MODULES=ImmutableSet.of(new JavaUrlHttpCommandExecutorServiceModule(),new Log4JLoggingModule(),new NettyPayloadModule());
   BlobStoreContext context=ContextBuilder.newBuilder("s3").credentials(accessId,secretKey).modules(MODULES).overrides(overrides).buildView(BlobStoreContext.class);
-  blobStore=context.getBlobStore();
+  BlobStore blobStore=context.getBlobStore();
   blobStore.deleteContainer(bucketName);
 }

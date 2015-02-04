@@ -1,12 +1,13 @@
 {
+  deleteBucket();
   final EntityManager emApp1=setup.getEmf().getEntityManager(applicationId);
   Map<UUID,Entity> thingsMap=new HashMap<>();
   List<Entity> things=new ArrayList<>();
-  createTestEntities(emApp1,thingsMap,things);
-  exportCollection(emApp1);
-  final UUID appId2=setup.getMgmtSvc().createApplication(organization.getUuid(),"noobapp").getId();
+  createTestEntities(emApp1,thingsMap,things,"thing");
+  exportCollection(emApp1,"things");
+  final UUID appId2=setup.getMgmtSvc().createApplication(organization.getUuid(),"secondapp").getId();
   final EntityManager emApp2=setup.getEmf().getEntityManager(appId2);
-  importCollection(appId2,emApp2);
+  importCollection(emApp2,"things");
   try {
     logger.debug("\n\nCheck connections\n");
     List<Entity> importedThings=emApp2.getCollection(appId2,"things",null,Level.ALL_PROPERTIES).getEntities();
@@ -18,22 +19,23 @@
       conCount+=connections.size();
     }
     assertEquals(2,conCount);
+    logger.debug("\n\nCheck dictionaries\n");
+    EntityRef entity0=importedThings.get(0);
+    Map connected0=emApp2.getDictionaryAsMap(entity0,"connected_types");
+    Map connecting0=emApp2.getDictionaryAsMap(entity0,"connected_types");
+    Assert.assertEquals(1,connected0.size());
+    Assert.assertEquals(1,connecting0.size());
+    EntityRef entity1=importedThings.get(1);
+    Map connected1=emApp2.getDictionaryAsMap(entity1,"connected_types");
+    Map connecting1=emApp2.getDictionaryAsMap(entity1,"connected_types");
+    Assert.assertEquals(1,connected1.size());
+    Assert.assertEquals(1,connecting1.size());
+    EntityRef entity2=importedThings.get(2);
+    Map connected2=emApp2.getDictionaryAsMap(entity2,"connected_types");
+    Map connecting2=emApp2.getDictionaryAsMap(entity2,"connected_types");
+    Assert.assertEquals(0,connected2.size());
+    Assert.assertEquals(0,connecting2.size());
     logger.debug("\n\nCheck dictionary\n");
-    EntityRef er;
-    Map<Object,Object> dictionaries1, dictionaries2;
-    for (int i=0; i < 3; i++) {
-      er=importedThings.get(i);
-      dictionaries1=emApp2.getDictionaryAsMap(er,"connected_types");
-      dictionaries2=emApp2.getDictionaryAsMap(er,"connecting_types");
-      if (i == 2) {
-        assertThat(dictionaries1.size(),is(0));
-        assertThat(dictionaries2.size(),is(0));
-      }
- else {
-        assertThat(dictionaries1.size(),is(not(0)));
-        assertThat(dictionaries2.size(),is(not(0)));
-      }
-    }
     for (    Entity importedThing : importedThings) {
       emApp1.delete(importedThing);
     }
