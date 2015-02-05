@@ -1,7 +1,7 @@
 {
   logger.debug("testIntegration100EntitiesOn(): starting...");
   ExportService exportService=setup.getExportService();
-  String appName=orgAppAdminRule.getApplicationInfo().getName();
+  String appName=newOrgAppAdminRule.getApplicationInfo().getName();
   HashMap<String,Object> payload=payloadBuilder(appName);
   payload.put("organizationId",organization.getUuid());
   payload.put("applicationId",applicationId);
@@ -21,8 +21,8 @@
     }
   }
   UUID exportUUID=exportService.schedule(payload);
-  int maxRetries=0;
-  int retries=100;
+  int maxRetries=100;
+  int retries=0;
   while (!exportService.getState(exportUUID).equals("FINISHED") && retries++ < maxRetries) {
     Thread.sleep(100);
   }

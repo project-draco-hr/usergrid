@@ -4,20 +4,25 @@
   List<Entity> things=new ArrayList<>();
   createTestEntities(emApp1,thingsMap,things,"thing");
   deleteBucket();
-  exportCollection(emApp1,"things");
-  final UUID appId2=setup.getMgmtSvc().createApplication(organization.getUuid(),"second").getId();
-  final EntityManager emApp2=setup.getEmf().getEntityManager(appId2);
-  importCollection(emApp2,"things");
-  for (  UUID uuid : thingsMap.keySet()) {
-    Entity entity=emApp2.get(uuid);
-    entity.setProperty("fuel_source","Hydrogen");
-    emApp2.update(entity);
+  try {
+    exportCollection(emApp1,"things");
+    final UUID appId2=setup.getMgmtSvc().createApplication(organization.getUuid(),"second").getId();
+    final EntityManager emApp2=setup.getEmf().getEntityManager(appId2);
+    importCollection(emApp2,"things");
+    for (    UUID uuid : thingsMap.keySet()) {
+      Entity entity=emApp2.get(uuid);
+      entity.setProperty("fuel_source","Hydrogen");
+      emApp2.update(entity);
+    }
+    deleteBucket();
+    exportCollection(emApp2,"things");
+    importCollection(emApp1,"things");
+    for (    UUID uuid : thingsMap.keySet()) {
+      Entity entity=emApp1.get(uuid);
+      Assert.assertEquals("Hydrogen",entity.getProperty("fuel_source"));
+    }
   }
-  deleteBucket();
-  exportCollection(emApp2,"things");
-  importCollection(emApp1,"things");
-  for (  UUID uuid : thingsMap.keySet()) {
-    Entity entity=emApp1.get(uuid);
-    Assert.assertEquals("Hydrogen",entity.getProperty("fuel_source"));
+  finally {
+    deleteBucket();
   }
 }

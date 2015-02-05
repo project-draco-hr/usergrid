@@ -1,14 +1,14 @@
 {
-  final EntityManager emApp1=setup.getEmf().getEntityManager(applicationId);
-  Map<UUID,Entity> thingsMap=new HashMap<>();
-  List<Entity> things=new ArrayList<>();
-  createTestEntities(emApp1,thingsMap,things,"thing");
-  deleteBucket();
-  exportCollection(emApp1,"things");
-  final UUID appId2=setup.getMgmtSvc().createApplication(organization.getUuid(),"second").getId();
-  final EntityManager emApp2=setup.getEmf().getEntityManager(appId2);
-  importCollection(emApp2,"things");
   try {
+    final EntityManager emApp1=setup.getEmf().getEntityManager(applicationId);
+    Map<UUID,Entity> thingsMap=new HashMap<>();
+    List<Entity> things=new ArrayList<>();
+    createTestEntities(emApp1,thingsMap,things,"thing");
+    deleteBucket();
+    exportCollection(emApp1,"things");
+    final UUID appId2=setup.getMgmtSvc().createApplication(organization.getUuid(),"second").getId();
+    final EntityManager emApp2=setup.getEmf().getEntityManager(appId2);
+    importCollection(emApp2,"things");
     logger.debug("\n\nCheck connections\n");
     List<Entity> importedThings=emApp2.getCollection(appId2,"things",null,Level.ALL_PROPERTIES).getEntities();
     assertTrue(!importedThings.isEmpty());

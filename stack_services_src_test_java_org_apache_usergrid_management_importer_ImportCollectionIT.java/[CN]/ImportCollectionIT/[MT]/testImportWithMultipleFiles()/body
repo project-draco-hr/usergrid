@@ -1,17 +1,22 @@
 {
   deleteBucket();
-  Map<UUID,Entity> thingsMap=new HashMap<>();
-  List<Entity> things=new ArrayList<>();
-  for (int i=0; i < 10; i++) {
-    String appName="import-test-" + i + RandomStringUtils.randomAlphanumeric(10);
-    UUID appId=setup.getMgmtSvc().createApplication(organization.getUuid(),appName).getId();
-    EntityManager emApp=setup.getEmf().getEntityManager(appId);
-    createTestEntities(emApp,thingsMap,things,"thing");
-    exportCollection(emApp,"things");
+  try {
+    Map<UUID,Entity> thingsMap=new HashMap<>();
+    List<Entity> things=new ArrayList<>();
+    for (int i=0; i < 10; i++) {
+      String appName="import-test-" + i + RandomStringUtils.randomAlphanumeric(10);
+      UUID appId=setup.getMgmtSvc().createApplication(organization.getUuid(),appName).getId();
+      EntityManager emApp=setup.getEmf().getEntityManager(appId);
+      createTestEntities(emApp,thingsMap,things,"thing");
+      exportCollection(emApp,"things");
+    }
+    final EntityManager emDefaultApp=setup.getEmf().getEntityManager(applicationId);
+    importCollection(emDefaultApp,"things");
+    List<Entity> importedThings=emDefaultApp.getCollection(emDefaultApp.getApplicationId(),"things",null,Level.ALL_PROPERTIES).getEntities();
+    assertTrue(!importedThings.isEmpty());
+    assertEquals(100,importedThings.size());
   }
-  final EntityManager emDefaultApp=setup.getEmf().getEntityManager(applicationId);
-  importCollection(emDefaultApp,"things");
-  List<Entity> importedThings=emDefaultApp.getCollection(emDefaultApp.getApplicationId(),"things",null,Level.ALL_PROPERTIES).getEntities();
-  assertTrue(!importedThings.isEmpty());
-  assertEquals(100,importedThings.size());
+  finally {
+    deleteBucket();
+  }
 }
