@@ -1,5 +1,7 @@
 {
+  final EntityManagerFactory emf=mock(EntityManagerFactory.class);
   final EntityManager em=mock(EntityManager.class);
+  when(emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID)).thenReturn(em);
   final UUID importFileId=UUIDGenerator.newTimeUUID();
   final FileImport fileImport=new FileImport();
   fileImport.setUuid(importFileId);
@@ -16,7 +18,7 @@
   final int expectedConnectionFails=100;
   final int expectedFlushCount=2;
   final int flushSize=(expectedFails + expectedFails + expectedConnectionSuccess+ expectedConnectionFails) / expectedFlushCount;
-  final FileImportStatistics fileImportStatistics=new FileImportStatistics(em,importFileId,flushSize);
+  final FileImportStatistics fileImportStatistics=new FileImportStatistics(emf,fileImport,flushSize);
   for (long i=0; i < expectedSuccess; i++) {
     fileImportStatistics.entityWritten();
   }

@@ -8,12 +8,9 @@
     logger.error("application doesn't exist within the current context");
     return null;
   }
-  FileImport fileImport=new FileImport();
-  fileImport.setFileName(file);
-  fileImport.setCompleted(false);
-  fileImport.setLastUpdatedUUID(" ");
-  fileImport.setErrorMessage(" ");
-  fileImport.setState(FileImport.State.CREATED);
+  String collectionName=config.get("collectionName").toString();
+  UUID applicationId=(UUID)config.get("applicationId");
+  FileImport fileImport=new FileImport(file,applicationId,collectionName);
   fileImport=rootEm.create(fileImport);
   Import importUG=rootEm.get(importRef,Import.class);
   try {

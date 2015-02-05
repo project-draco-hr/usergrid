@@ -1,16 +1,17 @@
 {
+  final EntityManagerFactory emf=mock(EntityManagerFactory.class);
   final EntityManager em=mock(EntityManager.class);
+  when(emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID)).thenReturn(em);
   final UUID importFileId=UUIDGenerator.newTimeUUID();
   final FileImport fileImport=new FileImport();
   fileImport.setUuid(importFileId);
-  when(em.get(importFileId,FileImport.class)).thenReturn(fileImport);
   when(em.create(any(FailedImportEntity.class))).thenAnswer(new Answer<FailedImportEntity>(){
     @Override public FailedImportEntity answer(    final InvocationOnMock invocation) throws Throwable {
       return (FailedImportEntity)invocation.getArguments()[0];
     }
   }
 );
-  final FileImportStatistics fileImportStatistics=new FileImportStatistics(em,importFileId,1000);
+  final FileImportStatistics fileImportStatistics=new FileImportStatistics(emf,fileImport,1000);
   final long expectedSuccess=100;
   for (long i=0; i < expectedSuccess; i++) {
     fileImportStatistics.entityWritten();

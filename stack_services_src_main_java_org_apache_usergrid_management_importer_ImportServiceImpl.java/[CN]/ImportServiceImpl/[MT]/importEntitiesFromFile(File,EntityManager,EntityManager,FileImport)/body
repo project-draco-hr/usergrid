@@ -1,9 +1,9 @@
 {
   boolean entitiesOnly=true;
   JsonParser jp=getJsonParserForFile(file);
-  final JsonEntityParserObservable jsonObservableEntities=new JsonEntityParserObservable(jp,em,rootEm,collectionName,fileImport,entitiesOnly);
+  final JsonEntityParserObservable jsonObservableEntities=new JsonEntityParserObservable(jp,em,rootEm,fileImport,entitiesOnly);
   final Observable<WriteEvent> entityEventObservable=Observable.create(jsonObservableEntities);
-  final FileImportStatistics statistics=new FileImportStatistics(em,fileImport.getUuid(),100);
+  final FileImportStatistics statistics=new FileImportStatistics(emf,fileImport,100);
   final int entityNumSkip=(int)statistics.getTotalEntityCount();
   final int connectionNumSkip=(int)statistics.getTotalConnectionCount();
   final Action1<WriteEvent> doWork=new Action1<WriteEvent>(){
@@ -27,7 +27,7 @@
   logger.debug("\n\nimportEntitiesFromFile(): Wrote entities\n");
   entitiesOnly=false;
   jp=getJsonParserForFile(file);
-  final JsonEntityParserObservable jsonObservableOther=new JsonEntityParserObservable(jp,em,rootEm,collectionName,fileImport,entitiesOnly);
+  final JsonEntityParserObservable jsonObservableOther=new JsonEntityParserObservable(jp,em,rootEm,fileImport,entitiesOnly);
   final Observable<WriteEvent> otherEventObservable=Observable.create(jsonObservableOther);
   otherEventObservable.takeWhile(new Func1<WriteEvent,Boolean>(){
     @Override public Boolean call(    final WriteEvent writeEvent){

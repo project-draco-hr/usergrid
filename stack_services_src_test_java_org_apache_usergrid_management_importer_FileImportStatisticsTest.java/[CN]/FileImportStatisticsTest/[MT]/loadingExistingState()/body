@@ -1,5 +1,7 @@
 {
+  final EntityManagerFactory emf=mock(EntityManagerFactory.class);
   final EntityManager em=mock(EntityManager.class);
+  when(emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID)).thenReturn(em);
   final UUID importFileId=UUIDGenerator.newTimeUUID();
   final FileImport fileImport=new FileImport();
   fileImport.setUuid(importFileId);
@@ -8,7 +10,7 @@
   fileImport.setImportedConnectionCount(3);
   fileImport.setFailedConnectionCount(4);
   when(em.get(importFileId,FileImport.class)).thenReturn(fileImport);
-  FileImportStatistics statistics=new FileImportStatistics(em,importFileId,100);
+  FileImportStatistics statistics=new FileImportStatistics(emf,fileImport,100);
   assertEquals(1,statistics.getEntitiesWritten());
   assertEquals(2,statistics.getEntitiesFailed());
   assertEquals(3,statistics.getTotalEntityCount());
