@@ -1,20 +1,29 @@
 {
-  ApplicationInfo appInfo=setup.getMgmtSvc().getApplicationInfo("test-organization/test-app");
-  String clientId=setup.getMgmtSvc().getClientIdForApplication(appInfo.getId());
+  String orgName=clientSetup.getOrganizationName().toLowerCase();
+  String appName=clientSetup.getAppName().toLowerCase();
+  OrganizationResource orgResource=clientSetup.getRestClient().management().orgs().organization(orgName);
+  Credentials orgCredentials=orgResource.credentials().get();
+  String clientId=orgCredentials.getClientId();
+  String clientSecret=orgCredentials.getClientSecret();
+  String username="username";
+  String name="name";
+  User user=new User(username,name,username + "@usergrid.org","password");
+  Entity entity=this.app().collection("users").post(user);
+  assertNotNull(entity);
   Form payload=new Form();
-  payload.add("username","ed@anuff.com");
-  payload.add("password","sesame");
+  payload.add("username",username);
+  payload.add("password","password");
   payload.add("response_type","code");
+  payload.add("grant_type","client_credentials");
   payload.add("client_id",clientId);
+  payload.add("client_secret",clientSecret);
   payload.add("scope","none");
   payload.add("redirect_uri","http://www.my_test.com");
   client().setFollowRedirects(false);
-  Status status=null;
   try {
-    String result=resource().path("/test-organization/test-app/authorize").type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).accept(MediaType.TEXT_HTML).post(String.class,payload);
+    resource().path(String.format("/%s/%s/authorize",orgName,appName)).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).post(String.class,payload);
   }
  catch (  UniformInterfaceException uie) {
-    status=uie.getResponse().getClientResponseStatus();
+    assertEquals(Status.TEMPORARY_REDIRECT,uie.getResponse().getClientResponseStatus());
   }
-  assertEquals(Status.TEMPORARY_REDIRECT,status);
 }

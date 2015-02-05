@@ -1,4 +1,6 @@
 {
-  String result=resource().path("/test-organization/test-app/authorize").queryParam("response_type","token").queryParam("client_id","invalid_client_id").queryParam("redirect_uri","http://www.my_test.com").get(String.class);
-  assertTrue(result.contains("Unable to authenticate (OAuth). Invalid client_id."));
+  String orgName=clientSetup.getOrganizationName().toLowerCase();
+  String appName=clientSetup.getAppName().toLowerCase();
+  String apiResponse=resource().path(String.format("/%s/%s/authorize",orgName,appName)).queryParam("response_type","token").queryParam("client_id","invalid_client_id").queryParam("redirect_uri","http://www.my_test.com").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
+  assertTrue(apiResponse.contains("Unable to authenticate (OAuth). Invalid client_id."));
 }

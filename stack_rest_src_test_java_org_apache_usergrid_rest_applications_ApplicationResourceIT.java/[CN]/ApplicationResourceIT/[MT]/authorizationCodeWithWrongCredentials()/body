@@ -1,7 +1,9 @@
 {
-  ApplicationInfo appInfo=setup.getMgmtSvc().getApplicationInfo("test-organization/test-app");
-  String clientId=setup.getMgmtSvc().getClientIdForApplication(appInfo.getId());
-  refreshIndex("test-organization","test-app");
+  String orgName=clientSetup.getOrganizationName().toLowerCase();
+  String appName=clientSetup.getAppName().toLowerCase();
+  OrganizationResource orgResource=clientSetup.getRestClient().management().orgs().organization(orgName);
+  Credentials orgCredentials=orgResource.credentials().get();
+  String clientId=orgCredentials.getClientId();
   Form payload=new Form();
   payload.add("username","wrong_user");
   payload.add("password","wrong_password");
@@ -9,7 +11,7 @@
   payload.add("client_id",clientId);
   payload.add("scope","none");
   payload.add("redirect_uri","http://www.my_test.com");
-  String result=resource().path("/test-organization/test-app/authorize").type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).accept(MediaType.TEXT_HTML).post(String.class,payload);
-  logger.debug("result: " + result);
-  assertTrue(result.contains("Username or password do not match"));
+  String apiResponse=resource().path(String.format("/%s/%s/authorize",orgName,appName)).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).post(String.class,payload);
+  logger.debug("result: " + apiResponse);
+  assertTrue(apiResponse.contains("Username or password do not match"));
 }
