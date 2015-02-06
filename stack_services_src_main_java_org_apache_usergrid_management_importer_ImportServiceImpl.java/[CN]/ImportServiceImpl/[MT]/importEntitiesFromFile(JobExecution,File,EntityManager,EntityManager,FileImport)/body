@@ -21,7 +21,7 @@
   final JsonEntityParserObservable jsonObservableEntities=new JsonEntityParserObservable(jp,em,rootEm,fileImport,entitiesOnly);
   final Observable<WriteEvent> entityEventObservable=Observable.create(jsonObservableEntities);
   final int entityNumSkip=(int)tracker.getTotalEntityCount();
-  entityEventObservable.takeWhile(new Func1<WriteEvent,Boolean>(){
+  final int entityCount=entityEventObservable.takeWhile(new Func1<WriteEvent,Boolean>(){
     @Override public Boolean call(    final WriteEvent writeEvent){
       return !tracker.shouldStopProcessingEntities();
     }
@@ -39,7 +39,7 @@
   final JsonEntityParserObservable jsonObservableOther=new JsonEntityParserObservable(jp,em,rootEm,fileImport,entitiesOnly);
   final Observable<WriteEvent> otherEventObservable=Observable.create(jsonObservableOther);
   final int connectionNumSkip=(int)tracker.getTotalConnectionCount();
-  otherEventObservable.takeWhile(new Func1<WriteEvent,Boolean>(){
+  final int connectionCount=otherEventObservable.takeWhile(new Func1<WriteEvent,Boolean>(){
     @Override public Boolean call(    final WriteEvent writeEvent){
       return !tracker.shouldStopProcessingConnections();
     }

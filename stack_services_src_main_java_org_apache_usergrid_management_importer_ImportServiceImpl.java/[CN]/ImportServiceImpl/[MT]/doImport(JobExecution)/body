@@ -9,11 +9,11 @@
   }
   UUID importId=(UUID)jobExecution.getJobData().getProperty(IMPORT_ID);
   EntityManager rooteEm=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
-  Import importUG=rooteEm.get(importId,Import.class);
-  importUG.setState(Import.State.STARTED);
-  importUG.setStarted(System.currentTimeMillis());
-  importUG.setErrorMessage(" ");
-  rooteEm.update(importUG);
+  Import rootImportTask=rooteEm.get(importId,Import.class);
+  rootImportTask.setState(Import.State.STARTED);
+  rootImportTask.setStarted(System.currentTimeMillis());
+  rootImportTask.setErrorMessage(" ");
+  rooteEm.update(rootImportTask);
   try {
     if (s3PlaceHolder != null) {
       s3Import=(S3Import)s3PlaceHolder;
@@ -24,9 +24,9 @@
   }
  catch (  Exception e) {
     logger.error("doImport(): S3Import doesn't exist");
-    importUG.setErrorMessage(e.getMessage());
-    importUG.setState(Import.State.FAILED);
-    rooteEm.update(importUG);
+    rootImportTask.setErrorMessage(e.getMessage());
+    rootImportTask.setState(Import.State.FAILED);
+    rooteEm.update(rootImportTask);
     return;
   }
   logger.debug("doImport(): updated state");
@@ -34,9 +34,9 @@
   try {
     if (config.get("organizationId") == null) {
       logger.error("doImport(): No organization could be found");
-      importUG.setErrorMessage("No organization could be found");
-      importUG.setState(Import.State.FAILED);
-      rooteEm.update(importUG);
+      rootImportTask.setErrorMessage("No organization could be found");
+      rootImportTask.setState(Import.State.FAILED);
+      rooteEm.update(rootImportTask);
       return;
     }
  else {
@@ -52,28 +52,33 @@
     }
   }
  catch (  OrganizationNotFoundException|ApplicationNotFoundException e) {
-    importUG.setErrorMessage(e.getMessage());
-    importUG.setState(Import.State.FAILED);
-    rooteEm.update(importUG);
+    rootImportTask.setErrorMessage(e.getMessage());
+    rootImportTask.setState(Import.State.FAILED);
+    rooteEm.update(rootImportTask);
     return;
   }
   if (files.size() == 0) {
-    importUG.setState(Import.State.FINISHED);
-    importUG.setErrorMessage("no files found in the bucket with the relevant context");
-    rooteEm.update(importUG);
+    rootImportTask.setState(Import.State.FINISHED);
+    rootImportTask.setErrorMessage("no files found in the bucket with the relevant context");
+    rooteEm.update(rootImportTask);
   }
  else {
     Map<String,Object> fileMetadata=new HashMap<String,Object>();
     ArrayList<Map<String,Object>> value=new ArrayList<Map<String,Object>>();
+    final List<JobData> fileJobs=new ArrayList<>(files.size());
     for (    File file : files) {
-      UUID jobID=scheduleFile(config,file.getPath(),importUG);
+      final JobData jobData=createFileTask(config,file.getPath(),rootImportTask);
+      fileJobs.add(jobData);
+    }
+    for (    JobData jobData : fileJobs) {
+      final JobData scheduled=scheduleFileTasks(jobData);
       Map<String,Object> fileJobID=new HashMap<String,Object>();
-      fileJobID.put("FileName",file.getName());
-      fileJobID.put("JobID",jobID.toString());
+      fileJobID.put("FileName",scheduled.getProperty("File"));
+      fileJobID.put("JobID",scheduled.getUuid());
       value.add(fileJobID);
     }
     fileMetadata.put("files",value);
-    importUG.addProperties(fileMetadata);
-    rooteEm.update(importUG);
+    rootImportTask.addProperties(fileMetadata);
+    rooteEm.update(rootImportTask);
   }
 }
