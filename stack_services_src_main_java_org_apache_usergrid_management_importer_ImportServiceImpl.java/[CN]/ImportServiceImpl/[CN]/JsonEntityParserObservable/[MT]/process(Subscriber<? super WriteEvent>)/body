@@ -1,57 +1,67 @@
 {
   try {
-    boolean done=false;
-    String collectionType=InflectionUtils.singularize(fileImport.getCollectionName());
-    Stack tokenStack=new Stack();
+    Stack<JsonToken> objectStartStack=new Stack();
+    Stack<String> objectNameStack=new Stack();
     EntityRef lastEntity=null;
-    while (!done) {
+    String entityType=null;
+    while (true) {
       JsonToken token=jp.nextToken();
+      if (token == null) {
+        break;
+      }
       String name=jp.getCurrentName();
-      String indent="";
-      for (int i=0; i < tokenStack.size(); i++) {
-        indent+="   ";
-      }
-      if (token.equals(JsonToken.START_OBJECT) && "Metadata".equals(name)) {
-        Map<String,Object> entityMap=jp.readValueAs(HashMap.class);
-        UUID uuid=UUID.fromString((String)entityMap.get("uuid"));
-        lastEntity=new SimpleEntityRef(collectionType,uuid);
-        if (entitiesOnly) {
-          WriteEvent event=new EntityEvent(uuid,collectionType,entityMap);
-          subscriber.onNext(event);
+      if (token.equals(JsonToken.START_OBJECT)) {
+        objectStartStack.push(token);
+        if (name == null) {
+          continue;
         }
-      }
- else       if (token.equals(JsonToken.START_OBJECT) && "connections".equals(name)) {
-        Map<String,Object> connectionMap=jp.readValueAs(HashMap.class);
-        for (        String type : connectionMap.keySet()) {
-          List targets=(List)connectionMap.get(type);
-          for (          Object targetObject : targets) {
-            UUID target=UUID.fromString((String)targetObject);
+        if ("Metadata".equals(name)) {
+          Map<String,Object> entityMap=jp.readValueAs(HashMap.class);
+          UUID uuid=UUID.fromString((String)entityMap.get("uuid"));
+          lastEntity=new SimpleEntityRef(entityType,uuid);
+          if (entitiesOnly) {
+            WriteEvent event=new EntityEvent(uuid,entityType,entityMap);
+            subscriber.onNext(event);
+          }
+          objectStartStack.pop();
+        }
+ else         if ("connections".equals(name)) {
+          Map<String,Object> connectionMap=jp.readValueAs(HashMap.class);
+          for (          String type : connectionMap.keySet()) {
+            List targets=(List)connectionMap.get(type);
+            for (            Object targetObject : targets) {
+              UUID target=UUID.fromString((String)targetObject);
+              if (!entitiesOnly) {
+                EntityRef entryRef=new SimpleEntityRef(target);
+                WriteEvent event=new ConnectionEvent(lastEntity,type,entryRef);
+                subscriber.onNext(event);
+              }
+            }
+          }
+          objectStartStack.pop();
+        }
+ else         if ("dictionaries".equals(name)) {
+          Map<String,Object> dictionariesMap=jp.readValueAs(HashMap.class);
+          for (          String dname : dictionariesMap.keySet()) {
+            Map dmap=(Map)dictionariesMap.get(dname);
             if (!entitiesOnly) {
-              EntityRef entryRef=new SimpleEntityRef(target);
-              WriteEvent event=new ConnectionEvent(lastEntity,type,entryRef);
+              WriteEvent event=new DictionaryEvent(lastEntity,dname,dmap);
               subscriber.onNext(event);
             }
           }
+          objectStartStack.pop();
+        }
+ else {
+          objectNameStack.push(name);
         }
       }
- else       if (token.equals(JsonToken.START_OBJECT) && "dictionaries".equals(name)) {
-        Map<String,Object> dictionariesMap=jp.readValueAs(HashMap.class);
-        for (        String dname : dictionariesMap.keySet()) {
-          Map dmap=(Map)dictionariesMap.get(dname);
-          if (!entitiesOnly) {
-            WriteEvent event=new DictionaryEvent(lastEntity,dname,dmap);
-            subscriber.onNext(event);
-          }
+ else       if (token.equals(JsonToken.START_ARRAY)) {
+        if (objectNameStack.size() == 1 && COLLECTION_OBJECT_NAME.equals(objectNameStack.peek())) {
+          entityType=InflectionUtils.singularize(name);
         }
-      }
- else       if (token.equals(JsonToken.START_OBJECT)) {
-        tokenStack.push(token);
       }
  else       if (token.equals(JsonToken.END_OBJECT)) {
-        tokenStack.pop();
-      }
-      if (token.equals(JsonToken.END_ARRAY) && tokenStack.isEmpty()) {
-        done=true;
+        objectStartStack.pop();
       }
     }
     subscriber.onCompleted();
