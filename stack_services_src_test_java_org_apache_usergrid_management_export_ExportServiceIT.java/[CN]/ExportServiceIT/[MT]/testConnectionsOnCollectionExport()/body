@@ -9,7 +9,8 @@
   f.deleteOnExit();
   S3Export s3Export=new MockS3ExportImpl("testFileConnections.json");
   ExportService exportService=setup.getExportService();
-  HashMap<String,Object> payload=payloadBuilder();
+  String appName=newOrgAppAdminRule.getApplicationInfo().getName();
+  HashMap<String,Object> payload=payloadBuilder(appName);
   payload.put("organizationId",organization.getUuid());
   payload.put("applicationId",applicationId);
   payload.put("collectionName","users");
@@ -26,10 +27,6 @@
   em.createConnection(em.get(new SimpleEntityRef("user",entity[0].getUuid())),"Vibrations",em.get(new SimpleEntityRef("user",entity[1].getUuid())));
   em.createConnection(em.get(new SimpleEntityRef("user",entity[1].getUuid())),"Vibrations",em.get(new SimpleEntityRef("user",entity[0].getUuid())));
   UUID exportUUID=exportService.schedule(payload);
-  JobData jobData=jobDataCreator(payload,exportUUID,s3Export);
-  JobExecution jobExecution=mock(JobExecution.class);
-  when(jobExecution.getJobData()).thenReturn(jobData);
-  exportService.doExport(jobExecution);
   JSONParser parser=new JSONParser();
   org.json.simple.JSONArray a=(org.json.simple.JSONArray)parser.parse(new FileReader(f));
   for (indexCon=0; indexCon < a.size(); indexCon++) {

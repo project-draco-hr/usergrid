@@ -1,7 +1,8 @@
 {
   S3Export s3Export=new S3ExportImpl();
   ExportService exportService=setup.getExportService();
-  HashMap<String,Object> payload=payloadBuilder();
+  String appName=newOrgAppAdminRule.getApplicationInfo().getName();
+  HashMap<String,Object> payload=payloadBuilder(appName);
   payload.put("organizationId",organization.getUuid());
   payload.put("applicationId",applicationId);
   OrganizationInfo orgMade=null;
@@ -32,12 +33,7 @@
     entity[i]=em.create("user",userProperties);
   }
   UUID exportUUID=exportService.schedule(payload);
-  JobData jobData=jobDataCreator(payload,exportUUID,s3Export);
-  JobExecution jobExecution=mock(JobExecution.class);
-  when(jobExecution.getJobData()).thenReturn(jobData);
-  exportService.doExport(jobExecution);
   while (!exportService.getState(exportUUID).equals("FINISHED")) {
-    ;
   }
   String accessId=System.getProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR);
   String secretKey=System.getProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR);
@@ -49,7 +45,7 @@
   try {
     final Iterable<? extends Module> MODULES=ImmutableSet.of(new JavaUrlHttpCommandExecutorServiceModule(),new Log4JLoggingModule(),new NettyPayloadModule());
     BlobStoreContext context=ContextBuilder.newBuilder("s3").credentials(accessId,secretKey).modules(MODULES).overrides(overrides).buildView(BlobStoreContext.class);
-    String expectedFileName=((ExportServiceImpl)exportService).prepareOutputFileName("organization",organization.getName(),"applications");
+    String expectedFileName=((ExportServiceImpl)exportService).prepareOutputFileName(organization.getName(),"applications");
     blobStore=context.getBlobStore();
     if (!blobStore.blobExists(bucketName,expectedFileName)) {
       assert(false);
