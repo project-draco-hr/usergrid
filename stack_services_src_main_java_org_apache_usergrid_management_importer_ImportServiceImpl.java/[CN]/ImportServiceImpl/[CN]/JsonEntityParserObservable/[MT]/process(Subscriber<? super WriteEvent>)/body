@@ -16,7 +16,6 @@
         UUID uuid=UUID.fromString((String)entityMap.get("uuid"));
         lastEntity=new SimpleEntityRef(collectionType,uuid);
         if (entitiesOnly) {
-          logger.debug("{}Got entity with uuid {}",indent,lastEntity);
           WriteEvent event=new EntityEvent(uuid,collectionType,entityMap);
           subscriber.onNext(event);
         }
@@ -28,7 +27,6 @@
           for (          Object targetObject : targets) {
             UUID target=UUID.fromString((String)targetObject);
             if (!entitiesOnly) {
-              logger.debug("{}Got connection {} to {}",new Object[]{indent,type,target.toString()});
               EntityRef entryRef=new SimpleEntityRef(target);
               WriteEvent event=new ConnectionEvent(lastEntity,type,entryRef);
               subscriber.onNext(event);
@@ -41,7 +39,6 @@
         for (        String dname : dictionariesMap.keySet()) {
           Map dmap=(Map)dictionariesMap.get(dname);
           if (!entitiesOnly) {
-            logger.debug("{}Got dictionary {} size {}",new Object[]{indent,dname,dmap.size()});
             WriteEvent event=new DictionaryEvent(lastEntity,dname,dmap);
             subscriber.onNext(event);
           }
