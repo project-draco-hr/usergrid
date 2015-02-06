@@ -12,6 +12,16 @@
     }
   }
 ;
+  final Func2<Integer,WriteEvent,Integer> heartbeatReducer=new Func2<Integer,WriteEvent,Integer>(){
+    @Override public Integer call(    final Integer integer,    final WriteEvent writeEvent){
+      final int next=integer.intValue() + 1;
+      if (next % HEARTBEAT_COUNT == 0) {
+        execution.heartbeat();
+      }
+      return next;
+    }
+  }
+;
   entityEventObservable.takeWhile(new Func1<WriteEvent,Boolean>(){
     @Override public Boolean call(    final WriteEvent writeEvent){
       return !tracker.shouldStopProcessingEntities();
@@ -22,7 +32,7 @@
       return entityWrapperObservable.doOnNext(doWork);
     }
   }
-,Schedulers.io()).toBlocking().last();
+,Schedulers.io()).reduce(0,heartbeatReducer).toBlocking().last();
   jp.close();
   logger.debug("\n\nimportEntitiesFromFile(): Wrote entities\n");
   entitiesOnly=false;
@@ -39,7 +49,7 @@
       return entityWrapperObservable.doOnNext(doWork);
     }
   }
-,Schedulers.io()).toBlocking().last();
+,Schedulers.io()).reduce(0,heartbeatReducer).toBlocking().last();
   jp.close();
   logger.debug("\n\nimportEntitiesFromFile(): Wrote others\n");
   tracker.complete();
