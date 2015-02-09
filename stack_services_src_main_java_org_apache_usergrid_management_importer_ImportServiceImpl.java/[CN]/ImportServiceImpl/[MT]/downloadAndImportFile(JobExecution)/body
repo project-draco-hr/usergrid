@@ -46,9 +46,30 @@
   List<Entity> importEntities=importJobResults.getEntities();
   UUID importId=importEntities.get(0).getUuid();
   Import importEntity=emManagementApp.get(importId,Import.class);
-  Results entities=emManagementApp.getConnectedEntities(importEntity,"includes",null,Level.ALL_PROPERTIES);
+  String randTag=RandomStringUtils.randomAlphanumeric(4);
+  logger.debug("{} Got importEntity {}",randTag,importEntity.getUuid());
+  int retries=0;
+  int maxRetries=60;
+  Results entities=null;
+  boolean done=false;
+  while (!done && retries++ < maxRetries) {
+    entities=emManagementApp.getConnectedEntities(importEntity,"includes","file_import",Level.ALL_PROPERTIES);
+    if (entities.size() == importEntity.getFileCount()) {
+      logger.debug("{} got {} file_import entities, expected {} DONE!",new Object[]{randTag,entities.size(),importEntity.getFileCount()});
+      done=true;
+    }
+ else {
+      logger.debug("{} got {} file_import entities, expected {} waiting... ",new Object[]{randTag,entities.size(),importEntity.getFileCount()});
+      Thread.sleep(1000);
+    }
+  }
+  if (retries >= maxRetries) {
+    throw new RuntimeException("Max retries was reached");
+  }
   PagingResultsIterator itr=new PagingResultsIterator(entities);
+  logger.debug("{} Check {} jobs to see if we are done for file {}",new Object[]{randTag,entities.size(),fileImport.getFileName()});
   int failCount=0;
+  int successCount=0;
   while (itr.hasNext()) {
     FileImport fi=(FileImport)itr.next();
 switch (fi.getState()) {
@@ -56,12 +77,16 @@ case FAILED:
       failCount++;
     break;
 case FINISHED:
-  break;
+  successCount++;
+continue;
 default :
+logger.debug("{} not done yet, bail out...",randTag);
 return;
 }
 }
+logger.debug("{} successCount = {} failCount = {}",new Object[]{randTag,successCount,failCount});
 if (failCount == 0) {
+logger.debug("{} FINISHED",randTag);
 importEntity.setState(Import.State.FINISHED);
 }
  else {

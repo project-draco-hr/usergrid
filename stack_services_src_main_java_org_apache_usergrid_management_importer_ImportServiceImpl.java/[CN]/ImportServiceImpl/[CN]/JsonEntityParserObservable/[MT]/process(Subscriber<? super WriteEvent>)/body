@@ -17,7 +17,7 @@
         lastEntity=new SimpleEntityRef(collectionType,uuid);
         if (entitiesOnly) {
           WriteEvent event=new EntityEvent(uuid,collectionType,entityMap);
-          subscriber.onNext(event);
+          processWriteEvent(subscriber,event);
         }
       }
  else       if (token.equals(JsonToken.START_OBJECT) && "connections".equals(name)) {
@@ -29,7 +29,7 @@
             if (!entitiesOnly) {
               EntityRef entryRef=new SimpleEntityRef(target);
               WriteEvent event=new ConnectionEvent(lastEntity,type,entryRef);
-              subscriber.onNext(event);
+              processWriteEvent(subscriber,event);
             }
           }
         }
@@ -40,7 +40,7 @@
           Map dmap=(Map)dictionariesMap.get(dname);
           if (!entitiesOnly) {
             WriteEvent event=new DictionaryEvent(lastEntity,dname,dmap);
-            subscriber.onNext(event);
+            processWriteEvent(subscriber,event);
           }
         }
       }
@@ -54,7 +54,9 @@
         done=true;
       }
     }
-    subscriber.onCompleted();
+    if (subscriber != null) {
+      subscriber.onCompleted();
+    }
     logger.debug("process(): done parsing JSON");
   }
  catch (  Exception e) {
@@ -65,6 +67,8 @@
  catch (    Exception ex) {
       logger.error("Error updating file import record",ex);
     }
-    subscriber.onError(e);
+    if (subscriber != null) {
+      subscriber.onError(e);
+    }
   }
 }
