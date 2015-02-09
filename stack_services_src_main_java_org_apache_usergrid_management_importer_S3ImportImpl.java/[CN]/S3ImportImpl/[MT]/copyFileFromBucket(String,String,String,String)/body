@@ -1,0 +1,18 @@
+{
+  Properties overrides=new Properties();
+  overrides.setProperty("s3" + ".identity",accessId);
+  overrides.setProperty("s3" + ".credential",secretKey);
+  final Iterable<? extends Module> MODULES=ImmutableSet.of(new JavaUrlHttpCommandExecutorServiceModule(),new Log4JLoggingModule(),new NettyPayloadModule());
+  BlobStoreContext context=ContextBuilder.newBuilder("s3").credentials(accessId,secretKey).modules(MODULES).overrides(overrides).buildView(BlobStoreContext.class);
+  BlobStore blobStore=context.getBlobStore();
+  Blob blob=blobStore.getBlob(bucketName,blobFileName);
+  if (blob == null) {
+    throw new RuntimeException("Blob file name " + blobFileName + " not found in bucket "+ bucketName);
+  }
+  File tempFile=File.createTempFile(bucketName,RandomStringUtils.randomAlphabetic(10));
+  FileOutputStream fop=new FileOutputStream(tempFile);
+  blob.getPayload().writeTo(fop);
+  fop.close();
+  tempFile.deleteOnExit();
+  return tempFile;
+}

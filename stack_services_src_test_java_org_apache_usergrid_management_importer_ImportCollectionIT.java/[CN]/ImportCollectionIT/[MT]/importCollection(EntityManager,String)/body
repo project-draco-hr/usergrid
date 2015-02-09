@@ -24,7 +24,10 @@
     }
   }
 );
-  while (!importService.getState(importUUID).equals("FINISHED")) {
+  int maxRetries=20;
+  int retries=0;
+  while (!importService.getState(importUUID).equals("FINISHED") && retries++ < maxRetries) {
+    logger.debug("Waiting for import...");
     Thread.sleep(1000);
   }
   em.refreshIndex();

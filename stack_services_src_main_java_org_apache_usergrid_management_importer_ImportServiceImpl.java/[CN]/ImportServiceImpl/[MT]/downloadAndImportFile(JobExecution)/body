@@ -1,0 +1,71 @@
+{
+  Map<String,Object> properties=(Map<String,Object>)jobExecution.getJobData().getProperty("properties");
+  if (properties == null) {
+    logger.error("downloadAndImportFile(): Import Information passed through is null");
+    return;
+  }
+  Map<String,Object> storage_info=(Map<String,Object>)properties.get("storage_info");
+  String bucketName=(String)storage_info.get("bucket_location");
+  String accessId=(String)storage_info.get(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR);
+  String secretKey=(String)storage_info.get(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR);
+  FileImport fileImport=getFileImportEntity(jobExecution);
+  String fileName=jobExecution.getJobData().getProperty("File").toString();
+  UUID targetAppId=(UUID)jobExecution.getJobData().getProperty("applicationId");
+  logger.debug("downloadAndImportFile() for file {} ",fileName);
+  if (FileImport.State.FAILED.equals(fileImport.getState()) || FileImport.State.FINISHED.equals(fileImport.getState())) {
+    return;
+  }
+  EntityManager emManagementApp=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+  emManagementApp.update(fileImport);
+  fileImport.setState(FileImport.State.STARTED);
+  emManagementApp.update(fileImport);
+  if (emManagementApp.get(targetAppId) == null) {
+    throw new IllegalArgumentException("Application does not exist: " + targetAppId.toString());
+  }
+  EntityManager targetEm=emf.getEntityManager(targetAppId);
+  S3Import s3Import;
+  Object s3PlaceHolder=jobExecution.getJobData().getProperty("s3Import");
+  try {
+    if (s3PlaceHolder != null) {
+      s3Import=(S3Import)s3PlaceHolder;
+    }
+ else {
+      s3Import=new S3ImportImpl();
+    }
+  }
+ catch (  Exception e) {
+    logger.error("doImport(): Error creating S3Import",e);
+    fileImport.setErrorMessage(e.getMessage());
+    fileImport.setState(FileImport.State.FAILED);
+    emManagementApp.update(fileImport);
+    return;
+  }
+  File downloadedFile=s3Import.copyFileFromBucket(fileName,bucketName,accessId,secretKey);
+  parseEntitiesAndConnectionsFromJson(jobExecution,downloadedFile,targetEm,emManagementApp,fileImport);
+  Results importJobResults=emManagementApp.getConnectingEntities(fileImport,"includes",null,Level.ALL_PROPERTIES);
+  List<Entity> importEntities=importJobResults.getEntities();
+  UUID importId=importEntities.get(0).getUuid();
+  Import importEntity=emManagementApp.get(importId,Import.class);
+  Results entities=emManagementApp.getConnectedEntities(importEntity,"includes",null,Level.ALL_PROPERTIES);
+  PagingResultsIterator itr=new PagingResultsIterator(entities);
+  int failCount=0;
+  while (itr.hasNext()) {
+    FileImport fi=(FileImport)itr.next();
+switch (fi.getState()) {
+case FAILED:
+      failCount++;
+    break;
+case FINISHED:
+  break;
+default :
+return;
+}
+}
+if (failCount == 0) {
+importEntity.setState(Import.State.FINISHED);
+}
+ else {
+importEntity.setState(Import.State.FAILED);
+}
+emManagementApp.update(importEntity);
+}
