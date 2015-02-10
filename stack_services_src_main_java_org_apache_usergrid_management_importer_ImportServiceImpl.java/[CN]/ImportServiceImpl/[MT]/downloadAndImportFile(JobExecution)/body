@@ -48,7 +48,12 @@
   Import importEntity=emManagementApp.get(importId,Import.class);
   String randTag=RandomStringUtils.randomAlphanumeric(4);
   logger.debug("{} Got importEntity {}",randTag,importEntity.getUuid());
-  Results entities=emManagementApp.getConnectedEntities(importEntity,"includes","file_import",Level.ALL_PROPERTIES);
+  EntityManager emMgmtApp=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+  Query query=Query.fromQL("select *");
+  query.setEntityType("file_import");
+  query.setConnectionType("includes");
+  query.setLimit(MAX_FILE_IMPORTS);
+  Results entities=emMgmtApp.searchConnectedEntities(importEntity,query);
   PagingResultsIterator itr=new PagingResultsIterator(entities);
   logger.debug("{} Check {} jobs to see if we are done for file {}",new Object[]{randTag,entities.size(),fileImport.getFileName()});
   int failCount=0;
