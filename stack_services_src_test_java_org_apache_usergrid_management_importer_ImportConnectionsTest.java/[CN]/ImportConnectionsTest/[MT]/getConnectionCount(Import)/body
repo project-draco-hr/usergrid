@@ -1,0 +1,17 @@
+{
+  try {
+    EntityManager rootEm=setup.getEmf().getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+    Results entities=rootEm.getConnectedEntities(importRoot,"includes",null,Query.Level.ALL_PROPERTIES);
+    PagingResultsIterator itr=new PagingResultsIterator(entities);
+    int count=0;
+    while (itr.hasNext()) {
+      itr.next();
+      count++;
+    }
+    return count;
+  }
+ catch (  Exception e) {
+    logger.error("application doesn't exist within the current context");
+    throw new RuntimeException(e);
+  }
+}
