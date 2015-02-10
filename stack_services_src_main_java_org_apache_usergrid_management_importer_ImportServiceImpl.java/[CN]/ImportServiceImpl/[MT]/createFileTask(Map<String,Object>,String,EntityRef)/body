@@ -8,9 +8,8 @@
     logger.error("application doesn't exist within the current context");
     return null;
   }
-  String collectionName=config.get("collectionName").toString();
   UUID applicationId=(UUID)config.get("applicationId");
-  FileImport fileImport=new FileImport(file,applicationId,collectionName);
+  FileImport fileImport=new FileImport(file,applicationId);
   fileImport=rootEm.create(fileImport);
   Import importUG=rootEm.get(importRef,Import.class);
   try {
@@ -28,6 +27,5 @@
   jobData.addProperties(config);
   fileImport.setState(FileImport.State.SCHEDULED);
   rootEm.update(fileImport);
-  rootEm.refreshIndex();
   return jobData;
 }
