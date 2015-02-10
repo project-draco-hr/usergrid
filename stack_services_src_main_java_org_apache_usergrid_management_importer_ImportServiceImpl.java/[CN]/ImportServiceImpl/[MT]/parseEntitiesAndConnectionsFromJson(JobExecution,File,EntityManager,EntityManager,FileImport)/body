@@ -19,12 +19,38 @@
   boolean entitiesOnly=true;
   JsonParser jp=getJsonParserForFile(file);
   final JsonEntityParserObservable jsonObservableEntities=new JsonEntityParserObservable(jp,em,rootEm,fileImport,tracker,entitiesOnly);
-  jsonObservableEntities.call(null);
+  final Observable<WriteEvent> entityEventObservable=Observable.create(jsonObservableEntities);
+  final int entityNumSkip=(int)tracker.getTotalEntityCount();
+  final int entityCount=entityEventObservable.takeWhile(new Func1<WriteEvent,Boolean>(){
+    @Override public Boolean call(    final WriteEvent writeEvent){
+      return !tracker.shouldStopProcessingEntities();
+    }
+  }
+).skip(entityNumSkip).parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
+    @Override public Observable<WriteEvent> call(    Observable<WriteEvent> entityWrapperObservable){
+      return entityWrapperObservable.doOnNext(doWork);
+    }
+  }
+,Schedulers.io()).reduce(0,heartbeatReducer).toBlocking().last();
+  jp.close();
   logger.debug("\n\nparseEntitiesAndConnectionsFromJson(): Wrote entities\n");
   entitiesOnly=false;
   jp=getJsonParserForFile(file);
   final JsonEntityParserObservable jsonObservableOther=new JsonEntityParserObservable(jp,em,rootEm,fileImport,tracker,entitiesOnly);
-  jsonObservableOther.call(null);
+  final Observable<WriteEvent> otherEventObservable=Observable.create(jsonObservableOther);
+  final int connectionNumSkip=(int)tracker.getTotalConnectionCount();
+  final int connectionCount=otherEventObservable.takeWhile(new Func1<WriteEvent,Boolean>(){
+    @Override public Boolean call(    final WriteEvent writeEvent){
+      return !tracker.shouldStopProcessingConnections();
+    }
+  }
+).skip(connectionNumSkip).parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
+    @Override public Observable<WriteEvent> call(    Observable<WriteEvent> entityWrapperObservable){
+      return entityWrapperObservable.doOnNext(doWork);
+    }
+  }
+,Schedulers.io()).reduce(0,heartbeatReducer).toBlocking().last();
+  jp.close();
   logger.debug("\n\nparseEntitiesAndConnectionsFromJson(): Wrote others for file {}\n",fileImport.getFileName());
   tracker.complete();
 }

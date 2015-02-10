@@ -6,6 +6,7 @@
   String importEntity=entity.getString("Import Entity");
   assertNotNull(entity);
   assertNotNull(importEntity);
+  this.management().orgs().organization(org).app().addToPath(app).addToPath("import").addToPath(importEntity).get();
   String newOrgName="org" + UUIDUtils.newTimeUUID();
   String newOrgUsername="orgusername" + UUIDUtils.newTimeUUID();
   String newOrgEmail=UUIDUtils.newTimeUUID() + "@usergrid.com";
@@ -16,7 +17,6 @@
   assertNotNull(orgCreatedResponse);
   Token tokenPayload=new Token("password",newOrgUsername,newOrgPassword);
   Token newOrgToken=clientSetup.getRestClient().management().token().post(tokenPayload);
-  Token oldToken=context().getToken();
   context().setToken(newOrgToken);
   try {
     this.management().orgs().organization(org).app().addToPath(app).addToPath("import").addToPath(importEntity).get();

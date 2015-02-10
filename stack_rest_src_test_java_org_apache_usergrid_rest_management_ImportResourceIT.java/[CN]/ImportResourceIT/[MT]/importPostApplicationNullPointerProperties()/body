@@ -1,0 +1,13 @@
+{
+  String org=clientSetup.getOrganizationName();
+  String app=clientSetup.getAppName();
+  ClientResponse.Status responseStatus=ClientResponse.Status.OK;
+  Entity payload=new Entity();
+  try {
+    this.management().orgs().organization(org).app().addToPath(app).addToPath("import").post(payload);
+  }
+ catch (  UniformInterfaceException uie) {
+    responseStatus=uie.getResponse().getClientResponseStatus();
+  }
+  assertEquals(ClientResponse.Status.BAD_REQUEST,responseStatus);
+}
