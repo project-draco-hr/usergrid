@@ -15,6 +15,7 @@
   Import importEntity=emManagementApp.get(importRef,Import.class);
   try {
     emManagementApp.createConnection(importEntity,"includes",fileImport);
+    logger.debug("Created connection from {}:{} to {}:{}",new Object[]{importEntity.getType(),importEntity.getUuid(),fileImport.getType(),fileImport.getUuid()});
   }
  catch (  Exception e) {
     logger.error(e.getMessage());
@@ -28,6 +29,5 @@
   jobData.addProperties(config);
   fileImport.setState(FileImport.State.SCHEDULED);
   emManagementApp.update(fileImport);
-  emf.refreshIndex();
   return jobData;
 }

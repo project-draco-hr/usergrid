@@ -48,24 +48,7 @@
   Import importEntity=emManagementApp.get(importId,Import.class);
   String randTag=RandomStringUtils.randomAlphanumeric(4);
   logger.debug("{} Got importEntity {}",randTag,importEntity.getUuid());
-  int retries=0;
-  int maxRetries=60;
-  Results entities=null;
-  boolean done=false;
-  while (!done && retries++ < maxRetries) {
-    entities=emManagementApp.getConnectedEntities(importEntity,"includes","file_import",Level.ALL_PROPERTIES);
-    if (entities.size() == importEntity.getFileCount()) {
-      logger.debug("{} got {} file_import entities, expected {} DONE!",new Object[]{randTag,entities.size(),importEntity.getFileCount()});
-      done=true;
-    }
- else {
-      logger.debug("{} got {} file_import entities, expected {} waiting... ",new Object[]{randTag,entities.size(),importEntity.getFileCount()});
-      Thread.sleep(1000);
-    }
-  }
-  if (retries >= maxRetries) {
-    throw new RuntimeException("Max retries was reached");
-  }
+  Results entities=emManagementApp.getConnectedEntities(importEntity,"includes","file_import",Level.ALL_PROPERTIES);
   PagingResultsIterator itr=new PagingResultsIterator(entities);
   logger.debug("{} Check {} jobs to see if we are done for file {}",new Object[]{randTag,entities.size(),fileImport.getFileName()});
   int failCount=0;

@@ -2,7 +2,7 @@
   deleteBucket();
   try {
     logger.debug("\n\nCreating 10 applications with 10 entities each\n");
-    for (int i=0; i < 4; i++) {
+    for (int i=0; i < 10; i++) {
       String appName="import-test-" + i + RandomStringUtils.randomAlphanumeric(10);
       UUID appId=setup.getMgmtSvc().createApplication(organization.getUuid(),appName).getId();
       EntityManager emApp=setup.getEmf().getEntityManager(appId);
@@ -18,7 +18,7 @@
     Query query=Query.fromQL("select *").withLimit(101);
     List<Entity> importedThings=emDefaultApp.getCollection(emDefaultApp.getApplicationId(),"things",query,Level.ALL_PROPERTIES).getEntities();
     assertTrue(!importedThings.isEmpty());
-    assertEquals(40,importedThings.size());
+    assertEquals(100,importedThings.size());
   }
   finally {
     deleteBucket();
