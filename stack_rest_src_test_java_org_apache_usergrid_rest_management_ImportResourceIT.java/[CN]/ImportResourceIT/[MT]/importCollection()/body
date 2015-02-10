@@ -1,0 +1,28 @@
+{
+  String org=clientSetup.getOrganizationName();
+  String app=clientSetup.getAppName();
+  logger.debug("\n\nImport into new app {}\n",app);
+  Entity importPayload=new Entity(new HashMap<String,Object>(){
+{
+      put("properties",new HashMap<String,Object>(){
+{
+          put("storage_provider","s3");
+          put("storage_info",new HashMap<String,Object>(){
+{
+              put(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR,System.getProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR));
+              put(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR,System.getProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR));
+              put("bucket_location",bucketName);
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+  Entity importEntity=this.management().orgs().organization(org).app().addToPath(app).addToPath("import").post(importPayload);
+  Entity importGet=this.management().orgs().organization(org).app().addToPath(app).addToPath("import").addToPath((String)importEntity.get("Import Entity")).get();
+  refreshIndex();
+  return importEntity;
+}
