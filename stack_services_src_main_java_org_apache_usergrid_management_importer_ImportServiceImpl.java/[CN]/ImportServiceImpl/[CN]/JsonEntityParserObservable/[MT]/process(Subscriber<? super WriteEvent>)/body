@@ -17,8 +17,11 @@
         }
         if ("Metadata".equals(name)) {
           Map<String,Object> entityMap=jp.readValueAs(HashMap.class);
-          UUID uuid=UUID.fromString((String)entityMap.get("uuid"));
-          lastEntity=new SimpleEntityRef(entityType,uuid);
+          UUID uuid=null;
+          if (entityMap.get("uuid") != null) {
+            uuid=UUID.fromString((String)entityMap.get("uuid"));
+            lastEntity=new SimpleEntityRef(entityType,uuid);
+          }
           if (entitiesOnly) {
             WriteEvent event=new EntityEvent(uuid,entityType,entityMap);
             processWriteEvent(subscriber,event);
