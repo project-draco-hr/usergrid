@@ -6,8 +6,10 @@
     final Import importEntity=getImport(applicationId,importId);
     Query query=Query.fromQLNullSafe(ql);
     query.setCursor(cursor);
-    query.setEntityType(Schema.getDefaultSchema().getEntityType(Import.class));
-    return rootEm.searchCollection(importEntity,IMPORT_FILE_INCLUDES_CONNECTION,query);
+    query.setConnectionType(IMPORT_FILE_INCLUDES_CONNECTION);
+    query.setResultsLevel(Level.ALL_PROPERTIES);
+    query.setEntityType(Schema.getDefaultSchema().getEntityType(FileImport.class));
+    return rootEm.searchConnectedEntities(importEntity,query);
   }
  catch (  Exception e) {
     throw new RuntimeException("Unable to get import entity",e);
