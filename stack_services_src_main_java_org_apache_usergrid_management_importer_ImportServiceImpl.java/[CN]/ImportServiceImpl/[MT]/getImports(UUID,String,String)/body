@@ -1,11 +1,10 @@
 {
+  Preconditions.checkNotNull(applicationId,"applicationId must be specified");
   try {
     final EntityManager rootEm=emf.getEntityManager(emf.getManagementAppId());
     final Entity applicationEntity=getApplicationEntity(rootEm,applicationId);
-    Query query=new Query();
-    if (cursor != null) {
-      query.setCursor(cursor);
-    }
+    Query query=Query.fromQLNullSafe(ql);
+    query.setCursor(cursor);
     query.setEntityType(Schema.getDefaultSchema().getEntityType(Import.class));
     return rootEm.searchCollection(applicationEntity,APP_IMPORT_CONNECTION,query);
   }
