@@ -15,6 +15,10 @@
     logger.debug("getApplications(): Processing edge from {}:{} to {}:{}",new Object[]{edge.getSourceNode().getType(),edge.getSourceNode().getUuid(),edge.getTargetNode().getType(),edge.getTargetNode().getUuid()});
     CollectionScope collScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),CpNamingUtils.getCollectionScopeNameFromCollectionName(CpNamingUtils.APPINFOS));
     org.apache.usergrid.persistence.model.entity.Entity e=managerCache.getEntityCollectionManager(collScope).load(targetId).toBlockingObservable().lastOrDefault(null);
+    if (e == null) {
+      logger.warn("Applicaion {} in index but not found in collections",targetId);
+      continue;
+    }
     appMap.put((String)e.getField(PROPERTY_NAME).getValue(),(UUID)e.getField("applicationUuid").getValue());
   }
   return appMap;
