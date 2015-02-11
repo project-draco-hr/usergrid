@@ -1,0 +1,34 @@
+{
+  LOG.debug("ServiceResource.executePost: body = " + body);
+  ApiResponse response=createApiResponse();
+  response.setAction("post");
+  response.setApplication(services.getApplication());
+  response.setParams(ui.getQueryParameters());
+  final Map<String,Object> json=(Map<String,Object>)readJsonToObject(body);
+  UsergridAwsCredentials uac=new UsergridAwsCredentials();
+  Map<String,String> uuidRet=new HashMap<String,String>();
+  Map<String,Object> properties;
+  Map<String,Object> storage_info;
+  if ((properties=(Map<String,Object>)json.get("properties")) == null) {
+    throw new NullPointerException("Could not find 'properties'");
+  }
+  storage_info=(Map<String,Object>)properties.get("storage_info");
+  String storage_provider=(String)properties.get("storage_provider");
+  if (storage_provider == null) {
+    throw new NullPointerException("Could not find field 'storage_provider'");
+  }
+  if (storage_info == null) {
+    throw new NullPointerException("Could not find field 'storage_info'");
+  }
+  String bucketName=(String)storage_info.get("bucket_location");
+  uac.getAWSAccessKeyIdJson(storage_info);
+  uac.getAWSSecretKeyJson(storage_info);
+  if (bucketName == null) {
+    throw new NullPointerException("Could not find field 'bucketName'");
+  }
+  json.put("organizationId",organization.getUuid());
+  json.put("applicationId",application.getId());
+  Import importEntity=importService.schedule(json);
+  response.setEntities(Collections.<Entity>singletonList(importEntity));
+  return new JSONWithPadding(response,callback);
+}
