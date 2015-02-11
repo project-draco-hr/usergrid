@@ -6,9 +6,6 @@
   return Observable.from(entityIds).subscribeOn(Schedulers.io()).map(new Func1<EntityIdScope,Id>(){
     @Override public Id call(    EntityIdScope idScope){
       ApplicationScope applicationScope=applicationEntityGroup.applicationScope;
-      if (!(applicationScope instanceof CollectionScope)) {
-        return idScope.getId();
-      }
       CollectionScope currentScope=(CollectionScope)applicationScope;
       MigrationStrategy.MigrationRelationship<MvccEntitySerializationStrategy> migration=entityMigrationStrategy.getMigration();
       Iterator<MvccEntity> allVersions=migration.from().loadDescendingHistory(currentScope,idScope.getId(),now,1000);
