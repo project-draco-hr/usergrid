@@ -107,8 +107,8 @@
     importEntity=emManagementApp.get(importId,Import.class);
     logger.debug("{} Got importEntity {}",randTag,importEntity.getUuid());
     EntityManager emMgmtApp=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
-    Query query=Query.fromQL("select *");
-    query.setEntityType("file_import");
+    Query query=new Query();
+    query.setEntityType(Schema.getDefaultSchema().getEntityType(FileImport.class));
     query.setConnectionType(IMPORT_FILE_INCLUDES_CONNECTION);
     query.setLimit(MAX_FILE_IMPORTS);
     Results entities=emMgmtApp.searchConnectedEntities(importEntity,query);
