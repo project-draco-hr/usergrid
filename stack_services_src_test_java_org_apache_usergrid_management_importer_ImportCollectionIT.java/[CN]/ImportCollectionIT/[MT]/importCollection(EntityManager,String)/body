@@ -1,7 +1,7 @@
 {
   logger.debug("\n\nImport into new app {}\n",em.getApplication().getName());
   ImportService importService=setup.getImportService();
-  UUID importUUID=importService.schedule(new HashMap<String,Object>(){
+  Import importEntity=importService.schedule(new HashMap<String,Object>(){
 {
       put("path",organization.getName() + em.getApplication().getName());
       put("organizationId",organization.getUuid());
@@ -26,7 +26,7 @@
 );
   int maxRetries=120;
   int retries=0;
-  while ((!importService.getState(importUUID).equals("FINISHED") || !importService.getState(importUUID).equals("FAILED")) && retries++ < maxRetries) {
+  while ((!importService.getState(importEntity.getUuid()).equals("FINISHED") || !importService.getState(importEntity.getUuid()).equals("FAILED")) && retries++ < maxRetries) {
     logger.debug("Waiting for import...");
     Thread.sleep(1000);
   }

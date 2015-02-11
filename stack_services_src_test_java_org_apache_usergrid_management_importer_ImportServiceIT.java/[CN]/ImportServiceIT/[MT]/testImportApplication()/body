@@ -25,7 +25,8 @@
   logger.debug("\n\nImport the application\n\n");
   S3Import s3Import=new S3ImportImpl();
   ImportService importService=setup.getImportService();
-  UUID importUUID=importService.schedule(payload);
+  final Import importEntity=importService.schedule(payload);
+  final UUID importUUID=importEntity.getUuid();
   jobData=jobImportDataCreator(payload,importUUID,s3Import);
   jobExecution=mock(JobExecution.class);
   when(jobExecution.getJobData()).thenReturn(jobData);
