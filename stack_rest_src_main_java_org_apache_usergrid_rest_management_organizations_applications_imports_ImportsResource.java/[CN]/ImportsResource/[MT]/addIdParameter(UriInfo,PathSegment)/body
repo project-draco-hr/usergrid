@@ -1,6 +1,13 @@
 {
-  UUID itemId=UUID.fromString(entityId.getPath());
-  addParameter(getServiceParameters(),itemId);
-  addMatrixParams(getServiceParameters(),ui,entityId);
-  return getSubResource(ImportResource.class).init(itemId);
+  final UUID importId=UUID.fromString(entityId.getPath());
+  final Import importEntity=importService.getImport(application.getId(),importId);
+  if (importEntity == null) {
+    throw new EntityNotFoundException("could not find import with uuid " + importId);
+  }
+  ApiResponse response=createApiResponse();
+  response.setAction("get");
+  response.setApplication(emf.getEntityManager(application.getId()).getApplication());
+  response.setParams(ui.getQueryParameters());
+  response.setEntities(Collections.<Entity>singletonList(importEntity));
+  return new JSONWithPadding(response);
 }
