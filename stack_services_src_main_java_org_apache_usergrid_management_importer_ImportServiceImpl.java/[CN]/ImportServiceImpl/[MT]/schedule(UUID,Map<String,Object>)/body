@@ -1,9 +1,7 @@
 {
-  if (config == null) {
-    logger.error("import information cannot be null");
-    return null;
-  }
-  EntityManager rootEm=null;
+  Preconditions.checkNotNull(config,"import information cannot be null");
+  Preconditions.checkNotNull(application,"application cannot be null");
+  final EntityManager rootEm;
   try {
     rootEm=emf.getEntityManager(emf.getManagementAppId());
   }
@@ -12,6 +10,7 @@
     return null;
   }
   Import importUG=new Import();
+  importUG.setState(Import.State.CREATED);
   try {
     importUG=rootEm.create(importUG);
   }
@@ -19,8 +18,6 @@
     logger.error("Import entity creation failed");
     return null;
   }
-  importUG.setState(Import.State.CREATED);
-  rootEm.update(importUG);
   JobData jobData=new JobData();
   jobData.setProperty("importInfo",config);
   jobData.setProperty(IMPORT_ID,importUG.getUuid());
@@ -28,5 +25,7 @@
   sch.createJob(IMPORT_JOB_NAME,soonestPossible,jobData);
   importUG.setState(Import.State.SCHEDULED);
   rootEm.update(importUG);
+  final EntityRef source=getApplicationEntity(rootEm,application);
+  rootEm.createConnection(source,APP_IMPORT_CONNECTION,importUG);
   return importUG;
 }

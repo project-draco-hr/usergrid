@@ -42,7 +42,7 @@
   }
   File downloadedFile=s3Import.copyFileFromBucket(fileName,bucketName,accessId,secretKey);
   parseEntitiesAndConnectionsFromJson(jobExecution,downloadedFile,targetEm,emManagementApp,fileImport);
-  Results importJobResults=emManagementApp.getConnectingEntities(fileImport,"includes",null,Level.ALL_PROPERTIES);
+  Results importJobResults=emManagementApp.getConnectingEntities(fileImport,IMPORT_FILE_INCLUDES,null,Level.ALL_PROPERTIES);
   List<Entity> importEntities=importJobResults.getEntities();
   UUID importId=importEntities.get(0).getUuid();
   Import importEntity=emManagementApp.get(importId,Import.class);
@@ -51,7 +51,7 @@
   EntityManager emMgmtApp=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
   Query query=Query.fromQL("select *");
   query.setEntityType("file_import");
-  query.setConnectionType("includes");
+  query.setConnectionType(IMPORT_FILE_INCLUDES);
   query.setLimit(MAX_FILE_IMPORTS);
   Results entities=emMgmtApp.searchConnectedEntities(importEntity,query);
   PagingResultsIterator itr=new PagingResultsIterator(entities);

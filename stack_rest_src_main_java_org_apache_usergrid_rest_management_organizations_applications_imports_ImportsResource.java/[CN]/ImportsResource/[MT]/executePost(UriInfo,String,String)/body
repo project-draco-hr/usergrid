@@ -1,8 +1,7 @@
 {
-  LOG.debug("ServiceResource.executePost: body = " + body);
   ApiResponse response=createApiResponse();
   response.setAction("post");
-  response.setApplication(services.getApplication());
+  response.setApplication(emf.getEntityManager(application.getId()).getApplication());
   response.setParams(ui.getQueryParameters());
   final Map<String,Object> json=(Map<String,Object>)readJsonToObject(body);
   UsergridAwsCredentials uac=new UsergridAwsCredentials();
@@ -28,7 +27,7 @@
   }
   json.put("organizationId",organization.getUuid());
   json.put("applicationId",application.getId());
-  Import importEntity=importService.schedule(json);
+  Import importEntity=importService.schedule(application.getId(),json);
   response.setEntities(Collections.<Entity>singletonList(importEntity));
   return new JSONWithPadding(response,callback);
 }
