@@ -1,0 +1,13 @@
+{
+  final UUID fileIncludeId=UUID.fromString(entityId.getPath());
+  final FileImport importEntity=importService.getFileImport(application.getId(),importId,fileIncludeId);
+  if (importEntity == null) {
+    throw new EntityNotFoundException("could not find import with uuid " + importId);
+  }
+  ApiResponse response=createApiResponse();
+  response.setAction("get");
+  response.setApplication(emf.getEntityManager(application.getId()).getApplication());
+  response.setParams(ui.getQueryParameters());
+  response.setEntities(Collections.<Entity>singletonList(importEntity));
+  return new JSONWithPadding(response);
+}

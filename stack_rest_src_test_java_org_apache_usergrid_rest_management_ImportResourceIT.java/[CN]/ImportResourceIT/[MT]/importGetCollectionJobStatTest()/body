@@ -3,9 +3,7 @@
   String app=clientSetup.getAppName();
   Entity payload=payloadBuilder();
   Entity entity=this.management().orgs().organization(org).app().addToPath(app).addToPath("import").post(payload);
-  String importEntity=entity.getString("Import Entity");
   assertNotNull(entity);
-  assertNotNull(importEntity);
-  entity=this.management().orgs().organization(org).app().addToPath(app).addToPath("import").addToPath(importEntity).get();
+  entity=this.management().orgs().organization(org).app().addToPath(app).addToPath("import").addToPath(entity.getUuid().toString()).get();
   assertNotNull(entity.getString("state"));
 }

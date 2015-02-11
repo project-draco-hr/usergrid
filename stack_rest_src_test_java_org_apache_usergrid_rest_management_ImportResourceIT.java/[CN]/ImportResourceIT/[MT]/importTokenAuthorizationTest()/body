@@ -3,10 +3,8 @@
   String app=clientSetup.getAppName();
   Entity payload=payloadBuilder();
   Entity entity=this.management().orgs().organization(org).app().addToPath(app).addToPath("import").post(payload);
-  String importEntity=entity.getString("Import Entity");
   assertNotNull(entity);
-  assertNotNull(importEntity);
-  this.management().orgs().organization(org).app().addToPath(app).addToPath("import").addToPath(importEntity).get();
+  this.management().orgs().organization(org).app().addToPath(app).addToPath("import").addToPath(entity.getUuid().toString()).get();
   String newOrgName="org" + UUIDUtils.newTimeUUID();
   String newOrgUsername="orgusername" + UUIDUtils.newTimeUUID();
   String newOrgEmail=UUIDUtils.newTimeUUID() + "@usergrid.com";
@@ -19,7 +17,7 @@
   Token newOrgToken=clientSetup.getRestClient().management().token().post(tokenPayload);
   context().setToken(newOrgToken);
   try {
-    this.management().orgs().organization(org).app().addToPath(app).addToPath("import").addToPath(importEntity).get();
+    this.management().orgs().organization(org).app().addToPath(app).addToPath("import").addToPath(entity.getUuid().toString()).get();
     fail("Should not be able to read import job with unauthorized token");
   }
  catch (  UniformInterfaceException ex) {

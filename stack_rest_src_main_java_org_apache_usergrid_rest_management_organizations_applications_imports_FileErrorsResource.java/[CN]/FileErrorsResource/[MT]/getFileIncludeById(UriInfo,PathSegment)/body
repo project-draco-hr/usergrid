@@ -1,0 +1,13 @@
+{
+  final UUID failedEntity=UUID.fromString(entityId.getPath());
+  final FailedImportEntity importEntity=importService.getFailedImportEntity(application.getId(),importId,importFileId,failedEntity);
+  if (importEntity == null) {
+    throw new EntityNotFoundException("could not find import with uuid " + importId);
+  }
+  ApiResponse response=createApiResponse();
+  response.setAction("get");
+  response.setApplication(emf.getEntityManager(application.getId()).getApplication());
+  response.setParams(ui.getQueryParameters());
+  response.setEntities(Collections.<Entity>singletonList(importEntity));
+  return new JSONWithPadding(response);
+}
