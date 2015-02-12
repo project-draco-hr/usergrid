@@ -2,16 +2,14 @@
   File dataDir=Files.createTempDir();
   dataDir.deleteOnExit();
   port=AvailablePortFinder.getNextAvailable(9998 + RandomUtils.nextInt(10));
-  String threads=(String)properties.get("tomcat.threads");
   tomcat=new Tomcat();
   tomcat.setBaseDir(dataDir.getAbsolutePath());
   tomcat.setPort(port);
   tomcat.getConnector().setAttribute("maxThreads","2000");
-  tomcat.addWebapp("/",new File(getWebAppsPath()).getAbsolutePath());
+  tomcat.addWebapp("/",new File("target/ROOT").getAbsolutePath());
   log.info("-----------------------------------------------------------------");
   log.info("Starting Tomcat embedded port {} dir {}",port,dataDir.getAbsolutePath());
   log.info("-----------------------------------------------------------------");
   tomcat.start();
   waitForTomcat();
-  mutex.notifyAll();
 }
