@@ -10,13 +10,13 @@
   String bucketName=(String)storage_info.get("bucket_location");
   String accessId=(String)storage_info.get("s3_access_id");
   String secretKey=(String)storage_info.get("s3_key");
-  EntityManager emManagementApp=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+  final EntityManager rootEM=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
   UUID importId=(UUID)jobExecution.getJobData().getProperty(IMPORT_ID);
-  Import importEntity=emManagementApp.get(importId,Import.class);
+  Import importEntity=rootEM.get(importId,Import.class);
   importEntity.setState(Import.State.STARTED);
   importEntity.setStarted(System.currentTimeMillis());
   importEntity.setErrorMessage(" ");
-  emManagementApp.update(importEntity);
+  rootEM.update(importEntity);
   logger.debug("doImport(): updated state");
   S3Import s3Import;
   Object s3PlaceHolder=jobExecution.getJobData().getProperty("s3Import");
@@ -32,7 +32,7 @@
     logger.error("doImport(): Error creating S3Import",e);
     importEntity.setErrorMessage(e.getMessage());
     importEntity.setState(Import.State.FAILED);
-    emManagementApp.update(importEntity);
+    rootEM.update(importEntity);
     return;
   }
   final List<String> bucketFiles;
@@ -41,7 +41,7 @@
       logger.error("doImport(): No organization could be found");
       importEntity.setErrorMessage("No organization could be found");
       importEntity.setState(Import.State.FAILED);
-      emManagementApp.update(importEntity);
+      rootEM.update(importEntity);
       return;
     }
  else {
@@ -56,13 +56,13 @@
  catch (  OrganizationNotFoundException|ApplicationNotFoundException e) {
     importEntity.setErrorMessage(e.getMessage());
     importEntity.setState(Import.State.FAILED);
-    emManagementApp.update(importEntity);
+    rootEM.update(importEntity);
     return;
   }
   if (bucketFiles.isEmpty()) {
     importEntity.setState(Import.State.FINISHED);
     importEntity.setErrorMessage("No files found in the bucket: " + bucketName);
-    emManagementApp.update(importEntity);
+    rootEM.update(importEntity);
   }
  else {
     Map<String,Object> fileMetadata=new HashMap<>();
@@ -99,6 +99,6 @@
     fileMetadata.put("files",value);
     importEntity.addProperties(fileMetadata);
     importEntity.setFileCount(fileJobs.size());
-    emManagementApp.update(importEntity);
+    rootEM.update(importEntity);
   }
 }
