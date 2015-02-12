@@ -5,7 +5,7 @@
   List<String> filenames=new ArrayList<>(1);
   filenames.add("testimport-bad-connection.json");
   S3Upload s3Upload=new S3Upload();
-  s3Upload.copyToS3(System.getProperty("s3_access_id"),System.getProperty("s3_key"),bucketName,filenames);
+  s3Upload.copyToS3(System.getProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR),System.getProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR),bucketName,filenames);
   Entity importEntity=importCollection();
   Entity importGet=this.management().orgs().organization(org).app().addToPath(app).addToPath("import").addToPath(importEntity.getUuid().toString()).get();
   refreshIndex();
@@ -14,6 +14,10 @@
   assertNotNull(importGet);
   assertNotNull(importGetIncludes);
   assertEquals(1,importGetIncludesResponse.getEntityCount());
+  final Entity includesEntity=importGetIncludesResponse.getEntities().get(0);
+  assertEquals("testimport-bad-connection.json",includesEntity.getString("fileName"));
+  assertEquals(1,includesEntity.get("importedConnectionCount"));
+  assertEquals(1,includesEntity.getString("importedEntityCount"));
   assertEquals("FINISHED",importGet.get("state"));
   assertEquals(1,importGet.get("fileCount"));
   Collection collection=this.app().collection("things").get();
