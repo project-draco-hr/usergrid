@@ -1,5 +1,4 @@
 {
-  final FileImportTracker tracker=new FileImportTracker(emf,fileImport,100);
   final Action1<WriteEvent> doWork=new Action1<WriteEvent>(){
     @Override public void call(    WriteEvent writeEvent){
       writeEvent.doWrite(em,fileImport,tracker);
@@ -33,7 +32,11 @@
   }
 ,Schedulers.io()).reduce(0,heartbeatReducer).toBlocking().last();
   jp.close();
-  logger.debug("\n\nparseEntitiesAndConnectionsFromJson(): Wrote entities\n");
+  if (FileImport.State.FAILED.equals(fileImport.getState())) {
+    logger.debug("\n\nFailed to completely write entities, skipping second phase. File: {}\n",fileImport.getFileName());
+    return;
+  }
+  logger.debug("\n\nWrote entities. File: {}\n",fileImport.getFileName());
   entitiesOnly=false;
   jp=getJsonParserForFile(file);
   final JsonEntityParserObservable jsonObservableOther=new JsonEntityParserObservable(jp,em,rootEm,fileImport,tracker,entitiesOnly);
@@ -52,5 +55,14 @@
 ,Schedulers.io()).reduce(0,heartbeatReducer).toBlocking().last();
   jp.close();
   logger.debug("\n\nparseEntitiesAndConnectionsFromJson(): Wrote others for file {}\n",fileImport.getFileName());
+  if (FileImport.State.FAILED.equals(fileImport.getState())) {
+    logger.debug("\n\nparseEntitiesAndConnectionsFromJson(): failed to completely write entities\n");
+    return;
+  }
   tracker.complete();
+  if (FileImport.State.FAILED.equals(fileImport.getState())) {
+    logger.debug("\n\nFailed to completely wrote connections and dictionaries. File: {}\n",fileImport.getFileName());
+    return;
+  }
+  logger.debug("\n\nWrote connections and dictionaries. File: {}\n",fileImport.getFileName());
 }

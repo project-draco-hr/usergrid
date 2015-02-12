@@ -17,6 +17,7 @@
     logger.error("Error updating fileImport to set state of file import",e);
     return;
   }
+  final FileImportTracker tracker=new FileImportTracker(emf,fileImport,100);
   String fileName=jobExecution.getJobData().getProperty("File").toString();
   UUID targetAppId=(UUID)jobExecution.getJobData().getProperty("applicationId");
   if (FileImport.State.FAILED.equals(fileImport.getState()) || FileImport.State.FINISHED.equals(fileImport.getState())) {
@@ -28,21 +29,12 @@
     fileImport.setState(FileImport.State.STARTED);
     emManagementApp.update(fileImport);
     if (emManagementApp.get(targetAppId) == null) {
-      fileImport.setState(FileImport.State.FAILED);
-      fileImport.setErrorMessage("Application " + targetAppId + " does not exist");
-      emManagementApp.update(fileImport);
+      tracker.fatal("Application " + targetAppId + " does not exist");
       return;
     }
   }
  catch (  Exception e) {
-    fileImport.setState(FileImport.State.FAILED);
-    fileImport.setErrorMessage("Application " + targetAppId + " does not exist");
-    try {
-      emManagementApp.update(fileImport);
-    }
- catch (    Exception e1) {
-      logger.error("Error updating fileImport to set state of file import",e1);
-    }
+    tracker.fatal("Application " + targetAppId + " does not exist");
   }
   EntityManager targetEm=emf.getEntityManager(targetAppId);
   File downloadedFile=null;
@@ -57,44 +49,20 @@
     }
   }
  catch (  Exception e) {
-    logger.error("doImport(): Error creating S3Import",e);
-    fileImport.setErrorMessage(e.getMessage());
-    fileImport.setState(FileImport.State.FAILED);
-    try {
-      emManagementApp.update(fileImport);
-    }
- catch (    Exception e1) {
-      logger.error("Error updating file import with error information",e1);
-    }
+    tracker.fatal("Unable to connect to S3 bucket, error: " + e.getMessage());
     return;
   }
   try {
     downloadedFile=s3Import.copyFileFromBucket(fileName,bucketName,accessId,secretKey);
   }
  catch (  Exception e) {
-    logger.error("Error downloading file " + fileName,e);
-    fileImport.setErrorMessage("Error downloading file " + fileName + ": "+ e.getMessage());
-    fileImport.setState(FileImport.State.FAILED);
-    try {
-      emManagementApp.update(fileImport);
-    }
- catch (    Exception e1) {
-      logger.error("Error updating file import with error information",e1);
-    }
+    tracker.fatal("Error downloading file " + fileName + ": "+ e.getMessage());
   }
   try {
-    parseEntitiesAndConnectionsFromJson(jobExecution,downloadedFile,targetEm,emManagementApp,fileImport);
+    parseEntitiesAndConnectionsFromJson(jobExecution,downloadedFile,targetEm,emManagementApp,fileImport,tracker);
   }
  catch (  Exception e) {
-    logger.error("Error importing file " + fileName,e);
-    fileImport.setErrorMessage("Error downloading file " + fileName + ": "+ e.getMessage());
-    fileImport.setState(FileImport.State.FAILED);
-    try {
-      emManagementApp.update(fileImport);
-    }
- catch (    Exception e1) {
-      logger.error("Error updating file import with error information",e1);
-    }
+    tracker.fatal("Error importing file " + fileName + ": "+ e.getMessage());
   }
   String randTag=RandomStringUtils.randomAlphanumeric(4);
   int failCount=0;
@@ -111,6 +79,11 @@
     query.setEntityType(Schema.getDefaultSchema().getEntityType(FileImport.class));
     query.setConnectionType(IMPORT_FILE_INCLUDES_CONNECTION);
     query.setLimit(MAX_FILE_IMPORTS);
+    try {
+      Thread.sleep(5000);
+    }
+ catch (    Exception intentionallyIgnored) {
+    }
     Results entities=emMgmtApp.searchConnectedEntities(importEntity,query);
     PagingResultsIterator itr=new PagingResultsIterator(entities);
     logger.debug("{} Check {} jobs to see if we are done for file {}",new Object[]{randTag,entities.size(),fileImport.getFileName()});

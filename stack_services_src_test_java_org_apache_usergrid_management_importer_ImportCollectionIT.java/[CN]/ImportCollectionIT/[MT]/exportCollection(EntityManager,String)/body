@@ -25,10 +25,13 @@
     }
   }
 );
-  int maxRetries=60;
+  int maxRetries=30;
   int retries=0;
   while (!exportService.getState(exportUUID).equals("FINISHED") && retries++ < maxRetries) {
     logger.debug("Waiting for export...");
     Thread.sleep(1000);
+  }
+  if (retries >= maxRetries) {
+    throw new RuntimeException("Max retries reached");
   }
 }

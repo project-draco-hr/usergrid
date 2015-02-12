@@ -23,11 +23,17 @@
     }
   }
 );
-  int maxRetries=60;
+  int maxRetries=30;
   int retries=0;
-  while (!importService.getState(importEntity.getUuid()).equals("FINISHED") && !importService.getState(importEntity.getUuid()).equals("FAILED") && retries++ < maxRetries) {
-    logger.debug("Waiting for import...");
+  Import.State state=importService.getState(importEntity.getUuid());
+  while (!state.equals(Import.State.FINISHED) && !state.equals(Import.State.FAILED) && retries++ < maxRetries) {
+    logger.debug("Waiting for import ({}) ...",state.toString());
     Thread.sleep(1000);
+    state=importService.getState(importEntity.getUuid());
+  }
+  if (retries >= maxRetries) {
+    throw new RuntimeException("Max retries reached");
   }
   em.refreshIndex();
+  return importEntity.getUuid();
 }
