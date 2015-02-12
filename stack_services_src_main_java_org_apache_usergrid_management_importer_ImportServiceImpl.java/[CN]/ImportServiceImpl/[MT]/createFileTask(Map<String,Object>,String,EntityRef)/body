@@ -1,8 +1,8 @@
 {
   logger.debug("scheduleFile() for import {}:{} file {}",new Object[]{importRef.getType(),importRef.getType(),file});
-  EntityManager emManagementApp=null;
+  EntityManager rootEM;
   try {
-    emManagementApp=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+    rootEM=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
   }
  catch (  Exception e) {
     logger.error("application doesn't exist within the current context");
@@ -10,10 +10,10 @@
   }
   UUID applicationId=(UUID)config.get("applicationId");
   FileImport fileImport=new FileImport(file,applicationId);
-  fileImport=emManagementApp.create(fileImport);
-  Import importEntity=emManagementApp.get(importRef,Import.class);
+  fileImport=rootEM.create(fileImport);
+  Import importEntity=rootEM.get(importRef,Import.class);
   try {
-    emManagementApp.createConnection(importEntity,IMPORT_FILE_INCLUDES_CONNECTION,fileImport);
+    rootEM.createConnection(importEntity,IMPORT_FILE_INCLUDES_CONNECTION,fileImport);
     logger.debug("Created connection from {}:{} to {}:{}",new Object[]{importEntity.getType(),importEntity.getUuid(),fileImport.getType(),fileImport.getUuid()});
   }
  catch (  Exception e) {
@@ -21,12 +21,12 @@
     return null;
   }
   fileImport.setState(FileImport.State.CREATED);
-  emManagementApp.update(fileImport);
+  rootEM.update(fileImport);
   JobData jobData=new JobData();
   jobData.setProperty("File",file);
   jobData.setProperty(FILE_IMPORT_ID,fileImport.getUuid());
   jobData.addProperties(config);
   fileImport.setState(FileImport.State.SCHEDULED);
-  emManagementApp.update(fileImport);
+  rootEM.update(fileImport);
   return jobData;
 }

@@ -1,7 +1,7 @@
 {
   int failCount=0;
   int successCount=0;
-  final Import importEntity=getImportEntity(emMgmtApp,fileImport);
+  final Import importEntity=getImportEntity(rootEM,fileImport);
   try {
     try {
       Thread.sleep(5000);
@@ -12,7 +12,7 @@
     query.setEntityType(Schema.getDefaultSchema().getEntityType(FileImport.class));
     query.setConnectionType(IMPORT_FILE_INCLUDES_CONNECTION);
     query.setLimit(MAX_FILE_IMPORTS);
-    Results entities=emMgmtApp.searchConnectedEntities(importEntity,query);
+    Results entities=rootEM.searchConnectedEntities(importEntity,query);
     PagingResultsIterator itr=new PagingResultsIterator(entities);
     if (!itr.hasNext()) {
       logger.warn("Found no FileImport entities for import {}, " + "unable to check if complete",importEntity.getUuid());
@@ -51,7 +51,7 @@ importEntity.setState(Import.State.FINISHED);
 importEntity.setState(Import.State.FAILED);
 }
 try {
-emMgmtApp.update(importEntity);
+rootEM.update(importEntity);
 }
  catch (Exception e) {
 logger.error("Error updating import entity",e);

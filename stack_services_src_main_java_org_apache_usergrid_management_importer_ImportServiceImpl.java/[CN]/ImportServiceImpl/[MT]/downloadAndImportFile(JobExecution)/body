@@ -8,7 +8,7 @@
   String bucketName=(String)storage_info.get("bucket_location");
   String accessId=(String)storage_info.get("s3_access_id");
   String secretKey=(String)storage_info.get("s3_key");
-  EntityManager emManagementApp=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+  EntityManager rootEM=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
   FileImport fileImport;
   try {
     fileImport=getFileImportEntity(jobExecution);
@@ -25,17 +25,17 @@
   }
   logger.debug("downloadAndImportFile() for file {} ",fileName);
   try {
-    emManagementApp.update(fileImport);
+    rootEM.update(fileImport);
     fileImport.setState(FileImport.State.STARTED);
-    emManagementApp.update(fileImport);
-    if (emManagementApp.get(targetAppId) == null) {
+    rootEM.update(fileImport);
+    if (rootEM.get(targetAppId) == null) {
       tracker.fatal("Application " + targetAppId + " does not exist");
       return;
     }
   }
  catch (  Exception e) {
     tracker.fatal("Application " + targetAppId + " does not exist");
-    checkIfComplete(emManagementApp,fileImport);
+    checkIfComplete(rootEM,fileImport);
     return;
   }
   EntityManager targetEm=emf.getEntityManager(targetAppId);
@@ -52,7 +52,7 @@
   }
  catch (  Exception e) {
     tracker.fatal("Error connecting to S3: " + e.getMessage());
-    checkIfComplete(emManagementApp,fileImport);
+    checkIfComplete(rootEM,fileImport);
     return;
   }
   try {
@@ -60,14 +60,14 @@
   }
  catch (  Exception e) {
     tracker.fatal("Error downloading file: " + e.getMessage());
-    checkIfComplete(emManagementApp,fileImport);
+    checkIfComplete(rootEM,fileImport);
     return;
   }
   try {
-    parseEntitiesAndConnectionsFromJson(jobExecution,downloadedFile,targetEm,emManagementApp,fileImport,tracker);
+    parseEntitiesAndConnectionsFromJson(jobExecution,downloadedFile,targetEm,rootEM,fileImport,tracker);
   }
  catch (  Exception e) {
     tracker.fatal(e.getMessage());
   }
-  checkIfComplete(emManagementApp,fileImport);
+  checkIfComplete(rootEM,fileImport);
 }
