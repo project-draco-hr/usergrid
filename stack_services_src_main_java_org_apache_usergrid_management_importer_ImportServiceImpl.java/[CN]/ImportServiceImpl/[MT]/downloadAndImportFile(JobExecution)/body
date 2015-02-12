@@ -51,7 +51,7 @@
     }
   }
  catch (  Exception e) {
-    tracker.fatal("Unable to connect to S3 bucket, error: " + e.getMessage());
+    tracker.fatal("Error connecting to S3: " + e.getMessage());
     checkIfComplete(emManagementApp,fileImport);
     return;
   }
@@ -59,7 +59,7 @@
     downloadedFile=s3Import.copyFileFromBucket(fileName,bucketName,accessId,secretKey);
   }
  catch (  Exception e) {
-    tracker.fatal("Error downloading file " + fileName + ": "+ e.getMessage());
+    tracker.fatal("Error downloading file: " + e.getMessage());
     checkIfComplete(emManagementApp,fileImport);
     return;
   }
@@ -67,7 +67,7 @@
     parseEntitiesAndConnectionsFromJson(jobExecution,downloadedFile,targetEm,emManagementApp,fileImport,tracker);
   }
  catch (  Exception e) {
-    tracker.fatal("Error importing file " + fileName + ": "+ e.getMessage());
+    tracker.fatal(e.getMessage());
   }
   checkIfComplete(emManagementApp,fileImport);
 }
