@@ -43,6 +43,8 @@
  catch (    Exception e1) {
       logger.error("Error updating fileImport to set state of file import",e1);
     }
+    checkIfComplete(emManagementApp,fileImport);
+    return;
   }
   EntityManager targetEm=emf.getEntityManager(targetAppId);
   File downloadedFile=null;
@@ -66,6 +68,7 @@
  catch (    Exception e1) {
       logger.error("Error updating file import with error information",e1);
     }
+    checkIfComplete(emManagementApp,fileImport);
     return;
   }
   try {
@@ -81,6 +84,7 @@
  catch (    Exception e1) {
       logger.error("Error updating file import with error information",e1);
     }
+    checkIfComplete(emManagementApp,fileImport);
     return;
   }
   try {
@@ -96,60 +100,6 @@
  catch (    Exception e1) {
       logger.error("Error updating file import with error information",e1);
     }
-    return;
   }
-  String randTag=RandomStringUtils.randomAlphanumeric(4);
-  int failCount=0;
-  int successCount=0;
-  Import importEntity=null;
-  try {
-    Results importJobResults=emManagementApp.getConnectingEntities(fileImport,IMPORT_FILE_INCLUDES_CONNECTION,null,Level.ALL_PROPERTIES);
-    List<Entity> importEntities=importJobResults.getEntities();
-    UUID importId=importEntities.get(0).getUuid();
-    importEntity=emManagementApp.get(importId,Import.class);
-    logger.debug("{} Got importEntity {}",randTag,importEntity.getUuid());
-    EntityManager emMgmtApp=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
-    Query query=new Query();
-    query.setEntityType(Schema.getDefaultSchema().getEntityType(FileImport.class));
-    query.setConnectionType(IMPORT_FILE_INCLUDES_CONNECTION);
-    query.setLimit(MAX_FILE_IMPORTS);
-    Results entities=emMgmtApp.searchConnectedEntities(importEntity,query);
-    PagingResultsIterator itr=new PagingResultsIterator(entities);
-    logger.debug("{} Check {} jobs to see if we are done for file {}",new Object[]{randTag,entities.size(),fileImport.getFileName()});
-    while (itr.hasNext()) {
-      FileImport fi=(FileImport)itr.next();
-switch (fi.getState()) {
-case FAILED:
-        failCount++;
-      break;
-case FINISHED:
-    successCount++;
-  continue;
-default :
-logger.debug("{} not done yet, bail out...",randTag);
-return;
-}
-}
-}
- catch (Exception e) {
-failCount++;
-if (importEntity != null) {
-importEntity.setErrorMessage("Error determining status of file import jobs");
-}
-logger.debug("Error determining status of file import jobs",e);
-}
-logger.debug("{} successCount = {} failCount = {}",new Object[]{randTag,successCount,failCount});
-if (importEntity != null && failCount == 0) {
-logger.debug("{} FINISHED",randTag);
-importEntity.setState(Import.State.FINISHED);
-}
- else if (importEntity != null) {
-importEntity.setState(Import.State.FAILED);
-}
-try {
-emManagementApp.update(importEntity);
-}
- catch (Exception e) {
-logger.error("Error updating import entity",e);
-}
+  checkIfComplete(emManagementApp,fileImport);
 }
