@@ -1,0 +1,38 @@
+{
+  io.doSetup();
+  int size=200;
+  int queryLimit=100;
+  int startValue=50;
+  int endValue=150;
+  long start=System.currentTimeMillis();
+  LOG.info("Writing {} entities.",size);
+  List<String> expected=new ArrayList<String>(size);
+  for (int i=0; i < size; i++) {
+    String name=String.valueOf(i);
+    Map<String,Object> entity=new HashMap<String,Object>();
+    entity.put("name",name);
+    entity.put("index",i);
+    io.writeEntity(entity);
+    expected.add(name);
+  }
+  long stop=System.currentTimeMillis();
+  LOG.info("Writes took {} ms",stop - start);
+  Query query=Query.fromQL(String.format("select * where index >= %d AND index <= %d order by index asc",startValue,endValue));
+  query.setLimit(queryLimit);
+  int count=0;
+  int delta=size - endValue;
+  start=System.currentTimeMillis();
+  Results results;
+  do {
+    results=io.getResults(query);
+    for (int i=0; i < results.size(); i++) {
+      assertEquals(expected.get(delta + count),results.getEntities().get(i).getName());
+      count++;
+    }
+    query.setCursor(results.getCursor());
+  }
+ while (results.hasCursor());
+  assertEquals(expected.size() - startValue - delta + 1,count);
+  stop=System.currentTimeMillis();
+  LOG.info("Query took {} ms to return {} entities",stop - start,count);
+}

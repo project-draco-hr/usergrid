@@ -1,5 +1,6 @@
 {
-  EdgesObservable edgesFromSourceObservable=CpSetup.getInjector().getInstance(EdgesObservable.class);
+  Injector injector=SpringResource.getInstance().getBean(Injector.class);
+  EdgesObservable edgesFromSourceObservable=injector.getInstance(EdgesObservable.class);
   final EntityManager em=app.getEntityManager();
   final String type1="type1things";
   final String type2="type2things";
@@ -12,7 +13,7 @@
     em.createConnection(SimpleEntityRef.fromId(source),"likes",SimpleEntityRef.fromId(target));
     connections.add(target);
   }
-  ManagerCache managerCache=CpSetup.getInjector().getInstance(ManagerCache.class);
+  ManagerCache managerCache=SpringResource.getInstance().getBean(Injector.class).getInstance(ManagerCache.class);
   final ApplicationScope scope=CpNamingUtils.getApplicationScope(app.getId());
   final Id applicationId=scope.getApplication();
   final GraphManager gm=managerCache.getGraphManager(scope);
