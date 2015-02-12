@@ -6,18 +6,20 @@
   return Observable.from(entityIds).subscribeOn(Schedulers.io()).map(new Func1<EntityIdScope,Id>(){
     @Override public Id call(    EntityIdScope idScope){
       ApplicationScope applicationScope=applicationEntityGroup.applicationScope;
-      CollectionScope currentScope=(CollectionScope)applicationScope;
       MigrationStrategy.MigrationRelationship<MvccEntitySerializationStrategy> migration=entityMigrationStrategy.getMigration();
-      Iterator<MvccEntity> allVersions=migration.from().loadDescendingHistory(currentScope,idScope.getId(),now,1000);
-      while (allVersions.hasNext()) {
-        final MvccEntity version=allVersions.next();
-        final MutationBatch versionBatch=migration.to().write(currentScope,version);
-        totalBatch.mergeShallow(versionBatch);
-        if (atomicLong.incrementAndGet() % 50 == 0) {
-          executeBatch(totalBatch,observer,atomicLong);
+      if (applicationScope instanceof CollectionScope) {
+        CollectionScope currentScope=(CollectionScope)applicationScope;
+        Iterator<MvccEntity> allVersions=migration.from().loadDescendingHistory(currentScope,idScope.getId(),now,1000);
+        while (allVersions.hasNext()) {
+          final MvccEntity version=allVersions.next();
+          final MutationBatch versionBatch=migration.to().write(currentScope,version);
+          totalBatch.mergeShallow(versionBatch);
+          if (atomicLong.incrementAndGet() % 50 == 0) {
+            executeBatch(totalBatch,observer,atomicLong);
+          }
         }
+        executeBatch(totalBatch,observer,atomicLong);
       }
-      executeBatch(totalBatch,observer,atomicLong);
       return idScope.getId();
     }
   }
