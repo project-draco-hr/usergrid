@@ -1,15 +1,18 @@
 {
   final MigrationInfoSerialization serialization=mock(MigrationInfoSerialization.class);
-  final DataMigration v1=mock(DataMigration.class);
+  when(serialization.getCurrentVersion()).thenReturn(0);
+  final DataMigration v1=mock(DataMigration.class,"mock1");
   when(v1.getVersion()).thenReturn(1);
+  when(v1.getType()).thenReturn(DataMigration.MigrationType.Entities);
   when(v1.migrate(any(ApplicationEntityGroup.class),any(DataMigration.ProgressObserver.class))).thenReturn(Observable.empty());
-  doThrow(new RuntimeException("Something bad happened")).when(v1).migrate(any(ApplicationEntityGroup.class),any(DataMigration.ProgressObserver.class));
-  final DataMigration v2=mock(DataMigration.class);
+  when(v1.migrate(any(ApplicationEntityGroup.class),any(DataMigration.ProgressObserver.class))).thenThrow(new RuntimeException("Something bad happened"));
+  final DataMigration v2=mock(DataMigration.class,"mock2");
+  when(v2.getType()).thenReturn(DataMigration.MigrationType.Entities);
   when(v2.getVersion()).thenReturn(2);
   Set<DataMigration> migrations=new HashSet<>();
   migrations.add(v1);
   migrations.add(v2);
-  DataMigrationManagerImpl migrationManager=new DataMigrationManagerImpl(serialization,migrations,allEntitiesInSystemObservable);
+  DataMigrationManagerImpl migrationManager=new DataMigrationManagerImpl(serialization,migrations,allEntitiesInSystemObservable,allApplicationsObservable);
   migrationManager.migrate();
   verify(v1).migrate(any(ApplicationEntityGroup.class),any(DataMigration.ProgressObserver.class));
   verify(v2,never()).migrate(any(ApplicationEntityGroup.class),any(DataMigration.ProgressObserver.class));

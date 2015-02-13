@@ -1,7 +1,9 @@
 {
   final MigrationInfoSerialization serialization=mock(MigrationInfoSerialization.class);
+  when(serialization.getCurrentVersion()).thenReturn(0);
   final DataMigration v1=mock(DataMigration.class);
   when(v1.getVersion()).thenReturn(1);
+  when(v1.getType()).thenReturn(DataMigration.MigrationType.Entities);
   when(v1.migrate(any(ApplicationEntityGroup.class),any(DataMigration.ProgressObserver.class))).thenReturn(Observable.empty());
   final int returnedCode=100;
   final String reason="test reason";
@@ -15,11 +17,12 @@
 );
   final DataMigration v2=mock(DataMigration.class);
   when(v2.getVersion()).thenReturn(2);
+  when(v2.getType()).thenReturn(DataMigration.MigrationType.Entities);
   when(v2.migrate(any(ApplicationEntityGroup.class),any(DataMigration.ProgressObserver.class))).thenReturn(Observable.empty());
   Set<DataMigration> migrations=new HashSet<>();
   migrations.add(v1);
   migrations.add(v2);
-  DataMigrationManagerImpl migrationManager=new DataMigrationManagerImpl(serialization,migrations,allEntitiesInSystemObservable);
+  DataMigrationManagerImpl migrationManager=new DataMigrationManagerImpl(serialization,migrations,allEntitiesInSystemObservable,allApplicationsObservable);
   migrationManager.migrate();
   verify(v1).migrate(any(ApplicationEntityGroup.class),any(DataMigration.ProgressObserver.class));
   verify(v2,never()).migrate(any(ApplicationEntityGroup.class),any(DataMigration.ProgressObserver.class));
