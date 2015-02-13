@@ -1,0 +1,28 @@
+{
+  return appIdsObservable.flatMap(new Func1<Id,Observable<ApplicationEntityGroup<CollectionScope>>>(){
+    @Override public Observable<ApplicationEntityGroup<CollectionScope>> call(    final Id applicationId){
+      final ApplicationScope applicationScope=new ApplicationScopeImpl(applicationId);
+      final GraphManager gm=graphManagerFactory.createEdgeManager(applicationScope);
+      final Observable<Id> entityNodes=targetIdObservable.getTargetNodes(gm,applicationId);
+      final Observable<Id> applicationNode=Observable.just(applicationId);
+      return Observable.merge(applicationNode,entityNodes).buffer(bufferSize).map(new Func1<List<Id>,List<EntityIdScope<CollectionScope>>>(){
+        @Override public List<EntityIdScope<CollectionScope>> call(        List<Id> ids){
+          List<EntityIdScope<CollectionScope>> scopes=new ArrayList<>(ids.size());
+          for (          Id id : ids) {
+            CollectionScope scope=CpNamingUtils.getCollectionScopeNameFromEntityType(applicationId,id.getType());
+            EntityIdScope<CollectionScope> idScope=new EntityIdScope<>(id,scope);
+            scopes.add(idScope);
+          }
+          return scopes;
+        }
+      }
+).map(new Func1<List<EntityIdScope<CollectionScope>>,ApplicationEntityGroup<CollectionScope>>(){
+        @Override public ApplicationEntityGroup<CollectionScope> call(        final List<EntityIdScope<CollectionScope>> scopes){
+          return new ApplicationEntityGroup<>(applicationScope,scopes);
+        }
+      }
+);
+    }
+  }
+);
+}
