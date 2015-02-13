@@ -1,11 +1,11 @@
 {
   final MigrationInfoSerialization serialization=mock(MigrationInfoSerialization.class);
-  when(serialization.getCurrentVersion()).thenReturn(0);
+  when(serialization.getCurrentVersion()).thenReturn(1);
   final DataMigration v1=mock(DataMigration.class);
-  when(v1.getVersion()).thenReturn(1);
+  when(v1.getVersion()).thenReturn(2);
   when(v1.migrate(any(ApplicationEntityGroup.class),any(DataMigration.ProgressObserver.class))).thenReturn(Observable.empty());
   final DataMigration v2=mock(DataMigration.class);
-  when(v2.getVersion()).thenReturn(2);
+  when(v2.getVersion()).thenReturn(3);
   when(v2.migrate(any(ApplicationEntityGroup.class),any(DataMigration.ProgressObserver.class))).thenReturn(Observable.empty());
   Set<DataMigration> migrations=new HashSet<>();
   migrations.add(v1);
@@ -17,6 +17,6 @@
   verify(serialization,times(2)).setStatusCode(DataMigrationManagerImpl.StatusCode.RUNNING.status);
   verify(serialization,times(2 * 2)).setStatusMessage(any(String.class));
   verify(serialization).setStatusCode(DataMigrationManagerImpl.StatusCode.COMPLETE.status);
-  verify(serialization).setVersion(1);
   verify(serialization).setVersion(2);
+  verify(serialization).setVersion(3);
 }

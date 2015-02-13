@@ -1,8 +1,8 @@
 {
   final MigrationInfoSerialization serialization=mock(MigrationInfoSerialization.class);
-  when(serialization.getCurrentVersion()).thenReturn(0);
+  when(serialization.getCurrentVersion()).thenReturn(1);
   final DataMigration v1=mock(DataMigration.class);
-  when(v1.getVersion()).thenReturn(1);
+  when(v1.getVersion()).thenReturn(2);
   when(v1.getType()).thenReturn(DataMigration.MigrationType.Entities);
   when(v1.migrate(any(ApplicationEntityGroup.class),any(DataMigration.ProgressObserver.class))).thenReturn(Observable.empty());
   final int returnedCode=100;
@@ -16,7 +16,7 @@
   }
 );
   final DataMigration v2=mock(DataMigration.class);
-  when(v2.getVersion()).thenReturn(2);
+  when(v2.getVersion()).thenReturn(3);
   when(v2.getType()).thenReturn(DataMigration.MigrationType.Entities);
   when(v2.migrate(any(ApplicationEntityGroup.class),any(DataMigration.ProgressObserver.class))).thenReturn(Observable.empty());
   Set<DataMigration> migrations=new HashSet<>();
@@ -27,7 +27,7 @@
   verify(v1).migrate(any(ApplicationEntityGroup.class),any(DataMigration.ProgressObserver.class));
   verify(v2,never()).migrate(any(ApplicationEntityGroup.class),any(DataMigration.ProgressObserver.class));
   verify(serialization,times(1)).setStatusCode(DataMigrationManagerImpl.StatusCode.RUNNING.status);
-  verify(serialization).setStatusMessage("Migration version 1.  Starting migration");
+  verify(serialization).setStatusMessage("Migration version 2.  Starting migration");
   verify(serialization).setStatusMessage("Migration version 100.  Failed to migrate, reason is appended.  Error 'test reason'");
   verify(serialization,times(2)).setStatusCode(DataMigrationManagerImpl.StatusCode.ERROR.status);
   verify(serialization,never()).setVersion(1);
