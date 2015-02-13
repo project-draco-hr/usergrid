@@ -1,0 +1,73 @@
+{
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  List<Entity> entities=new ArrayList<>();
+  for (int i=0; i < 5; i++) {
+    Map<String,Object> userProperties=new LinkedHashMap<>();
+    userProperties.put("parameter1","user" + i);
+    userProperties.put("parameter2","user" + i + "@test.com");
+    entities.add(em.create("custom",userProperties));
+  }
+  em.createConnection(new SimpleEntityRef("custom",entities.get(0).getUuid()),"related",new SimpleEntityRef("custom",entities.get(1).getUuid()));
+  em.createConnection(new SimpleEntityRef("custom",entities.get(1).getUuid()),"related",new SimpleEntityRef("custom",entities.get(0).getUuid()));
+  logger.debug("\n\nExport the application\n\n");
+  ExportService exportService=setup.getExportService();
+  S3Export s3Export=new S3ExportImpl();
+  HashMap<String,Object> payload=payloadBuilder();
+  payload.put("organizationId",organization.getUuid());
+  payload.put("applicationId",applicationId);
+  UUID exportUUID=exportService.schedule(payload);
+  JobData jobData=jobExportDataCreator(payload,exportUUID,s3Export);
+  JobExecution jobExecution=mock(JobExecution.class);
+  when(jobExecution.getJobData()).thenReturn(jobData);
+  exportService.doExport(jobExecution);
+  while (!exportService.getState(exportUUID).equals("FINISHED")) {
+  }
+  logger.debug("\n\nImport the application\n\n");
+  S3Import s3Import=new S3ImportImpl();
+  ImportService importService=setup.getImportService();
+  final Import importEntity=importService.schedule(null,payload);
+  final UUID importUUID=importEntity.getUuid();
+  jobData=jobImportDataCreator(payload,importUUID,s3Import);
+  jobExecution=mock(JobExecution.class);
+  when(jobExecution.getJobData()).thenReturn(jobData);
+  importService.doImport(jobExecution);
+  while (!importService.getState(importUUID).equals("FINISHED")) {
+  }
+  logger.debug("\n\nVerify Import\n\n");
+  try {
+    Set<String> collections=em.getApplicationCollections();
+    for (    String collectionName : collections) {
+      logger.debug("Checking collection {}",collectionName);
+      Results collection=em.getCollection(applicationId,collectionName,null,Level.ALL_PROPERTIES);
+      for (      Entity eachEntity : collection.getEntities()) {
+        logger.debug("Checking entity {} {}:{}",new Object[]{eachEntity.getName(),eachEntity.getType(),eachEntity.getUuid()});
+        EntityRef er;
+        Map<Object,Object> dictionaries;
+        if (collectionName.equals("roles")) {
+          if (eachEntity.getName().equalsIgnoreCase("admin")) {
+            er=eachEntity;
+            dictionaries=em.getDictionaryAsMap(er,"permissions");
+            assertThat(dictionaries.size(),is(not(0)));
+          }
+ else {
+            er=eachEntity;
+            dictionaries=em.getDictionaryAsMap(er,"permissions");
+            assertThat(dictionaries.size(),is(0));
+          }
+        }
+      }
+      if (collectionName.equals("customs")) {
+        Results r;
+        List<ConnectionRef> connections;
+        for (int i=0; i < 2; i++) {
+          r=em.getConnectedEntities(entities.get(i),"related",null,Level.IDS);
+          connections=r.getConnections();
+          assertNotNull(connections);
+        }
+      }
+    }
+  }
+  finally {
+    deleteBucket();
+  }
+}

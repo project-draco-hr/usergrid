@@ -1,0 +1,19 @@
+{
+  try {
+    final long writtenEntities=entitiesWritten.get();
+    final long failedEntities=entitiesFailed.get();
+    final long writtenConnections=connectionsWritten.get();
+    final long failedConnections=connectionsFailed.get();
+    fileImport.setImportedEntityCount(writtenEntities);
+    fileImport.setFailedEntityCount(failedEntities);
+    fileImport.setImportedConnectionCount(writtenConnections);
+    fileImport.setFailedConnectionCount(failedConnections);
+    fileImport.setState(state);
+    fileImport.setErrorMessage(message);
+    EntityManager entityManager=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+    entityManager.update(fileImport);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Unable to persist complete state",e);
+  }
+}

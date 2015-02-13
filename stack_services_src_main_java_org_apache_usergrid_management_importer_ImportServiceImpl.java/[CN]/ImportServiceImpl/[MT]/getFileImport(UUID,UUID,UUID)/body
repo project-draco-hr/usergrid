@@ -1,0 +1,17 @@
+{
+  try {
+    final EntityManager rootEm=emf.getEntityManager(emf.getManagementAppId());
+    final Import importEntity=getImport(applicationId,importId);
+    if (importEntity == null) {
+      throw new EntityNotFoundException("Import not found with id " + importId);
+    }
+    final FileImport fileImport=rootEm.get(importId,FileImport.class);
+    if (!rootEm.isConnectionMember(importEntity,APP_IMPORT_CONNECTION,fileImport)) {
+      return null;
+    }
+    return fileImport;
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Unable to load file import",e);
+  }
+}

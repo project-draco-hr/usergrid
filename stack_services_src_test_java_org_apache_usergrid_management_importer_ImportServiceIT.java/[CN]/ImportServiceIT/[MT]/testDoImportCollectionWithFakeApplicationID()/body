@@ -1,0 +1,16 @@
+{
+  UUID fakeappId=UUID.fromString("AAAAAAAA-FFFF-FFFF-FFFF-AAAAAAAAAAAA");
+  S3Import s3Import=new S3ImportImpl();
+  ImportService importService=setup.getImportService();
+  HashMap<String,Object> payload=payloadBuilder();
+  payload.put("organizationId",organization.getUuid());
+  payload.put("applicationId",fakeappId);
+  payload.put("collectionName","custom-test");
+  final Import importEntity=importService.schedule(null,payload);
+  final UUID importUUID=importEntity.getUuid();
+  JobData jobData=jobImportDataCreator(payload,importUUID,s3Import);
+  JobExecution jobExecution=mock(JobExecution.class);
+  when(jobExecution.getJobData()).thenReturn(jobData);
+  importService.doImport(jobExecution);
+  assertEquals(importService.getState(importUUID),Import.State.FAILED);
+}

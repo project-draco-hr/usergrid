@@ -1,0 +1,31 @@
+{
+  final int connectionCount=15;
+  EntityManager emMgmtApp=setup.getEmf().getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+  Import importEntity=new Import();
+  importEntity=emMgmtApp.create(importEntity);
+  UUID applicationId=newOrgAppAdminRule.getApplicationInfo().getId();
+  for (int i=0; i < connectionCount; i++) {
+    FileImport fileImport=new FileImport("dummyFileName" + i,applicationId);
+    fileImport=emMgmtApp.create(fileImport);
+    emMgmtApp.createConnection(importEntity,"includes",fileImport);
+  }
+  int retries=0;
+  int maxRetries=20;
+  boolean done=false;
+  int count=0;
+  while (!done && retries++ < maxRetries) {
+    count=counter.count(importEntity);
+    if (count == connectionCount) {
+      logger.debug("Count good!");
+      done=true;
+    }
+ else {
+      logger.debug("Got {} of {} Waiting...",count,connectionCount);
+      Thread.sleep(1000);
+    }
+  }
+  if (retries >= maxRetries) {
+    throw new RuntimeException("Max retries was reached");
+  }
+  assertEquals("did not get all connections",connectionCount,count);
+}

@@ -1,0 +1,11 @@
+{
+  logger.info("in setup");
+  JobSchedulerService jobScheduler=cassandraResource.getBean(JobSchedulerService.class);
+  if (jobScheduler.state() != Service.State.RUNNING) {
+    jobScheduler.startAndWait();
+  }
+  adminUser=newOrgAppAdminRule.getAdminInfo();
+  organization=newOrgAppAdminRule.getOrganizationInfo();
+  applicationId=newOrgAppAdminRule.getApplicationInfo().getId();
+  setup.getEmf().refreshIndex();
+}

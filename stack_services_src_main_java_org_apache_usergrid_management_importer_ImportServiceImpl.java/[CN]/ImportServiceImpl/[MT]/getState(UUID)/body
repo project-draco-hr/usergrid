@@ -1,13 +1,9 @@
 {
-  if (uuid == null) {
-    logger.error("getState(): UUID passed in cannot be null.");
-    return "UUID passed in cannot be null";
-  }
+  Preconditions.checkNotNull(uuid,"uuid cannot be null");
   EntityManager rootEm=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
   Import importUG=rootEm.get(uuid,Import.class);
   if (importUG == null) {
-    logger.error("getState(): no entity with that uuid was found");
-    return "No Such Element found";
+    throw new EntityNotFoundException("Could not find entity with uuid " + uuid);
   }
-  return importUG.getState().toString();
+  return importUG.getState();
 }

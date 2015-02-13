@@ -1,0 +1,48 @@
+{
+  S3Export s3Export=new S3ExportImpl();
+  ExportService exportService=setup.getExportService();
+  String appName=newOrgAppAdminRule.getApplicationInfo().getName();
+  HashMap<String,Object> payload=payloadBuilder(appName);
+  OrganizationInfo orgMade=null;
+  ApplicationInfo appMade=null;
+  for (int i=0; i < 5; i++) {
+    orgMade=setup.getMgmtSvc().createOrganization("minorboss" + i,adminUser,true);
+    for (int j=0; j < 5; j++) {
+      appMade=setup.getMgmtSvc().createApplication(orgMade.getUuid(),"superapp" + j);
+      EntityManager customMaker=setup.getEmf().getEntityManager(appMade.getId());
+      customMaker.createApplicationCollection("superappCol" + j);
+      Map<String,Object> entityLevelProperties=null;
+      Entity[] entNotCopied;
+      entNotCopied=new Entity[1];
+      for (int index=0; index < 1; index++) {
+        entityLevelProperties=new LinkedHashMap<String,Object>();
+        entityLevelProperties.put("derp","bacon");
+        entNotCopied[index]=customMaker.create("superappCol" + j,entityLevelProperties);
+      }
+    }
+  }
+  payload.put("organizationId",orgMade.getUuid());
+  UUID exportUUID=exportService.schedule(payload);
+  assertNotNull(exportUUID);
+  Thread.sleep(3000);
+  String accessId=System.getProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR);
+  String secretKey=System.getProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR);
+  Properties overrides=new Properties();
+  overrides.setProperty("s3" + ".identity",accessId);
+  overrides.setProperty("s3" + ".credential",secretKey);
+  BlobStore blobStore=null;
+  try {
+    final Iterable<? extends Module> MODULES=ImmutableSet.of(new JavaUrlHttpCommandExecutorServiceModule(),new Log4JLoggingModule(),new NettyPayloadModule());
+    BlobStoreContext context=ContextBuilder.newBuilder("s3").credentials(accessId,secretKey).modules(MODULES).overrides(overrides).buildView(BlobStoreContext.class);
+    blobStore=context.getBlobStore();
+    Long numOfFiles=blobStore.countBlobs(bucketName);
+    String expectedFileName=((ExportServiceImpl)exportService).prepareOutputFileName(organization.getName(),"applications");
+    Blob bo=blobStore.getBlob(bucketName,expectedFileName);
+    Long numWeWant=5L;
+    blobStore.deleteContainer(bucketName);
+    assertEquals(numWeWant,numOfFiles);
+  }
+  finally {
+    blobStore.deleteContainer(bucketName);
+  }
+}

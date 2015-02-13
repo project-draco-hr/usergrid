@@ -1,0 +1,68 @@
+{
+  final Action1<WriteEvent> doWork=new Action1<WriteEvent>(){
+    @Override public void call(    WriteEvent writeEvent){
+      writeEvent.doWrite(em,fileImport,tracker);
+    }
+  }
+;
+  final Func2<Integer,WriteEvent,Integer> heartbeatReducer=new Func2<Integer,WriteEvent,Integer>(){
+    @Override public Integer call(    final Integer integer,    final WriteEvent writeEvent){
+      final int next=integer.intValue() + 1;
+      if (next % HEARTBEAT_COUNT == 0) {
+        execution.heartbeat();
+      }
+      return next;
+    }
+  }
+;
+  boolean entitiesOnly=true;
+  JsonParser jp=getJsonParserForFile(file);
+  final JsonEntityParserObservable jsonObservableEntities=new JsonEntityParserObservable(jp,em,rootEm,fileImport,tracker,entitiesOnly);
+  final Observable<WriteEvent> entityEventObservable=Observable.create(jsonObservableEntities);
+  final int entityNumSkip=(int)tracker.getTotalEntityCount();
+  final int entityCount=entityEventObservable.takeWhile(new Func1<WriteEvent,Boolean>(){
+    @Override public Boolean call(    final WriteEvent writeEvent){
+      return !tracker.shouldStopProcessingEntities();
+    }
+  }
+).skip(entityNumSkip).parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
+    @Override public Observable<WriteEvent> call(    Observable<WriteEvent> entityWrapperObservable){
+      return entityWrapperObservable.doOnNext(doWork);
+    }
+  }
+,Schedulers.io()).reduce(0,heartbeatReducer).toBlocking().last();
+  jp.close();
+  if (FileImport.State.FAILED.equals(fileImport.getState())) {
+    logger.debug("\n\nFailed to completely write entities, skipping second phase. File: {}\n",fileImport.getFileName());
+    return;
+  }
+  logger.debug("\n\nWrote entities. File: {}\n",fileImport.getFileName());
+  entitiesOnly=false;
+  jp=getJsonParserForFile(file);
+  final JsonEntityParserObservable jsonObservableOther=new JsonEntityParserObservable(jp,em,rootEm,fileImport,tracker,entitiesOnly);
+  final Observable<WriteEvent> otherEventObservable=Observable.create(jsonObservableOther);
+  final int connectionNumSkip=(int)tracker.getTotalConnectionCount();
+  final int connectionCount=otherEventObservable.takeWhile(new Func1<WriteEvent,Boolean>(){
+    @Override public Boolean call(    final WriteEvent writeEvent){
+      return !tracker.shouldStopProcessingConnections();
+    }
+  }
+).skip(connectionNumSkip).parallel(new Func1<Observable<WriteEvent>,Observable<WriteEvent>>(){
+    @Override public Observable<WriteEvent> call(    Observable<WriteEvent> entityWrapperObservable){
+      return entityWrapperObservable.doOnNext(doWork);
+    }
+  }
+,Schedulers.io()).reduce(0,heartbeatReducer).toBlocking().last();
+  jp.close();
+  logger.debug("\n\nparseEntitiesAndConnectionsFromJson(): Wrote others for file {}\n",fileImport.getFileName());
+  if (FileImport.State.FAILED.equals(fileImport.getState())) {
+    logger.debug("\n\nparseEntitiesAndConnectionsFromJson(): failed to completely write entities\n");
+    return;
+  }
+  tracker.complete();
+  if (FileImport.State.FAILED.equals(fileImport.getState())) {
+    logger.debug("\n\nFailed to completely wrote connections and dictionaries. File: {}\n",fileImport.getFileName());
+    return;
+  }
+  logger.debug("\n\nWrote connections and dictionaries. File: {}\n",fileImport.getFileName());
+}
