@@ -1,6 +1,9 @@
 {
   if (!populateTreeMap())   return;
   final int currentVersion=migrationInfoSerialization.getVersion();
+  if (currentVersion <= 0) {
+    resetToHighestVersion();
+  }
   LOG.info("Saved schema version is {}, max migration version is {}",currentVersion,migrationTreeMap.lastKey());
   final NavigableMap<Integer,DataMigration> migrationsToRun=migrationTreeMap.tailMap(currentVersion,false);
   final CassandraProgressObserver observer=new CassandraProgressObserver();
