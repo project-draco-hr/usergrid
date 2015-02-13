@@ -13,10 +13,10 @@
   final TestProgressObserver progressObserver=new TestProgressObserver();
   final Multimap<Id,String> sourceTypes=HashMultimap.create(10000,10);
   final Multimap<Id,String> targetTypes=HashMultimap.create(10000,10);
-  allEntitiesInSystemObservable.getAllEntitiesInSystem(1000).doOnNext(new Action1<ApplicationEntityGroup>(){
-    @Override public void call(    final ApplicationEntityGroup entity){
+  allEntitiesInSystemObservable.getAllEntitiesInSystem(1000).doOnNext(new Action1<ApplicationEntityGroup<CollectionScope>>(){
+    @Override public void call(    final ApplicationEntityGroup<CollectionScope> entity){
       final GraphManager gm=managerCache.getGraphManager(entity.applicationScope);
-      for (      final EntityIdScope idScope : entity.entityIds) {
+      for (      final EntityIdScope<CollectionScope> idScope : entity.entityIds) {
         gm.getEdgeTypesFromSource(new SimpleSearchEdgeType(idScope.getId(),null,null)).doOnNext(new Action1<String>(){
           @Override public void call(          final String s){
             sourceTypes.put(idScope.getId(),s);
@@ -52,10 +52,10 @@
   migrationInfoSerialization.setVersion(graphShardVersionMigration.getVersion());
   dataMigrationManager.invalidate();
   assertEquals("New version saved, and we should get new implementation",graphShardVersionMigration.getVersion(),dataMigrationManager.getCurrentVersion());
-  allEntitiesInSystemObservable.getAllEntitiesInSystem(1000).doOnNext(new Action1<ApplicationEntityGroup>(){
-    @Override public void call(    final ApplicationEntityGroup entity){
+  allEntitiesInSystemObservable.getAllEntitiesInSystem(1000).doOnNext(new Action1<ApplicationEntityGroup<CollectionScope>>(){
+    @Override public void call(    final ApplicationEntityGroup<CollectionScope> entity){
       final GraphManager gm=managerCache.getGraphManager(entity.applicationScope);
-      for (      final EntityIdScope idScope : entity.entityIds) {
+      for (      final EntityIdScope<CollectionScope> idScope : entity.entityIds) {
         gm.getEdgeTypesFromSource(new SimpleSearchEdgeType(idScope.getId(),null,null)).doOnNext(new Action1<String>(){
           @Override public void call(          final String s){
             sourceTypes.remove(idScope.getId(),s);

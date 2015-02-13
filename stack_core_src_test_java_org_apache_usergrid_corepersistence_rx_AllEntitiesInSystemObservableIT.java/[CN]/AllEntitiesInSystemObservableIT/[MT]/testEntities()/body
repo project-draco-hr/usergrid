@@ -21,15 +21,15 @@
   final ApplicationScope scope=CpNamingUtils.getApplicationScope(app.getId());
   final Id applicationId=scope.getApplication();
   final GraphManager gm=managerCache.getGraphManager(scope);
-  allEntitiesInSystemObservableImpl.getAllEntitiesInSystem(1000).doOnNext(new Action1<ApplicationEntityGroup>(){
-    @Override public void call(    final ApplicationEntityGroup entity){
+  allEntitiesInSystemObservableImpl.getAllEntitiesInSystem(1000).doOnNext(new Action1<ApplicationEntityGroup<CollectionScope>>(){
+    @Override public void call(    final ApplicationEntityGroup<CollectionScope> entity){
       assertNotNull(entity);
       assertNotNull(entity.applicationScope);
       assertNotNull(entity.entityIds);
       if (!applicationId.equals(entity.applicationScope.getApplication())) {
         return;
       }
-      for (      EntityIdScope idScope : entity.entityIds) {
+      for (      EntityIdScope<CollectionScope> idScope : entity.entityIds) {
         if (idScope.getId().getType().equals(type1)) {
           assertTrue("Element should be present on removal",type1Identities.remove(idScope.getId()));
         }

@@ -1,14 +1,14 @@
 {
   final AtomicLong atomicLong=new AtomicLong();
   final MutationBatch totalBatch=keyspace.prepareMutationBatch();
-  final List<EntityIdScope> entityIds=applicationEntityGroup.entityIds;
+  final List<EntityIdScope<CollectionScope>> entityIds=applicationEntityGroup.entityIds;
   final UUID now=UUIDGenerator.newTimeUUID();
-  return Observable.from(entityIds).subscribeOn(Schedulers.io()).map(new Func1<EntityIdScope,Id>(){
-    @Override public Id call(    EntityIdScope idScope){
+  return Observable.from(entityIds).subscribeOn(Schedulers.io()).map(new Func1<EntityIdScope<CollectionScope>,Id>(){
+    @Override public Id call(    EntityIdScope<CollectionScope> idScope){
       ApplicationScope applicationScope=applicationEntityGroup.applicationScope;
       MigrationStrategy.MigrationRelationship<MvccEntitySerializationStrategy> migration=entityMigrationStrategy.getMigration();
-      if (applicationScope instanceof CollectionScope) {
-        CollectionScope currentScope=(CollectionScope)applicationScope;
+      if (idScope.getCollectionScope() instanceof CollectionScope) {
+        CollectionScope currentScope=idScope.getCollectionScope();
         Iterator<MvccEntity> allVersions=migration.from().loadDescendingHistory(currentScope,idScope.getId(),now,1000);
         while (allVersions.hasNext()) {
           final MvccEntity version=allVersions.next();
