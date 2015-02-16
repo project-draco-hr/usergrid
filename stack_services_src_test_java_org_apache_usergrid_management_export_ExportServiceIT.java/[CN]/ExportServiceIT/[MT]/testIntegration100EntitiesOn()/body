@@ -1,0 +1,54 @@
+{
+  logger.debug("testIntegration100EntitiesOn(): starting...");
+  ExportService exportService=setup.getExportService();
+  String appName=newOrgAppAdminRule.getApplicationInfo().getName();
+  HashMap<String,Object> payload=payloadBuilder(appName);
+  payload.put("organizationId",organization.getUuid());
+  payload.put("applicationId",applicationId);
+  for (int i=0; i < 5; i++) {
+    ApplicationInfo appMade=setup.getMgmtSvc().createApplication(organization.getUuid(),"superapp" + i);
+    EntityManager appEm=setup.getEmf().getEntityManager(appMade.getId());
+    String collName="superappCol" + i;
+    appEm.createApplicationCollection(collName);
+    Map<String,Object> entityLevelProperties=null;
+    Entity[] entNotCopied;
+    entNotCopied=new Entity[5];
+    for (int index=0; index < 5; index++) {
+      entityLevelProperties=new LinkedHashMap<String,Object>();
+      entityLevelProperties.put("username","bobso" + index);
+      entityLevelProperties.put("email","derp" + index + "@anuff.com");
+      entNotCopied[index]=appEm.create(collName,entityLevelProperties);
+    }
+  }
+  UUID exportUUID=exportService.schedule(payload);
+  int maxRetries=100;
+  int retries=0;
+  while (!exportService.getState(exportUUID).equals("FINISHED") && retries++ < maxRetries) {
+    Thread.sleep(100);
+  }
+  String accessId=System.getProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR);
+  String secretKey=System.getProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR);
+  Properties overrides=new Properties();
+  overrides.setProperty("s3" + ".identity",accessId);
+  overrides.setProperty("s3" + ".credential",secretKey);
+  BlobStore blobStore=null;
+  try {
+    final Iterable<? extends Module> MODULES=ImmutableSet.of(new JavaUrlHttpCommandExecutorServiceModule(),new Log4JLoggingModule(),new NettyPayloadModule());
+    BlobStoreContext context=ContextBuilder.newBuilder("s3").credentials(accessId,secretKey).modules(MODULES).overrides(overrides).buildView(BlobStoreContext.class);
+    String expectedFileName=((ExportServiceImpl)exportService).prepareOutputFileName(organization.getName(),"applications");
+    blobStore=context.getBlobStore();
+    if (!blobStore.blobExists(bucketName,expectedFileName)) {
+      blobStore.deleteContainer(bucketName);
+      Assert.fail("Blob does not exist: " + expectedFileName);
+    }
+    Blob bo=blobStore.getBlob(bucketName,expectedFileName);
+    Long numOfFiles=blobStore.countBlobs(bucketName);
+    Long numWeWant=1L;
+    blobStore.deleteContainer(bucketName);
+    assertEquals(numOfFiles,numWeWant);
+    assertNotNull(bo);
+  }
+  finally {
+    blobStore.deleteContainer(bucketName);
+  }
+}

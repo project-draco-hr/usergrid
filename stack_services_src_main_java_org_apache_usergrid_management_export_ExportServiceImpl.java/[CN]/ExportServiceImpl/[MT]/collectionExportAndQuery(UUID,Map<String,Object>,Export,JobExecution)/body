@@ -5,12 +5,14 @@
   File ephemeral=new File("tempExport" + UUID.randomUUID());
   ephemeral.deleteOnExit();
   JsonGenerator jg=getJsonGenerator(ephemeral);
-  jg.writeStartArray();
+  jg.writeStartObject();
+  jg.writeObjectFieldStart("collections");
   for (  String collectionName : metadata.keySet()) {
     if (collectionName.equals("exports")) {
       continue;
     }
     if ((config.get("collectionName") == null) || collectionName.equalsIgnoreCase((String)config.get("collectionName"))) {
+      jg.writeArrayFieldStart(collectionName.toLowerCase());
       Query query=null;
       if (config.get("query") == null) {
         query=new Query();
@@ -38,9 +40,11 @@
         jg.writeEndObject();
         jg.flush();
       }
+      jg.writeEndArray();
     }
   }
-  jg.writeEndArray();
+  jg.writeEndObject();
+  jg.writeEndObject();
   jg.flush();
   jg.close();
   return ephemeral;

@@ -1,0 +1,12 @@
+{
+  final Results importResults=importService.getFileImports(application.getId(),importId,query,cursor);
+  if (importResults == null) {
+    throw new EntityNotFoundException("could not load import results");
+  }
+  ApiResponse response=createApiResponse();
+  response.setAction("get");
+  response.setApplication(emf.getEntityManager(application.getId()).getApplication());
+  response.setParams(ui.getQueryParameters());
+  response.withResults(importResults);
+  return new JSONWithPadding(response);
+}

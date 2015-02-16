@@ -1,0 +1,18 @@
+{
+  Preconditions.checkNotNull(applicationId,"applicationId must be specified");
+  Preconditions.checkNotNull(importId,"importId must be specified");
+  Preconditions.checkNotNull(fileImportId,"fileImportId must be specified");
+  try {
+    final EntityManager rootEm=emf.getEntityManager(emf.getManagementAppId());
+    final FileImport importEntity=getFileImport(applicationId,importId,fileImportId);
+    Query query=Query.fromQLNullSafe(ql);
+    query.setCursor(cursor);
+    query.setConnectionType(FileImportTracker.ERRORS_CONNECTION_NAME);
+    query.setResultsLevel(Level.ALL_PROPERTIES);
+    query.setEntityType(Schema.getDefaultSchema().getEntityType(FailedImportEntity.class));
+    return rootEm.searchConnectedEntities(importEntity,query);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Unable to get import entity",e);
+  }
+}

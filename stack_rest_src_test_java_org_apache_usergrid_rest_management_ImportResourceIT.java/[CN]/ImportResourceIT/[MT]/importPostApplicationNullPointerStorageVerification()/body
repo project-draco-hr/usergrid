@@ -1,0 +1,38 @@
+{
+  String org=clientSetup.getOrganizationName();
+  String app=clientSetup.getAppName();
+  ClientResponse.Status responseStatus=ClientResponse.Status.OK;
+  Entity payload=payloadBuilder();
+  Entity properties=(Entity)payload.get("properties");
+  Entity storage_info=(Entity)properties.get("storage_info");
+  storage_info.remove("s3_key");
+  try {
+    this.management().orgs().organization(org).app().addToPath(app).addToPath("imports").post(payload);
+  }
+ catch (  UniformInterfaceException uie) {
+    responseStatus=uie.getResponse().getClientResponseStatus();
+  }
+  assertEquals(ClientResponse.Status.BAD_REQUEST,responseStatus);
+  payload=payloadBuilder();
+  properties=(Entity)payload.get("properties");
+  storage_info=(Entity)properties.get("storage_info");
+  storage_info.remove("s3_access_id");
+  try {
+    this.management().orgs().organization(org).app().addToPath(app).addToPath("imports").post(payload);
+  }
+ catch (  UniformInterfaceException uie) {
+    responseStatus=uie.getResponse().getClientResponseStatus();
+  }
+  assertEquals(ClientResponse.Status.BAD_REQUEST,responseStatus);
+  payload=payloadBuilder();
+  properties=(Entity)payload.get("properties");
+  storage_info=(Entity)properties.get("storage_info");
+  storage_info.remove("bucket_location");
+  try {
+    this.management().orgs().organization(org).app().addToPath(app).addToPath("imports").post(payload);
+  }
+ catch (  UniformInterfaceException uie) {
+    responseStatus=uie.getResponse().getClientResponseStatus();
+  }
+  assertEquals(ClientResponse.Status.BAD_REQUEST,responseStatus);
+}

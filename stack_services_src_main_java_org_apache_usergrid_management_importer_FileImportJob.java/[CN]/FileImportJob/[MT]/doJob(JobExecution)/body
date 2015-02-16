@@ -1,0 +1,22 @@
+{
+  logger.info("execute FileImportJob {}",jobExecution.toString());
+  try {
+    JobData jobData=jobExecution.getJobData();
+    if (jobData == null) {
+      logger.error("jobData cannot be null");
+      return;
+    }
+    jobExecution.heartbeat();
+    importService.downloadAndImportFile(jobExecution);
+  }
+ catch (  Throwable t) {
+    logger.debug("Error importing file",t);
+    UUID fileImportId=(UUID)jobExecution.getJobData().getProperty(FILE_IMPORT_ID);
+    EntityManager em=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+    FileImport fileImport=em.get(fileImportId,FileImport.class);
+    fileImport.setState(FileImport.State.FAILED);
+    em.update(fileImport);
+    throw t;
+  }
+  logger.error("File Import Service completed job");
+}

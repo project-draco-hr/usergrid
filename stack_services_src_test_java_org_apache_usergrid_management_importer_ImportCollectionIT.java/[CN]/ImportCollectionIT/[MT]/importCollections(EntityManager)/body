@@ -1,0 +1,39 @@
+{
+  logger.debug("\n\nImport into new app {}\n",em.getApplication().getName());
+  ImportService importService=setup.getImportService();
+  Import importEntity=importService.schedule(em.getApplication().getUuid(),new HashMap<String,Object>(){
+{
+      put("path",organization.getName() + em.getApplication().getName());
+      put("organizationId",organization.getUuid());
+      put("applicationId",em.getApplication().getUuid());
+      put("properties",new HashMap<String,Object>(){
+{
+          put("storage_provider","s3");
+          put("storage_info",new HashMap<String,Object>(){
+{
+              put("s3_access_id",System.getProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR));
+              put("s3_key",System.getProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR));
+              put("bucket_location",bucketName);
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+  int maxRetries=30;
+  int retries=0;
+  Import.State state=importService.getState(importEntity.getUuid());
+  while (!state.equals(Import.State.FINISHED) && !state.equals(Import.State.FAILED) && retries++ < maxRetries) {
+    logger.debug("Waiting for import ({}) ...",state.toString());
+    Thread.sleep(1000);
+    state=importService.getState(importEntity.getUuid());
+  }
+  if (retries >= maxRetries) {
+    throw new RuntimeException("Max retries reached");
+  }
+  em.refreshIndex();
+  return importEntity.getUuid();
+}

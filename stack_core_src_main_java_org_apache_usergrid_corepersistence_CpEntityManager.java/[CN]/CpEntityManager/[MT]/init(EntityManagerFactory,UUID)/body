@@ -8,12 +8,4 @@
   this.cass=this.emf.getCassandraService();
   this.counterUtils=this.emf.getCounterUtils();
   this.skipAggregateCounters=false;
-  int entityCacheSize=Integer.parseInt(cass.getProperties().getProperty("usergrid.entity_cache_size","100"));
-  int entityCacheTimeout=Integer.parseInt(cass.getProperties().getProperty("usergrid.entity_cache_timeout_ms","500"));
-  this.entityCache=CacheBuilder.newBuilder().maximumSize(entityCacheSize).expireAfterWrite(entityCacheTimeout,TimeUnit.MILLISECONDS).build(new CacheLoader<EntityScope,org.apache.usergrid.persistence.model.entity.Entity>(){
-    public org.apache.usergrid.persistence.model.entity.Entity load(    EntityScope es){
-      return managerCache.getEntityCollectionManager(es.scope).load(es.entityId).toBlocking().lastOrDefault(null);
-    }
-  }
-);
 }
