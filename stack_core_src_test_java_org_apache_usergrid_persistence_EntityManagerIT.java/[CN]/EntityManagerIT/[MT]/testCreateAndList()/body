@@ -1,7 +1,6 @@
 {
   LOG.info("EntityDaoTest.testCreateAndDelete");
-  UUID applicationId=setup.createApplication("testOrganization","testCreateAndList" + UUIDGenerator.newTimeUUID());
-  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  EntityManager em=app.getEntityManager();
   String name="test.thing" + UUIDUtils.newTimeUUID() + 1;
   Map<String,Object> properties=new LinkedHashMap<String,Object>();
   properties.put("name",name);
@@ -16,7 +15,7 @@
   LOG.info("Starting entity create");
   Entity thing2=em.create("thing",properties);
   LOG.info("Entity created");
-  EntityRef appRef=em.get(new SimpleEntityRef("application",applicationId));
+  EntityRef appRef=em.get(new SimpleEntityRef("application",app.getId()));
   em.refreshIndex();
   Results r=em.getCollection(appRef,"things",null,10,Level.ALL_PROPERTIES,false);
   assertEquals(2,r.size());
