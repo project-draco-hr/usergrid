@@ -1,0 +1,37 @@
+{
+  String org=clientSetup.getOrganizationName();
+  String app=clientSetup.getAppName();
+  logger.debug("\n\nImport into new app {}\n",app);
+  Entity importPayload=new Entity(new HashMap<String,Object>(){
+{
+      put("properties",new HashMap<String,Object>(){
+{
+          put("storage_provider","s3");
+          put("storage_info",new HashMap<String,Object>(){
+{
+              put("s3_key",System.getProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR));
+              put("s3_access_id",System.getProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR));
+              put("bucket_location",bucketName);
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+  Entity importEntity=this.management().orgs().organization(org).app().addToPath(app).addToPath("imports").post(importPayload);
+  int maxRetries=120;
+  int retries=0;
+  while (retries++ < maxRetries) {
+    Entity importGet=this.management().orgs().organization(org).app().addToPath(app).addToPath("imports").addToPath(importEntity.getUuid().toString()).get();
+    if (importGet.get("state").equals("FINISHED") || importGet.get("state").equals("FAILED")) {
+      break;
+    }
+    logger.debug("Waiting for import...");
+    Thread.sleep(1000);
+  }
+  refreshIndex();
+  return importEntity;
+}

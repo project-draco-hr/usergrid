@@ -1,0 +1,73 @@
+{
+  Map<String,Object> properties=(Map<String,Object>)jobExecution.getJobData().getProperty("properties");
+  if (properties == null) {
+    logger.error("downloadAndImportFile(): Import Information passed through is null");
+    return;
+  }
+  Map<String,Object> storage_info=(Map<String,Object>)properties.get("storage_info");
+  String bucketName=(String)storage_info.get("bucket_location");
+  String accessId=(String)storage_info.get("s3_access_id");
+  String secretKey=(String)storage_info.get("s3_key");
+  EntityManager rootEM=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+  FileImport fileImport;
+  try {
+    fileImport=getFileImportEntity(jobExecution);
+  }
+ catch (  Exception e) {
+    logger.error("Error updating fileImport to set state of file import",e);
+    return;
+  }
+  final FileImportTracker tracker=new FileImportTracker(emf,fileImport,100);
+  String fileName=jobExecution.getJobData().getProperty("File").toString();
+  UUID targetAppId=(UUID)jobExecution.getJobData().getProperty("applicationId");
+  if (FileImport.State.FAILED.equals(fileImport.getState()) || FileImport.State.FINISHED.equals(fileImport.getState())) {
+    return;
+  }
+  logger.debug("downloadAndImportFile() for file {} ",fileName);
+  try {
+    rootEM.update(fileImport);
+    fileImport.setState(FileImport.State.STARTED);
+    rootEM.update(fileImport);
+    if (rootEM.get(targetAppId) == null) {
+      tracker.fatal("Application " + targetAppId + " does not exist");
+      return;
+    }
+  }
+ catch (  Exception e) {
+    tracker.fatal("Application " + targetAppId + " does not exist");
+    checkIfComplete(rootEM,fileImport);
+    return;
+  }
+  EntityManager targetEm=emf.getEntityManager(targetAppId);
+  File downloadedFile=null;
+  S3Import s3Import;
+  Object s3PlaceHolder=jobExecution.getJobData().getProperty("s3Import");
+  try {
+    if (s3PlaceHolder != null) {
+      s3Import=(S3Import)s3PlaceHolder;
+    }
+ else {
+      s3Import=new S3ImportImpl();
+    }
+  }
+ catch (  Exception e) {
+    tracker.fatal("Error connecting to S3: " + e.getMessage());
+    checkIfComplete(rootEM,fileImport);
+    return;
+  }
+  try {
+    downloadedFile=s3Import.copyFileFromBucket(fileName,bucketName,accessId,secretKey);
+  }
+ catch (  Exception e) {
+    tracker.fatal("Error downloading file: " + e.getMessage());
+    checkIfComplete(rootEM,fileImport);
+    return;
+  }
+  try {
+    parseEntitiesAndConnectionsFromJson(jobExecution,downloadedFile,targetEm,rootEM,fileImport,tracker);
+  }
+ catch (  Exception e) {
+    tracker.fatal(e.getMessage());
+  }
+  checkIfComplete(rootEM,fileImport);
+}

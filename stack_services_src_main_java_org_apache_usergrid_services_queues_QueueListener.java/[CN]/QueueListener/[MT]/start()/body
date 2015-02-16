@@ -1,0 +1,39 @@
+{
+  boolean shouldRun=new Boolean(properties.getProperty("usergrid.queues.listener.run","true"));
+  if (shouldRun) {
+    LOG.info("QueueListener: starting.");
+    int threadCount=0;
+    try {
+      sleepBetweenRuns=new Long(properties.getProperty("usergrid.queues.listener.sleep.between","" + sleepBetweenRuns)).longValue();
+      sleepWhenNoneFound=new Long(properties.getProperty("usergrid.queues.listener.sleep.after","" + DEFAULT_SLEEP)).longValue();
+      batchSize=new Integer(properties.getProperty("usergrid.queues.listener.batchSize",("" + batchSize)));
+      consecutiveCallsToRemoveDevices=new Integer(properties.getProperty("usergrid.queues.inactive.interval","" + 200));
+      queueName=getQueueName();
+      int maxThreads=new Integer(properties.getProperty("usergrid.queues.listener.maxThreads","" + MAX_THREADS));
+      futures=new ArrayList<Future>(maxThreads);
+      pool=Executors.newFixedThreadPool(maxThreads);
+      while (threadCount++ < maxThreads) {
+        LOG.info("QueueListener: Starting thread {}.",threadCount);
+        Runnable task=new Runnable(){
+          @Override public void run(){
+            try {
+              execute();
+            }
+ catch (            Exception e) {
+              LOG.error("failed to start push",e);
+            }
+          }
+        }
+;
+        futures.add(pool.submit(task));
+      }
+    }
+ catch (    Exception e) {
+      LOG.error("QueueListener: failed to start:",e);
+    }
+    LOG.info("QueueListener: done starting.");
+  }
+ else {
+    LOG.info("QueueListener: never started due to config value usergrid.queues.listener.run.");
+  }
+}

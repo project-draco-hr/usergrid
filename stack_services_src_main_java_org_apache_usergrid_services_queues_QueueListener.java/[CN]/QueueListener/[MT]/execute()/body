@@ -1,0 +1,52 @@
+{
+  if (Thread.currentThread().isDaemon()) {
+    Thread.currentThread().setDaemon(true);
+  }
+  Thread.currentThread().setName("queues_Processor" + UUID.randomUUID());
+  final AtomicInteger consecutiveExceptions=new AtomicInteger();
+  LOG.info("QueueListener: Starting execute process.");
+  Meter meter=metricsService.getMeter(QueueListener.class,"queue");
+  com.codahale.metrics.Timer timer=metricsService.getTimer(QueueListener.class,"dequeue");
+  svcMgr=smf.getServiceManager(smf.getManagementAppId());
+  LOG.info("getting from queue {} ",queueName);
+  QueueScope queueScope=queueScopeFactory.getScope(smf.getManagementAppId(),queueName);
+  QueueManager queueManager=TEST_QUEUE_MANAGER != null ? TEST_QUEUE_MANAGER : queueManagerFactory.getQueueManager(queueScope);
+  long runCount=0;
+  while (true) {
+    try {
+      Timer.Context timerContext=timer.time();
+      List<QueueMessage> messages=queueManager.getMessages(getBatchSize(),MESSAGE_TRANSACTION_TIMEOUT,5000,ImportQueueMessage.class);
+      LOG.info("retrieved batch of {} messages from queue {} ",messages.size(),queueName);
+      if (messages.size() > 0) {
+        long now=System.currentTimeMillis();
+        onMessage(messages);
+        queueManager.commitMessages(messages);
+        meter.mark(messages.size());
+        LOG.info("sent batch {} messages duration {} ms",messages.size(),System.currentTimeMillis() - now);
+        if (sleepBetweenRuns > 0) {
+          LOG.info("sleep between rounds...sleep...{}",sleepBetweenRuns);
+          Thread.sleep(sleepBetweenRuns);
+        }
+      }
+ else {
+        LOG.info("no messages...sleep...{}",sleepWhenNoneFound);
+        Thread.sleep(sleepWhenNoneFound);
+      }
+      timerContext.stop();
+      consecutiveExceptions.set(0);
+    }
+ catch (    Exception ex) {
+      LOG.error("failed to dequeue",ex);
+      try {
+        long sleeptime=sleepWhenNoneFound * consecutiveExceptions.incrementAndGet();
+        long maxSleep=15000;
+        sleeptime=sleeptime > maxSleep ? maxSleep : sleeptime;
+        LOG.info("sleeping due to failures {} ms",sleeptime);
+        Thread.sleep(sleeptime);
+      }
+ catch (      InterruptedException ie) {
+        LOG.info("sleep interrupted");
+      }
+    }
+  }
+}
