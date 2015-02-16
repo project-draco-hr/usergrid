@@ -19,11 +19,10 @@
   when(v2.getVersion()).thenReturn(3);
   when(v2.getType()).thenReturn(DataMigration.MigrationType.Entities);
   when(v2.migrate(any(Observable.class),any(DataMigration.ProgressObserver.class))).thenReturn(Observable.empty());
-  Set<CollectionDataMigration> collectionMigrations=new HashSet<>();
-  collectionMigrations.add(v1);
-  collectionMigrations.add(v2);
-  Set<ApplicationDataMigration> applicationDataMigrations=new HashSet<>();
-  DataMigrationManagerImpl migrationManager=new DataMigrationManagerImpl(serialization,applicationDataMigrations,collectionMigrations,allEntitiesInSystemObservable,allApplicationsObservable);
+  Set<DataMigration> applicationDataMigrations=new HashSet<>();
+  applicationDataMigrations.add(v1);
+  applicationDataMigrations.add(v2);
+  DataMigrationManagerImpl migrationManager=new DataMigrationManagerImpl(serialization,applicationDataMigrations,allEntitiesInSystemObservable,allApplicationsObservable);
   migrationManager.migrate();
   verify(v1).migrate(any(Observable.class),any(DataMigration.ProgressObserver.class));
   verify(v2,never()).migrate(any(Observable.class),any(DataMigration.ProgressObserver.class));

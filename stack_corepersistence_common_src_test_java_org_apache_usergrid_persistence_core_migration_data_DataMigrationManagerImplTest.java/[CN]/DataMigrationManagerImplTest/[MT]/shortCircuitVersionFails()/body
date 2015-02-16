@@ -9,11 +9,10 @@
   final ApplicationDataMigration v2=mock(ApplicationDataMigration.class,"mock2");
   when(v2.getType()).thenReturn(DataMigration.MigrationType.Entities);
   when(v2.getVersion()).thenReturn(3);
-  Set<ApplicationDataMigration> migrations=new HashSet<>();
+  Set<DataMigration> migrations=new HashSet<>();
   migrations.add(v1);
   migrations.add(v2);
-  Set<CollectionDataMigration> collectionDataMigrations=new HashSet<>();
-  DataMigrationManagerImpl migrationManager=new DataMigrationManagerImpl(serialization,migrations,collectionDataMigrations,allEntitiesInSystemObservable,allApplicationsObservable);
+  DataMigrationManagerImpl migrationManager=new DataMigrationManagerImpl(serialization,migrations,allEntitiesInSystemObservable,allApplicationsObservable);
   migrationManager.migrate();
   verify(v1).migrate(any(Observable.class),any(DataMigration.ProgressObserver.class));
   verify(v2,never()).migrate(any(Observable.class),any(DataMigration.ProgressObserver.class));
