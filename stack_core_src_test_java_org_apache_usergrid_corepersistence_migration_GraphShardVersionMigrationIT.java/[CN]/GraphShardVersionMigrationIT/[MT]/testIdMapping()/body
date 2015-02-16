@@ -34,17 +34,7 @@
     }
   }
 ).toBlocking().lastOrDefault(null);
-  allEntitiesInSystemObservable.getAllEntitiesInSystem(1000).doOnNext(new Action1<ApplicationEntityGroup>(){
-    @Override public void call(    final ApplicationEntityGroup entity){
-      try {
-        graphShardVersionMigration.migrate(entity,progressObserver).toBlocking().last();
-      }
- catch (      Throwable e) {
-        throw new RuntimeException(e);
-      }
-    }
-  }
-).toBlocking().last();
+  graphShardVersionMigration.migrate(applicationObservable.getAllApplicationScopes(),progressObserver).toBlocking().last();
   assertEquals("Newly saved entities encounterd",0,allEntities.size());
   assertFalse("Progress observer should not have failed",progressObserver.getFailed());
   assertTrue("Progress observer should have update messages",progressObserver.getUpdates().size() > 0);
