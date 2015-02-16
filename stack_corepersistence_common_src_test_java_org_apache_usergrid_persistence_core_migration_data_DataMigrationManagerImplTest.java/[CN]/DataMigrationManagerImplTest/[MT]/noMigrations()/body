@@ -1,8 +1,9 @@
 {
   final MigrationInfoSerialization serialization=mock(MigrationInfoSerialization.class);
   when(serialization.getCurrentVersion()).thenReturn(1);
-  Set<DataMigration> emptyMigration=new HashSet<>();
-  DataMigrationManagerImpl migrationManager=new DataMigrationManagerImpl(serialization,emptyMigration,allEntitiesInSystemObservable,allApplicationsObservable);
+  Set<CollectionDataMigration> collectionDataMigrations=new HashSet<>();
+  Set<ApplicationDataMigration> emptyMigration=new HashSet<>();
+  DataMigrationManagerImpl migrationManager=new DataMigrationManagerImpl(serialization,emptyMigration,collectionDataMigrations,allEntitiesInSystemObservable,allApplicationsObservable);
   migrationManager.migrate();
   verify(serialization,never()).setStatusMessage(any(String.class));
   verify(serialization,never()).setStatusCode(any(Integer.class));

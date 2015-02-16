@@ -6,48 +6,86 @@
     return;
   }
   LOG.info("Saved schema version is {}, max migration version is {}",currentVersion,migrationTreeMap.lastKey());
-  final NavigableMap<Integer,DataMigration> migrationsToRun=migrationTreeMap.tailMap(currentVersion,false);
+  final Collection<DataMigration> migrationsToRun=migrationTreeMap.tailMap(currentVersion,false).values();
   final CassandraProgressObserver observer=new CassandraProgressObserver();
-  Observable<DataMigration> migrations=Observable.from(migrationsToRun.values()).subscribeOn(Schedulers.io());
-  final Observable appIdObservable=applicationObservable.getAllApplicationIds();
-  Observable entityMigrations=migrations.filter(new Func1<DataMigration,Boolean>(){
+  final Observable<ApplicationScope> appScopeObservable=applicationObservable.getAllApplicationScopes();
+  final Observable<ApplicationEntityGroup> entitiesObservable=appScopeObservable.flatMap(new Func1<ApplicationScope,Observable<ApplicationEntityGroup>>(){
+    @Override public Observable<ApplicationEntityGroup> call(    ApplicationScope applicationScope){
+      return allEntitiesInSystemObservable.getAllEntitiesInSystem(appScopeObservable,1000);
+    }
+  }
+);
+  final Observable<ApplicationDataMigration> applicationMigrationsRx=Observable.from(migrationsToRun).filter(new Func1<DataMigration,Boolean>(){
     @Override public Boolean call(    DataMigration dataMigration){
-      return dataMigration.getType() == DataMigration.MigrationType.Entities;
+      return dataMigration instanceof ApplicationDataMigration;
     }
   }
-).flatMap(new Func1<DataMigration,Observable<ApplicationEntityGroup>>(){
-    @Override public Observable<ApplicationEntityGroup> call(    final DataMigration dataMigration){
-      return allEntitiesInSystemObservable.getAllEntitiesInSystem(appIdObservable,1000).doOnNext(new Action1<ApplicationEntityGroup>(){
-        @Override public void call(        ApplicationEntityGroup entityGroup){
-          runMigration(dataMigration,observer,entityGroup);
-        }
-      }
-);
+).map(new Func1<DataMigration,ApplicationDataMigration>(){
+    @Override public ApplicationDataMigration call(    DataMigration dataMigration){
+      return (ApplicationDataMigration)dataMigration;
     }
   }
 );
-  Observable otherMigrations=migrations.filter(new Func1<DataMigration,Boolean>(){
+  final Observable<CollectionDataMigration> collectionMigrationsRx=Observable.from(migrationsToRun).filter(new Func1<DataMigration,Boolean>(){
     @Override public Boolean call(    DataMigration dataMigration){
-      return dataMigration.getType() != DataMigration.MigrationType.Entities;
+      return dataMigration instanceof CollectionDataMigration;
     }
   }
-).flatMap(new Func1<DataMigration,Observable<?>>(){
-    @Override public Observable call(    final DataMigration dataMigration){
-      return appIdObservable.doOnNext(new Action1<Id>(){
-        @Override public void call(        Id id){
-          ApplicationScope scope=new ApplicationScopeImpl(id);
-          runMigration(dataMigration,observer,new ApplicationEntityGroup(scope,null));
-        }
-      }
+).map(new Func1<DataMigration,CollectionDataMigration>(){
+    @Override public CollectionDataMigration call(    DataMigration dataMigration){
+      return (CollectionDataMigration)dataMigration;
+    }
+  }
 );
+  Observable applications=applicationMigrationsRx.doOnNext(new Action1<ApplicationDataMigration>(){
+    @Override public void call(    ApplicationDataMigration dataMigration){
+      migrationInfoSerialization.setStatusCode(StatusCode.RUNNING.status);
+      final int migrationVersion=dataMigration.getVersion();
+      LOG.info("Running migration version {}",migrationVersion);
+      observer.update(migrationVersion,"Starting migration");
+      try {
+        dataMigration.migrate(appScopeObservable,observer).toBlocking().lastOrDefault(null);
+      }
+ catch (      Throwable throwable) {
+        observer.failed(migrationVersion,"Exception thrown during migration",throwable);
+        LOG.error("Unable to migrate to version {}.",migrationVersion,throwable);
+        throw new RuntimeException(throwable);
+      }
+      if (observer.failed) {
+        return;
+      }
+      migrationInfoSerialization.setVersion(migrationVersion);
+      observer.update(migrationVersion,"Completed successfully");
+    }
+  }
+);
+  Observable entities=collectionMigrationsRx.doOnNext(new Action1<CollectionDataMigration>(){
+    @Override public void call(    CollectionDataMigration dataMigration){
+      migrationInfoSerialization.setStatusCode(StatusCode.RUNNING.status);
+      final int migrationVersion=dataMigration.getVersion();
+      LOG.info("Running migration version {}",migrationVersion);
+      observer.update(migrationVersion,"Starting migration");
+      try {
+        dataMigration.migrate(entitiesObservable,observer).toBlocking().lastOrDefault(null);
+      }
+ catch (      Throwable throwable) {
+        observer.failed(migrationVersion,"Exception thrown during migration",throwable);
+        LOG.error("Unable to migrate to version {}.",migrationVersion,throwable);
+        throw new RuntimeException(throwable);
+      }
+      if (observer.failed) {
+        return;
+      }
+      migrationInfoSerialization.setVersion(migrationVersion);
+      observer.update(migrationVersion,"Completed successfully");
     }
   }
 );
   try {
-    Observable.merge(entityMigrations,otherMigrations).subscribeOn(Schedulers.io()).toBlocking().lastOrDefault(null);
+    Observable.merge(applications,entities).subscribeOn(Schedulers.io()).toBlocking().lastOrDefault(null);
     migrationInfoSerialization.setStatusCode(StatusCode.COMPLETE.status);
   }
  catch (  Exception e) {
-    LOG.error("Migration Failed");
+    LOG.error("Migration Failed",e);
   }
 }

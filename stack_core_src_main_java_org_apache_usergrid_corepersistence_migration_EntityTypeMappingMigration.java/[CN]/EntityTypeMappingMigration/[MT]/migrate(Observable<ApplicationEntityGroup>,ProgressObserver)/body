@@ -1,0 +1,22 @@
+{
+  final AtomicLong atomicLong=new AtomicLong();
+  return applicationEntityGroupObservable.flatMap(new Func1<ApplicationEntityGroup,Observable<Long>>(){
+    @Override public Observable call(    final ApplicationEntityGroup applicationEntityGroup){
+      final MapScope ms=CpNamingUtils.getEntityTypeMapScope(applicationEntityGroup.applicationScope.getApplication());
+      final MapManager mapManager=managerCache.getMapManager(ms);
+      return Observable.from(applicationEntityGroup.entityIds).subscribeOn(Schedulers.io()).map(new Func1<EntityIdScope,Long>(){
+        @Override public Long call(        EntityIdScope idScope){
+          final UUID entityUuid=idScope.getId().getUuid();
+          final String entityType=idScope.getId().getType();
+          mapManager.putString(entityUuid.toString(),entityType);
+          if (atomicLong.incrementAndGet() % 100 == 0) {
+            updateStatus(atomicLong,observer);
+          }
+          return atomicLong.get();
+        }
+      }
+);
+    }
+  }
+);
+}

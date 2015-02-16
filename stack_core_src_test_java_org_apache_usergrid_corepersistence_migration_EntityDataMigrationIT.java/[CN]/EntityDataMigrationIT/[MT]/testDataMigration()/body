@@ -30,17 +30,8 @@
 ).toBlocking().lastOrDefault(null);
   assertEquals("Newly saved entities encountered",0,createdEntityIds.size());
   assertTrue("Saved new entities",savedEntities.size() > 0);
-  allEntitiesInSystemObservable.getAllEntitiesInSystem(1000).doOnNext(new Action1<ApplicationEntityGroup>(){
-    @Override public void call(    ApplicationEntityGroup applicationEntityGroup){
-      try {
-        entityDataMigration.migrate(applicationEntityGroup,progressObserver).toBlocking().last();
-      }
- catch (      Throwable e) {
-        throw new RuntimeException(e);
-      }
-    }
-  }
-).toBlocking().last();
+  rx.Observable<ApplicationEntityGroup> oRx=allEntitiesInSystemObservable.getAllEntitiesInSystem(applicationObservable.getAllApplicationScopes(),1000);
+  entityDataMigration.migrate(oRx,progressObserver).toBlocking().last();
   assertFalse("Progress observer should not have failed",progressObserver.getFailed());
   assertTrue("Progress observer should have update messages",progressObserver.getUpdates().size() > 0);
   migrationInfoSerialization.setStatusCode(DataMigrationManagerImpl.StatusCode.COMPLETE.status);
