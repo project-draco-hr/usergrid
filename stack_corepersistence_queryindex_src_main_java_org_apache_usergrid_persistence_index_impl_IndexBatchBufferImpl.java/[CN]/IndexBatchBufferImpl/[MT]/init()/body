@@ -1,0 +1,21 @@
+{
+  clearBulk();
+  Observable.create(producer).buffer(10).doOnNext(new Action1<List<RequestBuilderContainer>>(){
+    @Override public void call(    List<RequestBuilderContainer> builderContainerList){
+      System.out.println("test test!!!");
+      for (      RequestBuilderContainer container : builderContainerList) {
+        ShardReplicationOperationRequestBuilder builder=container.getBuilder();
+        if (builder instanceof IndexRequestBuilder) {
+          bulkRequest.add((IndexRequestBuilder)builder);
+          continue;
+        }
+        if (builder instanceof DeleteRequestBuilder) {
+          bulkRequest.add((DeleteRequestBuilder)builder);
+          continue;
+        }
+      }
+      execute();
+    }
+  }
+).subscribe();
+}
