@@ -1,19 +1,19 @@
 {
-  clearBulk();
-  Observable.create(producer).buffer(10).doOnNext(new Action1<List<RequestBuilderContainer>>(){
-    @Override public void call(    List<RequestBuilderContainer> builderContainerList){
-      System.out.println("test test!!!");
-      for (      RequestBuilderContainer container : builderContainerList) {
-        ShardReplicationOperationRequestBuilder builder=container.getBuilder();
-        if (builder instanceof IndexRequestBuilder) {
-          bulkRequest.add((IndexRequestBuilder)builder);
-          continue;
-        }
-        if (builder instanceof DeleteRequestBuilder) {
-          bulkRequest.add((DeleteRequestBuilder)builder);
-          continue;
-        }
+  this.producerObservable=Observable.create(producer).doOnNext(new Action1<RequestBuilderContainer>(){
+    @Override public void call(    RequestBuilderContainer container){
+      ShardReplicationOperationRequestBuilder builder=container.getBuilder();
+      if (builder instanceof IndexRequestBuilder) {
+        bulkRequest.add((IndexRequestBuilder)builder);
       }
+      if (builder instanceof DeleteRequestBuilder) {
+        bulkRequest.add((DeleteRequestBuilder)builder);
+      }
+    }
+  }
+).buffer(timeout,TimeUnit.MILLISECONDS,bufferSize).doOnNext(new Action1<List<RequestBuilderContainer>>(){
+    @Override public void call(    List<RequestBuilderContainer> builderContainerList){
+      flushTimer.time();
+      metricsFactory.getCounter(IndexBatchBuffer.class,"index.buffer.size").dec(builderContainerList.size());
       execute();
     }
   }

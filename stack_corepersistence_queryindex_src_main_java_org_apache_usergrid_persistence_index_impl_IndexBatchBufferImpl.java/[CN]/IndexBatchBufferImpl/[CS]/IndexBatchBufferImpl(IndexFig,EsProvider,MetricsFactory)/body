@@ -1,0 +1,13 @@
+{
+  this.metricsFactory=metricsFactory;
+  this.client=provider.getClient();
+  this.failureMonitor=new FailureMonitorImpl(config,provider);
+  this.config=config;
+  this.producer=new Producer();
+  this.refresh=config.isForcedRefresh();
+  this.timeout=config.getIndexBufferTimeout();
+  this.bufferSize=config.getIndexBufferSize();
+  this.flushTimer=metricsFactory.getTimer(IndexBatchBuffer.class,"index.buffer.flush");
+  clearBulk();
+  init();
+}
