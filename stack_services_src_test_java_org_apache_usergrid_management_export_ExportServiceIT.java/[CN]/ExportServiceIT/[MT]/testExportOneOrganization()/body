@@ -39,7 +39,12 @@
   exportService.doExport(jobExecution);
   File exportedFile=new File(exportFileName);
   exportedFile.deleteOnExit();
-  JSONParser parser=new JSONParser();
-  org.json.simple.JSONArray a=(org.json.simple.JSONArray)parser.parse(new FileReader(exportedFile));
-  assertEquals(23,a.size());
+  TypeReference<HashMap<String,Object>> typeRef=new TypeReference<HashMap<String,Object>>(){
+  }
+;
+  ObjectMapper mapper=new ObjectMapper();
+  Map<String,Object> jsonMap=mapper.readValue(new FileReader(exportedFile),typeRef);
+  Map collectionsMap=(Map)jsonMap.get("collections");
+  List collectionList=(List)collectionsMap.get("users");
+  assertEquals(3,collectionList.size());
 }
