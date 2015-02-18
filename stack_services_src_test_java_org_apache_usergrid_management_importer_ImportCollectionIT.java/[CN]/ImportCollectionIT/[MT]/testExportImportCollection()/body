@@ -1,12 +1,13 @@
 {
   try {
-    final EntityManager emApp1=setup.getEmf().getEntityManager(applicationId);
+    final UUID targetAppId=setup.getMgmtSvc().createApplication(organization.getUuid(),"target" + RandomStringUtils.randomAlphanumeric(10)).getId();
+    final EntityManager emApp1=setup.getEmf().getEntityManager(targetAppId);
     Map<UUID,Entity> thingsMap=new HashMap<>();
     List<Entity> things=new ArrayList<>();
     createTestEntities(emApp1,thingsMap,things,"thing");
     deleteBucket();
     exportCollection(emApp1,"things");
-    final UUID appId2=setup.getMgmtSvc().createApplication(organization.getUuid(),"second").getId();
+    final UUID appId2=setup.getMgmtSvc().createApplication(organization.getUuid(),"second" + RandomStringUtils.randomAlphanumeric(10)).getId();
     final EntityManager emApp2=setup.getEmf().getEntityManager(appId2);
     importCollections(emApp2);
     logger.debug("\n\nCheck connections\n");
