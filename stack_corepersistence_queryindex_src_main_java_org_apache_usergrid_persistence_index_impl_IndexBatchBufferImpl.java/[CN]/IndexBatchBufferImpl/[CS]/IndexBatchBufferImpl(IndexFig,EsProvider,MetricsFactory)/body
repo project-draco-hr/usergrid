@@ -1,14 +1,11 @@
 {
   this.metricsFactory=metricsFactory;
-  this.client=provider.getClient();
-  this.failureMonitor=new FailureMonitorImpl(config,provider);
-  this.config=config;
-  this.producer=new Producer();
-  this.refresh=config.isForcedRefresh();
-  this.timeout=config.getIndexBufferTimeout();
-  this.bufferSize=config.getIndexBufferSize();
   this.flushTimer=metricsFactory.getTimer(IndexBatchBuffer.class,"index.buffer.flush");
   this.indexSizeCounter=metricsFactory.getCounter(IndexBatchBuffer.class,"index.buffer.size");
-  blockingQueue=new ArrayBlockingQueue(500);
-  init();
+  this.config=config;
+  this.blockingQueue=new ArrayBlockingQueue<>(config.getIndexBatchSize());
+  this.failureMonitor=new FailureMonitorImpl(config,provider);
+  this.producer=new Producer();
+  this.client=provider.getClient();
+  consumer();
 }

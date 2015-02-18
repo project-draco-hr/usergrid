@@ -1,39 +1,26 @@
 {
-  try {
-    BulkRequestBuilder bulkRequest=client.prepareBulk();
-    bulkRequest.setRefresh(refresh);
-    int count=bufferSize;
-    while (blockingQueue.size() > 0 && count-- > 0) {
-      RequestBuilderContainer container=(RequestBuilderContainer)blockingQueue.take();
-      ShardReplicationOperationRequestBuilder builder=container.getBuilder();
-      if (builder instanceof IndexRequestBuilder) {
-        bulkRequest.add((IndexRequestBuilder)builder);
-      }
-      if (builder instanceof DeleteRequestBuilder) {
-        bulkRequest.add((DeleteRequestBuilder)builder);
-      }
+  if (blockingQueue.size() == 0) {
+    return;
+  }
+  BulkRequestBuilder bulkRequest=initRequest(refresh);
+  Collection<RequestBuilderContainer> containerCollection=new ArrayList<>(config.getIndexBatchSize());
+  blockingQueue.drainTo(containerCollection);
+  int count=0;
+  for (  RequestBuilderContainer container : containerCollection) {
+    ShardReplicationOperationRequestBuilder builder=container.getBuilder();
+    if (builder instanceof IndexRequestBuilder) {
+      bulkRequest.add((IndexRequestBuilder)builder);
     }
-    if (bulkRequest.numberOfActions() == 0) {
-      return;
+    if (builder instanceof DeleteRequestBuilder) {
+      bulkRequest.add((DeleteRequestBuilder)builder);
     }
-    final BulkResponse responses;
-    try {
-      responses=bulkRequest.execute().actionGet();
-    }
- catch (    Throwable t) {
-      log.error("Unable to communicate with elasticsearch");
-      failureMonitor.fail("Unable to execute batch",t);
-      throw t;
-    }
-    failureMonitor.success();
-    for (    BulkItemResponse response : responses) {
-      if (response.isFailed()) {
-        throw new RuntimeException("Unable to index documents.  Errors are :" + response.getFailure().getMessage());
-      }
+    if (count++ == config.getIndexBatchSize()) {
+      sendRequest(bulkRequest);
+      bulkRequest=initRequest(refresh);
     }
   }
- catch (  InterruptedException ie) {
-    log.error("Problem taking messages off of queue",ie);
-    throw new RuntimeException(ie);
+  sendRequest(bulkRequest);
+  for (  RequestBuilderContainer container : containerCollection) {
+    container.done();
   }
 }

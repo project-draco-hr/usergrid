@@ -1,0 +1,14 @@
+{
+  this.consumer=Observable.create(producer).buffer(config.getIndexBufferTimeout(),TimeUnit.MILLISECONDS,config.getIndexBufferSize()).doOnNext(new Action1<List<RequestBuilderContainer>>(){
+    @Override public void call(    List<RequestBuilderContainer> containerList){
+      for (      RequestBuilderContainer container : containerList) {
+        blockingQueue.add(container);
+      }
+      flushTimer.time();
+      indexSizeCounter.dec(containerList.size());
+      execute(config.isForcedRefresh());
+    }
+  }
+);
+  consumer.subscribe();
+}
