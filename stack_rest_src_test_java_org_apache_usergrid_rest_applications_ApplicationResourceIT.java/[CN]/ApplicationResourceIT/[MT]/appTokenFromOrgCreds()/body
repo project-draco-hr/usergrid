@@ -1,14 +1,11 @@
 {
-  String orgName=clientSetup.getOrganizationName().toLowerCase();
-  String appName=clientSetup.getAppName().toLowerCase();
-  OrganizationResource orgResource=clientSetup.getRestClient().management().orgs().organization(clientSetup.getOrganizationName());
-  Credentials orgCredentials=orgResource.credentials().get();
+  Credentials orgCredentials=getOrgCredentials();
   String clientId=orgCredentials.getClientId();
   String clientSecret=orgCredentials.getClientSecret();
-  TokenResponse tokenResponse=resource().path(String.format("/%s/%s/token",orgName,appName)).queryParam("client_id",clientId).queryParam("client_secret",clientSecret).queryParam("grant_type","client_credentials").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(TokenResponse.class);
-  String accessToken=tokenResponse.getAccessToken();
-  int ttl=Long.valueOf(tokenResponse.getExpiresIn()).intValue();
+  Token token=this.app().token().post(new Token("client_credentials",clientId,clientSecret));
+  assertNotNull(token);
+  int ttl=token.getExpirationDate().intValue();
   assertEquals(604800,ttl);
-  ApiResponse apiResponse=resource().path(String.format("/%s/%s/users",orgName,appName)).queryParam("access_token",accessToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(ApiResponse.class);
-  assertNull(apiResponse.getError());
+  ApiResponse response=this.app().collection("users").getResource(true,token).get(ApiResponse.class);
+  assertNull(response.getError());
 }

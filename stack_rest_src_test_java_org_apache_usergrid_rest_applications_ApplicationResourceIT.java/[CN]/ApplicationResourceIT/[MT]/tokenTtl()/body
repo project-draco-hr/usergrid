@@ -7,17 +7,18 @@
   User user=new User(username,name,username + "@usergrid.org","password");
   Entity entity=this.app().collection("users").post(user);
   assertNotNull(entity);
-  ApiResponse apiResponse=resource().path(String.format("/%s/%s/token",orgName,appName)).queryParam("grant_type","password").queryParam("username",username).queryParam("password","password").queryParam("ttl",String.valueOf(ttl)).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(ApiResponse.class);
+  refreshIndex();
+  Token apiResponse=resource().path(String.format("/%s/%s/token",orgName,appName)).queryParam("grant_type","password").queryParam("username",username).queryParam("password","password").queryParam("ttl",String.valueOf(ttl)).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(Token.class);
   long startTime=System.currentTimeMillis();
   String token=apiResponse.getAccessToken();
   assertNotNull(token);
-  long expires_in=Long.parseLong(apiResponse.getProperties().get("expires_in").toString());
+  long expires_in=apiResponse.getExpirationDate();
   assertEquals(ttl,expires_in * 1000);
   entity=this.app().collection("users").entity(entity).get(new QueryParameters().addParam("access_token",token),false);
-  assertEquals(username + "@usergrid.org",(String)entity.get("email"));
+  assertEquals(username + "@usergrid.org",entity.get("email"));
   Thread.sleep(ttl - (System.currentTimeMillis() - startTime) + 1000);
   try {
-    entity=this.app().collection("users").entity(entity).get(new QueryParameters().addParam("access_token",token),false);
+    this.app().collection("users").entity(entity).get(new QueryParameters().addParam("access_token",token),false);
     fail("The expired token should cause an exception");
   }
  catch (  UniformInterfaceException uie) {

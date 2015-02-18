@@ -1,11 +1,6 @@
 {
-  Credentials appCredentials=this.app().credentials().get();
-  String clientId=appCredentials.getClientId();
-  String clientSecret=appCredentials.getClientSecret();
-  QueryParameters params=new QueryParameters();
-  params.addParam("client_id",clientId);
-  params.addParam("client_secret",clientSecret);
-  Collection users=this.app().collection("users").get(params,false);
-  assertNotNull(users);
-  assertNull(users.getResponse().getError());
+  Credentials appCredentials=getAppCredentials();
+  ApiResponse apiResponse=this.app().getResource(false).queryParam("grant_type","client_credentials").queryParam("client_id",appCredentials.getClientId()).queryParam("client_secret",appCredentials.getClientSecret()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(ApiResponse.class);
+  assertNotNull(apiResponse);
+  assertNull(apiResponse.getError());
 }

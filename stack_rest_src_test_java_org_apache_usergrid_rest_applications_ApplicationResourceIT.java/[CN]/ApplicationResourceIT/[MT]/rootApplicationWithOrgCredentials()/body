@@ -1,15 +1,12 @@
 {
   String orgName=clientSetup.getOrganizationName().toLowerCase();
   String appName=clientSetup.getAppName().toLowerCase();
-  OrganizationResource orgResource=clientSetup.getRestClient().management().orgs().organization(clientSetup.getOrganizationName());
-  Credentials orgCredentials=orgResource.credentials().get();
-  String clientId=orgCredentials.getClientId();
-  String clientSecret=orgCredentials.getClientSecret();
-  ApiResponse apiResponse=resource().path(resource().path(String.format("/%s/%s",orgName,appName)).getURI().getPath()).queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(ApiResponse.class);
+  Credentials orgCredentials=getOrgCredentials();
+  ApiResponse apiResponse=this.app().getResource(false).queryParam("grant_type","client_credentials").queryParam("client_id",orgCredentials.getClientId()).queryParam("client_secret",orgCredentials.getClientSecret()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(ApiResponse.class);
   assertEquals(apiResponse.getUri(),String.format("http://sometestvalue/%s/%s",orgName,appName));
   Application application=new Application(apiResponse);
-  Map<String,Object> roles=((Map<String,Object>)application.getMap("metadata").get("collections").get("roles"));
   assertEquals(String.format("%s/%s",orgName,appName),application.get("name"));
-  assertEquals("Roles",(String)roles.get("title"));
-  assertEquals(3,Integer.parseInt(roles.get("count").toString()));
+  apiResponse=this.app().collection("roles").getResource(false).queryParam("grant_type","client_credentials").queryParam("client_id",orgCredentials.getClientId()).queryParam("client_secret",orgCredentials.getClientSecret()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(ApiResponse.class);
+  Collection roles=new Collection(apiResponse);
+  assertEquals(3,roles.getNumOfEntities());
 }

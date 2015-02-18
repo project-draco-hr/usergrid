@@ -1,12 +1,6 @@
 {
-  OrganizationResource orgResource=clientSetup.getRestClient().management().orgs().organization(clientSetup.getOrganizationName());
-  Credentials orgCredentials=orgResource.credentials().get();
-  String clientId=orgCredentials.getClientId();
-  String clientSecret=orgCredentials.getClientSecret();
-  QueryParameters params=new QueryParameters();
-  params.addParam("client_id",clientId);
-  params.addParam("client_secret",clientSecret);
-  Collection users=this.app().collection("users").get(params,false);
-  assertNotNull(users);
-  assertNull(users.getResponse().getError());
+  Credentials orgCredentials=getOrgCredentials();
+  ApiResponse apiResponse=this.org().app(clientSetup.getAppName()).getResource(false).queryParam("grant_type","client_credentials").queryParam("client_id",orgCredentials.getClientId()).queryParam("client_secret",orgCredentials.getClientSecret()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(ApiResponse.class);
+  assertNotNull(apiResponse);
+  assertNull(apiResponse.getError());
 }

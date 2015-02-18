@@ -1,17 +1,10 @@
 {
-  String orgName=clientSetup.getOrganizationName().toLowerCase();
-  String appName=clientSetup.getAppName().toLowerCase();
-  OrganizationResource orgResource=clientSetup.getRestClient().management().orgs().organization(orgName);
-  Credentials orgCredentials=orgResource.credentials().get();
-  String clientId=orgCredentials.getClientId();
   Form payload=new Form();
   payload.add("username","wrong_user");
   payload.add("password","wrong_password");
   payload.add("response_type","code");
-  payload.add("client_id",clientId);
   payload.add("scope","none");
   payload.add("redirect_uri","http://www.my_test.com");
-  String apiResponse=resource().path(String.format("/%s/%s/authorize",orgName,appName)).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).post(String.class,payload);
-  logger.debug("result: " + apiResponse);
+  String apiResponse=clientSetup.getRestClient().management().authorize().post(String.class,payload);
   assertTrue(apiResponse.contains("Username or password do not match"));
 }

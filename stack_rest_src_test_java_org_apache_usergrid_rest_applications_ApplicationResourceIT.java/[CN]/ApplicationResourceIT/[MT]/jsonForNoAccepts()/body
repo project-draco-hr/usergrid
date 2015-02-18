@@ -1,10 +1,6 @@
 {
-  OrganizationResource orgResource=clientSetup.getRestClient().management().orgs().organization(clientSetup.getOrganizationName());
-  CollectionEndpoint usersResource=this.app().collection("users");
-  Credentials orgCredentials=orgResource.credentials().get();
-  String clientId=orgCredentials.getClientId();
-  String clientSecret=orgCredentials.getClientSecret();
-  WebResource.Builder builder=resource().path(usersResource.getResource().getURI().getPath()).queryParam("client_id",clientId).queryParam("client_secret",clientSecret).type(MediaType.APPLICATION_JSON_TYPE);
+  Credentials orgCredentials=getOrgCredentials();
+  WebResource.Builder builder=this.app().collection("users").getResource(false).queryParam("grant_type","client_credentials").queryParam("client_id",orgCredentials.getClientId()).queryParam("client_secret",orgCredentials.getClientSecret()).type(MediaType.APPLICATION_JSON_TYPE);
   ApiResponse apiResponse=builder.get(ApiResponse.class);
   Collection users=new Collection(apiResponse);
   assertNotNull(users);

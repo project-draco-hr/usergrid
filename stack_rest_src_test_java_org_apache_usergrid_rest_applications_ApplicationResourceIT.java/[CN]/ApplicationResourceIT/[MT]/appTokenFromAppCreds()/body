@@ -1,15 +1,13 @@
 {
-  String orgName=clientSetup.getOrganizationName().toLowerCase();
-  String appName=clientSetup.getAppName().toLowerCase();
-  Credentials appCredentials=this.app().credentials().get();
+  Credentials appCredentials=getAppCredentials();
   String clientId=appCredentials.getClientId();
   String clientSecret=appCredentials.getClientSecret();
-  TokenResponse tokenResponse=resource().path(String.format("/%s/%s/token",orgName,appName)).queryParam("client_id",clientId).queryParam("client_secret",clientSecret).queryParam("grant_type","client_credentials").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(TokenResponse.class);
-  assertNotNull(tokenResponse);
-  String accessToken=tokenResponse.getAccessToken();
-  int ttl=(int)tokenResponse.getExpiresIn();
+  Token token=this.app().token().post(new Token("client_credentials",clientId,clientSecret));
+  assertNotNull(token);
+  assertNotNull(token.getAccessToken());
+  assertNotNull(token.getExpirationDate());
+  int ttl=token.getExpirationDate().intValue();
   assertEquals(604800,ttl);
-  refreshIndex();
-  Collection users=resource().path(String.format("/%s/%s/users",orgName,appName)).queryParam("access_token",accessToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(Collection.class);
-  assertNotNull(users);
+  ApiResponse response=this.app().collection("users").getResource(true,token).get(ApiResponse.class);
+  assertNull(response.getError());
 }
