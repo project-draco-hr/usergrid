@@ -6,20 +6,19 @@
  catch (  Exception e) {
     throw new DataCorruptionException("Unable to de-serialze entity",e);
   }
-  FieldBufferParser parser=new FieldBufferParser(fieldBuffer);
-  byte version=parser.readByte();
+  final FieldBufferParser parser=new FieldBufferParser(fieldBuffer);
+  final byte version=parser.readByte();
   if (VERSION != version) {
     throw new UnsupportedOperationException("A version of type " + version + " is unsupported");
   }
-  byte state=parser.readByte();
+  final UUID entityVersion=parser.readUUID();
+  final byte state=parser.readByte();
   if (STATE_DELETED == state) {
-    return new MvccEntitySerializationStrategyImpl.EntityWrapper(MvccEntity.Status.COMPLETE,Optional.<Entity>absent());
+    return new EntityWrapper(MvccEntity.Status.COMPLETE,entityVersion,Optional.<Entity>absent());
   }
   EntityMap storedEntity;
   byte[] array=parser.readBytes();
-  String s="";
   try {
-    s=Arrays.toString(array);
     storedEntity=MAPPER.readValue(array,EntityMap.class);
   }
  catch (  Exception e) {
@@ -27,8 +26,5 @@
   }
   Entity entityObject=Entity.fromMap(storedEntity);
   final Optional<Entity> entity=Optional.of(entityObject);
-  if (STATE_COMPLETE == state) {
-    return new MvccEntitySerializationStrategyImpl.EntityWrapper(MvccEntity.Status.COMPLETE,entity);
-  }
-  return new MvccEntitySerializationStrategyImpl.EntityWrapper(MvccEntity.Status.PARTIAL,entity);
+  return new EntityWrapper(MvccEntity.Status.COMPLETE,entityVersion,entity);
 }
