@@ -2,7 +2,14 @@
   final ApplicationScope applicationScope=em.getApplicationScope();
   final GraphManager gm=em.getManagerCache().getGraphManager(applicationScope);
   logger.debug("Loading edges types from {}:{}\n   scope {}:{}",new Object[]{applicationId.getType(),applicationId.getUuid(),applicationScope.getApplication().getType(),applicationScope.getApplication().getUuid()});
-  Observable<String> edgeTypes=gm.getEdgeTypesFromSource(new SimpleSearchEdgeType(applicationId,CpNamingUtils.EDGE_COLL_SUFFIX,null));
+  final String edgeType;
+  if (collectionName != null) {
+    edgeType=CpNamingUtils.EDGE_COLL_SUFFIX;
+  }
+ else {
+    edgeType=CpNamingUtils.getEdgeTypeFromCollectionName(collectionName);
+  }
+  Observable<String> edgeTypes=gm.getEdgeTypesFromSource(new SimpleSearchEdgeType(applicationId,edgeType,null));
   edgeTypes.flatMap(new Func1<String,Observable<Edge>>(){
     @Override public Observable<Edge> call(    final String edgeType){
       logger.debug("Loading edges of type {} from node {}",edgeType,applicationId);
