@@ -1,6 +1,8 @@
 {
   logger.info("Started rebuildIndex()");
-  final EntityManager em=app.getEntityManager();
+  String rand=RandomStringUtils.randomAlphanumeric(5);
+  final UUID appId=setup.createApplication("org_" + rand,"app_" + rand);
+  final EntityManager em=setup.getEmf().getEntityManager(appId);
   Map<String,Object> entityMap=new HashMap<String,Object>(){
 {
       put("key1",1000);
@@ -63,13 +65,12 @@
   logger.info("Created {} entities",entityCount);
   em.refreshIndex();
   logger.debug("Read the data");
-  readData("testTypes",entityCount);
+  readData(em,"testTypes",entityCount,3);
   logger.debug("Deleting app index and system app index");
-  deleteIndex(CpNamingUtils.SYSTEM_APP_ID);
   deleteIndex(em.getApplicationId());
   logger.debug("Reading data, should fail this time ");
   try {
-    readData("testTypes",entityCount);
+    readData(em,"testTypes",entityCount,3);
     fail("should have failed to read data");
   }
  catch (  Exception expected) {
@@ -103,5 +104,5 @@
     logger.error("Error rebuilding index",ex);
     fail();
   }
-  readData("testTypes",entityCount);
+  readData(em,"testTypes",entityCount,3);
 }
