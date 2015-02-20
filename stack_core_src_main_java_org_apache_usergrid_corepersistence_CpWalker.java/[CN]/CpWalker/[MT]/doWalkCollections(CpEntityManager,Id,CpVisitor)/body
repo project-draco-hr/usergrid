@@ -9,27 +9,26 @@
       return gm.loadEdgesFromSource(new SimpleSearchByEdgeType(applicationId,edgeType,Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING,null));
     }
   }
-).doOnNext(new Action1<Edge>(){
-    @Override public void call(    Edge edge){
-      logger.info("Re-indexing edge {}",edge);
-      EntityRef targetNodeEntityRef=new SimpleEntityRef(edge.getTargetNode().getType(),edge.getTargetNode().getUuid());
-      Entity entity;
-      try {
-        entity=em.get(targetNodeEntityRef);
+).parallel(new Func1<Observable<Edge>,Observable<Edge>>(){
+    @Override public Observable<Edge> call(    final Observable<Edge> edgeObservable){
+      return edgeObservable.doOnNext(new Action1<Edge>(){
+        @Override public void call(        Edge edge){
+          logger.info("Re-indexing edge {}",edge);
+          EntityRef targetNodeEntityRef=new SimpleEntityRef(edge.getTargetNode().getType(),edge.getTargetNode().getUuid());
+          Entity entity;
+          try {
+            entity=em.get(targetNodeEntityRef);
+          }
+ catch (          Exception ex) {
+            logger.error("Error getting sourceEntity {}:{}, continuing",targetNodeEntityRef.getType(),targetNodeEntityRef.getUuid());
+            return;
+          }
+          String collName=CpNamingUtils.getCollectionName(edge.getType());
+          visitor.visitCollectionEntry(em,collName,entity);
+        }
       }
- catch (      Exception ex) {
-        logger.error("Error getting sourceEntity {}:{}, continuing",targetNodeEntityRef.getType(),targetNodeEntityRef.getUuid());
-        return;
-      }
-      String collName=CpNamingUtils.getCollectionName(edge.getType());
-      visitor.visitCollectionEntry(em,collName,entity);
-      try {
-        Thread.sleep(writeDelayMs);
-      }
- catch (      InterruptedException e) {
-        throw new RuntimeException("Unable to wait");
-      }
+);
     }
   }
-).toBlocking().lastOrDefault(null);
+,Schedulers.io()).toBlocking().lastOrDefault(null);
 }
