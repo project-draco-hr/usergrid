@@ -1,18 +1,22 @@
 {
   deleteBucket();
+  File cwd=new File(".");
+  String basePath=System.getProperty("target.directory") + File.separator + "test-classes"+ File.separator;
   List<String> filenames=new ArrayList<>(1);
-  filenames.add("testimport-bad-json.json");
+  filenames.add(basePath + "testimport-bad-json.json");
   S3Upload s3Upload=new S3Upload();
   s3Upload.copyToS3(System.getProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR),System.getProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR),bucketName,filenames);
-  final EntityManager emDefaultApp=setup.getEmf().getEntityManager(applicationId);
-  UUID importId=importCollections(emDefaultApp);
-  List<Entity> importedThings=emDefaultApp.getCollection(emDefaultApp.getApplicationId(),"things",null,Level.ALL_PROPERTIES).getEntities();
+  String appName="import-test-" + RandomStringUtils.randomAlphanumeric(10);
+  UUID appId=setup.getMgmtSvc().createApplication(organization.getUuid(),appName).getId();
+  final EntityManager em=setup.getEmf().getEntityManager(appId);
+  UUID importId=importCollections(em);
+  List<Entity> importedThings=em.getCollection(em.getApplicationId(),"things",null,Level.ALL_PROPERTIES).getEntities();
   assertTrue("No entities should have been imported",importedThings.isEmpty());
   ImportService importService=setup.getImportService();
-  Results results=importService.getFileImports(applicationId,importId,null,null);
+  Results results=importService.getFileImports(appId,importId,null,null);
   assertEquals("There is one",1,results.size());
   assertEquals("Entity is FileImport object",FileImport.class,results.getEntity().getClass());
   FileImport fileImport=(FileImport)results.getEntity();
-  assertEquals("File name is correct","testimport-bad-json.json",fileImport.getFileName());
+  assertTrue(fileImport.getFileName().endsWith("testimport-bad-json.json"));
   assertTrue("Error message is correct",fileImport.getErrorMessage().startsWith("Unexpected character ('<' (code 60))"));
 }

@@ -1,13 +1,16 @@
 {
   deleteBucket();
+  String basePath=System.getProperty("target.directory") + File.separator + "test-classes"+ File.separator;
   List<String> filenames=new ArrayList<>(3);
-  filenames.add("testimport-with-connections.json");
-  filenames.add("testimport-qtmagics.json");
-  filenames.add("testimport-bad-connection.json");
-  filenames.add("testimport-bad-json.json");
+  filenames.add(basePath + "testimport-with-connections.json");
+  filenames.add(basePath + "testimport-qtmagics.json");
+  filenames.add(basePath + "testimport-bad-connection.json");
+  filenames.add(basePath + "testimport-bad-json.json");
   S3Upload s3Upload=new S3Upload();
   s3Upload.copyToS3(System.getProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR),System.getProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR),bucketName,filenames);
-  final EntityManager emDefaultApp=setup.getEmf().getEntityManager(applicationId);
+  String targetAppName="import-test-target-" + RandomStringUtils.randomAlphanumeric(10);
+  UUID targetAppId=setup.getMgmtSvc().createApplication(organization.getUuid(),targetAppName).getId();
+  final EntityManager emDefaultApp=setup.getEmf().getEntityManager(targetAppId);
   UUID importId=importCollections(emDefaultApp);
 {
     List<Entity> importedThings=emDefaultApp.getCollection(emDefaultApp.getApplicationId(),"connfails",null,Level.ALL_PROPERTIES).getEntities();
@@ -31,6 +34,6 @@
   }
   Thread.sleep(3000);
   ImportService importService=setup.getImportService();
-  Results results=importService.getFileImports(applicationId,importId,null,null);
+  Results results=importService.getFileImports(targetAppId,importId,null,null);
   assertEquals("There four file imports",4,results.size());
 }

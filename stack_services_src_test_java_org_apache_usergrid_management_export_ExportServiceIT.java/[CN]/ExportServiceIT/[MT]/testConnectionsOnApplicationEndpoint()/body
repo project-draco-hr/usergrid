@@ -30,22 +30,27 @@
   JobExecution jobExecution=mock(JobExecution.class);
   when(jobExecution.getJobData()).thenReturn(jobData);
   exportService.doExport(jobExecution);
-  JSONParser parser=new JSONParser();
-  org.json.simple.JSONArray a=(org.json.simple.JSONArray)parser.parse(new FileReader(f));
+  TypeReference<HashMap<String,Object>> typeRef=new TypeReference<HashMap<String,Object>>(){
+  }
+;
+  ObjectMapper mapper=new ObjectMapper();
+  HashMap<String,Object> jsonMap=mapper.readValue(new FileReader(f),typeRef);
+  Map collectionsMap=(Map)jsonMap.get("collections");
+  List usersList=(List)collectionsMap.get("users");
   int indexApp=0;
-  for (indexApp=0; indexApp < a.size(); indexApp++) {
-    JSONObject jObj=(JSONObject)a.get(indexApp);
-    JSONObject data=(JSONObject)jObj.get("Metadata");
-    String uuid=(String)data.get("uuid");
+  for (indexApp=0; indexApp < usersList.size(); indexApp++) {
+    Map user=(Map)usersList.get(indexApp);
+    Map userProps=(Map)user.get("Metadata");
+    String uuid=(String)userProps.get("uuid");
     if (entity[0].getUuid().toString().equals(uuid)) {
       break;
     }
   }
-  assertTrue("Uuid was not found in exported files. ",indexApp < a.size());
-  org.json.simple.JSONObject objEnt=(org.json.simple.JSONObject)a.get(indexApp);
-  org.json.simple.JSONObject objConnections=(org.json.simple.JSONObject)objEnt.get("connections");
-  assertNotNull(objConnections);
-  org.json.simple.JSONArray objVibrations=(org.json.simple.JSONArray)objConnections.get("Vibrations");
-  assertNotNull(objVibrations);
+  assertTrue("Uuid was not found in exported files. ",indexApp < usersList.size());
+  Map userMap=(Map)usersList.get(indexApp);
+  Map connectionsMap=(Map)userMap.get("connections");
+  assertNotNull(connectionsMap);
+  List vibrationsList=(List)connectionsMap.get("Vibrations");
+  assertNotNull(vibrationsList);
   f.deleteOnExit();
 }

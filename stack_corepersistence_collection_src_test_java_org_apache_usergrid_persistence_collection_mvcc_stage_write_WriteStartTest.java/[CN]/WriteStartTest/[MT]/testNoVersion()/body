@@ -1,0 +1,19 @@
+{
+  final CollectionScope context=mock(CollectionScope.class);
+  final MvccLogEntrySerializationStrategy logStrategy=mock(MvccLogEntrySerializationStrategy.class);
+  final ArgumentCaptor<MvccLogEntry> logEntry=ArgumentCaptor.forClass(MvccLogEntry.class);
+  final MutationBatch mutation=mock(MutationBatch.class);
+  final UUIDService uuidService=mock(UUIDService.class);
+  when(logStrategy.write(same(context),logEntry.capture())).thenReturn(mutation);
+  when(mutation.execute()).thenThrow(new RuntimeException("Fail fail fail"));
+  final Entity entity=TestEntityGenerator.generateEntity(new SimpleId(UUID.randomUUID(),"test"),null);
+  WriteStart newStage=new WriteStart(logStrategy,MvccEntity.Status.COMPLETE);
+  CollectionIoEvent<MvccEntity> result=newStage.call(new CollectionIoEvent<Entity>(context,entity));
+  verify(mutation,times(0)).execute();
+  MvccLogEntry entry=logEntry.getValue();
+  assertEquals("id correct",entity.getId(),entry.getEntityId());
+  assertEquals("EventStage is correct",Stage.ACTIVE,entry.getStage());
+  MvccEntity created=result.getEvent();
+  assertSame("id correct",entity.getId(),created.getId());
+  assertSame("Entity correct",entity,created.getEntity().get());
+}

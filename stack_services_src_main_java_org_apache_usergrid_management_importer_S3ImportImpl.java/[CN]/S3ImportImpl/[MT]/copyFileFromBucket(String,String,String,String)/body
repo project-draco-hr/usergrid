@@ -9,10 +9,19 @@
   if (blob == null) {
     throw new RuntimeException("Blob file name " + blobFileName + " not found in bucket "+ bucketName);
   }
-  File tempFile=File.createTempFile(bucketName,RandomStringUtils.randomAlphabetic(10));
-  FileOutputStream fop=new FileOutputStream(tempFile);
-  blob.getPayload().writeTo(fop);
-  fop.close();
-  tempFile.deleteOnExit();
-  return tempFile;
+  FileOutputStream fop=null;
+  File tempFile;
+  try {
+    tempFile=File.createTempFile(bucketName,RandomStringUtils.randomAlphabetic(10));
+    tempFile.deleteOnExit();
+    fop=new FileOutputStream(tempFile);
+    InputStream is=blob.getPayload().openStream();
+    IOUtils.copyLarge(is,fop);
+    return tempFile;
+  }
+  finally {
+    if (fop != null) {
+      fop.close();
+    }
+  }
 }
