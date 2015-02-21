@@ -1,0 +1,24 @@
+{
+  EntityManager em=getEntityManager(CpNamingUtils.SYSTEM_APP_ID);
+  Query q=Query.fromQL(String.format("select * where applicationUuid = '%s'",applicationId.toString()));
+  Results results=em.searchCollection(em.getApplicationRef(),"deleted_appinfos",q);
+  Entity appToRestore=results.getEntity();
+  if (appToRestore == null) {
+    throw new EntityNotFoundException("Cannot restore. Deleted Application not found: " + applicationId);
+  }
+  em.delete(appToRestore);
+  Map<String,Object> appProps=appToRestore.getProperties();
+  appProps.remove("uuid");
+  appProps.put("type","appinfo");
+  Entity restoredApp=em.create("appinfo",appToRestore.getProperties());
+  em.refreshIndex();
+  this.rebuildApplicationIndexes(applicationId,new ProgressObserver(){
+    @Override public void onProgress(    EntityRef entity){
+      logger.debug("Restored entity {}:{}",entity.getType(),entity.getUuid());
+    }
+    @Override public long getWriteDelayTime(){
+      return 0;
+    }
+  }
+);
+}
