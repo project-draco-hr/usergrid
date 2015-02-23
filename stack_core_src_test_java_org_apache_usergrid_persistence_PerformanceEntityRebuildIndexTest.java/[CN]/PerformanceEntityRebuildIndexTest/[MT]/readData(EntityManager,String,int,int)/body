@@ -1,0 +1,30 @@
+{
+  em.refreshIndex();
+  Query q=Query.fromQL("select * where key1=1000");
+  q.setLimit(40);
+  Results results=em.searchCollection(em.getApplicationRef(),collectionName,q);
+  int count=0;
+  while (true) {
+    for (    Entity e : results.getEntities()) {
+      assertEquals(2000,e.getProperty("key2"));
+      Results catResults=em.searchConnectedEntities(e,Query.fromQL("select *").setConnectionType("herds"));
+      assertEquals(expectedConnections,catResults.size());
+      if (count % 100 == 0) {
+        logger.info("read {} entities",count);
+      }
+      count++;
+    }
+    if (results.hasCursor()) {
+      logger.info("Counted {} : query again with cursor",count);
+      q.setCursor(results.getCursor());
+      results=em.searchCollection(em.getApplicationRef(),collectionName,q);
+    }
+ else {
+      break;
+    }
+  }
+  if (expectedEntities != -1 && expectedEntities != count) {
+    throw new RuntimeException("Did not get expected " + expectedEntities + " entities, instead got "+ count);
+  }
+  return count;
+}

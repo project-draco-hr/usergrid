@@ -1,0 +1,21 @@
+{
+  final UUID appId=UUIDUtils.tryExtractUUID(applicationIdStr);
+  ApiResponse response=createApiResponse();
+  response.setAction("rebuild indexes");
+  final Thread rebuild=new Thread(){
+    public void run(){
+      try {
+        rebuildCollection(appId,collectionName,reverse,delay);
+      }
+ catch (      Exception e) {
+        throw new RuntimeException("Error rebuilding collection");
+      }
+    }
+  }
+;
+  rebuild.setName(String.format("Index rebuild for app %s and collection %s",appId,collectionName));
+  rebuild.setDaemon(true);
+  rebuild.start();
+  response.setSuccess();
+  return new JSONWithPadding(response,callback);
+}

@@ -11,42 +11,24 @@
     }
   }
 ;
-  Map<String,Object> cat1map=new HashMap<String,Object>(){
-{
-      put("name","enzo");
-      put("color","orange");
-    }
-  }
-;
-  Map<String,Object> cat2map=new HashMap<String,Object>(){
-{
-      put("name","marquee");
-      put("color","grey");
-    }
-  }
-;
-  Map<String,Object> cat3map=new HashMap<String,Object>(){
-{
-      put("name","bertha");
-      put("color","tabby");
-    }
-  }
-;
-  Entity cat1=em.create("cat",cat1map);
-  Entity cat2=em.create("cat",cat2map);
-  Entity cat3=em.create("cat",cat3map);
   final long stopTime=System.currentTimeMillis() + RUNTIME_MS;
   List<EntityRef> entityRefs=new ArrayList<EntityRef>();
   int entityCount=0;
+  int herderCount=0;
+  int shepardCount=0;
   while (System.currentTimeMillis() < stopTime) {
     final Entity entity;
     try {
       entityMap.put("key",entityCount);
-      entity=em.create("testType",entityMap);
+      if (entityCount % 2 == 0) {
+        entity=em.create("catherder",entityMap);
+        herderCount++;
+      }
+ else {
+        entity=em.create("catshepard",entityMap);
+        shepardCount++;
+      }
       em.refreshIndex();
-      em.createConnection(entity,"herds",cat1);
-      em.createConnection(entity,"herds",cat2);
-      em.createConnection(entity,"herds",cat3);
     }
  catch (    Exception ex) {
       throw new RuntimeException("Error creating entity",ex);
@@ -65,12 +47,13 @@
   logger.info("Created {} entities",entityCount);
   em.refreshIndex();
   logger.debug("Read the data");
-  readData(em,"testTypes",entityCount,3);
-  logger.debug("Deleting app index and system app index");
+  readData(em,"catherders",herderCount,0);
+  readData(em,"catshepards",shepardCount,0);
+  logger.debug("Deleting app index index");
   deleteIndex(em.getApplicationId());
   logger.debug("Reading data, should fail this time ");
   try {
-    readData(em,"testTypes",entityCount,3);
+    readData(em,"testTypes",entityCount,0);
     fail("should have failed to read data");
   }
  catch (  Exception expected) {
@@ -95,8 +78,8 @@
   }
 ;
   try {
-    setup.getEmf().rebuildInternalIndexes(po);
-    setup.getEmf().rebuildApplicationIndexes(em.getApplicationId(),po);
+    setup.getEmf().rebuildCollectionIndex(em.getApplicationId(),"catherders",false,po);
+    setup.getEmf().rebuildCollectionIndex(em.getApplicationId(),"catherders",true,po);
     reporter.report();
     registry.remove(meterName);
     logger.info("Rebuilt index");
@@ -105,5 +88,6 @@
     logger.error("Error rebuilding index",ex);
     fail();
   }
-  readData(em,"testTypes",entityCount,3);
+  readData(em,"catherders",herderCount,0);
+  readData(em,"catshepards",0,0);
 }
