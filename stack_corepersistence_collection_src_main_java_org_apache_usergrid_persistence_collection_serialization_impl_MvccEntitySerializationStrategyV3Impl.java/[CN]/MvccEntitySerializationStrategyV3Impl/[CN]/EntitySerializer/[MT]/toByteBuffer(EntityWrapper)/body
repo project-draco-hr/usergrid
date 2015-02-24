@@ -4,11 +4,11 @@
   }
   FieldBufferBuilder builder=new FieldBufferBuilder(3);
   builder.addByte(VERSION);
+  builder.addUUID(wrapper.version);
   if (!wrapper.entity.isPresent()) {
     builder.addByte(STATE_DELETED);
     return FIELD_BUFFER_SERIALIZER.toByteBuffer(builder.build());
   }
-  builder.addUUID(wrapper.version);
   if (wrapper.status != MvccEntity.Status.COMPLETE) {
     throw new UnsupportedOperationException("Only states " + MvccEntity.Status.DELETED + " and "+ MvccEntity.Status.COMPLETE+ " are supported");
   }

@@ -9,7 +9,7 @@
   final MvccEntity.Status status=MvccEntity.Status.COMPLETE;
   final MvccEntity mvccEntity=new MvccEntityImpl(id,version,status,entity);
   getMvccEntitySerializationStrategy().write(context,mvccEntity).execute();
-  final MvccEntity loadedEntity=getMvccEntitySerializationStrategy().load(context,id);
+  final MvccEntity loadedEntity=getMvccEntitySerializationStrategy().load(context,id).get();
   assertLargeEntity(mvccEntity,loadedEntity);
   MvccEntity returned=serializationStrategy.load(context,Collections.singleton(id),version).getEntity(id);
   assertLargeEntity(mvccEntity,returned);

@@ -27,13 +27,12 @@
   MvccEntity returnedV3=serializationStrategy.load(context,Collections.singleton(id),version3).getEntity(id);
   assertEquals("entities are the same",clearedV3,returnedV3);
   UUID current=UUIDGenerator.newTimeUUID();
-  MvccEntity first=serializationStrategy.load(context,id);
+  MvccEntity first=serializationStrategy.load(context,id).get();
   assertEquals(clearedV3,first);
   serializationStrategy.delete(context,id,version1).execute();
   serializationStrategy.delete(context,id,version2).execute();
-  first=serializationStrategy.load(context,id);
+  first=serializationStrategy.load(context,id).get();
   assertEquals(clearedV3,first);
   serializationStrategy.delete(context,id,version3).execute();
-  first=serializationStrategy.load(context,id);
-  assertNull("Not loaded",first);
+  assertFalse("Not loaded",serializationStrategy.load(context,id).isPresent());
 }

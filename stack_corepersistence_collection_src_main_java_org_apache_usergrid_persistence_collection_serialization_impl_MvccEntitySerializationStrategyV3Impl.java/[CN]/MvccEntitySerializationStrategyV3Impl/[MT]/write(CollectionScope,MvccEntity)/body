@@ -2,7 +2,8 @@
   Preconditions.checkNotNull(collectionScope,"collectionScope is required");
   Preconditions.checkNotNull(entity,"entity is required");
   final Id entityId=entity.getId();
-  return doWrite(collectionScope,entityId,new RowOp(){
+  final UUID version=entity.getVersion();
+  return doWrite(collectionScope,entityId,version,new RowOp(){
     @Override public void doOp(    final ColumnListMutation<Boolean> colMutation){
       colMutation.putColumn(COL_VALUE,entitySerializer.toByteBuffer(new EntityWrapper(entity.getStatus(),entity.getVersion(),entity.getEntity())));
     }
