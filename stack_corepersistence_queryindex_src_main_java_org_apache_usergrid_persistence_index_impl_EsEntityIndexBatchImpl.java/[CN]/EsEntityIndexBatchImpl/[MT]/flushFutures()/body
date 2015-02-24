@@ -1,0 +1,19 @@
+{
+  ObservableIterator<BetterFuture> iterator=new ObservableIterator<BetterFuture>("futures"){
+    @Override protected Iterator<BetterFuture> getIterator(){
+      return promises.iterator();
+    }
+  }
+;
+  Observable.create(iterator).doOnNext(new Action1<BetterFuture>(){
+    @Override public void call(    BetterFuture betterFuture){
+      betterFuture.get();
+    }
+  }
+).buffer(100).doOnNext(new Action1<List<BetterFuture>>(){
+    @Override public void call(    List<BetterFuture> betterFutures){
+      promises.removeAll(betterFutures);
+    }
+  }
+).toBlocking().lastOrDefault(null);
+}
