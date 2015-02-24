@@ -2,8 +2,7 @@
   String username="test" + UUIDUtils.newTimeUUID();
   JobSchedulerService jobScheduler=ConcurrentProcessSingleton.getInstance().getSpringResource().getBean(JobSchedulerService.class);
   if (jobScheduler.state() != Service.State.RUNNING) {
-    jobScheduler.startAsync();
-    jobScheduler.awaitRunning();
+    jobScheduler.startAndWait();
   }
   adminUser=setup.getMgmtSvc().createAdminUser(username,username,username + "@test.com",username,false,false);
   organization=setup.getMgmtSvc().createOrganization(username,adminUser,true);
