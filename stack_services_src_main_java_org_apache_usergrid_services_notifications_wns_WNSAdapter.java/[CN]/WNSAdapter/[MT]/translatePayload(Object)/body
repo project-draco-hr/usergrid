@@ -1,0 +1,21 @@
+{
+  List<TranslatedNotification> translatedNotifications=new ArrayList<>();
+  if (payload instanceof Map) {
+    Map<String,Object> map=(Map<String,Object>)payload;
+    if (map.containsKey("toast")) {
+      translatedNotifications.add(new TranslatedNotification(map.get("toast").toString(),"toast"));
+    }
+    if (map.containsKey("badge")) {
+      translatedNotifications.add(new TranslatedNotification(map.get("badge"),"badge"));
+    }
+  }
+ else {
+    if (payload instanceof String) {
+      translatedNotifications.add(new TranslatedNotification((String)payload,"toast"));
+    }
+ else {
+      throw new IllegalArgumentException("format is messed up");
+    }
+  }
+  return translatedNotifications;
+}
