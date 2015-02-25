@@ -1,13 +1,11 @@
 {
-  OrganizationInfo orgInfo=setup.getMgmtSvc().getOrganizationByName("test-organization");
-  ApplicationInfo appInfo=setup.getMgmtSvc().getApplicationInfo("test-organization/test-app");
   String clientId=setup.getMgmtSvc().getClientIdForOrganization(orgInfo.getUuid());
   String clientSecret=setup.getMgmtSvc().getClientSecretForOrganization(orgInfo.getUuid());
-  refreshIndex("test-organization","test-app");
+  refreshIndex(orgInfo.getName(),appInfo.getName());
   JsonNode node=mapper.readTree(resource().path("/" + appInfo.getId()).queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-  assertEquals(node.get("uri").textValue(),"http://sometestvalue/test-organization/test-app");
+  assertEquals(node.get("uri").textValue(),"http://sometestvalue/" + orgAppPath);
   node=getEntity(node,0);
-  assertEquals("test-organization/test-app",node.get("name").asText());
+  assertEquals(orgAppPath,node.get("name").asText());
   assertEquals("Roles",node.get("metadata").get("collections").get("roles").get("title").asText());
   assertEquals(3,node.get("metadata").get("collections").get("roles").get("count").asInt());
 }

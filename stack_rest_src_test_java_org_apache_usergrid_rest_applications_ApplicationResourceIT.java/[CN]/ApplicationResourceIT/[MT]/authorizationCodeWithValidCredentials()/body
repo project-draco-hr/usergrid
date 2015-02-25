@@ -1,8 +1,7 @@
 {
-  ApplicationInfo appInfo=setup.getMgmtSvc().getApplicationInfo("test-organization/test-app");
   String clientId=setup.getMgmtSvc().getClientIdForApplication(appInfo.getId());
   Form payload=new Form();
-  payload.add("username","ed@anuff.com");
+  payload.add("username",userEmail);
   payload.add("password","sesame");
   payload.add("response_type","code");
   payload.add("client_id",clientId);
@@ -11,7 +10,7 @@
   client().setFollowRedirects(false);
   Status status=null;
   try {
-    String result=resource().path("/test-organization/test-app/authorize").type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).accept(MediaType.TEXT_HTML).post(String.class,payload);
+    String result=resource().path(orgAppPath + "authorize").type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).accept(MediaType.TEXT_HTML).post(String.class,payload);
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getClientResponseStatus();
