@@ -9,7 +9,8 @@
   logger.debug("About to Write {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
   cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
   logger.debug("Wrote {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
-  ei.createBatch().index(defaultIndexScope,cpEntity).execute();
+  BetterFuture future=ei.createBatch().index(defaultIndexScope,cpEntity).execute();
   CpRelationManager rm=(CpRelationManager)getRelationManager(entityRef);
   rm.updateContainingCollectionAndCollectionIndexes(cpEntity);
+  future.get();
 }

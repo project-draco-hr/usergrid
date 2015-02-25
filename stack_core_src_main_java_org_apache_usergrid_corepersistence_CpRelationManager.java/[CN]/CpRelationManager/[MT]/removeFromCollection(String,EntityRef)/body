@@ -25,7 +25,7 @@
   batch.deindex(indexScope,memberEntity);
   IndexScope itemScope=new IndexScopeImpl(memberEntity.getId(),CpNamingUtils.getCollectionScopeNameFromCollectionName(Schema.defaultCollectionName(cpHeadEntity.getId().getType())));
   batch.deindex(itemScope,cpHeadEntity);
-  batch.execute();
+  BetterFuture future=batch.execute();
   GraphManager gm=managerCache.getGraphManager(applicationScope);
   Edge collectionToItemEdge=new SimpleEdge(cpHeadEntity.getId(),CpNamingUtils.getEdgeTypeFromCollectionName(collName),memberEntity.getId(),UUIDUtils.getUUIDLong(memberEntity.getId().getUuid()));
   gm.deleteEdge(collectionToItemEdge).toBlockingObservable().last();
@@ -41,4 +41,5 @@
       }
     }
   }
+  future.get();
 }
