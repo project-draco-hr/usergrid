@@ -16,12 +16,12 @@
   EntityUtils.setId(entity,new SimpleId("fastcar"));
   EntityUtils.setVersion(entity,UUIDGenerator.newTimeUUID());
   entity.setField(new UUIDField(IndexingUtils.ENTITYID_ID_FIELDNAME,UUID.randomUUID()));
-  entityIndex.createBatch().index(indexScope,entity).executeAndRefresh();
+  entityIndex.createBatch().index(indexScope,entity).executeAndRefresh().get();
   CandidateResults candidateResults=entityIndex.search(indexScope,SearchTypes.fromTypes(entity.getId().getType()),Query.fromQL("name contains 'Ferrari*'"));
   assertEquals(1,candidateResults.size());
   EntityIndexBatch batch=entityIndex.createBatch();
-  batch.deindex(indexScope,entity).execute();
-  batch.executeAndRefresh();
+  batch.deindex(indexScope,entity).execute().get();
+  batch.executeAndRefresh().get();
   entityIndex.refresh();
   candidateResults=entityIndex.search(indexScope,SearchTypes.fromTypes(entity.getId().getType()),Query.fromQL("name contains 'Ferrari*'"));
   assertEquals(0,candidateResults.size());

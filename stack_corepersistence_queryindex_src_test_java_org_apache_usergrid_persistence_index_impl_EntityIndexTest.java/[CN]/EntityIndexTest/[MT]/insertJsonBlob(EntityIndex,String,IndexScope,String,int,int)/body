@@ -21,13 +21,13 @@
     entity.setField(new UUIDField(IndexingUtils.ENTITYID_ID_FIELDNAME,UUID.randomUUID()));
     batch.index(indexScope,entity);
     if (count % 1000 == 0) {
-      batch.execute();
+      batch.execute().get();
     }
     if (++count > max) {
       break;
     }
   }
-  batch.executeAndRefresh();
+  batch.executeAndRefresh().get();
   timer.stop();
   log.info("Total time to index {} entries {}ms, average {}ms/entry",new Object[]{count,timer.getTime(),timer.getTime() / count});
 }

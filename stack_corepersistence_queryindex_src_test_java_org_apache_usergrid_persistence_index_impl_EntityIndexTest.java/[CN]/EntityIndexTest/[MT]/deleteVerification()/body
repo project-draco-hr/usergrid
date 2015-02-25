@@ -19,13 +19,13 @@
   EntityUtils.setVersion(user,UUIDGenerator.newTimeUUID());
   EntityIndexBatch batch=ei.createBatch();
   batch.index(appScope,user);
-  batch.executeAndRefresh();
+  batch.executeAndRefresh().get();
   Query query=new Query();
   query.addEqualityFilter("username","edanuff");
   CandidateResults r=ei.search(appScope,SearchTypes.fromTypes("edanuff"),query);
   assertEquals(user.getId(),r.get(0).getId());
   batch.deindex(appScope,user.getId(),user.getVersion());
-  batch.executeAndRefresh();
+  batch.executeAndRefresh().get();
   query=new Query();
   query.addEqualityFilter("username","edanuff");
   r=ei.search(appScope,SearchTypes.fromTypes("edanuff"),query);
