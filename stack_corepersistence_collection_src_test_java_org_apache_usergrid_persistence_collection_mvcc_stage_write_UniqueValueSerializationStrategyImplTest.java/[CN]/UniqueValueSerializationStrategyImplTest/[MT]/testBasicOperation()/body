@@ -9,10 +9,11 @@
   UniqueValue retrieved=fields.getValue(field.getName());
   Assert.assertNotNull(retrieved);
   assertEquals(stored,retrieved);
-  Iterator<UniqueFieldEntry> allFieldsWritten=strategy.getAllUniqueFields(scope,entityId);
+  Iterator<UniqueValue> allFieldsWritten=strategy.getAllUniqueFields(scope,entityId);
   assertTrue(allFieldsWritten.hasNext());
-  UniqueFieldEntry allFieldsValue=allFieldsWritten.next();
+  UniqueValue allFieldsValue=allFieldsWritten.next();
   Assert.assertNotNull(allFieldsValue);
-  assertEquals(stored,allFieldsValue.getField());
-  assertEquals(version,allFieldsValue.getVersion());
+  assertEquals(field,allFieldsValue.getField());
+  assertEquals(version,allFieldsValue.getEntityVersion());
+  assertFalse(allFieldsWritten.hasNext());
 }

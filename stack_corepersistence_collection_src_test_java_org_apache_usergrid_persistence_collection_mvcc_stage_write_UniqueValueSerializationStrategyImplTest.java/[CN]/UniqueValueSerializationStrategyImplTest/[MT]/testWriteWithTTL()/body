@@ -14,4 +14,11 @@
   fields=strategy.load(scope,Collections.<Field>singleton(field));
   UniqueValue nullExpected=fields.getValue(field.getName());
   Assert.assertNull(nullExpected);
+  Iterator<UniqueValue> allFieldsWritten=strategy.getAllUniqueFields(scope,entityId);
+  assertTrue(allFieldsWritten.hasNext());
+  UniqueValue writtenFieldEntry=allFieldsWritten.next();
+  Assert.assertNotNull(writtenFieldEntry);
+  assertEquals(field,writtenFieldEntry.getField());
+  assertEquals(version,writtenFieldEntry.getEntityVersion());
+  assertFalse(allFieldsWritten.hasNext());
 }

@@ -17,4 +17,12 @@
   value=fields.getValue(field.getName());
   assertEquals(field.getName(),value.getField().getName());
   assertEquals(entityId,value.getEntityId());
+  Iterator<UniqueValue> allFieldsWritten=strategy.getAllUniqueFields(scope,entityId);
+  assertTrue(allFieldsWritten.hasNext());
+  UniqueValue writtenFieldEntry=allFieldsWritten.next();
+  Assert.assertNotNull(writtenFieldEntry);
+  assertEquals(field.getName(),writtenFieldEntry.getField().getName());
+  assertEquals(field.getValue().toLowerCase(),writtenFieldEntry.getField().getValue());
+  assertEquals(version,writtenFieldEntry.getEntityVersion());
+  assertFalse(allFieldsWritten.hasNext());
 }
