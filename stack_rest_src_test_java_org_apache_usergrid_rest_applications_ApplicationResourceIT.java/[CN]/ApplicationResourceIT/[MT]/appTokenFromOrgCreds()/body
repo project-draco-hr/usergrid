@@ -1,12 +1,11 @@
 {
-  OrganizationInfo orgInfo=setup.getMgmtSvc().getOrganizationByName("test-organization");
   String clientId=setup.getMgmtSvc().getClientIdForOrganization(orgInfo.getUuid());
   String clientSecret=setup.getMgmtSvc().getClientSecretForOrganization(orgInfo.getUuid());
-  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/token").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).queryParam("grant_type","client_credentials").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
+  JsonNode node=mapper.readTree(resource().path(orgAppPath + "token").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).queryParam("grant_type","client_credentials").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   assertNotNull(node.get("access_token"));
   String accessToken=node.get("access_token").asText();
   int ttl=node.get("expires_in").asInt();
   assertEquals(604800,ttl);
-  node=mapper.readTree(resource().path("/test-organization/test-app/users").queryParam("access_token",accessToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
+  node=mapper.readTree(resource().path(orgAppPath + "users").queryParam("access_token",accessToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   assertNotNull(node.get("entities"));
 }
