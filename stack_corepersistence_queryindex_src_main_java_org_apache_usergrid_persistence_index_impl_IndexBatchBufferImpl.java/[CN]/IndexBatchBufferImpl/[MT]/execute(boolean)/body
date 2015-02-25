@@ -2,24 +2,33 @@
   if (blockingQueue.size() == 0) {
     return;
   }
-  BulkRequestBuilder bulkRequest=initRequest(refresh);
   Collection<RequestBuilderContainer> containerCollection=new ArrayList<>(config.getIndexBatchSize());
   blockingQueue.drainTo(containerCollection);
-  int count=0;
-  for (  RequestBuilderContainer container : containerCollection) {
-    ShardReplicationOperationRequestBuilder builder=container.getBuilder();
-    if (builder instanceof IndexRequestBuilder) {
-      bulkRequest.add((IndexRequestBuilder)builder);
-    }
-    if (builder instanceof DeleteRequestBuilder) {
-      bulkRequest.add((DeleteRequestBuilder)builder);
-    }
-    if (count++ == config.getIndexBatchSize()) {
-      sendRequest(bulkRequest);
-      bulkRequest=initRequest(refresh);
+  Observable.from(containerCollection).flatMap(new Func1<RequestBuilderContainer,Observable<ShardReplicationOperationRequestBuilder>>(){
+    @Override public Observable<ShardReplicationOperationRequestBuilder> call(    RequestBuilderContainer requestBuilderContainer){
+      return Observable.from(requestBuilderContainer.getBuilder()).map(new Func1<ShardReplicationOperationRequestBuilder,ShardReplicationOperationRequestBuilder>(){
+        @Override public ShardReplicationOperationRequestBuilder call(        ShardReplicationOperationRequestBuilder builder){
+          return builder;
+        }
+      }
+);
     }
   }
-  sendRequest(bulkRequest);
+).buffer(config.getIndexBatchSize()).doOnNext(new Action1<List<ShardReplicationOperationRequestBuilder>>(){
+    @Override public void call(    List<ShardReplicationOperationRequestBuilder> builders){
+      final BulkRequestBuilder bulkRequest=initRequest(refresh);
+      for (      ShardReplicationOperationRequestBuilder builder : builders) {
+        if (builder instanceof IndexRequestBuilder) {
+          bulkRequest.add((IndexRequestBuilder)builder);
+        }
+        if (builder instanceof DeleteRequestBuilder) {
+          bulkRequest.add((DeleteRequestBuilder)builder);
+        }
+        sendRequest(bulkRequest);
+      }
+    }
+  }
+).toBlocking().lastOrDefault(null);
   for (  RequestBuilderContainer container : containerCollection) {
     container.done();
   }
