@@ -1,3 +1,17 @@
 {
-  throw new UnsupportedOperationException("We no longer support the 1.0 entity manager anymore");
+  Map<String,UUID> applications=new TreeMap<String,UUID>(CASE_INSENSITIVE_ORDER);
+  Keyspace ko=cass.getUsergridApplicationKeyspace();
+  RangeSlicesQuery<String,String,UUID> q=createRangeSlicesQuery(ko,se,se,ue);
+  q.setKeys("","\uFFFF");
+  q.setColumnFamily(APPLICATIONS_CF);
+  q.setColumnNames(PROPERTY_UUID);
+  q.setRowCount(10000);
+  QueryResult<OrderedRows<String,String,UUID>> r=q.execute();
+  Rows<String,String,UUID> rows=r.get();
+  for (  Row<String,String,UUID> row : rows) {
+    ColumnSlice<String,UUID> slice=row.getColumnSlice();
+    HColumn<String,UUID> column=slice.getColumnByName(PROPERTY_UUID);
+    applications.put(row.getKey(),column.getValue());
+  }
+  return applications;
 }

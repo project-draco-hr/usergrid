@@ -1,3 +1,8 @@
 {
-  throw new UnsupportedOperationException("We no longer support the 1.0 entity manager anymore");
+  name=buildAppName(organizationName,name);
+  HColumn<String,ByteBuffer> column=cass.getColumn(cass.getUsergridApplicationKeyspace(),APPLICATIONS_CF,name,PROPERTY_UUID);
+  if (column != null) {
+    throw new ApplicationAlreadyExistsException(name);
+  }
+  return initializeApplication(organizationName,applicationId,name,properties);
 }

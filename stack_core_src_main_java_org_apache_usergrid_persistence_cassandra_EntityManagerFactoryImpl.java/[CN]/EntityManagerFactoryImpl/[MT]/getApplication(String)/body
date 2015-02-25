@@ -1,3 +1,10 @@
 {
-  throw new UnsupportedOperationException("We no longer support the 1.0 entity manager anymore");
+  name=name.toLowerCase();
+  HColumn<String,ByteBuffer> column=cass.getColumn(cass.getUsergridApplicationKeyspace(),APPLICATIONS_CF,name,PROPERTY_UUID);
+  if (column == null) {
+    return null;
+  }
+  UUID applicationId=uuid(column.getValue());
+  EntityManager em=getEntityManager(applicationId);
+  return ((EntityManagerImpl)em).getEntity(applicationId,Application.class);
 }

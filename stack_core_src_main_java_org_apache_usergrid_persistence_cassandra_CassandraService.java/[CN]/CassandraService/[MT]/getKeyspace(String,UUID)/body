@@ -1,5 +1,10 @@
 {
   Keyspace ko=null;
-  ko=createVirtualKeyspace(keyspace,prefix,ue,cluster,consistencyLevelPolicy,ON_FAIL_TRY_ALL_AVAILABLE,accessMap);
+  if (USE_VIRTUAL_KEYSPACES && (prefix != null)) {
+    ko=createVirtualKeyspace(keyspace,prefix,ue,cluster,consistencyLevelPolicy,ON_FAIL_TRY_ALL_AVAILABLE,accessMap);
+  }
+ else {
+    ko=HFactory.createKeyspace(keyspace,cluster,consistencyLevelPolicy,ON_FAIL_TRY_ALL_AVAILABLE,accessMap);
+  }
   return ko;
 }
