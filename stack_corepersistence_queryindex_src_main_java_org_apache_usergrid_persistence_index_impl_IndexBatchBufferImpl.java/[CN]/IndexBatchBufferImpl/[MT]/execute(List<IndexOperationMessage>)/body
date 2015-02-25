@@ -3,11 +3,8 @@
     return;
   }
   final AtomicBoolean isForceRefresh=new AtomicBoolean(config.isForcedRefresh());
-  Observable.from(containers).subscribeOn(Schedulers.io()).flatMap(new Func1<RequestBuilderContainer,Observable<ShardReplicationOperationRequestBuilder>>(){
-    @Override public Observable<ShardReplicationOperationRequestBuilder> call(    RequestBuilderContainer requestBuilderContainer){
-      if (requestBuilderContainer.isForceRefresh()) {
-        isForceRefresh.set(true);
-      }
+  Observable.from(containers).subscribeOn(Schedulers.io()).flatMap(new Func1<IndexOperationMessage,Observable<ShardReplicationOperationRequestBuilder>>(){
+    @Override public Observable<ShardReplicationOperationRequestBuilder> call(    IndexOperationMessage requestBuilderContainer){
       return Observable.from(requestBuilderContainer.getBuilder()).map(new Func1<ShardReplicationOperationRequestBuilder,ShardReplicationOperationRequestBuilder>(){
         @Override public ShardReplicationOperationRequestBuilder call(        ShardReplicationOperationRequestBuilder builder){
           return builder;
@@ -31,7 +28,7 @@
     }
   }
 ).toBlocking().lastOrDefault(null);
-  for (  RequestBuilderContainer container : containers) {
+  for (  IndexOperationMessage container : containers) {
     container.done();
   }
 }

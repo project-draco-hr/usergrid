@@ -1,12 +1,12 @@
 {
   final AtomicLong queueSize=new AtomicLong();
-  this.consumer=Observable.create(producer).subscribeOn(Schedulers.io()).doOnNext(new Action1<RequestBuilderContainer>(){
-    @Override public void call(    RequestBuilderContainer requestBuilderContainer){
+  this.consumer=Observable.create(producer).subscribeOn(Schedulers.io()).doOnNext(new Action1<IndexOperationMessage>(){
+    @Override public void call(    IndexOperationMessage requestBuilderContainer){
       queueSize.addAndGet(requestBuilderContainer.getBuilder().size());
     }
   }
-).buffer(config.getIndexBufferTimeout(),TimeUnit.MILLISECONDS,config.getIndexBufferSize()).doOnNext(new Action1<List<RequestBuilderContainer>>(){
-    @Override public void call(    List<RequestBuilderContainer> containerList){
+).buffer(config.getIndexBufferTimeout(),TimeUnit.MILLISECONDS,config.getIndexBufferSize()).doOnNext(new Action1<List<IndexOperationMessage>>(){
+    @Override public void call(    List<IndexOperationMessage> containerList){
       flushTimer.time();
       indexSizeCounter.dec(containerList.size());
       if (containerList.size() > 0) {
