@@ -1,11 +1,12 @@
 {
-  String clientId=setup.getMgmtSvc().getClientIdForOrganization(orgInfo.getUuid());
-  String clientSecret=setup.getMgmtSvc().getClientSecretForOrganization(orgInfo.getUuid());
-  refreshIndex(orgInfo.getName(),appInfo.getName());
-  JsonNode node=mapper.readTree(resource().path("/" + appInfo.getId()).queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-  assertEquals(node.get("uri").textValue(),"http://sometestvalue/" + orgAppPath);
-  node=getEntity(node,0);
-  assertEquals(orgAppPath,node.get("name").asText());
-  assertEquals("Roles",node.get("metadata").get("collections").get("roles").get("title").asText());
-  assertEquals(3,node.get("metadata").get("collections").get("roles").get("count").asInt());
+  String orgName=clientSetup.getOrganizationName().toLowerCase();
+  String appName=clientSetup.getAppName().toLowerCase();
+  Credentials orgCredentials=getOrgCredentials();
+  ApiResponse apiResponse=this.app().getResource(false).queryParam("grant_type","client_credentials").queryParam("client_id",orgCredentials.getClientId()).queryParam("client_secret",orgCredentials.getClientSecret()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(ApiResponse.class);
+  assertEquals(apiResponse.getUri(),String.format("http://sometestvalue/%s/%s",orgName,appName));
+  Application application=new Application(apiResponse);
+  assertEquals(String.format("%s/%s",orgName,appName),application.get("name"));
+  apiResponse=this.app().collection("roles").getResource(false).queryParam("grant_type","client_credentials").queryParam("client_id",orgCredentials.getClientId()).queryParam("client_secret",orgCredentials.getClientSecret()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(ApiResponse.class);
+  Collection roles=new Collection(apiResponse);
+  assertEquals(3,roles.getNumOfEntities());
 }

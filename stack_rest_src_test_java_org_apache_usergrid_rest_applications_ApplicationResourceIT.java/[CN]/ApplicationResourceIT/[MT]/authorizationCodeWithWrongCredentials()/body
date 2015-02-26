@@ -1,14 +1,10 @@
 {
-  String clientId=setup.getMgmtSvc().getClientIdForApplication(appInfo.getId());
-  refreshIndex(orgInfo.getName(),appInfo.getName());
   Form payload=new Form();
   payload.add("username","wrong_user");
   payload.add("password","wrong_password");
   payload.add("response_type","code");
-  payload.add("client_id",clientId);
   payload.add("scope","none");
   payload.add("redirect_uri","http://www.my_test.com");
-  String result=resource().path(orgAppPath + "authorize").type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).accept(MediaType.TEXT_HTML).post(String.class,payload);
-  logger.debug("result: " + result);
-  assertTrue(result.contains("Username or password do not match"));
+  String apiResponse=clientSetup.getRestClient().management().authorize().post(String.class,payload);
+  assertTrue(apiResponse.contains("Username or password do not match"));
 }

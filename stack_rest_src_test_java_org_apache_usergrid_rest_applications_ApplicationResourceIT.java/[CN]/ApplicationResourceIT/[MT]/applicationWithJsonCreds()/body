@@ -1,12 +1,10 @@
 {
-  String clientId=setup.getMgmtSvc().getClientIdForApplication(appInfo.getId());
-  String clientSecret=setup.getMgmtSvc().getClientSecretForApplication(appInfo.getId());
-  Map<String,String> payload=hashMap("email","applicationWithJsonCreds@usergrid.org").map("username","applicationWithJsonCreds").map("name","applicationWithJsonCreds").map("password","applicationWithJsonCreds").map("pin","1234");
-  JsonNode node=mapper.readTree(resource().path(orgAppPath + "users").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
-  assertNotNull(getEntity(node,0));
-  refreshIndex(orgInfo.getName(),appInfo.getName());
-  payload=hashMap("username","applicationWithJsonCreds").map("password","applicationWithJsonCreds").map("grant_type","password");
-  node=mapper.readTree(resource().path(orgAppPath + "token").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
-  JsonNode token=node.get("access_token");
-  assertNotNull(token);
+  User user=new User("applicationWithJsonCreds","applicationWithJsonCreds","applicationWithJsonCreds@usergrid.org","applicationWithJsonCreds");
+  Entity entity=this.app().collection("users").post(user);
+  assertNotNull(entity);
+  refreshIndex();
+  QueryParameters params=new QueryParameters().addParam("grant_type","password").addParam("username","applicationWithJsonCreds").addParam("password","applicationWithJsonCreds");
+  Token apiResponse=this.app().token().post(params);
+  assertNotNull(apiResponse);
+  assertNull(apiResponse.getResponse().getError());
 }
