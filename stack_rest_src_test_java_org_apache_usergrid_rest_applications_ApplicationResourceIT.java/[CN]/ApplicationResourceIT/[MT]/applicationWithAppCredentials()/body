@@ -1,7 +1,6 @@
 {
-  String clientId=setup.getMgmtSvc().getClientIdForApplication(appInfo.getId());
-  String clientSecret=setup.getMgmtSvc().getClientSecretForApplication(appInfo.getId());
-  refreshIndex(orgInfo.getName(),appInfo.getName());
-  JsonNode node=mapper.readTree(resource().path(orgAppPath + "users").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-  assertNotNull(node.get("entities"));
+  Credentials appCredentials=getAppCredentials();
+  ApiResponse apiResponse=this.app().getResource(false).queryParam("grant_type","client_credentials").queryParam("client_id",appCredentials.getClientId()).queryParam("client_secret",appCredentials.getClientSecret()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(ApiResponse.class);
+  assertNotNull(apiResponse);
+  assertNull(apiResponse.getError());
 }

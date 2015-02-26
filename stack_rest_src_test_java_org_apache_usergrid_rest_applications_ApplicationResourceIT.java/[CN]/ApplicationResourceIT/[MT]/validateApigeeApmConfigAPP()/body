@@ -1,11 +1,12 @@
 {
-  JsonNode node=null;
+  String orgName=clientSetup.getOrganizationName().toLowerCase();
+  String appName=clientSetup.getAppName().toLowerCase();
   try {
-    node=mapper.readTree(resource().path(orgAppPath + "apm/apigeeMobileConfig").get(String.class));
+    String response=resource().path(String.format("/%s/%s/apm/apigeeMobileConfig",orgName,appName)).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
+    JsonNode node=mapper.readTree(response);
     assertTrue("it's valid json for APM",node.has("instaOpsApplicationId"));
   }
  catch (  UniformInterfaceException uie) {
-    ClientResponse response=uie.getResponse();
-    assertTrue("APM Config API exists",response.getStatus() != 404);
+    assertNotEquals("APM Config API exists",Status.NOT_FOUND,uie.getResponse().getStatus());
   }
 }
