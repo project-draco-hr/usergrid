@@ -1,3 +1,15 @@
 {
   fail("This test is incorrectly written and should not use direct serialization to test duplicate names");
+  String collectionName="things";
+  Entity entity=new Entity();
+  entity.put("name","enzo");
+  entity=this.app().collection(collectionName).post(entity);
+  refreshIndex();
+  try {
+    this.app().collection(collectionName).post(entity);
+    fail("Should not have created duplicate entity");
+  }
+ catch (  UniformInterfaceException uie) {
+    assertEquals(400,uie.getResponse().getStatus());
+  }
 }

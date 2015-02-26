@@ -1,11 +1,12 @@
 {
-  CustomCollection things=context.application().customCollection("things");
-  Map<String,String> entity=hashMap("name","thing1");
-  JsonNode response=things.create(entity);
-  refreshIndex(context.getOrgName(),context.getAppName());
-  UUID entityId=getEntityId(response,0);
-  assertNotNull(entityId);
-  response=things.entity(entityId).withAccept(acceptHeader).get();
-  UUID returnedEntityId=getEntityId(response,0);
-  assertEquals(entityId,returnedEntityId);
+  String name="thing1";
+  Entity payload=new Entity();
+  payload.put("name",name);
+  Entity entity=this.app().collection("things").post(payload);
+  assertEquals(entity.get("name"),name);
+  String uuid=entity.getAsString("uuid");
+  this.refreshIndex();
+  Entity returnedEntity=this.app().collection("things").withAcceptHeader(acceptHeader).entity(entity).get();
+  String returnedUUID=returnedEntity.getAsString("uuid");
+  assertEquals(uuid,returnedUUID);
 }

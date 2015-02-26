@@ -1,0 +1,24 @@
+{
+  Entity peep=new Entity();
+  peep.put("type","chicken");
+  peep=this.app().collection("peeps").post(peep);
+  Entity todd=new Entity();
+  todd.put("username","todd");
+  todd=this.app().collection("users").post(todd);
+  Entity scott=new Entity();
+  scott.put("username","scott");
+  scott=this.app().collection("users").post(scott);
+  Entity objectOfDesire=new Entity();
+  objectOfDesire.put("codingmunchies","doritoes");
+  objectOfDesire=this.app().collection("snacks").post(objectOfDesire);
+  refreshIndex();
+  Entity toddWant=this.app().collection("users").entity(todd).collection("likes").collection("snacks").entity(objectOfDesire).post();
+  assertNotNull(toddWant);
+  try {
+    this.app().collection("users").entity(scott).collection("likes").collection("peeps").entity(peep).get();
+    fail("This should throw an exception");
+  }
+ catch (  UniformInterfaceException uie) {
+    assertEquals(404,uie.getResponse().getStatus());
+  }
+}
