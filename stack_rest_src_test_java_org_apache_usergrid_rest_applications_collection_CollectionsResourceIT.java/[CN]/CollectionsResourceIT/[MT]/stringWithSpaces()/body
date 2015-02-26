@@ -1,2 +1,24 @@
 {
+  String collection="calendarlists";
+  String summaryOverview="My Summary";
+  String calType="personal";
+  Entity payload=new Entity();
+  payload.put("summaryOverview",summaryOverview);
+  payload.put("caltype",calType);
+  Entity calendarlistOne=this.app().collection(collection).post(payload);
+  assertEquals(calendarlistOne.get("summaryOverview"),summaryOverview);
+  assertEquals(calendarlistOne.get("caltype"),calType);
+  this.refreshIndex();
+  payload=new Entity();
+  String summaryOverviewTwo="Your Summary";
+  String calTypeTwo="personal";
+  payload.put("summaryOverview",summaryOverviewTwo);
+  payload.put("caltype",calTypeTwo);
+  Entity calendarlistTwo=this.app().collection(collection).post(payload);
+  assertEquals(calendarlistTwo.get("summaryOverview"),summaryOverviewTwo);
+  assertEquals(calendarlistTwo.get("caltype"),calTypeTwo);
+  String query="summaryOverview = 'My Summary'";
+  QueryParameters queryParameters=new QueryParameters().setQuery(query);
+  Collection calendarListCollection=this.app().collection(collection).get(queryParameters);
+  assertEquals(calendarListCollection.hasNext(),false);
 }
