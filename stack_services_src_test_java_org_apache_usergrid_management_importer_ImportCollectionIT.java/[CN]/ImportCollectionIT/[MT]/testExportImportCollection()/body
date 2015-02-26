@@ -1,0 +1,51 @@
+{
+  try {
+    final UUID targetAppId=setup.getMgmtSvc().createApplication(organization.getUuid(),"target" + RandomStringUtils.randomAlphanumeric(10)).getId();
+    final EntityManager emApp1=setup.getEmf().getEntityManager(targetAppId);
+    Map<UUID,Entity> thingsMap=new HashMap<>();
+    List<Entity> things=new ArrayList<>();
+    createTestEntities(emApp1,thingsMap,things,"thing");
+    deleteBucket();
+    exportCollection(emApp1,"things");
+    final UUID appId2=setup.getMgmtSvc().createApplication(organization.getUuid(),"second" + RandomStringUtils.randomAlphanumeric(10)).getId();
+    final EntityManager emApp2=setup.getEmf().getEntityManager(appId2);
+    importCollections(emApp2);
+    logger.debug("\n\nCheck connections\n");
+    List<Entity> importedThings=emApp2.getCollection(appId2,"things",null,Level.ALL_PROPERTIES).getEntities();
+    assertTrue(!importedThings.isEmpty());
+    int conCount=0;
+    for (    Entity e : importedThings) {
+      Results r=emApp2.getConnectedEntities(e,"related",null,Level.IDS);
+      List<ConnectionRef> connections=r.getConnections();
+      conCount+=connections.size();
+    }
+    assertEquals(2,conCount);
+    logger.debug("\n\nCheck dictionaries\n");
+    EntityRef entity0=importedThings.get(0);
+    Map connected0=emApp2.getDictionaryAsMap(entity0,"connected_types");
+    Map connecting0=emApp2.getDictionaryAsMap(entity0,"connected_types");
+    Assert.assertEquals(1,connected0.size());
+    Assert.assertEquals(1,connecting0.size());
+    EntityRef entity1=importedThings.get(1);
+    Map connected1=emApp2.getDictionaryAsMap(entity1,"connected_types");
+    Map connecting1=emApp2.getDictionaryAsMap(entity1,"connected_types");
+    Assert.assertEquals(1,connected1.size());
+    Assert.assertEquals(1,connecting1.size());
+    EntityRef entity2=importedThings.get(2);
+    Map connected2=emApp2.getDictionaryAsMap(entity2,"connected_types");
+    Map connecting2=emApp2.getDictionaryAsMap(entity2,"connected_types");
+    Assert.assertEquals(0,connected2.size());
+    Assert.assertEquals(0,connecting2.size());
+    logger.debug("\n\nCheck dictionary\n");
+    for (    Entity importedThing : importedThings) {
+      emApp1.delete(importedThing);
+    }
+    emApp1.refreshIndex();
+    emApp2.refreshIndex();
+    importedThings=emApp2.getCollection(appId2,"things",null,Level.ALL_PROPERTIES).getEntities();
+    assertTrue(!importedThings.isEmpty());
+  }
+  finally {
+    deleteBucket();
+  }
+}

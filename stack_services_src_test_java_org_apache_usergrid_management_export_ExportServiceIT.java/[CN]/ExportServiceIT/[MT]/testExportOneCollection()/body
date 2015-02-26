@@ -1,0 +1,42 @@
+{
+  File f=null;
+  int entitiesToCreate=5;
+  try {
+    f=new File("exportOneCollection.json");
+  }
+ catch (  Exception e) {
+  }
+  f.deleteOnExit();
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  Map<String,Object> userProperties=null;
+  Entity[] entity;
+  entity=new Entity[entitiesToCreate];
+  for (int i=0; i < entitiesToCreate; i++) {
+    userProperties=new LinkedHashMap<String,Object>();
+    userProperties.put("username","billybob" + i);
+    userProperties.put("email","test" + i + "@anuff.com");
+    entity[i]=em.create("qtsMagics",userProperties);
+  }
+  S3Export s3Export=new MockS3ExportImpl("exportOneCollection.json");
+  ExportService exportService=setup.getExportService();
+  String appName=newOrgAppAdminRule.getApplicationInfo().getName();
+  HashMap<String,Object> payload=payloadBuilder(appName);
+  payload.put("organizationId",organization.getUuid());
+  payload.put("applicationId",applicationId);
+  payload.put("collectionName","qtsMagics");
+  UUID exportUUID=exportService.schedule(payload);
+  JobData jobData=jobDataCreator(payload,exportUUID,s3Export);
+  JobExecution jobExecution=mock(JobExecution.class);
+  when(jobExecution.getJobData()).thenReturn(jobData);
+  em.refreshIndex();
+  exportService.doExport(jobExecution);
+  TypeReference<HashMap<String,Object>> typeRef=new TypeReference<HashMap<String,Object>>(){
+  }
+;
+  ObjectMapper mapper=new ObjectMapper();
+  HashMap<String,Object> jsonMap=mapper.readValue(new FileReader(f),typeRef);
+  Map collectionsMap=(Map)jsonMap.get("collections");
+  String collectionName=(String)collectionsMap.keySet().iterator().next();
+  List collection=(List)collectionsMap.get(collectionName);
+  assertEquals(entitiesToCreate,collection.size());
+}

@@ -1,0 +1,19 @@
+{
+  Entity thing1=new Entity();
+  thing1.put("name","thing1");
+  thing1=this.app().collection("things").post(thing1);
+  Entity thing2=new Entity();
+  thing2.put("name","thing2");
+  thing2=this.app().collection("things").post(thing2);
+  refreshIndex();
+  this.app().collection("things").entity(thing1).connection("likes").collection("things").entity(thing2).post();
+  this.app().collection("things").entity(thing2).delete();
+  refreshIndex();
+  try {
+    thing2=this.app().collection("things").entity(thing2).get();
+    fail("This should throw an exception");
+  }
+ catch (  UniformInterfaceException uie) {
+    assertEquals(404,uie.getResponse().getStatus());
+  }
+}

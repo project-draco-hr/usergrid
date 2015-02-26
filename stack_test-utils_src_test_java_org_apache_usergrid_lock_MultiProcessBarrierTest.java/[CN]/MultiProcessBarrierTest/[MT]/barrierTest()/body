@@ -1,0 +1,10 @@
+{
+  final String file=newFileName();
+  final CountDownLatch latch=new CountDownLatch(2);
+  new BarrierThread(file,latch).start();
+  new BarrierThread(file,latch).start();
+  assertEquals(2,latch.getCount());
+  MultiProcessBarrier barrier=new MultiProcessBarrier(file);
+  barrier.proceed();
+  assertTrue("other barriers proceeded",latch.await(1000,TimeUnit.MILLISECONDS));
+}

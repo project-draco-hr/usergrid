@@ -1,5 +1,5 @@
 {
-  UUID applicationId=setup.createApplication("testOrganization","testPropertyUpdateWithConnectionEntityIndexEntryAudit" + RandomStringUtils.randomAlphabetic(20));
+  UUID applicationId=app.getId();
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
   Map<String,Object> entity1=new LinkedHashMap<String,Object>();
   entity1.put("name","name_1");
@@ -36,7 +36,7 @@
   RelationManager rm=em.getRelationManager(entity2Ref);
   if (rm instanceof RelationManagerImpl) {
     RelationManagerImpl impl=(RelationManagerImpl)rm;
-    CassandraService cass=cassandraResource.getBean(CassandraService.class);
+    CassandraService cass=SpringResource.getInstance().getBean(CassandraService.class);
     ByteBufferSerializer buf=ByteBufferSerializer.get();
     Keyspace ko=cass.getApplicationKeyspace(applicationId);
     Mutator<ByteBuffer> m=createMutator(ko,buf);

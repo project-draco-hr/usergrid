@@ -2,11 +2,14 @@
   int count=10000;
   long ts=System.currentTimeMillis();
   List<UUID> uuids=new ArrayList<UUID>(count);
-  LOG.info("Generating " + count + " UUIDs...");
+  logger.info("Generating " + count + " UUIDs...");
   for (int i=0; i < count; i++) {
     UUID uuid=newTimeUUID(ts,i);
     uuids.add(uuid);
     assertEquals("Incorrect UUID timestamp value",ts,getTimestampInMillis(uuid));
+    if (i % 1000 == 0) {
+      logger.info("timeUUIDOrdering processed " + i);
+    }
   }
   for (int i=0; i < count - 1; i++) {
     assertEquals(-1,uuids.get(i).compareTo(uuids.get(i + 1)));

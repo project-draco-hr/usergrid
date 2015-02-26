@@ -1,7 +1,5 @@
 {
-  String mgmtToken=adminToken();
-  refreshIndex("test-organization","test-app");
-  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/credentials").queryParam("access_token",mgmtToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class));
-  assertEquals("ok",node.get("status").textValue());
-  logNode(node);
+  Credentials credentials=this.app().credentials().get(new QueryParameters().addParam("access_token",this.getAdminToken().getAccessToken()),false);
+  assertNotNull(credentials.getClientId());
+  assertNotNull(credentials.getClientSecret());
 }

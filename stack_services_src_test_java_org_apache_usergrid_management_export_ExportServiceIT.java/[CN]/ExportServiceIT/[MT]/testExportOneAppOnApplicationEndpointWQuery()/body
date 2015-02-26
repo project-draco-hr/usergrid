@@ -1,0 +1,47 @@
+{
+  File f=null;
+  try {
+    f=new File("exportOneAppWQuery.json");
+  }
+ catch (  Exception e) {
+  }
+  f.deleteOnExit();
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  Map<String,Object> userProperties=null;
+  Entity[] entity;
+  entity=new Entity[1];
+  for (int i=0; i < 1; i++) {
+    userProperties=new LinkedHashMap<String,Object>();
+    userProperties.put("name","me");
+    userProperties.put("username","junkRealName");
+    userProperties.put("email","burp" + i + "@anuff.com");
+    entity[i]=em.create("users",userProperties);
+  }
+  S3Export s3Export=new MockS3ExportImpl("exportOneAppWQuery.json");
+  ExportService exportService=setup.getExportService();
+  String appName=newOrgAppAdminRule.getApplicationInfo().getName();
+  HashMap<String,Object> payload=payloadBuilder(appName);
+  payload.put("query","select * where username = 'junkRealName'");
+  payload.put("organizationId",organization.getUuid());
+  payload.put("applicationId",applicationId);
+  UUID exportUUID=exportService.schedule(payload);
+  JobData jobData=jobDataCreator(payload,exportUUID,s3Export);
+  JobExecution jobExecution=mock(JobExecution.class);
+  when(jobExecution.getJobData()).thenReturn(jobData);
+  em.refreshIndex();
+  exportService.doExport(jobExecution);
+  TypeReference<HashMap<String,Object>> typeRef=new TypeReference<HashMap<String,Object>>(){
+  }
+;
+  ObjectMapper mapper=new ObjectMapper();
+  Map<String,Object> jsonMap=mapper.readValue(new FileReader(f),typeRef);
+  Map collectionsMap=(Map)jsonMap.get("collections");
+  String collectionName=(String)collectionsMap.keySet().iterator().next();
+  List collection=(List)collectionsMap.get(collectionName);
+  for (  Object o : collection) {
+    Map entityMap=(Map)o;
+    Map metadataMap=(Map)entityMap.get("Metadata");
+    String entityName=(String)metadataMap.get("name");
+    assertFalse("junkRealName".equals(entityName));
+  }
+}

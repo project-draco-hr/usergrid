@@ -1,0 +1,15 @@
+{
+  try {
+    EntityManager emMgmtApp=setup.getEmf().getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+    Query query=Query.fromQL("select *");
+    query.setEntityType("file_import");
+    query.setConnectionType("includes");
+    query.setLimit(10000);
+    Results entities=emMgmtApp.searchConnectedEntities(importRoot,query);
+    return entities.size();
+  }
+ catch (  Exception e) {
+    logger.error("application doesn't exist within the current context");
+    throw new RuntimeException(e);
+  }
+}

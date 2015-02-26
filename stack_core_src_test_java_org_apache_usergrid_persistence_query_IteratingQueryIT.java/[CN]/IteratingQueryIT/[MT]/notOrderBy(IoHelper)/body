@@ -1,0 +1,32 @@
+{
+  io.doSetup();
+  int size=200;
+  long start=System.currentTimeMillis();
+  LOG.info("Writing {} entities.",size);
+  for (int i=0; i < size; i++) {
+    Map<String,Object> entity=new HashMap<String,Object>();
+    entity.put("name",String.valueOf(i));
+    entity.put("boolean",!(i % 2 == 0));
+    entity.put("index",i);
+    io.writeEntity(entity);
+  }
+  long stop=System.currentTimeMillis();
+  LOG.info("Writes took {} ms",stop - start);
+  Query query=Query.fromQL("select * where NOT boolean = false order by index asc");
+  query.setLimit(20);
+  int index=0;
+  int count=0;
+  Results results;
+  start=System.currentTimeMillis();
+  do {
+    results=io.getResults(query);
+    for (int i=0; i < results.size(); i++) {
+      count++;
+    }
+    query.setCursor(results.getCursor());
+  }
+ while (results.getCursor() != null);
+  stop=System.currentTimeMillis();
+  LOG.info("Query took {} ms to return {} entities",stop - start,count);
+  assertEquals(size / 2,count);
+}

@@ -1,0 +1,13 @@
+{
+  EntityManager rootEm=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+  FileImport fileImport=null;
+  fileImport.setErrorMessage("The Job has been tried maximum times but still failed");
+  fileImport.setState(FileImport.State.FAILED);
+  rootEm.update(fileImport);
+  Results ImportJobResults=rootEm.getConnectingEntities(fileImport,"includes",null,Level.ALL_PROPERTIES);
+  List<Entity> importEntity=ImportJobResults.getEntities();
+  UUID importId=importEntity.get(0).getUuid();
+  Import importUG=rootEm.get(importId,Import.class);
+  importUG.setState(Import.State.FAILED);
+  rootEm.update(importUG);
+}

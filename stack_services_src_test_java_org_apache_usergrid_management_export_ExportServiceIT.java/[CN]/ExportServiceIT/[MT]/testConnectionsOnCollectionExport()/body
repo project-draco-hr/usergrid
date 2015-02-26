@@ -1,0 +1,53 @@
+{
+  File f=null;
+  int indexCon=0;
+  try {
+    f=new File("testFileConnections.json");
+  }
+ catch (  Exception e) {
+  }
+  f.deleteOnExit();
+  S3Export s3Export=new MockS3ExportImpl("testFileConnections.json");
+  ExportService exportService=setup.getExportService();
+  String appName=newOrgAppAdminRule.getApplicationInfo().getName();
+  HashMap<String,Object> payload=payloadBuilder(appName);
+  payload.put("organizationId",organization.getUuid());
+  payload.put("applicationId",applicationId);
+  payload.put("collectionName","users");
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  Map<String,Object> userProperties=null;
+  Entity[] entity;
+  entity=new Entity[2];
+  for (int i=0; i < 2; i++) {
+    userProperties=new LinkedHashMap<String,Object>();
+    userProperties.put("username","meatIsGreat" + i);
+    userProperties.put("email","grey" + i + "@anuff.com");
+    entity[i]=em.create("users",userProperties);
+  }
+  em.createConnection(em.get(new SimpleEntityRef("user",entity[0].getUuid())),"Vibrations",em.get(new SimpleEntityRef("user",entity[1].getUuid())));
+  em.createConnection(em.get(new SimpleEntityRef("user",entity[1].getUuid())),"Vibrations",em.get(new SimpleEntityRef("user",entity[0].getUuid())));
+  UUID exportUUID=exportService.schedule(payload);
+  TypeReference<HashMap<String,Object>> typeRef=new TypeReference<HashMap<String,Object>>(){
+  }
+;
+  ObjectMapper mapper=new ObjectMapper();
+  HashMap<String,Object> jsonMap=mapper.readValue(new FileReader(f),typeRef);
+  Map collectionsMap=(Map)jsonMap.get("collections");
+  List usersList=(List)collectionsMap.get("users");
+  int indexApp=0;
+  for (indexApp=0; indexApp < usersList.size(); indexApp++) {
+    Map user=(Map)usersList.get(indexApp);
+    Map userProps=(Map)user.get("Metadata");
+    String uuid=(String)userProps.get("uuid");
+    if (entity[0].getUuid().toString().equals(uuid)) {
+      break;
+    }
+  }
+  assertTrue("Uuid was not found in exported files. ",indexApp < usersList.size());
+  Map userMap=(Map)usersList.get(indexApp);
+  Map connectionsMap=(Map)userMap.get("connections");
+  assertNotNull(connectionsMap);
+  List vibrationsList=(List)connectionsMap.get("Vibrations");
+  assertNotNull(vibrationsList);
+  f.deleteOnExit();
+}

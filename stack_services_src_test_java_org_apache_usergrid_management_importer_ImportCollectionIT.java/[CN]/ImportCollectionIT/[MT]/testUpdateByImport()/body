@@ -1,0 +1,29 @@
+{
+  final UUID targetAppId=setup.getMgmtSvc().createApplication(organization.getUuid(),"target" + RandomStringUtils.randomAlphanumeric(10)).getId();
+  final EntityManager emApp1=setup.getEmf().getEntityManager(targetAppId);
+  Map<UUID,Entity> thingsMap=new HashMap<>();
+  List<Entity> things=new ArrayList<>();
+  createTestEntities(emApp1,thingsMap,things,"thing");
+  deleteBucket();
+  try {
+    exportCollection(emApp1,"things");
+    final UUID appId2=setup.getMgmtSvc().createApplication(organization.getUuid(),"second" + RandomStringUtils.randomAlphanumeric(10)).getId();
+    final EntityManager emApp2=setup.getEmf().getEntityManager(appId2);
+    importCollections(emApp2);
+    for (    UUID uuid : thingsMap.keySet()) {
+      Entity entity=emApp2.get(uuid);
+      entity.setProperty("fuel_source","Hydrogen");
+      emApp2.update(entity);
+    }
+    deleteBucket();
+    exportCollection(emApp2,"things");
+    importCollections(emApp1);
+    for (    UUID uuid : thingsMap.keySet()) {
+      Entity entity=emApp1.get(uuid);
+      Assert.assertEquals("Hydrogen",entity.getProperty("fuel_source"));
+    }
+  }
+  finally {
+    deleteBucket();
+  }
+}

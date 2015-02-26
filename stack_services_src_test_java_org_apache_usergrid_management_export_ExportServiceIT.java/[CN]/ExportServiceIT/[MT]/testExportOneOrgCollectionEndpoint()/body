@@ -1,0 +1,36 @@
+{
+  File f=null;
+  try {
+    f=new File("exportOneOrg.json");
+  }
+ catch (  Exception e) {
+  }
+  newOrgAppAdminRule.createOwnerAndOrganization("noExport" + newUUIDString(),"junkUserName" + newUUIDString(),"junkRealName" + newUUIDString(),newUUIDString() + "ugExport@usergrid.com","123456789");
+  S3Export s3Export=new MockS3ExportImpl("exportOneOrg.json");
+  ExportService exportService=setup.getExportService();
+  String appName=newOrgAppAdminRule.getApplicationInfo().getName();
+  HashMap<String,Object> payload=payloadBuilder(appName);
+  payload.put("organizationId",organization.getUuid());
+  payload.put("applicationId",applicationId);
+  payload.put("collectionName","roles");
+  UUID exportUUID=exportService.schedule(payload);
+  JobData jobData=jobDataCreator(payload,exportUUID,s3Export);
+  JobExecution jobExecution=mock(JobExecution.class);
+  when(jobExecution.getJobData()).thenReturn(jobData);
+  exportService.doExport(jobExecution);
+  TypeReference<HashMap<String,Object>> typeRef=new TypeReference<HashMap<String,Object>>(){
+  }
+;
+  ObjectMapper mapper=new ObjectMapper();
+  Map<String,Object> jsonMap=mapper.readValue(new FileReader(f),typeRef);
+  Map collectionsMap=(Map)jsonMap.get("collections");
+  String collectionName=(String)collectionsMap.keySet().iterator().next();
+  List collection=(List)collectionsMap.get(collectionName);
+  for (  Object o : collection) {
+    Map entityMap=(Map)o;
+    Map metadataMap=(Map)entityMap.get("Metadata");
+    String entityName=(String)metadataMap.get("name");
+    assertFalse("junkRealName".equals(entityName));
+  }
+  f.deleteOnExit();
+}

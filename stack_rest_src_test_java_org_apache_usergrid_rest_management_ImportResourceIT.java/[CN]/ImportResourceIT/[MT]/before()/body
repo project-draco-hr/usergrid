@@ -1,0 +1,10 @@
+{
+  configured=!StringUtils.isEmpty(System.getProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR)) && !StringUtils.isEmpty(System.getProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR)) && !StringUtils.isEmpty(System.getProperty("bucketName"));
+  if (!configured) {
+    logger.warn("Skipping test because {}, {} and bucketName not " + "specified as system properties, e.g. in your Maven settings.xml file.",new Object[]{"s3_key","s3_access_id"});
+  }
+  if (!StringUtils.isEmpty(bucketPrefix)) {
+    deleteBucketsWithPrefix();
+  }
+  bucketName=bucketPrefix + RandomStringUtils.randomAlphanumeric(10).toLowerCase();
+}

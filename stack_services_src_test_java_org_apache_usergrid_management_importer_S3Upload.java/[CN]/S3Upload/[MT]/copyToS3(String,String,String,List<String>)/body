@@ -1,0 +1,32 @@
+{
+  Properties overrides=new Properties();
+  overrides.setProperty("s3" + ".identity",accessKey);
+  overrides.setProperty("s3" + ".credential",secretKey);
+  final Iterable<? extends Module> MODULES=ImmutableSet.of(new JavaUrlHttpCommandExecutorServiceModule(),new Log4JLoggingModule(),new NettyPayloadModule());
+  BlobStoreContext context=ContextBuilder.newBuilder("s3").credentials(accessKey,secretKey).modules(MODULES).overrides(overrides).buildView(BlobStoreContext.class);
+  try {
+    BlobStore blobStore=context.getBlobStore();
+    if (blobStore.createContainerInLocation(null,bucketName)) {
+      logger.info("Created bucket " + bucketName);
+    }
+  }
+ catch (  Exception ex) {
+    throw new RuntimeException("Could not create bucket",ex);
+  }
+  Iterator<String> fileNameIterator=filenames.iterator();
+  while (fileNameIterator.hasNext()) {
+    String filename=fileNameIterator.next();
+    File uploadFile=new File(filename);
+    try {
+      BlobStore blobStore=context.getBlobStore();
+      BlobBuilder blobBuilder=blobStore.blobBuilder(filename).payload(uploadFile).contentMD5(Files.hash(uploadFile,Hashing.md5())).contentType("application/json");
+      Blob blob=blobBuilder.build();
+      final String uploadedFile=blobStore.putBlob(bucketName,blob,PutOptions.Builder.multipart());
+      Thread.sleep(4000);
+      logger.info("Uploaded file name={} etag={}",filename,uploadedFile);
+    }
+ catch (    Exception e) {
+      logger.error("Error uploading to blob store. File: " + filename,e);
+    }
+  }
+}

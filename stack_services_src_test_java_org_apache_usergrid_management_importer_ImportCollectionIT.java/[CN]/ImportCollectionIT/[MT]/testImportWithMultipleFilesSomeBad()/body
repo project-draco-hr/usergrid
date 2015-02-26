@@ -1,0 +1,39 @@
+{
+  deleteBucket();
+  String basePath=System.getProperty("target.directory") + File.separator + "test-classes"+ File.separator;
+  List<String> filenames=new ArrayList<>(3);
+  filenames.add(basePath + "testimport-with-connections.json");
+  filenames.add(basePath + "testimport-qtmagics.json");
+  filenames.add(basePath + "testimport-bad-connection.json");
+  filenames.add(basePath + "testimport-bad-json.json");
+  S3Upload s3Upload=new S3Upload();
+  s3Upload.copyToS3(System.getProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR),System.getProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR),bucketName,filenames);
+  String targetAppName="import-test-target-" + RandomStringUtils.randomAlphanumeric(10);
+  UUID targetAppId=setup.getMgmtSvc().createApplication(organization.getUuid(),targetAppName).getId();
+  final EntityManager emDefaultApp=setup.getEmf().getEntityManager(targetAppId);
+  UUID importId=importCollections(emDefaultApp);
+{
+    List<Entity> importedThings=emDefaultApp.getCollection(emDefaultApp.getApplicationId(),"connfails",null,Level.ALL_PROPERTIES).getEntities();
+    assertTrue(!importedThings.isEmpty());
+    assertEquals(1,importedThings.size());
+  }
+{
+    List<Entity> importedThings=emDefaultApp.getCollection(emDefaultApp.getApplicationId(),"qtmagics",null,Level.ALL_PROPERTIES).getEntities();
+    assertTrue(!importedThings.isEmpty());
+    assertEquals(5,importedThings.size());
+  }
+{
+    List<Entity> importedThings=emDefaultApp.getCollection(emDefaultApp.getApplicationId(),"badjsons",null,Level.ALL_PROPERTIES).getEntities();
+    assertTrue(!importedThings.isEmpty());
+    assertEquals(4,importedThings.size());
+  }
+{
+    List<Entity> importedThings=emDefaultApp.getCollection(emDefaultApp.getApplicationId(),"things",null,Level.ALL_PROPERTIES).getEntities();
+    assertTrue(!importedThings.isEmpty());
+    assertEquals(10,importedThings.size());
+  }
+  Thread.sleep(3000);
+  ImportService importService=setup.getImportService();
+  Results results=importService.getFileImports(targetAppId,importId,null,null);
+  assertEquals("There four file imports",4,results.size());
+}

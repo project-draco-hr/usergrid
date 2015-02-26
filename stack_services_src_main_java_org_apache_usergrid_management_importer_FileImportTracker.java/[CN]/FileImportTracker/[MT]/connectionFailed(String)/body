@@ -1,0 +1,14 @@
+{
+  connectionsFailed.incrementAndGet();
+  FailedImportConnection failedImportConnection=new FailedImportConnection();
+  failedImportConnection.setErrorMessage(message);
+  try {
+    EntityManager entityManager=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+    failedImportConnection=entityManager.create(failedImportConnection);
+    entityManager.createConnection(fileImport,ERRORS_CONNECTION_NAME,failedImportConnection);
+  }
+ catch (  Exception e) {
+    throw new PersistenceException("Unable to save failed entity import message",e);
+  }
+  maybeFlush();
+}

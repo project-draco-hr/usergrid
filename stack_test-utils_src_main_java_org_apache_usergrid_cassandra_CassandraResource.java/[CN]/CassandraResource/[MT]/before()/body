@@ -1,9 +1,29 @@
 {
+  if (initialized) {
+    return;
+  }
 synchronized (lock) {
-    super.before();
-    if (isReady()) {
+    if (initialized) {
       return;
     }
-    startCassandraExternal();
+    Properties props=new Properties();
+    try {
+      props.load(ClassLoader.getSystemResourceAsStream("project.properties"));
+    }
+ catch (    IOException e) {
+      LOG.error("Unable to load project properties: {}",e.getLocalizedMessage());
+    }
+    port=Integer.parseInt(props.getProperty("cassandra.rpcPort",Integer.toString(DEFAULT_RPC_PORT)));
+    host=props.getProperty("cassandra.host",DEFAULT_HOST);
+    hostUrl=host + ":" + Integer.toString(port);
+    System.setProperty("cassandra.url",hostUrl);
+    System.setProperty("cassandra.cluster",props.getProperty("cassandra.cluster","Usergrid"));
+    System.setProperty("cassandra-foreground","true");
+    System.setProperty("log4j.defaultInitOverride","true");
+    System.setProperty("log4j.configuration","log4j.properties");
+    System.setProperty("cassandra.ring_delay_ms","100");
+    System.setProperty("cassandra." + RPC_PORT_KEY,Integer.toString(port));
+    LOG.info("project.properties loaded properties for ports : " + "[rpc] = [{}]",new Object[]{port});
+    initialized=true;
   }
 }

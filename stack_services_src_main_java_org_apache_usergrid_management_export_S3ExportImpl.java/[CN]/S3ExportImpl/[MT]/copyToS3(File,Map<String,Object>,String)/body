@@ -1,6 +1,4 @@
 {
-  fn=filename;
-  Logger logger=LoggerFactory.getLogger(ExportServiceImpl.class);
   Map<String,Object> properties=(Map<String,Object>)exportInfo.get("properties");
   Map<String,Object> storage_info=(Map<String,Object>)properties.get("storage_info");
   String bucketName=(String)storage_info.get("bucket_location");
@@ -12,9 +10,8 @@
   final Iterable<? extends Module> MODULES=ImmutableSet.of(new JavaUrlHttpCommandExecutorServiceModule(),new Log4JLoggingModule(),new NettyPayloadModule());
   BlobStoreContext context=ContextBuilder.newBuilder("s3").credentials(accessId,secretKey).modules(MODULES).overrides(overrides).buildView(BlobStoreContext.class);
   try {
-    AsyncBlobStore blobStore=context.getAsyncBlobStore();
-    ListenableFuture<Boolean> container=blobStore.createContainerInLocation(null,bucketName);
-    if (container.get()) {
+    BlobStore blobStore=context.getBlobStore();
+    if (blobStore.createContainerInLocation(null,bucketName)) {
       logger.info("Created bucket " + bucketName);
     }
   }
@@ -23,11 +20,11 @@
     return;
   }
   try {
-    AsyncBlobStore blobStore=context.getAsyncBlobStore();
-    BlobBuilder blobBuilder=blobStore.blobBuilder(fn).payload(ephemeral).calculateMD5().contentType("application/json");
+    BlobStore blobStore=context.getBlobStore();
+    BlobBuilder blobBuilder=blobStore.blobBuilder(filename).payload(ephemeral).contentMD5(Files.hash(ephemeral,Hashing.md5())).contentType("application/json");
     Blob blob=blobBuilder.build();
-    ListenableFuture<String> futureETag=blobStore.putBlob(bucketName,blob,PutOptions.Builder.multipart());
-    logger.info("Uploaded file etag=" + futureETag.get());
+    final String uploadedFile=blobStore.putBlob(bucketName,blob,PutOptions.Builder.multipart());
+    logger.info("Uploaded file name={} etag={}",filename,uploadedFile);
   }
  catch (  Exception e) {
     logger.error("Error uploading to blob store",e);

@@ -2,8 +2,8 @@
   logger.info("Started testStaleIndexCleanup()");
   System.setProperty(EVENTS_DISABLED,"true");
   final EntityManager em=app.getEntityManager();
-  final int numEntities=10;
-  final int numUpdates=3;
+  final int numEntities=20;
+  final int numUpdates=40;
   final AtomicInteger updateCount=new AtomicInteger();
   final List<Entity> things=new ArrayList<Entity>(numEntities);
   for (int i=0; i < numEntities; i++) {
@@ -41,8 +41,8 @@
   Query q=Query.fromQL("select * order by updateCount asc");
   q.setLimit(limit);
   int thingCount=0;
-  String cursor=null;
   int index=0;
+  String cursor;
   do {
     Results results=em.searchCollection(em.getApplicationRef(),"things",q);
     thingCount+=results.size();

@@ -1,0 +1,21 @@
+{
+  final String lockName=newFileName();
+  MultiProcessLocalLock lock1=new MultiProcessLocalLock(LOCK_PORT);
+  assertTrue(lock1.tryLock());
+  assertTrue(lock1.hasLock());
+  MultiProcessLocalLock lock2=new MultiProcessLocalLock(LOCK_PORT);
+  assertFalse(lock2.tryLock());
+  assertFalse(lock2.hasLock());
+  boolean lock1release=lock1.maybeReleaseLock();
+  assertTrue("lock released",lock1release);
+  boolean lock2release=lock2.maybeReleaseLock();
+  assertFalse("lock released",lock2release);
+  assertTrue(lock2.tryLock());
+  assertTrue(lock2.hasLock());
+  assertFalse(lock1.tryLock());
+  assertFalse(lock1.hasLock());
+  lock1release=lock1.maybeReleaseLock();
+  assertFalse("lock released",lock1release);
+  lock2release=lock2.maybeReleaseLock();
+  assertTrue("lock released",lock2release);
+}

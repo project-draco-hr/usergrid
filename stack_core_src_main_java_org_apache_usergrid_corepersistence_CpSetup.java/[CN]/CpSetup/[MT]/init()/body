@@ -1,51 +1,5 @@
 {
-  cass.init();
-  try {
-    logger.info("Loading Core Persistence properties");
-    String hostsString="";
-    CassandraHost[] hosts=cass.getCassandraHostConfigurator().buildCassandraHosts();
-    if (hosts.length == 0) {
-      throw new RuntimeException("Fatal error: no Cassandra hosts configured");
-    }
-    String sep="";
-    for (    CassandraHost host : hosts) {
-      if (StringUtils.isEmpty(host.getHost())) {
-        throw new RuntimeException("Fatal error: Cassandra hostname cannot be empty");
-      }
-      hostsString=hostsString + sep + host.getHost();
-      sep=",";
-    }
-    logger.info("hostsString: " + hostsString);
-    Properties cpProps=new Properties();
-    cpProps.put("cassandra.hosts",hostsString);
-    cpProps.put("cassandra.port",hosts[0].getPort());
-    cpProps.put("cassandra.cluster_name",cass.getProperties().get("cassandra.cluster"));
-    String cassRemoteString=(String)cass.getProperties().get("cassandra.use_remote");
-    if (cassRemoteString != null && cassRemoteString.equals("false")) {
-      cpProps.put("cassandra.embedded","true");
-    }
- else {
-      cpProps.put("cassandra.embedded","false");
-    }
-    cpProps.put("collections.keyspace.strategy.class",cass.getProperties().get("cassandra.keyspace.strategy"));
-    cpProps.put("collections.keyspace.strategy.options",cass.getProperties().get("cassandra.keyspace.replication"));
-    logger.debug("Set Cassandra properties for Core Persistence: " + cpProps.toString());
-    cpProps.putAll(cass.getProperties());
-    ConfigurationManager.loadProperties(cpProps);
-  }
- catch (  Exception e) {
-    throw new RuntimeException("Fatal error loading configuration.",e);
-  }
-  Injector injector=CpSetup.getInjector();
-  MigrationManager m=injector.getInstance(MigrationManager.class);
-  try {
-    m.migrate();
-  }
- catch (  MigrationException ex) {
-    throw new RuntimeException("Error migrating Core Persistence",ex);
-  }
-  setupSystemKeyspace();
   setupStaticKeyspace();
-  emf.refreshIndex();
+  setupSystemKeyspace();
   createDefaultApplications();
 }

@@ -15,6 +15,7 @@
   Entity entity=EntityIndexMapUtils.fromMap(entityMap);
   EntityUtils.setId(entity,new SimpleId("fastcar"));
   EntityUtils.setVersion(entity,UUIDGenerator.newTimeUUID());
+  entity.setField(new UUIDField(IndexingUtils.ENTITYID_ID_FIELDNAME,UUID.randomUUID()));
   entityIndex.createBatch().index(indexScope,entity).executeAndRefresh();
   CandidateResults candidateResults=entityIndex.search(indexScope,SearchTypes.fromTypes(entity.getId().getType()),Query.fromQL("name contains 'Ferrari*'"));
   assertEquals(1,candidateResults.size());
