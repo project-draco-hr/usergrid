@@ -1,13 +1,24 @@
 {
-  Map<String,String> payload=hashMap("summaryOverview","My Summary").map("caltype","personal");
-  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/calendarlists").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
-  UUID id=getEntityId(node,0);
-  payload=hashMap("summaryOverview","Your Summary").map("caltype","personal");
-  node=mapper.readTree(resource().path("/test-organization/test-app/calendarlists").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
-  refreshIndex("test-organization","test-app");
+  String collection="calendarlists";
+  String summaryOverview="My Summary";
+  String calType="personal";
+  Entity payload=new Entity();
+  payload.put("summaryOverview",summaryOverview);
+  payload.put("caltype",calType);
+  Entity calendarlistOne=this.app().collection(collection).post(payload);
+  assertEquals(calendarlistOne.get("summaryOverview"),summaryOverview);
+  assertEquals(calendarlistOne.get("caltype"),calType);
+  this.refreshIndex();
+  payload=new Entity();
+  String summaryOverviewTwo="Your Summary";
+  String calTypeTwo="personal";
+  payload.put("summaryOverview",summaryOverviewTwo);
+  payload.put("caltype",calTypeTwo);
+  Entity calendarlistTwo=this.app().collection(collection).post(payload);
+  assertEquals(calendarlistTwo.get("summaryOverview"),summaryOverviewTwo);
+  assertEquals(calendarlistTwo.get("caltype"),calTypeTwo);
   String query="summaryOverview = 'My Summary'";
-  JsonNode queryResponse=mapper.readTree(resource().path("/test-organization/test-app/calendarlists").queryParam("access_token",access_token).queryParam("ql",query).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-  UUID returnedId=getEntityId(queryResponse,0);
-  assertEquals(id,returnedId);
-  assertEquals(1,queryResponse.get("entities").size());
+  QueryParameters queryParameters=new QueryParameters().setQuery(query);
+  Collection calendarListCollection=this.app().collection(collection).get(queryParameters);
+  assertEquals(calendarListCollection.hasNext(),false);
 }
