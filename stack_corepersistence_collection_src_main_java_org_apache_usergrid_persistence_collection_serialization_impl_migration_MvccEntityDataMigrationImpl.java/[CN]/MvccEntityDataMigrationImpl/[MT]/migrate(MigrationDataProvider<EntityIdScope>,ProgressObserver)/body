@@ -1,0 +1,33 @@
+{
+  final AtomicLong atomicLong=new AtomicLong();
+  final UUID startTime=UUIDGenerator.newTimeUUID();
+  final long migrated=migrationDataProvider.getData().subscribeOn(Schedulers.io()).parallel(new Func1<Observable<EntityIdScope>,Observable<Long>>(){
+    @Override public Observable<Long> call(    final Observable<EntityIdScope> entityIdScopeObservable){
+      final MutationBatch totalBatch=keyspace.prepareMutationBatch();
+      return entityIdScopeObservable.doOnNext(new Action1<EntityIdScope>(){
+        @Override public void call(        final EntityIdScope idScope){
+          MigrationStrategy.MigrationRelationship<MvccEntitySerializationStrategy> migration=entityMigrationStrategy.getMigration();
+          CollectionScope currentScope=idScope.getCollectionScope();
+          EntitySet allVersions=migration.from().load(currentScope,Collections.singleton(idScope.getId()),startTime);
+          final MvccEntity version=allVersions.getEntity(idScope.getId());
+          final MutationBatch versionBatch=migration.to().write(currentScope,version);
+          totalBatch.mergeShallow(versionBatch);
+        }
+      }
+).buffer(100).doOnNext(new Action1<List<EntityIdScope>>(){
+        @Override public void call(        final List<EntityIdScope> ids){
+          atomicLong.addAndGet(100);
+          executeBatch(totalBatch,observer,atomicLong);
+        }
+      }
+).reduce(0l,new Func2<Long,List<EntityIdScope>,Long>(){
+        @Override public Long call(        final Long aLong,        final List<EntityIdScope> ids){
+          return aLong + ids.size();
+        }
+      }
+);
+    }
+  }
+).toBlocking().last();
+  observer.update(getVersion(),"Finished for this step.  Migrated " + migrated + "entities total. ");
+}
