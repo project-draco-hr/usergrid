@@ -1,6 +1,7 @@
 {
-  if (isOldVersion()) {
-    return previous.load(scope,entityId);
+  final MigrationRelationship<MvccEntitySerializationStrategy> migration=getMigrationRelationShip();
+  if (migration.needsMigration()) {
+    return migration.from.load(scope,entityId);
   }
-  return current.load(scope,entityId);
+  return migration.to.load(scope,entityId);
 }
