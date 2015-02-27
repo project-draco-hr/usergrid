@@ -1,31 +1,26 @@
 {
   int maxRangeLimit=20;
-  Entity[] saved=new Entity[maxRangeLimit];
-  Entity actor=new Entity();
-  actor.put("displayName","Erin");
-  actor.put("location",new MapUtils.HashMapBuilder<String,Double>().map("latitude",37.0).map("longitude",-75.0));
-  Entity props=new Entity();
-  props.put("actor",actor);
-  props.put("verb","go");
-  props.put("content","bragh");
+  Entity[] cats=new Entity[maxRangeLimit];
   for (int i=0; i < 20; i++) {
-    String newPath=String.format("/kero" + i);
-    props.put("path",newPath);
-    props.put("ordinal",i);
-    saved[i]=this.app().collection("groups").post(props);
+    Entity cat=new Entity();
+    cat.put("name","cat" + i);
+    cat.put("location",new MapUtils.HashMapBuilder<String,Double>().map("latitude",37.0).map("longitude",-75.0));
+    cat.put("ordinal",i);
+    cats[i]=cat;
+    this.app().collection("cats").post(cat);
   }
   this.refreshIndex();
   QueryParameters params=new QueryParameters();
   for (int consistent=0; consistent < 20; consistent++) {
-    String query=String.format("select * where location within 100 of 37, -75 and ordinal >= %d and ordinal < %d",saved[7].get("ordinal"),saved[10].get("ordinal"));
+    String query=String.format("select * where location within 100 of 37, -75 and ordinal >= %s and ordinal < %s",cats[7].get("ordinal"),cats[10].get("ordinal"));
     params.setQuery(query);
-    Collection collection=this.app().collection("groups").get(params);
+    Collection collection=this.app().collection("cats").get(params);
     assertEquals(3,collection.getResponse().getEntityCount());
     List entities=collection.getResponse().getEntities();
     for (int i=0; i < 3; i++) {
       Entity entity=(Entity)entities.get(i);
-      Entity savedEntity=saved[7 + i];
-      assertEquals(savedEntity.get("uuid"),entity.get("uuid"));
+      Entity savedEntity=cats[7 + i];
+      assertEquals(savedEntity.get("ordinal"),entity.get("ordinal"));
     }
   }
 }
