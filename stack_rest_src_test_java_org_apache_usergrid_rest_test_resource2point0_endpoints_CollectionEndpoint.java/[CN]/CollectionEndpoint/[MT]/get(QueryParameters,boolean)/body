@@ -5,6 +5,15 @@
   }
   WebResource resource=getResource(useToken);
   resource=addParametersToResource(resource,parameters);
-  ApiResponse response=resource.type(MediaType.APPLICATION_JSON_TYPE).accept(acceptHeader).get(ApiResponse.class);
+  String responseString=resource.type(MediaType.APPLICATION_JSON_TYPE).accept(acceptHeader).get(String.class);
+  logger.debug("Response from get: " + responseString);
+  ObjectMapper mapper=new ObjectMapper();
+  ApiResponse response;
+  try {
+    response=mapper.readValue(new StringReader(responseString),ApiResponse.class);
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("Error parsing response",e);
+  }
   return new Collection(response);
 }
