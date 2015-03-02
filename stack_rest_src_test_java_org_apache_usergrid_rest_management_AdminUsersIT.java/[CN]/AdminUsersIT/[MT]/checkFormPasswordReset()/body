@@ -1,0 +1,19 @@
+{
+  String errors=management().users().user(clientSetup.getUsername()).resetpw().post(null);
+  List<Message> inbox=Mailbox.get(clientSetup.getEmail());
+  assertFalse(inbox.isEmpty());
+  MockImapClient client=new MockImapClient("mockserver.com","test-user-46","somepassword");
+  client.processMail();
+  Message confirmation=inbox.get(0);
+  assertEquals("User Account Confirmation: " + clientSetup.getEmail(),confirmation.getSubject());
+  String token=getTokenFromMessage(confirmation);
+  Form formData=new Form();
+  formData.add("token",token);
+  formData.add("password1","sesame");
+  formData.add("password2","sesame");
+  String html=management().users().user(clientSetup.getUsername()).resetpw().post(formData);
+  assertTrue(html.contains("password set"));
+  refreshIndex();
+  html=management().users().user(clientSetup.getUsername()).resetpw().post(formData);
+  assertTrue(html.contains("invalid token"));
+}
