@@ -2,6 +2,10 @@
   LOG.info("QueueListener: starting.");
   int threadCount=0;
   try {
+    boolean shouldRun=new Boolean(properties.getProperty("usergrid.notifications.listener.run","true"));
+    if (!shouldRun) {
+      return;
+    }
     sleepBetweenRuns=new Long(properties.getProperty("usergrid.notifications.listener.sleep.between","" + sleepBetweenRuns)).longValue();
     sleepWhenNoneFound=new Long(properties.getProperty("usergrid.notifications.listener.sleep.after","" + DEFAULT_SLEEP)).longValue();
     batchSize=new Integer(properties.getProperty("usergrid.notifications.listener.batchSize",("" + batchSize)));

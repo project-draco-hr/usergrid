@@ -1,6 +1,6 @@
 {
   String rand=UUIDGenerator.newTimeUUID().toString();
-  UUID applicationId=setup.createApplication("test-org-" + rand,"test-app-" + rand);
+  final UUID applicationId=setup.createApplication("test-org-" + rand,"test-app-" + rand);
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
   Map<String,Object> properties1=new LinkedHashMap<String,Object>();
   properties1.put("Name","12 Angry Men");
@@ -13,13 +13,34 @@
   em.refreshIndex();
   setup.getEmf().deleteApplication(applicationId);
   em.refreshIndex();
+  Func0<Boolean> func0=new Func0<Boolean>(){
+    @Override public Boolean call(){
+      try {
+        boolean found=false;
+        Map<String,UUID> deletedApps=emf.getDeletedApplications();
+        for (        String appName : deletedApps.keySet()) {
+          UUID appId=deletedApps.get(appName);
+          if (appId.equals(applicationId)) {
+            found=true;
+            break;
+          }
+        }
+        return found;
+      }
+ catch (      Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+;
   boolean found=false;
-  Map<String,UUID> deletedApps=emf.getDeletedApplications();
-  for (  String appName : deletedApps.keySet()) {
-    UUID appId=deletedApps.get(appName);
-    if (appId.equals(applicationId)) {
-      found=true;
+  for (int i=0; i < 5; i++) {
+    found=func0.call();
+    if (found) {
       break;
+    }
+ else {
+      Thread.sleep(100);
     }
   }
   assertTrue("Deleted app not found in deleted apps collection",found);
@@ -37,24 +58,16 @@
     }
   }
 );
-  found=false;
-  deletedApps=emf.getDeletedApplications();
-  for (  String appName : deletedApps.keySet()) {
-    UUID appId=deletedApps.get(appName);
-    if (appId.equals(applicationId)) {
-      found=true;
+  for (int i=0; i < 5; i++) {
+    found=func0.call();
+    if (!found) {
       break;
+    }
+ else {
+      Thread.sleep(100);
     }
   }
   assertFalse("Restored app found in deleted apps collection",found);
-  found=false;
-  appMap=setup.getEmf().getApplications();
-  for (  String appName : appMap.keySet()) {
-    UUID appId=appMap.get(appName);
-    if (appId.equals(applicationId)) {
-      found=true;
-      break;
-    }
-  }
+  found=func0.call();
   assertTrue("Restored app not found in apps collection",found);
 }
