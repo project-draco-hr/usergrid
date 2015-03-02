@@ -1,0 +1,91 @@
+{
+  final AtomicLong atomicLong=new AtomicLong();
+  final UUID startTime=UUIDGenerator.newTimeUUID();
+  final MigrationRelationship<MvccEntitySerializationStrategy> migration=allVersions.getMigrationRelationship(currentVersion);
+  final long migrated=migrationDataProvider.getData().subscribeOn(Schedulers.io()).parallel(new Func1<Observable<EntityIdScope>,Observable<Long>>(){
+    @Override public Observable<Long> call(    final Observable<EntityIdScope> entityIdScopeObservable){
+      return entityIdScopeObservable.flatMap(new Func1<EntityIdScope,Observable<EntityToSaveMessage>>(){
+        @Override public Observable<EntityToSaveMessage> call(        final EntityIdScope entityIdScope){
+          final CollectionScope currentScope=entityIdScope.getCollectionScope();
+          final Iterator<MvccEntity> allVersions=migration.from.loadAscendingHistory(currentScope,entityIdScope.getId(),startTime,100);
+          return Observable.create(new Observable.OnSubscribe<EntityToSaveMessage>(){
+            @Override public void call(            final Subscriber<? super EntityToSaveMessage> subscriber){
+              while (allVersions.hasNext()) {
+                final EntityToSaveMessage message=new EntityToSaveMessage(currentScope,allVersions.next());
+                subscriber.onNext(message);
+              }
+              subscriber.onCompleted();
+            }
+          }
+);
+        }
+      }
+).groupBy(new Func1<EntityToSaveMessage,Id>(){
+        @Override public Id call(        final EntityToSaveMessage entityToSaveMessage){
+          return entityToSaveMessage.entity.getId();
+        }
+      }
+).buffer(10).doOnNext(new Action1<List<GroupedObservable<Id,EntityToSaveMessage>>>(){
+        @Override public void call(        final List<GroupedObservable<Id,EntityToSaveMessage>> groupedObservables){
+          atomicLong.addAndGet(groupedObservables.size());
+          final MutationBatch totalBatch=keyspace.prepareMutationBatch();
+          Observable.from(groupedObservables).flatMap(new Func1<GroupedObservable<Id,EntityToSaveMessage>,Observable<EntityToSaveMessage>>(){
+            @Override public Observable<EntityToSaveMessage> call(            final GroupedObservable<Id,EntityToSaveMessage> idEntityToSaveMessageGroupedObservable){
+              return idEntityToSaveMessageGroupedObservable.asObservable();
+            }
+          }
+).doOnNext(new Action1<EntityToSaveMessage>(){
+            @Override public void call(            final EntityToSaveMessage message){
+              final MutationBatch entityRewrite=migration.to.write(message.scope,message.entity);
+              totalBatch.mergeShallow(entityRewrite);
+              if (!message.entity.getEntity().isPresent()) {
+                return;
+              }
+              final Entity entity=message.entity.getEntity().get();
+              final Id entityId=entity.getId();
+              final UUID version=message.entity.getVersion();
+              for (              Field field : EntityUtils.getUniqueFields(message.entity.getEntity().get())) {
+                UniqueValue written=new UniqueValueImpl(field,entityId,version);
+                MutationBatch mb=uniqueValueSerializationStrategy.write(message.scope,written);
+                totalBatch.mergeShallow(mb);
+              }
+            }
+          }
+).doOnCompleted(new Action0(){
+            @Override public void call(){
+              executeBatch(migration.to.getImplementationVersion(),totalBatch,observer,atomicLong);
+            }
+          }
+).toBlocking().last();
+        }
+      }
+).doOnNext(new Action1<List<GroupedObservable<Id,EntityToSaveMessage>>>(){
+        @Override public void call(        final List<GroupedObservable<Id,EntityToSaveMessage>> groupedObservables){
+          for (          final GroupedObservable<Id,EntityToSaveMessage> group : groupedObservables) {
+            final EntityToSaveMessage maxEntity=group.toBlocking().last();
+            final EntityVersionCleanupTask task=entityVersionCleanupFactory.getTask(maxEntity.scope,maxEntity.entity.getId(),maxEntity.entity.getVersion());
+            try {
+              task.call();
+            }
+ catch (            Exception e) {
+              throw new RuntimeException("Unable to run cleanup task",e);
+            }
+          }
+        }
+      }
+).reduce(0l,new Func2<Long,List<GroupedObservable<Id,EntityToSaveMessage>>,Long>(){
+        @Override public Long call(        final Long aLong,        final List<GroupedObservable<Id,EntityToSaveMessage>> groupedObservables){
+          long newCount=aLong;
+          for (          GroupedObservable<Id,EntityToSaveMessage> group : groupedObservables) {
+            newCount+=group.longCount().toBlocking().last();
+          }
+          return newCount;
+        }
+      }
+);
+    }
+  }
+).toBlocking().last();
+  observer.update(migration.to.getImplementationVersion(),"Finished for this step.  Migrated " + migrated + "entities total. ");
+  return migration.to.getImplementationVersion();
+}
