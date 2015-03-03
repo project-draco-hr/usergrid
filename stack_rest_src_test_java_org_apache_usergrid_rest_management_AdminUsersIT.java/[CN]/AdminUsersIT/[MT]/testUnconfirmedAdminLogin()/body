@@ -1,0 +1,44 @@
+{
+  ApiResponse originalTestPropertiesResponse=clientSetup.getRestClient().testPropertiesResource().get();
+  Entity originalTestProperties=new Entity(originalTestPropertiesResponse);
+  try {
+    Map<String,Object> testPropertiesMap=new HashMap<>();
+    testPropertiesMap.put(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"false");
+    testPropertiesMap.put(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
+    testPropertiesMap.put(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"true");
+    testPropertiesMap.put(PROPERTIES_SYSADMIN_EMAIL,"sysadmin-1@mockserver.com");
+    Entity testPropertiesPayload=new Entity(testPropertiesMap);
+    clientSetup.getRestClient().testPropertiesResource().post(testPropertiesPayload);
+    refreshIndex();
+    Organization organization=createOrgPayload("testUnconfirmedAdminLogin",null);
+    Organization organizationResponse=clientSetup.getRestClient().management().orgs().post(organization);
+    assertNotNull(organizationResponse);
+    User adminUser=organizationResponse.getOwner();
+    assertNotNull(adminUser);
+    assertFalse("adminUser should not be activated yet",adminUser.getActivated());
+    assertFalse("adminUser should not be confirmed yet",adminUser.getConfirmed());
+    QueryParameters queryParameters=new QueryParameters();
+    queryParameters.addParam("grant_type","password").addParam("username",adminUser.getUsername()).addParam("password",organization.getPassword());
+    try {
+      management().token().get(queryParameters);
+      fail("Admin user should not be able to log in.");
+    }
+ catch (    UniformInterfaceException uie) {
+      assertEquals("Admin user should have failed with 403",403,uie.getResponse().getStatus());
+    }
+    List<Message> inbox=Mailbox.get(organization.getEmail());
+    assertFalse(inbox.isEmpty());
+    MockImapClient client=new MockImapClient("mockserver.com","test-user-46","somepassword");
+    client.processMail();
+    Message confirmation=inbox.get(0);
+    assertEquals("User Account Confirmation: " + organization.getEmail(),confirmation.getSubject());
+    String token=getTokenFromMessage(confirmation);
+    management().users().user(adminUser.getUuid().toString()).confirm().get(new QueryParameters().addParam("token",token));
+    Token retToken=management().token().get(queryParameters);
+    assertNotNull(retToken);
+    assertNotNull(retToken.getAccessToken());
+  }
+  finally {
+    clientSetup.getRestClient().testPropertiesResource().post(originalTestProperties);
+  }
+}
