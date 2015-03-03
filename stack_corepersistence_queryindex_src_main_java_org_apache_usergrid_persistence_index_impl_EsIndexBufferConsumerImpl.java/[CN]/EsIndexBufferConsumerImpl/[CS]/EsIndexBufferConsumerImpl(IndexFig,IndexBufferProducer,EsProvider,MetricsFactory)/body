@@ -1,0 +1,17 @@
+{
+  this.flushTimer=metricsFactory.getTimer(EsIndexBufferConsumerImpl.class,"index.buffer.flush");
+  this.indexSizeCounter=metricsFactory.getCounter(EsIndexBufferConsumerImpl.class,"index.buffer.size");
+  this.config=config;
+  this.failureMonitor=new FailureMonitorImpl(config,provider);
+  this.client=provider.getClient();
+  this.consumer=Observable.create(producer).subscribeOn(Schedulers.io()).buffer(config.getIndexBufferTimeout(),TimeUnit.MILLISECONDS,config.getIndexBufferSize()).doOnNext(new Action1<List<IndexOperationMessage>>(){
+    @Override public void call(    List<IndexOperationMessage> containerList){
+      flushTimer.time();
+      if (containerList.size() > 0) {
+        execute(containerList);
+      }
+    }
+  }
+);
+  consumer.subscribe();
+}

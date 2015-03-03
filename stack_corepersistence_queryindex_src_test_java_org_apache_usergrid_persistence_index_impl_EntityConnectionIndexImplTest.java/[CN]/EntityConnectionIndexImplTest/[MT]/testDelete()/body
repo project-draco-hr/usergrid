@@ -46,7 +46,7 @@
   batch.index(otherIndexScope,egg);
   batch.index(searchScope,oj);
   batch.index(otherIndexScope,oj);
-  batch.executeAndRefresh();
+  batch.execute().get();
   personLikesIndex.refresh();
   EsTestUtils.waitForTasks(personLikesIndex);
   Thread.sleep(1000);
@@ -58,7 +58,8 @@
   batch.deindex(searchScope,egg);
   batch.deindex(searchScope,muffin);
   batch.deindex(searchScope,oj);
-  batch.executeAndRefresh();
+  batch.execute().get();
+  personLikesIndex.refresh();
   likes=personLikesIndex.search(searchScope,SearchTypes.fromTypes(muffin.getId().getType(),egg.getId().getType(),oj.getId().getType()),Query.fromQL("select *"));
   assertEquals(0,likes.size());
 }

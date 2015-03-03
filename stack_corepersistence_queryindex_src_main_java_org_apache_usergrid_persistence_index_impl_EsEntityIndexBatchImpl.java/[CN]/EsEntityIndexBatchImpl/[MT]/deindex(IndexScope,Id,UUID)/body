@@ -16,7 +16,8 @@
   Observable.from(indexes).map(new Func1<String,Object>(){
     @Override public Object call(    String index){
       try {
-        bulkRequest.add(client.prepareDelete(index,entityType,indexId).setRefresh(refresh));
+        DeleteRequestBuilder builder=client.prepareDelete(index,entityType,indexId).setRefresh(refresh);
+        container.addOperation(builder);
       }
  catch (      Exception e) {
         log.error("failed to deindex",e);
@@ -27,6 +28,5 @@
   }
 ).toBlocking().last();
   log.debug("Deindexed Entity with index id " + indexId);
-  maybeFlush();
   return this;
 }
