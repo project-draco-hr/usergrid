@@ -47,14 +47,4 @@
     Assert.assertEquals("organization_application_not_found",node.get("error").textValue());
   }
   refreshIndex();
-  try {
-    clientSetup.getRestClient().org(orgName).app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).delete();
-  }
- catch (  UniformInterfaceException expected) {
-    Assert.assertEquals("Error must be 400",400,expected.getResponse().getStatus());
-    JsonNode node=mapper.readTree(expected.getResponse().getEntity(String.class));
-    Assert.assertEquals("organization_application_not_found",node.get("error").textValue());
-  }
-  ApiResponse appCreateAgainResponse=clientSetup.getRestClient().management().orgs().organization(orgName).app().getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).post(ApiResponse.class,new Application(appToDelete));
-  Assert.assertEquals("Must be able to create app with same name as deleted app","CREATED",appCreateAgainResponse.getStatus().toUpperCase());
 }
