@@ -3,15 +3,16 @@
     return null;
   }
   if (properties == null) {
-    properties=new HashMap<String,Object>();
+    properties=new HashMap<>();
   }
   OrganizationInfo organizationInfo=getOrganizationByUuid(organizationId);
   UUID applicationId=emf.createApplication(organizationInfo.getName(),applicationName,properties);
   EntityManager em=emf.getEntityManager(smf.getManagementAppId());
-  properties.put("name",buildAppName(applicationName,organizationInfo));
-  properties.put("appUuid",applicationId);
-  Entity appInfo=em.create(applicationId,APPLICATION_INFO,properties);
   em.refreshIndex();
+  String appName=buildAppName(applicationName,organizationInfo);
+  Query q=Query.fromQL(PROPERTY_NAME + " = '" + appName+ "'");
+  Results results=em.searchCollection(em.getApplicationRef(),CpNamingUtils.APPLICATION_INFOS,q);
+  Entity appInfo=results.iterator().next();
   writeUserToken(smf.getManagementAppId(),appInfo,encryptionService.plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.APPLICATION),null,smf.getManagementAppId()));
   addApplicationToOrganization(organizationId,applicationId,appInfo);
   UserInfo user=null;
@@ -19,6 +20,7 @@
     user=SubjectUtils.getUser();
   }
  catch (  UnavailableSecurityManagerException e) {
+    logger.warn("Error getting user, organization created activity will not be created",e);
   }
   if ((user != null) && user.isAdminUser()) {
     postOrganizationActivity(organizationId,user,"create",appInfo,"Application",applicationName,"<a href=\"mailto:" + user.getEmail() + "\">"+ user.getName()+ " ("+ user.getEmail()+ ")</a> created a new application named "+ applicationName,null);
