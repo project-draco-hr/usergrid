@@ -1,13 +1,13 @@
 {
   final AtomicLong counter=new AtomicLong();
   final MigrationRelationship<EdgeMetadataSerialization> migration=allVersions.getMigrationRelationship(currentVersion);
-  migrationDataProvider.getData().flatMap(new Func1<ApplicationScope,Observable<?>>(){
-    @Override public Observable call(    final ApplicationScope applicationScope){
+  final Observable<List<Edge>> observable=migrationDataProvider.getData().flatMap(new Func1<ApplicationScope,Observable<List<Edge>>>(){
+    @Override public Observable<List<Edge>> call(    final ApplicationScope applicationScope){
       final GraphManager gm=graphManagerFactory.createEdgeManager(applicationScope);
       final Observable<Edge> edgesFromSource=edgesFromSourceObservable.edgesFromSource(gm,applicationScope.getApplication());
       logger.info("Migrating edges scope {}",applicationScope);
-      return edgesFromSource.buffer(1000).parallel(new Func1<Observable<List<Edge>>,Observable>(){
-        @Override public Observable call(        final Observable<List<Edge>> listObservable){
+      return edgesFromSource.buffer(1000).parallel(new Func1<Observable<List<Edge>>,Observable<List<Edge>>>(){
+        @Override public Observable<List<Edge>> call(        final Observable<List<Edge>> listObservable){
           return listObservable.doOnNext(new Action1<List<Edge>>(){
             @Override public void call(            List<Edge> edges){
               final MutationBatch batch=keyspace.prepareMutationBatch();
@@ -33,5 +33,6 @@
     }
   }
 );
+  observable.longCount().toBlocking().last();
   return migration.to.getImplementationVersion();
 }
