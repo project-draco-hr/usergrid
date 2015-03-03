@@ -1,0 +1,30 @@
+{
+  String[] passwords=new String[]{clientSetup.getPassword(),"password2"};
+  Map<String,Object> props=new HashMap<String,Object>();
+  props.put("passwordHistorySize",1);
+  Organization orgPropertiesPayload=new Organization();
+  orgPropertiesPayload.put("properties",props);
+  management().orgs().organization(clientSetup.getOrganizationName()).put(orgPropertiesPayload);
+  Map<String,Object> payload=new HashMap<>();
+  payload.put("oldpassword",passwords[0]);
+  payload.put("newpassword",passwords[0]);
+  try {
+    management().users().user(clientSetup.getUsername()).password().post(payload);
+    fail("should fail with conflict");
+  }
+ catch (  UniformInterfaceException e) {
+    assertEquals(409,e.getResponse().getStatus());
+  }
+  payload.put("newpassword",passwords[1]);
+  management().users().user(clientSetup.getUsername()).password().post(payload);
+  refreshIndex();
+  payload.put("newpassword",passwords[0]);
+  payload.put("oldpassword",passwords[1]);
+  try {
+    management().users().user(clientSetup.getUsername()).password().post(payload);
+    fail("should fail with conflict");
+  }
+ catch (  UniformInterfaceException e) {
+    assertEquals(409,e.getResponse().getStatus());
+  }
+}
