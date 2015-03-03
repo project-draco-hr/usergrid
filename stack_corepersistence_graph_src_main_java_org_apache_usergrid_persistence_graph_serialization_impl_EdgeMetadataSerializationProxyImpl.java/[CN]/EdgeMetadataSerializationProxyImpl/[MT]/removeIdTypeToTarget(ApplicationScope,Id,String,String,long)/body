@@ -1,9 +1,10 @@
 {
-  if (isOldVersion()) {
+  final MigrationRelationship<EdgeMetadataSerialization> migration=getMigrationRelationShip();
+  if (migration.needsMigration()) {
     final MutationBatch aggregateBatch=keyspace.prepareMutationBatch();
-    aggregateBatch.mergeShallow(previous.removeIdTypeToTarget(scope,targetNode,type,idType,timestamp));
-    aggregateBatch.mergeShallow(current.removeIdTypeToTarget(scope,targetNode,type,idType,timestamp));
+    aggregateBatch.mergeShallow(migration.from.removeIdTypeToTarget(scope,targetNode,type,idType,timestamp));
+    aggregateBatch.mergeShallow(migration.to.removeIdTypeToTarget(scope,targetNode,type,idType,timestamp));
     return aggregateBatch;
   }
-  return current.removeIdTypeToTarget(scope,targetNode,type,idType,timestamp);
+  return migration.to.removeIdTypeToTarget(scope,targetNode,type,idType,timestamp);
 }
