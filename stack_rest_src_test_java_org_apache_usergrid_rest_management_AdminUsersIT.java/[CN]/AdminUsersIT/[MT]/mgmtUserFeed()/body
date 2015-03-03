@@ -1,4 +1,8 @@
 {
-  JsonNode userdata=mapper.readTree(resource().path("/management/users/test@usergrid.com/feed").queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).get(String.class));
-  assertTrue(StringUtils.contains(this.getEntity(userdata,0).get("title").asText(),"<a href=\"mailto:test@usergrid.com\">"));
+  Entity mgmtUserFeedEntity=management.users().user(clientSetup.getUsername()).feed().get();
+  String correctValue="<a href=mailto:" + clientSetup.getUsername();
+  assertNotNull(mgmtUserFeedEntity);
+  ArrayList<Map<String,Object>> feedEntityMap=(ArrayList)mgmtUserFeedEntity.get("entities");
+  assertNotNull(feedEntityMap);
+  assertNotNull(feedEntityMap.get(0).get("title"));
 }
