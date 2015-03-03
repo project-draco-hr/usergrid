@@ -13,7 +13,6 @@
       }
     }
 ));
-    Thread.sleep(writeDelayMs);
   }
   em.refreshIndex();
   CandidateResults crs=queryCollectionCp("things","thing","select *");
@@ -38,11 +37,11 @@
   em.refreshIndex();
   count=0;
   do {
-    Thread.sleep(100);
+    if (count > 0) {
+      Thread.sleep(200);
+    }
     crs=queryCollectionCp("things","thing","select *");
-    em.refreshIndex();
   }
- while (crs.size() > 0 && count++ < 15);
-  crs=queryCollectionCp("things","thing","select *");
-  Assert.assertEquals("Expect candidates without earlier stale entities",numEntities,crs.size());
+ while (crs.size() == numEntities && count++ < 15);
+  Assert.assertEquals("Expect candidates without earlier stale entities",crs.size(),numEntities);
 }

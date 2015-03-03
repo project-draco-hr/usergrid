@@ -1,7 +1,16 @@
 {
   String idString=IndexingUtils.idString(entityId).toLowerCase();
   final TermQueryBuilder tqb=QueryBuilders.termQuery(ENTITYID_ID_FIELDNAME,idString);
-  final DeleteByQueryResponse response=esProvider.getClient().prepareDeleteByQuery(alias.getWriteAlias()).setQuery(tqb).execute().actionGet();
-  logger.debug("Deleted entity {}:{} from all index scopes with response status = {}",entityId.getType(),entityId.getUuid(),response.status().toString());
-  checkDeleteByQueryResponse(tqb,response);
+  final ListenableActionFuture<DeleteByQueryResponse> response=esProvider.getClient().prepareDeleteByQuery(alias.getWriteAlias()).setQuery(tqb).execute();
+  response.addListener(new ActionListener<DeleteByQueryResponse>(){
+    @Override public void onResponse(    DeleteByQueryResponse response){
+      logger.debug("Deleted entity {}:{} from all index scopes with response status = {}",entityId.getType(),entityId.getUuid(),response.status().toString());
+      checkDeleteByQueryResponse(tqb,response);
+    }
+    @Override public void onFailure(    Throwable e){
+      logger.error("Deleted entity {}:{} from all index scopes with error {}",entityId.getType(),entityId.getUuid(),e);
+    }
+  }
+);
+  return response;
 }
