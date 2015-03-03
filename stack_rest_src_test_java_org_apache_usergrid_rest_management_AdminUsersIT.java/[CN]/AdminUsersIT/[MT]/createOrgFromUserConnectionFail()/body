@@ -1,0 +1,10 @@
+{
+  Token token=management().token().post(new Token(clientSetup.getUsername(),clientSetup.getPassword()));
+  try {
+    management().users().user(clientSetup.getUsername()).organizations().post(clientSetup.getOrganization(),token);
+    fail("Should have thrown unique exception on org name");
+  }
+ catch (  UniformInterfaceException uie) {
+    assertEquals(500,uie.getResponse().getStatus());
+  }
+}
