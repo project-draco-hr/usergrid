@@ -1,0 +1,12 @@
+{
+  Organization newOrg=createOrgPayload("updateManagementUser",null);
+  Organization orgReturned=clientSetup.getRestClient().management().orgs().post(newOrg);
+  assertNotNull(orgReturned.getOwner());
+  Entity userProperty=new Entity().chainPut("company","usergrid");
+  management().users().user(newOrg.getUsername()).put(userProperty);
+  Entity userUpdated=updateAdminUser(userProperty,orgReturned);
+  assertEquals("usergrid",userUpdated.getAsString("company"));
+  userProperty=new Entity().chainPut("company","Apigee");
+  userUpdated=updateAdminUser(userProperty,orgReturned);
+  assertEquals("Apigee",userUpdated.getAsString("company"));
+}

@@ -1,0 +1,18 @@
+{
+  ApiResponse originalTestPropertiesResponse=clientSetup.getRestClient().testPropertiesResource().get();
+  Entity originalTestProperties=new Entity(originalTestPropertiesResponse);
+  try {
+    Map<String,Object> testPropertiesMap=new HashMap<>();
+    testPropertiesMap.put(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"false");
+    testPropertiesMap.put(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
+    testPropertiesMap.put(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"true");
+    Entity testPropertiesPayload=new Entity(testPropertiesMap);
+    clientSetup.getRestClient().testPropertiesResource().post(testPropertiesPayload);
+    refreshIndex();
+    Token testToken=management().token().post(new Token(originalTestProperties.getAsString(PROPERTIES_TEST_ACCOUNT_ADMIN_USER_EMAIL),originalTestProperties.getAsString(PROPERTIES_TEST_ACCOUNT_ADMIN_USER_PASSWORD)));
+    assertNotNull("We should have gotten a valid token back",testToken);
+  }
+  finally {
+    clientSetup.getRestClient().testPropertiesResource().post(originalTestProperties);
+  }
+}
