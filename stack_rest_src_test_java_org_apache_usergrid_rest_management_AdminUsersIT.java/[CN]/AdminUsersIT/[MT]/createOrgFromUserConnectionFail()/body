@@ -1,16 +1,10 @@
 {
-  Map<String,String> payload=hashMap("email","orgfromuserconn@apigee.com").map("password","password").map("organization","orgfromuserconn");
-  JsonNode node=mapper.readTree(resource().path("/management/organizations").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
-  String userId=node.get("data").get("owner").get("uuid").asText();
-  assertNotNull(node);
-  String token=mgmtToken("orgfromuserconn@apigee.com","password");
-  node=mapper.readTree(resource().path(String.format("/management/users/%s/",userId)).queryParam("access_token",token).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-  logNode(node);
-  payload=hashMap("organization","Orgfromuserconn");
+  Token token=management().token().post(new Token(clientSetup.getUsername(),clientSetup.getPassword()));
   try {
-    node=mapper.readTree(resource().path(String.format("/management/users/%s/organizations",userId)).queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
+    management().users().user(clientSetup.getUsername()).organizations().post(clientSetup.getOrganization(),token);
     fail("Should have thrown unique exception on org name");
   }
- catch (  Exception ex) {
+ catch (  UniformInterfaceException uie) {
+    assertEquals(500,uie.getResponse().getStatus());
   }
 }

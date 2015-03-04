@@ -1,6 +1,12 @@
 {
-  JsonNode response=context.management().orgs().organization(context.getOrgName()).users().get();
-  JsonNode adminNode=response.get("data").get(0);
-  assertEquals(context.getActiveUser().getEmail(),adminNode.get("email").asText());
-  assertEquals(context.getActiveUser().getUser(),adminNode.get("username").asText());
+  Entity adminUserPayload=new Entity();
+  String username="listOrgUsersByName" + UUIDUtils.newTimeUUID();
+  adminUserPayload.put("username",username);
+  adminUserPayload.put("name",username);
+  adminUserPayload.put("email",username + "@usergrid.com");
+  adminUserPayload.put("password",username);
+  management().orgs().organization(clientSetup.getOrganizationName()).users().post(adminUserPayload);
+  refreshIndex();
+  Entity adminUsers=management().orgs().organization(clientSetup.getOrganizationName()).users().get();
+  assertEquals("There need to be 2 admin users",2,((ArrayList)adminUsers.getResponse().getData()).size());
 }

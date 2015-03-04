@@ -1,22 +1,18 @@
 {
-  Map<String,String> originalProperties=getRemoteTestProperties();
+  ApiResponse originalTestPropertiesResponse=clientSetup.getRestClient().testPropertiesResource().get();
+  Entity originalTestProperties=new Entity(originalTestPropertiesResponse);
   try {
-    setTestProperty(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"false");
-    setTestProperty(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
-    setTestProperty(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"true");
-    assertTrue(setup.getMgmtSvc().newAdminUsersRequireConfirmation());
-    assertFalse(setup.getMgmtSvc().newAdminUsersNeedSysAdminApproval());
-    String sysadminUsername=(String)setup.getMgmtSvc().getProperties().get(AccountCreationProps.PROPERTIES_SYSADMIN_LOGIN_EMAIL);
-    String sysadminPassword=(String)setup.getMgmtSvc().getProperties().get(AccountCreationProps.PROPERTIES_SYSADMIN_LOGIN_PASSWORD);
-    JsonNode node;
-    try {
-      node=mapper.readTree(resource().path("/management/token").queryParam("grant_type","password").queryParam("username",sysadminUsername).queryParam("password",sysadminPassword).accept(MediaType.APPLICATION_JSON).get(String.class));
-    }
- catch (    UniformInterfaceException e) {
-      fail("Sysadmin should need no confirmation");
-    }
+    Map<String,Object> testPropertiesMap=new HashMap<>();
+    testPropertiesMap.put(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"false");
+    testPropertiesMap.put(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
+    testPropertiesMap.put(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"true");
+    Entity testPropertiesPayload=new Entity(testPropertiesMap);
+    clientSetup.getRestClient().testPropertiesResource().post(testPropertiesPayload);
+    refreshIndex();
+    Token superuserToken=management().token().post(new Token(clientSetup.getSuperuserName(),clientSetup.getSuperuserPassword()));
+    assertNotNull("We should have gotten a valid token back",superuserToken);
   }
   finally {
-    setTestProperties(originalProperties);
+    clientSetup.getRestClient().testPropertiesResource().post(originalTestProperties);
   }
 }

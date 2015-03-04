@@ -1,17 +1,17 @@
 {
-  String origPassword="foo";
-  String newPassword="bar";
-  Map<String,String> data=new HashMap<String,String>();
-  data.put("newpassword",origPassword);
-  data.put("oldpassword",origPassword);
-  data.put("newpassword",newPassword);
-  ClientResponse.Status responseStatus=null;
+  String username=clientSetup.getUsername();
+  String password=clientSetup.getPassword();
+  Map<String,Object> passwordPayload=new HashMap<String,Object>();
+  passwordPayload.put("newpassword","testPassword");
+  passwordPayload.put("oldpassword",password);
+  management.users().user(username).password().post(passwordPayload);
+  this.refreshIndex();
+  management.token().post(new Token(username,"testPassword"));
   try {
-    resource().path("/management/users/test/password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,data);
+    management.users().user(username).password().post(passwordPayload);
+    fail("We shouldn't be able to change the password with the same payload");
   }
  catch (  UniformInterfaceException uie) {
-    responseStatus=uie.getResponse().getClientResponseStatus();
+    errorParse(ClientResponse.Status.BAD_REQUEST.getStatusCode(),"auth_invalid_username_or_password",uie);
   }
-  assertNotNull(responseStatus);
-  assertEquals(ClientResponse.Status.BAD_REQUEST,responseStatus);
 }

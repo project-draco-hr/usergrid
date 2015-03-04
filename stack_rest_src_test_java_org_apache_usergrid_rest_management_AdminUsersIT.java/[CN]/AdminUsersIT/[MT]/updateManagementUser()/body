@@ -1,17 +1,12 @@
 {
-  Map<String,String> payload=hashMap("email","uort-user-1@apigee.com").map("username","uort-user-1").map("name","Test User").map("password","password").map("organization","uort-org").map("company","Apigee");
-  JsonNode node=mapper.readTree(resource().path("/management/organizations").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
-  logNode(node);
-  String userId=node.get("data").get("owner").get("uuid").asText();
-  assertEquals("Apigee",node.get("data").get("owner").get("properties").get("company").asText());
-  String token=mgmtToken("uort-user-1@apigee.com","password");
-  node=mapper.readTree(resource().path(String.format("/management/users/%s",userId)).queryParam("access_token",token).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-  logNode(node);
-  payload=hashMap("company","Usergrid");
-  LOG.info("sending PUT for company update");
-  node=mapper.readTree(resource().path(String.format("/management/users/%s",userId)).queryParam("access_token",token).type(MediaType.APPLICATION_JSON_TYPE).put(String.class,payload));
-  assertNotNull(node);
-  node=mapper.readTree(resource().path(String.format("/management/users/%s",userId)).queryParam("access_token",token).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-  assertEquals("Usergrid",node.get("data").get("properties").get("company").asText());
-  logNode(node);
+  Organization newOrg=createOrgPayload("updateManagementUser",null);
+  Organization orgReturned=clientSetup.getRestClient().management().orgs().post(newOrg);
+  assertNotNull(orgReturned.getOwner());
+  Entity userProperty=new Entity().chainPut("company","usergrid");
+  management().users().user(newOrg.getUsername()).put(userProperty);
+  Entity userUpdated=updateAdminUser(userProperty,orgReturned);
+  assertEquals("usergrid",userUpdated.getAsString("company"));
+  userProperty=new Entity().chainPut("company","Apigee");
+  userUpdated=updateAdminUser(userProperty,orgReturned);
+  assertEquals("Apigee",userUpdated.getAsString("company"));
 }
