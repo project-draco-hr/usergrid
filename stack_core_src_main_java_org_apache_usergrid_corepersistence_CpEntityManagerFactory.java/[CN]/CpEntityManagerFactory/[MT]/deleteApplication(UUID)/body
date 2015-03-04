@@ -4,9 +4,10 @@
   Results results=em.searchCollection(em.getApplicationRef(),"appinfos",q);
   Entity appToDelete=results.getEntity();
   if (appToDelete != null) {
-    em.delete(appToDelete);
     em.create("deleted_appinfo",appToDelete.getProperties());
+    em.delete(appToDelete);
   }
   EntityIndex ei=managerCache.getEntityIndex(new ApplicationScopeImpl(new SimpleId(applicationId,TYPE_APPLICATION)));
   ei.deleteIndex();
+  em.refreshIndex();
 }
