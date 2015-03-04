@@ -1,5 +1,10 @@
 {
-  CollectionScope collectionScope=getCollectionScopeNameFromEntityType(applicationScope.getApplication(),entity.getType());
+  Preconditions.checkNotNull(entity,"entity should never be null");
+  String type=entity.getType();
+  Preconditions.checkNotNull(type,"entity type should never be null");
+  Id appId=getApplicationScope().getApplication();
+  Preconditions.checkNotNull(appId,"app scope should never be null");
+  CollectionScope collectionScope=getCollectionScopeNameFromEntityType(appId,type);
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   Id entityId=new SimpleId(entity.getUuid(),entity.getType());
   if (logger.isDebugEnabled()) {
