@@ -5,12 +5,18 @@
     final AdminClient adminClient=esProvider.getClient().admin();
     String[] indexNames=getIndexes(AliasType.Write);
     for (    String currentIndex : indexNames) {
+      Timer.Context timeRemoveAlias=flushTimer.time();
       isAck=adminClient.indices().prepareAliases().removeAlias(currentIndex,alias.getWriteAlias()).execute().actionGet().isAcknowledged();
+      timeRemoveAlias.stop();
       logger.info("Removed Index Name [{}] from Alias=[{}] ACK=[{}]",currentIndex,alias,isAck);
     }
+    Timer.Context timeAddReadAlias=flushTimer.time();
     isAck=adminClient.indices().prepareAliases().addAlias(indexName,alias.getReadAlias()).execute().actionGet().isAcknowledged();
+    timeAddReadAlias.stop();
     logger.info("Created new read Alias Name [{}] ACK=[{}]",alias.getReadAlias(),isAck);
+    Timer.Context timeAddWriteAlias=flushTimer.time();
     isAck=adminClient.indices().prepareAliases().addAlias(indexName,alias.getWriteAlias()).execute().actionGet().isAcknowledged();
+    timeAddWriteAlias.stop();
     logger.info("Created new write Alias Name [{}] ACK=[{}]",alias.getWriteAlias(),isAck);
     aliasCache.invalidate(alias);
   }
