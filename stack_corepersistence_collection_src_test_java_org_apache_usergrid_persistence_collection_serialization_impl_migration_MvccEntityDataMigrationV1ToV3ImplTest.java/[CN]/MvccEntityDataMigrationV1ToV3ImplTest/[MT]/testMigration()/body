@@ -1,0 +1,32 @@
+{
+  final Id applicationId=createId("application");
+  final String collectionName="things";
+  CollectionScope scope=new CollectionScopeImpl(applicationId,applicationId,collectionName);
+  final MvccEntity entity1=getEntity("thing");
+  final MvccEntity entity2=getEntity("thing");
+  v1Impl.write(scope,entity1).execute();
+  v1Impl.write(scope,entity2).execute();
+  MvccEntity returned1=v1Impl.load(scope,entity1.getId()).get();
+  MvccEntity returned2=v1Impl.load(scope,entity2.getId()).get();
+  assertEquals("Same entity",entity1,returned1);
+  assertEquals("Same entity",entity2,returned2);
+  final Observable<EntityIdScope> entityIdScope=Observable.from(new EntityIdScope(scope,entity1.getId()),new EntityIdScope(scope,entity2.getId()));
+  final MigrationDataProvider<EntityIdScope> migrationProvider=new MigrationDataProvider<EntityIdScope>(){
+    @Override public Observable<EntityIdScope> getData(){
+      return entityIdScope;
+    }
+  }
+;
+  final TestProgressObserver progressObserver=new TestProgressObserver();
+  final int newVersion=mvccEntityDataMigrationImpl.migrate(CollectionDataVersions.INITIAL.getVersion(),migrationProvider,progressObserver);
+  assertEquals("Correct version returned",newVersion,CollectionDataVersions.LOG_REMOVAL.getVersion());
+  assertFalse("Progress observer should not have failed",progressObserver.getFailed());
+  assertTrue("Progress observer should have update messages",progressObserver.getUpdates().size() > 0);
+  returned1=v3Impl.load(scope,entity1.getId()).get();
+  returned2=v3Impl.load(scope,entity2.getId()).get();
+  assertEquals("Same entity",entity1,returned1);
+  assertEquals("Same entity",entity2,returned2);
+  final MigrationRelationship<MvccEntitySerializationStrategy> tuple=versions.getMigrationRelationship(newVersion);
+  assertSame("Same instance for from",v1Impl,tuple.from);
+  assertSame("Same instance for to",v3Impl,tuple.to);
+}

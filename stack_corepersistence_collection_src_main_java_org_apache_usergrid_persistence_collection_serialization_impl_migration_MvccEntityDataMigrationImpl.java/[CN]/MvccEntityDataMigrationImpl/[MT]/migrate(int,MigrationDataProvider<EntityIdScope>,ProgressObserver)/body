@@ -59,20 +59,6 @@
 ).toBlocking().last();
         }
       }
-).doOnNext(new Action1<List<GroupedObservable<Id,EntityToSaveMessage>>>(){
-        @Override public void call(        final List<GroupedObservable<Id,EntityToSaveMessage>> groupedObservables){
-          for (          final GroupedObservable<Id,EntityToSaveMessage> group : groupedObservables) {
-            final EntityToSaveMessage maxEntity=group.toBlocking().last();
-            final EntityVersionCleanupTask task=entityVersionCleanupFactory.getTask(maxEntity.scope,maxEntity.entity.getId(),maxEntity.entity.getVersion());
-            try {
-              task.call();
-            }
- catch (            Exception e) {
-              throw new RuntimeException("Unable to run cleanup task",e);
-            }
-          }
-        }
-      }
 ).reduce(0l,new Func2<Long,List<GroupedObservable<Id,EntityToSaveMessage>>,Long>(){
         @Override public Long call(        final Long aLong,        final List<GroupedObservable<Id,EntityToSaveMessage>> groupedObservables){
           long newCount=aLong;
