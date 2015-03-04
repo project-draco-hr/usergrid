@@ -1,0 +1,42 @@
+{
+  if (operationMessages == null || operationMessages.size() == 0) {
+    return;
+  }
+  Observable<ActionRequestBuilder> flattenMessages=Observable.from(operationMessages).subscribeOn(Schedulers.io()).flatMap(new Func1<IndexOperationMessage,Observable<ActionRequestBuilder>>(){
+    @Override public Observable<ActionRequestBuilder> call(    IndexOperationMessage operationMessage){
+      return Observable.from(operationMessage.getOperations());
+    }
+  }
+);
+  flattenMessages.buffer(config.getIndexBatchSize()).doOnNext(new Action1<List<ActionRequestBuilder>>(){
+    @Override public void call(    List<ActionRequestBuilder> builders){
+      try {
+        final BulkRequestBuilder bulkRequest=initRequest();
+        for (        ActionRequestBuilder builder : builders) {
+          indexSizeCounter.dec();
+          if (builder instanceof IndexRequestBuilder) {
+            bulkRequest.add((IndexRequestBuilder)builder);
+          }
+          if (builder instanceof DeleteRequestBuilder) {
+            bulkRequest.add((DeleteRequestBuilder)builder);
+          }
+          if (builder instanceof DeleteByQueryRequestBuilder) {
+            DeleteByQueryRequestBuilder deleteByQueryRequestBuilder=(DeleteByQueryRequestBuilder)builder;
+            deleteByQueryRequestBuilder.get();
+          }
+        }
+        sendRequest(bulkRequest);
+      }
+ catch (      Exception e) {
+        log.error("Failed while sending bulk",e);
+      }
+    }
+  }
+).toBlocking().lastOrDefault(null);
+  Observable.from(operationMessages).subscribeOn(Schedulers.io()).doOnNext(new Action1<IndexOperationMessage>(){
+    @Override public void call(    IndexOperationMessage operationMessage){
+      operationMessage.getFuture().done();
+    }
+  }
+).toBlocking().lastOrDefault(null);
+}

@@ -1,0 +1,12 @@
+{
+  Credentials orgCredentials=getOrgCredentials();
+  String clientId=orgCredentials.getClientId();
+  String clientSecret=orgCredentials.getClientSecret();
+  String clientCredentials=clientId + ":" + clientSecret;
+  String token=Base64.encodeToString(clientCredentials.getBytes());
+  Token apiResponse=clientSetup.getRestClient().management().token().getResource(false).header("Authorization","Basic " + token).accept(MediaType.APPLICATION_JSON).post(Token.class,hashMap("grant_type","client_credentials"));
+  assertNotNull("A valid response was returned.",apiResponse);
+  assertNull("There is no error.",apiResponse.getError());
+  assertNotNull("It has access_token.",apiResponse.getAccessToken());
+  assertNotNull("It has expires_in.",apiResponse.getExpirationDate());
+}

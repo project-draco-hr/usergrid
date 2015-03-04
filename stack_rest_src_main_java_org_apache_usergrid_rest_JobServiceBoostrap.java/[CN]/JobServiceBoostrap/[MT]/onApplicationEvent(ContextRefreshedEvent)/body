@@ -2,10 +2,17 @@
   String start=properties.getProperty(START_SCHEDULER_PROP,"true");
   if (Boolean.parseBoolean(start)) {
     logger.info("Starting Scheduler Service...");
-    schedulerService.startAsync();
-    schedulerService.awaitRunning();
+    jobScheduler.startAsync();
+    jobScheduler.awaitRunning();
   }
  else {
     logger.info("Scheduler Service disabled");
+  }
+  boolean shouldRun=new Boolean(properties.getProperty("usergrid.notifications.listener.run","true"));
+  if (shouldRun) {
+    notificationsQueueListener.start();
+  }
+ else {
+    logger.info("QueueListener: never started due to config value usergrid.notifications.listener.run.");
   }
 }

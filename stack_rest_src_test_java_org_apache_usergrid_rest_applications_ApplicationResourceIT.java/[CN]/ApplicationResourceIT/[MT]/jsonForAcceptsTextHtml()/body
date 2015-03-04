@@ -1,8 +1,11 @@
 {
-  ApplicationInfo app=setup.getMgmtSvc().getApplicationInfo("test-organization/test-app");
-  String clientId=setup.getMgmtSvc().getClientIdForApplication(app.getId());
-  String clientSecret=setup.getMgmtSvc().getClientSecretForApplication(app.getId());
-  refreshIndex("test-organization","test-app");
-  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.TEXT_HTML).get(String.class));
-  assertNotNull(node.get("entities"));
+  OrganizationResource orgResource=clientSetup.getRestClient().management().orgs().organization(clientSetup.getOrganizationName());
+  Credentials orgCredentials=orgResource.credentials().get();
+  String clientId=orgCredentials.getClientId();
+  String clientSecret=orgCredentials.getClientSecret();
+  WebResource.Builder builder=this.app().collection("users").getResource(false).queryParam("grant_type","client_credentials").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.TEXT_HTML).type(MediaType.APPLICATION_JSON_TYPE);
+  ApiResponse apiResponse=builder.get(ApiResponse.class);
+  Collection users=new Collection(apiResponse);
+  assertNotNull(users);
+  assertNull(users.getResponse().getError());
 }

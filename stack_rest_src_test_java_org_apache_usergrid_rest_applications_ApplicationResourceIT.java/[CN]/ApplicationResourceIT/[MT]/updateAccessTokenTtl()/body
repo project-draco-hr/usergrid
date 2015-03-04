@@ -1,14 +1,18 @@
 {
-  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/token").queryParam("grant_type","password").queryParam("username","ed@anuff.com").queryParam("password","sesame").accept(MediaType.APPLICATION_JSON).get(String.class));
-  String token=node.get("access_token").textValue();
-  logNode(node);
+  String orgName=clientSetup.getOrganizationName().toLowerCase();
+  String appName=clientSetup.getAppName().toLowerCase();
+  String username="username";
+  String name="name";
+  User user=new User(username,name,username + "@usergrid.org","password");
+  Entity entity=this.app().collection("users").post(user);
+  assertNotNull(entity);
+  refreshIndex();
+  Token tokenResponse=resource().path(String.format("/%s/%s/token",orgName,appName)).queryParam("grant_type","password").queryParam("username",username).queryParam("password","password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(Token.class);
+  String token=tokenResponse.getAccessToken();
   assertNotNull(token);
-  long expires_in=node.get("expires_in").longValue();
+  long expires_in=tokenResponse.getExpirationDate();
   assertEquals(604800,expires_in);
-  Map<String,String> payload=hashMap("accesstokenttl","31536000000");
-  node=mapper.readTree(resource().path("/test-organization/test-app").queryParam("access_token",adminAccessToken).type(MediaType.APPLICATION_JSON_TYPE).put(String.class,payload));
-  logNode(node);
-  node=mapper.readTree(resource().path("/test-organization/test-app/token").queryParam("grant_type","password").queryParam("username","ed@anuff.com").queryParam("password","sesame").accept(MediaType.APPLICATION_JSON).get(String.class));
-  assertEquals(31536000,node.get("expires_in").longValue());
-  logNode(node);
+  this.app().getResource(false).queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(Token.class,new MapUtils.HashMapBuilder<String,String>().map("accesstokenttl","31536000000"));
+  tokenResponse=this.app().token().getResource(false).queryParam("grant_type","password").queryParam("username",username).queryParam("password","password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(Token.class);
+  assertEquals(31536000,tokenResponse.getExpirationDate().intValue());
 }

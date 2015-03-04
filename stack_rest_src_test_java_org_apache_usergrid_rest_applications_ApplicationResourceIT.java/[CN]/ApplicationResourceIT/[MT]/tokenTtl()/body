@@ -1,20 +1,27 @@
 {
   long ttl=2000;
-  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/token").queryParam("grant_type","password").queryParam("username","ed@anuff.com").queryParam("password","sesame").queryParam("ttl",String.valueOf(ttl)).accept(MediaType.APPLICATION_JSON).get(String.class));
+  String orgName=clientSetup.getOrganizationName().toLowerCase();
+  String appName=clientSetup.getAppName().toLowerCase();
+  String username="username";
+  String name="name";
+  User user=new User(username,name,username + "@usergrid.org","password");
+  Entity entity=this.app().collection("users").post(user);
+  assertNotNull(entity);
+  refreshIndex();
+  Token apiResponse=resource().path(String.format("/%s/%s/token",orgName,appName)).queryParam("grant_type","password").queryParam("username",username).queryParam("password","password").queryParam("ttl",String.valueOf(ttl)).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(Token.class);
   long startTime=System.currentTimeMillis();
-  String token=node.get("access_token").textValue();
+  String token=apiResponse.getAccessToken();
   assertNotNull(token);
-  long expires_in=node.get("expires_in").longValue();
+  long expires_in=apiResponse.getExpirationDate();
   assertEquals(ttl,expires_in * 1000);
-  JsonNode userdata=mapper.readTree(resource().path("/test-organization/test-app/users/ed@anuff.com").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).get(String.class));
-  assertEquals("ed@anuff.com",getEntity(userdata,0).get("email").asText());
+  entity=this.app().collection("users").entity(entity).get(new QueryParameters().addParam("access_token",token),false);
+  assertEquals(username + "@usergrid.org",entity.get("email"));
   Thread.sleep(ttl - (System.currentTimeMillis() - startTime) + 1000);
-  Status responseStatus=null;
   try {
-    userdata=mapper.readTree(resource().path("/test-organization/test-app/users/ed@anuff.com").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
+    this.app().collection("users").entity(entity).get(new QueryParameters().addParam("access_token",token),false);
+    fail("The expired token should cause an exception");
   }
  catch (  UniformInterfaceException uie) {
-    responseStatus=uie.getResponse().getClientResponseStatus();
+    assertEquals(Status.UNAUTHORIZED.getStatusCode(),uie.getResponse().getStatus());
   }
-  assertEquals(Status.UNAUTHORIZED,responseStatus);
 }

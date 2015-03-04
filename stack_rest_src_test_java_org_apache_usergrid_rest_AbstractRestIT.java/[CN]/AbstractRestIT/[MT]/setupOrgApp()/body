@@ -1,0 +1,26 @@
+{
+  setup.getMgmtSvc().setup();
+  String rand=RandomStringUtils.randomAlphanumeric(5);
+  orgInfo=setup.getMgmtSvc().getOrganizationByName("test-organization");
+  if (orgInfo == null) {
+    OrganizationOwnerInfo orgOwnerInfo=setup.getMgmtSvc().createOwnerAndOrganization("test-organization" + rand,"test","test","test@usergrid.org",rand,false,false);
+    orgInfo=orgOwnerInfo.getOrganization();
+  }
+  String appname="app-" + rand;
+  try {
+    appInfo=setup.getMgmtSvc().createApplication(orgInfo.getUuid(),appname);
+  }
+ catch (  ApplicationAlreadyExistsException e) {
+    LOG.error("Failed to create application" + appname + ", maybe this is ok",e);
+  }
+  refreshIndex(orgInfo.getName(),appInfo.getName());
+  orgAppPath=appInfo.getName() + "/";
+  adminToken();
+  setupUsers();
+  refreshIndex(orgInfo.getName(),appInfo.getName());
+  loginClient();
+  refreshIndex(orgInfo.getName(),appInfo.getName());
+  LOG.info("acquiring token");
+  access_token=userToken(userEmail,"sesame");
+  LOG.info("with token: {}",access_token);
+}

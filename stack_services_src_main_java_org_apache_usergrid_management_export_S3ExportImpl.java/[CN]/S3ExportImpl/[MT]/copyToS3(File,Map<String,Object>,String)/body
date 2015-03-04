@@ -21,7 +21,7 @@
   }
   try {
     BlobStore blobStore=context.getBlobStore();
-    BlobBuilder blobBuilder=blobStore.blobBuilder(filename).payload(ephemeral).calculateMD5().contentType("application/json");
+    BlobBuilder blobBuilder=blobStore.blobBuilder(filename).payload(ephemeral).contentMD5(Files.hash(ephemeral,Hashing.md5())).contentType("application/json");
     Blob blob=blobBuilder.build();
     final String uploadedFile=blobStore.putBlob(bucketName,blob,PutOptions.Builder.multipart());
     logger.info("Uploaded file name={} etag={}",filename,uploadedFile);

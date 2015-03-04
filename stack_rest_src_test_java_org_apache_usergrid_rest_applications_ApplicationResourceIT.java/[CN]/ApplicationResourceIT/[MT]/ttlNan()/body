@@ -1,11 +1,17 @@
 {
-  Map<String,String> payload=hashMap("grant_type","password").map("username","ed@anuff.com").map("password","sesame").map("ttl","derp");
-  Status responseStatus=null;
+  String orgName=clientSetup.getOrganizationName().toLowerCase();
+  String appName=clientSetup.getAppName().toLowerCase();
+  String username="username";
+  String name="name";
+  User user=new User(username,name,username + "@usergrid.org","password");
+  Entity entity=this.app().collection("users").post(user);
+  assertNotNull(entity);
+  refreshIndex();
   try {
-    resource().path("/test-organization/test-app/token").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload);
+    resource().path(String.format("/%s/%s/token",orgName,appName)).queryParam("grant_type","password").queryParam("username",username).queryParam("password","password").queryParam("ttl","derp").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(ApiResponse.class);
+    fail("The invalid TTL should cause an exception");
   }
  catch (  UniformInterfaceException uie) {
-    responseStatus=uie.getResponse().getClientResponseStatus();
+    assertEquals(Status.INTERNAL_SERVER_ERROR,uie.getResponse().getClientResponseStatus());
   }
-  assertEquals(Status.BAD_REQUEST,responseStatus);
 }

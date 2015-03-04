@@ -40,7 +40,7 @@
   assertEquals("Same fail expected",expectedFails,updated.getFailedEntityCount());
   assertEquals("Same connection count expected",expectedConnectionSuccess,updated.getImportedConnectionCount());
   assertEquals("Same connection error count expected",expectedConnectionFails,updated.getFailedConnectionCount());
-  assertEquals("Correct error message","Failed to import some data.  See the import counters and errors.",updated.getErrorMessage());
+  assertTrue(updated.getErrorMessage().startsWith("Failed to import"));
   ArgumentCaptor<FailedImport> failedEntities=ArgumentCaptor.forClass(FailedImport.class);
   verify(em,times(expectedFails + expectedConnectionFails)).createConnection(same(fileImport),eq("errors"),failedEntities.capture());
   final List<FailedImport> args=failedEntities.getAllValues();

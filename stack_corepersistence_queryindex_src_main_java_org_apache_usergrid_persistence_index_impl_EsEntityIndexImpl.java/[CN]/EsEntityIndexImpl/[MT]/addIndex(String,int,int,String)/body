@@ -1,0 +1,25 @@
+{
+  String normalizedSuffix=StringUtils.isNotEmpty(indexSuffix) ? indexSuffix : null;
+  try {
+    if (!mappingsCreated.getAndSet(true)) {
+      createMappings();
+    }
+    String indexName=indexIdentifier.getIndex(normalizedSuffix);
+    try {
+      final AdminClient admin=esProvider.getClient().admin();
+      Settings settings=ImmutableSettings.settingsBuilder().put("index.number_of_shards",numberOfShards).put("index.number_of_replicas",numberOfReplicas).put("action.write_consistency",writeConsistency).build();
+      final CreateIndexResponse cir=admin.indices().prepareCreate(indexName).setSettings(settings).execute().actionGet();
+      logger.info("Created new Index Name [{}] ACK=[{}]",indexName,cir.isAcknowledged());
+    }
+ catch (    IndexAlreadyExistsException e) {
+      logger.info("Index Name [{}] already exists",indexName);
+    }
+    addAlias(normalizedSuffix);
+    testNewIndex();
+  }
+ catch (  IndexAlreadyExistsException expected) {
+  }
+catch (  IOException e) {
+    throw new RuntimeException("Unable to initialize index",e);
+  }
+}

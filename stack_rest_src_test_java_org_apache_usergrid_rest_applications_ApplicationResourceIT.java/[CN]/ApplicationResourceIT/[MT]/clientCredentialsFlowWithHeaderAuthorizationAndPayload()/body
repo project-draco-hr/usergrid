@@ -1,11 +1,10 @@
 {
-  ApplicationInfo appInfo=setup.getMgmtSvc().getApplicationInfo("test-organization/test-app");
-  String clientId=setup.getMgmtSvc().getClientIdForApplication(appInfo.getId());
-  String clientSecret=setup.getMgmtSvc().getClientSecretForApplication(appInfo.getId());
+  Credentials orgCredentials=getOrgCredentials();
+  String clientId=orgCredentials.getClientId();
+  String clientSecret=orgCredentials.getClientSecret();
   String clientCredentials=clientId + ":" + clientSecret;
   String token=Base64.encodeToString(clientCredentials.getBytes());
-  Map<String,String> payload=hashMap("grant_type","client_credentials");
-  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/token").header("Authorization","Basic " + token).type(MediaType.APPLICATION_JSON_TYPE).accept(MediaType.APPLICATION_JSON).post(String.class,payload));
-  assertNotNull("It has access_token.",node.get("access_token").textValue());
-  assertNotNull("It has expires_in.",node.get("expires_in").intValue());
+  Token apiResponse=this.app().token().getResource(false).header("Authorization","Basic " + token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(Token.class,hashMap("grant_type","client_credentials"));
+  assertNotNull("It has access_token.",apiResponse.getAccessToken());
+  assertNotNull("It has expires_in.",apiResponse.getExpirationDate());
 }

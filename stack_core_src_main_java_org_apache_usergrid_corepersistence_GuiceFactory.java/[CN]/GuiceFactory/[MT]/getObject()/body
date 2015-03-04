@@ -3,10 +3,9 @@
     return injector;
   }
   try {
-    cass.init();
     logger.info("Loading Core Persistence properties");
     String hostsString="";
-    CassandraHost[] hosts=cass.getCassandraHostConfigurator().buildCassandraHosts();
+    CassandraHost[] hosts=chc.buildCassandraHosts();
     if (hosts.length == 0) {
       throw new RuntimeException("Fatal error: no Cassandra hosts configured");
     }
@@ -22,18 +21,17 @@
     Properties cpProps=new Properties();
     cpProps.put("cassandra.hosts",hostsString);
     cpProps.put("cassandra.port",hosts[0].getPort());
-    cpProps.put("cassandra.cluster_name",cass.getProperties().get("cassandra.cluster"));
-    String cassRemoteString=(String)cass.getProperties().get("cassandra.use_remote");
+    cpProps.put("cassandra.cluster_name",systemProperties.getProperty("cassandra.cluster"));
+    String cassRemoteString=(String)systemProperties.getProperty("cassandra.use_remote");
     if (cassRemoteString != null && cassRemoteString.equals("false")) {
       cpProps.put("cassandra.embedded","true");
     }
  else {
       cpProps.put("cassandra.embedded","false");
     }
-    cpProps.put("collections.keyspace.strategy.class",cass.getProperties().get("cassandra.keyspace.strategy"));
-    cpProps.put("collections.keyspace.strategy.options",cass.getProperties().get("cassandra.keyspace.replication"));
+    cpProps.put("collections.keyspace.strategy.class",systemProperties.getProperty("cassandra.keyspace.strategy"));
+    cpProps.put("collections.keyspace.strategy.options",systemProperties.getProperty("cassandra.keyspace.replication"));
     logger.debug("Set Cassandra properties for Core Persistence: " + cpProps.toString());
-    cpProps.putAll(cass.getProperties());
     cpProps.putAll(systemProperties);
     ConfigurationManager.loadProperties(cpProps);
   }

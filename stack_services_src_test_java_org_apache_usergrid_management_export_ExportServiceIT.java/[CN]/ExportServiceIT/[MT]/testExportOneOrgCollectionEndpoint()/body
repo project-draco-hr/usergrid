@@ -18,13 +18,18 @@
   JobExecution jobExecution=mock(JobExecution.class);
   when(jobExecution.getJobData()).thenReturn(jobData);
   exportService.doExport(jobExecution);
-  JSONParser parser=new JSONParser();
-  org.json.simple.JSONArray a=(org.json.simple.JSONArray)parser.parse(new FileReader(f));
-  assertEquals(3,a.size());
-  for (int i=0; i < a.size(); i++) {
-    org.json.simple.JSONObject entity=(org.json.simple.JSONObject)a.get(i);
-    org.json.simple.JSONObject entityData=(JSONObject)entity.get("Metadata");
-    String entityName=(String)entityData.get("name");
+  TypeReference<HashMap<String,Object>> typeRef=new TypeReference<HashMap<String,Object>>(){
+  }
+;
+  ObjectMapper mapper=new ObjectMapper();
+  Map<String,Object> jsonMap=mapper.readValue(new FileReader(f),typeRef);
+  Map collectionsMap=(Map)jsonMap.get("collections");
+  String collectionName=(String)collectionsMap.keySet().iterator().next();
+  List collection=(List)collectionsMap.get(collectionName);
+  for (  Object o : collection) {
+    Map entityMap=(Map)o;
+    Map metadataMap=(Map)entityMap.get("Metadata");
+    String entityName=(String)metadataMap.get("name");
     assertFalse("junkRealName".equals(entityName));
   }
   f.deleteOnExit();
