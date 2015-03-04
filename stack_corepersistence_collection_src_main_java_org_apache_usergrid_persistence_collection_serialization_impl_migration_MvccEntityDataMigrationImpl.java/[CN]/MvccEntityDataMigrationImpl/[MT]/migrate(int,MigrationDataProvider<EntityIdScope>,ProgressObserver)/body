@@ -2,8 +2,8 @@
   final AtomicLong atomicLong=new AtomicLong();
   final UUID startTime=UUIDGenerator.newTimeUUID();
   final MigrationRelationship<MvccEntitySerializationStrategy> migration=allVersions.getMigrationRelationship(currentVersion);
-  final long migrated=migrationDataProvider.getData().subscribeOn(Schedulers.io()).parallel(new Func1<Observable<EntityIdScope>,Observable<Long>>(){
-    @Override public Observable<Long> call(    final Observable<EntityIdScope> entityIdScopeObservable){
+  final Observable<List<EntityToSaveMessage>> migrated=migrationDataProvider.getData().subscribeOn(Schedulers.io()).parallel(new Func1<Observable<EntityIdScope>,Observable<List<EntityToSaveMessage>>>(){
+    @Override public Observable<List<EntityToSaveMessage>> call(    final Observable<EntityIdScope> entityIdScopeObservable){
       return entityIdScopeObservable.flatMap(new Func1<EntityIdScope,Observable<EntityToSaveMessage>>(){
         @Override public Observable<EntityToSaveMessage> call(        final EntityIdScope entityIdScope){
           final CollectionScope currentScope=entityIdScope.getCollectionScope();
@@ -20,58 +20,43 @@
 );
         }
       }
-).groupBy(new Func1<EntityToSaveMessage,Id>(){
-        @Override public Id call(        final EntityToSaveMessage entityToSaveMessage){
-          return entityToSaveMessage.entity.getId();
-        }
-      }
-).buffer(10).doOnNext(new Action1<List<GroupedObservable<Id,EntityToSaveMessage>>>(){
-        @Override public void call(        final List<GroupedObservable<Id,EntityToSaveMessage>> groupedObservables){
-          atomicLong.addAndGet(groupedObservables.size());
+).buffer(100).doOnNext(new Action1<List<EntityToSaveMessage>>(){
+        @Override public void call(        final List<EntityToSaveMessage> entities){
           final MutationBatch totalBatch=keyspace.prepareMutationBatch();
-          Observable.from(groupedObservables).flatMap(new Func1<GroupedObservable<Id,EntityToSaveMessage>,Observable<EntityToSaveMessage>>(){
-            @Override public Observable<EntityToSaveMessage> call(            final GroupedObservable<Id,EntityToSaveMessage> idEntityToSaveMessageGroupedObservable){
-              return idEntityToSaveMessageGroupedObservable.asObservable();
+          atomicLong.addAndGet(entities.size());
+          List<EntityVersionCleanupTask> entityVersionCleanupTasks=new ArrayList(entities.size());
+          for (          EntityToSaveMessage message : entities) {
+            final MutationBatch entityRewrite=migration.to.write(message.scope,message.entity);
+            totalBatch.mergeShallow(entityRewrite);
+            if (!message.entity.getEntity().isPresent()) {
+              return;
+            }
+            final Entity entity=message.entity.getEntity().get();
+            final Id entityId=entity.getId();
+            final UUID version=message.entity.getVersion();
+            for (            Field field : EntityUtils.getUniqueFields(message.entity.getEntity().get())) {
+              UniqueValue written=new UniqueValueImpl(field,entityId,version);
+              MutationBatch mb=uniqueValueSerializationStrategy.write(message.scope,written);
+              totalBatch.mergeShallow(mb);
+            }
+            final EntityVersionCleanupTask task=entityVersionCleanupFactory.getTask(message.scope,message.entity.getId(),version);
+            entityVersionCleanupTasks.add(task);
+          }
+          executeBatch(migration.to.getImplementationVersion(),totalBatch,observer,atomicLong);
+          for (          EntityVersionCleanupTask entityVersionCleanupTask : entityVersionCleanupTasks) {
+            try {
+              entityVersionCleanupTask.call();
+            }
+ catch (            Exception e) {
+              LOGGER.error("Unable to run cleanup task",e);
             }
           }
-).doOnNext(new Action1<EntityToSaveMessage>(){
-            @Override public void call(            final EntityToSaveMessage message){
-              final MutationBatch entityRewrite=migration.to.write(message.scope,message.entity);
-              totalBatch.mergeShallow(entityRewrite);
-              if (!message.entity.getEntity().isPresent()) {
-                return;
-              }
-              final Entity entity=message.entity.getEntity().get();
-              final Id entityId=entity.getId();
-              final UUID version=message.entity.getVersion();
-              for (              Field field : EntityUtils.getUniqueFields(message.entity.getEntity().get())) {
-                UniqueValue written=new UniqueValueImpl(field,entityId,version);
-                MutationBatch mb=uniqueValueSerializationStrategy.write(message.scope,written);
-                totalBatch.mergeShallow(mb);
-              }
-            }
-          }
-).doOnCompleted(new Action0(){
-            @Override public void call(){
-              executeBatch(migration.to.getImplementationVersion(),totalBatch,observer,atomicLong);
-            }
-          }
-).toBlocking().last();
-        }
-      }
-).reduce(0l,new Func2<Long,List<GroupedObservable<Id,EntityToSaveMessage>>,Long>(){
-        @Override public Long call(        final Long aLong,        final List<GroupedObservable<Id,EntityToSaveMessage>> groupedObservables){
-          long newCount=aLong;
-          for (          GroupedObservable<Id,EntityToSaveMessage> group : groupedObservables) {
-            newCount+=group.longCount().toBlocking().last();
-          }
-          return newCount;
         }
       }
 );
     }
   }
-).toBlocking().last();
-  observer.update(migration.to.getImplementationVersion(),"Finished for this step.  Migrated " + migrated + "entities total. ");
+);
+  migrated.toBlocking().lastOrDefault(null);
   return migration.to.getImplementationVersion();
 }
