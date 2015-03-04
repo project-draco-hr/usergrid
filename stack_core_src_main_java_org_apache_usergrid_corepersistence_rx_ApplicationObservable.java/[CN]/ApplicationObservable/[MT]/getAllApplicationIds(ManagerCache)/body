@@ -1,5 +1,5 @@
 {
-  final Observable<Id> systemIds=Observable.from(Arrays.asList(generateApplicationId(CpNamingUtils.DEFAULT_APPLICATION_ID),generateApplicationId(CpNamingUtils.MANAGEMENT_APPLICATION_ID)));
+  final Observable<Id> systemIds=Observable.from(Arrays.asList(generateApplicationId(CpNamingUtils.MANAGEMENT_APPLICATION_ID)));
   final ApplicationScope appScope=getApplicationScope(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
   final CollectionScope appInfoCollectionScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),CpNamingUtils.getCollectionScopeNameFromCollectionName(CpNamingUtils.APPLICATION_INFOS));
   final EntityCollectionManager collectionManager=managerCache.getEntityCollectionManager(appInfoCollectionScope);
@@ -20,7 +20,7 @@
       }
 ).map(new Func1<org.apache.usergrid.persistence.model.entity.Entity,Id>(){
         @Override public Id call(        final org.apache.usergrid.persistence.model.entity.Entity entity){
-          final UUID uuid=(UUID)entity.getField("applicationUuid").getValue();
+          final UUID uuid=entity.getId().getUuid();
           return CpNamingUtils.generateApplicationId(uuid);
         }
       }

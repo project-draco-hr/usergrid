@@ -1,8 +1,8 @@
 {
   String orgName=clientSetup.getOrganization().getName();
-  String appToDelete=clientSetup.getAppName() + "_appToDelete";
+  String appToDeleteName=clientSetup.getAppName() + "_appToDelete";
   Token orgAdminToken=getAdminToken(clientSetup.getUsername(),clientSetup.getUsername());
-  ApiResponse appCreateResponse=clientSetup.getRestClient().management().orgs().organization(orgName).app().getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).post(ApiResponse.class,new Application(appToDelete));
+  ApiResponse appCreateResponse=clientSetup.getRestClient().management().orgs().organization(orgName).app().getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).post(ApiResponse.class,new Application(appToDeleteName));
   UUID appToDeleteId=appCreateResponse.getEntities().get(0).getUuid();
   List<Entity> entities=new ArrayList<>();
   for (int i=0; i < 10; i++) {
@@ -14,12 +14,12 @@
       }
     }
 );
-    ApiResponse createResponse=clientSetup.getRestClient().org(orgName).app(appToDelete).collection("things").getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).post(ApiResponse.class,entity);
+    ApiResponse createResponse=clientSetup.getRestClient().org(orgName).app(appToDeleteName).collection("things").getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).post(ApiResponse.class,entity);
     entities.add(createResponse.getEntities().get(0));
   }
   clientSetup.getRestClient().org(orgName).app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).delete();
   try {
-    clientSetup.getRestClient().org(orgName).app(appToDelete).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).get(ApiResponse.class);
+    clientSetup.getRestClient().org(orgName).app(appToDeleteName).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).get(ApiResponse.class);
     Assert.fail("Must not be able to get deleted app");
   }
  catch (  UniformInterfaceException expected) {
@@ -28,7 +28,7 @@
     Assert.assertEquals("organization_application_not_found",node.get("error").textValue());
   }
   try {
-    clientSetup.getRestClient().org(orgName).app(appToDelete).collection("things").getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).get(ApiResponse.class);
+    clientSetup.getRestClient().org(orgName).app(appToDeleteName).collection("things").getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).get(ApiResponse.class);
     Assert.fail("Must not be able to get deleted app's collection");
   }
  catch (  UniformInterfaceException expected) {
@@ -38,7 +38,7 @@
   }
   try {
     UUID entityId=entities.get(0).getUuid();
-    clientSetup.getRestClient().org(orgName).app(appToDelete).collection("things").entity(entityId).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).get(ApiResponse.class);
+    clientSetup.getRestClient().org(orgName).app(appToDeleteName).collection("things").entity(entityId).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).get(ApiResponse.class);
     Assert.fail("Must not be able to get deleted app entity");
   }
  catch (  UniformInterfaceException expected) {
@@ -47,4 +47,20 @@
     Assert.assertEquals("organization_application_not_found",node.get("error").textValue());
   }
   refreshIndex();
+  ManagementResponse orgAppResponse=clientSetup.getRestClient().management().orgs().organization(orgName).apps().getOrganizationApplications();
+  for (  String appName : orgAppResponse.getData().keySet()) {
+    if (orgAppResponse.getData().get(appName).equals(appToDeleteId.toString())) {
+      Assert.fail("Deleted app must not be included in list of org apps");
+    }
+  }
+  try {
+    clientSetup.getRestClient().org(orgName).app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).delete();
+  }
+ catch (  UniformInterfaceException expected) {
+    Assert.assertEquals("Error must be 404",404,expected.getResponse().getStatus());
+    JsonNode node=mapper.readTree(expected.getResponse().getEntity(String.class));
+    Assert.assertEquals("not_found",node.get("error").textValue());
+  }
+  ApiResponse appCreateAgainResponse=clientSetup.getRestClient().management().orgs().organization(orgName).app().getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).post(ApiResponse.class,new Application(appToDeleteName));
+  Assert.assertEquals("Must be able to create app with same name as deleted app",(orgName + "/" + appToDeleteName).toLowerCase(),appCreateAgainResponse.getEntities().get(0).get("name"));
 }

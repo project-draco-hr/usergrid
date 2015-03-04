@@ -1,14 +1,11 @@
 {
   init();
+  UUID applicationId=null;
   EntityManager em=getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
   final EntityRef alias=em.getAlias(CpNamingUtils.APPLICATION_INFO,name);
-  if (alias == null) {
-    return null;
+  if (alias != null) {
+    Entity entity=em.get(alias);
+    applicationId=(UUID)entity.getProperty("uuid");
   }
-  final Entity entity=em.get(alias);
-  if (entity == null) {
-    return null;
-  }
-  final UUID property=(UUID)entity.getProperty("uuid");
-  return property;
+  return applicationId;
 }

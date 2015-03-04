@@ -1,0 +1,55 @@
+{
+  EntityManager em=getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+  Query q=Query.fromQL("select *");
+  Results results=null;
+  try {
+    results=em.searchCollection(em.getApplicationRef(),"appinfos",q);
+  }
+ catch (  Exception e) {
+    logger.error("Error reading old appinfos collection, not migrating",e);
+    return;
+  }
+  if (!results.isEmpty()) {
+    logger.info("Migrating old appinfos");
+    for (    Entity oldAppInfo : results.getEntities()) {
+      final String appName=oldAppInfo.getName();
+      UUID applicationId=null, organizationId=null;
+      Object uuidObject=oldAppInfo.getProperty("applicationUuid");
+      if (uuidObject instanceof UUID) {
+        applicationId=(UUID)uuidObject;
+      }
+ else {
+        applicationId=UUIDUtils.tryExtractUUID(uuidObject.toString());
+      }
+      uuidObject=oldAppInfo.getProperty("organizationUuid");
+      if (uuidObject instanceof UUID) {
+        organizationId=(UUID)uuidObject;
+      }
+ else {
+        organizationId=UUIDUtils.tryExtractUUID(uuidObject.toString());
+      }
+      final UUID appId=applicationId;
+      Map<String,Object> appInfoMap=new HashMap<String,Object>(){
+{
+          put(PROPERTY_NAME,appName);
+          put(PROPERTY_UUID,appId);
+        }
+      }
+;
+      final Entity appInfo;
+      try {
+        appInfo=em.create(appId,CpNamingUtils.APPLICATION_INFO,appInfoMap);
+        em.createConnection(new SimpleEntityRef(Group.ENTITY_TYPE,organizationId),"owns",appInfo);
+        em.delete(oldAppInfo);
+        logger.info("Migrated old appinfo for app {}",appName);
+      }
+ catch (      Exception e) {
+        logger.error("Error migration application " + appName + " continuing ",e);
+      }
+    }
+    em.refreshIndex();
+  }
+ else {
+    logger.info("No old appinfos found, no need for migration");
+  }
+}

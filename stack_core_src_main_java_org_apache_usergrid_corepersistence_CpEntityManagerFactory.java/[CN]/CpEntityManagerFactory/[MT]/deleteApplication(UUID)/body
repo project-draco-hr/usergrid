@@ -1,10 +1,8 @@
 {
   EntityManager em=getEntityManager(this.getManagementAppId());
-  Query q=Query.fromQL(String.format("select * where applicationUuid = '%s'",applicationId.toString()));
-  Results results=em.searchCollection(em.getApplicationRef(),CpNamingUtils.APPLICATION_INFOS,q);
-  Entity appToDelete=results.getEntity();
-  em.delete(appToDelete);
-  em.create(CpNamingUtils.DELETED_APPINFO,appToDelete.getProperties());
+  Entity applicationInfo=em.get(new SimpleEntityRef(CpNamingUtils.APPLICATION_INFO,applicationId));
+  em.delete(applicationInfo);
+  em.create(applicationId,CpNamingUtils.DELETED_APPLICATION_INFO,applicationInfo.getProperties());
   em.refreshIndex();
   EntityIndex ei=managerCache.getEntityIndex(new ApplicationScopeImpl(new SimpleId(applicationId,TYPE_APPLICATION)));
   ei.deleteIndex();

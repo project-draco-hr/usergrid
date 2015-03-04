@@ -8,8 +8,8 @@
   final String scopeName;
   final String edgeType;
   if (deleted) {
-    edgeType=CpNamingUtils.getEdgeTypeFromCollectionName(CpNamingUtils.DELETED_APPINFOS);
-    scopeName=CpNamingUtils.getCollectionScopeNameFromCollectionName(CpNamingUtils.DELETED_APPINFOS);
+    edgeType=CpNamingUtils.getEdgeTypeFromCollectionName(CpNamingUtils.DELETED_APPLICATION_INFOS);
+    scopeName=CpNamingUtils.getCollectionScopeNameFromCollectionName(CpNamingUtils.DELETED_APPLICATION_INFOS);
   }
  else {
     edgeType=CpNamingUtils.getEdgeTypeFromCollectionName(CpNamingUtils.APPLICATION_INFOS);
@@ -25,10 +25,10 @@
     CollectionScope collScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),scopeName);
     org.apache.usergrid.persistence.model.entity.Entity e=managerCache.getEntityCollectionManager(collScope).load(targetId).toBlockingObservable().lastOrDefault(null);
     if (e == null) {
-      logger.warn("Applicaion {} in index but not found in collections",targetId);
+      logger.warn("Application {} in index but not found in collections",targetId);
       continue;
     }
-    appMap.put((String)e.getField(PROPERTY_NAME).getValue(),(UUID)e.getField("applicationUuid").getValue());
+    appMap.put((String)e.getField(PROPERTY_NAME).getValue(),e.getId().getUuid());
   }
   return appMap;
 }
