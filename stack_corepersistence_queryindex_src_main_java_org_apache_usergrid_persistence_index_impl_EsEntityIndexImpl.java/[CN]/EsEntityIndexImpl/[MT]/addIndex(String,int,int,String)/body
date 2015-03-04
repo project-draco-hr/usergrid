@@ -8,7 +8,9 @@
     try {
       final AdminClient admin=esProvider.getClient().admin();
       Settings settings=ImmutableSettings.settingsBuilder().put("index.number_of_shards",numberOfShards).put("index.number_of_replicas",numberOfReplicas).put("action.write_consistency",writeConsistency).build();
+      Timer.Context timeNewIndexCreation=flushTimer.time();
       final CreateIndexResponse cir=admin.indices().prepareCreate(indexName).setSettings(settings).execute().actionGet();
+      timeNewIndexCreation.stop();
       logger.info("Created new Index Name [{}] ACK=[{}]",indexName,cir.isAcknowledged());
     }
  catch (    IndexAlreadyExistsException e) {
