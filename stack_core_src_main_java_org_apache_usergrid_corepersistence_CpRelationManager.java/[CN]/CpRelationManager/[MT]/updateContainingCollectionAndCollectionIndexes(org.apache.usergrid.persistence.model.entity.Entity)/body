@@ -25,7 +25,7 @@
     }
   }
 ).count().toBlocking().lastOrDefault(0);
-  Timer.Context timeElasticIndexBatch=cpRelationTimer.time();
+  Timer.Context timeElasticIndexBatch=metricsFactory.getTimer(CpRelationManager.class,"relation.manager.es.update.collection").time();
   entityIndexBatch.execute();
   timeElasticIndexBatch.stop();
   logger.debug("updateContainingCollectionsAndCollections() updated {} indexes",count);

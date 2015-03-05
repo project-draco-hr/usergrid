@@ -6,7 +6,7 @@
   UUID timestampUuid=UUIDUtils.newTimeUUID();
   Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
   batch=batchUpdateDictionary(batch,entity,dictionaryName,elementName,elementValue,false,timestampUuid);
-  Timer.Context timeDictionaryCreation=corePersistanceTimer.time();
+  Timer.Context timeDictionaryCreation=this.emf.getMetricsFactory().getTimer(CpEntityManager.class,"cp.entity.add.dictionary.timer").time();
   CassandraPersistenceUtils.batchExecute(batch,CassandraService.RETRY_COUNT);
   timeDictionaryCreation.stop();
 }

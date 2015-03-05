@@ -3,7 +3,7 @@
   final EntityIndexBatch batch=ei.createBatch();
   IndexScope collectionIndexScope=new IndexScopeImpl(collectionEntity.getId(),CpNamingUtils.getCollectionScopeNameFromCollectionName(collName));
   batch.index(collectionIndexScope,memberEntity);
-  Timer.Context timeIndexEntityCollection=corePersistanceTimer.time();
+  Timer.Context timeIndexEntityCollection=this.emf.getMetricsFactory().getTimer(CpEntityManager.class,"cp.entity.es.index.entity.to.collection.timer").time();
   batch.execute();
   timeIndexEntityCollection.stop();
 }

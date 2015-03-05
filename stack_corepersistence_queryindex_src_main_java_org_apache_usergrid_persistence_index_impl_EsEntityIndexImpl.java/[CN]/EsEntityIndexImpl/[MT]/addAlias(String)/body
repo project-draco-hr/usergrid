@@ -5,16 +5,16 @@
     final AdminClient adminClient=esProvider.getClient().admin();
     String[] indexNames=getIndexes(AliasType.Write);
     for (    String currentIndex : indexNames) {
-      Timer.Context timeRemoveAlias=indexTimer.time();
+      Timer.Context timeRemoveAlias=metricsFactory.getTimer(EsEntityIndexImpl.class,"es.entity.index.remove.index.alias.timer").time();
       isAck=adminClient.indices().prepareAliases().removeAlias(currentIndex,alias.getWriteAlias()).execute().actionGet().isAcknowledged();
       timeRemoveAlias.stop();
       logger.info("Removed Index Name [{}] from Alias=[{}] ACK=[{}]",currentIndex,alias,isAck);
     }
-    Timer.Context timeAddReadAlias=indexTimer.time();
+    Timer.Context timeAddReadAlias=metricsFactory.getTimer(EsEntityIndexImpl.class,"es.entity.index.add.read.alias.timer").time();
     isAck=adminClient.indices().prepareAliases().addAlias(indexName,alias.getReadAlias()).execute().actionGet().isAcknowledged();
     timeAddReadAlias.stop();
     logger.info("Created new read Alias Name [{}] ACK=[{}]",alias.getReadAlias(),isAck);
-    Timer.Context timeAddWriteAlias=indexTimer.time();
+    Timer.Context timeAddWriteAlias=metricsFactory.getTimer(EsEntityIndexImpl.class,"es.entity.index.add.write.alias.timer").time();
     isAck=adminClient.indices().prepareAliases().addAlias(indexName,alias.getWriteAlias()).execute().actionGet().isAcknowledged();
     timeAddWriteAlias.stop();
     logger.info("Created new write Alias Name [{}] ACK=[{}]",alias.getWriteAlias(),isAck);

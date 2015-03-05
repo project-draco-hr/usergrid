@@ -2,7 +2,7 @@
   Keyspace ko=cass.getApplicationKeyspace(applicationId);
   Mutator<ByteBuffer> m=createMutator(ko,be);
   batchUpdateEntityConnection(m,true,(ConnectionRefImpl)connectionRef,UUIDGenerator.newTimeUUID());
-  Timer.Context timeDeleteConnections=cpRelationTimer.time();
+  Timer.Context timeDeleteConnections=metricsFactory.getTimer(CpRelationManager.class,"relation.manager.cassandra.delete.connection.batch.timer").time();
   batchExecute(m,CassandraService.RETRY_COUNT);
   timeDeleteConnections.stop();
   EntityRef connectingEntityRef=connectionRef.getConnectingEntity();
@@ -21,7 +21,7 @@
   final EntityIndexBatch batch=ei.createBatch();
   IndexScope indexScope=new IndexScopeImpl(new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),CpNamingUtils.getConnectionScopeName(connectionType));
   batch.deindex(indexScope,targetEntity);
-  Timer.Context timeDeleteConnection=cpRelationTimer.time();
+  Timer.Context timeDeleteConnection=metricsFactory.getTimer(CpRelationManager.class,"relation.manager.es.delete.connection.batch.timer").time();
   batch.execute();
   timeDeleteConnection.stop();
 }
