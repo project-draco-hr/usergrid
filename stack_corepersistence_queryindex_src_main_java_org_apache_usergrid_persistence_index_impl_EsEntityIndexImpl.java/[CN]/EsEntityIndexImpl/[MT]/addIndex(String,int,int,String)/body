@@ -7,7 +7,7 @@
     String indexName=indexIdentifier.getIndex(normalizedSuffix);
     try {
       final AdminClient admin=esProvider.getClient().admin();
-      Settings settings=ImmutableSettings.settingsBuilder().put("index.number_of_shards",numberOfShards).put("index.number_of_replicas",numberOfReplicas).build();
+      Settings settings=ImmutableSettings.settingsBuilder().put("index.number_of_shards",numberOfShards).put("index.number_of_replicas",numberOfReplicas).put("action.write_consistency",writeConsistency).build();
       final CreateIndexResponse cir=admin.indices().prepareCreate(indexName).setSettings(settings).execute().actionGet();
       logger.info("Created new Index Name [{}] ACK=[{}]",indexName,cir.isAcknowledged());
     }
