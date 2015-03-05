@@ -1,8 +1,13 @@
 {
-  try {
-    return execution.execute();
+  return new HystrixCommand<OperationResult<R>>(ASYNC_GROUP){
+    @Override protected OperationResult<R> run(){
+      try {
+        return execution.execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
- catch (  ConnectionException e) {
-    throw new RuntimeException(e);
-  }
+.execute();
 }

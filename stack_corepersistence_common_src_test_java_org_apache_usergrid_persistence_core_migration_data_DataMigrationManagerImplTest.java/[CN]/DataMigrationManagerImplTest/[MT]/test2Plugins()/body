@@ -1,0 +1,18 @@
+{
+  final Set<MigrationPlugin> plugins=new HashSet<>();
+  MigrationPlugin plugin1=mock(MigrationPlugin.class);
+  when(plugin1.getName()).thenReturn("plugin1");
+  MigrationPlugin plugin2=mock(MigrationPlugin.class);
+  when(plugin2.getName()).thenReturn("plugin2");
+  plugins.add(plugin1);
+  plugins.add(plugin2);
+  final MigrationInfoSerialization migrationInfoSerialization=mock(MigrationInfoSerialization.class);
+  DataMigrationManagerImpl migrationManager=new DataMigrationManagerImpl(plugins,migrationInfoSerialization);
+  Set<String> pluginNames=migrationManager.getPluginNames();
+  assertEquals(2,pluginNames.size());
+  assertTrue(pluginNames.contains("plugin1"));
+  assertTrue(pluginNames.contains("plugin2"));
+  migrationManager.migrate();
+  verify(plugin1).run(any(ProgressObserver.class));
+  verify(plugin2).run(any(ProgressObserver.class));
+}
