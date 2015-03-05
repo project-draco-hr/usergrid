@@ -4,5 +4,7 @@
   long timestamp=cass.createTimestamp();
   Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
   CassandraPersistenceUtils.addInsertToMutator(batch,ApplicationCF.ENTITY_DICTIONARIES,getRolePermissionsKey(groupId,roleName),permission,ByteBuffer.allocate(0),timestamp);
+  Timer.Context timeGroupRolePermission=corePersistanceTimer.time();
   CassandraPersistenceUtils.batchExecute(batch,CassandraService.RETRY_COUNT);
+  timeGroupRolePermission.stop();
 }

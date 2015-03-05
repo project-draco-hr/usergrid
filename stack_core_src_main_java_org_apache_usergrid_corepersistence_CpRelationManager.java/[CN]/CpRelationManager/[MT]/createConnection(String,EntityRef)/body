@@ -20,6 +20,8 @@
   Keyspace ko=cass.getApplicationKeyspace(applicationId);
   Mutator<ByteBuffer> m=createMutator(ko,be);
   batchUpdateEntityConnection(m,false,connection,UUIDGenerator.newTimeUUID());
+  Timer.Context timeElasticIndexBatch=cpRelationTimer.time();
   batchExecute(m,CassandraService.RETRY_COUNT);
+  timeElasticIndexBatch.stop();
   return connection;
 }

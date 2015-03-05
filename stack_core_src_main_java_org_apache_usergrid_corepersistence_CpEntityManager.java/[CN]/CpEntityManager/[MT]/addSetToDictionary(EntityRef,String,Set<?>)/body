@@ -8,5 +8,7 @@
   for (  Object elementValue : elementValues) {
     batch=batchUpdateDictionary(batch,entity,dictionaryName,elementValue,null,false,timestampUuid);
   }
+  Timer.Context timeAddingSetDictionary=corePersistanceTimer.time();
   CassandraPersistenceUtils.batchExecute(batch,CassandraService.RETRY_COUNT);
+  timeAddingSetDictionary.stop();
 }
