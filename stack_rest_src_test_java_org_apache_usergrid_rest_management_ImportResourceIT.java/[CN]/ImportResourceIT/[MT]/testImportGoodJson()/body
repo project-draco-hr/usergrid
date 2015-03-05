@@ -2,8 +2,9 @@
   Assume.assumeTrue(configured);
   String org=clientSetup.getOrganizationName();
   String app=clientSetup.getAppName();
+  String basePath=System.getProperty("target.directory") + File.separator + "test-classes"+ File.separator;
   List<String> filenames=new ArrayList<>(1);
-  filenames.add("testImportCorrect.testCol.1.json");
+  filenames.add(basePath + "testImportCorrect.testCol.1.json");
   S3Upload s3Upload=new S3Upload();
   s3Upload.copyToS3(System.getProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR),System.getProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR),bucketName,filenames);
   Entity importEntity=importCollection();
@@ -15,7 +16,7 @@
   assertNotNull(importGetIncludes);
   assertEquals(1,importGetIncludesResponse.getEntityCount());
   final Entity includesEntity=importGetIncludesResponse.getEntities().get(0);
-  assertEquals("testImportCorrect.testCol.1.json",includesEntity.getAsString("fileName"));
+  assertTrue(includesEntity.getAsString("fileName").endsWith("testImportCorrect.testCol.1.json"));
   assertEquals(1,includesEntity.get("importedConnectionCount"));
   assertEquals(1,includesEntity.get("importedEntityCount"));
   assertEquals("FINISHED",importGet.get("state"));
