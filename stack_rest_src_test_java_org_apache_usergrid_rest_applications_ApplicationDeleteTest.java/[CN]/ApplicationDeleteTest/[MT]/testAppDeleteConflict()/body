@@ -5,10 +5,10 @@
   List<Entity> entities=new ArrayList<>();
   UUID appToDeleteId=createAppWithCollection(orgName,appToDeleteName,orgAdminToken,entities);
   clientSetup.getRestClient().org(orgName).app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).delete();
-  createAppWithCollection(orgName,appToDeleteName,orgAdminToken,entities);
+  UUID newAppId=createAppWithCollection(orgName,appToDeleteName,orgAdminToken,entities);
   try {
-    clientSetup.getRestClient().org(orgName).app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).put();
-    Assert.fail("Must fail to restore app with same name as existing app");
+    clientSetup.getRestClient().org(orgName).app(newAppId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).delete();
+    Assert.fail("Must fail to delete app with same name as deleted app");
   }
  catch (  UniformInterfaceException e) {
     Assert.assertEquals(409,e.getResponse().getStatus());

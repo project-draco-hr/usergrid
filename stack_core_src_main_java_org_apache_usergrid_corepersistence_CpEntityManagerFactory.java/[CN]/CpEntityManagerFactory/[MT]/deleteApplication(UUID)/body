@@ -1,8 +1,16 @@
 {
   EntityManager em=getEntityManager(this.getManagementAppId());
-  Entity applicationInfo=em.get(new SimpleEntityRef(CpNamingUtils.APPLICATION_INFO,applicationId));
-  em.delete(applicationInfo);
-  em.create(applicationId,CpNamingUtils.DELETED_APPLICATION_INFO,applicationInfo.getProperties());
+  Entity appToDelete=em.get(new SimpleEntityRef(CpNamingUtils.APPLICATION_INFO,applicationId));
+  Entity deletedApp=em.create(applicationId,CpNamingUtils.DELETED_APPLICATION_INFO,appToDelete.getProperties());
+  final Set<String> connectionTypes=em.getConnectionTypes(appToDelete);
+  for (  String connType : connectionTypes) {
+    final Results results=em.getConnectedEntities(appToDelete,connType,null,Query.Level.ALL_PROPERTIES);
+    for (    Entity entity : results.getEntities()) {
+      em.createConnection(deletedApp,connType,entity);
+    }
+  }
+  em.delete(appToDelete);
   em.refreshIndex();
-  managerCache.getEntityIndex(new ApplicationScopeImpl(new SimpleId(applicationId,TYPE_APPLICATION)));
+  final EntityIndex entityIndex=managerCache.getEntityIndex(new ApplicationScopeImpl(new SimpleId(applicationId,TYPE_APPLICATION)));
+  entityIndex.deleteIndex();
 }

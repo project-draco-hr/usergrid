@@ -5,25 +5,7 @@
     throw new ApplicationAlreadyExistsException(appName);
   }
   getSetup().setupApplicationKeyspace(applicationId,appName);
-  UUID orgUuid=lookupOrganization(organizationName);
-  if (orgUuid == null) {
-    final String orgName=organizationName;
-    final Entity orgInfo;
-    try {
-      orgInfo=em.create("organization",new HashMap<String,Object>(){
-{
-          put(PROPERTY_NAME,orgName);
-        }
-      }
-);
-    }
- catch (    DuplicateUniquePropertyExistsException e) {
-      throw new OrganizationAlreadyExistsException(orgName);
-    }
-    em.refreshIndex();
-  }
   final UUID appId=applicationId;
-  final UUID orgId=orgUuid;
   Map<String,Object> appInfoMap=new HashMap<String,Object>(){
 {
       put(PROPERTY_NAME,appName);
