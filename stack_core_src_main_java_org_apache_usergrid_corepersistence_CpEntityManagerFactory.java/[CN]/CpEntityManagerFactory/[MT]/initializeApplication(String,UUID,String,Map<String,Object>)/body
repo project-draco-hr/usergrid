@@ -1,12 +1,14 @@
 {
+  init();
   EntityManager em=getEntityManager(CpNamingUtils.SYSTEM_APP_ID);
   final String appName=buildAppName(organizationName,name);
   if (lookupApplication(appName) != null) {
     throw new ApplicationAlreadyExistsException(appName);
   }
   getSetup().setupApplicationKeyspace(applicationId,appName);
-  UUID orgUuid=lookupOrganization(organizationName);
-  if (orgUuid == null) {
+  final Optional<UUID> cachedValue=orgApplicationCache.getOrganizationId(name);
+  final UUID orgUuid;
+  if (!cachedValue.isPresent()) {
     final String orgName=organizationName;
     final Entity orgInfo;
     try {
@@ -22,6 +24,10 @@
     }
     em.refreshIndex();
     orgUuid=orgInfo.getUuid();
+    orgApplicationCache.evictOrgId(name);
+  }
+ else {
+    orgUuid=cachedValue.get();
   }
   final UUID appId=applicationId;
   final UUID orgId=orgUuid;
@@ -49,5 +55,6 @@
   appEm.resetRoles();
   appEm.refreshIndex();
   logger.info("Initialized application {}",appName);
+  orgApplicationCache.evictAppId(appName);
   return applicationId;
 }
