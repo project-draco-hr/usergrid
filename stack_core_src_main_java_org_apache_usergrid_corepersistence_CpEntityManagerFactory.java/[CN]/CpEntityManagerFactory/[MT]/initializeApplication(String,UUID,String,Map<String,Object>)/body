@@ -6,25 +6,24 @@
     throw new ApplicationAlreadyExistsException(appName);
   }
   getSetup().setupApplicationKeyspace(applicationId,appName);
-  final Optional<UUID> cachedValue=orgApplicationCache.getOrganizationId(name);
-  final UUID orgUuid;
+  final Optional<UUID> cachedValue=orgApplicationCache.getOrganizationId(organizationName);
+  UUID orgUuid;
   if (!cachedValue.isPresent()) {
     final String orgName=organizationName;
-    final Entity orgInfo;
     try {
-      orgInfo=em.create("organization",new HashMap<String,Object>(){
+      final Entity orgInfo=em.create("organization",new HashMap<String,Object>(){
 {
           put(PROPERTY_NAME,orgName);
         }
       }
 );
+      orgUuid=orgInfo.getUuid();
+      orgApplicationCache.evictOrgId(name);
     }
  catch (    DuplicateUniquePropertyExistsException e) {
-      throw new OrganizationAlreadyExistsException(orgName);
+      orgApplicationCache.evictOrgId(organizationName);
+      orgUuid=orgApplicationCache.getOrganizationId(organizationName).get();
     }
-    em.refreshIndex();
-    orgUuid=orgInfo.getUuid();
-    orgApplicationCache.evictOrgId(name);
   }
  else {
     orgUuid=cachedValue.get();
