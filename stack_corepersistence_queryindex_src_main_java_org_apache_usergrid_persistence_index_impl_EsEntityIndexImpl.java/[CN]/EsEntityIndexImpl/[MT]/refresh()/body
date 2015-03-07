@@ -9,7 +9,9 @@
           logger.debug("Not refreshing indexes, none found for app {}",applicationScope.getApplication().getUuid());
           return true;
         }
+        Timer.Context timeRefreshIndex=refreshTimer.time();
         esProvider.getClient().admin().indices().prepareRefresh(indexes).execute().actionGet();
+        timeRefreshIndex.stop();
         logger.debug("Refreshed indexes: {}",StringUtils.join(indexes,", "));
         return true;
       }
