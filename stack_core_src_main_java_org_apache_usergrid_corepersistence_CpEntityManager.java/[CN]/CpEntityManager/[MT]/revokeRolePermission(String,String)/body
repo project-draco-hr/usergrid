@@ -4,7 +4,7 @@
   long timestamp=cass.createTimestamp();
   Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
   CassandraPersistenceUtils.addDeleteToMutator(batch,ApplicationCF.ENTITY_DICTIONARIES,getRolePermissionsKey(roleName),permission,timestamp);
-  Timer.Context timeRevokeRolePermission=this.emf.getMetricsFactory().getTimer(CpEntityManager.class,"cp.entity.revoke.role.permissions.timer").time();
+  Timer.Context timeRevokeRolePermission=this.metricsFactory.getTimer(CpEntityManager.class,"cp.entity.revoke.role.permissions.timer").time();
   CassandraPersistenceUtils.batchExecute(batch,CassandraService.RETRY_COUNT);
   timeRevokeRolePermission.stop();
 }

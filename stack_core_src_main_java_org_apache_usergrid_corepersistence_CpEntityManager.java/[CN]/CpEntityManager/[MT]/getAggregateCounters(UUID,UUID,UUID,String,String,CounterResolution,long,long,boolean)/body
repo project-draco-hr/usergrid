@@ -6,7 +6,7 @@
   SliceCounterQuery<String,Long> q=createCounterSliceQuery(ko,se,le);
   q.setColumnFamily(APPLICATION_AGGREGATE_COUNTERS.toString());
   q.setRange(start,finish,false,ALL_COUNT);
-  Timer.Context timeGetAggregateCounters=this.emf.getMetricsFactory().getTimer(CpEntityManager.class,"cp.entity.get.aggregate.counters.timer").time();
+  Timer.Context timeGetAggregateCounters=aggCounterTimer.time();
   QueryResult<CounterSlice<Long>> r=q.setKey(counterUtils.getAggregateCounterRow(counterName,userId,groupId,queueId,category,resolution)).execute();
   timeGetAggregateCounters.stop();
   List<AggregateCounter> counters=new ArrayList<AggregateCounter>();

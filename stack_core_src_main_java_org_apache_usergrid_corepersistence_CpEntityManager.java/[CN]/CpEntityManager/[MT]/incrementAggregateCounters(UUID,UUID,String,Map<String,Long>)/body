@@ -3,7 +3,7 @@
     long timestamp=cass.createTimestamp();
     Mutator<ByteBuffer> m=createMutator(cass.getApplicationKeyspace(applicationId),be);
     counterUtils.batchIncrementAggregateCounters(m,applicationId,userId,groupId,null,category,counters,timestamp);
-    Timer.Context timeIncrementCounters=this.emf.getMetricsFactory().getTimer(CpEntityManager.class,"cp.entity.increment.aggregate.counters.timer").time();
+    Timer.Context timeIncrementCounters=this.metricsFactory.getTimer(CpEntityManager.class,"cp.entity.increment.aggregate.counters.timer").time();
     CassandraPersistenceUtils.batchExecute(m,CassandraService.RETRY_COUNT);
     timeIncrementCounters.stop();
   }
