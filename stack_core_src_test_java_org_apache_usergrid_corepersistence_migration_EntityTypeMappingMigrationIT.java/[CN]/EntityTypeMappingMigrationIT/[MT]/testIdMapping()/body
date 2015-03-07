@@ -1,2 +1,25 @@
 {
+  final Id applicationId=createId("application");
+  final CollectionScope scope1=new CollectionScopeImpl(applicationId,applicationId,"things");
+  final Id entityId1=createId("thing");
+  final EntityIdScope idScope1=new EntityIdScope(scope1,entityId1);
+  final MapScope mapScope1=new MapScopeImpl(applicationId,CpNamingUtils.TYPES_BY_UUID_MAP);
+  final Id subCollectionOwner=createId("owners");
+  final CollectionScope scope2=new CollectionScopeImpl(applicationId,subCollectionOwner,"foos");
+  final Id entityId2=createId("foo");
+  final EntityIdScope idScope2=new EntityIdScope(scope2,entityId2);
+  final MapScope mapScope2=new MapScopeImpl(applicationId,CpNamingUtils.TYPES_BY_UUID_MAP);
+  final Observable<EntityIdScope> scopes=Observable.from(idScope1,idScope2);
+  final TestMigrationDataProvider<EntityIdScope> migrationDataProvider=new TestMigrationDataProvider<>();
+  migrationDataProvider.setObservable(scopes);
+  final MapManager mapManager=mock(MapManager.class);
+  final ManagerCache managerCache=mock(ManagerCache.class);
+  when(managerCache.getMapManager(eq(mapScope1))).thenReturn(mapManager);
+  when(managerCache.getMapManager(eq(mapScope2))).thenReturn(mapManager);
+  final TestProgressObserver progressObserver=new TestProgressObserver();
+  final EntityTypeMappingMigration migration=new EntityTypeMappingMigration(managerCache,migrationDataProvider);
+  final int returnedVersion=migration.migrate(CoreDataVersions.INITIAL.getVersion(),migrationDataProvider,progressObserver);
+  assertEquals(CoreDataVersions.ID_MAP_FIX.getVersion(),returnedVersion);
+  verify(mapManager).putString(entityId1.getUuid().toString(),entityId1.getType());
+  verify(mapManager).putString(entityId2.getUuid().toString(),entityId2.getType());
 }

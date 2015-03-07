@@ -1,6 +1,6 @@
 {
   final AtomicLong atomicLong=new AtomicLong();
-  return allEntitiesInSystemObservable.getData().parallel(new Func1<Observable<EntityIdScope>,Observable<EntityIdScope>>(){
+  allEntitiesInSystemObservable.getData().parallel(new Func1<Observable<EntityIdScope>,Observable<EntityIdScope>>(){
     @Override public Observable<EntityIdScope> call(    final Observable<EntityIdScope> entityIdScopeObservable){
       return entityIdScopeObservable.doOnNext(new Action1<EntityIdScope>(){
         @Override public void call(        final EntityIdScope entityIdScope){
@@ -18,4 +18,5 @@
     }
   }
 ).count().toBlocking().last();
+  return getMaxVersion();
 }
