@@ -5,7 +5,7 @@
   final SearchRequestBuilder srb=esProvider.getClient().prepareSearch(alias.getReadAlias()).setTypes(searchTypes.getTypeNames()).setScroll(cursorTimeout + "m").setQuery(queryBuilder);
   final SearchResponse searchResponse;
   try {
-    Timer.Context timeEntityIndex=metricsFactory.getTimer(EsEntityIndexImpl.class,"es.entity.index.get.versions.timer").time();
+    Timer.Context timeEntityIndex=getVersionsTimer.time();
     searchResponse=srb.execute().actionGet();
     timeEntityIndex.stop();
   }

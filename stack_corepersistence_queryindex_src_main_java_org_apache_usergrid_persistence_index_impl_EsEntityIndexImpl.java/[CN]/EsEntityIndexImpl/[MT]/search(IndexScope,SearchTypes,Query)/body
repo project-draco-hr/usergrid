@@ -36,7 +36,7 @@
       logger.debug("Searching index (read alias): {}\n  scope: {} \n type: {}\n   query: {} ",this.alias.getReadAlias(),context,entityTypes,srb);
     }
     try {
-      Timer.Context timeSearch=metricsFactory.getTimer(EsEntityIndexImpl.class,"es.entity.index.search.timer").time();
+      Timer.Context timeSearch=searchTimer.time();
       searchResponse=srb.execute().actionGet();
       timeSearch.stop();
     }
@@ -58,7 +58,7 @@
     logger.debug("Executing query with cursor: {} ",scrollId);
     SearchScrollRequestBuilder ssrb=esProvider.getClient().prepareSearchScroll(scrollId).setScroll(cursorTimeout + "m");
     try {
-      Timer.Context timeSearchCursor=metricsFactory.getTimer(EsEntityIndexImpl.class,"es.entity.index.search.cursor.timer").time();
+      Timer.Context timeSearchCursor=cursorTimer.time();
       searchResponse=ssrb.execute().actionGet();
       timeSearchCursor.stop();
     }
