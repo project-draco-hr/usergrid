@@ -13,6 +13,10 @@
   this.cass=em.getCass();
   this.indexBucketLocator=indexBucketLocator;
   this.metricsFactory=metricsFactory;
+  this.updateCollectionTimer=metricsFactory.getTimer(CpRelationManager.class,"relation.manager.es.update.collection");
+  this.createConnectionTimer=metricsFactory.getTimer(CpRelationManager.class,"relation.manager.es.create.connection.timer");
+  this.cassConnectionDelete=metricsFactory.getTimer(CpRelationManager.class,"relation.manager.cassandra.delete.connection.batch.timer");
+  this.esDeleteConnectionTimer=metricsFactory.getTimer(CpRelationManager.class,"relation.manager.es.delete.connection.batch.timer");
   this.headEntityScope=getCollectionScopeNameFromEntityType(applicationScope.getApplication(),headEntity.getType());
   if (logger.isDebugEnabled()) {
     logger.debug("Loading head entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{headEntity.getType(),headEntity.getUuid(),headEntityScope.getApplication(),headEntityScope.getOwner(),headEntityScope.getName()});
