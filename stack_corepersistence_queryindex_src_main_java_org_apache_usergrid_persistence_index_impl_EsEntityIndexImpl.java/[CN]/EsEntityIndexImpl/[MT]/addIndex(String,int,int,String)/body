@@ -1,9 +1,6 @@
 {
   String normalizedSuffix=StringUtils.isNotEmpty(indexSuffix) ? indexSuffix : null;
   try {
-    if (!mappingsCreated.getAndSet(true)) {
-      createMappings();
-    }
     String indexName=indexIdentifier.getIndex(normalizedSuffix);
     try {
       final AdminClient admin=esProvider.getClient().admin();
@@ -11,6 +8,7 @@
       Timer.Context timeNewIndexCreation=addTimer.time();
       final CreateIndexResponse cir=admin.indices().prepareCreate(indexName).setSettings(settings).execute().actionGet();
       timeNewIndexCreation.stop();
+      createMappings(indexName);
       addAlias(normalizedSuffix);
       testNewIndex();
       logger.info("Created new Index Name [{}] ACK=[{}]",indexName,cir.isAcknowledged());

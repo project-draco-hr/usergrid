@@ -1,9 +1,0 @@
-{
-  XContentBuilder xcb=IndexingUtils.createDoubleStringIndexMapping(XContentFactory.jsonBuilder(),"_default_");
-  Timer.Context timePutIndex=mappingTimer.time();
-  PutIndexTemplateResponse pitr=esProvider.getClient().admin().indices().preparePutTemplate("usergrid_template").setTemplate(config.getIndexPrefix() + "*").addMapping("_default_",xcb).execute().actionGet();
-  timePutIndex.stop();
-  if (!pitr.isAcknowledged()) {
-    throw new IndexException("Unable to create default mappings");
-  }
-}
