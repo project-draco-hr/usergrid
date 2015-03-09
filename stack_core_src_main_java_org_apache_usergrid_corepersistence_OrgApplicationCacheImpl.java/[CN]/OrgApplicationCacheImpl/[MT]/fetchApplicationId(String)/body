@@ -1,0 +1,22 @@
+{
+  try {
+    Query q=Query.fromQL(PROPERTY_NAME + " = '" + applicationName+ "'");
+    Results results=rootEm.searchCollection(rootEm.getApplicationRef(),"appinfos",q);
+    if (results.isEmpty()) {
+      return Optional.absent();
+    }
+    Entity entity=results.iterator().next();
+    Object uuidObject=entity.getProperty("applicationUuid");
+    final UUID value;
+    if (uuidObject instanceof UUID) {
+      value=(UUID)uuidObject;
+    }
+ else {
+      value=UUIDUtils.tryExtractUUID(entity.getProperty("applicationUuid").toString());
+    }
+    return Optional.of(value);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Unable to retreive application id",e);
+  }
+}
