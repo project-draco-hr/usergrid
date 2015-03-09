@@ -1,11 +1,11 @@
 {
   String appName=buildAppName(orgName,name);
-  UUID applicationId=lookupApplication(appName);
-  if (applicationId != null) {
+  final Optional<UUID> appId=orgApplicationCache.getApplicationId(appName);
+  if (appId.isPresent()) {
     throw new ApplicationAlreadyExistsException(name);
   }
-  applicationId=UUIDGenerator.newTimeUUID();
-  logger.debug("New application orgName {} name {} id {} ",new Object[]{orgName,name,applicationId.toString()});
+  UUID applicationId=UUIDGenerator.newTimeUUID();
+  logger.debug("New application orgName {} orgAppName {} id {} ",new Object[]{orgName,name,applicationId.toString()});
   initializeApplication(orgName,applicationId,appName,properties);
   return applicationId;
 }

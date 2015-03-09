@@ -1,0 +1,29 @@
+{
+  Assert.notNull(em,"Entity manager cannot be null");
+  Assert.notNull(emf,"Entity manager factory cannot be null");
+  Assert.notNull(applicationId,"Application Id cannot be null");
+  Assert.notNull(headEntity,"Head entity cannot be null");
+  Assert.notNull(headEntity.getUuid(),"Head entity uuid cannot be null");
+  this.em=em;
+  this.emf=emf;
+  this.applicationId=applicationId;
+  this.headEntity=headEntity;
+  this.managerCache=emf.getManagerCache();
+  this.applicationScope=CpNamingUtils.getApplicationScope(applicationId);
+  this.cass=em.getCass();
+  this.indexBucketLocator=indexBucketLocator;
+  this.metricsFactory=metricsFactory;
+  this.updateCollectionTimer=metricsFactory.getTimer(CpRelationManager.class,"relation.manager.es.update.collection");
+  this.createConnectionTimer=metricsFactory.getTimer(CpRelationManager.class,"relation.manager.es.create.connection.timer");
+  this.cassConnectionDelete=metricsFactory.getTimer(CpRelationManager.class,"relation.manager.cassandra.delete.connection.batch.timer");
+  this.esDeleteConnectionTimer=metricsFactory.getTimer(CpRelationManager.class,"relation.manager.es.delete.connection.batch.timer");
+  this.headEntityScope=getCollectionScopeNameFromEntityType(applicationScope.getApplication(),headEntity.getType());
+  if (logger.isDebugEnabled()) {
+    logger.debug("Loading head entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{headEntity.getType(),headEntity.getUuid(),headEntityScope.getApplication(),headEntityScope.getOwner(),headEntityScope.getName()});
+  }
+  Id entityId=new SimpleId(headEntity.getUuid(),headEntity.getType());
+  this.cpHeadEntity=((CpEntityManager)em).load(new CpEntityManager.EntityScope(headEntityScope,entityId));
+  Assert.notNull(cpHeadEntity,"cpHeadEntity cannot be null");
+  this.resultsLoaderFactory=new ResultsLoaderFactoryImpl(managerCache);
+  return this;
+}

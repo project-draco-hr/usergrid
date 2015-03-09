@@ -36,7 +36,9 @@
       logger.debug("Searching index (read alias): {}\n  scope: {} \n type: {}\n   query: {} ",this.alias.getReadAlias(),context,entityTypes,srb);
     }
     try {
+      Timer.Context timeSearch=searchTimer.time();
       searchResponse=srb.execute().actionGet();
+      timeSearch.stop();
     }
  catch (    Throwable t) {
       logger.error("Unable to communicate with Elasticsearch",t);
@@ -56,7 +58,9 @@
     logger.debug("Executing query with cursor: {} ",scrollId);
     SearchScrollRequestBuilder ssrb=esProvider.getClient().prepareSearchScroll(scrollId).setScroll(cursorTimeout + "m");
     try {
+      Timer.Context timeSearchCursor=cursorTimer.time();
       searchResponse=ssrb.execute().actionGet();
+      timeSearchCursor.stop();
     }
  catch (    Throwable t) {
       logger.error("Unable to communicate with elasticsearch",t);

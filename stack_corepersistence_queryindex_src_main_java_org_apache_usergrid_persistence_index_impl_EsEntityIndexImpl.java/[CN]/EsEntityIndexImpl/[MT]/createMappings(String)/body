@@ -1,0 +1,9 @@
+{
+  XContentBuilder xcb=IndexingUtils.createDoubleStringIndexMapping(XContentFactory.jsonBuilder(),DEFAULT_TYPE);
+  Timer.Context timePutIndex=mappingTimer.time();
+  PutMappingResponse pitr=esProvider.getClient().admin().indices().preparePutMapping(indexName).setType(DEFAULT_TYPE).setSource(xcb).execute().actionGet();
+  timePutIndex.stop();
+  if (!pitr.isAcknowledged()) {
+    throw new IndexException("Unable to create default mappings");
+  }
+}
