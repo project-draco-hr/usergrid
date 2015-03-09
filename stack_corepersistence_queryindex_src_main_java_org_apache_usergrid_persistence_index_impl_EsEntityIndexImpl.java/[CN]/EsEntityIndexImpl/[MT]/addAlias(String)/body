@@ -5,10 +5,22 @@
     final AdminClient adminClient=esProvider.getClient().admin();
     String[] indexNames=getIndexes(AliasType.Write);
     for (    String currentIndex : indexNames) {
-      Timer.Context timeRemoveAlias=removeAliasTimer.time();
-      isAck=adminClient.indices().prepareAliases().removeAlias(currentIndex,alias.getWriteAlias()).execute().actionGet().isAcknowledged();
-      timeRemoveAlias.stop();
-      logger.info("Removed Index Name [{}] from Alias=[{}] ACK=[{}]",currentIndex,alias,isAck);
+      final Timer.Context timeRemoveAlias=removeAliasTimer.time();
+      try {
+        isAck=adminClient.indices().prepareAliases().removeAlias(currentIndex,alias.getWriteAlias()).execute().actionGet().isAcknowledged();
+        logger.info("Removed Index Name [{}] from Alias=[{}] ACK=[{}]",currentIndex,alias,isAck);
+      }
+ catch (      AliasesMissingException aie) {
+        logger.info("Alias does not exist Index Name [{}] from Alias=[{}] ACK=[{}]",currentIndex,alias,aie.getMessage());
+        continue;
+      }
+catch (      InvalidAliasNameException iane) {
+        logger.info("Alias does not exist Index Name [{}] from Alias=[{}] ACK=[{}]",currentIndex,alias,iane.getMessage());
+        continue;
+      }
+ finally {
+        timeRemoveAlias.stop();
+      }
     }
     Timer.Context timeAddReadAlias=addReadAliasTimer.time();
     isAck=adminClient.indices().prepareAliases().addAlias(indexName,alias.getReadAlias()).execute().actionGet().isAcknowledged();

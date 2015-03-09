@@ -1,0 +1,32 @@
+{
+  ByteArrayOutputStream bos=new ByteArrayOutputStream();
+  ObjectOutput out=null;
+  try {
+    if (message instanceof Serializable) {
+      out=new ObjectOutputStream(bos);
+      out.writeObject(message);
+      byte[] yourBytes=bos.toByteArray();
+      return yourBytes;
+    }
+ else {
+      throw new RuntimeException("message is not serializable");
+    }
+  }
+ catch (  IOException e) {
+    throw new RuntimeException(e);
+  }
+ finally {
+    try {
+      if (out != null) {
+        out.close();
+      }
+    }
+ catch (    IOException ex) {
+    }
+    try {
+      bos.close();
+    }
+ catch (    IOException ex) {
+    }
+  }
+}
