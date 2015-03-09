@@ -1,0 +1,35 @@
+{
+  final CompositeParser composite=new DynamicCompositeParserImpl(byteBuffer);
+  final UUID version=composite.readUUID();
+  final String name=composite.readString();
+  final String value=composite.readString();
+  final String typeString=composite.readString();
+  final FieldTypeName fieldType=FieldTypeName.valueOf(typeString);
+  final Field<?> field;
+switch (fieldType) {
+case BOOLEAN:
+    field=new BooleanField(name,Boolean.parseBoolean(value));
+  break;
+case DOUBLE:
+field=new DoubleField(name,Double.parseDouble(value));
+break;
+case FLOAT:
+field=new FloatField(name,Float.parseFloat(value));
+break;
+case INTEGER:
+field=new IntegerField(name,Integer.parseInt(value));
+break;
+case LONG:
+field=new LongField(name,Long.parseLong(value));
+break;
+case STRING:
+field=new StringField(name,value);
+break;
+case UUID:
+field=new UUIDField(name,UUID.fromString(value));
+break;
+default :
+throw new RuntimeException("Unknown unique field type");
+}
+return new UniqueFieldEntry(version,field);
+}

@@ -7,7 +7,7 @@
   when(logStrategy.write(same(context),logEntry.capture())).thenReturn(mutation);
   when(mutation.execute()).thenThrow(new RuntimeException("Fail fail fail"));
   final Entity entity=TestEntityGenerator.generateEntity(new SimpleId(UUID.randomUUID(),"test"),null);
-  WriteStart newStage=new WriteStart(logStrategy,MvccEntity.Status.COMPLETE);
+  WriteStart newStage=new WriteStart(logStrategy);
   CollectionIoEvent<MvccEntity> result=newStage.call(new CollectionIoEvent<Entity>(context,entity));
   verify(mutation,times(0)).execute();
   MvccLogEntry entry=logEntry.getValue();

@@ -1,0 +1,12 @@
+{
+  final ScopedRowKey<String> rowKey=ScopedRowKey.fromKey(STATIC_ID,pluginName);
+  try {
+    return keyspace.prepareQuery(CF_MIGRATION_INFO).getKey(rowKey).getColumn(COL_STATUS_MESSAGE).execute().getResult().getStringValue();
+  }
+ catch (  NotFoundException nfe) {
+    return null;
+  }
+catch (  ConnectionException e) {
+    throw new DataMigrationException("Unable to retrieve status",e);
+  }
+}

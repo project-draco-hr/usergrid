@@ -1,9 +1,10 @@
 {
-  if (isOldVersion()) {
+  final MigrationRelationship<EdgeMetadataSerialization> migration=getMigrationRelationShip();
+  if (migration.needsMigration()) {
     final MutationBatch aggregateBatch=keyspace.prepareMutationBatch();
-    aggregateBatch.mergeShallow(previous.writeEdge(scope,edge));
-    aggregateBatch.mergeShallow(current.writeEdge(scope,edge));
+    aggregateBatch.mergeShallow(migration.from.writeEdge(scope,edge));
+    aggregateBatch.mergeShallow(migration.to.writeEdge(scope,edge));
     return aggregateBatch;
   }
-  return current.writeEdge(scope,edge);
+  return migration.to.writeEdge(scope,edge);
 }

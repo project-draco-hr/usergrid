@@ -1,0 +1,12 @@
+{
+  Preconditions.checkNotNull(collectionScope,"collectionScope is required");
+  Preconditions.checkNotNull(entityId,"entity id is required");
+  Preconditions.checkNotNull(version,"version is required");
+  TimeUUIDUtils.getMicrosTimeFromUUID(version);
+  return doWrite(collectionScope,entityId,version,new RowOp(){
+    @Override public void doOp(    final ColumnListMutation<Boolean> colMutation){
+      colMutation.putColumn(COL_VALUE,entitySerializer.toByteBuffer(new EntityWrapper(MvccEntity.Status.COMPLETE,version,Optional.<Entity>absent())));
+    }
+  }
+);
+}

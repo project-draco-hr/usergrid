@@ -1,0 +1,62 @@
+{
+  final AtomicLong atomicLong=new AtomicLong();
+  final UUID startTime=UUIDGenerator.newTimeUUID();
+  final MigrationRelationship<MvccEntitySerializationStrategy> migration=allVersions.getMigrationRelationship(currentVersion);
+  final Observable<List<EntityToSaveMessage>> migrated=migrationDataProvider.getData().subscribeOn(Schedulers.io()).parallel(new Func1<Observable<EntityIdScope>,Observable<List<EntityToSaveMessage>>>(){
+    @Override public Observable<List<EntityToSaveMessage>> call(    final Observable<EntityIdScope> entityIdScopeObservable){
+      return entityIdScopeObservable.flatMap(new Func1<EntityIdScope,Observable<EntityToSaveMessage>>(){
+        @Override public Observable<EntityToSaveMessage> call(        final EntityIdScope entityIdScope){
+          final CollectionScope currentScope=entityIdScope.getCollectionScope();
+          final Iterator<MvccEntity> allVersions=migration.from.loadAscendingHistory(currentScope,entityIdScope.getId(),startTime,100);
+          return Observable.create(new Observable.OnSubscribe<EntityToSaveMessage>(){
+            @Override public void call(            final Subscriber<? super EntityToSaveMessage> subscriber){
+              while (allVersions.hasNext()) {
+                final EntityToSaveMessage message=new EntityToSaveMessage(currentScope,allVersions.next());
+                subscriber.onNext(message);
+              }
+              subscriber.onCompleted();
+            }
+          }
+);
+        }
+      }
+).buffer(100).doOnNext(new Action1<List<EntityToSaveMessage>>(){
+        @Override public void call(        final List<EntityToSaveMessage> entities){
+          final MutationBatch totalBatch=keyspace.prepareMutationBatch();
+          atomicLong.addAndGet(entities.size());
+          List<EntityVersionCleanupTask> entityVersionCleanupTasks=new ArrayList(entities.size());
+          for (          EntityToSaveMessage message : entities) {
+            final MutationBatch entityRewrite=migration.to.write(message.scope,message.entity);
+            totalBatch.mergeShallow(entityRewrite);
+            if (!message.entity.getEntity().isPresent()) {
+              return;
+            }
+            final Entity entity=message.entity.getEntity().get();
+            final Id entityId=entity.getId();
+            final UUID version=message.entity.getVersion();
+            for (            Field field : EntityUtils.getUniqueFields(message.entity.getEntity().get())) {
+              UniqueValue written=new UniqueValueImpl(field,entityId,version);
+              MutationBatch mb=uniqueValueSerializationStrategy.write(message.scope,written);
+              totalBatch.mergeShallow(mb);
+            }
+            final EntityVersionCleanupTask task=entityVersionCleanupFactory.getTask(message.scope,message.entity.getId(),version);
+            entityVersionCleanupTasks.add(task);
+          }
+          executeBatch(migration.to.getImplementationVersion(),totalBatch,observer,atomicLong);
+          for (          EntityVersionCleanupTask entityVersionCleanupTask : entityVersionCleanupTasks) {
+            try {
+              entityVersionCleanupTask.call();
+            }
+ catch (            Exception e) {
+              LOGGER.error("Unable to run cleanup task",e);
+            }
+          }
+        }
+      }
+);
+    }
+  }
+);
+  migrated.toBlocking().lastOrDefault(null);
+  return migration.to.getImplementationVersion();
+}

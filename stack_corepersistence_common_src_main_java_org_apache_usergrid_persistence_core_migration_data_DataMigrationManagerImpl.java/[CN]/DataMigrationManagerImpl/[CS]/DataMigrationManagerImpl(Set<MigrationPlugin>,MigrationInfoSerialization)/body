@@ -1,0 +1,17 @@
+{
+  Preconditions.checkNotNull(plugins,"plugins must not be null");
+  Preconditions.checkNotNull(migrationInfoSerialization,"migrationInfoSerialization must not be null");
+  this.migrationInfoSerialization=migrationInfoSerialization;
+  this.executionOrder=new ArrayList<>(plugins.size());
+  this.migrationPlugins=new HashMap<>();
+  for (  MigrationPlugin plugin : plugins) {
+    final String name=plugin.getName();
+    final MigrationPlugin existing=migrationPlugins.get(name);
+    if (existing != null) {
+      throw new IllegalArgumentException("Duplicate plugin name detected.  A plugin with name " + name + " is already implemented by class '"+ existing.getClass().getName()+ "'.  Class '"+ plugin.getClass().getName()+ "' is also trying to implement this name.");
+    }
+    this.migrationPlugins.put(name,plugin);
+    this.executionOrder.add(plugin);
+  }
+  Collections.sort(executionOrder,MigrationPluginComparator.INSTANCE);
+}

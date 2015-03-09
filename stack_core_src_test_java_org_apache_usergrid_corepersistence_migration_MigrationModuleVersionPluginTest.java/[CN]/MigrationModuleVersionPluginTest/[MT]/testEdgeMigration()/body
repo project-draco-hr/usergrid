@@ -1,0 +1,18 @@
+{
+  final int systemState=2;
+  final MigrationInfoSerialization migrationInfoSerialization=mock(MigrationInfoSerialization.class);
+  when(migrationInfoSerialization.getSystemVersion()).thenReturn(systemState);
+  final int mvccVersion=2;
+  final MvccEntitySerializationStrategyV2Impl serializationStrategyV2=mock(MvccEntitySerializationStrategyV2Impl.class);
+  when(serializationStrategyV2.getImplementationVersion()).thenReturn(mvccVersion);
+  final int edgeMetaVersion=1;
+  final EdgeMetadataSerializationV2Impl edgeMetadataSerializationV2=mock(EdgeMetadataSerializationV2Impl.class);
+  when(edgeMetadataSerializationV2.getImplementationVersion()).thenReturn(edgeMetaVersion);
+  final MigrationModuleVersionPlugin plugin=new MigrationModuleVersionPlugin(migrationInfoSerialization,serializationStrategyV2,edgeMetadataSerializationV2);
+  final TestProgressObserver testProgressObserver=new TestProgressObserver();
+  plugin.run(testProgressObserver);
+  verify(migrationInfoSerialization).setVersion(CoreMigrationPlugin.PLUGIN_NAME,CoreDataVersions.ID_MAP_FIX.getVersion());
+  verify(migrationInfoSerialization).setVersion(GraphMigrationPlugin.PLUGIN_NAME,edgeMetaVersion);
+  verify(migrationInfoSerialization,never()).setVersion(CollectionMigrationPlugin.PLUGIN_NAME,mvccVersion);
+  verify(migrationInfoSerialization).setVersion(MigrationModuleVersionPlugin.NAME,MigrationSystemVersions.LEGACY_ID_MAPPED.getVersion());
+}

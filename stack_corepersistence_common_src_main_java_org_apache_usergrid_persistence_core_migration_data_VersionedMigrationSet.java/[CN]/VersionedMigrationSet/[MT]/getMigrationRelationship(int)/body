@@ -1,0 +1,13 @@
+{
+  final MigrationRelationship<T> relationship=cacheVersion.get(currentVersion);
+  if (relationship != null) {
+    return relationship;
+  }
+  for (  MigrationRelationship<T> current : orderedVersions) {
+    if (current.correctRelationship(currentVersion)) {
+      cacheVersion.put(currentVersion,current);
+      return current;
+    }
+  }
+  throw new IllegalArgumentException("Could not find a migration version for version " + currentVersion + " min found was "+ orderedVersions.get(orderedVersions.size() - 1));
+}

@@ -1,45 +1,40 @@
 {
   final SerializationFig serializationFig=mock(SerializationFig.class);
   when(serializationFig.getBufferSize()).thenReturn(10);
-  final MvccEntitySerializationStrategy ess=mock(MvccEntitySerializationStrategy.class);
-  final UniqueValueSerializationStrategy uniqueValueSerializationStrategy=mock(UniqueValueSerializationStrategy.class);
-  final MvccLogEntrySerializationStrategy mvccLogEntrySerializationStrategy=mock(MvccLogEntrySerializationStrategy.class);
-  final Keyspace keyspace=mock(Keyspace.class);
-  final MutationBatch entityBatch=mock(MutationBatch.class);
-  final MutationBatch logBatch=mock(MutationBatch.class);
-  when(keyspace.prepareMutationBatch()).thenReturn(mock(MutationBatch.class)).thenReturn(entityBatch).thenReturn(logBatch);
   final int sizeToReturn=10;
   final CountDownLatch latch=new CountDownLatch(sizeToReturn / serializationFig.getBufferSize() * 3);
   final EntityVersionDeletedTest listener1=new EntityVersionDeletedTest(latch);
   final EntityVersionDeletedTest listener2=new EntityVersionDeletedTest(latch);
   final EntityVersionDeletedTest listener3=new EntityVersionDeletedTest(latch);
-  final Set<EntityVersionDeleted> listeners=new HashSet<EntityVersionDeleted>();
+  final Set<EntityVersionDeleted> listeners=new HashSet<>();
   listeners.add(listener1);
   listeners.add(listener2);
   listeners.add(listener3);
+  final MvccLogEntrySerializationStrategy less=mock(MvccLogEntrySerializationStrategy.class);
+  final UniqueValueSerializationStrategy uvss=mock(UniqueValueSerializationStrategy.class);
+  final Keyspace keyspace=mock(Keyspace.class);
+  final MutationBatch entityBatch=mock(MutationBatch.class);
+  when(keyspace.prepareMutationBatch()).thenReturn(mock(MutationBatch.class)).thenReturn(entityBatch);
   final Id applicationId=new SimpleId("application");
   final CollectionScope appScope=new CollectionScopeImpl(applicationId,applicationId,"users");
   final Id entityId=new SimpleId("user");
-  final LogEntryMock logEntryMock=LogEntryMock.createLogEntryMock(mvccLogEntrySerializationStrategy,appScope,entityId,sizeToReturn + 1);
-  final UUID version=logEntryMock.getEntries().iterator().next().getVersion();
-  EntityVersionCleanupTask cleanupTask=new EntityVersionCleanupTask(serializationFig,mvccLogEntrySerializationStrategy,ess,uniqueValueSerializationStrategy,keyspace,listeners,appScope,entityId,version);
-  final MutationBatch batch=mock(MutationBatch.class);
-  when(ess.delete(same(appScope),same(entityId),any(UUID.class))).thenReturn(batch);
-  when(mvccLogEntrySerializationStrategy.delete(same(appScope),same(entityId),any(UUID.class))).thenReturn(batch);
-  final List<MvccEntity> mel=new ArrayList<MvccEntity>();
-  Entity entity=new Entity(entityId);
-  mel.add(new MvccEntityImpl(entityId,UUIDGenerator.newTimeUUID(),MvccEntity.Status.DELETED,Optional.of(entity)));
-  mel.add(new MvccEntityImpl(entityId,UUIDGenerator.newTimeUUID(),MvccEntity.Status.DELETED,Optional.of(entity)));
-  when(ess.loadDescendingHistory(same(appScope),same(entityId),any(UUID.class),any(Integer.class))).thenReturn(mel.iterator());
-  try {
-    cleanupTask.call();
-  }
- catch (  Exception e) {
-    Assert.fail(e.getMessage());
-  }
-  verify(entityBatch,times(1)).mergeShallow(any(MutationBatch.class));
-  verify(logBatch,times(1)).mergeShallow(any(MutationBatch.class));
-  verify(logBatch).execute();
+  final List<UUID> versions=VersionGenerator.generateVersions(2);
+  final LogEntryMock logEntryMock=LogEntryMock.createLogEntryMock(less,appScope,entityId,versions);
+  final UUID version=logEntryMock.getEntryAtIndex(0).getVersion();
+  final UniqueValueEntryMock uniqueValueEntryMock=UniqueValueEntryMock.createUniqueMock(uvss,appScope,entityId,versions);
+  EntityVersionCleanupTask cleanupTask=new EntityVersionCleanupTask(serializationFig,less,uvss,keyspace,listeners,appScope,entityId,version);
+  final MutationBatch newBatch=mock(MutationBatch.class);
+  when(uvss.delete(same(appScope),any(UniqueValue.class))).thenReturn(newBatch);
+  when(less.delete(same(appScope),same(entityId),any(UUID.class))).thenReturn(newBatch);
+  cleanupTask.call();
+  final UniqueValue oldUniqueField=uniqueValueEntryMock.getEntryAtIndex(1);
+  final MvccLogEntry expectedDeletedEntry=logEntryMock.getEntryAtIndex(1);
+  verify(uvss).delete(same(appScope),same(oldUniqueField));
+  verify(less).delete(same(appScope),same(entityId),same(expectedDeletedEntry.getVersion()));
+  verify(entityBatch).execute();
+  latch.await();
+  verify(uvss).delete(same(appScope),same(oldUniqueField));
+  verify(less).delete(same(appScope),same(entityId),same(expectedDeletedEntry.getVersion()));
   verify(entityBatch).execute();
   latch.await();
 }
