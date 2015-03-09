@@ -5,7 +5,40 @@
   this.config=config;
   this.failureMonitor=new FailureMonitorImpl(config,provider);
   this.client=provider.getClient();
-  this.consumer=Observable.create(producer).subscribeOn(Schedulers.io()).buffer(config.getIndexBufferTimeout(),TimeUnit.MILLISECONDS,config.getIndexBufferSize()).doOnNext(new Action1<List<IndexOperationMessage>>(){
+  this.produceTimer=metricsFactory.getTimer(EsIndexBufferConsumerImpl.class,"index.buffer.consumer.messageFetch");
+  final BlockingQueue<IndexOperationMessage> producerQueue=producer.getSource();
+  this.consumer=Observable.create(new Observable.OnSubscribe<IndexOperationMessage>(){
+    @Override public void call(    final Subscriber<? super IndexOperationMessage> subscriber){
+      Thread thread=new Thread(new Runnable(){
+        @Override public void run(){
+          List<IndexOperationMessage> drainList=new ArrayList<>(config.getIndexBufferSize() + 1);
+          do {
+            try {
+              Timer.Context timer=produceTimer.time();
+              IndexOperationMessage polled=producerQueue.poll(config.getIndexBufferTimeout(),TimeUnit.MILLISECONDS);
+              if (polled != null) {
+                drainList.add(polled);
+                producerQueue.drainTo(drainList,config.getIndexBufferSize());
+                for (                IndexOperationMessage drained : drainList) {
+                  subscriber.onNext(drained);
+                }
+                drainList.clear();
+              }
+              timer.stop();
+            }
+ catch (            InterruptedException ie) {
+              log.error("failed to dequeue",ie);
+            }
+          }
+ while (true);
+        }
+      }
+);
+      thread.setName("EsEntityIndex_Consumer");
+      thread.start();
+    }
+  }
+).subscribeOn(Schedulers.io()).buffer(config.getIndexBufferTimeout(),TimeUnit.MILLISECONDS,config.getIndexBufferSize()).doOnNext(new Action1<List<IndexOperationMessage>>(){
     @Override public void call(    List<IndexOperationMessage> containerList){
       if (containerList.size() > 0) {
         flushMeter.mark(containerList.size());

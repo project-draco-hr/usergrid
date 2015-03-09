@@ -1,6 +1,8 @@
 {
   Preconditions.checkNotNull(message,"Message cannot be null");
   indexSizeCounter.inc(message.getOperations().size());
-  subscriber.onNext(message);
+  Timer.Context time=timer.time();
+  messages.offer(message);
+  time.stop();
   return message.getFuture();
 }
