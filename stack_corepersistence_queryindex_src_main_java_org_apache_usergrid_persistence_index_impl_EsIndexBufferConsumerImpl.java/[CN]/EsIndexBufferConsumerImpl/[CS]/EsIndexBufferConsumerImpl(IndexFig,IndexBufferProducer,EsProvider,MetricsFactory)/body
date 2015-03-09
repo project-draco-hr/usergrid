@@ -7,6 +7,7 @@
   this.client=provider.getClient();
   this.produceTimer=metricsFactory.getTimer(EsIndexBufferConsumerImpl.class,"index.buffer.consumer.messageFetch");
   final BlockingQueue<IndexOperationMessage> producerQueue=producer.getSource();
+  final AtomicInteger countFail=new AtomicInteger();
   this.consumer=Observable.create(new Observable.OnSubscribe<IndexOperationMessage>(){
     @Override public void call(    final Subscriber<? super IndexOperationMessage> subscriber){
       Thread thread=new Thread(new Runnable(){
@@ -25,9 +26,14 @@
                 drainList.clear();
                 timer.stop();
               }
+              countFail.set(0);
             }
  catch (            InterruptedException ie) {
+              int count=countFail.incrementAndGet();
               log.error("failed to dequeue",ie);
+              if (count > 200) {
+                log.error("Shutting down index drain due to repetitive failures");
+              }
             }
           }
  while (true);
