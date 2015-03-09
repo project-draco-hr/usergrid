@@ -11,4 +11,22 @@
   Observable<Entity> loadObservable=manager.load(createReturned.getId());
   Entity loadReturned=loadObservable.toBlocking().lastOrDefault(null);
   assertEquals("Same value",createReturned,loadReturned);
+  try {
+    entitySerializationStrategy.delete(context,loadReturned.getId(),loadReturned.getVersion()).execute();
+  }
+ catch (  ConnectionException e) {
+    e.printStackTrace();
+    fail("Shouldn't have had trouble deleting entity");
+  }
+  loadObservable=manager.load(createReturned.getId());
+  loadReturned=loadObservable.toBlocking().lastOrDefault(null);
+  assertNull(loadReturned);
+  try {
+    UniqueValueSet uniqueValues=uniqueValueSerializationStrategy.load(context,loadReturned.getFields());
+    assertNull(uniqueValues);
+  }
+ catch (  ConnectionException e) {
+    e.printStackTrace();
+    fail("Shouldn't have been able to load the unique entity");
+  }
 }
