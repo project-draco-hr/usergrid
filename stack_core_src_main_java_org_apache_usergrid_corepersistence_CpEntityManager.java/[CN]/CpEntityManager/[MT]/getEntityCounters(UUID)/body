@@ -4,7 +4,7 @@
   SliceCounterQuery<UUID,String> q=createCounterSliceQuery(ko,ue,se);
   q.setColumnFamily(ENTITY_COUNTERS.toString());
   q.setRange(null,null,false,ALL_COUNT);
-  Timer.Context timeEntityCounters=this.metricsFactory.getTimer(CpEntityManager.class,"cp.entity.get.entity.counters.timer").time();
+  Timer.Context timeEntityCounters=entGetEntityCountersTimer.time();
   QueryResult<CounterSlice<String>> r=q.setKey(entityId).execute();
   timeEntityCounters.stop();
   for (  HCounterColumn<String> column : r.get().getColumns()) {
