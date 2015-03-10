@@ -1,12 +1,9 @@
 {
-  Preconditions.checkNotNull(scope,"mapscope is required");
-  Preconditions.checkNotNull(key,"key is required");
-  Preconditions.checkNotNull(value,"value is required");
-  final MutationBatch batch=keyspace.prepareMutationBatch();
-  final ScopedRowKey<MapEntryKey> entryRowKey=MapEntryKey.fromKey(scope,key);
-  batch.withRow(MAP_ENTRIES,entryRowKey).putColumn(true,value);
-  final int bucket=BUCKET_LOCATOR.getCurrentBucket(key);
-  final BucketScopedRowKey<String> keyRowKey=BucketScopedRowKey.fromKey(scope.getApplication(),key,bucket);
-  batch.withRow(MAP_KEYS,keyRowKey).putColumn(key,true);
-  executeBatch(batch);
+  final RowOp op=new RowOp(){
+    @Override public void rowOp(    final ScopedRowKey<MapEntryKey> scopedRowKey,    final ColumnListMutation<Boolean> columnListMutation){
+      columnListMutation.putColumn(true,value);
+    }
+  }
+;
+  writeString(scope,key,value,op);
 }

@@ -6,7 +6,7 @@
   UUID timestampUuid=UUIDUtils.newTimeUUID();
   Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
   batch=batchUpdateDictionary(batch,entity,dictionaryName,elementName,true,timestampUuid);
-  Timer.Context timeRemoveDictionary=this.metricsFactory.getTimer(CpEntityManager.class,"cp.entity.remove.dictionary.timer").time();
+  Timer.Context timeRemoveDictionary=entRemoveDictionaryTimer.time();
   CassandraPersistenceUtils.batchExecute(batch,CassandraService.RETRY_COUNT);
   timeRemoveDictionary.stop();
 }
