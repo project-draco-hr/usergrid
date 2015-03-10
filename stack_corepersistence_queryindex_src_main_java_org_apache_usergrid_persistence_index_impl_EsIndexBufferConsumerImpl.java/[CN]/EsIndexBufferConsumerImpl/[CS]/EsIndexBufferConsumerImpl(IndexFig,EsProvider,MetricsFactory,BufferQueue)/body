@@ -18,11 +18,20 @@
           for (          IndexOperationMessage drained : drainList) {
             subscriber.onNext(drained);
           }
-          drainList.clear();
+          bufferQueue.ack(drainList);
           timer.stop();
           countFail.set(0);
         }
- catch (        Exception e) {
+ catch (        EsRejectedExecutionException err) {
+          countFail.incrementAndGet();
+          log.error("Elasticsearch rejected our request, sleeping for {} milliseconds before retrying.  Failed {} consecutive times",config.getFailRefreshCount(),countFail.get());
+          try {
+            Thread.sleep(config.getFailureRetryTime());
+          }
+ catch (          InterruptedException e) {
+          }
+        }
+catch (        Exception e) {
           int count=countFail.incrementAndGet();
           log.error("failed to dequeue",e);
           if (count > 200) {
