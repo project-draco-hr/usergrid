@@ -2,6 +2,7 @@
   String idString=IndexingUtils.idString(entityId).toLowerCase();
   final FilteredQueryBuilder fqb=QueryBuilders.filteredQuery(QueryBuilders.termQuery(ENTITYID_ID_FIELDNAME,idString),FilterBuilders.rangeFilter(ENTITY_VERSION_FIELDNAME).lt(version.timestamp()));
   final Timer.Context timeDeletePreviousVersions=deletePreviousTimer.time();
+  final Timer.Context timeDeletePreviousVersionFuture=deletePreviousTimerFuture.time();
   final ListenableActionFuture<DeleteByQueryResponse> response=esProvider.getClient().prepareDeleteByQuery(alias.getWriteAlias()).setQuery(fqb).execute();
   response.addListener(new ActionListener<DeleteByQueryResponse>(){
     @Override public void onResponse(    DeleteByQueryResponse response){
@@ -14,5 +15,6 @@
     }
   }
 );
+  timeDeletePreviousVersionFuture.stop();
   return response;
 }
