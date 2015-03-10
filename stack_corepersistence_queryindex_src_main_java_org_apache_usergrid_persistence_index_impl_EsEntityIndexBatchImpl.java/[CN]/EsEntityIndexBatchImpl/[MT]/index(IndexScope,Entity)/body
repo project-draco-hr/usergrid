@@ -10,7 +10,6 @@
   String indexId=createIndexDocId(entity,context);
   log.debug("Indexing entity documentId {} data {} ",indexId,entityAsMap);
   final String entityType=entity.getId().getType();
-  IndexRequestBuilder builder=client.prepareIndex(alias.getWriteAlias(),entityType,indexId).setSource(entityAsMap);
-  container.addOperation(builder);
+  container.addOperation(new IndexRequest(alias.getWriteAlias(),entityType,indexId,entityAsMap));
   return this;
 }

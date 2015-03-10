@@ -10,6 +10,7 @@
   final AtomicInteger countFail=new AtomicInteger();
   this.consumer=Observable.create(new Observable.OnSubscribe<IndexOperationMessage>(){
     @Override public void call(    final Subscriber<? super IndexOperationMessage> subscriber){
+      Thread.currentThread().setName("QueueConsumer_" + Thread.currentThread().getId());
       List<IndexOperationMessage> drainList;
       do {
         try {
@@ -42,7 +43,7 @@ catch (        Exception e) {
  while (true);
     }
   }
-).subscribeOn(Schedulers.io()).buffer(config.getIndexBufferTimeout(),TimeUnit.MILLISECONDS,config.getIndexBufferSize()).doOnNext(new Action1<List<IndexOperationMessage>>(){
+).subscribeOn(Schedulers.newThread()).buffer(config.getIndexBufferTimeout(),TimeUnit.MILLISECONDS,config.getIndexBufferSize()).doOnNext(new Action1<List<IndexOperationMessage>>(){
     @Override public void call(    List<IndexOperationMessage> containerList){
       if (containerList.size() > 0) {
         flushMeter.mark(containerList.size());

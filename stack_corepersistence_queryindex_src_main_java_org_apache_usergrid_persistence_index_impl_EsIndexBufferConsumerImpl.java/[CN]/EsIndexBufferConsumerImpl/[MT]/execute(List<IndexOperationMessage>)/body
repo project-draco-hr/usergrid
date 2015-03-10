@@ -2,28 +2,19 @@
   if (operationMessages == null || operationMessages.size() == 0) {
     return;
   }
-  Observable<ActionRequestBuilder> flattenMessages=Observable.from(operationMessages).subscribeOn(Schedulers.io()).flatMap(new Func1<IndexOperationMessage,Observable<ActionRequestBuilder>>(){
-    @Override public Observable<ActionRequestBuilder> call(    IndexOperationMessage operationMessage){
+  Observable<BatchRequest> flattenMessages=Observable.from(operationMessages).subscribeOn(Schedulers.io()).flatMap(new Func1<IndexOperationMessage,Observable<BatchRequest>>(){
+    @Override public Observable<BatchRequest> call(    IndexOperationMessage operationMessage){
       return Observable.from(operationMessage.getOperations());
     }
   }
 );
-  flattenMessages.buffer(config.getIndexBatchSize()).doOnNext(new Action1<List<ActionRequestBuilder>>(){
-    @Override public void call(    List<ActionRequestBuilder> builders){
+  flattenMessages.buffer(config.getIndexBatchSize()).doOnNext(new Action1<List<BatchRequest>>(){
+    @Override public void call(    List<BatchRequest> builders){
       try {
         final BulkRequestBuilder bulkRequest=initRequest();
-        for (        ActionRequestBuilder builder : builders) {
+        for (        BatchRequest builder : builders) {
           indexSizeCounter.dec();
-          if (builder instanceof IndexRequestBuilder) {
-            bulkRequest.add((IndexRequestBuilder)builder);
-          }
-          if (builder instanceof DeleteRequestBuilder) {
-            bulkRequest.add((DeleteRequestBuilder)builder);
-          }
-          if (builder instanceof DeleteByQueryRequestBuilder) {
-            DeleteByQueryRequestBuilder deleteByQueryRequestBuilder=(DeleteByQueryRequestBuilder)builder;
-            deleteByQueryRequestBuilder.get();
-          }
+          builder.doOperation(client,bulkRequest);
         }
         sendRequest(bulkRequest);
       }

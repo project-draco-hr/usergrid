@@ -1,0 +1,10 @@
+{
+  List<QueueMessage> messages=queue.getMessages(takeSize,indexFig.getIndexQueueTimeout(),(int)timeUnit.toMillis(timeout),Message.class);
+  final List<IndexOperationMessage> response=new ArrayList<>(messages.size());
+  for (  final QueueMessage message : messages) {
+    SqsIndexOperationMessage operation=new SqsIndexOperationMessage(message);
+    operation.setOperations(((Message)message.getBody()).getData());
+    response.add(operation);
+  }
+  return response;
+}
