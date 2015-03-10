@@ -1,0 +1,17 @@
+{
+  final List<IndexOperationMessage> response=new ArrayList<>(takeSize);
+  final long endTime=System.currentTimeMillis() + timeUnit.toMillis(timeout);
+  do {
+    try {
+      IndexOperationMessage polled=messages.poll(timeout,timeUnit);
+      if (polled != null) {
+        response.add(polled);
+        messages.drainTo(response,takeSize - response.size());
+      }
+    }
+ catch (    InterruptedException ie) {
+    }
+  }
+ while (response.size() < takeSize && System.currentTimeMillis() < endTime);
+  return null;
+}
