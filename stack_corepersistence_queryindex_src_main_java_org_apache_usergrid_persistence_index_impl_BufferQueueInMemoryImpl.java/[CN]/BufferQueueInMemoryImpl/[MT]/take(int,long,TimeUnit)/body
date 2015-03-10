@@ -3,7 +3,8 @@
   final long endTime=System.currentTimeMillis() + timeUnit.toMillis(timeout);
   do {
     try {
-      IndexOperationMessage polled=messages.poll(timeout,timeUnit);
+      final long remaining=endTime - System.currentTimeMillis();
+      IndexOperationMessage polled=messages.poll(remaining,timeUnit);
       if (polled != null) {
         response.add(polled);
         messages.drainTo(response,takeSize - response.size());

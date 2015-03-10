@@ -3,7 +3,12 @@
   install(new CommonModule());
   install(new CollectionModule());
   install(new GraphModule());
-  install(new IndexModule());
+  install(new IndexModule(){
+    @Override public void wireBufferQueue(){
+      bind(BufferQueue.class).to(BufferQueueSQSImpl.class);
+    }
+  }
+);
   install(new MapModule());
   install(new QueueModule());
   bind(ManagerCache.class).to(CpManagerCache.class);

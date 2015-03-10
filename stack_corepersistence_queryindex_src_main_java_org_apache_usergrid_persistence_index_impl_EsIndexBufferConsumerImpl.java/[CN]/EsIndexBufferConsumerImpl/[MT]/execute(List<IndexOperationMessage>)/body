@@ -4,11 +4,13 @@
   }
   Observable<BatchRequest> flattenMessages=Observable.from(operationMessages).subscribeOn(Schedulers.io()).flatMap(new Func1<IndexOperationMessage,Observable<BatchRequest>>(){
     @Override public Observable<BatchRequest> call(    IndexOperationMessage operationMessage){
-      return Observable.from(operationMessage.getOperations());
+      final Observable<DeIndexRequest> deIndex=Observable.from(operationMessage.getDeIndexRequests());
+      final Observable<IndexRequest> index=Observable.from(operationMessage.getIndexRequests());
+      return Observable.merge(deIndex,index);
     }
   }
 );
-  flattenMessages.buffer(config.getIndexBatchSize()).doOnNext(new Action1<List<BatchRequest>>(){
+  flattenMessages.toList().doOnNext(new Action1<List<BatchRequest>>(){
     @Override public void call(    List<BatchRequest> builders){
       try {
         final BulkRequestBuilder bulkRequest=initRequest();
