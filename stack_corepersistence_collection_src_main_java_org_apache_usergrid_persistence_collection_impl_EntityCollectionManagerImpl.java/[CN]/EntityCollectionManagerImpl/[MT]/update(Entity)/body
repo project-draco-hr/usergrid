@@ -12,7 +12,12 @@
       taskExecutor.submit(entityVersionCreatedFactory.getTask(collectionScope,entity));
     }
   }
-).doOnError(rollback).doOnCompleted(new Action0(){
+).doOnError(rollback).doOnNext(new Action1<Entity>(){
+    @Override public void call(    Entity entity){
+      updateMeter.mark();
+    }
+  }
+).doOnCompleted(new Action0(){
     @Override public void call(){
       timer.stop();
     }
