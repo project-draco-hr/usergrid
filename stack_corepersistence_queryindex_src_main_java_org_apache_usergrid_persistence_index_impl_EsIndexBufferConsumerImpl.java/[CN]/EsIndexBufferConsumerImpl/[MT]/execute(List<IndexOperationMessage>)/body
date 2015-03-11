@@ -7,6 +7,8 @@
     @Override public Observable<BatchRequest> call(    final IndexOperationMessage indexOperationMessage){
       final Observable<IndexRequest> index=Observable.from(indexOperationMessage.getIndexRequests());
       final Observable<DeIndexRequest> deIndex=Observable.from(indexOperationMessage.getDeIndexRequests());
+      indexSizeCounter.inc(indexOperationMessage.getDeIndexRequests().size());
+      indexSizeCounter.inc(indexOperationMessage.getIndexRequests().size());
       return Observable.merge(index,deIndex);
     }
   }
