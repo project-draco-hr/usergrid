@@ -4,6 +4,9 @@
   }
   List<QueueMessage> toAck=new ArrayList<>(messages.size());
   for (  IndexOperationMessage ioe : messages) {
+    final SqsIndexOperationMessage sqsIndexOperationMessage=(SqsIndexOperationMessage)ioe;
+    final String key=getMessageKey(sqsIndexOperationMessage.getMessage());
+    mapManager.delete(key);
     toAck.add(((SqsIndexOperationMessage)ioe).getMessage());
   }
   queue.commitMessages(toAck);
