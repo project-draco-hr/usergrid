@@ -3,7 +3,7 @@
   Keyspace ko=cass.getApplicationKeyspace(applicationId);
   Mutator<ByteBuffer> m=createMutator(ko,be);
   A entity=batchCreate(m,entityType,entityClass,properties,importId,timestampUuid);
-  Timer.Context timeEntityCassCreation=this.metricsFactory.getTimer(CpEntityManager.class,"cp.entity.create.batch.timer").time();
+  Timer.Context timeEntityCassCreation=entCreateBatchTimer.time();
   m.execute();
   timeEntityCassCreation.stop();
   return entity;
