@@ -1,3 +1,13 @@
 {
-  return null;
+  String collName=Schema.defaultCollectionName(collectionType);
+  CollectionScope collectionScope=getCollectionScopeNameFromEntityType(getApplicationScope().getApplication(),collName);
+  String propertyName=Schema.getDefaultSchema().aliasProperty(collName);
+  final EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
+  StringField uniqueLookupRepairField=new StringField(propertyName,aliasType.toString());
+  Observable<FieldSet> fieldSetObservable=ecm.getAllEntities(Arrays.<Field>asList(uniqueLookupRepairField));
+  FieldSet fieldSet=fieldSetObservable.toBlocking().last();
+  if (fieldSet.isEmpty()) {
+    return null;
+  }
+  return convertMvccEntityToEntity(fieldSet.getEntity(uniqueLookupRepairField).getEntity().get());
 }
