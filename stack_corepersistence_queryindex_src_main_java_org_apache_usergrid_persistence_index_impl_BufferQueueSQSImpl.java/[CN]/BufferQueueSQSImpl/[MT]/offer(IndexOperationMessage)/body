@@ -1,4 +1,8 @@
 {
+  if (operation.isEmpty()) {
+    operation.getFuture().done();
+    return;
+  }
   final Timer.Context timer=this.writeTimer.time();
   this.writeMeter.mark();
   final UUID identifier=UUIDGenerator.newTimeUUID();
@@ -6,7 +10,7 @@
     final String payLoad=toString(operation);
     this.mapManager.putString(identifier.toString(),payLoad,TTL);
     this.queue.sendMessage(identifier);
-    operation.getFuture().run();
+    operation.getFuture().done();
   }
  catch (  IOException e) {
     throw new RuntimeException("Unable to queue message",e);

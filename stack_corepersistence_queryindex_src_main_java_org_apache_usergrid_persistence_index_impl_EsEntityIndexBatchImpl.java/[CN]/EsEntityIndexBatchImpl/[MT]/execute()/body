@@ -2,7 +2,9 @@
   IndexOperationMessage tempContainer=container;
   container=new IndexOperationMessage();
   if (tempContainer.isEmpty()) {
-    return tempContainer.getFuture();
+    final BetterFuture<?> future=tempContainer.getFuture();
+    future.done();
+    return future;
   }
   return indexBatchBufferProducer.put(tempContainer);
 }

@@ -2,19 +2,19 @@
   if (operationMessages == null || operationMessages.size() == 0) {
     return;
   }
-  Observable<IndexOperationMessage> flattenMessages=Observable.from(operationMessages);
-  flattenMessages.flatMap(new Func1<IndexOperationMessage,Observable<BatchRequest>>(){
+  Observable.from(operationMessages).flatMap(new Func1<IndexOperationMessage,Observable<BatchRequest>>(){
     @Override public Observable<BatchRequest> call(    final IndexOperationMessage indexOperationMessage){
       final Observable<IndexRequest> index=Observable.from(indexOperationMessage.getIndexRequests());
       final Observable<DeIndexRequest> deIndex=Observable.from(indexOperationMessage.getDeIndexRequests());
-      indexSizeCounter.inc(indexOperationMessage.getDeIndexRequests().size());
-      indexSizeCounter.inc(indexOperationMessage.getIndexRequests().size());
+      indexSizeCounter.dec(indexOperationMessage.getDeIndexRequests().size());
+      indexSizeCounter.dec(indexOperationMessage.getIndexRequests().size());
       return Observable.merge(index,deIndex);
     }
   }
-).collect(initRequest(),new Action2<BulkRequestBuilder,BatchRequest>(){
-    @Override public void call(    final BulkRequestBuilder bulkRequestBuilder,    final BatchRequest batchRequest){
+).reduce(initRequest(),new Func2<BulkRequestBuilder,BatchRequest,BulkRequestBuilder>(){
+    @Override public BulkRequestBuilder call(    final BulkRequestBuilder bulkRequestBuilder,    final BatchRequest batchRequest){
       batchRequest.doOperation(client,bulkRequestBuilder);
+      return bulkRequestBuilder;
     }
   }
 ).doOnNext(new Action1<BulkRequestBuilder>(){
