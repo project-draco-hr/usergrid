@@ -1,0 +1,47 @@
+{
+  final String orgName=uniqueOrg();
+  OrganizationOwnerInfo organization=orgAppRule.createOwnerAndOrganization(orgName,uniqueUsername(),uniqueEmail(),"Ed Anuff","test");
+  List<UUID> appIds=new ArrayList<>();
+  for (int i=0; i < 10; i++) {
+    UUID appId=setup.getMgmtSvc().createApplication(organization.getOrganization().getUuid(),"application" + i).getId();
+    appIds.add(appId);
+    EntityManager em=setup.getEmf().getEntityManager(appId);
+    for (int j=0; j < 10; j++) {
+      final String entityName="thing" + j;
+      em.create("thing",new HashMap<String,Object>(){
+{
+          put("name",entityName);
+        }
+      }
+);
+    }
+  }
+  assertNotNull("Should be able to get application",setup.getEmf().lookupApplication(orgName + "/application0"));
+  UUID mgmtAppId=setup.getEmf().getManagementAppId();
+  EntityManager rootEm=setup.getEmf().getEntityManager(mgmtAppId);
+  for (  UUID appId : appIds) {
+    final String finalOrgId=organization.getOrganization().getUuid().toString();
+    final String finalAppId=appId.toString();
+    rootEm.create("appinfo",new HashMap<String,Object>(){
+{
+        put("organizationUuid",finalOrgId);
+        put("applicationUuid",finalAppId);
+      }
+    }
+);
+    rootEm.delete(new SimpleEntityRef("application_info",appId));
+  }
+  setup.getEmf().flushEntityManagerCaches();
+  assertNull("Should not be able to get application",setup.getEmf().lookupApplication(orgName + "/application0"));
+  ProgressObserver po=Mockito.mock(ProgressObserver.class);
+  AppInfoMigrationPlugin plugin=new AppInfoMigrationPlugin();
+  plugin.emf=setup.getEmf();
+  plugin.run(po);
+  Mockito.verify(po,Mockito.times(10)).update(Mockito.anyInt(),Mockito.anyString());
+  setup.getEmf().refreshIndex();
+  final Results appInfoResults=rootEm.searchCollection(new SimpleEntityRef("application",mgmtAppId),"appinfos",Query.fromQL("select *"));
+  assertEquals(0,appInfoResults.size());
+  final Results applicationInfoResults=rootEm.searchCollection(new SimpleEntityRef("application",mgmtAppId),"application_infos",Query.fromQL("select *"));
+  assertEquals(10,applicationInfoResults.size());
+  assertNotNull("Should be able to get application",setup.getEmf().lookupApplication(orgName + "/application0"));
+}
