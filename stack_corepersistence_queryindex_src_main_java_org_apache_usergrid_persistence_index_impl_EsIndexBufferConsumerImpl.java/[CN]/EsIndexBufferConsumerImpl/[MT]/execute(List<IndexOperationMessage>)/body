@@ -2,31 +2,26 @@
   if (operationMessages == null || operationMessages.size() == 0) {
     return;
   }
-  Observable<BatchRequest> flattenMessages=Observable.from(operationMessages).subscribeOn(Schedulers.io()).flatMap(new Func1<IndexOperationMessage,Observable<BatchRequest>>(){
-    @Override public Observable<BatchRequest> call(    IndexOperationMessage operationMessage){
-      final Observable<DeIndexRequest> deIndex=Observable.from(operationMessage.getDeIndexRequests());
-      final Observable<IndexRequest> index=Observable.from(operationMessage.getIndexRequests());
-      return Observable.merge(deIndex,index);
+  Observable<IndexOperationMessage> flattenMessages=Observable.from(operationMessages);
+  flattenMessages.flatMap(new Func1<IndexOperationMessage,Observable<BatchRequest>>(){
+    @Override public Observable<BatchRequest> call(    final IndexOperationMessage indexOperationMessage){
+      final Observable<IndexRequest> index=Observable.from(indexOperationMessage.getIndexRequests());
+      final Observable<DeIndexRequest> deIndex=Observable.from(indexOperationMessage.getDeIndexRequests());
+      return Observable.merge(index,deIndex);
     }
   }
-);
-  flattenMessages.toList().doOnNext(new Action1<List<BatchRequest>>(){
-    @Override public void call(    List<BatchRequest> builders){
-      try {
-        final BulkRequestBuilder bulkRequest=initRequest();
-        for (        BatchRequest builder : builders) {
-          indexSizeCounter.dec();
-          builder.doOperation(client,bulkRequest);
-        }
-        sendRequest(bulkRequest);
-      }
- catch (      Exception e) {
-        log.error("Failed while sending bulk",e);
-      }
+).collect(initRequest(),new Action2<BulkRequestBuilder,BatchRequest>(){
+    @Override public void call(    final BulkRequestBuilder bulkRequestBuilder,    final BatchRequest batchRequest){
+      batchRequest.doOperation(client,bulkRequestBuilder);
     }
   }
-).toBlocking().lastOrDefault(null);
-  Observable.from(operationMessages).subscribeOn(Schedulers.io()).doOnNext(new Action1<IndexOperationMessage>(){
+).doOnNext(new Action1<BulkRequestBuilder>(){
+    @Override public void call(    final BulkRequestBuilder bulkRequestBuilder){
+      sendRequest(bulkRequestBuilder);
+    }
+  }
+).toBlocking().last();
+  Observable.from(operationMessages).doOnNext(new Action1<IndexOperationMessage>(){
     @Override public void call(    IndexOperationMessage operationMessage){
       operationMessage.getFuture().done();
     }

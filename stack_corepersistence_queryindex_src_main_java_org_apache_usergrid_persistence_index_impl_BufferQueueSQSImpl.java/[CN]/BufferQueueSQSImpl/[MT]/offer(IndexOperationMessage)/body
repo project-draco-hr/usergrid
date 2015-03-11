@@ -1,9 +1,17 @@
 {
+  final Timer.Context timer=this.writeTimer.time();
+  this.writeMeter.mark();
+  final UUID identifier=UUIDGenerator.newTimeUUID();
   try {
-    this.queue.sendMessage(operation);
+    final String payLoad=toString(operation);
+    this.mapManager.putString(identifier.toString(),payLoad,TTL);
+    this.queue.sendMessage(identifier);
     operation.getFuture().run();
   }
  catch (  IOException e) {
     throw new RuntimeException("Unable to queue message",e);
+  }
+ finally {
+    timer.stop();
   }
 }

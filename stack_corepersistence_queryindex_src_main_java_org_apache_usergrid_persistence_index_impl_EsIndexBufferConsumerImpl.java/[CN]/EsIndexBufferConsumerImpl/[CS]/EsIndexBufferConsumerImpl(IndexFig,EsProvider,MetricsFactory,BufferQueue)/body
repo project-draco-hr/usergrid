@@ -1,5 +1,4 @@
 {
-  this.bufferQueue=bufferQueue;
   this.flushTimer=metricsFactory.getTimer(EsIndexBufferConsumerImpl.class,"index.buffer.flush");
   this.flushMeter=metricsFactory.getMeter(EsIndexBufferConsumerImpl.class,"index.buffer.meter");
   this.indexSizeCounter=metricsFactory.getCounter(EsIndexBufferConsumerImpl.class,"index.buffer.size");
@@ -7,54 +6,6 @@
   this.failureMonitor=new FailureMonitorImpl(config,provider);
   this.client=provider.getClient();
   this.produceTimer=metricsFactory.getTimer(EsIndexBufferConsumerImpl.class,"index.buffer.consumer.messageFetch");
-  final AtomicInteger countFail=new AtomicInteger();
-  this.consumer=Observable.create(new Observable.OnSubscribe<List<IndexOperationMessage>>(){
-    @Override public void call(    final Subscriber<? super List<IndexOperationMessage>> subscriber){
-      Thread.currentThread().setName("QueueConsumer_" + Thread.currentThread().getId());
-      List<IndexOperationMessage> drainList;
-      do {
-        try {
-          Timer.Context timer=produceTimer.time();
-          drainList=bufferQueue.take(config.getIndexBufferSize(),config.getIndexBufferTimeout(),TimeUnit.MILLISECONDS);
-          subscriber.onNext(drainList);
-          timer.stop();
-          countFail.set(0);
-        }
- catch (        EsRejectedExecutionException err) {
-          countFail.incrementAndGet();
-          log.error("Elasticsearch rejected our request, sleeping for {} milliseconds before retrying.  " + "Failed {} consecutive times",config.getFailRefreshCount(),countFail.get());
-          try {
-            Thread.sleep(config.getFailureRetryTime());
-          }
- catch (          InterruptedException e) {
-          }
-        }
-catch (        Exception e) {
-          int count=countFail.incrementAndGet();
-          log.error("failed to dequeue",e);
-          if (count > 200) {
-            log.error("Shutting down index drain due to repetitive failures");
-          }
-        }
-      }
- while (true);
-    }
-  }
-).subscribeOn(Schedulers.newThread()).doOnNext(new Action1<List<IndexOperationMessage>>(){
-    @Override public void call(    List<IndexOperationMessage> containerList){
-      if (containerList.size() > 0) {
-        flushMeter.mark(containerList.size());
-        Timer.Context time=flushTimer.time();
-        execute(containerList);
-        time.stop();
-      }
-    }
-  }
-).doOnNext(new Action1<List<IndexOperationMessage>>(){
-    @Override public void call(    final List<IndexOperationMessage> indexOperationMessages){
-      bufferQueue.ack(indexOperationMessages);
-    }
-  }
-);
-  consumer.subscribe();
+  this.bufferQueue=bufferQueue;
+  start();
 }

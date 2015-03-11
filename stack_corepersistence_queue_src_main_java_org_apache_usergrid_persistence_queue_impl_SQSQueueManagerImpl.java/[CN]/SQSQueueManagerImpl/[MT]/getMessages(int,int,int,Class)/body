@@ -5,14 +5,14 @@
   }
   waitTime=waitTime / 1000;
   String url=getQueue().getUrl();
-  LOG.info("Getting {} messages from {}",limit,url);
+  LOG.debug("Getting {} messages from {}",limit,url);
   ReceiveMessageRequest receiveMessageRequest=new ReceiveMessageRequest(url);
   receiveMessageRequest.setMaxNumberOfMessages(limit);
   receiveMessageRequest.setVisibilityTimeout(transactionTimeout);
   receiveMessageRequest.setWaitTimeSeconds(waitTime);
   ReceiveMessageResult result=sqs.receiveMessage(receiveMessageRequest);
   List<Message> messages=result.getMessages();
-  LOG.info("Received {} messages from {}",messages.size(),url);
+  LOG.debug("Received {} messages from {}",messages.size(),url);
   List<QueueMessage> queueMessages=new ArrayList<>(messages.size());
   for (  Message message : messages) {
     Object body;
