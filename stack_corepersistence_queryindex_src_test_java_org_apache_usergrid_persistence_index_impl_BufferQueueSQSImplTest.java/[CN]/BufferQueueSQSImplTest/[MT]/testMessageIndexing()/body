@@ -1,4 +1,7 @@
 {
+  final UsergridAwsCredentialsProvider ugProvider=new UsergridAwsCredentialsProvider();
+  assumeTrue(ugProvider.getCredentials().getAWSAccessKeyId() != null);
+  assumeTrue(ugProvider.getCredentials().getAWSSecretKey() != null);
   final Map<String,Object> request1Data=new HashMap<String,Object>(){
 {
       put("test","testval1");
@@ -22,8 +25,8 @@
   indexOperationMessage.addDeIndexRequest(deIndexRequest2);
   bufferQueueSQS.offer(indexOperationMessage);
   indexOperationMessage.getFuture().get();
-  final List<IndexOperationMessage> ops=bufferQueueSQS.take(10,20,TimeUnit.SECONDS);
-  assertTrue(ops.size() > 1);
+  final List<IndexOperationMessage> ops=getResults(20,TimeUnit.SECONDS);
+  assertTrue(ops.size() > 0);
   final IndexOperationMessage returnedOperation=ops.get(0);
   final Set<IndexRequest> indexRequestSet=returnedOperation.getIndexRequests();
   assertTrue(indexRequestSet.contains(indexRequest1));
