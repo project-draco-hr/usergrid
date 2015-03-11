@@ -4,6 +4,8 @@
   Preconditions.checkNotNull(type,"entity type should never be null");
   Id appId=getApplicationScope().getApplication();
   Preconditions.checkNotNull(appId,"app scope should never be null");
+  updateEntityMeter.mark();
+  Timer.Context timer=updateEntityTimer.time();
   CollectionScope collectionScope=getCollectionScopeNameFromEntityType(appId,type);
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   Id entityId=new SimpleId(entity.getUuid(),entity.getType());
@@ -27,4 +29,5 @@ catch (  HystrixRuntimeException hre) {
   }
   CpRelationManager rm=(CpRelationManager)getRelationManager(entity);
   rm.updateContainingCollectionAndCollectionIndexes(cpEntity);
+  timer.stop();
 }

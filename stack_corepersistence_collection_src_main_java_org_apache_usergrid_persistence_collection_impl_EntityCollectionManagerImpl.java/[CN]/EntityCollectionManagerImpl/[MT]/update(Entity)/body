@@ -5,11 +5,17 @@
   ValidationUtils.verifyIdentity(entityId);
   CollectionIoEvent<Entity> writeData=new CollectionIoEvent<Entity>(collectionScope,entity);
   Observable<CollectionIoEvent<MvccEntity>> observable=stageRunner(writeData,writeUpdate);
+  final Timer.Context timer=updateTimer.time();
   return observable.map(writeCommit).doOnNext(new Action1<Entity>(){
     @Override public void call(    final Entity entity){
       logger.debug("sending entity to the queue");
       taskExecutor.submit(entityVersionCreatedFactory.getTask(collectionScope,entity));
     }
   }
-).doOnError(rollback);
+).doOnError(rollback).doOnCompleted(new Action0(){
+    @Override public void call(){
+      timer.stop();
+    }
+  }
+);
 }
