@@ -1,4 +1,9 @@
 {
+  final int version=migrationInfoSerialization.getVersion(getName());
+  if (version == getMaxVersion()) {
+    logger.debug("Skipping Migration Plugin: " + getName());
+    return;
+  }
   observer.start();
   EntityManager em=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
   Query q=Query.fromQL("select *");
@@ -56,6 +61,7 @@
       for (      Entity oldAppInfo : results.getEntities()) {
         em.delete(oldAppInfo);
       }
+      migrationInfoSerialization.setVersion(getName(),getMaxVersion());
     }
  catch (    Exception e) {
       String msg="Exception writing application_info for " + currentAppName;
