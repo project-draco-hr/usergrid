@@ -4,6 +4,9 @@
       try {
         final UUID startTime=UUIDGenerator.newTimeUUID();
         UniqueValueSet set=uniqueValueSerializationStrategy.load(collectionScope,fields);
+        if (!set.iterator().hasNext()) {
+          return new FieldSetImpl(0);
+        }
         List<Id> entityIds=new ArrayList<>(fields.size());
         List<UniqueValue> uniqueValues=new ArrayList<>(fields.size());
         for (        final Field expectedField : fields) {
