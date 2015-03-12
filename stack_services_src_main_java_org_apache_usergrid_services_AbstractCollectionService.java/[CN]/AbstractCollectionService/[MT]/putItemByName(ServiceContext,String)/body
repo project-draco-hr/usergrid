@@ -2,9 +2,8 @@
   if (context.moreParameters()) {
     return getItemByName(context,name);
   }
-  EntityRef ref=em.getAlias(getEntityType(),name);
-  Entity entity;
-  if (ref == null) {
+  Entity entity=em.getAllEntityFromFields(getEntityType(),name);
+  if (entity == null) {
     checkPermissionsForCollection(context);
     Map<String,Object> properties=context.getPayload().getProperties();
     if (!properties.containsKey("name") || !((String)properties.get("name")).trim().equalsIgnoreCase(name)) {
@@ -13,7 +12,6 @@
     entity=em.create(getEntityType(),properties);
   }
  else {
-    entity=em.get(ref);
     entity=importEntity(context,entity);
     checkPermissionsForEntity(context,entity);
     updateEntity(context,entity);
