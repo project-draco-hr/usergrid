@@ -36,7 +36,9 @@
       logger.debug("Searching index (read alias): {}\n  scope: {} \n type: {}\n   query: {} ",this.alias.getReadAlias(),context,entityTypes,srb);
     }
     try {
+      Timer.Context timeSearch=searchTimer.time();
       searchResponse=srb.execute().actionGet();
+      timeSearch.stop();
     }
  catch (    Throwable t) {
       logger.error("Unable to communicate with Elasticsearch",t);
@@ -46,17 +48,21 @@
     failureMonitor.success();
   }
  else {
-    String scrollId=query.getCursor();
-    if (scrollId.startsWith("\"")) {
-      scrollId=scrollId.substring(1);
+    String userCursorString=query.getCursor();
+    if (userCursorString.startsWith("\"")) {
+      userCursorString=userCursorString.substring(1);
     }
-    if (scrollId.endsWith("\"")) {
-      scrollId=scrollId.substring(0,scrollId.length() - 1);
+    if (userCursorString.endsWith("\"")) {
+      userCursorString=userCursorString.substring(0,userCursorString.length() - 1);
     }
-    logger.debug("Executing query with cursor: {} ",scrollId);
-    SearchScrollRequestBuilder ssrb=esProvider.getClient().prepareSearchScroll(scrollId).setScroll(cursorTimeout + "m");
+    final String esScrollCursor=mapManager.getString(userCursorString);
+    Preconditions.checkArgument(esScrollCursor != null,"Could not find a cursor for the value '{}' ",esScrollCursor);
+    logger.debug("Executing query with cursor: {} ",esScrollCursor);
+    SearchScrollRequestBuilder ssrb=esProvider.getClient().prepareSearchScroll(esScrollCursor).setScroll(cursorTimeout + "m");
     try {
+      Timer.Context timeSearchCursor=cursorTimer.time();
       searchResponse=ssrb.execute().actionGet();
+      timeSearchCursor.stop();
     }
  catch (    Throwable t) {
       logger.error("Unable to communicate with elasticsearch",t);

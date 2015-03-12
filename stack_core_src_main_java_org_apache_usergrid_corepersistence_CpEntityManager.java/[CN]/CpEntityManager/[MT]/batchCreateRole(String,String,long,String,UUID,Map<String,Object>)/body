@@ -18,6 +18,8 @@
   CassandraPersistenceUtils.addInsertToMutator(batch,ENTITY_DICTIONARIES,CassandraPersistenceUtils.key(ownerId,Schema.DICTIONARY_ROLENAMES),roleName,roleTitle,timestamp);
   CassandraPersistenceUtils.addInsertToMutator(batch,ENTITY_DICTIONARIES,CassandraPersistenceUtils.key(ownerId,Schema.DICTIONARY_ROLETIMES),roleName,inactivity,timestamp);
   CassandraPersistenceUtils.addInsertToMutator(batch,ENTITY_DICTIONARIES,CassandraPersistenceUtils.key(ownerId,DICTIONARY_SETS),Schema.DICTIONARY_ROLENAMES,null,timestamp);
+  Timer.Context timeCreateBatchRole=entCreateRoleTimer.time();
   CassandraPersistenceUtils.batchExecute(batch,CassandraService.RETRY_COUNT);
+  timeCreateBatchRole.stop();
   return get(id,Role.class);
 }

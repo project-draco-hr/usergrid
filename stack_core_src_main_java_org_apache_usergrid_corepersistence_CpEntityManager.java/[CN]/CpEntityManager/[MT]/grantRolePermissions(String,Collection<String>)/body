@@ -6,5 +6,7 @@
     permission=permission.toLowerCase();
     CassandraPersistenceUtils.addInsertToMutator(batch,ApplicationCF.ENTITY_DICTIONARIES,getRolePermissionsKey(roleName),permission,ByteBuffer.allocate(0),timestamp);
   }
+  Timer.Context timeGrantRolePermissions=entCreateRolePermissionsTimer.time();
   CassandraPersistenceUtils.batchExecute(batch,CassandraService.RETRY_COUNT);
+  timeGrantRolePermissions.stop();
 }

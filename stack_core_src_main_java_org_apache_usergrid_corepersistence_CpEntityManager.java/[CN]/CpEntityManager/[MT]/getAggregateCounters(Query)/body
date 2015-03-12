@@ -34,7 +34,9 @@
   MultigetSliceCounterQuery<String,Long> q=HFactory.createMultigetSliceCounterQuery(ko,se,le);
   q.setColumnFamily(APPLICATION_AGGREGATE_COUNTERS.toString());
   q.setRange(start,finish,false,ALL_COUNT);
+  Timer.Context timeGetAggregateCounters=entGetAggregateCountersQueryTimer.time();
   QueryResult<CounterRows<String,Long>> rows=q.setKeys(selections.keySet()).execute();
+  timeGetAggregateCounters.stop();
   List<AggregateCounterSet> countSets=new ArrayList<AggregateCounterSet>();
   for (  CounterRow<String,Long> r : rows.get()) {
     expected_time=start;

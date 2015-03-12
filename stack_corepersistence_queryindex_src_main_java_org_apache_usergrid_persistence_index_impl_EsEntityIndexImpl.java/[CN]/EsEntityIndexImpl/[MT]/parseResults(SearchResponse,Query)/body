@@ -14,8 +14,12 @@
   }
   CandidateResults candidateResults=new CandidateResults(query,candidates);
   if (candidates.size() >= query.getLimit()) {
-    candidateResults.setCursor(searchResponse.getScrollId());
-    logger.debug("   Cursor = " + searchResponse.getScrollId());
+    final String userCursorString=org.apache.usergrid.persistence.index.utils.StringUtils.sanitizeUUID(UUIDGenerator.newTimeUUID());
+    final String esScrollCursor=searchResponse.getScrollId();
+    final int minutes=indexFig.getQueryCursorTimeout();
+    mapManager.putString(userCursorString,esScrollCursor,(int)TimeUnit.MINUTES.toSeconds(minutes));
+    candidateResults.setCursor(userCursorString);
+    logger.debug(" User cursor = {},  Cursor = {} ",userCursorString,esScrollCursor);
   }
   return candidateResults;
 }
