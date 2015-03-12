@@ -1,0 +1,35 @@
+{
+  EntityManager em=getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+  final String appName=buildAppName(organizationName,name);
+  if (lookupApplication(appName) != null) {
+    throw new ApplicationAlreadyExistsException(appName);
+  }
+  getSetup().setupApplicationKeyspace(applicationId,appName);
+  if (properties == null) {
+    properties=new TreeMap<>(CASE_INSENSITIVE_ORDER);
+  }
+  properties.put(PROPERTY_NAME,appName);
+  EntityManager appEm=getEntityManager(applicationId);
+  appEm.create(applicationId,TYPE_APPLICATION,properties);
+  appEm.createIndex();
+  appEm.resetRoles();
+  appEm.refreshIndex();
+  Map<String,Object> appInfoMap=new HashMap<String,Object>(){
+{
+      put(PROPERTY_NAME,appName);
+      put(PROPERTY_APPLICATION_ID,applicationId);
+    }
+  }
+;
+  Entity appInfo;
+  try {
+    appInfo=em.create(CpNamingUtils.APPLICATION_INFO,appInfoMap);
+  }
+ catch (  DuplicateUniquePropertyExistsException e) {
+    throw new ApplicationAlreadyExistsException(appName);
+  }
+  em.refreshIndex();
+  applicationIdCache.evictAppId(appName);
+  logger.info("Initialized application {}",appName);
+  return appInfo;
+}

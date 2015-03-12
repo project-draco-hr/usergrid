@@ -1,35 +1,3 @@
 {
-  EntityManager em=getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
-  final String appName=buildAppName(organizationName,name);
-  if (lookupApplication(appName) != null) {
-    throw new ApplicationAlreadyExistsException(appName);
-  }
-  getSetup().setupApplicationKeyspace(applicationId,appName);
-  if (properties == null) {
-    properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
-  }
-  properties.put(PROPERTY_NAME,appName);
-  EntityManager appEm=getEntityManager(applicationId);
-  appEm.create(applicationId,TYPE_APPLICATION,properties);
-  appEm.createIndex();
-  appEm.resetRoles();
-  appEm.refreshIndex();
-  final UUID appId=applicationId;
-  Map<String,Object> appInfoMap=new HashMap<String,Object>(){
-{
-      put(PROPERTY_NAME,appName);
-      put(PROPERTY_UUID,appId);
-    }
-  }
-;
-  try {
-    em.create(appId,CpNamingUtils.APPLICATION_INFO,appInfoMap);
-  }
- catch (  DuplicateUniquePropertyExistsException e) {
-    throw new ApplicationAlreadyExistsException(appName);
-  }
-  em.refreshIndex();
-  orgApplicationCache.evictAppId(appName);
-  logger.info("Initialized application {}",appName);
-  return applicationId;
+  throw new UnsupportedOperationException("Not supported in v2");
 }
