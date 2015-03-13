@@ -1,7 +1,14 @@
 {
-  this.flushTimer=metricsFactory.getTimer(EsIndexBufferConsumerImpl.class,"index.buffer.flush");
-  this.flushMeter=metricsFactory.getMeter(EsIndexBufferConsumerImpl.class,"index.buffer.meter");
-  this.indexSizeCounter=metricsFactory.getCounter(EsIndexBufferConsumerImpl.class,"index.buffer.size");
+  this.flushTimer=metricsFactory.getTimer(EsIndexBufferConsumerImpl.class,"buffer.flush");
+  this.flushMeter=metricsFactory.getMeter(EsIndexBufferConsumerImpl.class,"buffer.meter");
+  this.indexSizeCounter=metricsFactory.getCounter(EsIndexBufferConsumerImpl.class,"buffer.size");
+  this.indexErrorCounter=metricsFactory.getCounter(EsIndexBufferConsumerImpl.class,"error.count");
+  metricsFactory.addGauge(EsIndexBufferConsumerImpl.class,"inflight.meter",new Gauge<Long>(){
+    @Override public Long getValue(){
+      return inFlight.longValue();
+    }
+  }
+);
   this.config=config;
   this.failureMonitor=new FailureMonitorImpl(config,provider);
   this.client=provider.getClient();
