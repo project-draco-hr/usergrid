@@ -5,18 +5,21 @@
         final UUID startTime=UUIDGenerator.newTimeUUID();
         UniqueValueSet set=uniqueValueSerializationStrategy.load(collectionScope,fields);
         if (!set.iterator().hasNext()) {
-          return new FieldSetImpl(0);
+          return new MutableFieldSet(0);
         }
         List<Id> entityIds=new ArrayList<>(fields.size());
         List<UniqueValue> uniqueValues=new ArrayList<>(fields.size());
         for (        final Field expectedField : fields) {
           UniqueValue value=set.getValue(expectedField.getName());
+          if (value == null) {
+            logger.debug("Field does not correspond to a unique value");
+          }
           entityIds.add(value.getEntityId());
           uniqueValues.add(value);
         }
         final EntitySet entitySet=entitySerializationStrategy.load(collectionScope,entityIds,startTime);
         final MutationBatch deleteBatch=keyspace.prepareMutationBatch();
-        final FieldSetImpl response=new FieldSetImpl(fields.size());
+        final MutableFieldSet response=new MutableFieldSet(fields.size());
         for (        final UniqueValue expectedUnique : uniqueValues) {
           final MvccEntity entity=entitySet.getEntity(expectedUnique.getEntityId());
           if (entity == null || !entity.getEntity().isPresent()) {

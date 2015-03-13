@@ -6,13 +6,14 @@
   EntityCollectionManager manager=factory.createCollectionManager(context);
   Observable<Entity> observable=manager.write(newEntity);
   Entity createReturned=observable.toBlocking().lastOrDefault(null);
+  assertNotNull("Need entity to be created before proceeding",createReturned);
   assertNotNull("Id was assigned",createReturned.getId());
   assertNotNull("Version was assigned",createReturned.getVersion());
-  FieldSet fieldResults=manager.getAllEntities(Arrays.<Field>asList(expectedInteger)).toBlocking().last();
+  FieldSet fieldResults=manager.getEntitiesFromFields(Arrays.<Field>asList(expectedInteger)).toBlocking().last();
   assertEquals(1,fieldResults.size());
   assertEquals("Same value",createReturned,fieldResults.getEntity(expectedInteger).getEntity().get());
   entitySerializationStrategy.delete(context,createReturned.getId(),createReturned.getVersion()).execute();
-  final FieldSet results=manager.getAllEntities(Arrays.<Field>asList(expectedInteger)).toBlocking().last();
+  final FieldSet results=manager.getEntitiesFromFields(Arrays.<Field>asList(expectedInteger)).toBlocking().last();
   assertTrue(results.isEmpty());
   UniqueValueSet uniqueValues=uniqueValueSerializationStrategy.load(context,createReturned.getFields());
   assertFalse(uniqueValues.iterator().hasNext());

@@ -5,7 +5,11 @@
   Timer.Context repairedEntityGet=entGetRepairedEntityTimer.time();
   final EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   StringField uniqueLookupRepairField=new StringField(propertyName,aliasType.toString());
-  Observable<FieldSet> fieldSetObservable=ecm.getAllEntities(Arrays.<Field>asList(uniqueLookupRepairField));
+  Observable<FieldSet> fieldSetObservable=ecm.getEntitiesFromFields(Arrays.<Field>asList(uniqueLookupRepairField));
+  if (fieldSetObservable == null) {
+    logger.debug("Couldn't return the observable based on unique entities.");
+    return null;
+  }
   FieldSet fieldSet=fieldSetObservable.toBlocking().last();
   repairedEntityGet.stop();
   if (fieldSet.isEmpty()) {
