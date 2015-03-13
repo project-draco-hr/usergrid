@@ -16,27 +16,20 @@
     return;
   }
   if (!results.isEmpty()) {
-    EntityManager em=emf.getEntityManager(emf.getManagementAppId());
+    final EntityManager em=emf.getEntityManager(emf.getManagementAppId());
     String currentAppName=null;
     try {
       logger.info("Migrating old appinfos");
       for (      Entity oldAppInfo : results.getEntities()) {
         final String appName=currentAppName=oldAppInfo.getName();
+        final String orgName=appName.split("/")[0];
         UUID applicationId;
-        UUID organizationId;
         Object uuidObject=oldAppInfo.getProperty("applicationUuid");
         if (uuidObject instanceof UUID) {
           applicationId=(UUID)uuidObject;
         }
  else {
           applicationId=UUIDUtils.tryExtractUUID(uuidObject.toString());
-        }
-        uuidObject=oldAppInfo.getProperty("organizationUuid");
-        if (uuidObject instanceof UUID) {
-          organizationId=(UUID)uuidObject;
-        }
- else {
-          organizationId=UUIDUtils.tryExtractUUID(uuidObject.toString());
         }
         final UUID appId=applicationId;
         Entity appInfo=getApplicationInfo(emf,appId);
@@ -56,12 +49,12 @@
           em.update(appInfo);
           observer.update(getMaxVersion(),"Updated existing application_info for " + appName);
         }
-        em.createConnection(new SimpleEntityRef(Group.ENTITY_TYPE,organizationId),"owns",appInfo);
+        if (!orgName.equals("usergrid")) {
+          EntityRef orgRef=em.getAlias(Group.ENTITY_TYPE,appName.split("/")[0]);
+          em.createConnection(orgRef,"owns",appInfo);
+        }
       }
       em.refreshIndex();
-      for (      Entity oldAppInfo : results.getEntities()) {
-        em.delete(oldAppInfo);
-      }
       migrationInfoSerialization.setVersion(getName(),getMaxVersion());
     }
  catch (    Exception e) {
