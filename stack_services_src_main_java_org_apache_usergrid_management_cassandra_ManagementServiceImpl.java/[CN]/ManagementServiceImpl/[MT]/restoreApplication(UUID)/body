@@ -6,7 +6,7 @@
   if (emf.lookupApplication(app.getName()) != null) {
     throw new ConflictException("Cannot restore application, one with that name already exists.");
   }
-  EntityManager em=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+  EntityManager em=emf.getEntityManager(emf.getManagementAppId());
   Entity appInfo=emf.restoreApplication(applicationId);
   writeUserToken(smf.getManagementAppId(),appInfo,encryptionService.plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.APPLICATION),null,smf.getManagementAppId()));
   String orgName=appInfo.getName().split("/")[0];
