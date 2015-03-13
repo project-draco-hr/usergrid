@@ -5,17 +5,18 @@
     return;
   }
   observer.start();
-  EntityManager em=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+  EntityManager systemAppEm=emf.getEntityManager(CpNamingUtils.SYSTEM_APP_ID);
   Query q=Query.fromQL("select *");
   Results results;
   try {
-    results=em.searchCollection(em.getApplicationRef(),"appinfos",q);
+    results=systemAppEm.searchCollection(systemAppEm.getApplicationRef(),"appinfos",q);
   }
  catch (  Exception e) {
     logger.error("Error reading old appinfos collection, not migrating",e);
     return;
   }
   if (!results.isEmpty()) {
+    EntityManager em=emf.getEntityManager(emf.getManagementAppId());
     String currentAppName=null;
     try {
       logger.info("Migrating old appinfos");

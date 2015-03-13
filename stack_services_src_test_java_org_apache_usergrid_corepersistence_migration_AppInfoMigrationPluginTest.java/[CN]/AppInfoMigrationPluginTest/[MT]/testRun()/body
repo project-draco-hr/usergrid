@@ -22,13 +22,15 @@
   checkApplicationsOk(orgName);
   logger.debug("\n\nCreate old-style appinfo entities to be migrated\n");
   List<Entity> deletedApps=new ArrayList<>();
+  setup.getEmf().initializeApplicationV2(CassandraService.DEFAULT_ORGANIZATION,CpNamingUtils.SYSTEM_APP_ID,"systemapp",null);
+  EntityManager systemAppEm=setup.getEmf().getEntityManager(CpNamingUtils.SYSTEM_APP_ID);
   int count=0;
   for (  UUID appId : appIds) {
     final Entity applicationInfo=getApplicationInfo(appId);
     final String appName=applicationInfo.getName();
     final String finalOrgId=organization.getOrganization().getUuid().toString();
     final String finalAppId=applicationInfo.getProperty(Schema.PROPERTY_APPLICATION_ID).toString();
-    rootEm.create("appinfo",new HashMap<String,Object>(){
+    systemAppEm.create("appinfo",new HashMap<String,Object>(){
 {
         put("name",appName);
         put("organizationUuid",finalOrgId);
@@ -47,9 +49,7 @@
   checkApplicationsBroken(orgName,deletedApps);
   logger.debug("\n\nRun the migration\n");
   ProgressObserver po=Mockito.mock(ProgressObserver.class);
-  AppInfoMigrationPlugin plugin=new AppInfoMigrationPlugin();
-  plugin.emf=setup.getEmf();
-  plugin.run(po);
+  setup.getAppInfoMigrationPlugin().run(po);
   logger.debug("\n\nVerify migration results\n");
   Mockito.verify(po,Mockito.times(10)).update(Mockito.anyInt(),Mockito.anyString());
   setup.getEmf().refreshIndex();
