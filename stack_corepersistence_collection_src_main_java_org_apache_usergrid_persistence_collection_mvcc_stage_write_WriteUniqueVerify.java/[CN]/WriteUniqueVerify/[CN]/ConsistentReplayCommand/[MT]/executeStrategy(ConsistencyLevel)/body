@@ -1,0 +1,41 @@
+{
+  Collection<Field> entityFields=entity.getFields();
+  final List<Field> uniqueFields=new ArrayList<Field>(entityFields.size());
+  final UniqueValueSet uniqueValues;
+  try {
+    uniqueValues=uniqueValueSerializationStrategy.load(scope,consistencyLevel,uniqueFields);
+  }
+ catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to read from cassandra",e);
+  }
+  final Map<String,Field> uniquenessViolations=new HashMap<>(uniqueFields.size());
+  for (  final Field field : uniqueFields) {
+    final UniqueValue uniqueValue=uniqueValues.getValue(field.getName());
+    if (uniqueValue == null) {
+      throw new RuntimeException(String.format("Could not retrieve unique value for field %s, unable to verify",field.getName()));
+    }
+    final Id returnedEntityId=uniqueValue.getEntityId();
+    if (!entity.getId().equals(returnedEntityId)) {
+      uniquenessViolations.put(field.getName(),field);
+    }
+  }
+  final MutationBatch batch=keySpace.prepareMutationBatch();
+  for (  final Field field : entity.getFields()) {
+    if (field.isUnique()) {
+      final UniqueValue written=new UniqueValueImpl(field,entity.getId(),entity.getVersion());
+      final MutationBatch mb=uniqueValueSerializationStrategy.write(scope,written,serializationFig.getTimeout());
+      batch.mergeShallow(mb);
+      uniqueFields.add(field);
+    }
+  }
+  if (uniqueFields.size() == 0) {
+    return uniquenessViolations;
+  }
+  try {
+    batch.execute();
+  }
+ catch (  ConnectionException ex) {
+    throw new RuntimeException("Unable to write to cassandra",ex);
+  }
+  return uniquenessViolations;
+}
