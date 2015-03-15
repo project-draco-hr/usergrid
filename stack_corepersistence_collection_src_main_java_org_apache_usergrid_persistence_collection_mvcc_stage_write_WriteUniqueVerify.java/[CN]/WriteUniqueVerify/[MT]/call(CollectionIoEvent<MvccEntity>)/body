@@ -5,13 +5,11 @@
   final CollectionScope scope=ioevent.getEntityCollection();
   final MutationBatch batch=keyspace.prepareMutationBatch();
   final List<Field> uniqueFields=new ArrayList<>(entity.getFields().size());
-  for (  final Field field : entity.getFields()) {
-    if (field.isUnique()) {
-      final UniqueValue written=new UniqueValueImpl(field,mvccEntity.getId(),mvccEntity.getVersion());
-      final MutationBatch mb=uniqueValueStrat.write(scope,written,serializationFig.getTimeout());
-      batch.mergeShallow(mb);
-      uniqueFields.add(field);
-    }
+  for (  final Field field : EntityUtils.getUniqueFields(entity)) {
+    final UniqueValue written=new UniqueValueImpl(field,mvccEntity.getId(),mvccEntity.getVersion());
+    final MutationBatch mb=uniqueValueStrat.write(scope,written,serializationFig.getTimeout());
+    batch.mergeShallow(mb);
+    uniqueFields.add(field);
   }
   if (uniqueFields.size() == 0) {
     return;

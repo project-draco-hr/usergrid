@@ -14,10 +14,7 @@
         final UUID entityVersion=mvccEntity.getVersion();
         if (mvccEntity.getEntity().isPresent()) {
           final Entity entity=mvccEntity.getEntity().get();
-          for (          final Field field : entity.getFields()) {
-            if (!field.isUnique()) {
-              continue;
-            }
+          for (          final Field field : EntityUtils.getUniqueFields(entity)) {
             final UniqueValue unique=new UniqueValueImpl(field,entityId,entityVersion);
             final MutationBatch deleteMutation=uniqueValueSerializationStrategy.delete(scope,unique);
             batch.mergeShallow(deleteMutation);

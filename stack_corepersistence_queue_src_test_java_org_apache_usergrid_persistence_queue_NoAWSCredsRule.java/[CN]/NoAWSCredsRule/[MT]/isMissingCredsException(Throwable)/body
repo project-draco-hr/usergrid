@@ -5,6 +5,14 @@
       return true;
     }
   }
+  if (t instanceof MultipleFailureException) {
+    for (    final Throwable failure : ((MultipleFailureException)t).getFailures()) {
+      final boolean isMissingCreds=isMissingCredsException(failure);
+      if (isMissingCreds) {
+        return true;
+      }
+    }
+  }
   final Throwable cause=t.getCause();
   if (cause == null) {
     return false;
