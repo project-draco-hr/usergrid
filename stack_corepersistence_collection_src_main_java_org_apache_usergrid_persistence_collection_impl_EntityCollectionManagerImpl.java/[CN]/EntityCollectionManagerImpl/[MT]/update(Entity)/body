@@ -9,7 +9,8 @@
   return observable.map(writeCommit).doOnNext(new Action1<Entity>(){
     @Override public void call(    final Entity entity){
       logger.debug("sending entity to the queue");
-      taskExecutor.submit(entityVersionCreatedFactory.getTask(collectionScope,entity));
+      taskExecutor.submit(entityVersionTaskFactory.getCreatedTask(collectionScope,entity));
+      taskExecutor.submit(entityVersionTaskFactory.getCleanupTask(collectionScope,entity.getId(),entity.getVersion(),false));
     }
   }
 ).doOnError(rollback).doOnNext(new Action1<Entity>(){

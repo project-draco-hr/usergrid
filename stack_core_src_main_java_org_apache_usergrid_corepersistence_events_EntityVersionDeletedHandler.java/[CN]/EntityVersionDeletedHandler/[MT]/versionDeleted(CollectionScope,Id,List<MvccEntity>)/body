@@ -2,18 +2,20 @@
   if (System.getProperty(EVENTS_DISABLED,"false").equals("true")) {
     return;
   }
-  logger.debug("Handling versionDeleted count={} event for entity {}:{} v {} " + "scope\n   name: {}\n   owner: {}\n   app: {}",new Object[]{entityVersions.size(),entityId.getType(),entityId.getUuid(),scope.getName(),scope.getOwner(),scope.getApplication()});
+  if (logger.isDebugEnabled()) {
+    logger.debug("Handling versionDeleted count={} event for entity {}:{} v {} " + "scope\n   name: {}\n   owner: {}\n   app: {}",new Object[]{entityVersions.size(),entityId.getType(),entityId.getUuid(),scope.getName(),scope.getOwner(),scope.getApplication()});
+  }
   CpEntityManagerFactory cpemf=(CpEntityManagerFactory)emf;
   final EntityIndex ei=cpemf.getManagerCache().getEntityIndex(scope);
-  final EntityIndexBatch eibatch=ei.createBatch();
   final IndexScope indexScope=new IndexScopeImpl(new SimpleId(scope.getOwner().getUuid(),scope.getOwner().getType()),scope.getName());
-  rx.Observable.from(entityVersions).subscribeOn(Schedulers.io()).buffer(serializationFig.getBufferSize()).map(new Func1<List<MvccEntity>,List<MvccEntity>>(){
-    @Override public List<MvccEntity> call(    List<MvccEntity> entityList){
-      for (      MvccEntity entity : entityList) {
-        eibatch.deindex(indexScope,entityId,entity.getVersion());
-      }
-      eibatch.execute();
-      return entityList;
+  Observable.from(entityVersions).collect(ei.createBatch(),new Action2<EntityIndexBatch,MvccEntity>(){
+    @Override public void call(    final EntityIndexBatch entityIndexBatch,    final MvccEntity mvccEntity){
+      entityIndexBatch.deindex(indexScope,mvccEntity.getId(),mvccEntity.getVersion());
+    }
+  }
+).doOnNext(new Action1<EntityIndexBatch>(){
+    @Override public void call(    final EntityIndexBatch entityIndexBatch){
+      entityIndexBatch.execute();
     }
   }
 ).toBlocking().last();

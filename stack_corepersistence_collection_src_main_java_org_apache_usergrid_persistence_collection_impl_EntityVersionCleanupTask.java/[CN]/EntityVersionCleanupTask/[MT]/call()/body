@@ -5,24 +5,23 @@
       return entities;
     }
   }
-).skip(1).buffer(serializationFig.getBufferSize()).doOnNext(new Action1<List<MvccEntity>>(){
+).skip(numToSkip).buffer(serializationFig.getBufferSize()).doOnNext(new Action1<List<MvccEntity>>(){
     @Override public void call(    final List<MvccEntity> mvccEntities){
       final MutationBatch batch=keyspace.prepareMutationBatch();
       final MutationBatch entityBatch=keyspace.prepareMutationBatch();
       final MutationBatch logBatch=keyspace.prepareMutationBatch();
       for (      MvccEntity mvccEntity : mvccEntities) {
-        if (!mvccEntity.getEntity().isPresent()) {
-          continue;
-        }
         final UUID entityVersion=mvccEntity.getVersion();
-        final Entity entity=mvccEntity.getEntity().get();
-        for (        final Field field : entity.getFields()) {
-          if (!field.isUnique()) {
-            continue;
+        if (mvccEntity.getEntity().isPresent()) {
+          final Entity entity=mvccEntity.getEntity().get();
+          for (          final Field field : entity.getFields()) {
+            if (!field.isUnique()) {
+              continue;
+            }
+            final UniqueValue unique=new UniqueValueImpl(field,entityId,entityVersion);
+            final MutationBatch deleteMutation=uniqueValueSerializationStrategy.delete(scope,unique);
+            batch.mergeShallow(deleteMutation);
           }
-          final UniqueValue unique=new UniqueValueImpl(field,entityId,entityVersion);
-          final MutationBatch deleteMutation=uniqueValueSerializationStrategy.delete(scope,unique);
-          batch.mergeShallow(deleteMutation);
         }
         final MutationBatch entityDelete=entitySerializationStrategy.delete(scope,entityId,mvccEntity.getVersion());
         entityBatch.mergeShallow(entityDelete);
