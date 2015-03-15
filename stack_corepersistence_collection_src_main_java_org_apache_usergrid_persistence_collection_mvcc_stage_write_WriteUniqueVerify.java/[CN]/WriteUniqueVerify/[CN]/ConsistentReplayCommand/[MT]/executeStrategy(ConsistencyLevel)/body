@@ -1,0 +1,22 @@
+{
+  Collection<Field> entityFields=entity.getFields();
+  final UniqueValueSet uniqueValues;
+  try {
+    uniqueValues=uniqueValueSerializationStrategy.load(scope,consistencyLevel,entityFields);
+  }
+ catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to read from cassandra",e);
+  }
+  final Map<String,Field> uniquenessViolations=new HashMap<>(uniqueFields.size());
+  for (  final Field field : uniqueFields) {
+    final UniqueValue uniqueValue=uniqueValues.getValue(field.getName());
+    if (uniqueValue == null) {
+      throw new RuntimeException(String.format("Could not retrieve unique value for field %s, unable to verify",field.getName()));
+    }
+    final Id returnedEntityId=uniqueValue.getEntityId();
+    if (!entity.getId().equals(returnedEntityId)) {
+      uniquenessViolations.put(field.getName(),field);
+    }
+  }
+  return uniquenessViolations;
+}
