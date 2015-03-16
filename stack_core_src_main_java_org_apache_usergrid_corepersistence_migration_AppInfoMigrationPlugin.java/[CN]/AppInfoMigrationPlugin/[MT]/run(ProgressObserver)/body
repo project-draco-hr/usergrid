@@ -5,56 +5,17 @@
     return;
   }
   observer.start();
-  EntityManager systemAppEm=emf.getEntityManager(CpNamingUtils.SYSTEM_APP_ID);
-  Query q=Query.fromQL("select *");
-  Results results;
-  try {
-    results=systemAppEm.searchCollection(systemAppEm.getApplicationRef(),"appinfos",q);
-  }
- catch (  Exception e) {
-    logger.error("Error reading old appinfos collection, not migrating",e);
-    return;
-  }
-  if (!results.isEmpty()) {
+  final Iterator<org.apache.usergrid.persistence.model.entity.Entity> iterator=getOldAppInfos().toBlocking().getIterator();
+  if (iterator.hasNext()) {
     final EntityManager em=emf.getEntityManager(emf.getManagementAppId());
     String currentAppName=null;
     try {
       logger.info("Migrating old appinfos");
-      for (      Entity oldAppInfo : results.getEntities()) {
-        final String appName=currentAppName=oldAppInfo.getName();
-        final String orgName=appName.split("/")[0];
-        UUID applicationId;
-        Object uuidObject=oldAppInfo.getProperty("applicationUuid");
-        if (uuidObject instanceof UUID) {
-          applicationId=(UUID)uuidObject;
-        }
- else {
-          applicationId=UUIDUtils.tryExtractUUID(uuidObject.toString());
-        }
-        final UUID appId=applicationId;
-        Entity appInfo=getApplicationInfo(emf,appId);
-        if (appInfo == null) {
-          Map<String,Object> appInfoMap=new HashMap<String,Object>(){
-{
-              put(PROPERTY_NAME,appName);
-              put(PROPERTY_APPLICATION_ID,appId);
-            }
-          }
-;
-          appInfo=em.create(appId,CpNamingUtils.APPLICATION_INFO,appInfoMap);
-          observer.update(getMaxVersion(),"Created application_info for " + appName);
-        }
- else {
-          appInfo.setProperty(PROPERTY_APPLICATION_ID,appId);
-          em.update(appInfo);
-          observer.update(getMaxVersion(),"Updated existing application_info for " + appName);
-        }
-        if (!orgName.equals("usergrid")) {
-          EntityRef orgRef=em.getAlias(Group.ENTITY_TYPE,appName.split("/")[0]);
-          em.createConnection(orgRef,"owns",appInfo);
-        }
+      while (iterator.hasNext()) {
+        Map oldAppInfo=CpEntityMapUtils.toMap(iterator.next());
+        currentAppName=(String)oldAppInfo.get(PROPERTY_NAME);
+        migragrateOneAppInfo(em,oldAppInfo,observer);
       }
-      em.refreshIndex();
       migrationInfoSerialization.setVersion(getName(),getMaxVersion());
     }
  catch (    Exception e) {
