@@ -4,11 +4,7 @@
     Entity entity;
     if (query.containsSingleNameOrEmailIdentifier()) {
       String name=query.getSingleNameOrEmailIdentifier();
-      EntityRef ref=em.getAlias(query.getEntityType(),name);
-      if (ref == null) {
-        throw new ServiceResourceNotFoundException(context);
-      }
-      entity=em.get(ref);
+      entity=em.getUniqueEntityFromAlias(query.getEntityType(),name);
       if (entity == null) {
         throw new ServiceResourceNotFoundException(context);
       }

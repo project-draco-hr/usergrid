@@ -1,0 +1,19 @@
+{
+  String collName=Schema.defaultCollectionName(collectionType);
+  CollectionScope collectionScope=getCollectionScopeNameFromEntityType(getApplicationScope().getApplication(),collName);
+  String propertyName=Schema.getDefaultSchema().aliasProperty(collName);
+  Timer.Context repairedEntityGet=entGetRepairedEntityTimer.time();
+  final EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
+  StringField uniqueLookupRepairField=new StringField(propertyName,aliasType.toString());
+  Observable<FieldSet> fieldSetObservable=ecm.getEntitiesFromFields(Arrays.<Field>asList(uniqueLookupRepairField));
+  if (fieldSetObservable == null) {
+    logger.debug("Couldn't return the observable based on unique entities.");
+    return null;
+  }
+  FieldSet fieldSet=fieldSetObservable.toBlocking().last();
+  repairedEntityGet.stop();
+  if (fieldSet.isEmpty()) {
+    return null;
+  }
+  return convertMvccEntityToEntity(fieldSet.getEntity(uniqueLookupRepairField).getEntity().get());
+}
