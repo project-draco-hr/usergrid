@@ -3,7 +3,7 @@
   if (nameProperty == null) {
     nameProperty="name";
   }
-  EntityRef entity=em.getAlias(getEntityType(),name);
+  Entity entity=em.getUniqueEntityFromAlias(getEntityType(),name);
   if (entity == null) {
     logger.info("miss on entityType: {} with name: {}",getEntityType(),name);
     throw new ServiceResourceNotFoundException(context);
@@ -13,8 +13,7 @@
     throw new ServiceResourceNotFoundException(context);
   }
   if (!context.moreParameters()) {
-    entity=em.get(entity);
-    entity=importEntity(context,(Entity)entity);
+    entity=importEntity(context,entity);
   }
   checkPermissionsForEntity(context,entity);
   List<ServiceRequest> nextRequests=context.getNextServiceRequests(entity);

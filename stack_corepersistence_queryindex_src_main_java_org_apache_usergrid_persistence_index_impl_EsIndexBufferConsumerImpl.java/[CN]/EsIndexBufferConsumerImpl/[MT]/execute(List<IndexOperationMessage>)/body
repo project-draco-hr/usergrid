@@ -2,38 +2,28 @@
   if (operationMessages == null || operationMessages.size() == 0) {
     return;
   }
-  Observable<ActionRequestBuilder> flattenMessages=Observable.from(operationMessages).subscribeOn(Schedulers.io()).flatMap(new Func1<IndexOperationMessage,Observable<ActionRequestBuilder>>(){
-    @Override public Observable<ActionRequestBuilder> call(    IndexOperationMessage operationMessage){
-      return Observable.from(operationMessage.getOperations());
+  Observable.from(operationMessages).flatMap(new Func1<IndexOperationMessage,Observable<BatchRequest>>(){
+    @Override public Observable<BatchRequest> call(    final IndexOperationMessage indexOperationMessage){
+      final Observable<IndexRequest> index=Observable.from(indexOperationMessage.getIndexRequests());
+      final Observable<DeIndexRequest> deIndex=Observable.from(indexOperationMessage.getDeIndexRequests());
+      indexSizeCounter.dec(indexOperationMessage.getDeIndexRequests().size());
+      indexSizeCounter.dec(indexOperationMessage.getIndexRequests().size());
+      return Observable.merge(index,deIndex);
     }
   }
-);
-  flattenMessages.buffer(config.getIndexBatchSize()).doOnNext(new Action1<List<ActionRequestBuilder>>(){
-    @Override public void call(    List<ActionRequestBuilder> builders){
-      try {
-        final BulkRequestBuilder bulkRequest=initRequest();
-        for (        ActionRequestBuilder builder : builders) {
-          indexSizeCounter.dec();
-          if (builder instanceof IndexRequestBuilder) {
-            bulkRequest.add((IndexRequestBuilder)builder);
-          }
-          if (builder instanceof DeleteRequestBuilder) {
-            bulkRequest.add((DeleteRequestBuilder)builder);
-          }
-          if (builder instanceof DeleteByQueryRequestBuilder) {
-            DeleteByQueryRequestBuilder deleteByQueryRequestBuilder=(DeleteByQueryRequestBuilder)builder;
-            deleteByQueryRequestBuilder.get();
-          }
-        }
-        sendRequest(bulkRequest);
-      }
- catch (      Exception e) {
-        log.error("Failed while sending bulk",e);
-      }
+).reduce(initRequest(),new Func2<BulkRequestBuilder,BatchRequest,BulkRequestBuilder>(){
+    @Override public BulkRequestBuilder call(    final BulkRequestBuilder bulkRequestBuilder,    final BatchRequest batchRequest){
+      batchRequest.doOperation(client,bulkRequestBuilder);
+      return bulkRequestBuilder;
+    }
+  }
+).doOnNext(new Action1<BulkRequestBuilder>(){
+    @Override public void call(    final BulkRequestBuilder bulkRequestBuilder){
+      sendRequest(bulkRequestBuilder);
     }
   }
 ).toBlocking().lastOrDefault(null);
-  Observable.from(operationMessages).subscribeOn(Schedulers.io()).doOnNext(new Action1<IndexOperationMessage>(){
+  Observable.from(operationMessages).doOnNext(new Action1<IndexOperationMessage>(){
     @Override public void call(    IndexOperationMessage operationMessage){
       operationMessage.getFuture().done();
     }

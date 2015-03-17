@@ -1,27 +1,3 @@
 {
-  Preconditions.checkNotNull(fields,"fields are required");
-  Preconditions.checkArgument(fields.size() > 0,"More than 1 field msut be specified");
-  final List<ScopedRowKey<CollectionPrefixedKey<Field>>> keys=new ArrayList<>(fields.size());
-  final Id applicationId=collectionScope.getApplication();
-  final Id ownerId=collectionScope.getOwner();
-  final String collectionName=collectionScope.getName();
-  for (  Field field : fields) {
-    final CollectionPrefixedKey<Field> collectionPrefixedKey=new CollectionPrefixedKey<>(collectionName,ownerId,field);
-    final ScopedRowKey<CollectionPrefixedKey<Field>> rowKey=ScopedRowKey.fromKey(applicationId,collectionPrefixedKey);
-    keys.add(rowKey);
-  }
-  final UniqueValueSetImpl uniqueValueSet=new UniqueValueSetImpl(fields.size());
-  Iterator<Row<ScopedRowKey<CollectionPrefixedKey<Field>>,EntityVersion>> results=keyspace.prepareQuery(CF_UNIQUE_VALUES).getKeySlice(keys).withColumnRange(new RangeBuilder().setLimit(1).build()).execute().getResult().iterator();
-  while (results.hasNext()) {
-    final Row<ScopedRowKey<CollectionPrefixedKey<Field>>,EntityVersion> unique=results.next();
-    final Field field=unique.getKey().getKey().getSubKey();
-    final Iterator<Column<EntityVersion>> columnList=unique.getColumns().iterator();
-    if (!columnList.hasNext()) {
-      continue;
-    }
-    final EntityVersion entityVersion=columnList.next().getName();
-    final UniqueValueImpl uniqueValue=new UniqueValueImpl(field,entityVersion.getEntityId(),entityVersion.getEntityVersion());
-    uniqueValueSet.addValue(uniqueValue);
-  }
-  return uniqueValueSet;
+  return load(colScope,ConsistencyLevel.valueOf(cassandraFig.getReadCL()),fields);
 }

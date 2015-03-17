@@ -1,4 +1,6 @@
 {
+  final Timer.Context timer=deleteNodeTimer.time();
+  final Meter meter=deleteNodeMeter;
   return Observable.from(node).map(new Func1<Id,Id>(){
     @Override public Id call(    final Id id){
       final UUID eventTimestamp=UUIDGenerator.newTimeUUID();
@@ -7,6 +9,16 @@
       HystrixCassandra.user(nodeMutation);
       nodeDeleteListener.receive(scope,id,eventTimestamp).subscribeOn(Schedulers.io()).subscribe(nodeDelete);
       return id;
+    }
+  }
+).doOnEach(new Action1<Notification<? super Id>>(){
+    @Override public void call(    Notification<? super Id> notification){
+      meter.mark();
+    }
+  }
+).doOnCompleted(new Action0(){
+    @Override public void call(){
+      timer.stop();
     }
   }
 );

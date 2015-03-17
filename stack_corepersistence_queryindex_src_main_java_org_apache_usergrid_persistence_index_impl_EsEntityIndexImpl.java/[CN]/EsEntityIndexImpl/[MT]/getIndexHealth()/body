@@ -1,6 +1,7 @@
 {
   try {
-    ClusterHealthResponse chr=esProvider.getClient().admin().cluster().health(new ClusterHealthRequest(new String[]{indexIdentifier.getIndex(null)})).get();
+    final ActionFuture<ClusterHealthResponse> future=esProvider.getClient().admin().cluster().health(new ClusterHealthRequest(new String[]{indexIdentifier.getIndex(null)}));
+    ClusterHealthResponse chr=future.actionGet(2000);
     return Health.valueOf(chr.getStatus().name());
   }
  catch (  Exception ex) {

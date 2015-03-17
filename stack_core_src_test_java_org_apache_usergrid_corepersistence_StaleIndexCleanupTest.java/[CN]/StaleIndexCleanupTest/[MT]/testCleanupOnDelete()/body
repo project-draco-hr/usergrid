@@ -41,12 +41,14 @@
   for (  Entity thing : things) {
     em.delete(thing);
   }
+  em.refreshIndex();
   count=0;
+  Results results=null;
   do {
-    Thread.sleep(100);
+    results=queryCollectionEm("things","select *");
     crs=queryCollectionCp("things","thing","select *");
-    em.refreshIndex();
+    Thread.sleep(100);
   }
- while (crs.size() > 0 && count++ < 15);
+ while ((results.hasCursor() || crs.size() > 0) && count++ < 2000);
   Assert.assertEquals("Expect no candidates",0,crs.size());
 }

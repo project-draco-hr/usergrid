@@ -1,0 +1,21 @@
+{
+  if (t instanceof AmazonClientException) {
+    final AmazonClientException ace=(AmazonClientException)t;
+    if (ace.getMessage().contains("could not get aws access key") || ace.getMessage().contains("could not get aws secret key from system properties")) {
+      return true;
+    }
+  }
+  if (t instanceof MultipleFailureException) {
+    for (    final Throwable failure : ((MultipleFailureException)t).getFailures()) {
+      final boolean isMissingCreds=isMissingCredsException(failure);
+      if (isMissingCreds) {
+        return true;
+      }
+    }
+  }
+  final Throwable cause=t.getCause();
+  if (cause == null) {
+    return false;
+  }
+  return isMissingCredsException(cause);
+}

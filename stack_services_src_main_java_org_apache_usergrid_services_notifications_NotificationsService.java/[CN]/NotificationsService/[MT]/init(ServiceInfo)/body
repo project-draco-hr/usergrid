@@ -8,8 +8,7 @@
   postTimer=metricsService.getTimer(this.getClass(),"execution_rest");
   JobScheduler jobScheduler=new JobScheduler(sm,em);
   String name=ApplicationQueueManagerImpl.getQueueNames(props);
-  QueueScopeFactory queueScopeFactory=getApplicationContext().getBean(Injector.class).getInstance(QueueScopeFactory.class);
-  QueueScope queueScope=queueScopeFactory.getScope(smf.getManagementAppId(),name);
+  QueueScope queueScope=new QueueScopeImpl(name);
   queueManagerFactory=getApplicationContext().getBean(Injector.class).getInstance(QueueManagerFactory.class);
   QueueManager queueManager=TEST_QUEUE_MANAGER != null ? TEST_QUEUE_MANAGER : queueManagerFactory.getQueueManager(queueScope);
   notificationQueueManager=new ApplicationQueueManagerImpl(jobScheduler,em,queueManager,metricsService,props);

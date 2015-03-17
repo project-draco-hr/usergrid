@@ -1,4 +1,5 @@
 {
+  final Timer.Context timer=getLatestTimer.time();
   return Observable.create(new Observable.OnSubscribe<VersionSet>(){
     @Override public void call(    final Subscriber<? super VersionSet> subscriber){
       try {
@@ -9,6 +10,11 @@
  catch (      Exception e) {
         subscriber.onError(e);
       }
+    }
+  }
+).doOnCompleted(new Action0(){
+    @Override public void call(){
+      timer.stop();
     }
   }
 );

@@ -1,18 +1,13 @@
 {
-  this.fig=fig;
   this.scope=scope;
+  this.fig=fig;
   try {
-    UsergridAwsCredentialsProvider ugProvider=new UsergridAwsCredentialsProvider();
-    this.sqs=new AmazonSQSClient(ugProvider.getCredentials());
-    Regions regions=Regions.fromName(fig.getRegion());
-    Region region=Region.getRegion(regions);
-    sqs.setRegion(region);
     smileFactory.delegateToTextual(true);
     mapper=new ObjectMapper(smileFactory);
-    mapper.enable(SerializationFeature.INDENT_OUTPUT);
     mapper.enableDefaultTypingAsProperty(ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT,"@class");
+    sqs=createClient();
   }
  catch (  Exception e) {
-    LOG.warn("failed to setup SQS",e);
+    throw new RuntimeException("Error setting up mapper",e);
   }
 }

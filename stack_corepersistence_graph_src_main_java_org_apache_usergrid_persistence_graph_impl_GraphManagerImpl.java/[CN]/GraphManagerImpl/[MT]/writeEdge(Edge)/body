@@ -1,6 +1,8 @@
 {
   GraphValidation.validateEdge(edge);
   final MarkedEdge markedEdge=new SimpleMarkedEdge(edge,false);
+  final Timer.Context timer=writeEdgeTimer.time();
+  final Meter meter=writeEdgeMeter;
   return Observable.from(markedEdge).map(new Func1<MarkedEdge,Edge>(){
     @Override public Edge call(    final MarkedEdge edge){
       final UUID timestamp=UUIDGenerator.newTimeUUID();
@@ -9,6 +11,16 @@
       mutation.mergeShallow(edgeMutation);
       HystrixCassandra.user(mutation);
       return edge;
+    }
+  }
+).doOnEach(new Action1<Notification<? super Edge>>(){
+    @Override public void call(    Notification<? super Edge> notification){
+      meter.mark();
+    }
+  }
+).doOnCompleted(new Action0(){
+    @Override public void call(){
+      timer.stop();
     }
   }
 );
