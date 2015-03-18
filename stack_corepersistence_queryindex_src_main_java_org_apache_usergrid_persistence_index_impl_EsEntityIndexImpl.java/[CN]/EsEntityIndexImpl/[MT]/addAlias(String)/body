@@ -1,38 +1,26 @@
 {
+  final Timer.Context timeRemoveAlias=updateAliasTimer.time();
   try {
-    Boolean isAck;
     String indexName=indexIdentifier.getIndex(indexSuffix);
     final AdminClient adminClient=esProvider.getClient().admin();
-    String[] indexNames=getIndexes(AliasType.Write);
+    String[] indexNames=getIndexesFromEs(AliasType.Write);
+    final IndicesAliasesRequestBuilder aliasesRequestBuilder=adminClient.indices().prepareAliases();
     for (    String currentIndex : indexNames) {
-      final Timer.Context timeRemoveAlias=removeAliasTimer.time();
-      try {
-        isAck=adminClient.indices().prepareAliases().removeAlias(currentIndex,alias.getWriteAlias()).execute().actionGet().isAcknowledged();
-        logger.info("Removed Index Name [{}] from Alias=[{}] ACK=[{}]",currentIndex,alias,isAck);
-      }
- catch (      AliasesMissingException aie) {
-        logger.info("Alias does not exist Index Name [{}] from Alias=[{}] ACK=[{}]",currentIndex,alias,aie.getMessage());
-        continue;
-      }
-catch (      InvalidAliasNameException iane) {
-        logger.info("Alias does not exist Index Name [{}] from Alias=[{}] ACK=[{}]",currentIndex,alias,iane.getMessage());
-        continue;
-      }
- finally {
-        timeRemoveAlias.stop();
-      }
+      aliasesRequestBuilder.removeAlias(currentIndex,alias.getWriteAlias());
+      logger.info("Removing existing write Alias Name [{}] from Index [{}]",alias.getWriteAlias(),currentIndex);
     }
-    Timer.Context timeAddReadAlias=addReadAliasTimer.time();
-    isAck=adminClient.indices().prepareAliases().addAlias(indexName,alias.getReadAlias()).execute().actionGet().isAcknowledged();
-    timeAddReadAlias.stop();
-    logger.info("Created new read Alias Name [{}] ACK=[{}]",alias.getReadAlias(),isAck);
-    Timer.Context timeAddWriteAlias=addWriteAliasTimer.time();
-    isAck=adminClient.indices().prepareAliases().addAlias(indexName,alias.getWriteAlias()).execute().actionGet().isAcknowledged();
-    timeAddWriteAlias.stop();
-    logger.info("Created new write Alias Name [{}] ACK=[{}]",alias.getWriteAlias(),isAck);
-    aliasCache.invalidate(alias);
+    aliasesRequestBuilder.addAlias(indexName,alias.getReadAlias());
+    logger.info("Created new read Alias Name [{}] on Index [{}]",alias.getReadAlias(),indexName);
+    aliasesRequestBuilder.addAlias(indexName,alias.getWriteAlias());
+    logger.info("Created new write Alias Name [{}] on Index [{}]",alias.getWriteAlias(),indexName);
+    final IndicesAliasesResponse result=aliasesRequestBuilder.execute().actionGet();
+    final boolean isAcknowledged=result.isAcknowledged();
+    if (!isAcknowledged) {
+      throw new RuntimeException("Unable to add aliases to the new index " + indexSuffix);
+    }
   }
- catch (  Exception e) {
-    logger.warn("Failed to create alias ",e);
+  finally {
+    aliasCache.invalidate(alias);
+    timeRemoveAlias.stop();
   }
 }
