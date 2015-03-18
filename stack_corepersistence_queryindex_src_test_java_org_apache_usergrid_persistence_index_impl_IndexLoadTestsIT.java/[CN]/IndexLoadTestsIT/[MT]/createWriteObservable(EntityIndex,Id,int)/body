@@ -1,0 +1,32 @@
+{
+  final IndexScope scope=new IndexScopeImpl(ownerId,"test");
+  return Observable.range(0,indexTestFig.getNumberOfRecords()).map(new Func1<Integer,Entity>(){
+    @Override public Entity call(    final Integer integer){
+      final Entity entity=new Entity("test");
+      entity.setField(new IntegerField("workerIndex",workerIndex));
+      entity.setField(new IntegerField("ordinal",integer));
+      return entity;
+    }
+  }
+).buffer(indexTestFig.getBufferSize()).doOnNext(new Action1<List<Entity>>(){
+    @Override public void call(    final List<Entity> entities){
+      Observable.from(entities).collect(entityIndex.createBatch(),new Action2<EntityIndexBatch,Entity>(){
+        @Override public void call(        final EntityIndexBatch entityIndexBatch,        final Entity entity){
+          entityIndexBatch.index(scope,entity);
+        }
+      }
+).doOnNext(new Action1<EntityIndexBatch>(){
+        @Override public void call(        final EntityIndexBatch entityIndexBatch){
+          entityIndexBatch.execute();
+        }
+      }
+).toBlocking().last();
+    }
+  }
+).flatMap(new Func1<List<Entity>,Observable<Entity>>(){
+    @Override public Observable<Entity> call(    final List<Entity> entities){
+      return Observable.from(entities);
+    }
+  }
+);
+}
