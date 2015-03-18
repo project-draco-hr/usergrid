@@ -3,7 +3,7 @@
   ValidationUtils.verifyIdentity(id);
   ValidationUtils.verifyVersion(version);
   final String context=createContextName(indexScope);
-  final String entityType=IndexingUtils.getType(applicationScope,id);
+  final SearchType entityType=SearchType.fromId(id);
   final String indexId=createIndexDocId(id,version,context);
   if (log.isDebugEnabled()) {
     log.debug("De-indexing entity {}:{} in scope\n   app {}\n   owner {}\n   " + "name {} context{}, type {},",new Object[]{id.getType(),id.getUuid(),applicationScope.getApplication(),indexScope.getOwner(),indexScope.getName(),context,entityType});
@@ -12,7 +12,7 @@
   if (indexes == null || indexes.length == 0) {
     indexes=new String[]{indexIdentifier.getIndex(null)};
   }
-  container.addDeIndexRequest(new DeIndexRequest(indexes,entityType,indexId));
+  container.addDeIndexRequest(new DeIndexRequest(indexes,entityType.getTypeName(applicationScope),indexId));
   log.debug("Deindexed Entity with index id " + indexId);
   return this;
 }

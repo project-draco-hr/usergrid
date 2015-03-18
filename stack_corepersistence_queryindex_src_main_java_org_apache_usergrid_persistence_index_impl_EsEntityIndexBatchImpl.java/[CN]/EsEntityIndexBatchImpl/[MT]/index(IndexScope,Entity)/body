@@ -10,7 +10,7 @@
   Map<String,Object> entityAsMap=entityToMap(entity,context);
   String indexId=createIndexDocId(entity,context);
   log.debug("Indexing entity documentId {} data {} ",indexId,entityAsMap);
-  final String entityType=IndexingUtils.getType(applicationScope,entity.getId());
-  container.addIndexRequest(new IndexRequest(alias.getWriteAlias(),entityType,indexId,entityAsMap));
+  final SearchType entityType=SearchType.fromId(entity.getId());
+  container.addIndexRequest(new IndexRequest(alias.getWriteAlias(),entityType.getTypeName(applicationScope),indexId,entityAsMap));
   return this;
 }
