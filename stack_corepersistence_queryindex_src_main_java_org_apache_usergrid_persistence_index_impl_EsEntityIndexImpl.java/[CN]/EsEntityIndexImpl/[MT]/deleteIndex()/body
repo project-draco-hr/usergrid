@@ -1,11 +1,15 @@
 {
-  AdminClient adminClient=esProvider.getClient().admin();
-  DeleteIndexResponse response=adminClient.indices().prepareDelete(indexIdentifier.getIndex(null)).get();
-  if (response.isAcknowledged()) {
-    logger.info("Deleted index: read {} write {}",alias.getReadAlias(),alias.getWriteAlias());
-    aliasCache.invalidate(alias);
+  String idString=IndexingUtils.idString(applicationScope.getApplication());
+  final TermQueryBuilder tqb=QueryBuilders.termQuery(APPLICATION_ID_FIELDNAME,idString);
+  final ListenableActionFuture<DeleteByQueryResponse> response=esProvider.getClient().prepareDeleteByQuery(alias.getWriteAlias()).setQuery(tqb).execute();
+  response.addListener(new ActionListener<DeleteByQueryResponse>(){
+    @Override public void onResponse(    DeleteByQueryResponse response){
+      checkDeleteByQueryResponse(tqb,response);
+    }
+    @Override public void onFailure(    Throwable e){
+      logger.error("failed on delete index",e);
+    }
   }
- else {
-    logger.info("Failed to delete index: read {} write {}",alias.getReadAlias(),alias.getWriteAlias());
-  }
+);
+  return response;
 }
