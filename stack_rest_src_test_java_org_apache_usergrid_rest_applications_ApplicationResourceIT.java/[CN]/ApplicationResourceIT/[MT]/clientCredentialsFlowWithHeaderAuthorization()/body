@@ -2,7 +2,7 @@
   Credentials orgCredentials=getAppCredentials();
   String clientId=orgCredentials.getClientId();
   String clientSecret=orgCredentials.getClientSecret();
-  Token token=clientSetup.getRestClient().management().token().post(new Token("client_credentials",clientId,clientSecret));
+  Token token=clientSetup.getRestClient().management().token().post(Token.class,new Token("client_credentials",clientId,clientSecret));
   Token apiResponse=this.app().token().getResource(false).header("Authorization","Bearer " + token.getAccessToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(Token.class,hashMap("grant_type","client_credentials"));
   assertNotNull("A valid response was returned.",apiResponse);
   assertNull("There is no error.",apiResponse.getError());
