@@ -4,7 +4,7 @@
     Field field=(Field)f;
     if (f instanceof ListField) {
       List list=(List)field.getValue();
-      entityMap.put(field.getName().toLowerCase(),new ArrayList(processCollectionForMap(list)));
+      entityMap.put(ARRAY_PREFIX + field.getName().toLowerCase(),new ArrayList(processCollectionForMap(list)));
       if (!list.isEmpty()) {
         if (list.get(0) instanceof String) {
           entityMap.put(ANALYZED_STRING_PREFIX + field.getName().toLowerCase(),new ArrayList(processCollectionForMap(list)));
@@ -13,7 +13,7 @@
     }
  else     if (f instanceof ArrayField) {
       List list=(List)field.getValue();
-      entityMap.put(field.getName().toLowerCase(),new ArrayList(processCollectionForMap(list)));
+      entityMap.put(ARRAY_PREFIX + field.getName().toLowerCase(),new ArrayList(processCollectionForMap(list)));
     }
  else     if (f instanceof SetField) {
       Set set=(Set)field.getValue();
@@ -34,8 +34,11 @@
       locMap.put("lon",locField.getValue().getLongitude());
       entityMap.put(GEO_PREFIX + field.getName().toLowerCase(),locMap);
     }
- else     if (f instanceof DoubleField || f instanceof FloatField || f instanceof IntegerField|| f instanceof LongField) {
-      entityMap.put(NUMBER_PREFIX + field.getName().toLowerCase(),field.getValue());
+ else     if (f instanceof DoubleField || f instanceof FloatField) {
+      entityMap.put(DOUBLE_PREFIX + field.getName().toLowerCase(),field.getValue());
+    }
+ else     if (f instanceof LongField || f instanceof IntegerField) {
+      entityMap.put(LONG_PREFIX + field.getName().toLowerCase(),field.getValue());
     }
  else     if (f instanceof BooleanField) {
       entityMap.put(BOOLEAN_PREFIX + field.getName().toLowerCase(),field.getValue());
