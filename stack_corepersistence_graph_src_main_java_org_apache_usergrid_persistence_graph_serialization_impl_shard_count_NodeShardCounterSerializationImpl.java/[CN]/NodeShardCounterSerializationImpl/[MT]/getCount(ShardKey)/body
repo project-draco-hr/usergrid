@@ -1,14 +1,14 @@
 {
   final ScopedRowKey rowKey=ScopedRowKey.fromKey(key.scope.getApplication(),key);
+  OperationResult<Column<Boolean>> column=null;
   try {
-    OperationResult<Column<Boolean>> column=HystrixCassandra.user(keyspace.prepareQuery(EDGE_SHARD_COUNTS).getKey(rowKey).getColumn(true));
-    return column.getResult().getLongValue();
+    column=keyspace.prepareQuery(EDGE_SHARD_COUNTS).getKey(rowKey).getColumn(true).execute();
   }
- catch (  RuntimeException re) {
-    final Throwable cause=re.getCause();
-    if (cause != null && cause.getCause() instanceof NotFoundException) {
-      return 0;
-    }
-    throw re;
+ catch (  NotFoundException nfe) {
+    return 0;
   }
+catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to read from cassandra",e);
+  }
+  return column.getResult().getLongValue();
 }

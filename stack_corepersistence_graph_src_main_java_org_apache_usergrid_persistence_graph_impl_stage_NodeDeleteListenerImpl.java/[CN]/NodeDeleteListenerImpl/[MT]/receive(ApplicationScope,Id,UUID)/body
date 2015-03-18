@@ -8,7 +8,12 @@
       }
       return doDeletes(node,scope,maxVersion.get(),timestamp).count().doOnCompleted(new Action0(){
         @Override public void call(){
-          HystrixCassandra.async(nodeSerialization.delete(scope,node,maxVersion.get()));
+          try {
+            nodeSerialization.delete(scope,node,maxVersion.get()).execute();
+          }
+ catch (          ConnectionException e) {
+            throw new RuntimeException("Unable to connect to casandra",e);
+          }
         }
       }
 );
