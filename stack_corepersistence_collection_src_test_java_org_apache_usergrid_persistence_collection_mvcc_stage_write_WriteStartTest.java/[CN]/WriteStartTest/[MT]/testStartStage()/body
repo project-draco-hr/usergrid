@@ -6,7 +6,7 @@
   final UUIDService uuidService=mock(UUIDService.class);
   when(logStrategy.write(same(context),logEntry.capture())).thenReturn(mutation);
   final Entity entity=TestEntityGenerator.generateEntity();
-  WriteStart newStage=new WriteStart(logStrategy,MvccEntity.Status.COMPLETE);
+  WriteStart newStage=new WriteStart(logStrategy);
   CollectionIoEvent<MvccEntity> result=newStage.call(new CollectionIoEvent<Entity>(context,entity));
   MvccLogEntry entry=logEntry.getValue();
   assertEquals("id correct",entity.getId(),entry.getEntityId());

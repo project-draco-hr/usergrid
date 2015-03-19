@@ -6,7 +6,12 @@
       final UUID eventTimestamp=UUIDGenerator.newTimeUUID();
       final MutationBatch nodeMutation=nodeSerialization.mark(scope,id,timestamp);
       LOG.debug("Marking node {} as deleted to node mark",node);
-      HystrixCassandra.user(nodeMutation);
+      try {
+        nodeMutation.execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException("Unable to execute mutation",e);
+      }
       nodeDeleteListener.receive(scope,id,eventTimestamp).subscribeOn(Schedulers.io()).subscribe(nodeDelete);
       return id;
     }

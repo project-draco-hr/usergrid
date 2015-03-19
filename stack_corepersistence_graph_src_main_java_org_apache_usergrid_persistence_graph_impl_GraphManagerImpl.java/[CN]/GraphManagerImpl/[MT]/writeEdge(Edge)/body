@@ -9,7 +9,12 @@
       final MutationBatch mutation=edgeMetadataSerialization.writeEdge(scope,edge);
       final MutationBatch edgeMutation=storageEdgeSerialization.writeEdge(scope,edge,timestamp);
       mutation.mergeShallow(edgeMutation);
-      HystrixCassandra.user(mutation);
+      try {
+        mutation.execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException("Unable to execute mutation",e);
+      }
       return edge;
     }
   }

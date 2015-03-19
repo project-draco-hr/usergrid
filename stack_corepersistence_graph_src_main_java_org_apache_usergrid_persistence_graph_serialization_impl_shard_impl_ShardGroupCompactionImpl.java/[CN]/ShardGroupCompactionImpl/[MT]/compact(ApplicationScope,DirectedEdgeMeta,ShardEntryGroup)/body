@@ -26,8 +26,8 @@
       edgeCount++;
       if (edgeCount % maxWorkSize == 0) {
         try {
-          HystrixCassandra.async(newRowBatch);
-          HystrixCassandra.async(deleteRowBatch);
+          newRowBatch.execute();
+          deleteRowBatch.execute();
         }
  catch (        Throwable t) {
           LOG.error("Unable to move edges from shard {} to shard {}",sourceShard,targetShard);
@@ -36,8 +36,8 @@
     }
   }
   try {
-    HystrixCassandra.async(newRowBatch);
-    HystrixCassandra.async(deleteRowBatch);
+    newRowBatch.execute();
+    deleteRowBatch.execute();
   }
  catch (  Throwable t) {
     LOG.error("Unable to move edges to target shard {}",targetShard);
@@ -55,11 +55,21 @@
       shardRemovalRollup.mergeShallow(shardRemoval);
       resultBuilder.withRemovedShard(source);
     }
-    HystrixCassandra.async(shardRemovalRollup);
+    try {
+      shardRemovalRollup.execute();
+    }
+ catch (    ConnectionException e) {
+      throw new RuntimeException("Unable to connect to casandra",e);
+    }
     LOG.info("Shard has been fully compacted.  Marking shard {} as compacted in Cassandra",targetShard);
     Shard compactedShard=new Shard(targetShard.getShardIndex(),timeService.getCurrentTime(),true);
     final MutationBatch updateMark=edgeShardSerialization.writeShardMeta(scope,compactedShard,edgeMeta);
-    HystrixCassandra.async(updateMark);
+    try {
+      updateMark.execute();
+    }
+ catch (    ConnectionException e) {
+      throw new RuntimeException("Unable to connect to casandra",e);
+    }
     resultBuilder.withCompactedShard(compactedShard);
   }
   return resultBuilder.build();
