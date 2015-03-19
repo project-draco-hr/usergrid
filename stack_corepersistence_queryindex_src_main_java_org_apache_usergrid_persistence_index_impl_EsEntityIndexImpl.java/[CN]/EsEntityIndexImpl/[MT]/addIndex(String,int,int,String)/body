@@ -9,13 +9,13 @@
       final CreateIndexResponse cir=admin.indices().prepareCreate(indexName).setSettings(settings).execute().actionGet();
       timeNewIndexCreation.stop();
       createMappings(indexName);
-      addAlias(normalizedSuffix);
-      testNewIndex();
       logger.info("Created new Index Name [{}] ACK=[{}]",indexName,cir.isAcknowledged());
     }
  catch (    IndexAlreadyExistsException e) {
       logger.info("Index Name [{}] already exists",indexName);
     }
+    addAlias(normalizedSuffix);
+    testNewIndex();
   }
  catch (  IndexAlreadyExistsException expected) {
   }
