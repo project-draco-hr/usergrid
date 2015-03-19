@@ -2,7 +2,7 @@
   CollectionScope collectionScope=getCollectionScopeNameFromEntityType(getApplicationScope().getApplication(),entityRef.getType());
   IndexScope defaultIndexScope=new IndexScopeImpl(getApplicationScope().getApplication(),getCollectionScopeNameFromEntityType(entityRef.getType()));
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
-  EntityIndex ei=managerCache.getEntityIndex(getApplicationScope());
+  ApplicationEntityIndex aei=managerCache.getEntityIndex(getApplicationScope());
   Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=load(new EntityScope(collectionScope,entityId));
   cpEntity.removeField(propertyName);
@@ -10,7 +10,7 @@
   cpEntity=ecm.write(cpEntity).toBlockingObservable().last();
   logger.debug("Wrote {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
   Timer.Context timeESBatch=esDeletePropertyTimer.time();
-  BetterFuture future=ei.createBatch().index(defaultIndexScope,cpEntity).execute();
+  BetterFuture future=aei.createBatch().index(defaultIndexScope,cpEntity).execute();
   timeESBatch.stop();
   CpRelationManager rm=(CpRelationManager)getRelationManager(entityRef);
   rm.updateContainingCollectionAndCollectionIndexes(cpEntity);

@@ -1,7 +1,6 @@
 {
-  String normalizedSuffix=StringUtils.isNotEmpty(indexSuffix) ? indexSuffix : null;
   try {
-    String indexName=indexIdentifier.getIndex(normalizedSuffix);
+    String indexName=indexIdentifier.getIndex(indexSuffix);
     try {
       final AdminClient admin=esProvider.getClient().admin();
       Settings settings=ImmutableSettings.settingsBuilder().put("index.number_of_shards",numberOfShards).put("index.number_of_replicas",numberOfReplicas).put("action.write_consistency",writeConsistency).build();
@@ -14,7 +13,7 @@
  catch (    IndexAlreadyExistsException e) {
       logger.info("Index Name [{}] already exists",indexName);
     }
-    addAlias(normalizedSuffix);
+    addAlias(indexSuffix);
     testNewIndex();
   }
  catch (  IndexAlreadyExistsException expected) {
