@@ -1,20 +1,15 @@
 {
   MvccValidationUtils.verifyMvccEntityWithEntity(ioevent.getEvent());
   final MvccEntity mvccEntity=ioevent.getEvent();
-  final Id entityId=mvccEntity.getId();
-  final UUID entityVersion=mvccEntity.getVersion();
   final Entity entity=mvccEntity.getEntity().get();
   final CollectionScope scope=ioevent.getEntityCollection();
-  final Collection<Field> entityFields=entity.getFields();
-  final List<Field> uniqueFields=new ArrayList<>(entityFields.size());
   final MutationBatch batch=keyspace.prepareMutationBatch();
-  for (  final Field field : entityFields) {
-    if (field.isUnique()) {
-      final UniqueValue written=new UniqueValueImpl(field,entityId,entityVersion);
-      final MutationBatch mb=uniqueValueStrat.write(scope,written,serializationFig.getTimeout());
-      batch.mergeShallow(mb);
-      uniqueFields.add(field);
-    }
+  final List<Field> uniqueFields=new ArrayList<>(entity.getFields().size());
+  for (  final Field field : EntityUtils.getUniqueFields(entity)) {
+    final UniqueValue written=new UniqueValueImpl(field,mvccEntity.getId(),mvccEntity.getVersion());
+    final MutationBatch mb=uniqueValueStrat.write(scope,written,serializationFig.getTimeout());
+    batch.mergeShallow(mb);
+    uniqueFields.add(field);
   }
   if (uniqueFields.size() == 0) {
     return;
@@ -25,24 +20,9 @@
  catch (  ConnectionException ex) {
     throw new RuntimeException("Unable to write to cassandra",ex);
   }
-  final UniqueValueSet uniqueValues;
-  try {
-    uniqueValues=uniqueValueStrat.load(scope,uniqueFields);
-  }
- catch (  ConnectionException e) {
-    throw new RuntimeException("Unable to read from cassandra",e);
-  }
-  final Map<String,Field> uniquenessViolations=new HashMap<>(uniqueFields.size());
-  for (  final Field field : uniqueFields) {
-    final UniqueValue uniqueValue=uniqueValues.getValue(field.getName());
-    if (uniqueValue == null) {
-      throw new RuntimeException(String.format("Could not retrieve unique value for field %s, unable to verify",field.getName()));
-    }
-    final Id returnedEntityId=uniqueValue.getEntityId();
-    if (!entityId.equals(returnedEntityId)) {
-      uniquenessViolations.put(field.getName(),field);
-    }
-  }
+  ConsistentReplayCommand cmd=new ConsistentReplayCommand(uniqueValueStrat,cassandraFig,scope,uniqueFields,entity);
+  Map<String,Field> uniquenessViolations=cmd.execute();
+  cmd.getFailedExecutionException();
   if (!uniquenessViolations.isEmpty()) {
     throw new WriteUniqueVerifyException(mvccEntity,ioevent.getEntityCollection(),uniquenessViolations);
   }

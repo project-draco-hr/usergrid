@@ -6,7 +6,7 @@
   }
 ).skipWhile(new Func1<UniqueValue,Boolean>(){
     @Override public Boolean call(    final UniqueValue uniqueValue){
-      return version.equals(uniqueValue.getEntityVersion());
+      return !includeVersion && version.equals(uniqueValue.getEntityVersion());
     }
   }
 ).buffer(serializationFig.getBufferSize()).doOnNext(new Action1<List<UniqueValue>>(){
@@ -31,7 +31,7 @@
   }
 ).skipWhile(new Func1<MvccLogEntry,Boolean>(){
     @Override public Boolean call(    final MvccLogEntry mvccLogEntry){
-      return version.equals(mvccLogEntry.getVersion());
+      return !includeVersion && version.equals(mvccLogEntry.getVersion());
     }
   }
 ).buffer(serializationFig.getBufferSize()).doOnNext(new Action1<List<MvccLogEntry>>(){

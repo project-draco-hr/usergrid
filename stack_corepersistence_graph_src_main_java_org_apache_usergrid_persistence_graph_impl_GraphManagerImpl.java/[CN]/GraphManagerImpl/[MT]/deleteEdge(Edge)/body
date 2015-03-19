@@ -1,14 +1,31 @@
 {
   GraphValidation.validateEdge(edge);
   final MarkedEdge markedEdge=new SimpleMarkedEdge(edge,true);
+  final Timer.Context timer=deleteEdgeTimer.time();
+  final Meter meter=deleteEdgeMeter;
   return Observable.from(markedEdge).map(new Func1<MarkedEdge,Edge>(){
     @Override public Edge call(    final MarkedEdge edge){
       final UUID timestamp=UUIDGenerator.newTimeUUID();
       final MutationBatch edgeMutation=storageEdgeSerialization.writeEdge(scope,edge,timestamp);
       LOG.debug("Marking edge {} as deleted to commit log",edge);
-      HystrixCassandra.user(edgeMutation);
+      try {
+        edgeMutation.execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException("Unable to execute mutation",e);
+      }
       edgeDeleteListener.receive(scope,markedEdge,timestamp).subscribeOn(Schedulers.io()).subscribe(edgeDeleteSubcriber);
       return edge;
+    }
+  }
+).doOnEach(new Action1<Notification<? super Edge>>(){
+    @Override public void call(    Notification<? super Edge> notification){
+      meter.mark();
+    }
+  }
+).doOnCompleted(new Action0(){
+    @Override public void call(){
+      timer.stop();
     }
   }
 );

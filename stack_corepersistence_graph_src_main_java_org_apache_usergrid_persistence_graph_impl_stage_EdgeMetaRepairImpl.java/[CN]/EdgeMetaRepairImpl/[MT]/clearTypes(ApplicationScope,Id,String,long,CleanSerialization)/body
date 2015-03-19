@@ -26,7 +26,12 @@
       return MathObservable.sumInteger(Observable.merge(checks)).doOnNext(new Action1<Integer>(){
         @Override public void call(        final Integer count){
           LOG.debug("Executing batch for subtype deletion with " + "type {}.  " + "Mutation has {} rows to mutate ",edgeType,batch.getRowCount());
-          HystrixCassandra.async(batch);
+          try {
+            batch.execute();
+          }
+ catch (          ConnectionException e) {
+            throw new RuntimeException("Unable to connect to casandra",e);
+          }
         }
       }
 );
@@ -40,7 +45,12 @@
         return;
       }
       LOG.debug("Type {} has no subtypes in use as of maxTimestamp {}.  Deleting type.",edgeType,maxTimestamp);
-      HystrixCassandra.async(serialization.removeEdgeType(scope,node,edgeType,maxTimestamp));
+      try {
+        serialization.removeEdgeType(scope,node,edgeType,maxTimestamp).execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException("Unable to connect to casandra",e);
+      }
     }
   }
 );

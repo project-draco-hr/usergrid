@@ -1,5 +1,6 @@
 {
   this.refreshExecutors=MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(indexFig.getIndexCacheMaxWorkers()));
+  this.provider=provider;
   aliasIndexCache=CacheBuilder.newBuilder().maximumSize(1000).refreshAfterWrite(5,TimeUnit.MINUTES).build(new CacheLoader<String,String[]>(){
     @Override public ListenableFuture<String[]> reload(    final String key,    String[] oldValue) throws Exception {
       ListenableFutureTask<String[]> task=ListenableFutureTask.create(new Callable<String[]>(){
@@ -12,9 +13,7 @@
       return task;
     }
     @Override public String[] load(    final String aliasName){
-      final AdminClient adminClient=provider.getClient().admin();
-      ImmutableOpenMap<String,List<AliasMetaData>> aliasMap=adminClient.indices().getAliases(new GetAliasesRequest(aliasName)).actionGet().getAliases();
-      return aliasMap.keys().toArray(String.class);
+      return getIndexesFromEs(aliasName);
     }
   }
 );

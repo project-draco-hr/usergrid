@@ -1,5 +1,6 @@
 {
   Preconditions.checkNotNull(entityIds,"entityIds cannot be null");
+  final Timer.Context timer=loadTimer.time();
   return Observable.create(new Observable.OnSubscribe<EntitySet>(){
     @Override public void call(    final Subscriber<? super EntitySet> subscriber){
       try {
@@ -10,6 +11,16 @@
  catch (      Exception e) {
         subscriber.onError(e);
       }
+    }
+  }
+).doOnNext(new Action1<EntitySet>(){
+    @Override public void call(    EntitySet entitySet){
+      loadMeter.mark();
+    }
+  }
+).doOnCompleted(new Action0(){
+    @Override public void call(){
+      timer.stop();
     }
   }
 );

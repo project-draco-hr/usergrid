@@ -4,11 +4,22 @@
   ValidationUtils.verifyIdentity(entityId);
   final CollectionIoEvent<Entity> writeData=new CollectionIoEvent<Entity>(collectionScope,entity);
   Observable<CollectionIoEvent<MvccEntity>> observable=stageRunner(writeData,writeStart);
+  final Timer.Context timer=writeTimer.time();
   return observable.map(writeCommit).doOnNext(new Action1<Entity>(){
     @Override public void call(    final Entity entity){
-      taskExecutor.submit(entityVersionCreatedFactory.getTask(collectionScope,entity));
-      taskExecutor.submit(entityVersionCleanupFactory.getTask(collectionScope,entityId,entity.getVersion()));
+      taskExecutor.submit(entityVersionTaskFactory.getCreatedTask(collectionScope,entity));
+      taskExecutor.submit(entityVersionTaskFactory.getCleanupTask(collectionScope,entityId,entity.getVersion(),false));
     }
   }
-).doOnError(rollback);
+).doOnError(rollback).doOnEach(new Action1<Notification<? super Entity>>(){
+    @Override public void call(    Notification<? super Entity> notification){
+      writeMeter.mark();
+    }
+  }
+).doOnCompleted(new Action0(){
+    @Override public void call(){
+      timer.stop();
+    }
+  }
+);
 }

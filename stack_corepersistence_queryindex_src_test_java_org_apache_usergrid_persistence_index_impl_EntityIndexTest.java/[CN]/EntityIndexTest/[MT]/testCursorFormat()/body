@@ -10,15 +10,12 @@
   final List<Id> entities=new ArrayList<>(size);
   for (int i=0; i < size; i++) {
     final String middleName="middleName" + UUIDUtils.newTimeUUID();
-    Map<String,Object> properties=new LinkedHashMap<String,Object>();
-    properties.put("username","edanuff");
-    properties.put("email","ed@anuff.com");
-    properties.put("middlename",middleName);
     Map entityMap=new HashMap(){
 {
         put("username","edanuff");
         put("email","ed@anuff.com");
         put("middlename",middleName);
+        put("created",System.nanoTime());
       }
     }
 ;
@@ -36,7 +33,7 @@
   final int expectedPages=size / limit;
   String cursor=null;
   for (int i=0; i < expectedPages; i++) {
-    final Query query=Query.fromQL("select *");
+    final Query query=Query.fromQL("select * order by created");
     query.setLimit(limit);
     if (cursor != null) {
       query.setCursor(cursor);

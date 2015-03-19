@@ -1,6 +1,7 @@
 {
   IndexValidationUtils.validateIndexScope(indexScope);
   ValidationUtils.verifyEntityWrite(entity);
+  ValidationUtils.verifyVersion(entity.getVersion());
   final String context=createContextName(indexScope);
   if (log.isDebugEnabled()) {
     log.debug("Indexing entity {}:{}\n   alias: {}\n" + "   app: {}\n   scope owner: {}\n   scope name: {}\n   context: {}",entity.getId().getType(),entity.getId().getUuid(),alias.getWriteAlias(),applicationScope.getApplication(),indexScope.getOwner(),indexScope.getName(),context);
@@ -10,7 +11,6 @@
   String indexId=createIndexDocId(entity,context);
   log.debug("Indexing entity documentId {} data {} ",indexId,entityAsMap);
   final String entityType=entity.getId().getType();
-  IndexRequestBuilder builder=client.prepareIndex(alias.getWriteAlias(),entityType,indexId).setSource(entityAsMap);
-  container.addOperation(builder);
+  container.addIndexRequest(new IndexRequest(alias.getWriteAlias(),entityType,indexId,entityAsMap));
   return this;
 }
