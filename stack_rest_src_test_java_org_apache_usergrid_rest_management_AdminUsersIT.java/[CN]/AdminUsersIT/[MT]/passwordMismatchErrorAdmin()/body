@@ -6,7 +6,8 @@
   passwordPayload.put("oldpassword",password);
   management.users().user(username).password().post(Entity.class,passwordPayload);
   this.refreshIndex();
-  management.token().post(Token.class,new Token(username,"testPassword"));
+  Token adminToken=management.token().post(Token.class,new Token(username,"testPassword"));
+  management.token().setToken(adminToken);
   try {
     management.users().user(username).password().post(Entity.class,passwordPayload);
     fail("We shouldn't be able to change the password with the same payload");

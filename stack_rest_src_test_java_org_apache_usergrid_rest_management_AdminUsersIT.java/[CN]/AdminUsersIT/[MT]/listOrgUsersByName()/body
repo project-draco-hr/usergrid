@@ -1,12 +1,13 @@
 {
   Entity adminUserPayload=new Entity();
   String username="listOrgUsersByName" + UUIDUtils.newTimeUUID();
+  Credentials orgCredentials=clientSetup.getClientCredentials();
   adminUserPayload.put("username",username);
   adminUserPayload.put("name",username);
   adminUserPayload.put("email",username + "@usergrid.com");
   adminUserPayload.put("password",username);
-  management().orgs().organization(clientSetup.getOrganizationName()).users().post(ApiResponse.class,adminUserPayload);
+  management().orgs().organization(clientSetup.getOrganizationName()).users().postWithToken(ApiResponse.class,adminUserPayload);
   refreshIndex();
-  Entity adminUsers=management().orgs().organization(clientSetup.getOrganizationName()).users().get(Entity.class);
-  assertEquals("There need to be 2 admin users",2,((ArrayList)adminUsers.getResponse().getData()).size());
+  ApiResponse adminUsers=management().orgs().organization(clientSetup.getOrganizationName()).users().get(ApiResponse.class);
+  assertEquals("There need to be 2 admin users",2,((ArrayList)adminUsers.getData()).size());
 }
