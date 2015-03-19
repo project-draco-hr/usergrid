@@ -19,14 +19,22 @@
     }
     final UUID previousMaxVersion=previousMax.getVersion();
     final UUID currentVersion=currentCandidate.getVersion();
+    final CandidateResult toRemove;
+    final CandidateResult toKeep;
     if (UUIDComparator.staticCompare(currentVersion,previousMaxVersion) > 0) {
-      logger.warn("Stale version of Entity uuid:{} type:{}, stale v:{}, latest v:{}",new Object[]{entityId.getUuid(),entityId.getType(),previousMaxVersion,currentVersion});
-      indexBatch.deindex(indexScope,previousMax);
-      groupedByScopes.remove(collectionType,previousMax);
-      maxCandidateMapping.put(entityId,currentCandidate);
-      orderIndex.put(entityId,i);
-      groupedByScopes.put(collectionType,currentCandidate);
+      toRemove=previousMax;
+      toKeep=currentCandidate;
     }
+ else {
+      toRemove=currentCandidate;
+      toKeep=previousMax;
+    }
+    logger.warn("Stale version of Entity uuid:{} type:{}, stale v:{}, latest v:{}",new Object[]{entityId.getUuid(),entityId.getType(),toRemove.getVersion(),toKeep.getVersion()});
+    indexBatch.deindex(indexScope,toRemove);
+    groupedByScopes.remove(collectionType,toRemove);
+    maxCandidateMapping.put(entityId,toKeep);
+    orderIndex.put(entityId,i);
+    groupedByScopes.put(collectionType,toKeep);
   }
   final TreeMap<Integer,Id> sortedResults=new TreeMap<>();
   for (  final String scopeName : groupedByScopes.keySet()) {
