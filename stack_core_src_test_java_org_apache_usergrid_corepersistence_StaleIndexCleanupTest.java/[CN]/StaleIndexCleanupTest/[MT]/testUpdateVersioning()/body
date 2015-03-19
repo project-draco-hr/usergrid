@@ -22,5 +22,13 @@
   assertEquals("widget",cpUpdated.getField("stuff").getValue());
   UUID newVersion=cpUpdated.getVersion();
   assertTrue("New version is greater than old",UUIDComparator.staticCompare(newVersion,oldVersion) > 0);
-  assertEquals(2,queryCollectionCp("things","thing","select *").size());
+  CandidateResults results;
+  do {
+    results=queryCollectionCp("things","thing","select *");
+    if (results.size() != 2) {
+      Thread.sleep(200);
+    }
+  }
+ while (results.size() != 2);
+  assertEquals(2,results.size());
 }
