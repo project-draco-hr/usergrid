@@ -11,13 +11,11 @@
   MutationBatch logMutation=logEntryStrat.write(collectionScope,startEntry);
   MutationBatch entityMutation=entityStrat.write(collectionScope,mvccEntity);
   logMutation.mergeShallow(entityMutation);
-  for (  Field field : mvccEntity.getEntity().get().getFields()) {
-    if (field.isUnique()) {
-      UniqueValue written=new UniqueValueImpl(field,entityId,version);
-      MutationBatch mb=uniqueValueStrat.write(collectionScope,written);
-      LOG.debug("Finalizing {} unqiue value {}",field.getName(),field.getValue().toString());
-      logMutation.mergeShallow(mb);
-    }
+  for (  Field field : EntityUtils.getUniqueFields(mvccEntity.getEntity().get())) {
+    UniqueValue written=new UniqueValueImpl(field,entityId,version);
+    MutationBatch mb=uniqueValueStrat.write(collectionScope,written);
+    LOG.debug("Finalizing {} unqiue value {}",field.getName(),field.getValue().toString());
+    logMutation.mergeShallow(mb);
   }
   try {
     logMutation.execute();

@@ -1,9 +1,10 @@
 {
-  if (isOldVersion()) {
+  final MigrationRelationship<MvccEntitySerializationStrategy> migration=getMigrationRelationShip();
+  if (migration.needsMigration()) {
     final MutationBatch aggregateBatch=keyspace.prepareMutationBatch();
-    aggregateBatch.mergeShallow(previous.mark(context,entityId,version));
-    aggregateBatch.mergeShallow(current.mark(context,entityId,version));
+    aggregateBatch.mergeShallow(migration.from.mark(context,entityId,version));
+    aggregateBatch.mergeShallow(migration.to.mark(context,entityId,version));
     return aggregateBatch;
   }
-  return current.mark(context,entityId,version);
+  return migration.to.mark(context,entityId,version);
 }

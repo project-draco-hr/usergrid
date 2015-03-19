@@ -1,5 +1,12 @@
 {
   install(new CommonModule());
-  install(new GraphModule());
-  install(new MaxMigrationModule());
+  install(new GraphModule(){
+    @Override public void configureMigrationProvider(){
+      TestMigrationDataProvider<GraphNode> migrationDataProvider=new TestMigrationDataProvider<>();
+      bind(new TypeLiteral<MigrationDataProvider<GraphNode>>(){
+      }
+).toInstance(migrationDataProvider);
+    }
+  }
+);
 }

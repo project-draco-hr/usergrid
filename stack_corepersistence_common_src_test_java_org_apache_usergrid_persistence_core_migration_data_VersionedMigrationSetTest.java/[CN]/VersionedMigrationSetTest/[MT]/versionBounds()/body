@@ -1,0 +1,33 @@
+{
+  final MigrationRelationship<TestVersionImpl> relationship1_3=new MigrationRelationship<>(new TestVersionImpl(1),new TestVersionImpl(3));
+  final MigrationRelationship<TestVersionImpl> relationship2_3=new MigrationRelationship<>(new TestVersionImpl(2),new TestVersionImpl(3));
+  final MigrationRelationship<TestVersionImpl> relationship3_6=new MigrationRelationship<>(new TestVersionImpl(3),new TestVersionImpl(6));
+  final MigrationRelationship<TestVersionImpl> relationship4_6=new MigrationRelationship<>(new TestVersionImpl(4),new TestVersionImpl(6));
+  final MigrationRelationship<TestVersionImpl> relationship5_6=new MigrationRelationship<>(new TestVersionImpl(5),new TestVersionImpl(6));
+  final MigrationRelationship<TestVersionImpl> current=new MigrationRelationship<>(new TestVersionImpl(6),new TestVersionImpl(6));
+  final VersionedMigrationSet<TestVersionImpl> set=new VersionedMigrationSet<>(relationship1_3,relationship2_3,relationship3_6,relationship4_6,relationship5_6,current);
+  try {
+    set.getMigrationRelationship(0);
+    fail("I should throw an exception");
+  }
+ catch (  IllegalArgumentException iae) {
+  }
+  MigrationRelationship<TestVersionImpl> migrationRelationship=set.getMigrationRelationship(1);
+  assertEquals(relationship1_3,migrationRelationship);
+  migrationRelationship=set.getMigrationRelationship(2);
+  assertEquals(relationship2_3,migrationRelationship);
+  migrationRelationship=set.getMigrationRelationship(3);
+  assertEquals(relationship3_6,migrationRelationship);
+  migrationRelationship=set.getMigrationRelationship(4);
+  assertEquals(relationship4_6,migrationRelationship);
+  migrationRelationship=set.getMigrationRelationship(5);
+  assertEquals(relationship5_6,migrationRelationship);
+  migrationRelationship=set.getMigrationRelationship(6);
+  assertEquals(current,migrationRelationship);
+  try {
+    set.getMigrationRelationship(7);
+    fail("I should throw an exception");
+  }
+ catch (  IllegalArgumentException iae) {
+  }
+}

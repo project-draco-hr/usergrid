@@ -6,7 +6,7 @@
   final NodeShardApproximation nodeShardApproximation=mock(NodeShardApproximation.class);
   final TimeService timeService=mock(TimeService.class);
   NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeColumnFamilies,shardedEdgeSerialization,nodeShardApproximation,timeService,graphFig,shardGroupCompaction);
-  final Id nodeId=createId("test");
+  final Id nodeId=IdGenerator.createId("test");
   final String type="type";
   final String subType="subType";
   final long timeservicetime=System.currentTimeMillis();
@@ -19,7 +19,7 @@
   when(nodeShardApproximation.getCount(scope,futureShard,targetEdgeMeta)).thenReturn(shardCount);
   ArgumentCaptor<Shard> shardValue=ArgumentCaptor.forClass(Shard.class);
   when(edgeShardSerialization.writeShardMeta(same(scope),shardValue.capture(),same(targetEdgeMeta))).thenReturn(mock(MutationBatch.class));
-  final SimpleMarkedEdge returnedEdge=new SimpleMarkedEdge(nodeId,type,createId("subType"),10005l,false);
+  final SimpleMarkedEdge returnedEdge=new SimpleMarkedEdge(nodeId,type,IdGenerator.createId("subType"),10005l,false);
   final Iterator<MarkedEdge> edgeIterator=Collections.singleton((MarkedEdge)returnedEdge).iterator();
   when(shardedEdgeSerialization.getEdgesFromSourceByTargetType(same(edgeColumnFamilies),same(scope),any(SearchByIdType.class),any(Collection.class))).thenReturn(edgeIterator);
   final boolean result=approximation.auditShard(scope,shardEntryGroup,targetEdgeMeta);

@@ -6,7 +6,7 @@
     final UUID newVersion=UUIDGenerator.newTimeUUID();
     final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,newVersion,Stage.ACTIVE,MvccLogEntry.State.COMPLETE);
     MutationBatch write=logStrategy.write(collectionScope,startEntry);
-    final MvccEntityImpl nextStage=new MvccEntityImpl(entityId,newVersion,status,entity);
+    final MvccEntityImpl nextStage=new MvccEntityImpl(entityId,newVersion,MvccEntity.Status.COMPLETE,entity);
     if (ioEvent.getEvent().hasVersion()) {
       try {
         write.execute();

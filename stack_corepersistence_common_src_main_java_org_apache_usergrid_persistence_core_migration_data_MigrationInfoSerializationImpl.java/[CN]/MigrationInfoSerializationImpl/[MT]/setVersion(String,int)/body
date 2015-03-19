@@ -1,0 +1,9 @@
+{
+  final ScopedRowKey<String> rowKey=ScopedRowKey.fromKey(STATIC_ID,pluginName);
+  try {
+    keyspace.prepareColumnMutation(CF_MIGRATION_INFO,rowKey,COLUMN_VERSION).putValue(version,null).execute();
+  }
+ catch (  ConnectionException e) {
+    throw new DataMigrationException("Unable to save status",e);
+  }
+}
