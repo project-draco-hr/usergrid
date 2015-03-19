@@ -37,8 +37,7 @@
   assertNotNull(personId.getUuid());
   IndexScope searchScope=new IndexScopeImpl(personId,"likes");
   IndexScope otherIndexScope=new IndexScopeImpl(new SimpleId(UUIDGenerator.newTimeUUID(),"animal"),"likes");
-  EntityIndex personLikesIndex=ecif.createEntityIndex(applicationScope);
-  personLikesIndex.initializeIndex();
+  ApplicationEntityIndex personLikesIndex=ecif.createApplicationEntityIndex(applicationScope);
   EntityIndexBatch batch=personLikesIndex.createBatch();
   batch.index(searchScope,muffin);
   batch.index(otherIndexScope,muffin);
@@ -47,7 +46,7 @@
   batch.index(searchScope,oj);
   batch.index(otherIndexScope,oj);
   batch.execute().get();
-  personLikesIndex.refresh();
+  ei.refresh();
   Thread.sleep(2000);
   CandidateResults likes=personLikesIndex.search(searchScope,SearchTypes.fromTypes(muffin.getId().getType()),Query.fromQL("select *"));
   assertEquals(1,likes.size());
