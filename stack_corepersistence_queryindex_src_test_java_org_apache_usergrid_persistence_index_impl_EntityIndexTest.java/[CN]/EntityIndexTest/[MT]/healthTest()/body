@@ -1,7 +1,11 @@
 {
+  Id appId=new SimpleId("entityindextest");
+  Id ownerId=new SimpleId("multivaluedtype");
+  ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
   assertNotEquals("cluster should be ok",Health.RED,ei.getClusterHealth());
   assertEquals("index should be ready",Health.GREEN,ei.getIndexHealth());
-  ei.initializeIndex();
+  ApplicationEntityIndex entityIndex=eif.createApplicationEntityIndex(applicationScope);
+  entityIndex.initializeIndex();
   ei.refresh();
   assertNotEquals("cluster should be fine",Health.RED,ei.getIndexHealth());
   assertNotEquals("cluster should be ready now",Health.RED,ei.getClusterHealth());
