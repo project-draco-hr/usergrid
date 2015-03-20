@@ -11,9 +11,20 @@
           logger.debug("Not refreshing indexes. none found");
           return true;
         }
-        esProvider.getClient().admin().indices().prepareRefresh(indexes).execute().actionGet();
+        RefreshResponse response=esProvider.getClient().admin().indices().prepareRefresh(indexes).execute().actionGet();
+        int failedShards=response.getFailedShards();
+        int successfulShards=response.getSuccessfulShards();
+        ShardOperationFailedException[] sfes=response.getShardFailures();
+        if (sfes != null) {
+          for (          ShardOperationFailedException sfe : sfes) {
+            logger.error("Failed to refresh index:{} reason:{}",sfe.index(),sfe.reason());
+          }
+        }
+        logger.debug("Refreshed indexes: {},success:{} failed:{} ",StringUtils.join(indexes,", "),successfulShards,failedShards);
         timeRefreshIndex.stop();
-        logger.debug("Refreshed indexes: {}",StringUtils.join(indexes,", "));
+        if (failedShards > 0) {
+          throw new RuntimeException("Failed to update all shards in refresh operation");
+        }
         return true;
       }
  catch (      IndexMissingException e) {
