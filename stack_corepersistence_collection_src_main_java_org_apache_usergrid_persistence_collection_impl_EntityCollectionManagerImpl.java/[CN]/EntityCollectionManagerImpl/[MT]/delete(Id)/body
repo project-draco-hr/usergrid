@@ -3,7 +3,7 @@
   Preconditions.checkNotNull(entityId.getUuid(),"Entity id is required in this stage");
   Preconditions.checkNotNull(entityId.getType(),"Entity type is required in this stage");
   final Timer.Context timer=deleteTimer.time();
-  Observable<Id> o=Observable.from(new CollectionIoEvent<Id>(collectionScope,entityId)).map(markStart).doOnNext(markCommit).map(new Func1<CollectionIoEvent<MvccEntity>,Id>(){
+  Observable<Id> o=Observable.just(new CollectionIoEvent<Id>(collectionScope,entityId)).map(markStart).doOnNext(markCommit).map(new Func1<CollectionIoEvent<MvccEntity>,Id>(){
     @Override public Id call(    final CollectionIoEvent<MvccEntity> mvccEntityCollectionIoEvent){
       MvccEntity entity=mvccEntityCollectionIoEvent.getEvent();
       Task<Void> task=entityVersionTaskFactory.getDeleteTask(collectionScope,entity.getId(),entity.getVersion());

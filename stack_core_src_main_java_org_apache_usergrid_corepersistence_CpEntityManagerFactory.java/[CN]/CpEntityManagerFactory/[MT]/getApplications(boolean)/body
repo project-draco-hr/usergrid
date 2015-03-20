@@ -17,13 +17,13 @@
   }
   logger.debug("getApplications(): Loading edges of edgeType {} from {}:{}",new Object[]{edgeType,fromEntityId.getType(),fromEntityId.getUuid()});
   Observable<Edge> edges=gm.loadEdgesFromSource(new SimpleSearchByEdgeType(fromEntityId,edgeType,Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING,null));
-  Iterator<Edge> iter=edges.toBlockingObservable().getIterator();
+  Iterator<Edge> iter=edges.toBlocking().getIterator();
   while (iter.hasNext()) {
     Edge edge=iter.next();
     Id targetId=edge.getTargetNode();
     logger.debug("getApplications(): Processing edge from {}:{} to {}:{}",new Object[]{edge.getSourceNode().getType(),edge.getSourceNode().getUuid(),edge.getTargetNode().getType(),edge.getTargetNode().getUuid()});
     CollectionScope collScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),scopeName);
-    org.apache.usergrid.persistence.model.entity.Entity e=managerCache.getEntityCollectionManager(collScope).load(targetId).toBlockingObservable().lastOrDefault(null);
+    org.apache.usergrid.persistence.model.entity.Entity e=managerCache.getEntityCollectionManager(collScope).load(targetId).toBlocking().lastOrDefault(null);
     if (e == null) {
       logger.warn("Applicaion {} in index but not found in collections",targetId);
       continue;
