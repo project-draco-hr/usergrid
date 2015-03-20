@@ -7,7 +7,7 @@
   properties.put("username","testuser");
   properties.put("email","test@foo.bar");
   Entity created=em.create("user",properties);
-  em.refreshIndex();
+  app.refreshIndex();
   Entity returned=em.get(created.getUuid());
   int writeSize=(int)(CountingMutator.MAX_SIZE * 2.5);
   for (int i=0; i < writeSize; i++) {
@@ -17,7 +17,7 @@
     connectedProps.put("username","testuser" + uuid);
     connectedProps.put("email","test" + uuid + "@foo.bar");
     Entity connectedEntity=em.create("user",connectedProps);
-    em.refreshIndex();
+    app.refreshIndex();
     em.createConnection(connectedEntity,"following",returned);
   }
   PagingResultsIterator itr=new PagingResultsIterator(em.getConnectingEntities(returned,"following","user",Level.ALL_PROPERTIES,1000));

@@ -44,16 +44,15 @@
  catch (  DuplicateUniquePropertyExistsException e) {
     throw new ApplicationAlreadyExistsException(appName);
   }
-  em.refreshIndex();
+  entityIndex.refresh();
   if (properties == null) {
     properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
   }
   properties.put(PROPERTY_NAME,appName);
   EntityManager appEm=getEntityManager(applicationId);
   appEm.create(applicationId,TYPE_APPLICATION,properties);
-  appEm.createIndex();
   appEm.resetRoles();
-  appEm.refreshIndex();
+  entityIndex.refresh();
   logger.info("Initialized application {}",appName);
   orgApplicationCache.evictAppId(appName);
   return applicationId;
