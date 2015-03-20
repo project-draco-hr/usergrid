@@ -3,14 +3,14 @@
   final int size=100;
   final int expected=size - 1;
   final CountDownLatch latch=new CountDownLatch(size);
-  final Observable<String> observable=Observable.from(input).observeOn(Schedulers.io());
+  final Observable<String> observable=Observable.just(input).observeOn(Schedulers.io());
   Observable<Integer> thing=observable.flatMap(new Func1<String,Observable<Integer>>(){
     @Override public Observable<Integer> call(    final String s){
       List<Observable<Integer>> functions=new ArrayList<Observable<Integer>>();
       logger.info("Creating new set of observables in thread {}",Thread.currentThread().getName());
       for (int i=0; i < size; i++) {
         final int index=i;
-        Observable<String> newObservable=Observable.from(input).subscribeOn(Schedulers.io());
+        Observable<String> newObservable=Observable.just(input).subscribeOn(Schedulers.io());
         Observable<Integer> transformed=newObservable.map(new Func1<String,Integer>(){
           @Override public Integer call(          final String s){
             final String threadName=Thread.currentThread().getName();

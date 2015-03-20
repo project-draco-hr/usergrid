@@ -6,7 +6,7 @@
   Observable<T>[] observables=new Observable[columnNameIterators.size()];
   int i=0;
   for (  ColumnNameIterator<C,T> columnNameIterator : columnNameIterators) {
-    observables[i]=Observable.from(columnNameIterator,Schedulers.io());
+    observables[i]=Observable.from(columnNameIterator).subscribeOn(Schedulers.io());
     i++;
   }
   Observable<T> merged=OrderedMerge.orderedMerge(comparator,bufferSize,observables).distinctUntilChanged();
