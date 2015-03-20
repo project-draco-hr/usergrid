@@ -12,9 +12,13 @@
     throw t;
   }
   failureMonitor.success();
+  boolean error=false;
   for (  BulkItemResponse response : responses) {
     if (response.isFailed()) {
       log.error("Unable to index id={}, type={}, index={}, failureMessage={} ",response.getId(),response.getType(),response.getIndex(),response.getFailureMessage());
+      error=true;
     }
+  }
+  if (error) {
   }
 }
