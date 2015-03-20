@@ -23,7 +23,7 @@
       }
     }
   }
-).subscribeOn(Schedulers.io()).longCount().toBlocking();
+).subscribeOn(Schedulers.io()).countLong().toBlocking();
   BlockingObservable<Long> versionsDeletedObservable=Observable.create(new ObservableIterator<MvccLogEntry>("Log entry iterator"){
     @Override protected Iterator<MvccLogEntry> getIterator(){
       return new LogEntryIterator(logEntrySerializationStrategy,scope,entityId,version,serializationFig.getBufferSize());
@@ -49,7 +49,7 @@
       }
     }
   }
-).subscribeOn(Schedulers.io()).longCount().toBlocking();
+).subscribeOn(Schedulers.io()).countLong().toBlocking();
   final Long removedCount=uniqueValueCleanup.last();
   logger.debug("Removed unique values for {} entities of entity {}",removedCount,entityId);
   final Long versionCleanupCount=versionsDeletedObservable.last();
