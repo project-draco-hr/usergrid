@@ -1,18 +1,13 @@
 {
   long ttl=2000;
-  QueryParameters queryParameters=new QueryParameters();
-  queryParameters.addParam("grant_type","password");
-  queryParameters.addParam("username",clientSetup.getUsername());
-  queryParameters.addParam("password",clientSetup.getPassword());
-  queryParameters.addParam("ttl",String.valueOf(ttl));
-  Token adminToken=management().token().get(queryParameters);
+  tokenSetup(ttl);
   long startTime=System.currentTimeMillis();
-  Entity user=management().users().user(clientSetup.getUsername()).get();
+  Entity user=new Entity(management().users().user(clientSetup.getUsername()).get(ApiResponse.class));
   assertEquals(clientSetup.getUsername(),user.get("username"));
   Thread.sleep(ttl - (System.currentTimeMillis() - startTime) + 1000);
   ClientResponse.Status responseStatus=null;
   try {
-    management().users().user(clientSetup.getUsername()).get();
+    management().users().user(clientSetup.getUsername()).get(ApiResponse.class);
   }
  catch (  UniformInterfaceException uie) {
     responseStatus=uie.getResponse().getClientResponseStatus();

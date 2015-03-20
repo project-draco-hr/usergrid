@@ -1,0 +1,21 @@
+{
+  tokenMeSetup(0);
+  ApiResponse response=management().me().get(ApiResponse.class);
+  assertNotNull(response);
+  assertNotNull(response.getAccessToken());
+  Map<String,Object> responseProperties=response.getProperties();
+  assertNotNull(responseProperties.get("passwordChanged"));
+  assertNotNull(responseProperties.get("expires_in"));
+  Map<String,Object> userProperties=(Map<String,Object>)responseProperties.get("user");
+  assertNotNull(userProperties);
+  assertNotNull(userProperties.get("uuid"));
+  assertNotNull(userProperties.get("username"));
+  assertNotNull(userProperties.get("email"));
+  assertNotNull(userProperties.get("name"));
+  assertNotNull(userProperties.get("properties"));
+  Map<String,Object> org=(Map<String,Object>)userProperties.get("organizations");
+  Map<String,Object> orgProperties=(Map<String,Object>)org.get(clientSetup.getOrganizationName().toLowerCase());
+  assertNotNull(orgProperties);
+  assertNotNull(orgProperties.get("name"));
+  assertNotNull(orgProperties.get("properties"));
+}
