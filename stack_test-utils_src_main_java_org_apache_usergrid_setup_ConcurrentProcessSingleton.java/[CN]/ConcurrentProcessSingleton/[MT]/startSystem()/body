@@ -21,6 +21,17 @@
  else {
       throw new RuntimeException("Unable to initialize system: could not get lock." + " Some other process must be binding to port " + LOCK_PORT);
     }
+    Runtime.getRuntime().addShutdownHook(new Thread(){
+      @Override public void run(){
+        try {
+          lock.maybeReleaseLock();
+        }
+ catch (        IOException e) {
+          throw new RuntimeException("Unable to release lock");
+        }
+      }
+    }
+);
   }
  catch (  Exception e) {
     throw new RuntimeException("Unable to initialize system",e);
