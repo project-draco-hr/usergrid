@@ -13,14 +13,10 @@
       logger.info("Populating database");
       schemaManager.populateBaseData();
       barrier.proceed();
-      logger.info("Waiting for setup to complete");
-      barrier.await(ONE_MINUTE);
-      logger.info("Setup to complete");
-      lock.maybeReleaseLock();
     }
- else {
-      throw new RuntimeException("Unable to initialize system: could not get lock." + " Some other process must be binding to port " + LOCK_PORT);
-    }
+    logger.info("Waiting for setup to complete");
+    barrier.await(ONE_MINUTE);
+    logger.info("Setup to complete");
     Runtime.getRuntime().addShutdownHook(new Thread(){
       @Override public void run(){
         try {
