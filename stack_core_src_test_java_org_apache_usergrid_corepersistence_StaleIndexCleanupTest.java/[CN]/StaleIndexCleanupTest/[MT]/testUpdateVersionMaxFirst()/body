@@ -18,34 +18,17 @@
   app.refreshIndex();
   UUID newVersion=getCpEntity(thing).getVersion();
   CandidateResults candidateResults=null;
-  do {
-    candidateResults=queryCollectionCp("things","thing","select * order by ordinal desc");
-    if (candidateResults.size() != 2) {
-      Thread.sleep(200);
-    }
+  candidateResults=queryCollectionCp("things","thing","select * order by ordinal desc");
+  if (candidateResults.size() != 2) {
+    Thread.sleep(200);
   }
- while (candidateResults.size() < 2);
   assertEquals(2,candidateResults.size());
   System.setProperty(EVENTS_DISABLED,"false");
-  Results results=null;
-  do {
-    results=queryCollectionEm("things","select * order by ordinal desc");
-    ;
-    if (results.size() != 1) {
-      Thread.sleep(200);
-    }
-  }
- while (results.size() < 1);
+  Results results=queryCollectionEm("things","select * order by ordinal desc");
   assertEquals(1,results.size());
   assertEquals(1,results.getEntities().get(0).getProperty("ordinal"));
   app.refreshIndex();
-  do {
-    candidateResults=queryCollectionCp("things","thing","select * order by ordinal desc");
-    if (candidateResults.size() != 1) {
-      Thread.sleep(200);
-    }
-  }
- while (candidateResults.size() != 1);
+  candidateResults=queryCollectionCp("things","thing","select * order by ordinal desc");
   assertEquals(1,candidateResults.size());
   assertEquals(newVersion,candidateResults.get(0).getVersion());
 }
