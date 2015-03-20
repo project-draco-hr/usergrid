@@ -3,8 +3,8 @@
   Id ownerId=new SimpleId("owner");
   ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
   IndexScope indexScope=new IndexScopeImpl(ownerId,"users");
-  EntityIndex entityIndex=eif.createEntityIndex(applicationScope);
-  entityIndex.initializeIndex();
+  ApplicationEntityIndex entityIndex=eif.createApplicationEntityIndex(applicationScope);
+  ei.initializeIndex();
   final EntityIndexBatch batch=entityIndex.createBatch();
   final int size=10;
   final List<Id> entities=new ArrayList<>(size);
@@ -28,7 +28,7 @@
     batch.index(indexScope,user);
   }
   batch.execute().get();
-  entityIndex.refresh();
+  ei.refresh();
   final int limit=1;
   final int expectedPages=size / limit;
   String cursor=null;

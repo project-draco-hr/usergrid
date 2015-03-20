@@ -1,18 +1,30 @@
 {
+  refreshIndexMeter.mark();
+  final Timer.Context timeRefreshIndex=refreshTimer.time();
   BetterFuture future=indexBatchBufferProducer.put(new IndexOperationMessage());
   future.get();
   final RetryOperation retryOperation=new RetryOperation(){
     @Override public boolean doOp(){
       try {
-        String[] indexes=ArrayUtils.addAll(getIndexes(AliasType.Read),getIndexes(AliasType.Write));
+        final String[] indexes=getUniqueIndexes();
         if (indexes.length == 0) {
-          logger.debug("Not refreshing indexes, none found for app {}",applicationScope.getApplication().getUuid());
+          logger.debug("Not refreshing indexes. none found");
           return true;
         }
-        Timer.Context timeRefreshIndex=refreshTimer.time();
-        esProvider.getClient().admin().indices().prepareRefresh(indexes).execute().actionGet();
+        RefreshResponse response=esProvider.getClient().admin().indices().prepareRefresh(indexes).execute().actionGet();
+        int failedShards=response.getFailedShards();
+        int successfulShards=response.getSuccessfulShards();
+        ShardOperationFailedException[] sfes=response.getShardFailures();
+        if (sfes != null) {
+          for (          ShardOperationFailedException sfe : sfes) {
+            logger.error("Failed to refresh index:{} reason:{}",sfe.index(),sfe.reason());
+          }
+        }
+        logger.debug("Refreshed indexes: {},success:{} failed:{} ",StringUtils.join(indexes,", "),successfulShards,failedShards);
         timeRefreshIndex.stop();
-        logger.debug("Refreshed indexes: {}",StringUtils.join(indexes,", "));
+        if (failedShards > 0) {
+          throw new RuntimeException("Failed to update all shards in refresh operation");
+        }
         return true;
       }
  catch (      IndexMissingException e) {

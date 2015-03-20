@@ -15,7 +15,7 @@
 ));
     Thread.sleep(writeDelayMs);
   }
-  em.refreshIndex();
+  app.refreshIndex();
   CandidateResults crs=queryCollectionCp("things","thing","select *");
   Assert.assertEquals("Expect no stale candidates yet",numEntities,crs.size());
   int count=0;
@@ -34,20 +34,19 @@
     }
     maxVersions.add(toUpdate);
   }
-  em.refreshIndex();
+  app.refreshIndex();
   crs=queryCollectionCp("things","thing","select *");
   Assert.assertEquals("Expect stale candidates",numEntities * (numUpdates + 1),crs.size());
   System.setProperty(EVENTS_DISABLED,"false");
   for (  Entity thing : things) {
     em.delete(thing);
   }
-  em.refreshIndex();
+  app.refreshIndex();
   count=0;
   Results results=null;
   do {
     results=queryCollectionEm("things","select *");
     crs=queryCollectionCp("things","thing","select *");
-    Thread.sleep(100);
   }
  while ((results.hasCursor() || crs.size() > 0) && count++ < 2000);
   Assert.assertEquals("Expect no candidates",0,crs.size());
