@@ -1,17 +1,17 @@
 {
   Id appId=new SimpleId("application");
   ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
-  AliasedEntityIndex entityIndex=(AliasedEntityIndex)eif.createEntityIndex(applicationScope);
-  entityIndex.initializeIndex();
+  ApplicationEntityIndex entityIndex=eif.createApplicationEntityIndex(applicationScope);
+  ei.initializeIndex();
   final String entityType="thing";
   IndexScope indexScope=new IndexScopeImpl(appId,"things");
   final SearchTypes searchTypes=SearchTypes.fromTypes(entityType);
   insertJsonBlob(entityIndex,entityType,indexScope,"/sample-large.json",101,0);
-  entityIndex.refresh();
+  ei.refresh();
   testQueries(indexScope,searchTypes,entityIndex);
-  entityIndex.addIndex("v2",1,0,"one");
+  ei.addIndex("v2",1,0,"one");
   insertJsonBlob(entityIndex,entityType,indexScope,"/sample-large.json",101,100);
-  entityIndex.refresh();
+  ei.refresh();
   testQuery(indexScope,searchTypes,entityIndex,"name = 'Hilda Young'",1);
   testQuery(indexScope,searchTypes,entityIndex,"name = 'Lowe Kelley'",1);
 }
