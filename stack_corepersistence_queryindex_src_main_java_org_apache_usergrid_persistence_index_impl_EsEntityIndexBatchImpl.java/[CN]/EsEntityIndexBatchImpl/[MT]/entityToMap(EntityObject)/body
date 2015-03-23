@@ -4,11 +4,11 @@
     Field field=(Field)f;
     if (f instanceof ArrayField) {
       List list=(List)field.getValue();
-      entityMap.put(field.getName().toLowerCase(),new ArrayList(processCollectionForMap(list)));
+      entityMap.put(ARRAY_PREFIX + field.getName().toLowerCase(),new ArrayList(processCollectionForMap(list)));
     }
  else     if (f instanceof ListField) {
       List list=(List)field.getValue();
-      entityMap.put(field.getName().toLowerCase(),new ArrayList(processCollectionForMap(list)));
+      entityMap.put(ARRAY_PREFIX + field.getName().toLowerCase(),new ArrayList(processCollectionForMap(list)));
       if (!list.isEmpty()) {
         if (list.get(0) instanceof String) {
           entityMap.put(ANALYZED_STRING_PREFIX + field.getName().toLowerCase(),new ArrayList(processCollectionForMap(list)));
@@ -17,11 +17,11 @@
     }
  else     if (f instanceof SetField) {
       Set set=(Set)field.getValue();
-      entityMap.put(field.getName().toLowerCase(),new ArrayList(processCollectionForMap(set)));
+      entityMap.put(SET_PREFIX + field.getName().toLowerCase(),new ArrayList(processCollectionForMap(set)));
     }
  else     if (f instanceof EntityObjectField) {
       EntityObject eo=(EntityObject)field.getValue();
-      entityMap.put(field.getName().toLowerCase(),entityToMap(eo));
+      entityMap.put(EO_PREFIX + field.getName().toLowerCase(),entityToMap(eo));
     }
  else     if (f instanceof StringField) {
       entityMap.put(ANALYZED_STRING_PREFIX + field.getName().toLowerCase(),((String)field.getValue()).toLowerCase());

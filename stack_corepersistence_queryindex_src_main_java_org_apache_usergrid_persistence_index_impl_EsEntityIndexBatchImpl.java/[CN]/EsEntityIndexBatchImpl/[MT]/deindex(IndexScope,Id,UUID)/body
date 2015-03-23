@@ -12,7 +12,10 @@
   if (indexes == null || indexes.length == 0) {
     indexes=new String[]{indexIdentifier.getIndex(null)};
   }
-  container.addDeIndexRequest(new DeIndexRequest(indexes,entityType.getTypeName(applicationScope),indexId));
+  String[] typeNames=entityType.getTypeNames(applicationScope);
+  for (  String type : typeNames) {
+    container.addDeIndexRequest(new DeIndexRequest(indexes,type,indexId));
+  }
   log.debug("Deindexed Entity with index id " + indexId);
   return this;
 }
