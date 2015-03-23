@@ -1,23 +1,2 @@
 {
-  final int listenerSize=listeners.size();
-  if (listenerSize == 0) {
-    return;
-  }
-  if (listenerSize == 1) {
-    listeners.iterator().next().deleted(collectionScope,entityId,version);
-    return;
-  }
-  LOG.debug("Started firing {} listeners",listenerSize);
-  Observable.from(listeners).parallel(new Func1<Observable<EntityDeleted>,Observable<EntityDeleted>>(){
-    @Override public Observable<EntityDeleted> call(    final Observable<EntityDeleted> entityVersionDeletedObservable){
-      return entityVersionDeletedObservable.doOnNext(new Action1<EntityDeleted>(){
-        @Override public void call(        final EntityDeleted listener){
-          listener.deleted(collectionScope,entityId,version);
-        }
-      }
-);
-    }
-  }
-,Schedulers.io()).toBlocking().last();
-  LOG.debug("Finished firing {} listeners",listenerSize);
 }

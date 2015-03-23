@@ -7,9 +7,11 @@
       sysAppProps.put(PROPERTY_NAME,"systemapp");
       em.create(CpNamingUtils.SYSTEM_APP_ID,TYPE_APPLICATION,sysAppProps);
       em.getApplication();
-      em.createIndex();
-      em.refreshIndex();
     }
+    ApplicationScope appScope=new ApplicationScopeImpl(new SimpleId(CpNamingUtils.SYSTEM_APP_ID,"application"));
+    ApplicationEntityIndex applicationEntityIndex=entityIndexFactory.createApplicationEntityIndex(appScope);
+    applicationEntityIndex.initializeIndex();
+    entityIndex.refresh();
   }
  catch (  Exception ex) {
     throw new RuntimeException("Fatal error creating system application",ex);

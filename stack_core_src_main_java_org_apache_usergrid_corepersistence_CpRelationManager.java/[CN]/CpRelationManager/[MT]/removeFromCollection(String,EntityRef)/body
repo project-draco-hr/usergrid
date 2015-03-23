@@ -19,7 +19,7 @@
   }
   Id entityId=new SimpleId(itemRef.getUuid(),itemRef.getType());
   org.apache.usergrid.persistence.model.entity.Entity memberEntity=((CpEntityManager)em).load(new CpEntityManager.EntityScope(memberScope,entityId));
-  final EntityIndex ei=managerCache.getEntityIndex(applicationScope);
+  final ApplicationEntityIndex ei=managerCache.getEntityIndex(applicationScope);
   final EntityIndexBatch batch=ei.createBatch();
   IndexScope indexScope=new IndexScopeImpl(cpHeadEntity.getId(),CpNamingUtils.getCollectionScopeNameFromCollectionName(collName));
   batch.deindex(indexScope,memberEntity);
@@ -28,9 +28,9 @@
   BetterFuture future=batch.execute();
   GraphManager gm=managerCache.getGraphManager(applicationScope);
   Edge collectionToItemEdge=new SimpleEdge(cpHeadEntity.getId(),CpNamingUtils.getEdgeTypeFromCollectionName(collName),memberEntity.getId(),UUIDUtils.getUUIDLong(memberEntity.getId().getUuid()));
-  gm.deleteEdge(collectionToItemEdge).toBlockingObservable().last();
+  gm.deleteEdge(collectionToItemEdge).toBlocking().last();
   Edge itemToCollectionEdge=new SimpleEdge(memberEntity.getId(),CpNamingUtils.getEdgeTypeFromCollectionName(Schema.defaultCollectionName(cpHeadEntity.getId().getType())),cpHeadEntity.getId(),UUIDUtils.getUUIDLong(cpHeadEntity.getId().getUuid()));
-  gm.deleteEdge(itemToCollectionEdge).toBlockingObservable().last();
+  gm.deleteEdge(itemToCollectionEdge).toBlocking().last();
   if (headEntity.getType().equals(Group.ENTITY_TYPE)) {
     if (collName.equals(COLLECTION_ROLES)) {
       String path=(String)((Entity)itemRef).getMetadata("path");

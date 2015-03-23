@@ -1,8 +1,8 @@
 {
   final GraphManager gm=managerCache.getGraphManager(applicationScope);
-  Iterator<String> edgeTypesToTarget=gm.getEdgeTypesToTarget(new SimpleSearchEdgeType(cpHeadEntity.getId(),null,null)).toBlockingObservable().getIterator();
+  Iterator<String> edgeTypesToTarget=gm.getEdgeTypesToTarget(new SimpleSearchEdgeType(cpHeadEntity.getId(),null,null)).toBlocking().getIterator();
   logger.debug("updateContainingCollectionsAndCollections(): " + "Searched for edges to target {}:{}\n   in scope {}\n   found: {}",new Object[]{cpHeadEntity.getId().getType(),cpHeadEntity.getId().getUuid(),applicationScope.getApplication(),edgeTypesToTarget.hasNext()});
-  final EntityIndex ei=managerCache.getEntityIndex(applicationScope);
+  final ApplicationEntityIndex ei=managerCache.getEntityIndex(applicationScope);
   final EntityIndexBatch entityIndexBatch=ei.createBatch();
   final int count=gm.getEdgeTypesToTarget(new SimpleSearchEdgeType(cpHeadEntity.getId(),null,null)).flatMap(new Func1<String,Observable<Edge>>(){
     @Override public Observable<Edge> call(    final String etype){
