@@ -1,0 +1,9 @@
+{
+  Map<String,String> payload=hashMap("grant_type","password").map("username",clientSetup.getUsername()).map("password",clientSetup.getPassword());
+  Token token=management().me().post(Token.class,payload);
+  assertNotNull(token);
+  assertNotNull(token.getAccessToken());
+  management().token().setToken(token);
+  refreshIndex();
+  assertNotNull(management().me().get(Token.class));
+}

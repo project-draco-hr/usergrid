@@ -1,0 +1,11 @@
+{
+  Form form=new Form();
+  form.add("grant_type","password");
+  form.add("username",clientSetup.getUsername());
+  form.add("password",clientSetup.getPassword());
+  Token adminToken=management().me().post(Token.class,form);
+  assertNotNull(adminToken);
+  assertNotNull(adminToken.getAccessToken());
+  refreshIndex();
+  assertNotNull(management().me().get(Token.class));
+}
