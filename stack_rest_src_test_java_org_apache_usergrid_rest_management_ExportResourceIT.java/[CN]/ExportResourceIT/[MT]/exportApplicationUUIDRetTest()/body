@@ -1,18 +1,8 @@
 {
-  ClientResponse.Status responseStatus=ClientResponse.Status.ACCEPTED;
-  String uuid;
-  UUID jobUUID=null;
-  JsonNode node=null;
-  HashMap<String,Object> payload=payloadBuilder();
-  String orgName=context.getOrgName();
-  String appName=context.getAppName();
-  String token=context.getActiveUser().getToken();
   try {
-    node=mapper.readTree(resource().path("/management/orgs/" + orgName + "/apps/"+ appName+ "/export").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
+    management().orgs().organization(clientSetup.getOrganizationName()).app().addToPath(clientSetup.getAppUuid()).addToPath("export");
   }
  catch (  UniformInterfaceException uie) {
-    responseStatus=uie.getResponse().getClientResponseStatus();
+    fail("We got back " + uie.getResponse().getClientResponseStatus() + " instead of having a successful call");
   }
-  assertEquals(ClientResponse.Status.ACCEPTED,responseStatus);
-  assertNotNull(node.get("Export Entity"));
 }

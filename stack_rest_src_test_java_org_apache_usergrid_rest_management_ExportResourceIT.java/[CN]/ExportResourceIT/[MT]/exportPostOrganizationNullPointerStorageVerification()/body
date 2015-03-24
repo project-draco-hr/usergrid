@@ -1,40 +1,35 @@
 {
-  JsonNode node=null;
-  ClientResponse.Status responseStatus=ClientResponse.Status.OK;
   HashMap<String,Object> payload=payloadBuilder();
   HashMap<String,Object> properties=(HashMap<String,Object>)payload.get("properties");
   HashMap<String,Object> storage_info=(HashMap<String,Object>)properties.get("storage_info");
   storage_info.remove("s3_key");
-  String orgName=context.getOrgName();
-  String appName=context.getAppName();
-  String token=context.getActiveUser().getToken();
   try {
-    node=resource().path("/management/orgs/" + orgName + "/export").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+    management().orgs().organization(clientSetup.getOrganizationName()).addToPath("export").postWithToken(ApiResponse.class,payload);
+    fail("Should not have passed as we were missing an important part of the payload");
   }
  catch (  UniformInterfaceException uie) {
-    responseStatus=uie.getResponse().getClientResponseStatus();
+    assertEquals(ClientResponse.Status.BAD_REQUEST,uie.getResponse().getClientResponseStatus());
   }
-  assertEquals(ClientResponse.Status.BAD_REQUEST,responseStatus);
   payload=payloadBuilder();
   properties=(HashMap<String,Object>)payload.get("properties");
   storage_info=(HashMap<String,Object>)properties.get("storage_info");
-  storage_info.remove(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR);
+  storage_info.remove("s3_access_id");
   try {
-    node=resource().path("/management/orgs/" + orgName + "/export").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+    management().orgs().organization(clientSetup.getOrganizationName()).addToPath("export").postWithToken(ApiResponse.class,payload);
+    fail("Should not have passed as we were missing an important part of the payload");
   }
  catch (  UniformInterfaceException uie) {
-    responseStatus=uie.getResponse().getClientResponseStatus();
+    assertEquals(ClientResponse.Status.BAD_REQUEST,uie.getResponse().getClientResponseStatus());
   }
-  assertEquals(ClientResponse.Status.BAD_REQUEST,responseStatus);
   payload=payloadBuilder();
   properties=(HashMap<String,Object>)payload.get("properties");
   storage_info=(HashMap<String,Object>)properties.get("storage_info");
   storage_info.remove("bucket_location");
   try {
-    node=resource().path("/management/orgs/" + orgName + "/export").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+    management().orgs().organization(clientSetup.getOrganizationName()).addToPath("export").postWithToken(ApiResponse.class,payload);
+    fail("Should not have passed as we were missing an important part of the payload");
   }
  catch (  UniformInterfaceException uie) {
-    responseStatus=uie.getResponse().getClientResponseStatus();
+    assertEquals(ClientResponse.Status.BAD_REQUEST,uie.getResponse().getClientResponseStatus());
   }
-  assertEquals(ClientResponse.Status.BAD_REQUEST,responseStatus);
 }

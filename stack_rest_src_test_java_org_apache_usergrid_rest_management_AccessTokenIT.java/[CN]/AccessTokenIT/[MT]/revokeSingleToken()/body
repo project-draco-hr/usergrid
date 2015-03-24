@@ -1,0 +1,24 @@
+{
+  Token token1=getAdminToken();
+  Token token2=getAdminToken();
+  QueryParameters queryParameters=new QueryParameters();
+  queryParameters.addParam("token",token1.getAccessToken());
+  management().token().setToken(clientSetup.getSuperuserToken());
+  management().users().user(clientSetup.getUsername()).revokeToken().post(ApiResponse.class,queryParameters);
+  refreshIndex();
+  try {
+    management().token().setToken(token1);
+    management().users().user(clientSetup.getUsername()).get();
+    fail("Token1 should have been revoked");
+  }
+ catch (  UniformInterfaceException uie) {
+    assertEquals(ClientResponse.Status.UNAUTHORIZED,uie.getResponse().getClientResponseStatus());
+  }
+  try {
+    management().token().setToken(token2);
+    management().users().user(clientSetup.getUsername()).get();
+  }
+ catch (  UniformInterfaceException uie) {
+    fail("Token2 shouldn't have been revoked");
+  }
+}

@@ -1,0 +1,23 @@
+{
+  Token token1=getAdminToken();
+  Token token2=getAdminToken();
+  management().token().setToken(clientSetup.getSuperuserToken());
+  management().users().user(clientSetup.getUsername()).revokeTokens().post(ApiResponse.class);
+  refreshIndex();
+  try {
+    management().token().setToken(token1);
+    management().users().user(clientSetup.getUsername()).get();
+    fail("Token1 should have been revoked");
+  }
+ catch (  UniformInterfaceException uie) {
+    assertEquals(ClientResponse.Status.UNAUTHORIZED,uie.getResponse().getClientResponseStatus());
+  }
+  try {
+    management().token().setToken(token2);
+    management().users().user(clientSetup.getUsername()).get();
+    fail("Token2 should have been revoked");
+  }
+ catch (  UniformInterfaceException uie) {
+    assertEquals(ClientResponse.Status.UNAUTHORIZED,uie.getResponse().getClientResponseStatus());
+  }
+}
