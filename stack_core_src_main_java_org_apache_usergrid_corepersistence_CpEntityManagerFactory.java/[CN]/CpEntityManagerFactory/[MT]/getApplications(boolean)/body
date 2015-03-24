@@ -1,10 +1,10 @@
 {
-  Map<String,UUID> appMap=new HashMap<String,UUID>();
-  ApplicationScope appScope=CpNamingUtils.getApplicationScope(getManagementAppId());
-  GraphManager gm=managerCache.getGraphManager(appScope);
+  Map<String,UUID> appMap=new HashMap<>();
+  ApplicationScope mgmtAppScope=CpNamingUtils.getApplicationScope(getManagementAppId());
+  GraphManager gm=managerCache.getGraphManager(mgmtAppScope);
   EntityManager em=getEntityManager(getManagementAppId());
-  Application app=em.getApplication();
-  Id fromEntityId=new SimpleId(app.getUuid(),app.getType());
+  Application mgmtApp=em.getApplication();
+  Id fromEntityId=new SimpleId(mgmtApp.getUuid(),mgmtApp.getType());
   final String scopeName;
   final String edgeType;
   if (deleted) {
@@ -22,7 +22,7 @@
     Edge edge=iter.next();
     Id targetId=edge.getTargetNode();
     logger.debug("getApplications(): Processing edge from {}:{} to {}:{}",new Object[]{edge.getSourceNode().getType(),edge.getSourceNode().getUuid(),edge.getTargetNode().getType(),edge.getTargetNode().getUuid()});
-    CollectionScope collScope=new CollectionScopeImpl(appScope.getApplication(),appScope.getApplication(),scopeName);
+    CollectionScope collScope=new CollectionScopeImpl(mgmtAppScope.getApplication(),mgmtAppScope.getApplication(),scopeName);
     org.apache.usergrid.persistence.model.entity.Entity appInfo=managerCache.getEntityCollectionManager(collScope).load(targetId).toBlocking().lastOrDefault(null);
     if (appInfo == null) {
       logger.warn("Application {} in index but not found in collections",targetId);
