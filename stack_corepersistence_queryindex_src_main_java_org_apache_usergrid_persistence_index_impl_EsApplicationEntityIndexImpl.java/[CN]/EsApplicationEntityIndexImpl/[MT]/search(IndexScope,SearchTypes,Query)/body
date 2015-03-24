@@ -1,7 +1,8 @@
 {
   SearchResponse searchResponse;
   if (query.getCursor() == null) {
-    SearchRequestBuilder srb=esProvider.getClient().prepareSearch(alias.getReadAlias()).setTypes(searchTypes.getTypeNames(applicationScope)).setScroll(cursorTimeout + "m").setQuery(query.createQueryBuilder(createContextName(applicationScope,indexScope)));
+    String[] contexts=new String[]{createContextName(applicationScope,indexScope),createLegacyContextName(applicationScope,indexScope)};
+    SearchRequestBuilder srb=esProvider.getClient().prepareSearch(alias.getReadAlias()).setTypes(searchTypes.getTypeNames(applicationScope)).setScroll(cursorTimeout + "m").setQuery(query.createQueryBuilder(contexts));
     final FilterBuilder fb=query.createFilterBuilder();
     if (fb != null) {
       logger.debug("   Filter: {} ",fb.toString());

@@ -10,11 +10,16 @@
     }
     queryBuilder=v.getQueryBuilder();
   }
+  BoolQueryBuilder boolQueryBuilder=QueryBuilders.boolQuery();
+  for (  String context : contexts) {
+    boolQueryBuilder=boolQueryBuilder.should(QueryBuilders.termQuery(IndexingUtils.ENTITY_CONTEXT_FIELDNAME,context));
+  }
+  boolQueryBuilder=boolQueryBuilder.minimumNumberShouldMatch(1);
   if (queryBuilder != null) {
-    queryBuilder=QueryBuilders.boolQuery().must(queryBuilder).must(QueryBuilders.termQuery(IndexingUtils.ENTITY_CONTEXT_FIELDNAME,context));
+    queryBuilder=boolQueryBuilder.must(queryBuilder);
   }
  else {
-    queryBuilder=QueryBuilders.termQuery(IndexingUtils.ENTITY_CONTEXT_FIELDNAME,context);
+    queryBuilder=boolQueryBuilder;
   }
   return queryBuilder;
 }
