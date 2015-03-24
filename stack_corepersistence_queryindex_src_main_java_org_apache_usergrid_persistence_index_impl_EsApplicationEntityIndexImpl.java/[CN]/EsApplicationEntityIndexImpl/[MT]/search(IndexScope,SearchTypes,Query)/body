@@ -1,10 +1,7 @@
 {
-  final String context=IndexingUtils.createContextName(applicationScope,indexScope);
-  final String[] entityTypes=searchTypes.getTypeNames(applicationScope);
-  QueryBuilder qb=query.createQueryBuilder(context);
   SearchResponse searchResponse;
   if (query.getCursor() == null) {
-    SearchRequestBuilder srb=esProvider.getClient().prepareSearch(alias.getReadAlias()).setTypes(entityTypes).setScroll(cursorTimeout + "m").setQuery(qb);
+    SearchRequestBuilder srb=esProvider.getClient().prepareSearch(alias.getReadAlias()).setTypes(searchTypes.getTypeNames(applicationScope)).setScroll(cursorTimeout + "m").setQuery(query.createQueryBuilder(createContextName(applicationScope,indexScope)));
     final FilterBuilder fb=query.createFilterBuilder();
     if (fb != null) {
       logger.debug("   Filter: {} ",fb.toString());
@@ -37,7 +34,7 @@
       logger.debug("   Sort: {} order by {}",booleanFieldName,order.toString());
     }
     if (logger.isDebugEnabled()) {
-      logger.debug("Searching index (read alias): {}\n  scope: {} \n type: {}\n   query: {} ",this.alias.getReadAlias(),context,entityTypes,srb);
+      logger.debug("Searching index (read alias): {}\n  scope: {} \n type: {}\n   query: {} ",this.alias.getReadAlias(),indexScope.getOwner(),searchTypes.getTypeNames(applicationScope),srb);
     }
     try {
       Timer.Context timeSearch=searchTimer.time();
