@@ -1,0 +1,10 @@
+{
+  UUID fake=UUID.fromString("AAAAAAAA-FFFF-FFFF-FFFF-AAAAAAAAAAAA");
+  try {
+    management().orgs().organization(clientSetup.getOrganizationName()).addToPath("export").addToPath(fake.toString()).getWithoutToken(ApiResponse.class);
+    fail("Should not have passed as we didn't have an access token.");
+  }
+ catch (  UniformInterfaceException uie) {
+    assertEquals(ClientResponse.Status.UNAUTHORIZED,uie.getResponse().getClientResponseStatus());
+  }
+}

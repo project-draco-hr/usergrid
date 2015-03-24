@@ -1,0 +1,35 @@
+{
+  HashMap<String,Object> payload=payloadBuilder();
+  HashMap<String,Object> properties=(HashMap<String,Object>)payload.get("properties");
+  HashMap<String,Object> storage_info=(HashMap<String,Object>)properties.get("storage_info");
+  storage_info.remove("s3_key");
+  try {
+    management().orgs().organization(clientSetup.getOrganizationName()).app().addToPath(clientSetup.getAppUuid()).addToPath("export").postWithToken(ApiResponse.class,payload);
+    fail("Should not have passed as we were missing an important part of the payload");
+  }
+ catch (  UniformInterfaceException uie) {
+    assertEquals(ClientResponse.Status.BAD_REQUEST,uie.getResponse().getClientResponseStatus());
+  }
+  payload=payloadBuilder();
+  properties=(HashMap<String,Object>)payload.get("properties");
+  storage_info=(HashMap<String,Object>)properties.get("storage_info");
+  storage_info.remove("s3_access_id");
+  try {
+    management().orgs().organization(clientSetup.getOrganizationName()).app().addToPath(clientSetup.getAppUuid()).addToPath("export").postWithToken(ApiResponse.class,payload);
+    fail("Should not have passed as we were missing an important part of the payload");
+  }
+ catch (  UniformInterfaceException uie) {
+    assertEquals(ClientResponse.Status.BAD_REQUEST,uie.getResponse().getClientResponseStatus());
+  }
+  payload=payloadBuilder();
+  properties=(HashMap<String,Object>)payload.get("properties");
+  storage_info=(HashMap<String,Object>)properties.get("storage_info");
+  storage_info.remove("bucket_location");
+  try {
+    management().orgs().organization(clientSetup.getOrganizationName()).app().addToPath(clientSetup.getAppUuid()).addToPath("export").postWithToken(ApiResponse.class,payload);
+    fail("Should not have passed as we were missing an important part of the payload");
+  }
+ catch (  UniformInterfaceException uie) {
+    assertEquals(ClientResponse.Status.BAD_REQUEST,uie.getResponse().getClientResponseStatus());
+  }
+}

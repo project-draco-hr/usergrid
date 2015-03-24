@@ -1,0 +1,12 @@
+{
+  HashMap<String,Object> payload=payloadBuilder();
+  HashMap<String,Object> properties=(HashMap<String,Object>)payload.get("properties");
+  properties.remove("storage_provider");
+  try {
+    management().orgs().organization(clientSetup.getOrganizationName()).app().addToPath(clientSetup.getAppUuid()).addToPath("collection").addToPath("users").addToPath("export").postWithToken(ApiResponse.class,payload);
+    fail("Should not have passed as we were missing an important part of the payload");
+  }
+ catch (  UniformInterfaceException uie) {
+    assertEquals(ClientResponse.Status.BAD_REQUEST,uie.getResponse().getClientResponseStatus());
+  }
+}
