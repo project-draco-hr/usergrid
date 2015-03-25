@@ -53,13 +53,28 @@
   deviceQuery.setLimit(pageSize);
   deviceQuery.addFilter("index >= 4");
   int expectedDeviceQuerySize=3;
-  PathQuery groupsPQ=new PathQuery(new SimpleEntityRef(em.getApplicationRef()),groupQuery);
-  PathQuery usersPQ=groupsPQ.chain(userQuery);
-  PathQuery<Entity> devicesPQ=usersPQ.chain(deviceQuery);
-  HashSet set=new HashSet(expectedGroupQuerySize * expectedUserQuerySize * expectedDeviceQuerySize);
-  Iterator<Entity> i=devicesPQ.iterator(em);
-  while (i.hasNext()) {
-    set.add(i.next());
+  final PathQuery groupsPQ=new PathQuery(new SimpleEntityRef(em.getApplicationRef()),groupQuery);
+  HashSet groupSet=new HashSet(expectedGroupQuerySize);
+  Iterator<Entity> groupsIterator=groupsPQ.iterator(em);
+  while (groupsIterator.hasNext()) {
+    groupSet.add(groupsIterator.next());
   }
-  assertEquals(expectedGroupQuerySize * expectedUserQuerySize * expectedDeviceQuerySize,set.size());
+  assertEquals(expectedGroupQuerySize,groupSet.size());
+  final PathQuery groupsPQ1=new PathQuery(new SimpleEntityRef(em.getApplicationRef()),groupQuery);
+  PathQuery usersPQ1=groupsPQ1.chain(userQuery);
+  final Iterator<Entity> userIterator=usersPQ1.iterator(em);
+  final HashSet userSet=new HashSet(expectedGroupQuerySize * expectedUserQuerySize);
+  while (userIterator.hasNext()) {
+    userSet.add(userIterator.next());
+  }
+  assertEquals(expectedGroupQuerySize * expectedUserQuerySize,userSet.size());
+  PathQuery groupsPQ2=new PathQuery(new SimpleEntityRef(em.getApplicationRef()),groupQuery);
+  PathQuery usersPQ2=groupsPQ2.chain(userQuery);
+  PathQuery<Entity> devicesPQ2=usersPQ2.chain(deviceQuery);
+  final HashSet deviceSet=new HashSet(expectedGroupQuerySize * expectedUserQuerySize * expectedDeviceQuerySize);
+  Iterator<Entity> i=devicesPQ2.iterator(em);
+  while (i.hasNext()) {
+    deviceSet.add(i.next());
+  }
+  assertEquals(expectedGroupQuerySize * expectedUserQuerySize * expectedDeviceQuerySize,deviceSet.size());
 }

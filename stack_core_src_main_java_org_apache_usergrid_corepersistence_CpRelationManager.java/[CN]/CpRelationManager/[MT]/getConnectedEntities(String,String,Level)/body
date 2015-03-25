@@ -4,31 +4,6 @@
   Query query=new Query();
   query.setConnectionType(connectionType);
   query.setEntityType(connectedEntityType);
-  if (connectionType == null) {
-    raw=searchConnectedEntities(query);
-  }
- else {
-    headEntity=em.validate(headEntity);
-    IndexScope indexScope=new IndexScopeImpl(cpHeadEntity.getId(),CpNamingUtils.getConnectionScopeName(connectionType));
-    final SearchTypes searchTypes=SearchTypes.fromNullableTypes(connectedEntityType);
-    final EntityIndex ei=managerCache.getEntityIndex(applicationScope);
-    logger.debug("Searching connected entities from scope {}:{}",indexScope.getOwner().toString(),indexScope.getName());
-    query=adjustQuery(query);
-    CandidateResults crs=ei.search(indexScope,searchTypes,query);
-    raw=buildResults(indexScope,query,crs,query.getConnectionType());
-  }
-  if (Level.ALL_PROPERTIES.equals(level)) {
-    List<Entity> entities=new ArrayList<Entity>();
-    for (    EntityRef ref : raw.getEntities()) {
-      Entity entity=em.get(ref);
-      entities.add(entity);
-    }
-    return Results.fromEntities(entities);
-  }
-  List<ConnectionRef> crefs=new ArrayList<ConnectionRef>();
-  for (  Entity e : raw.getEntities()) {
-    ConnectionRef cref=new ConnectionRefImpl(headEntity,connectionType,e);
-    crefs.add(cref);
-  }
-  return Results.fromConnections(crefs);
+  query.setResultsLevel(level);
+  return searchConnectedEntities(query);
 }

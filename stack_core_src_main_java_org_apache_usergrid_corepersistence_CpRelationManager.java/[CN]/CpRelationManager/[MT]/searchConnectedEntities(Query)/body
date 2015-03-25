@@ -8,6 +8,7 @@
   EntityIndex ei=managerCache.getEntityIndex(applicationScope);
   logger.debug("Searching connections from the scope {}:{} with types {}",new Object[]{indexScope.getOwner().toString(),indexScope.getName(),searchTypes});
   query=adjustQuery(query);
-  CandidateResults crs=ei.search(indexScope,searchTypes,query);
-  return buildConnectionResults(indexScope,query,crs,connection);
+  final ConnectionResultsLoaderFactoryImpl resultsLoaderFactory=new ConnectionResultsLoaderFactoryImpl(managerCache,headEntity,connection);
+  final QueryExecutor executor=new ElasticSearchQueryExecutor(resultsLoaderFactory,ei,applicationScope,indexScope,searchTypes,query);
+  return executor.next();
 }
