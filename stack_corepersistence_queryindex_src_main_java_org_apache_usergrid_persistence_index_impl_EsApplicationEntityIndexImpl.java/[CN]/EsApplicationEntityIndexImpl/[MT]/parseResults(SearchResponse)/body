@@ -1,0 +1,24 @@
+{
+  final SearchHits searchHits=searchResponse.getHits();
+  final SearchHit[] hits=searchHits.getHits();
+  final int length=hits.length;
+  logger.debug("   Hit count: {} Total hits: {}",length,searchHits.getTotalHits());
+  List<CandidateResult> candidates=new ArrayList<>(length);
+  for (  SearchHit hit : hits) {
+    String[] idparts=hit.getId().split(SPLITTER);
+    String id=idparts[0];
+    String type=idparts[1];
+    String version=idparts[2];
+    Id entityId=new SimpleId(UUID.fromString(id),type);
+    candidates.add(new CandidateResult(entityId,UUID.fromString(version)));
+  }
+  CandidateResults candidateResults=new CandidateResults(candidates);
+  if (candidateResults.hasCursor()) {
+    candidateResults.initializeCursor();
+    final String esScrollCursor=searchResponse.getScrollId();
+    final int minutes=indexFig.getQueryCursorTimeout();
+    mapManager.putString(candidateResults.getCursor(),esScrollCursor,(int)TimeUnit.MINUTES.toSeconds(minutes));
+    logger.debug(" User cursor = {},  Cursor = {} ",candidateResults.getCursor(),esScrollCursor);
+  }
+  return candidateResults;
+}
