@@ -1,11 +1,11 @@
 {
 {
     final Entity entity=ioEvent.getEvent();
-    final CollectionScope collectionScope=ioEvent.getEntityCollection();
+    final ApplicationScope applicationScope=ioEvent.getEntityCollection();
     final Id entityId=entity.getId();
     final UUID newVersion=UUIDGenerator.newTimeUUID();
     final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,newVersion,Stage.ACTIVE,MvccLogEntry.State.COMPLETE);
-    MutationBatch write=logStrategy.write(collectionScope,startEntry);
+    MutationBatch write=logStrategy.write(applicationScope,startEntry);
     final MvccEntityImpl nextStage=new MvccEntityImpl(entityId,newVersion,MvccEntity.Status.COMPLETE,entity);
     if (ioEvent.getEvent().hasVersion()) {
       try {
@@ -13,13 +13,13 @@
       }
  catch (      ConnectionException e) {
         LOG.error("Failed to execute write ",e);
-        throw new WriteStartException(nextStage,collectionScope,"Failed to execute write ",e);
+        throw new WriteStartException(nextStage,applicationScope,"Failed to execute write ",e);
       }
 catch (      NullPointerException e) {
         LOG.error("Failed to execute write ",e);
-        throw new WriteStartException(nextStage,collectionScope,"Failed to execute write",e);
+        throw new WriteStartException(nextStage,applicationScope,"Failed to execute write",e);
       }
     }
-    return new CollectionIoEvent<MvccEntity>(collectionScope,nextStage);
+    return new CollectionIoEvent<>(applicationScope,nextStage);
   }
 }

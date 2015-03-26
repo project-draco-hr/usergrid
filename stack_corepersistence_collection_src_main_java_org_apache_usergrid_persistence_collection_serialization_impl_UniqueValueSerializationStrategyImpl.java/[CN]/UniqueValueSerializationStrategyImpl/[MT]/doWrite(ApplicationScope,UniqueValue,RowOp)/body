@@ -1,0 +1,15 @@
+{
+  final MutationBatch batch=keyspace.prepareMutationBatch();
+  final Id applicationId=applicationScope.getApplication();
+  final Id uniqueValueId=uniqueValue.getEntityId();
+  final String collectionName=LegacyScopeUtils.getCollectionScopeNameFromEntityType(uniqueValueId.getType());
+  final CollectionPrefixedKey<Field> uniquePrefixedKey=new CollectionPrefixedKey<>(collectionName,applicationId,uniqueValue.getField());
+  op.doLookup(batch.withRow(CF_UNIQUE_VALUES,ScopedRowKey.fromKey(applicationId,uniquePrefixedKey)));
+  final Id ownerId=applicationId;
+  final CollectionPrefixedKey<Id> collectionPrefixedEntityKey=new CollectionPrefixedKey<>(collectionName,ownerId,uniqueValue.getEntityId());
+  op.doLog(batch.withRow(CF_ENTITY_UNIQUE_VALUES,ScopedRowKey.fromKey(applicationId,collectionPrefixedEntityKey)));
+  if (log.isDebugEnabled()) {
+    log.debug("Writing unique value collectionScope={} id={} version={} name={} value={} ttl={} ",new Object[]{collectionName,uniqueValueId,uniqueValue.getEntityVersion(),uniqueValue.getField().getName(),uniqueValue.getField().getValue()});
+  }
+  return batch;
+}
