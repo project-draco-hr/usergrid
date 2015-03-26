@@ -12,10 +12,10 @@
     Id entityId=new SimpleId(UUID.fromString(id),type);
     candidates.add(new CandidateResult(entityId,UUID.fromString(version)));
   }
-  CandidateResults candidateResults=new CandidateResults(candidates);
-  if (candidateResults.hasCursor()) {
+  final CandidateResults candidateResults=new CandidateResults(candidates);
+  final String esScrollCursor=searchResponse.getScrollId();
+  if (esScrollCursor != null) {
     candidateResults.initializeCursor();
-    final String esScrollCursor=searchResponse.getScrollId();
     final int minutes=indexFig.getQueryCursorTimeout();
     mapManager.putString(candidateResults.getCursor(),esScrollCursor,(int)TimeUnit.MINUTES.toSeconds(minutes));
     logger.debug(" User cursor = {},  Cursor = {} ",candidateResults.getCursor(),esScrollCursor);
