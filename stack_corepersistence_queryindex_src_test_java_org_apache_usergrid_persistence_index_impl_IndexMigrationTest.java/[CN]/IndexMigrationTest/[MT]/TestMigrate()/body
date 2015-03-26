@@ -1,0 +1,23 @@
+{
+  EsIndexDataMigrationImpl indexDataMigration=new EsIndexDataMigrationImpl(ei,provider,fig,indexIdentifier,indexCache);
+  ProgressObserver po=new ProgressObserver(){
+    @Override public void start(){
+    }
+    @Override public void complete(){
+    }
+    @Override public void failed(    int migrationVersion,    String reason){
+      fail(reason);
+    }
+    @Override public void failed(    int migrationVersion,    String reason,    Throwable throwable){
+      fail(reason);
+    }
+    @Override public void update(    int migrationVersion,    String message){
+    }
+  }
+;
+  final ApplicationScope appScope=new ApplicationScopeImpl(new SimpleId(UUID.randomUUID(),"application"));
+  LegacyIndexIdentifier legacyIndexIdentifier=new LegacyIndexIdentifier(fig,appScope);
+  TestIndexModule.TestAllApplicationsObservable obs=new TestIndexModule.TestAllApplicationsObservable(indexBatchBufferProducer,provider,indexCache,metricsFactory,fig);
+  int version=indexDataMigration.migrate(0,applicationScopeMigrationDataProvider,po);
+  assertEquals(version,IndexDataVersions.SINGLE_INDEX.getVersion());
+}
