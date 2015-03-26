@@ -1,5 +1,5 @@
 {
-  CollectionScope scope=new CollectionScopeImpl(new SimpleId("organization"),new SimpleId("test"),"test");
+  ApplicationScope scope=new ApplicationScopeImpl(new SimpleId("organization"));
   Id entityId=new SimpleId(UUIDGenerator.newTimeUUID(),"entity");
   final UUID version1=UUIDGenerator.newTimeUUID();
   IntegerField version1Field1=new IntegerField("count",1);
@@ -16,7 +16,7 @@
   batch.mergeShallow(strategy.write(scope,version2Field1Value));
   batch.mergeShallow(strategy.write(scope,version2Field2Value));
   batch.execute();
-  UniqueValueSet fields=strategy.load(scope,Arrays.<Field>asList(version1Field1,version1Field2));
+  UniqueValueSet fields=strategy.load(scope,entityId.getType(),Arrays.<Field>asList(version1Field1,version1Field2));
   UniqueValue retrieved=fields.getValue(version1Field1.getName());
   assertEquals(version1Field1Value,retrieved);
   retrieved=fields.getValue(version1Field2.getName());

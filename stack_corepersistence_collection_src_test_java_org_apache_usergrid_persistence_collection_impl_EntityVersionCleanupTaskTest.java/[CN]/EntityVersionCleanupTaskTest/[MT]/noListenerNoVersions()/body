@@ -8,7 +8,7 @@
   when(keyspace.prepareMutationBatch()).thenReturn(mock(MutationBatch.class)).thenReturn(entityBatch);
   final Set<EntityVersionDeleted> listeners=new HashSet<>();
   final Id applicationId=new SimpleId("application");
-  final CollectionScope appScope=new CollectionScopeImpl(applicationId,applicationId,"users");
+  final ApplicationScope appScope=new ApplicationScopeImpl(applicationId);
   final Id entityId=new SimpleId("user");
   final List<UUID> versions=VersionGenerator.generateVersions(1);
   final LogEntryMock logEntryMock=LogEntryMock.createLogEntryMock(less,appScope,entityId,versions);
@@ -19,6 +19,6 @@
   when(uvss.delete(same(appScope),any(UniqueValue.class))).thenReturn(newBatch);
   when(less.delete(same(appScope),same(entityId),any(UUID.class))).thenReturn(newBatch);
   cleanupTask.call();
-  verify(uvss,never()).delete(any(CollectionScope.class),any(UniqueValue.class));
-  verify(less,never()).delete(any(CollectionScope.class),any(Id.class),any(UUID.class));
+  verify(uvss,never()).delete(any(ApplicationScope.class),any(UniqueValue.class));
+  verify(less,never()).delete(any(ApplicationScope.class),any(Id.class),any(UUID.class));
 }
