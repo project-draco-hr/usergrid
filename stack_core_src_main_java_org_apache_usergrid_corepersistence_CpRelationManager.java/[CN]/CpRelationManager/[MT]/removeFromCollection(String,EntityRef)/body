@@ -13,12 +13,11 @@
     em.delete(itemRef);
     return;
   }
-  CollectionScope memberScope=getCollectionScopeNameFromEntityType(applicationScope.getApplication(),itemRef.getType());
   if (logger.isDebugEnabled()) {
-    logger.debug("Loading entity to remove from collection " + "{}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{itemRef.getType(),itemRef.getUuid(),memberScope.getApplication(),memberScope.getOwner(),memberScope.getName()});
+    logger.debug("Loading entity to remove from collection " + "{}:{} from app {}\n",new Object[]{itemRef.getType(),itemRef.getUuid(),applicationScope});
   }
   Id entityId=new SimpleId(itemRef.getUuid(),itemRef.getType());
-  org.apache.usergrid.persistence.model.entity.Entity memberEntity=((CpEntityManager)em).load(new CpEntityManager.EntityScope(memberScope,entityId));
+  org.apache.usergrid.persistence.model.entity.Entity memberEntity=((CpEntityManager)em).load(entityId);
   final ApplicationEntityIndex ei=managerCache.getEntityIndex(applicationScope);
   final EntityIndexBatch batch=ei.createBatch();
   IndexScope indexScope=new IndexScopeImpl(cpHeadEntity.getId(),CpNamingUtils.getCollectionScopeNameFromCollectionName(collName));

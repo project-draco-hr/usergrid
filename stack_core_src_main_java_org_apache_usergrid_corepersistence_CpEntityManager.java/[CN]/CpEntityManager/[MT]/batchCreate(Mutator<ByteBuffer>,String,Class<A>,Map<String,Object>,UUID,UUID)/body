@@ -91,15 +91,17 @@
     return entity;
   }
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=entityToCpEntity(entity,importId);
-  CollectionScope collectionScope=getCollectionScopeNameFromEntityType(getApplicationScope().getApplication(),eType);
-  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   if (logger.isDebugEnabled()) {
-    logger.debug("Writing entity {}:{} into scope\n   app {}\n   owner {}\n   name {} data {}",new Object[]{entity.getType(),entity.getUuid(),collectionScope.getApplication(),collectionScope.getOwner(),collectionScope.getName(),CpEntityMapUtils.toMap(cpEntity)});
+    logger.debug("Writing entity {}:{} into app {}\n",new Object[]{entity.getType(),entity.getUuid(),applicationId,CpEntityMapUtils.toMap(cpEntity)});
   }
   try {
-    logger.debug("About to Write {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
+    if (logger.isDebugEnabled()) {
+      logger.debug("About to Write {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
+    }
     cpEntity=ecm.write(cpEntity).toBlocking().last();
-    logger.debug("Wrote {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
+    if (logger.isDebugEnabled()) {
+      logger.debug("Wrote {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
+    }
   }
  catch (  WriteUniqueVerifyException wuve) {
     handleWriteUniqueVerifyException(entity,wuve);

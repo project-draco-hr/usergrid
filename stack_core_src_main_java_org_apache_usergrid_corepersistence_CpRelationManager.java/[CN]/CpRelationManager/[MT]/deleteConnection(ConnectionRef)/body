@@ -8,12 +8,11 @@
   EntityRef connectingEntityRef=connectionRef.getConnectingEntity();
   EntityRef connectedEntityRef=connectionRef.getConnectedEntity();
   String connectionType=connectionRef.getConnectedEntity().getConnectionType();
-  CollectionScope targetScope=getCollectionScopeNameFromEntityType(applicationScope.getApplication(),connectedEntityRef.getType());
   if (logger.isDebugEnabled()) {
     logger.debug("Deleting connection '{}' from source {}:{} \n   to target {}:{}",new Object[]{connectionType,connectingEntityRef.getType(),connectingEntityRef.getUuid(),connectedEntityRef.getType(),connectedEntityRef.getUuid()});
   }
   Id entityId=new SimpleId(connectedEntityRef.getUuid(),connectedEntityRef.getType());
-  org.apache.usergrid.persistence.model.entity.Entity targetEntity=((CpEntityManager)em).load(new CpEntityManager.EntityScope(targetScope,entityId));
+  org.apache.usergrid.persistence.model.entity.Entity targetEntity=((CpEntityManager)em).load(entityId);
   Edge edge=new SimpleEdge(new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),connectionType,targetEntity.getId(),System.currentTimeMillis());
   GraphManager gm=managerCache.getGraphManager(applicationScope);
   gm.deleteEdge(edge).toBlocking().last();
