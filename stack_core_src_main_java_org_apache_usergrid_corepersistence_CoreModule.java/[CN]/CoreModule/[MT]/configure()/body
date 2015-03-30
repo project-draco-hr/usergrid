@@ -23,7 +23,14 @@
     }
   }
 );
-  install(new IndexModule());
+  install(new IndexModule(){
+    @Override public void configureMigrationProvider(){
+      bind(new TypeLiteral<MigrationDataProvider<ApplicationScope>>(){
+      }
+).to(AllApplicationsObservable.class);
+    }
+  }
+);
   bind(ManagerCache.class).to(CpManagerCache.class);
   Multibinder<EntityDeleted> entityBinder=Multibinder.newSetBinder(binder(),EntityDeleted.class);
   entityBinder.addBinding().to(EntityDeletedHandler.class);

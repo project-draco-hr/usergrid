@@ -4,7 +4,6 @@
   ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
   IndexScope indexScope=new IndexScopeImpl(ownerId,"users");
   ApplicationEntityIndex entityIndex=eif.createApplicationEntityIndex(applicationScope);
-  entityIndex.initializeIndex();
   final EntityIndexBatch batch=entityIndex.createBatch();
   final int size=10;
   final List<Id> entities=new ArrayList<>(size);
@@ -33,12 +32,8 @@
   final int expectedPages=size / limit;
   String cursor=null;
   for (int i=0; i < expectedPages; i++) {
-    final Query query=Query.fromQL("select * order by created");
-    query.setLimit(limit);
-    if (cursor != null) {
-      query.setCursor(cursor);
-    }
-    final CandidateResults results=entityIndex.search(indexScope,SearchTypes.allTypes(),query);
+    Query query=Query.fromQL("select * order by created");
+    final CandidateResults results=cursor == null ? entityIndex.search(indexScope,SearchTypes.allTypes(),query,limit) : entityIndex.getNextPage(cursor);
     assertTrue(results.hasCursor());
     cursor=results.getCursor();
     assertEquals("Should be 16 bytes as hex",32,cursor.length());
