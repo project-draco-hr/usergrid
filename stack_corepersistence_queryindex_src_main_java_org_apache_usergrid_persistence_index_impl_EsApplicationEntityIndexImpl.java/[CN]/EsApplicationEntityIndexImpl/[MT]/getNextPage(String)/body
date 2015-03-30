@@ -1,0 +1,26 @@
+{
+  SearchResponse searchResponse;
+  String userCursorString=cursor;
+  if (userCursorString.startsWith("\"")) {
+    userCursorString=userCursorString.substring(1);
+  }
+  if (userCursorString.endsWith("\"")) {
+    userCursorString=userCursorString.substring(0,userCursorString.length() - 1);
+  }
+  final String esScrollCursor=mapManager.getString(userCursorString);
+  Preconditions.checkArgument(esScrollCursor != null,"Could not find a cursor for the value '{}' ",esScrollCursor);
+  logger.debug("Executing query with cursor: {} ",esScrollCursor);
+  SearchScrollRequestBuilder ssrb=esProvider.getClient().prepareSearchScroll(esScrollCursor).setScroll(cursorTimeout + "m");
+  try {
+    Timer.Context timeSearchCursor=cursorTimer.time();
+    searchResponse=ssrb.execute().actionGet();
+    timeSearchCursor.stop();
+  }
+ catch (  Throwable t) {
+    logger.error("Unable to communicate with elasticsearch",t);
+    failureMonitor.fail("Unable to execute batch",t);
+    throw t;
+  }
+  failureMonitor.success();
+  return parseResults(searchResponse);
+}

@@ -1,0 +1,26 @@
+{
+  String[] contexts=new String[]{createContextName(applicationScope,indexScope),createLegacyContextName(applicationScope,indexScope)};
+  QueryBuilder queryBuilder=null;
+  if (query.getRootOperand() != null) {
+    QueryVisitor v=new EsQueryVistor();
+    try {
+      query.getRootOperand().visit(v);
+    }
+ catch (    IndexException ex) {
+      throw new RuntimeException("Error building ElasticSearch query",ex);
+    }
+    queryBuilder=v.getQueryBuilder();
+  }
+  BoolQueryBuilder boolQueryBuilder=QueryBuilders.boolQuery();
+  for (  String context : contexts) {
+    boolQueryBuilder=boolQueryBuilder.should(QueryBuilders.termQuery(IndexingUtils.ENTITY_CONTEXT_FIELDNAME,context));
+  }
+  boolQueryBuilder=boolQueryBuilder.minimumNumberShouldMatch(1);
+  if (queryBuilder != null) {
+    queryBuilder=boolQueryBuilder.must(queryBuilder);
+  }
+ else {
+    queryBuilder=boolQueryBuilder;
+  }
+  return queryBuilder;
+}
