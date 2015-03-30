@@ -1,0 +1,10 @@
+{
+  final MigrationRelationship<MvccLogEntrySerializationStrategy> migration=getMigrationRelationShip();
+  if (migration.needsMigration()) {
+    final MutationBatch aggregateBatch=keyspace.prepareMutationBatch();
+    aggregateBatch.mergeShallow(migration.from.write(applicationScope,entry));
+    aggregateBatch.mergeShallow(migration.to.write(applicationScope,entry));
+    return aggregateBatch;
+  }
+  return migration.to.write(applicationScope,entry);
+}

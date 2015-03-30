@@ -1,20 +1,23 @@
 {
-  bind(MvccEntitySerializationStrategy.class).annotatedWith(ProxyImpl.class).to(MvccEntitySerializationStrategyProxyImpl.class);
   bind(MvccEntitySerializationStrategyV1Impl.class);
   bind(MvccEntitySerializationStrategyV2Impl.class);
   bind(MvccEntitySerializationStrategyV3Impl.class);
+  bind(MvccEntitySerializationStrategy.class).to(MvccEntitySerializationStrategyProxyImpl.class);
+  bind(MvccLogEntrySerializationStrategyV1Impl.class);
+  bind(MvccLogEntrySerializationStrategyV2Impl.class);
+  bind(MvccLogEntrySerializationStrategy.class).to(MvccLogEntrySerializationProxyImpl.class);
+  bind(UniqueValueSerializationStrategy.class).to(UniqueValueSerializationStrategyImpl.class);
+  Multibinder<Migration> migrationBinder=Multibinder.newSetBinder(binder(),Migration.class);
+  migrationBinder.addBinding().to(Key.get(MvccEntitySerializationStrategyV1Impl.class));
+  migrationBinder.addBinding().to(Key.get(MvccEntitySerializationStrategyV2Impl.class));
+  migrationBinder.addBinding().to(Key.get(MvccEntitySerializationStrategyV3Impl.class));
+  migrationBinder.addBinding().to(Key.get(MvccLogEntrySerializationStrategyV1Impl.class));
+  migrationBinder.addBinding().to(Key.get(MvccLogEntrySerializationStrategyV2Impl.class));
+  migrationBinder.addBinding().to(Key.get(UniqueValueSerializationStrategy.class));
+  bind(SettingsValidation.class).asEagerSingleton();
   Multibinder<DataMigration<EntityIdScope>> dataMigrationMultibinder=Multibinder.newSetBinder(binder(),new TypeLiteral<DataMigration<EntityIdScope>>(){
   }
 ,CollectionMigration.class);
   dataMigrationMultibinder.addBinding().to(MvccEntityDataMigrationImpl.class);
   Multibinder.newSetBinder(binder(),MigrationPlugin.class).addBinding().to(CollectionMigrationPlugin.class);
-  bind(MvccLogEntrySerializationStrategy.class).to(MvccLogEntrySerializationStrategyImpl.class);
-  bind(UniqueValueSerializationStrategy.class).to(UniqueValueSerializationStrategyImpl.class);
-  Multibinder<Migration> uriBinder=Multibinder.newSetBinder(binder(),Migration.class);
-  uriBinder.addBinding().to(Key.get(MvccEntitySerializationStrategyV1Impl.class));
-  uriBinder.addBinding().to(Key.get(MvccEntitySerializationStrategyV2Impl.class));
-  uriBinder.addBinding().to(Key.get(MvccEntitySerializationStrategyV3Impl.class));
-  uriBinder.addBinding().to(Key.get(MvccLogEntrySerializationStrategy.class));
-  uriBinder.addBinding().to(Key.get(UniqueValueSerializationStrategy.class));
-  bind(SettingsValidation.class).asEagerSingleton();
 }
