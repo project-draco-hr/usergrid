@@ -18,7 +18,8 @@
   gm.deleteEdge(edge).toBlocking().last();
   final ApplicationEntityIndex ei=managerCache.getEntityIndex(applicationScope);
   final EntityIndexBatch batch=ei.createBatch();
-  IndexScope indexScope=new IndexScopeImpl(new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),CpNamingUtils.getConnectionScopeName(connectionType));
+  final Id cpId=createId(connectingEntityRef);
+  IndexScope indexScope=generateScopeFromConnection(cpId,connectionType);
   batch.deindex(indexScope,targetEntity);
   Timer.Context timeDeleteConnection=esDeleteConnectionTimer.time();
   batch.execute();

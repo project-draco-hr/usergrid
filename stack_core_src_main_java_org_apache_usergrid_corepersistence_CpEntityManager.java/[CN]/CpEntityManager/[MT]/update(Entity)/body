@@ -19,13 +19,6 @@
  catch (  WriteUniqueVerifyException wuve) {
     handleWriteUniqueVerifyException(entity,wuve);
   }
-catch (  HystrixRuntimeException hre) {
-    if (hre.getCause() instanceof WriteUniqueVerifyException) {
-      WriteUniqueVerifyException wuve=(WriteUniqueVerifyException)hre.getCause();
-      handleWriteUniqueVerifyException(entity,wuve);
-    }
-    throw hre;
-  }
   CpRelationManager rm=(CpRelationManager)getRelationManager(entity);
   rm.updateContainingCollectionAndCollectionIndexes(cpEntity);
   timer.stop();

@@ -13,7 +13,7 @@
   gm.writeEdge(edge).toBlocking().last();
   ApplicationEntityIndex ei=managerCache.getEntityIndex(applicationScope);
   EntityIndexBatch batch=ei.createBatch();
-  IndexScope indexScope=new IndexScopeImpl(cpHeadEntity.getId(),CpNamingUtils.getConnectionScopeName(connectionType));
+  IndexScope indexScope=generateScopeFromConnection(cpHeadEntity.getId(),connectionType);
   batch.index(indexScope,targetEntity);
   BetterFuture future=batch.execute();
   Keyspace ko=cass.getApplicationKeyspace(applicationId);
