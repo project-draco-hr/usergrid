@@ -1,13 +1,11 @@
 {
-  JsonNode node=null;
   try {
     WebResource resource=resource();
     resource.path("/test-organization/test-app/users/foobarNonexistent");
     resource.accept(MediaType.APPLICATION_JSON);
-    node=mapper.readTree(resource.get(String.class));
+    mapper.readTree(resource.get(String.class));
   }
  catch (  UniformInterfaceException e) {
-    logNode(node);
     assertEquals("Guests should not be able to get a 404",401,e.getResponse().getStatus());
   }
 }

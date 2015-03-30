@@ -14,7 +14,6 @@
     return null;
   }
   CollectionScope memberScope=getCollectionScopeNameFromEntityType(applicationScope.getApplication(),itemRef.getType());
-  Id entityId=new SimpleId(itemRef.getUuid(),itemRef.getType());
   if (memberEntity == null) {
     throw new RuntimeException("Unable to load entity uuid=" + itemRef.getUuid() + " type="+ itemRef.getType());
   }
@@ -27,9 +26,13 @@
   Edge edge=new SimpleEdge(cpHeadEntity.getId(),edgeType,memberEntity.getId(),uuidHash);
   GraphManager gm=managerCache.getGraphManager(applicationScope);
   gm.writeEdge(edge).toBlocking().last();
-  logger.debug("Wrote edgeType {}\n   from {}:{}\n   to {}:{}\n   scope {}:{}",new Object[]{edgeType,cpHeadEntity.getId().getType(),cpHeadEntity.getId().getUuid(),memberEntity.getId().getType(),memberEntity.getId().getUuid(),applicationScope.getApplication().getType(),applicationScope.getApplication().getUuid()});
+  if (logger.isDebugEnabled()) {
+    logger.debug("Wrote edgeType {}\n   from {}:{}\n   to {}:{}\n   scope {}:{}",new Object[]{edgeType,cpHeadEntity.getId().getType(),cpHeadEntity.getId().getUuid(),memberEntity.getId().getType(),memberEntity.getId().getUuid(),applicationScope.getApplication().getType(),applicationScope.getApplication().getUuid()});
+  }
   ((CpEntityManager)em).indexEntityIntoCollection(cpHeadEntity,memberEntity,collName);
-  logger.debug("Added entity {}:{} to collection {}",new Object[]{itemRef.getUuid().toString(),itemRef.getType(),collName});
+  if (logger.isDebugEnabled()) {
+    logger.debug("Added entity {}:{} to collection {}",new Object[]{itemRef.getUuid().toString(),itemRef.getType(),collName});
+  }
   if (connectBack && collection != null && collection.getLinkedCollection() != null) {
     getRelationManager(itemEntity).addToCollection(collection.getLinkedCollection(),headEntity,cpHeadEntity,false);
     getRelationManager(itemEntity).addToCollection(collection.getLinkedCollection(),headEntity,false);

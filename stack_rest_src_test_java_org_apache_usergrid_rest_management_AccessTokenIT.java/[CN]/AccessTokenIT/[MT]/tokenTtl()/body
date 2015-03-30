@@ -1,15 +1,13 @@
 {
   long ttl=2000;
-  JsonNode node=mapper.readTree(resource().path("/management/token").queryParam("grant_type","password").queryParam("username","test@usergrid.com").queryParam("password","test").queryParam("ttl",String.valueOf(ttl)).accept(MediaType.APPLICATION_JSON).get(String.class));
+  tokenSetup(ttl);
   long startTime=System.currentTimeMillis();
-  String token=node.get("access_token").textValue();
-  assertNotNull(token);
-  JsonNode userdata=mapper.readTree(resource().path("/management/users/test@usergrid.com").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).get(String.class));
-  assertEquals("test@usergrid.com",userdata.get("data").get("email").asText());
+  Entity user=new Entity(management().users().user(clientSetup.getUsername()).get(ApiResponse.class));
+  assertEquals(clientSetup.getUsername(),user.get("username"));
   Thread.sleep(ttl - (System.currentTimeMillis() - startTime) + 1000);
   ClientResponse.Status responseStatus=null;
   try {
-    userdata=mapper.readTree(resource().path("/management/users/test@usergrid.com").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
+    management().users().user(clientSetup.getUsername()).get(ApiResponse.class);
   }
  catch (  UniformInterfaceException uie) {
     responseStatus=uie.getResponse().getClientResponseStatus();

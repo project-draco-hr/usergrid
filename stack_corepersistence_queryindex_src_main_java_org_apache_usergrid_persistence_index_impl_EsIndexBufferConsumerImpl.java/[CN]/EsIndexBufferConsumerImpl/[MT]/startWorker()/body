@@ -3,18 +3,21 @@ synchronized (mutex) {
     Observable<List<IndexOperationMessage>> consumer=Observable.create(new Observable.OnSubscribe<List<IndexOperationMessage>>(){
       @Override public void call(      final Subscriber<? super List<IndexOperationMessage>> subscriber){
         Thread.currentThread().setName("QueueConsumer_" + counter.incrementAndGet());
-        List<IndexOperationMessage> drainList;
+        List<IndexOperationMessage> drainList=null;
         do {
+          Timer.Context timer=produceTimer.time();
           try {
-            Timer.Context timer=produceTimer.time();
             drainList=bufferQueue.take(config.getIndexBufferSize(),config.getIndexBufferTimeout(),TimeUnit.MILLISECONDS);
             subscriber.onNext(drainList);
             inFlight.addAndGet(drainList.size());
             timer.stop();
           }
- catch (          Exception e) {
+ catch (          Throwable t) {
             final long sleepTime=config.getFailureRetryTime();
-            log.error("Failed to dequeue.  Sleeping for {} milliseconds",sleepTime,e);
+            log.error("Failed to dequeue.  Sleeping for {} milliseconds",sleepTime,t);
+            if (drainList != null) {
+              inFlight.addAndGet(-1 * drainList.size());
+            }
             try {
               Thread.sleep(sleepTime);
             }
@@ -26,7 +29,7 @@ synchronized (mutex) {
  while (true);
       }
     }
-).subscribeOn(Schedulers.newThread()).doOnNext(new Action1<List<IndexOperationMessage>>(){
+).doOnNext(new Action1<List<IndexOperationMessage>>(){
       @Override public void call(      List<IndexOperationMessage> containerList){
         if (containerList.size() == 0) {
           return;
@@ -43,13 +46,7 @@ synchronized (mutex) {
         inFlight.addAndGet(-1 * indexOperationMessages.size());
       }
     }
-).doOnError(new Action1<Throwable>(){
-      @Override public void call(      final Throwable throwable){
-        log.error("An exception occurred when trying to deque and write to elasticsearch.  Ignoring",throwable);
-        indexErrorCounter.inc();
-      }
-    }
-);
+).subscribeOn(Schedulers.newThread());
     final Subscription subscription=consumer.subscribe();
     subscriptions.add(subscription);
   }
