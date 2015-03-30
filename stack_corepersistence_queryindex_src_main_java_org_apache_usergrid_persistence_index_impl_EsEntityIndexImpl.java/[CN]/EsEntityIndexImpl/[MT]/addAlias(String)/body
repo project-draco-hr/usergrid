@@ -15,11 +15,26 @@
       isAck=aliasesRequestBuilder.execute().actionGet().isAcknowledged();
       logger.info("Removed Index Name from Alias=[{}] ACK=[{}]",alias,isAck);
     }
-    aliasesRequestBuilder=adminClient.indices().prepareAliases();
-    aliasesRequestBuilder.addAlias(indexName,alias.getReadAlias());
-    aliasesRequestBuilder.addAlias(indexName,alias.getWriteAlias());
-    isAck=aliasesRequestBuilder.execute().actionGet().isAcknowledged();
-    logger.info("Created new aliases ACK=[{}]",isAck);
+    String[] reads=getIndexes(AliasedEntityIndex.AliasType.Read);
+    String[] writes=getIndexes(AliasedEntityIndex.AliasType.Write);
+    try {
+      aliasesRequestBuilder=adminClient.indices().prepareAliases();
+      aliasesRequestBuilder.addAlias(indexName,alias.getReadAlias());
+      isAck=aliasesRequestBuilder.execute().actionGet().isAcknowledged();
+      logger.info("Created new read aliases ACK=[{}]",isAck);
+    }
+ catch (    InvalidAliasNameException ie) {
+      logger.debug("error creating read",ie);
+    }
+    try {
+      aliasesRequestBuilder=adminClient.indices().prepareAliases();
+      aliasesRequestBuilder.addAlias(indexName,alias.getWriteAlias());
+      isAck=aliasesRequestBuilder.execute().actionGet().isAcknowledged();
+      logger.info("Created new write aliases ACK=[{}]",isAck);
+    }
+ catch (    InvalidAliasNameException ie) {
+      logger.debug("error creating write",ie);
+    }
     aliasCache.invalidate(alias);
   }
  catch (  Exception e) {
