@@ -3,18 +3,21 @@ synchronized (mutex) {
     Observable<List<IndexOperationMessage>> consumer=Observable.create(new Observable.OnSubscribe<List<IndexOperationMessage>>(){
       @Override public void call(      final Subscriber<? super List<IndexOperationMessage>> subscriber){
         Thread.currentThread().setName("QueueConsumer_" + counter.incrementAndGet());
-        List<IndexOperationMessage> drainList;
+        List<IndexOperationMessage> drainList=null;
         do {
+          Timer.Context timer=produceTimer.time();
           try {
-            Timer.Context timer=produceTimer.time();
             drainList=bufferQueue.take(config.getIndexBufferSize(),config.getIndexBufferTimeout(),TimeUnit.MILLISECONDS);
             subscriber.onNext(drainList);
             inFlight.addAndGet(drainList.size());
             timer.stop();
           }
- catch (          Exception e) {
+ catch (          Throwable t) {
             final long sleepTime=config.getFailureRetryTime();
-            log.error("Failed to dequeue.  Sleeping for {} milliseconds",sleepTime,e);
+            log.error("Failed to dequeue.  Sleeping for {} milliseconds",sleepTime,t);
+            if (drainList != null) {
+              inFlight.addAndGet(-1 * drainList.size());
+            }
             try {
               Thread.sleep(sleepTime);
             }
@@ -41,19 +44,6 @@ synchronized (mutex) {
       @Override public void call(      final List<IndexOperationMessage> indexOperationMessages){
         bufferQueue.ack(indexOperationMessages);
         inFlight.addAndGet(-1 * indexOperationMessages.size());
-      }
-    }
-).onErrorReturn(new Func1<Throwable,List<IndexOperationMessage>>(){
-      @Override public List<IndexOperationMessage> call(      final Throwable throwable){
-        final long sleepTime=config.getFailureRetryTime();
-        log.error("Failed to dequeue.  Sleeping for {} milliseconds",sleepTime,throwable);
-        try {
-          Thread.sleep(sleepTime);
-        }
- catch (        InterruptedException ie) {
-        }
-        indexErrorCounter.inc();
-        return Collections.EMPTY_LIST;
       }
     }
 ).subscribeOn(Schedulers.newThread());
