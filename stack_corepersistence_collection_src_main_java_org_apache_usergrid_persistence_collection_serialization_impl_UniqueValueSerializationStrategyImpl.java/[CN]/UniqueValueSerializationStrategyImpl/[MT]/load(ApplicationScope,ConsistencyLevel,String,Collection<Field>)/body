@@ -1,20 +1,18 @@
 {
   Preconditions.checkNotNull(fields,"fields are required");
   Preconditions.checkArgument(fields.size() > 0,"More than 1 field must be specified");
-  final List<ScopedRowKey<CollectionPrefixedKey<Field>>> keys=new ArrayList<>(fields.size());
+  final List<ScopedRowKey<FieldKey>> keys=new ArrayList<>(fields.size());
   final Id applicationId=appScope.getApplication();
-  final Id ownerId=appScope.getApplication();
-  final String collectionName=LegacyScopeUtils.getCollectionScopeNameFromEntityType(type);
   for (  Field field : fields) {
-    final CollectionPrefixedKey<Field> collectionPrefixedKey=new CollectionPrefixedKey<>(collectionName,ownerId,field);
-    final ScopedRowKey<CollectionPrefixedKey<Field>> rowKey=ScopedRowKey.fromKey(applicationId,collectionPrefixedKey);
+    final FieldKey key=createUniqueValueKey(applicationId,type,field);
+    final ScopedRowKey<FieldKey> rowKey=ScopedRowKey.fromKey(applicationId,key);
     keys.add(rowKey);
   }
   final UniqueValueSetImpl uniqueValueSet=new UniqueValueSetImpl(fields.size());
-  Iterator<Row<ScopedRowKey<CollectionPrefixedKey<Field>>,EntityVersion>> results=keyspace.prepareQuery(CF_UNIQUE_VALUES).setConsistencyLevel(consistencyLevel).getKeySlice(keys).withColumnRange(new RangeBuilder().setLimit(1).build()).execute().getResult().iterator();
+  Iterator<Row<ScopedRowKey<FieldKey>,EntityVersion>> results=keyspace.prepareQuery(CF_UNIQUE_VALUES).setConsistencyLevel(consistencyLevel).getKeySlice(keys).withColumnRange(new RangeBuilder().setLimit(1).build()).execute().getResult().iterator();
   while (results.hasNext()) {
-    final Row<ScopedRowKey<CollectionPrefixedKey<Field>>,EntityVersion> unique=results.next();
-    final Field field=unique.getKey().getKey().getSubKey();
+    final Row<ScopedRowKey<FieldKey>,EntityVersion> unique=results.next();
+    final Field field=parseRowKey(unique.getKey());
     final Iterator<Column<EntityVersion>> columnList=unique.getColumns().iterator();
     if (!columnList.hasNext()) {
       continue;
