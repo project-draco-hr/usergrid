@@ -8,5 +8,11 @@
   smf=springResource.getBean(ServiceManagerFactory.class);
   exportService=springResource.getBean(ExportService.class);
   importService=springResource.getBean(ImportService.class);
+  try {
+    appInfoMigrationPlugin=springResource.getBean(GuiceFactory.class).getObject().getInstance(AppInfoMigrationPlugin.class);
+  }
+ catch (  Exception e) {
+    logger.error("Unable to instantiate AppInfoMigrationPlugin",e);
+  }
   SecurityUtils.setSecurityManager(springResource.getBean(org.apache.shiro.mgt.SecurityManager.class));
 }

@@ -1,16 +1,19 @@
 {
-  EntityManager em=getEntityManager(CpNamingUtils.SYSTEM_APP_ID);
-  Query q=Query.fromQL(String.format("select * where applicationUuid = '%s'",applicationId.toString()));
-  Results results=em.searchCollection(em.getApplicationRef(),"deleted_appinfos",q);
-  Entity appToRestore=results.getEntity();
-  if (appToRestore == null) {
+  EntityManager em=getEntityManager(getManagementAppId());
+  final Results results=em.searchCollection(em.getApplicationRef(),CpNamingUtils.DELETED_APPLICATION_INFOS,Query.fromQL("select * where " + PROPERTY_APPLICATION_ID + " = '"+ applicationId.toString()+ "'"));
+  Entity deletedAppInfo=results.getEntity();
+  if (deletedAppInfo == null) {
     throw new EntityNotFoundException("Cannot restore. Deleted Application not found: " + applicationId);
   }
-  em.delete(appToRestore);
-  Map<String,Object> appProps=appToRestore.getProperties();
-  appProps.remove("uuid");
-  appProps.put("type","appinfo");
-  Entity restoredApp=em.create("appinfo",appToRestore.getProperties());
+  Entity restoredAppInfo=em.create(deletedAppInfo.getUuid(),CpNamingUtils.APPLICATION_INFO,deletedAppInfo.getProperties());
+  final Set<String> connectionTypes=em.getConnectionTypes(deletedAppInfo);
+  for (  String connType : connectionTypes) {
+    final Results connResults=em.getConnectedEntities(deletedAppInfo,connType,null,Query.Level.ALL_PROPERTIES);
+    for (    Entity entity : connResults.getEntities()) {
+      em.createConnection(restoredAppInfo,connType,entity);
+    }
+  }
+  em.delete(deletedAppInfo);
   entityIndex.refresh();
   this.rebuildApplicationIndexes(applicationId,new ProgressObserver(){
     @Override public void onProgress(    EntityRef entity){
@@ -18,4 +21,5 @@
     }
   }
 );
+  return restoredAppInfo;
 }

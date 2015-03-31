@@ -3,9 +3,16 @@
   response.setAction("Migrate Data");
   final Thread migrate=new Thread(){
     @Override public void run(){
-      logger.info("Migrating Data ");
+      logger.info("Migrating Schema");
       try {
         getMigrationManager().migrate();
+      }
+ catch (      Exception e) {
+        logger.error("Unable to migrate data",e);
+      }
+      logger.info("Migrating Data");
+      try {
+        getDataMigrationManager().migrate();
       }
  catch (      Exception e) {
         logger.error("Unable to migrate data",e);

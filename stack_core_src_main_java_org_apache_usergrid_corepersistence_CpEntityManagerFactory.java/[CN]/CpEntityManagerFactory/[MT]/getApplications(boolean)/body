@@ -1,5 +1,5 @@
 {
-  Map<String,UUID> appMap=new HashMap<String,UUID>();
+  Map<String,UUID> appMap=new HashMap<>();
   ApplicationScope appScope=CpNamingUtils.getApplicationScope(CpNamingUtils.SYSTEM_APP_ID);
   GraphManager gm=managerCache.getGraphManager(appScope);
   EntityManager em=getEntityManager(CpNamingUtils.SYSTEM_APP_ID);
@@ -19,12 +19,13 @@
     Edge edge=iter.next();
     Id targetId=edge.getTargetNode();
     logger.debug("getApplications(): Processing edge from {}:{} to {}:{}",new Object[]{edge.getSourceNode().getType(),edge.getSourceNode().getUuid(),edge.getTargetNode().getType(),edge.getTargetNode().getUuid()});
-    org.apache.usergrid.persistence.model.entity.Entity e=managerCache.getEntityCollectionManager(appScope).load(targetId).toBlocking().lastOrDefault(null);
-    if (e == null) {
-      logger.warn("Applicaion {} in index but not found in collections",targetId);
+    org.apache.usergrid.persistence.model.entity.Entity appInfo=managerCache.getEntityCollectionManager(appScope).load(targetId).toBlocking().lastOrDefault(null);
+    if (appInfo == null) {
+      logger.warn("Application {} in index but not found in collections",targetId);
       continue;
     }
-    appMap.put((String)e.getField(PROPERTY_NAME).getValue(),(UUID)e.getField("applicationUuid").getValue());
+    UUID applicationId=UUIDUtils.tryExtractUUID(appInfo.getField(PROPERTY_APPLICATION_ID).getValue().toString());
+    appMap.put((String)appInfo.getField(PROPERTY_NAME).getValue(),applicationId);
   }
   return appMap;
 }

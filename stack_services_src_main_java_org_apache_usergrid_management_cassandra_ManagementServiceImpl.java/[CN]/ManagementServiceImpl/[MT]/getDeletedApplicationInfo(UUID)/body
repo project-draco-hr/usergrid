@@ -1,0 +1,13 @@
+{
+  if (applicationId == null) {
+    return null;
+  }
+  EntityManager em=emf.getEntityManager(smf.getManagementAppId());
+  EntityRef mgmtAppRef=new SimpleEntityRef(Schema.TYPE_APPLICATION,smf.getManagementAppId());
+  final Results results=em.searchCollection(mgmtAppRef,CpNamingUtils.DELETED_APPLICATION_INFOS,Query.fromQL("select * where " + PROPERTY_APPLICATION_ID + " = "+ applicationId.toString()));
+  Entity entity=results.getEntity();
+  if (entity != null) {
+    return new ApplicationInfo(applicationId,entity.getName());
+  }
+  return null;
+}

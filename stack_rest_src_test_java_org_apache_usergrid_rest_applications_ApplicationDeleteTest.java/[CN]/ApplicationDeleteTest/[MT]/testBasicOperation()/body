@@ -1,2 +1,60 @@
 {
+  String orgName=clientSetup.getOrganization().getName();
+  String appToDeleteName=clientSetup.getAppName() + "_appToDelete";
+  Token orgAdminToken=getAdminToken(clientSetup.getUsername(),clientSetup.getUsername());
+  List<Entity> entities=new ArrayList<>();
+  UUID appToDeleteId=createAppWithCollection(orgName,appToDeleteName,orgAdminToken,entities);
+  try {
+    clientSetup.getRestClient().org(orgName).app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).delete();
+    fail("Delete must fail without app_delete_confirm parameter");
+  }
+ catch (  Exception e) {
+    logger.error("Error",e);
+  }
+  clientSetup.getRestClient().org(orgName).app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("app_delete_confirm","confirm_delete_of_application_and_data").delete();
+  try {
+    clientSetup.getRestClient().org(orgName).app(appToDeleteName).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).get(ApiResponse.class);
+    fail("Must not be able to get deleted app");
+  }
+ catch (  UniformInterfaceException expected) {
+    Assert.assertEquals("Error must be 400",400,expected.getResponse().getStatus());
+    JsonNode node=mapper.readTree(expected.getResponse().getEntity(String.class));
+    Assert.assertEquals("organization_application_not_found",node.get("error").textValue());
+  }
+  try {
+    clientSetup.getRestClient().org(orgName).app(appToDeleteName).collection("things").getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).get(ApiResponse.class);
+    fail("Must not be able to get deleted app's collection");
+  }
+ catch (  UniformInterfaceException expected) {
+    Assert.assertEquals("Error must be 400",400,expected.getResponse().getStatus());
+    JsonNode node=mapper.readTree(expected.getResponse().getEntity(String.class));
+    Assert.assertEquals("organization_application_not_found",node.get("error").textValue());
+  }
+  try {
+    UUID entityId=entities.get(0).getUuid();
+    clientSetup.getRestClient().org(orgName).app(appToDeleteName).collection("things").entity(entityId).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).get(ApiResponse.class);
+    fail("Must not be able to get deleted app entity");
+  }
+ catch (  UniformInterfaceException expected) {
+    Assert.assertEquals("Error must be 400",400,expected.getResponse().getStatus());
+    JsonNode node=mapper.readTree(expected.getResponse().getEntity(String.class));
+    Assert.assertEquals("organization_application_not_found",node.get("error").textValue());
+  }
+  refreshIndex();
+  ManagementResponse orgAppResponse=clientSetup.getRestClient().management().orgs().organization(orgName).apps().getOrganizationApplications();
+  for (  String appName : orgAppResponse.getData().keySet()) {
+    if (orgAppResponse.getData().get(appName).equals(appToDeleteId.toString())) {
+      fail("Deleted app must not be included in list of org apps");
+    }
+  }
+  try {
+    clientSetup.getRestClient().org(orgName).app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).delete();
+  }
+ catch (  UniformInterfaceException expected) {
+    Assert.assertEquals("Error must be 404",404,expected.getResponse().getStatus());
+    JsonNode node=mapper.readTree(expected.getResponse().getEntity(String.class));
+    Assert.assertEquals("not_found",node.get("error").textValue());
+  }
+  ApiResponse appCreateAgainResponse=clientSetup.getRestClient().management().orgs().organization(orgName).app().getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).post(ApiResponse.class,new Application(appToDeleteName));
+  Assert.assertEquals("Must be able to create app with same name as deleted app",(orgName + "/" + appToDeleteName).toLowerCase(),appCreateAgainResponse.getEntities().get(0).get("name"));
 }

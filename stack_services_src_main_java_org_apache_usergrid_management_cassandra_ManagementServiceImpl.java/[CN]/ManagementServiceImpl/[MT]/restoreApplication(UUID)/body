@@ -1,0 +1,27 @@
+{
+  ApplicationInfo app=getDeletedApplicationInfo(applicationId);
+  if (app == null) {
+    throw new EntityNotFoundException("Deleted application ID " + applicationId + " not found");
+  }
+  if (emf.lookupApplication(app.getName()) != null) {
+    throw new ConflictException("Cannot restore application, one with that name already exists.");
+  }
+  EntityManager em=emf.getEntityManager(emf.getManagementAppId());
+  Entity appInfo=emf.restoreApplication(applicationId);
+  writeUserToken(smf.getManagementAppId(),appInfo,encryptionService.plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.APPLICATION),null,smf.getManagementAppId()));
+  String orgName=appInfo.getName().split("/")[0];
+  EntityRef alias=em.getAlias(Group.ENTITY_TYPE,orgName);
+  Entity orgEntity=em.get(alias);
+  addApplicationToOrganization(orgEntity.getUuid(),appInfo);
+  UserInfo user=null;
+  try {
+    user=SubjectUtils.getUser();
+  }
+ catch (  UnavailableSecurityManagerException e) {
+    logger.warn("Error getting user, application restored created activity will not be created",e);
+  }
+  if ((user != null) && user.isAdminUser()) {
+    postOrganizationActivity(orgEntity.getUuid(),user,"restore",appInfo,"Application",appInfo.getName(),"<a href=\"mailto:" + user.getEmail() + "\">"+ user.getName()+ " ("+ user.getEmail()+ ")</a> restored an application named "+ appInfo.getName(),null);
+  }
+  return new ApplicationInfo(applicationId,appInfo.getName());
+}

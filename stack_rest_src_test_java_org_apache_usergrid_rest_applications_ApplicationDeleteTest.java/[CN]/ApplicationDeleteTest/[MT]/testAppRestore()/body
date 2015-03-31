@@ -1,0 +1,28 @@
+{
+  String orgName=clientSetup.getOrganization().getName();
+  String appToDeleteName=clientSetup.getAppName() + "_appToDelete";
+  Token orgAdminToken=getAdminToken(clientSetup.getUsername(),clientSetup.getUsername());
+  List<Entity> entities=new ArrayList<>();
+  UUID appToDeleteId=createAppWithCollection(orgName,appToDeleteName,orgAdminToken,entities);
+  logger.debug("\n\nDeleting app\n");
+  clientSetup.getRestClient().org(orgName).app(appToDeleteName).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("app_delete_confirm","confirm_delete_of_application_and_data").delete();
+  Thread.sleep(1000);
+  logger.debug("\n\nRestoring app\n");
+  clientSetup.getRestClient().org(orgName).app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).put();
+  logger.debug("\n\nGetting app list from management end-point\n");
+  ManagementResponse orgAppResponse=clientSetup.getRestClient().management().orgs().organization(orgName).apps().getOrganizationApplications();
+  boolean found=false;
+  for (  String appName : orgAppResponse.getData().keySet()) {
+    if (orgAppResponse.getData().get(appName).equals(appToDeleteId.toString())) {
+      found=true;
+      break;
+    }
+  }
+  Assert.assertTrue(found);
+  logger.debug("\n\nGetting entities from app\n");
+  UUID entityId=entities.get(0).getUuid();
+  ApiResponse entityResponse=clientSetup.getRestClient().org(orgName).app(appToDeleteName).collection("things").entity(entityId).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).get(ApiResponse.class);
+  Assert.assertEquals(entityId,entityResponse.getEntities().get(0).getUuid());
+  ApiResponse collectionReponse=clientSetup.getRestClient().org(orgName).app(appToDeleteName).collection("things").getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).get(ApiResponse.class);
+  Assert.assertEquals(entities.size(),collectionReponse.getEntityCount());
+}

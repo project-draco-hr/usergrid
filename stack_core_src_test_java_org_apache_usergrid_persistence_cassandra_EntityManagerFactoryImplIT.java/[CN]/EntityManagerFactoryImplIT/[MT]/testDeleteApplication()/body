@@ -1,7 +1,10 @@
 {
+  int maxRetries=10;
   String rand=UUIDGenerator.newTimeUUID().toString();
-  final UUID applicationId=setup.createApplication("test-org-" + rand,"test-app-" + rand);
-  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  String appName="test-app-" + rand;
+  String orgName="test-org-" + rand;
+  final UUID deletedAppId=setup.createApplication(orgName,appName);
+  EntityManager em=setup.getEmf().getEntityManager(deletedAppId);
   Map<String,Object> properties1=new LinkedHashMap<String,Object>();
   properties1.put("Name","12 Angry Men");
   properties1.put("Year",1957);
@@ -10,9 +13,13 @@
   properties2.put("Name","Reservoir Dogs");
   properties2.put("Year",1992);
   Entity film2=em.create("film",properties2);
-  app.refreshIndex();
-  setup.getEmf().deleteApplication(applicationId);
-  app.refreshIndex();
+  for (int j=0; j < maxRetries; j++) {
+    if (setup.getEmf().lookupApplication(orgName + "/" + appName) != null) {
+      break;
+    }
+    Thread.sleep(500);
+  }
+  setup.getEmf().deleteApplication(deletedAppId);
   Func2<UUID,Map<String,UUID>,Boolean> findApps=new Func2<UUID,Map<String,UUID>,Boolean>(){
     @Override public Boolean call(    UUID applicationId,    Map<String,UUID> apps){
       boolean found=false;
@@ -28,8 +35,8 @@
   }
 ;
   boolean found=false;
-  for (int i=0; i < 10; i++) {
-    found=findApps.call(applicationId,emf.getDeletedApplications());
+  for (int i=0; i < maxRetries; i++) {
+    found=findApps.call(deletedAppId,emf.getDeletedApplications());
     if (found) {
       break;
     }
@@ -37,23 +44,37 @@
       Thread.sleep(500);
     }
   }
-  assertTrue("Deleted app not found in deleted apps collection",found);
-  assertNull(setup.getEmf().lookupApplication("test-app-" + rand));
-  Map<String,UUID> appMap=setup.getEmf().getApplications();
-  for (  String appName : appMap.keySet()) {
-    UUID appId=appMap.get(appName);
-    assertNotEquals(appId,applicationId);
-    assertNotEquals(appName,"test-app-" + rand);
+  assertTrue("Deleted app must be found in in deleted apps collection",found);
+  for (int i=0; i < maxRetries; i++) {
+    found=(setup.getEmf().lookupApplication(orgName + "/" + appName) != null);
+    if (found) {
+      Thread.sleep(500);
+    }
+ else {
+      break;
+    }
   }
-  emf.restoreApplication(applicationId);
+  assertFalse("Lookup of deleted app must fail",found);
+  for (int i=0; i < maxRetries; i++) {
+    found=findApps.call(deletedAppId,emf.getApplications());
+    if (found) {
+      Thread.sleep(500);
+    }
+ else {
+      break;
+    }
+  }
+  assertFalse("Deleted app must not be found in apps collection",found);
+  emf.refreshIndex();
+  emf.restoreApplication(deletedAppId);
   emf.rebuildAllIndexes(new EntityManagerFactory.ProgressObserver(){
     @Override public void onProgress(    EntityRef entity){
       logger.debug("Reindexing {}:{}",entity.getType(),entity.getUuid());
     }
   }
 );
-  for (int i=0; i < 10; i++) {
-    found=findApps.call(applicationId,emf.getDeletedApplications());
+  for (int i=0; i < maxRetries; i++) {
+    found=findApps.call(deletedAppId,emf.getDeletedApplications());
     if (!found) {
       break;
     }
@@ -62,8 +83,8 @@
     }
   }
   assertFalse("Restored app found in deleted apps collection",found);
-  for (int i=0; i < 10; i++) {
-    found=findApps.call(applicationId,setup.getEmf().getApplications());
+  for (int i=0; i < maxRetries; i++) {
+    found=findApps.call(deletedAppId,setup.getEmf().getApplications());
     if (!found) {
       break;
     }
