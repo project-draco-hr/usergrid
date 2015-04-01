@@ -1,0 +1,10 @@
+{
+  final MigrationRelationship<UniqueValueSerializationStrategy> migration=getMigrationRelationShip();
+  if (migration.needsMigration()) {
+    final MutationBatch aggregateBatch=keyspace.prepareMutationBatch();
+    aggregateBatch.mergeShallow(migration.from.write(applicationScope,uniqueValue));
+    aggregateBatch.mergeShallow(migration.to.write(applicationScope,uniqueValue));
+    return aggregateBatch;
+  }
+  return migration.to.write(applicationScope,uniqueValue);
+}

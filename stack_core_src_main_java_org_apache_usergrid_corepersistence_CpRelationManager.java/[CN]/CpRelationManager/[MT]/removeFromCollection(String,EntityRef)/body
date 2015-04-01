@@ -13,19 +13,18 @@
     em.delete(itemRef);
     return;
   }
-  CollectionScope memberScope=getCollectionScopeNameFromEntityType(applicationScope.getApplication(),itemRef.getType());
   if (logger.isDebugEnabled()) {
-    logger.debug("Loading entity to remove from collection " + "{}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{itemRef.getType(),itemRef.getUuid(),memberScope.getApplication(),memberScope.getOwner(),memberScope.getName()});
+    logger.debug("Loading entity to remove from collection " + "{}:{} from app {}\n",new Object[]{itemRef.getType(),itemRef.getUuid(),applicationScope});
   }
   Id entityId=new SimpleId(itemRef.getUuid(),itemRef.getType());
-  org.apache.usergrid.persistence.model.entity.Entity memberEntity=((CpEntityManager)em).load(new CpEntityManager.EntityScope(memberScope,entityId));
+  org.apache.usergrid.persistence.model.entity.Entity memberEntity=((CpEntityManager)em).load(entityId);
   final ApplicationEntityIndex ei=managerCache.getEntityIndex(applicationScope);
   final EntityIndexBatch batch=ei.createBatch();
-  IndexScope indexScope=new IndexScopeImpl(cpHeadEntity.getId(),CpNamingUtils.getCollectionScopeNameFromCollectionName(collName));
+  IndexScope indexScope=generateScopeFromCollection(cpHeadEntity.getId(),collName);
   batch.deindex(indexScope,memberEntity);
-  IndexScope itemScope=new IndexScopeImpl(memberEntity.getId(),CpNamingUtils.getCollectionScopeNameFromCollectionName(Schema.defaultCollectionName(cpHeadEntity.getId().getType())));
+  IndexScope itemScope=generateScopeFromCollection(memberEntity.getId(),Schema.defaultCollectionName(cpHeadEntity.getId().getType()));
   batch.deindex(itemScope,cpHeadEntity);
-  BetterFuture future=batch.execute();
+  batch.execute();
   GraphManager gm=managerCache.getGraphManager(applicationScope);
   Edge collectionToItemEdge=new SimpleEdge(cpHeadEntity.getId(),CpNamingUtils.getEdgeTypeFromCollectionName(collName),memberEntity.getId(),UUIDUtils.getUUIDLong(memberEntity.getId().getUuid()));
   gm.deleteEdge(collectionToItemEdge).toBlocking().last();

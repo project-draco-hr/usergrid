@@ -1,17 +1,10 @@
 {
-  CollectionScope collectionScope=getCollectionScopeNameFromEntityType(getApplicationScope().getApplication(),entityRef.getType());
-  IndexScope defaultIndexScope=new IndexScopeImpl(getApplicationScope().getApplication(),getCollectionScopeNameFromEntityType(entityRef.getType()));
-  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
-  ApplicationEntityIndex aei=managerCache.getEntityIndex(getApplicationScope());
   Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
-  org.apache.usergrid.persistence.model.entity.Entity cpEntity=load(new EntityScope(collectionScope,entityId));
+  org.apache.usergrid.persistence.model.entity.Entity cpEntity=load(entityId);
   cpEntity.removeField(propertyName);
   logger.debug("About to Write {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
   cpEntity=ecm.write(cpEntity).toBlocking().last();
   logger.debug("Wrote {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
-  Timer.Context timeESBatch=esDeletePropertyTimer.time();
-  BetterFuture future=aei.createBatch().index(defaultIndexScope,cpEntity).execute();
-  timeESBatch.stop();
   CpRelationManager rm=(CpRelationManager)getRelationManager(entityRef);
   rm.updateContainingCollectionAndCollectionIndexes(cpEntity);
 }

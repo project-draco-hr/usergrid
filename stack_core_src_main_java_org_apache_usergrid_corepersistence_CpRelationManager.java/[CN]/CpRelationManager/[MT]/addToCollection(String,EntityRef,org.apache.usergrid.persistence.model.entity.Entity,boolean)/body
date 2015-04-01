@@ -13,12 +13,11 @@
   if ((collection != null) && !collection.getType().equals(itemRef.getType())) {
     return null;
   }
-  CollectionScope memberScope=getCollectionScopeNameFromEntityType(applicationScope.getApplication(),itemRef.getType());
   if (memberEntity == null) {
     throw new RuntimeException("Unable to load entity uuid=" + itemRef.getUuid() + " type="+ itemRef.getType());
   }
   if (logger.isDebugEnabled()) {
-    logger.debug("Loaded member entity {}:{} from scope\n   app {}\n   " + "owner {}\n   name {} data {}",new Object[]{itemRef.getType(),itemRef.getUuid(),memberScope.getApplication(),memberScope.getOwner(),memberScope.getName(),CpEntityMapUtils.toMap(memberEntity)});
+    logger.debug("Loaded member entity {}:{} from   app {}\n   " + " data {}",new Object[]{itemRef.getType(),itemRef.getUuid(),applicationScope,CpEntityMapUtils.toMap(memberEntity)});
   }
   String edgeType=CpNamingUtils.getEdgeTypeFromCollectionName(collName);
   UUID timeStampUuid=memberEntity.getId().getUuid() != null && UUIDUtils.isTimeBased(memberEntity.getId().getUuid()) ? memberEntity.getId().getUuid() : UUIDUtils.newTimeUUID();

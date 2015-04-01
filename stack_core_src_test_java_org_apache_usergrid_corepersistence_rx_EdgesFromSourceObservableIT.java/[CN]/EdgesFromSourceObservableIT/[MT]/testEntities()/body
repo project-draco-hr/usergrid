@@ -23,17 +23,17 @@
     @Override public void call(    final Edge edge){
       final String edgeType=edge.getType();
       final Id source=edge.getSourceNode();
-      if (CpNamingUtils.isCollectionEdgeType(edgeType)) {
-        final String collectionName=CpNamingUtils.getCollectionName(edgeType);
+      if (EdgeTestUtils.isCollectionEdgeType(edgeType)) {
+        final String collectionName=EdgeTestUtils.getNameForEdge(edgeType);
         assertEquals("application source returned",createdApplication.getUuid(),source.getUuid());
         final String expectedCollection=Schema.defaultCollectionName(target.getType());
         assertEquals("right type returned",expectedCollection,collectionName);
         return;
       }
-      if (!CpNamingUtils.isConnectionEdgeType(edgeType)) {
+      if (!EdgeTestUtils.isConnectionEdgeType(edgeType)) {
         fail("Only connection edges should be encountered");
       }
-      final String connectionType=CpNamingUtils.getConnectionType(edgeType);
+      final String connectionType=EdgeTestUtils.getNameForEdge(edgeType);
       assertEquals("Same connection type expected","likes",connectionType);
       assertTrue("Element should be present on removal",sourceIdentities.remove(source));
     }

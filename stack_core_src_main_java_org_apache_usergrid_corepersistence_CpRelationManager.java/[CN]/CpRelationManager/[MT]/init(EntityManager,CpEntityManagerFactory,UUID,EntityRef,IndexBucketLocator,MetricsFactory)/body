@@ -17,12 +17,11 @@
   this.createConnectionTimer=metricsFactory.getTimer(CpRelationManager.class,"relation.manager.es.create.connection.timer");
   this.cassConnectionDelete=metricsFactory.getTimer(CpRelationManager.class,"relation.manager.cassandra.delete.connection.batch.timer");
   this.esDeleteConnectionTimer=metricsFactory.getTimer(CpRelationManager.class,"relation.manager.es.delete.connection.batch.timer");
-  this.headEntityScope=getCollectionScopeNameFromEntityType(applicationScope.getApplication(),headEntity.getType());
   if (logger.isDebugEnabled()) {
-    logger.debug("Loading head entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{headEntity.getType(),headEntity.getUuid(),headEntityScope.getApplication(),headEntityScope.getOwner(),headEntityScope.getName()});
+    logger.debug("Loading head entity {}:{} from app {}",new Object[]{headEntity.getType(),headEntity.getUuid(),applicationScope});
   }
   Id entityId=new SimpleId(headEntity.getUuid(),headEntity.getType());
-  this.cpHeadEntity=((CpEntityManager)em).load(new CpEntityManager.EntityScope(headEntityScope,entityId));
+  this.cpHeadEntity=((CpEntityManager)em).load(entityId);
   Assert.notNull(cpHeadEntity,"cpHeadEntity cannot be null");
   return this;
 }
