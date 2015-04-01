@@ -50,20 +50,12 @@
   batch.execute().get();
   ei.refresh();
   final SearchTypes searchTypes=SearchTypes.fromTypes("user");
-  Query query=new Query();
-  query.addEqualityFilter("username","bill");
-  CandidateResults r=entityIndex.search(appScope,searchTypes,query);
+  CandidateResults r=entityIndex.search(appScope,searchTypes,"where username = 'bill'",10);
   assertEquals(bill.getId(),r.get(0).getId());
-  query=new Query();
-  query.addEqualityFilter("username","fred");
-  r=entityIndex.search(appScope,searchTypes,query);
+  r=entityIndex.search(appScope,searchTypes,"where username = 'fred'",10);
   assertEquals(fred.getId(),r.get(0).getId());
-  query=new Query();
-  query.addEqualityFilter("age",41);
-  r=entityIndex.search(appScope,searchTypes,query);
+  r=entityIndex.search(appScope,searchTypes,"where age = 41",10);
   assertEquals(fred.getId(),r.get(0).getId());
-  query=new Query();
-  query.addEqualityFilter("age","thirtysomething");
-  r=entityIndex.search(appScope,searchTypes,query);
+  r=entityIndex.search(appScope,searchTypes,"where age = 'thirtysomething'",10);
   assertEquals(bill.getId(),r.get(0).getId());
 }

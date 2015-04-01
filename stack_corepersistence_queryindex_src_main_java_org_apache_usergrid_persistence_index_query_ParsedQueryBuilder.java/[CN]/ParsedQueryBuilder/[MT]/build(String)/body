@@ -1,0 +1,36 @@
+{
+  if (StringUtils.isEmpty(ql)) {
+    return null;
+  }
+  logger.debug("Processing raw query: " + ql);
+  final String trimmedLowercaseQuery=ql.trim().toLowerCase();
+  final String outputQuery;
+  if (!trimmedLowercaseQuery.startsWith("select")) {
+    if (trimmedLowercaseQuery.startsWith("order by") || trimmedLowercaseQuery.startsWith("where")) {
+      outputQuery="select * " + trimmedLowercaseQuery;
+    }
+ else {
+      outputQuery="select * where" + trimmedLowercaseQuery;
+    }
+  }
+ else {
+    outputQuery=trimmedLowercaseQuery;
+  }
+  ANTLRStringStream in=new ANTLRStringStream(outputQuery);
+  CpQueryFilterLexer lexer=new CpQueryFilterLexer(in);
+  CommonTokenStream tokens=new CommonTokenStream(lexer);
+  CpQueryFilterParser parser=new CpQueryFilterParser(tokens);
+  try {
+    final ParsedQuery query=parser.ql().parsedQuery;
+    query.setOriginalQuery(ql);
+    return query;
+  }
+ catch (  RecognitionException e) {
+    logger.error("Unable to parse \"{}\"",ql,e);
+    int index=e.index;
+    int lineNumber=e.line;
+    Token token=e.token;
+    String message=String.format("The query cannot be parsed. The token '%s' at " + "column %d on line %d cannot be " + "parsed",token.getText(),index,lineNumber);
+    throw new QueryParseException(message,e);
+  }
+}

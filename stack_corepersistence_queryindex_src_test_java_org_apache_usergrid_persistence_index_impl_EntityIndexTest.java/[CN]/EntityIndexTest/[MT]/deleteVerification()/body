@@ -20,15 +20,12 @@
   batch.index(appScope,user);
   batch.execute().get();
   ei.refresh();
-  Query query=new Query();
-  query.addEqualityFilter("username","edanuff");
-  CandidateResults r=entityIndex.search(appScope,SearchTypes.fromTypes("edanuff"),query);
+  final String query="where username = 'edanuff'";
+  CandidateResults r=entityIndex.search(appScope,SearchTypes.fromTypes("edanuff"),query,10);
   assertEquals(user.getId(),r.get(0).getId());
   batch.deindex(appScope,user.getId(),user.getVersion());
   batch.execute().get();
   ei.refresh();
-  query=new Query();
-  query.addEqualityFilter("username","edanuff");
-  r=entityIndex.search(appScope,SearchTypes.fromTypes("edanuff"),query);
+  r=entityIndex.search(appScope,SearchTypes.fromTypes("edanuff"),query,10);
   assertFalse(r.iterator().hasNext());
 }
