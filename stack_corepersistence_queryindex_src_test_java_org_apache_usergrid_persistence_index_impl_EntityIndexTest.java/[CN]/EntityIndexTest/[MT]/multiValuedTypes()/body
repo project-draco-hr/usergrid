@@ -2,7 +2,7 @@
   Id appId=new SimpleId("entityindextest");
   Id ownerId=new SimpleId("multivaluedtype");
   ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
-  IndexScope appScope=new IndexScopeImpl(ownerId,"user");
+  IndexEdge indexScope=new IndexEdgeImpl(ownerId,"user",10);
   ApplicationEntityIndex entityIndex=eif.createApplicationEntityIndex(applicationScope);
   entityIndex.createBatch();
   Map billMap=new HashMap(){
@@ -19,7 +19,7 @@
   EntityUtils.setId(bill,new SimpleId(UUIDGenerator.newTimeUUID(),"user"));
   EntityUtils.setVersion(bill,UUIDGenerator.newTimeUUID());
   EntityIndexBatch batch=entityIndex.createBatch();
-  batch.index(appScope,bill);
+  batch.index(indexScope,bill);
   Map fredMap=new HashMap(){
 {
       put("username","fred");
@@ -46,16 +46,16 @@
   Entity fred=EntityIndexMapUtils.fromMap(fredMap);
   EntityUtils.setId(fred,new SimpleId(UUIDGenerator.newTimeUUID(),"user"));
   EntityUtils.setVersion(fred,UUIDGenerator.newTimeUUID());
-  batch.index(appScope,fred);
+  batch.index(indexScope,fred);
   batch.execute().get();
   ei.refresh();
   final SearchTypes searchTypes=SearchTypes.fromTypes("user");
-  CandidateResults r=entityIndex.search(appScope,searchTypes,"where username = 'bill'",10);
+  CandidateResults r=entityIndex.search(indexScope,searchTypes,"where username = 'bill'",10);
   assertEquals(bill.getId(),r.get(0).getId());
-  r=entityIndex.search(appScope,searchTypes,"where username = 'fred'",10);
+  r=entityIndex.search(indexScope,searchTypes,"where username = 'fred'",10);
   assertEquals(fred.getId(),r.get(0).getId());
-  r=entityIndex.search(appScope,searchTypes,"where age = 41",10);
+  r=entityIndex.search(indexScope,searchTypes,"where age = 41",10);
   assertEquals(fred.getId(),r.get(0).getId());
-  r=entityIndex.search(appScope,searchTypes,"where age = 'thirtysomething'",10);
+  r=entityIndex.search(indexScope,searchTypes,"where age = 'thirtysomething'",10);
   assertEquals(bill.getId(),r.get(0).getId());
 }

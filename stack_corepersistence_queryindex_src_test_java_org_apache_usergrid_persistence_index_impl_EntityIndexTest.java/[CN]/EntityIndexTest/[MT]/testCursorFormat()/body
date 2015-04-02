@@ -2,7 +2,7 @@
   Id appId=new SimpleId("application");
   Id ownerId=new SimpleId("owner");
   ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
-  IndexScope indexScope=new IndexScopeImpl(ownerId,"users");
+  IndexEdge indexEdge=new IndexEdgeImpl(ownerId,"users",10);
   ApplicationEntityIndex entityIndex=eif.createApplicationEntityIndex(applicationScope);
   final EntityIndexBatch batch=entityIndex.createBatch();
   final int size=10;
@@ -24,7 +24,7 @@
     EntityUtils.setVersion(user,UUIDGenerator.newTimeUUID());
     user.setField(new UUIDField(IndexingUtils.ENTITYID_ID_FIELDNAME,UUIDGenerator.newTimeUUID()));
     entities.add(userId);
-    batch.index(indexScope,user);
+    batch.index(indexEdge,user);
   }
   batch.execute().get();
   ei.refresh();
@@ -33,7 +33,7 @@
   String cursor=null;
   for (int i=0; i < expectedPages; i++) {
     final String query="select * order by created";
-    final CandidateResults results=cursor == null ? entityIndex.search(indexScope,SearchTypes.allTypes(),query,limit) : entityIndex.getNextPage(cursor,limit);
+    final CandidateResults results=cursor == null ? entityIndex.search(indexEdge,SearchTypes.allTypes(),query,limit) : entityIndex.getNextPage(cursor);
     assertTrue(results.hasCursor());
     cursor=results.getCursor();
     assertEquals("Should be 16 bytes as hex",32,cursor.length());

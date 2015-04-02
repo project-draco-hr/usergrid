@@ -1,0 +1,18 @@
+{
+  String context=createContextName(applicationScope,searchEdge);
+  QueryBuilder queryBuilder=null;
+  if (query.getRootOperand() != null) {
+    QueryVisitor v=new EsQueryVistor();
+    try {
+      query.getRootOperand().visit(v);
+    }
+ catch (    IndexException ex) {
+      throw new RuntimeException("Error building ElasticSearch query",ex);
+    }
+    queryBuilder=v.getQueryBuilder();
+  }
+  BoolQueryBuilder boolQueryBuilder=QueryBuilders.boolQuery();
+  boolQueryBuilder.must(QueryBuilders.termQuery(IndexingUtils.ENTITY_CONTEXT_FIELDNAME,context));
+  boolQueryBuilder.must(queryBuilder);
+  return queryBuilder;
+}

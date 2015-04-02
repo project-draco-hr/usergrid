@@ -1,7 +1,7 @@
 {
   Id appId=new SimpleId("application");
   ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
-  IndexScope indexScope=new IndexScopeImpl(appId,"fastcars");
+  IndexEdge searchEdge=new IndexEdgeImpl(appId,"fastcars",1);
   ApplicationEntityIndex entityIndex=eif.createApplicationEntityIndex(applicationScope);
   Map entityMap=new HashMap(){
 {
@@ -15,14 +15,14 @@
   EntityUtils.setId(entity,new SimpleId("fastcar"));
   EntityUtils.setVersion(entity,UUIDGenerator.newTimeUUID());
   entity.setField(new UUIDField(IndexingUtils.ENTITYID_ID_FIELDNAME,UUID.randomUUID()));
-  entityIndex.createBatch().index(indexScope,entity).execute().get();
+  entityIndex.createBatch().index(searchEdge,entity).execute().get();
   ei.refresh();
-  CandidateResults candidateResults=entityIndex.search(indexScope,SearchTypes.fromTypes(entity.getId().getType()),"name contains 'Ferrari*'",10);
+  CandidateResults candidateResults=entityIndex.search(searchEdge,SearchTypes.fromTypes(entity.getId().getType()),"name contains 'Ferrari*'",10);
   assertEquals(1,candidateResults.size());
   EntityIndexBatch batch=entityIndex.createBatch();
-  batch.deindex(indexScope,entity).execute().get();
+  batch.deindex(searchEdge,entity).execute().get();
   batch.execute().get();
   ei.refresh();
-  candidateResults=entityIndex.search(indexScope,SearchTypes.fromTypes(entity.getId().getType()),"name contains 'Ferrari*'",10);
+  candidateResults=entityIndex.search(searchEdge,SearchTypes.fromTypes(entity.getId().getType()),"name contains 'Ferrari*'",10);
   assertEquals(0,candidateResults.size());
 }

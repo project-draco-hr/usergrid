@@ -17,18 +17,18 @@
   }
 ;
   final IndexRequest indexRequest2=new IndexRequest("testAlias2",applicationScope,SearchType.fromType("testType2"),"testDoc2",request2Data);
-  final DeIndexRequest deIndexRequest1=new DeIndexRequest(new String[]{"index1.1, index1.2"},applicationScope,new IndexScopeImpl(new SimpleId("testId3"),"name3"),new SimpleId("id3"),UUID.randomUUID());
-  final DeIndexRequest deIndexRequest2=new DeIndexRequest(new String[]{"index2.1","index2.1"},applicationScope,new IndexScopeImpl(new SimpleId("testId4"),"name4"),new SimpleId("id4"),UUID.randomUUID());
-  IndexOperationMessage indexOperationMessage=new IndexOperationMessage();
+  final DeIndexRequest deIndexRequest1=new DeIndexRequest(new String[]{"index1.1, index1.2"},applicationScope,new SearchEdgeImpl(new SimpleId("testId3"),"name3"),new SimpleId("id3"),UUID.randomUUID());
+  final DeIndexRequest deIndexRequest2=new DeIndexRequest(new String[]{"index2.1","index2.1"},applicationScope,new SearchEdgeImpl(new SimpleId("testId4"),"name4"),new SimpleId("id4"),UUID.randomUUID());
+  IndexIdentifierImpl.IndexOperationMessage indexOperationMessage=new IndexIdentifierImpl.IndexOperationMessage();
   indexOperationMessage.addIndexRequest(indexRequest1);
   indexOperationMessage.addIndexRequest(indexRequest2);
   indexOperationMessage.addDeIndexRequest(deIndexRequest1);
   indexOperationMessage.addDeIndexRequest(deIndexRequest2);
   bufferQueueSQS.offer(indexOperationMessage);
   indexOperationMessage.getFuture().get();
-  final List<IndexOperationMessage> ops=getResults(20,TimeUnit.SECONDS);
+  final List<IndexIdentifierImpl.IndexOperationMessage> ops=getResults(20,TimeUnit.SECONDS);
   assertTrue(ops.size() > 0);
-  final IndexOperationMessage returnedOperation=ops.get(0);
+  final IndexIdentifierImpl.IndexOperationMessage returnedOperation=ops.get(0);
   final Set<IndexRequest> indexRequestSet=returnedOperation.getIndexRequests();
   assertTrue(indexRequestSet.contains(indexRequest1));
   assertTrue(indexRequestSet.contains(indexRequest2));
