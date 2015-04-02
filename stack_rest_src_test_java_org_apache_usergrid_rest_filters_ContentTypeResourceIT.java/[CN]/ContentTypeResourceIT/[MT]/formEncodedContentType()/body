@@ -1,20 +1,15 @@
 {
-  List<NameValuePair> pairs=new ArrayList<NameValuePair>();
-  pairs.add(new BasicNameValuePair("organization","formContentOrg"));
-  pairs.add(new BasicNameValuePair("username","formContentOrg"));
-  pairs.add(new BasicNameValuePair("name","Test User"));
-  pairs.add(new BasicNameValuePair("email",UUIDUtils.newTimeUUID() + "@usergrid.org"));
-  pairs.add(new BasicNameValuePair("password","foobar"));
-  UrlEncodedFormEntity entity=new UrlEncodedFormEntity(pairs,"UTF-8");
-  DefaultHttpClient client=new DefaultHttpClient();
-  HttpHost host=new HttpHost(super.getBaseURI().getHost(),super.getBaseURI().getPort());
-  HttpPost post=new HttpPost("/management/orgs");
-  post.setEntity(entity);
-  post.setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_FORM_URLENCODED);
-  HttpResponse rsp=client.execute(host,post);
-  printResponse(rsp);
-  assertEquals(200,rsp.getStatusLine().getStatusCode());
-  Header[] headers=rsp.getHeaders(HttpHeaders.CONTENT_TYPE);
-  assertEquals(1,headers.length);
-  assertEquals(MediaType.APPLICATION_JSON,headers[0].getValue());
+  Form payload=new Form();
+  payload.add("organization","formContentOrg");
+  payload.add("username","formContentOrg");
+  payload.add("name","Test User");
+  payload.add("email",UUIDUtils.newTimeUUID() + "@usergrid.org");
+  payload.add("password","foobar");
+  WebResource.Builder builder=app().getResource(true,this.getAdminToken(clientSetup.getSuperuserName(),clientSetup.getSuperuserPassword())).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE);
+  ClientResponse clientResponse=builder.post(ClientResponse.class,payload);
+  assertEquals(200,clientResponse.getStatus());
+  MultivaluedMap<String,String> headers=clientResponse.getHeaders();
+  List<String> contentType=headers.get("Content-Type");
+  assertEquals(1,contentType.size());
+  assertEquals(MediaType.APPLICATION_JSON,contentType.get(0));
 }

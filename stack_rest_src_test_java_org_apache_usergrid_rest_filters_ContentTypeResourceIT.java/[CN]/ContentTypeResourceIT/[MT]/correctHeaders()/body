@@ -1,17 +1,10 @@
 {
-  Map<String,String> data=hashMap("name","Solitaire1");
-  String json=JsonUtils.mapToFormattedJsonString(data);
-  DefaultHttpClient client=new DefaultHttpClient();
-  HttpHost host=new HttpHost(super.getBaseURI().getHost(),super.getBaseURI().getPort());
-  HttpPost post=new HttpPost(String.format("/%s/%s/games",context.getOrgUuid(),context.getAppUuid()));
-  post.setEntity(new StringEntity(json));
-  post.setHeader(HttpHeaders.AUTHORIZATION,"Bearer " + context.getActiveUser().getToken());
-  post.setHeader(HttpHeaders.ACCEPT,MediaType.APPLICATION_JSON);
-  post.setHeader(HttpHeaders.CONTENT_TYPE,"*/*");
-  HttpResponse rsp=client.execute(host,post);
-  printResponse(rsp);
-  assertEquals(200,rsp.getStatusLine().getStatusCode());
-  Header[] headers=rsp.getHeaders(HttpHeaders.CONTENT_TYPE);
-  assertEquals(1,headers.length);
-  assertEquals(MediaType.APPLICATION_JSON,headers[0].getValue());
+  String json=JsonUtils.mapToFormattedJsonString(hashMap("name","Solitaire1"));
+  WebResource.Builder builder=app().collection("games").getResource(true).queryParam("access_token",this.getAdminToken().getAccessToken()).type(MediaType.APPLICATION_JSON_TYPE).accept(MediaType.APPLICATION_JSON);
+  ClientResponse clientResponse=builder.post(ClientResponse.class,json);
+  assertEquals(200,clientResponse.getStatus());
+  MultivaluedMap<String,String> headers=clientResponse.getHeaders();
+  List<String> contentType=headers.get("Content-Type");
+  assertEquals(1,contentType.size());
+  assertEquals(MediaType.APPLICATION_JSON,contentType.get(0));
 }
