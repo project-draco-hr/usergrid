@@ -11,16 +11,7 @@
   }
 ).doOnNext(new Action1<Edge>(){
     @Override public void call(    final Edge edge){
-      EntityRef sourceEntity=new SimpleEntityRef(edge.getSourceNode().getType(),edge.getSourceNode().getUuid());
-      IndexScope indexScope;
-      if (CpNamingUtils.isCollectionEdgeType(edge.getType())) {
-        String collName=CpNamingUtils.getCollectionName(edge.getType());
-        indexScope=new IndexScopeImpl(new SimpleId(sourceEntity.getUuid(),sourceEntity.getType()),CpNamingUtils.getCollectionScopeNameFromCollectionName(collName));
-      }
- else {
-        String connName=CpNamingUtils.getConnectionType(edge.getType());
-        indexScope=new IndexScopeImpl(new SimpleId(sourceEntity.getUuid(),sourceEntity.getType()),CpNamingUtils.getConnectionScopeName(connName));
-      }
+      IndexScope indexScope=generateScopeFromSource(edge);
       entityIndexBatch.index(indexScope,cpEntity);
     }
   }

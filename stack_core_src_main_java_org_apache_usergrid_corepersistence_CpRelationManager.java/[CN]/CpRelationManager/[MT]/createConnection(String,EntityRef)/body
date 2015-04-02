@@ -2,19 +2,18 @@
   headEntity=em.validate(headEntity);
   connectedEntityRef=em.validate(connectedEntityRef);
   ConnectionRefImpl connection=new ConnectionRefImpl(headEntity,connectionType,connectedEntityRef);
-  CollectionScope targetScope=getCollectionScopeNameFromEntityType(applicationScope.getApplication(),connectedEntityRef.getType());
   if (logger.isDebugEnabled()) {
-    logger.debug("createConnection(): " + "Indexing connection type '{}'\n   from source {}:{}]\n" + "   to target {}:{}\n   from scope\n   app {}\n   owner {}\n   name {}",new Object[]{connectionType,headEntity.getType(),headEntity.getUuid(),connectedEntityRef.getType(),connectedEntityRef.getUuid(),targetScope.getApplication(),targetScope.getOwner(),targetScope.getName()});
+    logger.debug("createConnection(): " + "Indexing connection type '{}'\n   from source {}:{}]\n" + "   to target {}:{}\n   app {}",new Object[]{connectionType,headEntity.getType(),headEntity.getUuid(),connectedEntityRef.getType(),connectedEntityRef.getUuid(),applicationScope});
   }
   Id entityId=new SimpleId(connectedEntityRef.getUuid(),connectedEntityRef.getType());
-  org.apache.usergrid.persistence.model.entity.Entity targetEntity=((CpEntityManager)em).load(new CpEntityManager.EntityScope(targetScope,entityId));
+  org.apache.usergrid.persistence.model.entity.Entity targetEntity=((CpEntityManager)em).load(entityId);
   String edgeType=CpNamingUtils.getEdgeTypeFromConnectionType(connectionType);
   Edge edge=new SimpleEdge(cpHeadEntity.getId(),edgeType,targetEntity.getId(),System.currentTimeMillis());
   GraphManager gm=managerCache.getGraphManager(applicationScope);
   gm.writeEdge(edge).toBlocking().last();
   ApplicationEntityIndex ei=managerCache.getEntityIndex(applicationScope);
   EntityIndexBatch batch=ei.createBatch();
-  IndexScope indexScope=new IndexScopeImpl(cpHeadEntity.getId(),CpNamingUtils.getConnectionScopeName(connectionType));
+  IndexScope indexScope=generateScopeFromConnection(cpHeadEntity.getId(),connectionType);
   batch.index(indexScope,targetEntity);
   BetterFuture future=batch.execute();
   Keyspace ko=cass.getApplicationKeyspace(applicationId);

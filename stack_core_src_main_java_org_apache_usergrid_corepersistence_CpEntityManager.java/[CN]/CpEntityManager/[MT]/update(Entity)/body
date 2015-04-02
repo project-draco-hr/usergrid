@@ -6,11 +6,9 @@
   Preconditions.checkNotNull(appId,"app scope should never be null");
   updateEntityMeter.mark();
   Timer.Context timer=updateEntityTimer.time();
-  CollectionScope collectionScope=getCollectionScopeNameFromEntityType(appId,type);
-  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
   Id entityId=new SimpleId(entity.getUuid(),entity.getType());
   if (logger.isDebugEnabled()) {
-    logger.debug("Updating entity {}:{} from scope\n   app {}\n   owner {}\n   name {}",new Object[]{entityId.getType(),entityId.getUuid(),collectionScope.getApplication(),collectionScope.getOwner(),collectionScope.getName()});
+    logger.debug("Updating entity {}:{}  app {}\n",new Object[]{entityId.getType(),entityId.getUuid(),appId});
   }
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=new org.apache.usergrid.persistence.model.entity.Entity(entityId);
   cpEntity=CpEntityMapUtils.fromMap(cpEntity,entity.getProperties(),entity.getType(),true);
@@ -20,13 +18,6 @@
   }
  catch (  WriteUniqueVerifyException wuve) {
     handleWriteUniqueVerifyException(entity,wuve);
-  }
-catch (  HystrixRuntimeException hre) {
-    if (hre.getCause() instanceof WriteUniqueVerifyException) {
-      WriteUniqueVerifyException wuve=(WriteUniqueVerifyException)hre.getCause();
-      handleWriteUniqueVerifyException(entity,wuve);
-    }
-    throw hre;
   }
   CpRelationManager rm=(CpRelationManager)getRelationManager(entity);
   rm.updateContainingCollectionAndCollectionIndexes(cpEntity);

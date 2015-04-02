@@ -2,7 +2,7 @@
   MvccValidationUtils.verifyMvccEntityWithEntity(ioevent.getEvent());
   final MvccEntity mvccEntity=ioevent.getEvent();
   final Entity entity=mvccEntity.getEntity().get();
-  final CollectionScope scope=ioevent.getEntityCollection();
+  final ApplicationScope scope=ioevent.getEntityCollection();
   final MutationBatch batch=keyspace.prepareMutationBatch();
   final List<Field> uniqueFields=new ArrayList<>(entity.getFields().size());
   for (  final Field field : EntityUtils.getUniqueFields(entity)) {
@@ -20,9 +20,8 @@
  catch (  ConnectionException ex) {
     throw new RuntimeException("Unable to write to cassandra",ex);
   }
-  ConsistentReplayCommand cmd=new ConsistentReplayCommand(uniqueValueStrat,cassandraFig,scope,uniqueFields,entity);
+  ConsistentReplayCommand cmd=new ConsistentReplayCommand(uniqueValueStrat,cassandraFig,scope,entity.getId().getType(),uniqueFields,entity);
   Map<String,Field> uniquenessViolations=cmd.execute();
-  cmd.getFailedExecutionException();
   if (!uniquenessViolations.isEmpty()) {
     throw new WriteUniqueVerifyException(mvccEntity,ioevent.getEntityCollection(),uniquenessViolations);
   }
