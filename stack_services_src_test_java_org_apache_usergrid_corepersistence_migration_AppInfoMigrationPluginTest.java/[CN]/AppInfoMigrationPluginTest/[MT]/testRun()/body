@@ -17,6 +17,7 @@
 );
     }
   }
+  setup.refreshIndex();
   UUID mgmtAppId=setup.getEmf().getManagementAppId();
   EntityManager rootEm=setup.getEmf().getEntityManager(mgmtAppId);
   checkApplicationsOk(orgName);
@@ -43,7 +44,7 @@
       deletedApps.add(applicationInfo);
     }
   }
-  setup.getEmf().refreshIndex();
+  setup.refreshIndex();
   setup.getEmf().flushEntityManagerCaches();
   Thread.sleep(1000);
   checkApplicationsBroken(orgName,deletedApps);
@@ -52,7 +53,7 @@
   setup.getAppInfoMigrationPlugin().run(po);
   logger.debug("\n\nVerify migration results\n");
   Mockito.verify(po,Mockito.times(10)).update(Mockito.anyInt(),Mockito.anyString());
-  setup.getEmf().refreshIndex();
+  setup.refreshIndex();
   final Results appInfoResults=rootEm.searchCollection(new SimpleEntityRef("application",mgmtAppId),"appinfos",Query.fromQL("select *"));
   assertEquals(0,appInfoResults.size());
   final Results applicationInfoResults=rootEm.searchCollection(new SimpleEntityRef("application",mgmtAppId),"application_infos",Query.fromQL("select *"));
