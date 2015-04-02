@@ -1,5 +1,5 @@
 {
-  Map<String,String> originalProperties=getRemoteTestProperties();
+  Map<String,Object> originalProperties=getRemoteTestProperties();
   try {
     Mailbox.clearAll();
     setTestProperty(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"false");
@@ -8,14 +8,14 @@
     setTestProperty(PROPERTIES_SYSADMIN_EMAIL,"sysadmin-1@mockserver.com");
     String adminUserName="AdminUserFromOtherOrg";
     String adminUserEmail="AdminUserFromOtherOrg@otherorg.com";
-    UserInfo adminUser=setup.getMgmtSvc().createAdminUser(adminUserEmail,adminUserEmail,adminUserEmail,"password1",true,false);
-    refreshIndex("test-organization","test-app");
+    User adminUser=(User)management().users().post(new User(adminUserEmail,adminUserEmail,adminUserEmail,"password1"));
+    refreshIndex();
     assertNotNull(adminUser);
     Message[] msgs=getMessages("otherorg.com",adminUserName,"password1");
     assertEquals(1,msgs.length);
-    String adminToken=adminToken();
-    JsonNode node=postAddAdminToOrg("test-organization",adminUserEmail,"password1",adminToken);
-    String uuid=node.get("data").get("user").get("uuid").textValue();
+    String adminToken=getAdminToken().getAccessToken();
+    User node=postAddAdminToOrg("test-organization",adminUserEmail,"password1",adminToken);
+    String uuid=node.getMap("data").get("user").get("uuid").toString();
     UUID userId=UUID.fromString(uuid);
     assertEquals(adminUser.getUuid(),userId);
     msgs=getMessages("otherorg.com",adminUserName,"password1");
