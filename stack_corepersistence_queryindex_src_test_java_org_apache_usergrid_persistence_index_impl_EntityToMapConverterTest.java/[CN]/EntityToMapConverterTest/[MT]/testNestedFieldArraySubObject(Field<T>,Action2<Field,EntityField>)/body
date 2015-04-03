@@ -1,0 +1,27 @@
+{
+  EntityObject leafEntity=new EntityObject();
+  leafEntity.setField(storedField);
+  final EntityObjectField nested2Field=new EntityObjectField("nested2",leafEntity);
+  final EntityObject nested2=new EntityObject();
+  nested2.setField(nested2Field);
+  final EntityObjectField nested1Field=new EntityObjectField("nested1",nested2);
+  final EntityObject nested1=new EntityObject();
+  nested1.setField(nested1Field);
+  final ArrayField<EntityObject> array=new ArrayField<>("array");
+  array.add(nested1);
+  Entity rootEntity=new Entity("test");
+  rootEntity.setField(array);
+  final UUID version=UUIDGenerator.newTimeUUID();
+  EntityUtils.setVersion(rootEntity,version);
+  final ApplicationScope scope=new ApplicationScopeImpl(createId("application"));
+  final IndexEdge indexEdge=new IndexEdgeImpl(createId("source"),"testEdgeType",SearchEdge.NodeType.SOURCE,1000);
+  final Map<String,Object> entityMap=EntityToMapConverter.convert(scope,indexEdge,rootEntity);
+  final List<EntityField> fields=(List<EntityField>)entityMap.get(IndexingUtils.ENTITY_FIELDS);
+  assertEquals(1,fields.size());
+  for (int i=0; i < fields.size(); i++) {
+    final EntityField field=fields.get(i);
+    final String path="array.nested1.nested2." + storedField.getName();
+    assertEquals(path,field.get(IndexingUtils.FIELD_NAME));
+    assertFunction.call(storedField,field);
+  }
+}
