@@ -4,7 +4,7 @@
   install(new QueueModule());
   bind(EntityIndexFactory.class).to(EsEntityIndexFactoryImpl.class);
   bind(AliasedEntityIndex.class).to(EsEntityIndexImpl.class);
-  bind(EntityIndex.class).to(EsEntityIndexImpl.class);
+  bind(EntityIndex.class).to(EsEntityIndexImpl.class).asEagerSingleton();
   bind(IndexCache.class).to(EsIndexCacheImpl.class);
   bind(FailureMonitorImpl.IndexIdentifier.class).to(IndexIdentifierImpl.class);
   bind(IndexBufferProducer.class).to(EsIndexBufferProducerImpl.class);
@@ -13,7 +13,6 @@
   Multibinder<DataMigration<ApplicationScope>> dataMigrationMultibinder=Multibinder.newSetBinder(binder(),new TypeLiteral<DataMigration<ApplicationScope>>(){
   }
 ,IndexMigration.class);
-  dataMigrationMultibinder.addBinding().to(EsIndexDataMigrationImpl.class);
   Multibinder.newSetBinder(binder(),MigrationPlugin.class).addBinding().to(EsIndexMigrationPlugin.class);
   configureMigrationProvider();
 }
