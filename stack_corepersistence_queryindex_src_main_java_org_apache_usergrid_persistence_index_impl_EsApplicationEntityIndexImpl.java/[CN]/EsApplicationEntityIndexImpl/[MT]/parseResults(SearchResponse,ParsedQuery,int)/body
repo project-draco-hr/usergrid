@@ -5,12 +5,8 @@
   logger.debug("   Hit count: {} Total hits: {}",length,searchHits.getTotalHits());
   List<CandidateResult> candidates=new ArrayList<>(length);
   for (  SearchHit hit : hits) {
-    String[] idparts=hit.getId().split(SPLITTER);
-    String id=idparts[0];
-    String type=idparts[1];
-    String version=idparts[2];
-    Id entityId=new SimpleId(UUID.fromString(id),type);
-    candidates.add(new CandidateResult(entityId,UUID.fromString(version)));
+    final CandidateResult candidateResult=parseIndexDocId(hit.getId());
+    candidates.add(candidateResult);
   }
   final CandidateResults candidateResults=new CandidateResults(candidates,query.getSelectFieldMappings());
   final String esScrollCursor=searchResponse.getScrollId();
