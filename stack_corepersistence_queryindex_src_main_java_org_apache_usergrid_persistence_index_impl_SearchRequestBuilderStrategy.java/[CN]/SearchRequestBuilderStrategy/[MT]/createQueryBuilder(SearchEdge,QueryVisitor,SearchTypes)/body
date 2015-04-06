@@ -1,0 +1,12 @@
+{
+  String context=createContextName(applicationScope,searchEdge);
+  BoolQueryBuilder boolQueryBuilder=QueryBuilders.boolQuery();
+  boolQueryBuilder.must(QueryBuilders.termQuery(IndexingUtils.EDGE_SEARCH_FIELDNAME,context));
+  final String[] sourceTypes=searchTypes.getTypeNames(applicationScope);
+  boolQueryBuilder.must(QueryBuilders.termsQuery(IndexingUtils.ENTITY_TYPE_FIELDNAME,sourceTypes).minimumMatch(1));
+  Optional<QueryBuilder> queryBuilder=visitor.getQueryBuilder();
+  if (queryBuilder.isPresent()) {
+    boolQueryBuilder.must(queryBuilder.get());
+  }
+  return boolQueryBuilder;
+}

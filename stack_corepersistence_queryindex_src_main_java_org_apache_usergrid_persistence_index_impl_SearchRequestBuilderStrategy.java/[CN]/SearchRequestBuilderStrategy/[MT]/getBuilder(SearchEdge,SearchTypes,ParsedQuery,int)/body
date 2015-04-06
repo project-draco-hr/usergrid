@@ -1,10 +1,12 @@
 {
   Preconditions.checkArgument(limit <= EntityIndex.MAX_LIMIT,"limit is greater than max " + EntityIndex.MAX_LIMIT);
-  SearchRequestBuilder srb=esProvider.getClient().prepareSearch(alias.getReadAlias()).setTypes(searchTypes.getTypeNames(applicationScope)).setScroll(cursorTimeout + "m");
+  SearchRequestBuilder srb=esProvider.getClient().prepareSearch(alias.getReadAlias()).setTypes(IndexingUtils.ES_ENTITY_TYPE).setScroll(cursorTimeout + "m");
   final QueryVisitor visitor=visitParsedQuery(query);
-  srb.setQuery(createQueryBuilder(searchEdge,visitor));
-  final FilterBuilder fb=visitor.getFilterBuilder();
-  srb.setPostFilter(fb);
+  srb.setQuery(createQueryBuilder(searchEdge,visitor,searchTypes));
+  final Optional<FilterBuilder> fb=visitor.getFilterBuilder();
+  if (fb.isPresent()) {
+    srb.setPostFilter(fb.get());
+  }
   srb=srb.setFrom(0).setSize(limit);
   if (query.getSortPredicates().size() == 0) {
     srb.addSort(SortBuilders.fieldSort(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME).order(SortOrder.DESC));
