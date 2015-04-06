@@ -1,11 +1,8 @@
 {
-  if (client != null) {
-    return;
-  }
-  final String clusterName=fig.getClusterName();
-  final int port=fig.getPort();
+  final String clusterName=indexFig.getClusterName();
+  final int port=indexFig.getPort();
   ImmutableSettings.Builder settings=ImmutableSettings.settingsBuilder().put("cluster.name",clusterName).put("client.transport.sniff",true);
-  String nodeName=fig.getNodeName();
+  String nodeName=indexFig.getNodeName();
   if ("default".equals(nodeName)) {
     try {
       nodeName=InetAddress.getLocalHost().getHostName();
@@ -17,8 +14,8 @@
   }
   settings.put("node.name",nodeName);
   TransportClient transportClient=new TransportClient(settings.build());
-  for (  String host : fig.getHosts().split(",")) {
+  for (  String host : indexFig.getHosts().split(",")) {
     transportClient.addTransportAddress(new InetSocketTransportAddress(host,port));
   }
-  client=transportClient;
+  return transportClient;
 }

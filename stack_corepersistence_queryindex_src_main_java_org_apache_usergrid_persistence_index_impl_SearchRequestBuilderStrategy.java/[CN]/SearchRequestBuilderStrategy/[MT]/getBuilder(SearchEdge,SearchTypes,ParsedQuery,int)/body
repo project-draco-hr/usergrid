@@ -1,14 +1,24 @@
 {
   Preconditions.checkArgument(limit <= EntityIndex.MAX_LIMIT,"limit is greater than max " + EntityIndex.MAX_LIMIT);
-  SearchRequestBuilder srb=esProvider.getClient().prepareSearch(alias.getReadAlias()).setTypes(searchTypes.getTypeNames(applicationScope)).setScroll(cursorTimeout + "m").setQuery(createQueryBuilder(searchEdge,query));
-  final FilterBuilder fb=createFilterBuilder(query);
-  if (fb != null) {
-    logger.debug("   Filter: {} ",fb.toString());
-    srb=srb.setPostFilter(fb);
-  }
+  SearchRequestBuilder srb=esProvider.getClient().prepareSearch(alias.getReadAlias()).setTypes(searchTypes.getTypeNames(applicationScope)).setScroll(cursorTimeout + "m");
+  final QueryVisitor visitor=visitParsedQuery(query);
+  srb.setQuery(createQueryBuilder(searchEdge,visitor));
+  final FilterBuilder fb=visitor.getFilterBuilder();
+  srb.setPostFilter(fb);
   srb=srb.setFrom(0).setSize(limit);
+  if (query.getSortPredicates().size() == 0) {
+    srb.addSort(SortBuilders.fieldSort(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME).order(SortOrder.DESC));
+    srb.addSort(SortBuilders.fieldSort(IndexingUtils.ENTITY_ID_FIELDNAME).order(SortOrder.ASC));
+  }
   for (  SortPredicate sp : query.getSortPredicates()) {
-    throw new RuntimeException("Fix me");
+    final SortOrder order=sp.getDirection().toEsSort();
+    final String propertyName=sp.getPropertyName();
+    srb.addSort(createSort(order,IndexingUtils.SORT_FIELD_STRING,propertyName));
+    srb.addSort(createSort(order,IndexingUtils.SORT_FIELD_INT,propertyName));
+    srb.addSort(createSort(order,IndexingUtils.SORT_FIELD_DOUBLE,propertyName));
+    srb.addSort(createSort(order,IndexingUtils.SORT_FIELD_BOOLEAN,propertyName));
+    srb.addSort(createSort(order,IndexingUtils.SORT_FIELD_LONG,propertyName));
+    srb.addSort(createSort(order,IndexingUtils.SORT_FIELD_FLOAT,propertyName));
   }
   return srb;
 }
