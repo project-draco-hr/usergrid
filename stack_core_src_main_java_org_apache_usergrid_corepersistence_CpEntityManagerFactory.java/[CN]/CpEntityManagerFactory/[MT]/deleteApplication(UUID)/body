@@ -1,19 +1,2 @@
 {
-  final EntityManager em=getEntityManager(getManagementAppId());
-  final Results results=em.searchCollection(em.getApplicationRef(),CpNamingUtils.APPLICATION_INFOS,Query.fromQL("select * where " + PROPERTY_APPLICATION_ID + " = "+ applicationId.toString()));
-  Entity appInfoToDelete=results.getEntity();
-  final EntityRef alias=em.getAlias(CpNamingUtils.DELETED_APPLICATION_INFO,appInfoToDelete.getName());
-  if (alias != null) {
-    throw new ConflictException("Cannot delete app with same name as already deleted app");
-  }
-  Entity deletedApp=em.create(CpNamingUtils.DELETED_APPLICATION_INFO,appInfoToDelete.getProperties());
-  final Set<String> connectionTypes=em.getConnectionTypes(appInfoToDelete);
-  for (  String connType : connectionTypes) {
-    final Results connResults=em.getConnectedEntities(appInfoToDelete,connType,null,Query.Level.ALL_PROPERTIES);
-    for (    Entity entity : connResults.getEntities()) {
-      em.createConnection(deletedApp,connType,entity);
-    }
-  }
-  em.delete(appInfoToDelete);
-  applicationIdCache.evictAppId(appInfoToDelete.getName());
 }
