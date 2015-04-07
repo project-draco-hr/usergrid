@@ -1,9 +1,10 @@
 {
-  String name=op.getProperty().getValue();
-  name=name.toLowerCase();
+  final String name=op.getProperty().getValue().toLowerCase();
+  geoFields.add(name);
   float lat=op.getLatitude().getFloatValue();
   float lon=op.getLongitude().getFloatValue();
   float distance=op.getDistance().getFloatValue();
-  FilterBuilder fb=FilterBuilders.geoDistanceFilter(name).lat(lat).lon(lon).distance(distance,DistanceUnit.METERS);
-  filterBuilders.add(fb);
+  final FilterBuilder fb=FilterBuilders.geoDistanceFilter(name).lat(lat).lon(lon).distance(distance,DistanceUnit.METERS);
+  filterBuilders.push(fb);
+  queryBuilders.push(NoOpQueryBuilder.INSTANCE);
 }

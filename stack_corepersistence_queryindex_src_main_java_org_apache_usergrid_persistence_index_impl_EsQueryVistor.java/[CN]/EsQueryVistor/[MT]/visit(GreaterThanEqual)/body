@@ -1,7 +1,7 @@
 {
-  String name=op.getProperty().getValue();
-  name=name.toLowerCase();
+  String name=op.getProperty().getValue().toLowerCase();
   Object value=op.getLiteral().getValue();
-  name=addPrefix(value,name);
-  stack.push(QueryBuilders.rangeQuery(name).gte(value));
+  final RangeFilterBuilder rangeQuery=FilterBuilders.rangeFilter(getFieldNameForType(value)).gte(sanitize(value));
+  filterBuilders.push(fieldNameTerm(name,rangeQuery));
+  queryBuilders.push(NoOpQueryBuilder.INSTANCE);
 }

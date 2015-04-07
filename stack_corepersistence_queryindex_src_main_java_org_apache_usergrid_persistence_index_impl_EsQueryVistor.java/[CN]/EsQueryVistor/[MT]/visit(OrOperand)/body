@@ -1,20 +1,38 @@
 {
   op.getLeft().visit(this);
   op.getRight().visit(this);
-  QueryBuilder left=null;
-  if (!(op.getLeft() instanceof WithinOperand)) {
-    left=stack.pop();
+  final QueryBuilder rightQuery=queryBuilders.pop();
+  final FilterBuilder rightFilter=filterBuilders.pop();
+  final QueryBuilder leftQuery=queryBuilders.pop();
+  final FilterBuilder leftFilter=filterBuilders.pop();
+  final boolean useLeftQuery=use(leftQuery);
+  final boolean useRightQuery=use(rightQuery);
+  if (useLeftQuery && useRightQuery) {
+    final BoolQueryBuilder qb=QueryBuilders.boolQuery().should(leftQuery).should(rightQuery);
+    queryBuilders.push(qb);
   }
-  QueryBuilder right=null;
-  if (!(op.getRight() instanceof WithinOperand)) {
-    right=stack.pop();
+ else   if (useLeftQuery) {
+    queryBuilders.push(leftQuery);
   }
-  BoolQueryBuilder qb=QueryBuilders.boolQuery();
-  if (left != null) {
-    qb=qb.should(left);
+ else   if (useRightQuery) {
+    queryBuilders.push(rightQuery);
   }
-  if (right != null) {
-    qb=qb.should(right);
+ else {
+    queryBuilders.push(NoOpQueryBuilder.INSTANCE);
   }
-  stack.push(qb);
+  final boolean useLeftFilter=use(leftFilter);
+  final boolean useRightFilter=use(rightFilter);
+  if (useLeftFilter && useRightFilter) {
+    final BoolFilterBuilder fb=FilterBuilders.boolFilter().should(leftFilter).should(rightFilter);
+    filterBuilders.push(fb);
+  }
+ else   if (useLeftFilter) {
+    filterBuilders.push(leftFilter);
+  }
+ else   if (useRightFilter) {
+    filterBuilders.push(rightFilter);
+  }
+ else {
+    queryBuilders.push(NoOpQueryBuilder.INSTANCE);
+  }
 }

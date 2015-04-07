@@ -2,6 +2,10 @@
   IndexValidationUtils.validateIndexEdge(indexEdge);
   ValidationUtils.verifyEntityWrite(entity);
   ValidationUtils.verifyVersion(entity.getVersion());
-  container.addIndexRequest(new IndexRequest(alias.getWriteAlias(),applicationScope,indexEdge,entity));
+  final String writeAlias=alias.getWriteAlias();
+  if (log.isDebugEnabled()) {
+    log.debug("Indexing to alias {} with scope {} on edge {} with entity data {}",new Object[]{writeAlias,applicationScope,indexEdge,entity});
+  }
+  container.addIndexRequest(new IndexRequest(writeAlias,applicationScope,indexEdge,entity));
   return this;
 }

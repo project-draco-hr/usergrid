@@ -1,6 +1,17 @@
 {
   op.getOperation().visit(this);
-  if (!(op.getOperation() instanceof WithinOperand)) {
-    stack.push(QueryBuilders.boolQuery().mustNot(stack.pop()));
+  final QueryBuilder notQueryBuilder=queryBuilders.pop();
+  if (use(notQueryBuilder)) {
+    queryBuilders.push(QueryBuilders.boolQuery().mustNot(notQueryBuilder));
+  }
+ else {
+    queryBuilders.push(NoOpQueryBuilder.INSTANCE);
+  }
+  final FilterBuilder notFilterBuilder=filterBuilders.pop();
+  if (use(notFilterBuilder)) {
+    filterBuilders.push(FilterBuilders.boolFilter().mustNot(notFilterBuilder));
+  }
+ else {
+    filterBuilders.push(NoOpFilterBuilder.INSTANCE);
   }
 }

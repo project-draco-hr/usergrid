@@ -1,29 +1,38 @@
 {
   op.getLeft().visit(this);
-  QueryBuilder left=null;
-  if (!(op.getLeft() instanceof WithinOperand)) {
-    left=stack.peek();
-  }
   op.getRight().visit(this);
-  QueryBuilder right=null;
-  if (!(op.getRight() instanceof WithinOperand)) {
-    right=stack.peek();
+  final QueryBuilder rightQuery=queryBuilders.pop();
+  final FilterBuilder rightFilter=filterBuilders.pop();
+  final QueryBuilder leftQuery=queryBuilders.pop();
+  final FilterBuilder leftFilter=filterBuilders.pop();
+  final boolean useLeftQuery=use(leftQuery);
+  final boolean useRightQuery=use(rightQuery);
+  if (useLeftQuery && useRightQuery) {
+    final BoolQueryBuilder qb=QueryBuilders.boolQuery().must(leftQuery).must(rightQuery);
+    queryBuilders.push(qb);
   }
-  if (left == right) {
-    return;
+ else   if (useLeftQuery) {
+    queryBuilders.push(leftQuery);
   }
-  if (!(op.getLeft() instanceof WithinOperand)) {
-    left=stack.pop();
+ else   if (useRightQuery) {
+    queryBuilders.push(rightQuery);
   }
-  if (!(op.getRight() instanceof WithinOperand)) {
-    right=stack.pop();
+ else {
+    queryBuilders.push(NoOpQueryBuilder.INSTANCE);
   }
-  BoolQueryBuilder qb=QueryBuilders.boolQuery();
-  if (left != null) {
-    qb=qb.must(left);
+  final boolean useLeftFilter=use(leftFilter);
+  final boolean useRightFilter=use(rightFilter);
+  if (useLeftFilter && useRightFilter) {
+    final BoolFilterBuilder fb=FilterBuilders.boolFilter().must(leftFilter).must(rightFilter);
+    filterBuilders.push(fb);
   }
-  if (right != null) {
-    qb=qb.must(right);
+ else   if (useLeftFilter) {
+    filterBuilders.push(leftFilter);
   }
-  stack.push(qb);
+ else   if (useRightFilter) {
+    filterBuilders.push(rightFilter);
+  }
+ else {
+    filterBuilders.push(NoOpFilterBuilder.INSTANCE);
+  }
 }
