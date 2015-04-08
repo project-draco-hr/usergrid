@@ -1,25 +1,11 @@
 {
   final EntityManager managementEm=getEntityManager(getManagementAppId());
-  final Entity deletedAppInfo=managementEm.get(new SimpleEntityRef(CpNamingUtils.DELETED_APPLICATION_INFO,applicationId));
-  if (deletedAppInfo == null) {
-    throw new EntityNotFoundException("Cannot restore. Deleted Application not found: " + applicationId);
-  }
-  Entity restoredAppInfo=managementEm.create(new SimpleId(deletedAppInfo.getUuid(),CpNamingUtils.APPLICATION_INFO),deletedAppInfo.getProperties());
-  final Set<String> connectionTypes=managementEm.getConnectionTypes(deletedAppInfo);
-  for (  String connType : connectionTypes) {
-    final Results connResults=managementEm.getConnectedEntities(deletedAppInfo,connType,null,Query.Level.ALL_PROPERTIES);
-    for (    Entity entity : connResults.getEntities()) {
-      managementEm.createConnection(restoredAppInfo,connType,entity);
-    }
-  }
-  managementEm.delete(deletedAppInfo);
-  entityIndex.refresh();
+  migrateAppInfo(applicationId,CpNamingUtils.DELETED_APPLICATION_INFO,CpNamingUtils.APPLICATION_INFO).toBlocking().lastOrDefault(null);
   this.rebuildApplicationIndexes(applicationId,new ProgressObserver(){
     @Override public void onProgress(    EntityRef entity){
       logger.info("Restored entity {}:{}",entity.getType(),entity.getUuid());
     }
   }
 );
-  applicationIdCache.evictAppId(restoredAppInfo.getName());
-  return restoredAppInfo;
+  return managementEm.get(new SimpleEntityRef(CpNamingUtils.APPLICATION_INFO,applicationId));
 }
