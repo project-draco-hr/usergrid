@@ -3,11 +3,13 @@
   BoolFilterBuilder boolQueryFilter=FilterBuilders.boolFilter();
   boolQueryFilter.must(FilterBuilders.termFilter(IndexingUtils.EDGE_SEARCH_FIELDNAME,context));
   final String[] sourceTypes=searchTypes.getTypeNames(applicationScope);
-  final FilterBuilder[] typeTerms=new FilterBuilder[sourceTypes.length];
-  for (int i=0; i < sourceTypes.length; i++) {
-    typeTerms[i]=FilterBuilders.termFilter(IndexingUtils.ENTITY_TYPE_FIELDNAME,sourceTypes[i]);
+  if (sourceTypes.length > 0) {
+    final FilterBuilder[] typeTerms=new FilterBuilder[sourceTypes.length];
+    for (int i=0; i < sourceTypes.length; i++) {
+      typeTerms[i]=FilterBuilders.termFilter(IndexingUtils.ENTITY_TYPE_FIELDNAME,sourceTypes[i]);
+    }
+    boolQueryFilter.must(FilterBuilders.orFilter(typeTerms));
   }
-  boolQueryFilter.must(FilterBuilders.orFilter(typeTerms));
   Optional<FilterBuilder> queryBuilder=visitor.getFilterBuilder();
   if (queryBuilder.isPresent()) {
     boolQueryFilter.must(queryBuilder.get());
