@@ -1,0 +1,14 @@
+{
+  Object o;
+  try {
+    o=mapper.readValue(json,Object.class);
+  }
+ catch (  IOException ex) {
+    throw new QueryParseException("Error parsing JSON query string " + json,ex);
+  }
+  if (o instanceof Map) {
+    @SuppressWarnings({"unchecked","rawtypes"}) Map<String,List<String>> params=ClassUtils.cast(MapUtils.toMapList((Map)o));
+    return fromQueryParams(params);
+  }
+  return null;
+}
