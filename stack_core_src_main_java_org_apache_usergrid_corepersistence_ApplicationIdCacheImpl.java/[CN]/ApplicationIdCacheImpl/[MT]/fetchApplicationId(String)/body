@@ -1,9 +1,9 @@
 {
   UUID value=null;
-  EntityCollectionManager ecm=emf.getManagerCache().getEntityCollectionManager(new ApplicationScopeImpl(new SimpleId(CpNamingUtils.MANAGEMENT_APPLICATION_ID,Schema.TYPE_APPLICATION)));
+  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(new ApplicationScopeImpl(new SimpleId(CpNamingUtils.MANAGEMENT_APPLICATION_ID,Schema.TYPE_APPLICATION)));
   try {
-    if (rootEm.getApplication() == null) {
-      return null;
+    if (managementEnityManager.getApplication() == null) {
+      return Optional.empty();
     }
   }
  catch (  Exception e) {
@@ -19,7 +19,7 @@
  else {
       logger.debug("Could not load value for key {} ",applicationName);
     }
-    return value;
+    return value == null ? Optional.<UUID>empty() : Optional.of(value);
   }
  catch (  Exception e) {
     throw new RuntimeException("Unable to retrieve application id",e);
