@@ -1,0 +1,11 @@
+{
+  if (geoFields.isEmpty()) {
+    srb.addSort(SortBuilders.fieldSort(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME).order(SortOrder.DESC));
+    srb.addSort(SortBuilders.fieldSort(IndexingUtils.ENTITY_ID_FIELDNAME).order(SortOrder.ASC));
+    return;
+  }
+  for (  String geoField : geoFields.fields()) {
+    final GeoDistanceSortBuilder geoSort=geoFields.applyOrder(geoField,SortOrder.ASC);
+    srb.addSort(geoSort);
+  }
+}

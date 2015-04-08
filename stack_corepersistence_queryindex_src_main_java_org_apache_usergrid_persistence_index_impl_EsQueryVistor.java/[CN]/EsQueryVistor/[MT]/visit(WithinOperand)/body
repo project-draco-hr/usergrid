@@ -1,10 +1,13 @@
 {
   final String name=op.getProperty().getValue().toLowerCase();
-  geoFields.add(name);
   float lat=op.getLatitude().getFloatValue();
   float lon=op.getLongitude().getFloatValue();
   float distance=op.getDistance().getFloatValue();
-  final FilterBuilder fb=FilterBuilders.geoDistanceFilter(name).lat(lat).lon(lon).distance(distance,DistanceUnit.METERS);
-  filterBuilders.push(fb);
+  final FilterBuilder fb=FilterBuilders.geoDistanceFilter(IndexingUtils.FIELD_LOCATION_NESTED).lat(lat).lon(lon).distance(distance,DistanceUnit.METERS);
+  filterBuilders.push(fieldNameTerm(name,fb));
+  final GeoDistanceSortBuilder geoSort=SortBuilders.geoDistanceSort(IndexingUtils.FIELD_LOCATION_NESTED).unit(DistanceUnit.METERS).geoDistance(GeoDistance.SLOPPY_ARC).point(lat,lon);
+  final TermFilterBuilder sortPropertyName=sortPropertyTermFilter(name);
+  geoSort.setNestedFilter(sortPropertyName);
+  geoSortFields.addField(name,geoSort);
   queryBuilders.push(NoOpQueryBuilder.INSTANCE);
 }
