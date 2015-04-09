@@ -13,7 +13,8 @@
   em.delete(user);
   LOG.info("Entity deleted");
   app.refreshIndex();
-  Results r=em.searchCollection(em.getApplicationRef(),"users",new Query().addEqualityFilter("username",name));
+  final Query query=Query.fromQL("username = '" + name + "'");
+  Results r=em.searchCollection(em.getApplicationRef(),"users",query);
   assertEquals(0,r.size());
   properties=new LinkedHashMap<String,Object>();
   properties.put("username",name);
@@ -22,7 +23,8 @@
   user=em.create("user",properties);
   LOG.info("Entity created");
   app.refreshIndex();
-  r=em.searchCollection(em.getApplicationRef(),"users",new Query().addEqualityFilter("username",name));
+  final Query userNameQuery=Query.fromQL("username = '" + name + "'");
+  r=em.searchCollection(em.getApplicationRef(),"users",userNameQuery);
   assertEquals(1,r.size());
   assertEquals(user.getUuid(),r.getEntity().getUuid());
 }

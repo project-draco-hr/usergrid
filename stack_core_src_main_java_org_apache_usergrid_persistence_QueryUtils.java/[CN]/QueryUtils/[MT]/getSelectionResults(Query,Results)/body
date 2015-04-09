@@ -8,33 +8,12 @@
   }
   List<Object> results=new ArrayList<Object>();
   for (  Entity entity : entities) {
-    if (q.isMergeSelectResults()) {
-      boolean include=false;
-      Map<String,Object> result=new LinkedHashMap<String,Object>();
-      Map<String,String> selects=q.getSelectAssignments();
-      for (      Map.Entry<String,String> select : selects.entrySet()) {
-        Object obj=JsonUtils.select(entity,select.getValue(),false);
-        if (obj != null) {
-          include=true;
-        }
-        result.put(select.getKey(),obj);
-      }
-      if (include) {
-        results.add(result);
-      }
-    }
- else {
-      boolean include=false;
-      List<Object> result=new ArrayList<Object>();
-      Set<String> selects=q.getSelectSubjects();
-      for (      String select : selects) {
-        Object obj=JsonUtils.select(entity,select);
-        if (obj != null) {
-          include=true;
-        }
-        result.add(obj);
-      }
-      if (include) {
+    Collection<SelectFieldMapping> selects=q.getSelectAssignments();
+    for (    SelectFieldMapping select : selects) {
+      Object obj=JsonUtils.select(entity,select.getSourceFieldName(),false);
+      if (obj != null) {
+        Map<String,Object> result=new LinkedHashMap<String,Object>();
+        result.put(select.getTargetFieldName(),obj);
         results.add(result);
       }
     }

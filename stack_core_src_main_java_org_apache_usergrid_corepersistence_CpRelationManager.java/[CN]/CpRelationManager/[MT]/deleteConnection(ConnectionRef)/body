@@ -1,27 +1,2 @@
 {
-  Keyspace ko=cass.getApplicationKeyspace(applicationId);
-  Mutator<ByteBuffer> m=createMutator(ko,be);
-  batchUpdateEntityConnection(m,true,(ConnectionRefImpl)connectionRef,UUIDGenerator.newTimeUUID());
-  Timer.Context timeDeleteConnections=cassConnectionDelete.time();
-  batchExecute(m,CassandraService.RETRY_COUNT);
-  timeDeleteConnections.stop();
-  EntityRef connectingEntityRef=connectionRef.getConnectingEntity();
-  EntityRef connectedEntityRef=connectionRef.getConnectedEntity();
-  String connectionType=connectionRef.getConnectedEntity().getConnectionType();
-  if (logger.isDebugEnabled()) {
-    logger.debug("Deleting connection '{}' from source {}:{} \n   to target {}:{}",new Object[]{connectionType,connectingEntityRef.getType(),connectingEntityRef.getUuid(),connectedEntityRef.getType(),connectedEntityRef.getUuid()});
-  }
-  Id entityId=new SimpleId(connectedEntityRef.getUuid(),connectedEntityRef.getType());
-  org.apache.usergrid.persistence.model.entity.Entity targetEntity=((CpEntityManager)em).load(entityId);
-  Edge edge=new SimpleEdge(new SimpleId(connectingEntityRef.getUuid(),connectingEntityRef.getType()),connectionType,targetEntity.getId(),System.currentTimeMillis());
-  GraphManager gm=managerCache.getGraphManager(applicationScope);
-  gm.deleteEdge(edge).toBlocking().last();
-  final ApplicationEntityIndex ei=managerCache.getEntityIndex(applicationScope);
-  final EntityIndexBatch batch=ei.createBatch();
-  final Id cpId=createId(connectingEntityRef);
-  IndexScope indexScope=generateScopeFromConnection(cpId,connectionType);
-  batch.deindex(indexScope,targetEntity);
-  Timer.Context timeDeleteConnection=esDeleteConnectionTimer.time();
-  batch.execute();
-  timeDeleteConnection.stop();
 }

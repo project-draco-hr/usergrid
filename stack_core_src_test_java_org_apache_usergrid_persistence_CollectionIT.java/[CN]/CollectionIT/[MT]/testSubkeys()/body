@@ -28,7 +28,8 @@
   properties.put("content","I wrote another blog post");
   em.addToCollection(user,"activities",em.create("activity",properties));
   app.refreshIndex();
-  Results r=em.searchCollection(user,"activities",Query.searchForProperty("verb","post"));
+  final Query query=Query.fromQL("verb = 'post'");
+  Results r=em.searchCollection(user,"activities",query);
   LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   assertEquals(2,r.size());
 }

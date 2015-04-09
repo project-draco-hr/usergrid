@@ -19,7 +19,8 @@
   assertEquals("userRef.type not expected value","user",userRef.getType());
   LOG.info("user.username: " + user.getProperty("username"));
   LOG.info("user.email: " + user.getProperty("email"));
-  Results results=em.searchCollection(em.getApplicationRef(),"users",new Query().addEqualityFilter("username","edanuff"));
+  final Query query=Query.fromQL("username = 'edanuff'");
+  Results results=em.searchCollection(em.getApplicationRef(),"users",query);
   assertNotNull(results);
   assertEquals(1,results.size());
   user=results.getEntity();
@@ -28,7 +29,8 @@
   assertEquals("user.email not expected value","ed@anuff.com",user.getProperty("email"));
   LOG.info("user.username: " + user.getProperty("username"));
   LOG.info("user.email: " + user.getProperty("email"));
-  results=em.searchCollection(em.getApplicationRef(),"users",new Query().addEqualityFilter("email","ed@anuff.com"));
+  final Query emailQuery=Query.fromQL("email = 'ed@anuff.com'");
+  results=em.searchCollection(em.getApplicationRef(),"users",emailQuery);
   assertNotNull(results);
   assertEquals(1,results.size());
   user=results.getEntity();

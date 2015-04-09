@@ -10,8 +10,7 @@
   Entity user=em.create("user",properties);
   assertNotNull(user);
   app.refreshIndex();
-  Query query=new Query();
-  query.addEqualityFilter("lastname",lastName);
+  final Query query=Query.fromQL("lastname = '" + lastName + "'");
   Results r=em.searchCollection(em.getApplicationRef(),"users",query);
   assertTrue(r.size() > 0);
   Entity returned=r.getEntities().get(0);

@@ -10,8 +10,7 @@
   Entity user=em.create("user",properties);
   assertNotNull(user);
   app.refreshIndex();
-  Query query=new Query();
-  query.addEqualityFilter("firstname",firstName);
+  Query query=Query.fromQL("firstname = '" + firstName + "'");
   Results r=em.searchCollection(em.getApplicationRef(),"users",query);
   assertTrue(r.size() > 0);
   Entity returned=r.getEntities().get(0);
@@ -20,11 +19,10 @@
   user.setProperty("firstname",newFirstName);
   em.update(user);
   app.refreshIndex();
-  query.addEqualityFilter("firstname",firstName);
+  query=Query.fromQL("firstname = '" + firstName + "'");
   r=em.searchCollection(em.getApplicationRef(),"users",query);
   assertEquals(0,r.size());
-  query=new Query();
-  query.addEqualityFilter("firstname",newFirstName);
+  query=Query.fromQL("firstname = '" + newFirstName + "'");
   r=em.searchCollection(em.getApplicationRef(),"users",query);
   assertTrue(r.size() > 0);
   returned=r.getEntities().get(0);
