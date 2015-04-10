@@ -1,0 +1,19 @@
+{
+  jg.writeFieldName("dictionaries");
+  jg.writeStartObject();
+  Set<String> dictionaries=em.getDictionaries(entity);
+  for (  String dictionary : dictionaries) {
+    Map<Object,Object> dict=em.getDictionaryAsMap(entity,dictionary);
+    if (dict.isEmpty()) {
+      continue;
+    }
+    jg.writeFieldName(dictionary);
+    jg.writeStartObject();
+    for (    Map.Entry<Object,Object> entry : dict.entrySet()) {
+      jg.writeFieldName(entry.getKey().toString());
+      jg.writeObject(entry.getValue());
+    }
+    jg.writeEndObject();
+  }
+  jg.writeEndObject();
+}

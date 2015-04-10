@@ -1,0 +1,30 @@
+{
+  logger.info("" + organization);
+  JsonGenerator jg=getJsonGenerator(createOutputFile("application","admin_user"));
+  EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+  jg.writeStartArray();
+  JsonGenerator collectionsJg=getJsonGenerator(createOutputFile("collections","admin_users"));
+  collectionsJg.writeStartObject();
+  Map<String,Object> metadata=em.getApplicationCollectionMetadata();
+  echo(JsonUtils.mapToFormattedJsonString(metadata));
+  Query query=new Query();
+  query.setLimit(MAX_ENTITY_FETCH);
+  query.setResultsLevel(Results.Level.ALL_PROPERTIES);
+  Results entities=em.searchCollection(em.getApplicationRef(),"users",query);
+  while (entities.size() > 0) {
+    for (    Entity entity : entities) {
+      jg.writeObject(entity);
+      echo(entity);
+      saveCollectionMembers(collectionsJg,em,null,entity);
+    }
+    if (entities.getCursor() == null) {
+      break;
+    }
+    query.setCursor(entities.getCursor());
+    entities=em.searchCollection(em.getApplicationRef(),"users",query);
+  }
+  collectionsJg.writeEndObject();
+  collectionsJg.close();
+  jg.writeEndArray();
+  jg.close();
+}
