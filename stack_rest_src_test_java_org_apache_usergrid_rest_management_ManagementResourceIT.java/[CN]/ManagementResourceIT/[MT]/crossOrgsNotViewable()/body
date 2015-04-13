@@ -4,11 +4,12 @@
   String email=username + "@usergrid.com";
   String password="password";
   String orgName=username;
-  Map payload=hashMap("email",email).map("username",username).map("name",name).map("password",password).map("organization",orgName).map("company","Apigee");
-  JsonNode node=mapper.readTree(resource().path("/management/organizations").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
+  Entity payload=new Entity().chainPut("company","Apigee");
+  Organization organization=new Organization(orgName,username,email,name,password,payload);
+  Organization node=management().orgs().post(organization);
   Status status=null;
   try {
-    resource().path(String.format("/management/orgs/%s",orgName)).queryParam("access_token",context.getActiveUser().getToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
+    this.management().orgs().organization(this.clientSetup.getOrganizationName()).get(String.class);
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getClientResponseStatus();
@@ -17,7 +18,7 @@
   assertEquals(Status.UNAUTHORIZED,status);
   status=null;
   try {
-    resource().path("/management/orgs/" + context.getOrgName()).queryParam("access_token",context.getActiveUser().getToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
+    this.management().orgs().organization(this.clientSetup.getOrganizationName()).get(String.class);
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getClientResponseStatus();
@@ -25,7 +26,7 @@
   assertNull(status);
   status=null;
   try {
-    resource().path(String.format("/management/orgs/%s",context.getOrgUuid())).queryParam("access_token",context.getActiveUser().getToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
+    this.management().orgs().organization(this.clientSetup.getOrganizationName()).get(String.class);
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getClientResponseStatus();
