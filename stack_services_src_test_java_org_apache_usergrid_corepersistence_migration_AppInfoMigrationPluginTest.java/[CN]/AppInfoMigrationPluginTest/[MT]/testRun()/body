@@ -1,4 +1,9 @@
 {
+  MigrationInfoSerialization serialization=Mockito.mock(MigrationInfoSerialization.class);
+  Mockito.when(serialization.getVersion(Mockito.any())).thenReturn(0);
+  EntityCollectionManagerFactory ecmf=setup.getInjector().getInstance(EntityCollectionManagerFactory.class);
+  GraphManagerFactory gmf=setup.getInjector().getInstance(GraphManagerFactory.class);
+  AppInfoMigrationPlugin appInfoMigrationPlugin=new AppInfoMigrationPlugin(setup.getEmf(),serialization,ecmf,gmf);
   logger.debug("\n\nCreate 10 apps each with 10 entities");
   final String orgName=uniqueOrg();
   OrganizationOwnerInfo organization=orgAppRule.createOwnerAndOrganization(orgName,uniqueUsername(),uniqueEmail(),"Ed Anuff","test");
@@ -17,6 +22,7 @@
 );
     }
   }
+  setup.refreshIndex();
   UUID mgmtAppId=setup.getEmf().getManagementAppId();
   EntityManager rootEm=setup.getEmf().getEntityManager(mgmtAppId);
   checkApplicationsOk(orgName);
@@ -43,16 +49,16 @@
       deletedApps.add(applicationInfo);
     }
   }
-  setup.getEmf().refreshIndex();
+  setup.refreshIndex();
   setup.getEmf().flushEntityManagerCaches();
   Thread.sleep(1000);
   checkApplicationsBroken(orgName,deletedApps);
   logger.debug("\n\nRun the migration\n");
   ProgressObserver po=Mockito.mock(ProgressObserver.class);
-  setup.getAppInfoMigrationPlugin().run(po);
+  appInfoMigrationPlugin.run(po);
   logger.debug("\n\nVerify migration results\n");
   Mockito.verify(po,Mockito.times(10)).update(Mockito.anyInt(),Mockito.anyString());
-  setup.getEmf().refreshIndex();
+  setup.refreshIndex();
   final Results appInfoResults=rootEm.searchCollection(new SimpleEntityRef("application",mgmtAppId),"appinfos",Query.fromQL("select *"));
   assertEquals(0,appInfoResults.size());
   final Results applicationInfoResults=rootEm.searchCollection(new SimpleEntityRef("application",mgmtAppId),"application_infos",Query.fromQL("select *"));

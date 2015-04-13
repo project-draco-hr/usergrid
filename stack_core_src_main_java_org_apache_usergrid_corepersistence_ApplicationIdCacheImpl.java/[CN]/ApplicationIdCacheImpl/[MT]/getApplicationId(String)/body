@@ -1,6 +1,9 @@
 {
   try {
-    UUID optionalUuid=appCache.get(applicationName.toLowerCase());
+    Optional<UUID> optionalUuid=appCache.get(applicationName.toLowerCase());
+    if (!optionalUuid.isPresent()) {
+      appCache.invalidate(applicationName.toLowerCase());
+    }
     logger.debug("Returning for key {} value {}",applicationName,optionalUuid);
     return optionalUuid;
   }
