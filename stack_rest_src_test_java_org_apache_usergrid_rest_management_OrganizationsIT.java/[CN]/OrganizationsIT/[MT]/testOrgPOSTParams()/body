@@ -7,12 +7,11 @@
   queryParameters.setKeyValue("email",organization.getEmail());
   queryParameters.setKeyValue("name",organization.getName());
   queryParameters.setKeyValue("password",organization.getPassword());
-  Organization organizationReturned=clientSetup.getRestClient().management().orgs().post(queryParameters);
-  assertNotNull(organizationReturned);
-  assertEquals(organization.getOrganization(),organizationReturned.getName());
-  Token tokenPayload=new Token("password",organization.getName(),organization.getPassword());
-  Token tokenReturned=clientSetup.getRestClient().management().token().post(Token.class,tokenPayload);
-  assertNotNull(tokenReturned);
-  Organization returnedOrg=clientSetup.getRestClient().management().orgs().organization(organization.getOrganization()).get();
-  assertTrue(returnedOrg != null && returnedOrg.getName().equals(organization.getOrganization()));
+  try {
+    Organization organizationReturned=clientSetup.getRestClient().management().orgs().post(queryParameters);
+    fail();
+  }
+ catch (  UniformInterfaceException e) {
+    assertEquals("ensure bad request",e.getResponse().getStatus(),400);
+  }
 }
