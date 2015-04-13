@@ -1,0 +1,35 @@
+{
+  if (extAccessToken == null) {
+    throw new IllegalArgumentException("ext_access_token must be specified");
+  }
+  if (ttl == -1) {
+    throw new IllegalArgumentException("ttl must be specified");
+  }
+  String externalUrl=properties.getProperty(USERGRID_CENTRAL_URL).trim();
+  externalUrl=!externalUrl.endsWith("/") ? externalUrl + "/" : externalUrl;
+  String me=externalUrl + "management/me?access_token=" + extAccessToken;
+  ClientConfig clientConfig=new DefaultClientConfig();
+  clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING,Boolean.TRUE);
+  Client client=Client.create(clientConfig);
+  final JsonNode accessInfoNode;
+  try {
+    accessInfoNode=client.resource(me).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  }
+ catch (  Exception e) {
+    String msg="Cannot find Admin User associated with " + extAccessToken;
+    throw new EntityNotFoundException(msg,e);
+  }
+  JsonNode userNode=accessInfoNode.get("user");
+  UUID userId=UUIDUtils.tryExtractUUID(userNode.get("uuid").getTextValue());
+  String username=userNode.get("username").getTextValue();
+  String name=userNode.get("name").getTextValue();
+  String email=userNode.get("email").getTextValue();
+  String dummyPassword=RandomStringUtils.randomAlphanumeric(40);
+  final OrganizationInfo organizationInfo=management.getOrganizationByName(username);
+  if (organizationInfo == null) {
+    OrganizationOwnerInfo ownerOrgInfo=management.createOwnerAndOrganization(username,username,name,email,dummyPassword,true,true);
+  }
+  management.importTokenForAdminUser(userId,extAccessToken,ttl);
+  AccessInfo accessInfo=new AccessInfo().withExpiresIn(tokens.getMaxTokenAgeInSeconds(extAccessToken)).withAccessToken(extAccessToken);
+  return Response.status(SC_OK).type(jsonMediaType(callback)).entity(accessInfo).build();
+}

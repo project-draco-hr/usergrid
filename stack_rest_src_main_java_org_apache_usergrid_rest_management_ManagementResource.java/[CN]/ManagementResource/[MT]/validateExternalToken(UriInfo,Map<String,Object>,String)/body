@@ -1,0 +1,19 @@
+{
+  Object extAccessTokenObj=json.get("ext_access_token");
+  if (extAccessTokenObj == null) {
+    throw new IllegalArgumentException("ext_access_token must be specified");
+  }
+  String extAccessToken=json.get("ext_access_token").toString();
+  Object ttlObj=json.get("ttl");
+  if (ttlObj == null) {
+    throw new IllegalArgumentException("ttl must be specified");
+  }
+  long ttl;
+  try {
+    ttl=Long.parseLong(ttlObj.toString());
+  }
+ catch (  NumberFormatException e) {
+    throw new IllegalArgumentException("ttl must be specified as a long");
+  }
+  return validateExternalToken(ui,extAccessToken,ttl,callback);
+}
