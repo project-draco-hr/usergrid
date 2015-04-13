@@ -3,36 +3,6 @@
   final Timer.Context timeRefreshIndex=refreshTimer.time();
   BetterFuture future=indexBatchBufferProducer.put(new IndexIdentifierImpl.IndexOperationMessage());
   future.get();
-  final RetryOperation retryOperation=new RetryOperation(){
-    @Override public boolean doOp(){
-      try {
-        final String[] indexes=getUniqueIndexes();
-        if (indexes.length == 0) {
-          logger.debug("Not refreshing indexes. none found");
-          return true;
-        }
-        RefreshResponse response=esProvider.getClient().admin().indices().prepareRefresh(indexes).execute().actionGet();
-        int failedShards=response.getFailedShards();
-        int successfulShards=response.getSuccessfulShards();
-        ShardOperationFailedException[] sfes=response.getShardFailures();
-        if (sfes != null) {
-          for (          ShardOperationFailedException sfe : sfes) {
-            logger.error("Failed to refresh index:{} reason:{}",sfe.index(),sfe.reason());
-          }
-        }
-        logger.debug("Refreshed indexes: {},success:{} failed:{} ",StringUtils.join(indexes,", "),successfulShards,failedShards);
-        timeRefreshIndex.stop();
-        if (failedShards > 0) {
-          throw new RuntimeException("Failed to update all shards in refresh operation");
-        }
-        return true;
-      }
- catch (      IndexMissingException e) {
-        logger.error("Unable to refresh index. Waiting before sleeping.",e);
-        throw e;
-      }
-    }
-  }
-;
+  final RetryOperation retryOperation=new IndexRefreshOperation(alias,esProvider,indexBatchBufferProducer,indexFig,timeRefreshIndex);
   doInRetry(retryOperation);
 }
