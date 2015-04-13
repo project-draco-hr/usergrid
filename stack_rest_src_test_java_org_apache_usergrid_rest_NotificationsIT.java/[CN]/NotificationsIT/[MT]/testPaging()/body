@@ -1,17 +1,13 @@
 {
   int numDevices=10;
   int numNotifications=100;
-  token=userToken("ed@anuff.com","sesame");
-  Map<String,Object> notifier=new HashMap<String,Object>(){
-{
-      put("name","mynotifier");
-      put("provider","noop");
-    }
-  }
-;
-  JsonNode notifierNode=mapper.readTree(resource().path(orgapp + "/notifier").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).post(String.class,notifier));
-  assertEquals("noop",notifierNode.withArray("entities").get(0).get("provider").asText());
-  refreshIndex(org,app);
+  User user=new User("ed","ed","ed@anuff.com","sesame");
+  Entity entity=this.app().collection("users").post(user);
+  Token token=this.app().token().post(new Token("ed","sesame"));
+  Entity notifier=new Entity().chainPut("name","mynotifier").chainPut("provider","noop");
+  Entity notifierNode=this.app().collection("notifier").post(notifier);
+  assertEquals("noop",notifierNode.getResponse().getEntities().get(0).get("provider").toString());
+  this.refreshIndex();
   int devicesCount=0;
   List<String> deviceIds=new ArrayList();
   for (int i=0; i < numDevices; i++) {
@@ -27,12 +23,12 @@
       }
     }
 ;
-    JsonNode deviceNode=mapper.readTree(resource().path(orgapp + "/devices").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).post(String.class,device));
-    assertEquals("device" + i,deviceNode.withArray("entities").get(0).get("name").asText());
-    deviceIds.add(deviceNode.withArray("entities").get(0).get("uuid").asText());
+    Entity deviceNode=this.app().collection("devices").post(new Entity(device));
+    assertEquals("device" + i,deviceNode.getResponse().getEntities().get(0).get("name").toString());
+    deviceIds.add(deviceNode.getResponse().getEntities().get(0).get("uuid").toString());
     devicesCount++;
   }
-  refreshIndex(org,app);
+  refreshIndex();
   String postMeterName=getClass().getSimpleName() + ".postNotifications";
   Meter postMeter=registry.meter(postMeterName);
   int notificationCount=0;
@@ -51,10 +47,9 @@
         }
       }
 ;
-      JsonNode notificationNode=mapper.readTree(resource().path(orgapp + "/notifications").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).post(String.class,notification));
+      Entity notificationNode=this.app().collection("notifications").post(new Entity(notification));
       postMeter.mark();
-      Thread.sleep(writeDelayMs);
-      notificationUuids.add(notificationNode.withArray("entities").get(0).get("uuid").asText());
+      notificationUuids.add(notificationNode.getResponse().getEntities().get(0).get("uuid").toString());
     }
     notificationCount++;
     if (notificationCount % 100 == 0) {
@@ -62,7 +57,7 @@
     }
   }
   registry.remove(postMeterName);
-  refreshIndex(org,app);
+  refreshIndex();
   logger.info("Waiting for all notifications to be sent");
   StopWatch sw=new StopWatch();
   sw.start();
