@@ -1,9 +1,9 @@
 {
   logger.info("" + organization);
-  JsonGenerator jg=getJsonGenerator(createOutputFile("application","admin_user"));
   EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+  JsonGenerator jg=getJsonGenerator(createOutputFile("application",em.getApplication().getName()));
   jg.writeStartArray();
-  JsonGenerator collectionsJg=getJsonGenerator(createOutputFile("collections","admin_users"));
+  JsonGenerator collectionsJg=getJsonGenerator(createOutputFile("collections",em.getApplication().getName()));
   collectionsJg.writeStartObject();
   Map<String,Object> metadata=em.getApplicationCollectionMetadata();
   echo(JsonUtils.mapToFormattedJsonString(metadata));
