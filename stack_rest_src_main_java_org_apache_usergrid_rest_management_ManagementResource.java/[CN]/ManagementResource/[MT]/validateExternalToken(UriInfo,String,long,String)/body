@@ -20,14 +20,20 @@
     throw new EntityNotFoundException(msg,e);
   }
   JsonNode userNode=accessInfoNode.get("user");
-  UUID userId=UUIDUtils.tryExtractUUID(userNode.get("uuid").getTextValue());
   String username=userNode.get("username").getTextValue();
   String name=userNode.get("name").getTextValue();
   String email=userNode.get("email").getTextValue();
   String dummyPassword=RandomStringUtils.randomAlphanumeric(40);
+  final UUID userId;
   final OrganizationInfo organizationInfo=management.getOrganizationByName(username);
   if (organizationInfo == null) {
     OrganizationOwnerInfo ownerOrgInfo=management.createOwnerAndOrganization(username,username,name,email,dummyPassword,true,true);
+    userId=ownerOrgInfo.getOwner().getUuid();
+    management.activateOrganization(ownerOrgInfo.getOrganization());
+    applicationCreator.createSampleFor(ownerOrgInfo.getOrganization());
+  }
+ else {
+    userId=management.getAdminUserByUsername(username).getUuid();
   }
   management.importTokenForAdminUser(userId,extAccessToken,ttl);
   AccessInfo accessInfo=new AccessInfo().withExpiresIn(tokens.getMaxTokenAgeInSeconds(extAccessToken)).withAccessToken(extAccessToken);
