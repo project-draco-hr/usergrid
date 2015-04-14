@@ -20,7 +20,9 @@
     LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
     assertEquals(pageSize,r.size());
     for (int j=0; j < pageSize; j++) {
-      assertEquals(entityIds.get(i * pageSize + j),r.getEntities().get(j).getUuid());
+      final int index=size - 1 - (i * pageSize + j);
+      final UUID expectedId=entityIds.get(index);
+      assertEquals(expectedId,r.getEntities().get(j).getUuid());
     }
     query.setCursor(r.getCursor());
   }
