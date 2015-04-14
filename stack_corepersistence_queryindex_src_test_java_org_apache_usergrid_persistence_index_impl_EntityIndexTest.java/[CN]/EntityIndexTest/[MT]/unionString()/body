@@ -15,7 +15,7 @@
   IndexEdge indexScope2=new IndexEdgeImpl(ownerId,"searches",SearchEdge.NodeType.SOURCE,11);
   batch.index(indexScope2,second);
   batch.execute().get();
-  ei.refresh();
+  ei.refreshAsync().toBlocking().last();
   final String singleMatchQuery="string contains 'alpha' OR string contains 'foo'";
   final CandidateResults singleResults=entityIndex.search(indexScope1,SearchTypes.fromTypes(first.getId().getType()),singleMatchQuery,10);
   assertEquals(1,singleResults.size());

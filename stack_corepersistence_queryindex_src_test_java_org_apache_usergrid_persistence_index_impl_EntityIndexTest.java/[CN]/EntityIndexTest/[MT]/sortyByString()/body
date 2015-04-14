@@ -14,7 +14,7 @@
   batch.index(indexSCope,first);
   batch.index(indexSCope,second);
   batch.execute().get();
-  ei.refresh();
+  ei.refreshAsync().toBlocking().last();
   final String ascQuery="order by string";
   final CandidateResults ascResults=entityIndex.search(indexSCope,SearchTypes.fromTypes(first.getId().getType()),ascQuery,10);
   assertEquals(first.getId(),ascResults.get(0).getId());

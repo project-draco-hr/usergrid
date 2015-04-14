@@ -19,13 +19,13 @@
   EntityIndexBatch batch=entityIndex.createBatch();
   batch.index(indexSCope,user);
   batch.execute().get();
-  ei.refresh();
+  ei.refreshAsync().toBlocking().last();
   final String query="where username = 'edanuff'";
   CandidateResults r=entityIndex.search(indexSCope,SearchTypes.fromTypes("edanuff"),query,10);
   assertEquals(user.getId(),r.get(0).getId());
   batch.deindex(indexSCope,user.getId(),user.getVersion());
   batch.execute().get();
-  ei.refresh();
+  ei.refreshAsync().toBlocking().last();
   r=entityIndex.search(indexSCope,SearchTypes.fromTypes("edanuff"),query,10);
   assertFalse(r.iterator().hasNext());
 }

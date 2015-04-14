@@ -6,15 +6,15 @@
   IndexEdge searchEdge=new IndexEdgeImpl(appId,"things",SearchEdge.NodeType.SOURCE,1);
   final SearchTypes searchTypes=SearchTypes.fromTypes(entityType);
   insertJsonBlob(entityIndex,entityType,searchEdge,"/sample-large.json",1,0);
-  ei.refresh();
+  ei.refreshAsync().toBlocking().last();
   ei.addIndex("v2",1,0,"one");
   insertJsonBlob(entityIndex,entityType,searchEdge,"/sample-large.json",1,0);
-  ei.refresh();
+  ei.refreshAsync().toBlocking().last();
   CandidateResults crs=testQuery(searchEdge,searchTypes,entityIndex,"name = 'Bowers Oneil'",2);
   EntityIndexBatch entityIndexBatch=entityIndex.createBatch();
   entityIndexBatch.deindex(searchEdge,crs.get(0));
   entityIndexBatch.deindex(searchEdge,crs.get(1));
   entityIndexBatch.execute().get();
-  ei.refresh();
+  ei.refreshAsync().toBlocking().last();
   testQuery(searchEdge,searchTypes,entityIndex,"name = 'Bowers Oneil'",0);
 }

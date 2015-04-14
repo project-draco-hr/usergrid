@@ -21,7 +21,7 @@
   entity2.setField(new IntegerField("ordinal",1));
   batch.index(indexEdge,entity2);
   batch.execute().get();
-  ei.refresh();
+  ei.refreshAsync().toBlocking().last();
   StopWatch timer=new StopWatch();
   timer.start();
   CandidateResults candidateResults=entityIndex.search(indexEdge,searchTypes,"select * where testfield = 'test' order by ordinal",100);

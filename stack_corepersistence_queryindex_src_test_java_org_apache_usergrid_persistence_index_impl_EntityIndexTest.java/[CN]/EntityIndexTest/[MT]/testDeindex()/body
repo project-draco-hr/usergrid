@@ -16,13 +16,13 @@
   EntityUtils.setVersion(entity,UUIDGenerator.newTimeUUID());
   entity.setField(new UUIDField(IndexingUtils.ENTITY_ID_FIELDNAME,UUID.randomUUID()));
   entityIndex.createBatch().index(searchEdge,entity).execute().get();
-  ei.refresh();
+  ei.refreshAsync().toBlocking().last();
   CandidateResults candidateResults=entityIndex.search(searchEdge,SearchTypes.fromTypes(entity.getId().getType()),"name contains 'Ferrari*'",10);
   assertEquals(1,candidateResults.size());
   EntityIndexBatch batch=entityIndex.createBatch();
   batch.deindex(searchEdge,entity).execute().get();
   batch.execute().get();
-  ei.refresh();
+  ei.refreshAsync().toBlocking().last();
   candidateResults=entityIndex.search(searchEdge,SearchTypes.fromTypes(entity.getId().getType()),"name contains 'Ferrari*'",10);
   assertEquals(0,candidateResults.size());
 }
