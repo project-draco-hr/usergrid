@@ -2,14 +2,14 @@
   final String name=op.getProperty().getValue().toLowerCase();
   final Object value=op.getLiteral().getValue();
   if (value instanceof String) {
-    final String svalue=(String)value;
-    if (svalue.indexOf("*") != -1) {
-      final WildcardQueryBuilder wildcardQuery=QueryBuilders.wildcardQuery(IndexingUtils.FIELD_STRING_NESTED,svalue.toLowerCase());
+    final String stringValue=((String)value).toLowerCase().trim();
+    if (stringValue.contains("*")) {
+      final WildcardQueryBuilder wildcardQuery=QueryBuilders.wildcardQuery(IndexingUtils.FIELD_STRING_NESTED_UNANALYZED,stringValue);
       queryBuilders.push(fieldNameTerm(name,wildcardQuery));
       filterBuilders.push(NoOpFilterBuilder.INSTANCE);
       return;
     }
-    final TermFilterBuilder termFilter=FilterBuilders.termFilter(IndexingUtils.FIELD_STRING_NESTED_UNANALYZED,svalue.toLowerCase());
+    final TermFilterBuilder termFilter=FilterBuilders.termFilter(IndexingUtils.FIELD_STRING_NESTED_UNANALYZED,stringValue);
     queryBuilders.push(NoOpQueryBuilder.INSTANCE);
     filterBuilders.push(fieldNameTerm(name,termFilter));
     return;
