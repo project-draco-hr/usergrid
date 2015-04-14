@@ -1,20 +1,20 @@
 {
-  String name=op.getProperty().getValue();
-  name=name.toLowerCase();
-  Object value=op.getLiteral().getValue();
+  final String name=op.getProperty().getValue().toLowerCase();
+  final Object value=op.getLiteral().getValue();
   if (value instanceof String) {
-    String svalue=(String)value;
-    BoolQueryBuilder qb=QueryBuilders.boolQuery();
-    qb.minimumNumberShouldMatch(1);
-    qb=qb.should(QueryBuilders.wildcardQuery(name,svalue));
-    if (svalue.indexOf("*") != -1) {
-      qb=qb.should(QueryBuilders.wildcardQuery(addPrefix(value,name),svalue));
+    final String stringValue=((String)value).toLowerCase().trim();
+    if (stringValue.contains("*")) {
+      final WildcardQueryBuilder wildcardQuery=QueryBuilders.wildcardQuery(IndexingUtils.FIELD_STRING_NESTED_UNANALYZED,stringValue);
+      queryBuilders.push(fieldNameTerm(name,wildcardQuery));
+      filterBuilders.push(NoOpFilterBuilder.INSTANCE);
+      return;
     }
- else {
-      qb=qb.should(QueryBuilders.termQuery(addPrefix(value,name),value));
-    }
-    stack.push(qb);
+    final TermFilterBuilder termFilter=FilterBuilders.termFilter(IndexingUtils.FIELD_STRING_NESTED_UNANALYZED,stringValue);
+    queryBuilders.push(NoOpQueryBuilder.INSTANCE);
+    filterBuilders.push(fieldNameTerm(name,termFilter));
     return;
   }
-  stack.push(QueryBuilders.termQuery(addPrefix(value,name),value));
+  final TermFilterBuilder termQuery=FilterBuilders.termFilter(getFieldNameForType(value),sanitize(value));
+  filterBuilders.push(fieldNameTerm(name,termQuery));
+  queryBuilders.push(NoOpQueryBuilder.INSTANCE);
 }

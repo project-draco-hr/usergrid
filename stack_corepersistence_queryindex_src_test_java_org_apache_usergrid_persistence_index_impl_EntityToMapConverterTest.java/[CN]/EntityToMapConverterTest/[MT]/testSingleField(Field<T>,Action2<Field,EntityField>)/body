@@ -1,0 +1,15 @@
+{
+  Entity entity=new Entity("test");
+  entity.setField(field);
+  final UUID version=UUIDGenerator.newTimeUUID();
+  EntityUtils.setVersion(entity,version);
+  final ApplicationScope scope=new ApplicationScopeImpl(createId("application"));
+  final IndexEdge indexEdge=new IndexEdgeImpl(createId("source"),"testEdgeType",SearchEdge.NodeType.SOURCE,1000);
+  final Map<String,Object> entityMap=EntityToMapConverter.convert(scope,indexEdge,entity);
+  final List<EntityField> fields=(List<EntityField>)entityMap.get(IndexingUtils.ENTITY_FIELDS);
+  assertEquals(1,fields.size());
+  final EntityField esField=fields.get(0);
+  final String fieldName=field.getName().toLowerCase();
+  assertEquals(fieldName,esField.get(IndexingUtils.FIELD_NAME));
+  assertFunction.call(field,esField);
+}

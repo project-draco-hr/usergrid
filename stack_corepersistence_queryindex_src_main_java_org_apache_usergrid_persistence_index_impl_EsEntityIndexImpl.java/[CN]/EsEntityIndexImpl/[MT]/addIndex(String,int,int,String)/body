@@ -3,7 +3,7 @@
     String indexName=indexIdentifier.getIndex(indexSuffix);
     try {
       final AdminClient admin=esProvider.getClient().admin();
-      Settings settings=ImmutableSettings.settingsBuilder().put("index.number_of_shards",numberOfShards).put("index.number_of_replicas",numberOfReplicas).put("action.write_consistency",writeConsistency).build();
+      Settings settings=ImmutableSettings.settingsBuilder().put("index.number_of_shards",numberOfShards).put("index.number_of_replicas",numberOfReplicas).put("index.query.parse.allow_unmapped_fields",false).put("index.mapper.dynamic",false).put("action.write_consistency",writeConsistency).build();
       Timer.Context timeNewIndexCreation=addTimer.time();
       final CreateIndexResponse cir=admin.indices().prepareCreate(indexName).setSettings(settings).execute().actionGet();
       timeNewIndexCreation.stop();

@@ -4,8 +4,6 @@
   ApplicationScope as=new ApplicationScopeImpl(new SimpleId(em.getApplicationId(),TYPE_APPLICATION));
   ApplicationEntityIndex ei=eif.createApplicationEntityIndex(as);
   final Id rootId=createId(em.getApplicationId(),TYPE_APPLICATION);
-  IndexScope is=generateScopeFromCollection(rootId,collName);
-  Query rcq=Query.fromQL(query);
-  rcq.setLimit(10000);
-  return ei.search(is,SearchTypes.fromTypes(type),rcq);
+  SearchEdge is=CpNamingUtils.createCollectionSearchEdge(rootId,collName);
+  return ei.search(is,SearchTypes.fromTypes(type),query,10000);
 }

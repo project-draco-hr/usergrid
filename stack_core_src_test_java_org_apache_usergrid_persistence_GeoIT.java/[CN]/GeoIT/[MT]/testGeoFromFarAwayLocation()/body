@@ -1,10 +1,11 @@
 {
   EntityManager em=loadGeolocationTestEntities();
-  Point center=new Point(37.776753,-122.407846);
-  Query query=Query.fromQL("select * where location within " + NEARBY_RADIUS + " of "+ center.getLat()+ ","+ center.getLon());
+  final double lat=37.776753;
+  final double lon=-122.407846;
+  Query query=Query.fromQL("select * where location within " + NEARBY_RADIUS + " of "+ lat+ ","+ lon);
   Results listResults=em.searchCollection(em.getApplicationRef(),"stores",query);
   assertEquals("Results within " + NEARBY_RADIUS + "m from center",0,listResults.size());
-  Query query2=Query.fromQL("select * where location within " + CIRCUMFERENCE_OF_THE_EARTH + " of "+ center.getLat()+ ","+ center.getLon());
+  Query query2=Query.fromQL("select * where location within " + CIRCUMFERENCE_OF_THE_EARTH + " of "+ lat+ ","+ lon);
   listResults=em.searchCollection(em.getApplicationRef(),"stores",query2);
   assertEquals("Results within " + CIRCUMFERENCE_OF_THE_EARTH + "m from center",LOCATION_PROPERTIES.size(),listResults.size());
 }

@@ -3,14 +3,14 @@
   ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
   ApplicationEntityIndex entityIndex=eif.createApplicationEntityIndex(applicationScope);
   final String entityType="thing";
-  IndexScope indexScope=new IndexScopeImpl(appId,"things");
+  IndexEdge searchEdge=new IndexEdgeImpl(appId,"things",SearchEdge.NodeType.SOURCE,10);
   final SearchTypes searchTypes=SearchTypes.fromTypes(entityType);
-  insertJsonBlob(entityIndex,entityType,indexScope,"/sample-large.json",101,0);
-  ei.refresh();
-  testQueries(indexScope,searchTypes,entityIndex);
+  insertJsonBlob(entityIndex,entityType,searchEdge,"/sample-large.json",101,0);
+  ei.refreshAsync().toBlocking().last();
+  testQueries(searchEdge,searchTypes,entityIndex);
   ei.addIndex("v2",1,0,"one");
-  insertJsonBlob(entityIndex,entityType,indexScope,"/sample-large.json",101,100);
-  ei.refresh();
-  testQuery(indexScope,searchTypes,entityIndex,"name = 'Hilda Young'",1);
-  testQuery(indexScope,searchTypes,entityIndex,"name = 'Lowe Kelley'",1);
+  insertJsonBlob(entityIndex,entityType,searchEdge,"/sample-large.json",101,100);
+  ei.refreshAsync().toBlocking().last();
+  testQuery(searchEdge,searchTypes,entityIndex,"name = 'Hilda Young'",1);
+  testQuery(searchEdge,searchTypes,entityIndex,"name = 'Lowe Kelley'",1);
 }

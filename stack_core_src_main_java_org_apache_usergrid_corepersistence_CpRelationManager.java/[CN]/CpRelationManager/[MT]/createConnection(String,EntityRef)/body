@@ -13,14 +13,7 @@
   gm.writeEdge(edge).toBlocking().last();
   ApplicationEntityIndex ei=managerCache.getEntityIndex(applicationScope);
   EntityIndexBatch batch=ei.createBatch();
-  IndexScope indexScope=generateScopeFromConnection(cpHeadEntity.getId(),connectionType);
-  batch.index(indexScope,targetEntity);
-  BetterFuture future=batch.execute();
-  Keyspace ko=cass.getApplicationKeyspace(applicationId);
-  Mutator<ByteBuffer> m=createMutator(ko,be);
-  batchUpdateEntityConnection(m,false,connection,UUIDGenerator.newTimeUUID());
-  Timer.Context timeElasticIndexBatch=createConnectionTimer.time();
-  batchExecute(m,CassandraService.RETRY_COUNT);
-  timeElasticIndexBatch.stop();
+  IndexEdge edgeIndex=generateScopeFromSource(edge);
+  batch.index(edgeIndex,targetEntity);
   return connection;
 }

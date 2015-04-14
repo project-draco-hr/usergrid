@@ -1,0 +1,28 @@
+{
+  Entity entity=new Entity("test");
+  final UUID version=UUIDGenerator.newTimeUUID();
+  EntityUtils.setVersion(entity,version);
+  final ApplicationScope scope=new ApplicationScopeImpl(createId("application"));
+  final IndexEdge indexEdge=new IndexEdgeImpl(createId("source"),"testEdgeType",SearchEdge.NodeType.SOURCE,1000);
+  final Map<String,Object> entityMap=EntityToMapConverter.convert(scope,indexEdge,entity);
+  final String applicationId=entityMap.get(IndexingUtils.APPLICATION_ID_FIELDNAME).toString();
+  assertEquals(IndexingUtils.idString(scope.getApplication()),applicationId);
+  final String entityIdString=entityMap.get(IndexingUtils.ENTITY_ID_FIELDNAME).toString();
+  assertEquals(IndexingUtils.idString(entity.getId()),entityIdString);
+  final String versionString=entityMap.get(IndexingUtils.ENTITY_VERSION_FIELDNAME).toString();
+  assertEquals(versionString,version.toString());
+  final String entityTypeString=entityMap.get(IndexingUtils.ENTITY_TYPE_FIELDNAME).toString();
+  assertEquals(IndexingUtils.getType(scope,entity.getId()),entityTypeString);
+  final String nodeIdString=entityMap.get(IndexingUtils.EDGE_NODE_ID_FIELDNAME).toString();
+  assertEquals(IndexingUtils.idString(indexEdge.getNodeId()),nodeIdString);
+  final String edgeName=entityMap.get(IndexingUtils.EDGE_NAME_FIELDNAME).toString();
+  assertEquals(indexEdge.getEdgeName(),edgeName);
+  final String nodeType=entityMap.get(IndexingUtils.EDGE_NODE_TYPE_FIELDNAME).toString();
+  assertEquals(indexEdge.getNodeType().toString(),nodeType);
+  final long edgeTimestamp=(long)entityMap.get(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME);
+  assertEquals(indexEdge.getTimestamp(),edgeTimestamp);
+  final String edgeSearch=entityMap.get(IndexingUtils.EDGE_SEARCH_FIELDNAME).toString();
+  assertEquals(IndexingUtils.createContextName(scope,indexEdge),edgeSearch);
+  final List<EntityField> fields=(List<EntityField>)entityMap.get(IndexingUtils.ENTITY_FIELDS);
+  assertEquals(0,fields.size());
+}

@@ -4,7 +4,7 @@
   CpQueryFilterLexer lexer=new CpQueryFilterLexer(in);
   TokenRewriteStream tokens=new TokenRewriteStream(lexer);
   CpQueryFilterParser parser=new CpQueryFilterParser(tokens);
-  Query query=parser.ql().query;
+  ParsedQuery query=parser.ql().parsedQuery;
   AndOperand andOp1=(AndOperand)query.getRootOperand();
   AndOperand andOp2=(AndOperand)andOp1.getLeft();
   WithinOperand withinOperand=(WithinOperand)andOp2.getLeft();
@@ -12,6 +12,4 @@
   assertEquals(20000,withinOperand.getDistance().getFloatValue(),0);
   assertEquals(37f,withinOperand.getLatitude().getFloatValue(),0);
   assertEquals(-75f,withinOperand.getLongitude().getFloatValue(),0);
-  SearchRequestBuilderStrategy builderStrategy=new SearchRequestBuilderStrategy(null,new ApplicationScopeImpl(new SimpleId("test")),null,100);
-  QueryBuilder qb=builderStrategy.createQueryBuilder(new IndexScopeImpl(new SimpleId("owner"),"app"),query);
 }

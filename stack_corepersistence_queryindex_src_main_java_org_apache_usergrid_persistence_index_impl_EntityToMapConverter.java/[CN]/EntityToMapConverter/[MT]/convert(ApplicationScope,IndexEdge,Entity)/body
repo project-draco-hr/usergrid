@@ -1,0 +1,19 @@
+{
+  final Map<String,Object> outputEntity=new HashMap<>();
+  final Id entityId=entity.getId();
+  outputEntity.put(ENTITY_ID_FIELDNAME,idString(entityId));
+  outputEntity.put(ENTITY_VERSION_FIELDNAME,entity.getVersion());
+  outputEntity.put(ENTITY_TYPE_FIELDNAME,getType(applicationScope,entityId));
+  outputEntity.put(APPLICATION_ID_FIELDNAME,idString(applicationScope.getApplication()));
+  outputEntity.put(EDGE_NODE_ID_FIELDNAME,idString(indexEdge.getNodeId()));
+  outputEntity.put(EDGE_NODE_TYPE_FIELDNAME,indexEdge.getNodeType());
+  outputEntity.put(EDGE_NAME_FIELDNAME,indexEdge.getEdgeName());
+  outputEntity.put(EDGE_TIMESTAMP_FIELDNAME,indexEdge.getTimestamp());
+  outputEntity.put(EDGE_SEARCH_FIELDNAME,IndexingUtils.createContextName(applicationScope,indexEdge));
+  final EntityMap entityMap=EntityMap.fromEntity(entity);
+  entityMap.clearFields();
+  final FieldParser parser=new EntityMappingParser();
+  final List<EntityField> fieldsToIndex=parser.parse(entityMap);
+  outputEntity.put(ENTITY_FIELDS,fieldsToIndex);
+  return outputEntity;
+}
