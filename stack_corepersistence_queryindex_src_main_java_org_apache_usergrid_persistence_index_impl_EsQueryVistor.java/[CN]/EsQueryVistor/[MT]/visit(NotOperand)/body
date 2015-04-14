@@ -1,15 +1,24 @@
 {
+  final boolean rootNode=queryBuilders.empty() && filterBuilders.isEmpty();
   op.getOperation().visit(this);
   final QueryBuilder notQueryBuilder=queryBuilders.pop();
   if (use(notQueryBuilder)) {
-    queryBuilders.push(QueryBuilders.boolQuery().mustNot(notQueryBuilder));
+    final QueryBuilder notQuery=QueryBuilders.boolQuery().mustNot(notQueryBuilder);
+    queryBuilders.push(notQuery);
   }
  else {
     queryBuilders.push(NoOpQueryBuilder.INSTANCE);
   }
   final FilterBuilder notFilterBuilder=filterBuilders.pop();
   if (use(notFilterBuilder)) {
-    filterBuilders.push(FilterBuilders.boolFilter().mustNot(notFilterBuilder));
+    final FilterBuilder notFilter=FilterBuilders.boolFilter().mustNot(notFilterBuilder);
+    if (!rootNode) {
+      filterBuilders.push(notFilter);
+    }
+ else {
+      final FilterBuilder selectAllFilter=FilterBuilders.boolFilter().must(FilterBuilders.matchAllFilter()).must(notFilter);
+      filterBuilders.push(selectAllFilter);
+    }
   }
  else {
     filterBuilders.push(NoOpFilterBuilder.INSTANCE);
