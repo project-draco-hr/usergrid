@@ -1,0 +1,38 @@
+{
+  final int actualTake=Math.min(10,takeSize);
+  final Timer.Context timer=this.readTimer.time();
+  try {
+    List<QueueMessage> messages=queue.getMessages(actualTake,queryFig.getIndexQueueTimeout(),(int)timeUnit.toMillis(timeout),String.class);
+    final List<IndexOperationMessage> response=new ArrayList<>(messages.size());
+    final List<String> mapEntries=new ArrayList<>(messages.size());
+    if (messages.size() == 0) {
+      return response;
+    }
+    for (    final QueueMessage message : messages) {
+      mapEntries.add(message.getBody().toString());
+    }
+    final Map<String,String> storedCommands=mapManager.getStrings(mapEntries);
+    for (    final QueueMessage message : messages) {
+      final String key=getMessageKey(message);
+      final String payload=storedCommands.get(key);
+      if (payload == null) {
+        continue;
+      }
+      final IndexOperationMessage messageBody;
+      try {
+        messageBody=fromString(payload);
+      }
+ catch (      IOException e) {
+        logger.error("Unable to deserialize message from string.  This is a bug",e);
+        throw new RuntimeException("Unable to deserialize message from string.  This is a bug",e);
+      }
+      SqsIndexOperationMessage operation=new SqsIndexOperationMessage(message,messageBody);
+      response.add(operation);
+    }
+    readMeter.mark(response.size());
+    return response;
+  }
+  finally {
+    timer.stop();
+  }
+}

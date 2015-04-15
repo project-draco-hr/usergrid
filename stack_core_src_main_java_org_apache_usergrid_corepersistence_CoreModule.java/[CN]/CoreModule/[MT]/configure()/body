@@ -1,5 +1,4 @@
 {
-  bind(EntityManagerFactory.class).toProvider(lazyEntityManagerFactoryProvider);
   install(new CommonModule());
   install(new CollectionModule(){
     /** 
@@ -48,5 +47,8 @@
   plugins.addBinding().to(AppInfoMigrationPlugin.class);
   plugins.addBinding().to(MigrationModuleVersionPlugin.class);
   bind(AllApplicationsObservable.class).to(AllApplicationsObservableImpl.class);
+  bind(IndexService.class).to(IndexServiceImpl.class);
+  bind(BufferQueue.class).toProvider(QueueProvider.class);
+  install(new GuicyFigModule(QueryFig.class));
   install(new GuicyFigModule(ApplicationIdCacheFig.class));
 }
