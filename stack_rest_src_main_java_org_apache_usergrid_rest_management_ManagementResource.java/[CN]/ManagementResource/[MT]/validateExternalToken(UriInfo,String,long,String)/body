@@ -11,16 +11,30 @@
   JsonNode accessInfoNode=getMeFromUgCentral(extAccessToken);
   JsonNode userNode=accessInfoNode.get("user");
   String username=userNode.get("username").getTextValue();
-  String name=userNode.get("name").getTextValue();
-  String email=userNode.get("email").getTextValue();
-  String dummyPassword=RandomStringUtils.randomAlphanumeric(40);
-  final UUID userId;
+  UUID userId=null;
   final OrganizationInfo organizationInfo=management.getOrganizationByName(username);
   if (organizationInfo == null) {
-    OrganizationOwnerInfo ownerOrgInfo=management.createOwnerAndOrganization(username,username,name,email,dummyPassword,true,true);
-    userId=ownerOrgInfo.getOwner().getUuid();
-    management.activateOrganization(ownerOrgInfo.getOrganization());
-    applicationCreator.createSampleFor(ownerOrgInfo.getOrganization());
+    String name=userNode.get("name").getTextValue();
+    String email=userNode.get("email").getTextValue();
+    String dummyPassword=RandomStringUtils.randomAlphanumeric(40);
+    JsonNode orgsNode=userNode.get("organizations");
+    final Iterator<String> fieldNames=orgsNode.getFieldNames();
+    UserInfo userInfo=null;
+    while (fieldNames.hasNext()) {
+      String orgName=fieldNames.next();
+      if (userId == null) {
+        OrganizationOwnerInfo ownerOrgInfo=management.createOwnerAndOrganization(orgName,username,name,email,dummyPassword,true,true);
+        management.activateOrganization(ownerOrgInfo.getOrganization());
+        applicationCreator.createSampleFor(ownerOrgInfo.getOrganization());
+        userId=ownerOrgInfo.getOwner().getUuid();
+        userInfo=ownerOrgInfo.getOwner();
+      }
+ else {
+        final OrganizationInfo organization=management.createOrganization(orgName,userInfo,true);
+        management.activateOrganization(organization);
+        applicationCreator.createSampleFor(organization);
+      }
+    }
   }
  else {
     userId=management.getAdminUserByUsername(username).getUuid();
