@@ -4,6 +4,12 @@
     ((ConfigurableConsistencyLevel)consistencyLevelPolicy).setDefaultReadConsistencyLevel(HConsistencyLevel.ONE);
   }
   accessMap=new HashMap<String,String>(2);
+  if (SYSTEM_KEYSPACE == null) {
+    SYSTEM_KEYSPACE="Usergrid";
+  }
+  if (STATIC_APPLICATION_KEYSPACE == null) {
+    STATIC_APPLICATION_KEYSPACE="Usergrid_Applications";
+  }
   accessMap.put("username",properties.getProperty("cassandra.username"));
   accessMap.put("password",properties.getProperty("cassandra.password"));
   systemKeyspace=HFactory.createKeyspace(SYSTEM_KEYSPACE,cluster,consistencyLevelPolicy,ON_FAIL_TRY_ALL_AVAILABLE,accessMap);
