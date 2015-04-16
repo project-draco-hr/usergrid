@@ -11,9 +11,8 @@
   JsonNode accessInfoNode=getMeFromUgCentral(extAccessToken);
   JsonNode userNode=accessInfoNode.get("user");
   String username=userNode.get("username").getTextValue();
-  UUID userId=null;
-  final OrganizationInfo organizationInfo=management.getOrganizationByName(username);
-  if (organizationInfo == null) {
+  UUID userId=management.getAdminUserByUsername(username).getUuid();
+  if (userId == null) {
     String name=userNode.get("name").getTextValue();
     String email=userNode.get("email").getTextValue();
     String dummyPassword=RandomStringUtils.randomAlphanumeric(40);
@@ -35,9 +34,6 @@
         applicationCreator.createSampleFor(organization);
       }
     }
-  }
- else {
-    userId=management.getAdminUserByUsername(username).getUuid();
   }
   management.importTokenForAdminUser(userId,extAccessToken,ttl);
   AccessInfo accessInfo=new AccessInfo().withExpiresIn(tokens.getMaxTokenAgeInSeconds(extAccessToken)).withAccessToken(extAccessToken);
