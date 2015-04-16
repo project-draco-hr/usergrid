@@ -1,0 +1,13 @@
+{
+  if (!entityType.substring(entityType.length() - 1).equals("s")) {
+    entityType+="s";
+  }
+  if (!validateTypeForPermissionsAndRoles(entityType,"permission")) {
+    throw new IllegalArgumentException("Permissions can only be assigned to group, user, or role entities");
+  }
+  Map<String,Object> data=new HashMap<String,Object>();
+  if (permissions != null) {
+    data.put("permission",permissions);
+  }
+  return apiRequest(HTTP_METHOD_POST,null,data,organizationId,applicationId,entityType,entityID,"permissions");
+}
