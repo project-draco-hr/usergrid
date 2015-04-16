@@ -1,0 +1,37 @@
+{
+  String rand=RandomStringUtils.randomAlphanumeric(10);
+  final String username="user_" + rand;
+  OrganizationOwnerInfo orgInfo=setup.getMgmtSvc().createOwnerAndOrganization(username,username,"Test User",username + "@example.com","password");
+  String suToken=superAdminToken();
+  Map<String,String> props=new HashMap<String,String>();
+  props.put(USERGRID_CENTRAL_URL,getBaseURI().toURL().toExternalForm());
+  resource().path("/testproperties").queryParam("access_token",suToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(props);
+  try {
+    Map<String,Object> loginInfo=new HashMap<String,Object>(){
+{
+        put("username",username);
+        put("password","password");
+        put("grant_type","password");
+      }
+    }
+;
+    JsonNode accessInfoNode=resource().path("/management/token").type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,loginInfo);
+    fail("Login as Admin User must fail when validate external tokens is enabled");
+  }
+ catch (  Exception actual) {
+    logger.debug("error",actual);
+  }
+  Map<String,Object> loginInfo=new HashMap<String,Object>(){
+{
+      put("username","superuser");
+      put("password","superpassword");
+      put("grant_type","password");
+    }
+  }
+;
+  JsonNode accessInfoNode=resource().path("/management/token").type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,loginInfo);
+  String accessToken=accessInfoNode.get("access_token").getTextValue();
+  assertNotNull(accessToken);
+  props.put(USERGRID_CENTRAL_URL,"");
+  resource().path("/testproperties").queryParam("access_token",suToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(props);
+}

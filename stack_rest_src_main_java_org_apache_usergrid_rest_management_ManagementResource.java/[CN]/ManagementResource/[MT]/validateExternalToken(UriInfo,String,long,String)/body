@@ -8,34 +8,41 @@
   if (ttl == -1) {
     throw new IllegalArgumentException("ttl must be specified");
   }
-  JsonNode accessInfoNode=getMeFromUgCentral(extAccessToken);
-  JsonNode userNode=accessInfoNode.get("user");
-  String username=userNode.get("username").getTextValue();
-  UUID userId=management.getAdminUserByUsername(username).getUuid();
-  if (userId == null) {
-    String name=userNode.get("name").getTextValue();
-    String email=userNode.get("email").getTextValue();
-    String dummyPassword=RandomStringUtils.randomAlphanumeric(40);
-    JsonNode orgsNode=userNode.get("organizations");
-    final Iterator<String> fieldNames=orgsNode.getFieldNames();
-    UserInfo userInfo=null;
-    while (fieldNames.hasNext()) {
-      String orgName=fieldNames.next();
-      if (userId == null) {
-        OrganizationOwnerInfo ownerOrgInfo=management.createOwnerAndOrganization(orgName,username,name,email,dummyPassword,true,true);
-        management.activateOrganization(ownerOrgInfo.getOrganization());
-        applicationCreator.createSampleFor(ownerOrgInfo.getOrganization());
-        userId=ownerOrgInfo.getOwner().getUuid();
-        userInfo=ownerOrgInfo.getOwner();
-      }
+  AccessInfo accessInfo=null;
+  try {
+    JsonNode accessInfoNode=getMeFromUgCentral(extAccessToken);
+    JsonNode userNode=accessInfoNode.get("user");
+    String username=userNode.get("username").getTextValue();
+    UserInfo userInfo=management.getAdminUserByUsername(username);
+    UUID userId=userInfo == null ? null : userInfo.getUuid();
+    if (userId == null) {
+      String name=userNode.get("name").getTextValue();
+      String email=userNode.get("email").getTextValue();
+      String dummyPassword=RandomStringUtils.randomAlphanumeric(40);
+      JsonNode orgsNode=userNode.get("organizations");
+      final Iterator<String> fieldNames=orgsNode.getFieldNames();
+      while (fieldNames.hasNext()) {
+        String orgName=fieldNames.next();
+        if (userId == null) {
+          OrganizationOwnerInfo ownerOrgInfo=management.createOwnerAndOrganization(orgName,username,name,email,dummyPassword,true,true);
+          management.activateOrganization(ownerOrgInfo.getOrganization());
+          applicationCreator.createSampleFor(ownerOrgInfo.getOrganization());
+          userId=ownerOrgInfo.getOwner().getUuid();
+          userInfo=ownerOrgInfo.getOwner();
+        }
  else {
-        final OrganizationInfo organization=management.createOrganization(orgName,userInfo,true);
-        management.activateOrganization(organization);
-        applicationCreator.createSampleFor(organization);
+          final OrganizationInfo organization=management.createOrganization(orgName,userInfo,true);
+          management.activateOrganization(organization);
+          applicationCreator.createSampleFor(organization);
+        }
       }
     }
+    management.importTokenForAdminUser(userId,extAccessToken,ttl);
+    accessInfo=new AccessInfo().withExpiresIn(tokens.getMaxTokenAgeInSeconds(extAccessToken)).withAccessToken(extAccessToken);
   }
-  management.importTokenForAdminUser(userId,extAccessToken,ttl);
-  AccessInfo accessInfo=new AccessInfo().withExpiresIn(tokens.getMaxTokenAgeInSeconds(extAccessToken)).withAccessToken(extAccessToken);
+ catch (  Exception e) {
+    logger.debug("Error validating external token",e);
+    throw e;
+  }
   return Response.status(SC_OK).type(jsonMediaType(callback)).entity(accessInfo).build();
 }

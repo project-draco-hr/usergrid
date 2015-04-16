@@ -1,7 +1,4 @@
 {
-  if (externalTokensEnabled && superuserAllowed && !username.equalsIgnoreCase(superuserName)) {
-    throw new IllegalArgumentException("Admin Users must login via " + properties.getProperty(USERGRID_CENTRAL_URL));
-  }
   UserInfo user=null;
   try {
     if (SubjectUtils.getUser() != null) {
@@ -10,6 +7,7 @@
     logger.info("ManagementResource.getAccessToken with username: {}",username);
     String errorDescription="invalid username or password";
     if (user == null) {
+      ensureAuthenticationAllowed(username,grant_type);
       if (authorization != null) {
         String type=stringOrSubstringBeforeFirst(authorization,' ').toUpperCase();
         if ("BASIC".equals(type)) {
