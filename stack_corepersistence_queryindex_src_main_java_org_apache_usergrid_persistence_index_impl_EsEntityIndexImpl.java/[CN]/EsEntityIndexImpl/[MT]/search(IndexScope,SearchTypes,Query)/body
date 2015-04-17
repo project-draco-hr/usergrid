@@ -37,7 +37,7 @@
     }
     try {
       Timer.Context timeSearch=searchTimer.time();
-      searchResponse=srb.execute().actionGet();
+      searchResponse=srb.execute().actionGet(config.getQueryTimeout());
       timeSearch.stop();
     }
  catch (    Throwable t) {
@@ -61,7 +61,7 @@
     SearchScrollRequestBuilder ssrb=esProvider.getClient().prepareSearchScroll(esScrollCursor).setScroll(cursorTimeout + "m");
     try {
       Timer.Context timeSearchCursor=cursorTimer.time();
-      searchResponse=ssrb.execute().actionGet(config.getElasticsearchQueryTimeout());
+      searchResponse=ssrb.execute().actionGet(config.getQueryTimeout());
       timeSearchCursor.stop();
     }
  catch (    Throwable t) {
