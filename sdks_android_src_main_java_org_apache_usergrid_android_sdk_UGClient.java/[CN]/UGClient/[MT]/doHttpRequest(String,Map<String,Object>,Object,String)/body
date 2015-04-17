@@ -1,0 +1,102 @@
+{
+  ApiResponse response=null;
+  OutputStream out=null;
+  InputStream in=null;
+  HttpURLConnection conn=null;
+  String urlAsString=path(apiUrl,segments);
+  try {
+    String contentType="application/json";
+    if (httpMethod.equals(HTTP_METHOD_POST) && isEmpty(data) && !isEmpty(params)) {
+      data=encodeParams(params);
+      contentType="application/x-www-form-urlencoded";
+    }
+ else {
+      urlAsString=addQueryParams(urlAsString,params);
+    }
+    URL url=new URL(urlAsString);
+    conn=(HttpURLConnection)url.openConnection();
+    conn.setRequestMethod(httpMethod);
+    conn.setRequestProperty("Content-Type",contentType);
+    conn.setUseCaches(false);
+    if ((accessToken != null) && (accessToken.length() > 0)) {
+      String authStr="Bearer " + accessToken;
+      conn.setRequestProperty("Authorization",authStr);
+    }
+    conn.setDoInput(true);
+    if (httpMethod.equals(HTTP_METHOD_POST) || httpMethod.equals(HTTP_METHOD_PUT)) {
+      if (isEmpty(data)) {
+        data=JsonNodeFactory.instance.objectNode();
+      }
+      String dataAsString=null;
+      if ((data != null) && (!(data instanceof String))) {
+        ObjectMapper objectMapper=new ObjectMapper();
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        dataAsString=objectMapper.writeValueAsString(data);
+      }
+ else {
+        dataAsString=(String)data;
+      }
+      byte[] dataAsBytes=dataAsString.getBytes();
+      conn.setRequestProperty("Content-Length",Integer.toString(dataAsBytes.length));
+      conn.setDoOutput(true);
+      out=conn.getOutputStream();
+      out.write(dataAsBytes);
+      out.flush();
+      out.close();
+      out=null;
+    }
+    in=conn.getInputStream();
+    if (in != null) {
+      BufferedReader reader=new BufferedReader(new InputStreamReader(in));
+      StringBuilder sb=new StringBuilder();
+      String line;
+      while ((line=reader.readLine()) != null) {
+        sb.append(line);
+        sb.append('\n');
+      }
+      String responseAsString=sb.toString();
+      ObjectMapper objectMapper=new ObjectMapper();
+      objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
+      objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+      response=(ApiResponse)objectMapper.readValue(responseAsString,ApiResponse.class);
+      response.setRawResponse(responseAsString);
+      response.setUGClient(this);
+    }
+ else {
+      response=null;
+      logTrace("no response body from server");
+    }
+  }
+ catch (  Exception e) {
+    logError("Error " + httpMethod + " to '"+ urlAsString+ "'");
+    if (e != null) {
+      e.printStackTrace();
+      logError(e.getLocalizedMessage());
+    }
+    response=null;
+  }
+catch (  Throwable t) {
+    logError("Error " + httpMethod + " to '"+ urlAsString+ "'");
+    if (t != null) {
+      t.printStackTrace();
+      logError(t.getLocalizedMessage());
+    }
+    response=null;
+  }
+ finally {
+    try {
+      if (out != null) {
+        out.close();
+      }
+      if (in != null) {
+        in.close();
+      }
+      if (conn != null) {
+        conn.disconnect();
+      }
+    }
+ catch (    Exception ignored) {
+    }
+  }
+  return response;
+}

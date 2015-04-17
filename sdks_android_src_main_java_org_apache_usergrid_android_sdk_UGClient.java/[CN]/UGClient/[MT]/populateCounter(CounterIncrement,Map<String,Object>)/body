@@ -1,0 +1,24 @@
+{
+  if ((counterIncrement != null) && (mapEvent != null)) {
+    String counterName=counterIncrement.getCounterName();
+    if ((counterName != null) && (counterName.length() > 0)) {
+      Map<String,Object> mapCounters=null;
+      Object existingCounters=mapEvent.get("counters");
+      if (existingCounters != null) {
+        if (existingCounters instanceof Map) {
+          try {
+            mapCounters=(Map<String,Object>)existingCounters;
+          }
+ catch (          Throwable t) {
+            mapCounters=null;
+          }
+        }
+      }
+      if (null == mapCounters) {
+        mapCounters=new HashMap<String,Object>();
+      }
+      mapCounters.put(counterName,new Long(counterIncrement.getCounterIncrementValue()));
+      mapEvent.put("counters",mapCounters);
+    }
+  }
+}

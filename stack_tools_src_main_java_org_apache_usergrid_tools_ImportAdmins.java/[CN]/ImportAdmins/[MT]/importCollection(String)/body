@@ -1,0 +1,46 @@
+{
+  String applicationName=getApplicationFromColllection(collectionFileName);
+  UUID appId=emf.lookupApplication(applicationName);
+  if (appId == null && !applicationName.contains("/")) {
+    String fileName=collectionFileName.replace("collections","application");
+    File applicationFile=new File(importDir,fileName);
+    if (!applicationFile.exists()) {
+      logger.error("Could not load application file {} to search for org information",applicationFile.getAbsolutePath());
+      return;
+    }
+    logger.info("Loading application file: " + applicationFile.getAbsolutePath());
+    JsonParser jp=getJsonParserForFile(applicationFile);
+    JsonToken token=jp.nextToken();
+    validateStartArray(token);
+    token=jp.nextValue();
+    Application application=jp.readValueAs(Application.class);
+    jp.close();
+    @SuppressWarnings("unchecked") String orgName=((Map<String,String>)application.getMetadata("organization")).get("value");
+    OrganizationInfo info=managementService.getOrganizationByName(orgName);
+    if (info == null) {
+      logger.error("Could not find org with name {}",orgName);
+      return;
+    }
+    applicationName=orgName + "/" + applicationName;
+    appId=emf.lookupApplication(applicationName);
+  }
+  if (appId == null) {
+    logger.error("Unable to find application with name {}.  Skipping collections",appId);
+    return;
+  }
+  File collectionFile=new File(importDir,collectionFileName);
+  logger.info("Loading collections file: " + collectionFile.getAbsolutePath());
+  JsonParser jp=getJsonParserForFile(collectionFile);
+  jp.nextToken();
+  EntityManager em=emf.getEntityManager(appId);
+  while (jp.nextToken() != JsonToken.END_OBJECT) {
+    try {
+      importEntitysStuff(jp,em);
+    }
+ catch (    NullPointerException nae) {
+      jp.readValueAs(JsonNode.class);
+    }
+  }
+  logger.info("----- End of collections -----");
+  jp.close();
+}
