@@ -1,0 +1,35 @@
+{
+  Activity activity=new Activity(client);
+  activity.setVerb(verb);
+  activity.setCategory(category);
+  activity.setContent(content);
+  activity.setTitle(title);
+  ActivityObject actor=new ActivityObject();
+  actor.setObjectType("person");
+  if (user != null) {
+    if (user.getStringProperty("name") != null) {
+      actor.setDisplayName(user.getStringProperty("name"));
+    }
+ else {
+      actor.setDisplayName(user.getStringProperty("username"));
+    }
+    actor.setEntityType(user.getType());
+    actor.setUuid(user.getUuid());
+  }
+  activity.setActor(actor);
+  ActivityObject obj=new ActivityObject();
+  obj.setDisplayName(objectName);
+  obj.setObjectType(objectType);
+  if (object != null) {
+    obj.setEntityType(object.getType());
+    obj.setUuid(object.getUuid());
+  }
+  if (objectContent != null) {
+    obj.setContent(objectContent);
+  }
+ else {
+    obj.setContent(content);
+  }
+  activity.setObject(obj);
+  return activity;
+}
