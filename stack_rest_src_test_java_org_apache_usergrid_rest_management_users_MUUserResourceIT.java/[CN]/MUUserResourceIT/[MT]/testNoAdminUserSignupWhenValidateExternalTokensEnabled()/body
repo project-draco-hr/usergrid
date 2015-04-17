@@ -1,0 +1,52 @@
+{
+  String suToken=superAdminToken();
+  Map<String,String> props=new HashMap<String,String>();
+  props.put(USERGRID_CENTRAL_URL,getBaseURI().toURL().toExternalForm());
+  resource().path("/testproperties").queryParam("access_token",suToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(props);
+  try {
+    final String rand=RandomStringUtils.randomAlphanumeric(10);
+    Map<String,String> payload=new HashMap<String,String>(){
+{
+        put("username","user_" + rand);
+        put("name","Joe Userperson");
+        put("email","joe_" + rand + "@example.com");
+        put("password","wigglestone");
+      }
+    }
+;
+    JsonNode node=resource().path("/management/users").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).post(JsonNode.class,payload);
+    fail("Create admin user should fail");
+  }
+ catch (  UniformInterfaceException actual) {
+    assertEquals(400,actual.getResponse().getStatus());
+    String errorMsg=actual.getResponse().getEntity(JsonNode.class).get("error_description").toString();
+    assertTrue(errorMsg.startsWith("Admin Users must signup via http://localhost:"));
+  }
+catch (  Exception e) {
+    fail("We expected a UniformInterfaceException");
+  }
+  try {
+    final String rand=RandomStringUtils.randomAlphanumeric(10);
+    Map<String,String> payload=new HashMap<String,String>(){
+{
+        put("organization","org_" + rand);
+        put("username","user_" + rand);
+        put("name","Joe Userperson");
+        put("email","joe_" + rand + "@example.com");
+        put("password","wigglestone");
+      }
+    }
+;
+    JsonNode node=resource().path("/management/organizations/").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).post(JsonNode.class,payload);
+    fail("Create org and admin user should fail");
+  }
+ catch (  UniformInterfaceException actual) {
+    assertEquals(400,actual.getResponse().getStatus());
+    assertTrue(actual.getResponse().getEntity(JsonNode.class).get("error_description").toString().startsWith("Organization / Admin Users must be created via http://localhost:"));
+  }
+catch (  Exception e) {
+    fail("We expected a UniformInterfaceException");
+  }
+  props.put(USERGRID_CENTRAL_URL,"");
+  resource().path("/testproperties").queryParam("access_token",suToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(props);
+}

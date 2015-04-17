@@ -18,8 +18,14 @@
     JsonNode accessInfoNode=resource().path("/management/token").type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,loginInfo);
     fail("Login as Admin User must fail when validate external tokens is enabled");
   }
- catch (  Exception actual) {
-    logger.debug("error",actual);
+ catch (  UniformInterfaceException actual) {
+    assertEquals(400,actual.getResponse().getStatus());
+    String errorMsg=actual.getResponse().getEntity(JsonNode.class).get("error_description").toString();
+    logger.error("ERROR: " + errorMsg);
+    assertTrue(errorMsg.contains("Admin Users must login via"));
+  }
+catch (  Exception e) {
+    fail("We expected a UniformInterfaceException");
   }
   Map<String,Object> loginInfo=new HashMap<String,Object>(){
 {
