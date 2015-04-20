@@ -1,0 +1,18 @@
+def on_source_read(self, app, docname, source):
+    docs = ['index', 'organizations-admins', 'presentations-and-videos']
+    for doc in docs:
+        if (docname == doc):
+            return
+    try:
+        input = mkstemp()
+        output = mkstemp()
+        os.close(input[0])
+        os.close(output[0])
+        with open(input[1], 'wt') as f:
+            f.write(source[0].encode('utf-8'))
+        cmdline = ('pandoc -r markdown -w rst %s -o %s' % (input[1], output[1]))
+        os.system(cmdline)
+        source[0] = open(output[1]).read().decode('utf-8')
+    finally:
+        os.unlink(input[1])
+        os.unlink(output[1])

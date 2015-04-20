@@ -1,11 +1,12 @@
 {
+  String myType=UUID.randomUUID().toString();
   Id appId=new SimpleId("application");
   Id ownerId=new SimpleId("owner");
   ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
   IndexEdge indexEdge=new IndexEdgeImpl(ownerId,"users",SearchEdge.NodeType.SOURCE,10);
   ApplicationEntityIndex entityIndex=eif.createApplicationEntityIndex(applicationScope);
   final EntityIndexBatch batch=entityIndex.createBatch();
-  final int size=10;
+  final int size=100;
   final List<Id> entityIds=new ArrayList<>(size);
   for (int i=0; i < size; i++) {
     final String middleName="middleName" + UUIDUtils.newTimeUUID();
@@ -16,6 +17,7 @@
         put("email","ed@anuff.com");
         put("middlename",middleName);
         put("ordinal",ordinal);
+        put("mytype",myType);
       }
     }
 ;
@@ -28,17 +30,21 @@
   }
   batch.execute().get();
   ei.refreshAsync().toBlocking().last();
-  final int limit=1;
+  final int limit=5;
   final int expectedPages=size / limit;
   String cursor=null;
+  UUID lastId=null;
   for (int i=0; i < expectedPages; i++) {
-    final String query="select * order by ordinal asc";
+    final String query="select * where mytype='" + myType + "' order by ordinal asc";
     final CandidateResults results=cursor == null ? entityIndex.search(indexEdge,SearchTypes.allTypes(),query,limit) : entityIndex.getNextPage(cursor);
     assertTrue(results.hasCursor());
     cursor=results.getCursor();
     assertEquals("Should be 16 bytes as hex",32,cursor.length());
-    assertEquals(1,results.size());
-    assertEquals(results.get(0).getId(),entityIds.get(i));
+    assertEquals(limit,results.size());
+    int ordinal=0;
+    assertNotEquals("Scroll matches last item from previous page",lastId,results.get(ordinal).getId().getUuid());
+    lastId=results.get(limit - 1).getId().getUuid();
+    assertEquals("Failed on page " + i,results.get(ordinal).getId(),entityIds.get(i * limit));
   }
   final CandidateResults results=entityIndex.getNextPage(cursor);
   assertEquals(0,results.size());
