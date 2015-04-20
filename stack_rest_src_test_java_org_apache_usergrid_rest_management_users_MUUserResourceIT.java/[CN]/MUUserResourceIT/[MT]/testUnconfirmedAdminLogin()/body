@@ -31,7 +31,7 @@
       node=e.getResponse().getEntity(JsonNode.class);
       assertEquals("invalid_grant",node.get("error").getTextValue());
       assertEquals("User must be confirmed to authenticate",node.get("error_description").getTextValue());
-      LOG.info("Unconfirmed user was not authorized to authenticate!");
+      logger.info("Unconfirmed user was not authorized to authenticate!");
     }
     List<Message> inbox=Mailbox.get(email);
     assertFalse(inbox.isEmpty());
@@ -40,7 +40,7 @@
     Message confirmation=inbox.get(0);
     assertEquals("User Account Confirmation: " + email,confirmation.getSubject());
     String token=getTokenFromMessage(confirmation);
-    LOG.info(token);
+    logger.info(token);
     ActivationState state=setup.getMgmtSvc().handleConfirmationTokenForAdminUser(orgOwner.getOwner().getUuid(),token);
     assertEquals(ActivationState.ACTIVATED,state);
     Message activation=inbox.get(1);
@@ -49,7 +49,7 @@
     client.processMail();
     node=resource().path("/management/token").queryParam("grant_type","password").queryParam("username",userName).queryParam("password",passwd).accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
     assertNotNull(node);
-    LOG.info("Authentication succeeded after confirmation: {}.",node.toString());
+    logger.info("Authentication succeeded after confirmation: {}.",node.toString());
   }
   finally {
     setTestProperties(originalProperties);

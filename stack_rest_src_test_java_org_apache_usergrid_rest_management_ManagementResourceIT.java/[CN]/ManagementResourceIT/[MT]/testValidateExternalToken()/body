@@ -23,8 +23,11 @@
     resource().path("/management/externaltoken").queryParam("access_token",suToken).queryParam("ext_access_token","rubbish_token").queryParam("ttl","1000").get(JsonNode.class);
     fail("Validation should have failed");
   }
- catch (  Exception actual) {
-    logger.debug("error",actual);
+ catch (  UniformInterfaceException actual) {
+    assertEquals(404,actual.getResponse().getStatus());
+    String errorMsg=actual.getResponse().getEntity(JsonNode.class).get("error_description").toString();
+    logger.error("ERROR: " + errorMsg);
+    assertTrue(errorMsg.contains("Cannot find Admin User"));
   }
   props.put(USERGRID_CENTRAL_URL,"");
   resource().path("/testproperties").queryParam("access_token",suToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(props);
