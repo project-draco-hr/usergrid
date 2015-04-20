@@ -1,7 +1,20 @@
 {
-  StringBuilder storageString=new StringBuilder();
-  storageString.append(ql).append(STORAGE_DELIM);
-  storageString.append(limit).append(STORAGE_DELIM);
-  storageString.append(esCursor);
-  return storageString.toString();
+  try {
+    StringBuilder storageString=new StringBuilder();
+    storageString.append(ql).append(STORAGE_DELIM);
+    String edge=searchEdge.getEdgeName();
+    storageString.append(edge).append(STORAGE_DELIM);
+    String nodeid=MAPPER.writeValueAsString(searchEdge.getNodeId());
+    storageString.append(nodeid).append(STORAGE_DELIM);
+    String nodeType=searchEdge.getNodeType().name();
+    storageString.append(nodeType).append(STORAGE_DELIM);
+    String types=MAPPER.writeValueAsString(searchTypes.getTypes());
+    storageString.append(types).append(STORAGE_DELIM);
+    storageString.append(limit).append(STORAGE_DELIM);
+    storageString.append(from + limit);
+    return storageString.toString();
+  }
+ catch (  Exception jpe) {
+    throw new RuntimeException(jpe);
+  }
 }
