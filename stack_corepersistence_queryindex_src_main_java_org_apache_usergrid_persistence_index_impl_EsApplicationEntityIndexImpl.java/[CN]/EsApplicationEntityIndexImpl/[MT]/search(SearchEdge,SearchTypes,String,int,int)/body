@@ -5,7 +5,7 @@
   Preconditions.checkArgument(limit > 0,"limit must be > 0");
   SearchResponse searchResponse;
   final ParsedQuery parsedQuery=ParsedQueryBuilder.build(query);
-  final SearchRequestBuilder srb=searchRequest.getBuilder(searchEdge,searchTypes,parsedQuery,limit,from);
+  final SearchRequestBuilder srb=searchRequest.getBuilder(searchEdge,searchTypes,parsedQuery,limit,offset);
   if (logger.isDebugEnabled()) {
     logger.debug("Searching index (read alias): {}\n  nodeId: {}, edgeType: {},  \n type: {}\n   query: {} ",this.alias.getReadAlias(),searchEdge.getNodeId(),searchEdge.getEdgeName(),searchTypes.getTypeNames(applicationScope),srb);
   }
@@ -20,5 +20,5 @@
     throw t;
   }
   failureMonitor.success();
-  return parseResults(searchResponse,searchEdge,searchTypes,parsedQuery,limit,from);
+  return parseResults(searchResponse,parsedQuery,limit,offset);
 }

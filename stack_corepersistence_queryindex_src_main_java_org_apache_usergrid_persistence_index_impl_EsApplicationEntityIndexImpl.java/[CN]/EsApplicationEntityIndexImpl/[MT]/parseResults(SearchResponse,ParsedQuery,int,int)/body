@@ -10,12 +10,7 @@
   }
   final CandidateResults candidateResults=new CandidateResults(candidates,query.getSelectFieldMappings());
   if (length >= limit) {
-    final String cursor=candidateResults.initializeCursor();
-    final int minutes=indexFig.getQueryCursorTimeout();
-    final int storageSeconds=(int)TimeUnit.MINUTES.toSeconds(minutes);
-    final QueryState state=new QueryState(query.getOriginalQuery(),searchEdge,searchTypes,limit,from);
-    final String queryStateSerialized=state.serialize();
-    mapManager.putString(cursor,queryStateSerialized,storageSeconds);
+    candidateResults.initializeCursor(from);
   }
   return candidateResults;
 }
