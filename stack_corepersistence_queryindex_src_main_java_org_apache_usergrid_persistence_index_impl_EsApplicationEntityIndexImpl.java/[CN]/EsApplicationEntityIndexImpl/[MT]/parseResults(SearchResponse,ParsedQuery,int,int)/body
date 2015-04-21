@@ -1,16 +1,15 @@
 {
   final SearchHits searchHits=searchResponse.getHits();
   final SearchHit[] hits=searchHits.getHits();
-  final int length=hits.length;
-  logger.debug("   Hit count: {} Total hits: {}",length,searchHits.getTotalHits());
-  List<CandidateResult> candidates=new ArrayList<>(length);
+  logger.debug("   Hit count: {} Total hits: {}",hits.length,searchHits.getTotalHits());
+  List<CandidateResult> candidates=new ArrayList<>(hits.length);
   for (  SearchHit hit : hits) {
     final CandidateResult candidateResult=parseIndexDocId(hit.getId());
     candidates.add(candidateResult);
   }
   final CandidateResults candidateResults=new CandidateResults(candidates,query.getSelectFieldMappings());
-  if (length >= limit) {
-    candidateResults.initializeCursor(from);
+  if (hits.length >= limit) {
+    candidateResults.initializeCursor(from + limit);
   }
   return candidateResults;
 }
