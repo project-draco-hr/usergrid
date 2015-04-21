@@ -1,0 +1,11 @@
+{
+  final Entity entity=new Entity(createId("test"),UUIDGenerator.newTimeUUID());
+  entity.setField(new StringField("string","foo"));
+  final Edge collectionEdge=createCollectionEdge(applicationScope.getApplication(),"tests",entity.getId());
+  graphManager.writeEdge(collectionEdge).toBlocking().last();
+  final Observable<IndexOperationMessage> indexed=indexService.indexEntity(applicationScope,entity);
+  final IndexOperationMessage results=indexed.toBlocking().last();
+  final Set<IndexRequest> indexRequests=results.getIndexRequests();
+  final IndexRequest indexRequest=indexRequests.iterator().next();
+  assertNotNull(indexRequest);
+}
