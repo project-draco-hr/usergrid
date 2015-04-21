@@ -1,0 +1,9 @@
+{
+  Preconditions.checkNotNull(message,"Message cannot be null");
+  indexSizeCounter.inc(message.getDeIndexRequests().size());
+  indexSizeCounter.inc(message.getIndexRequests().size());
+  Timer.Context time=offerTimer.time();
+  bufferProducer.send(message);
+  time.stop();
+  return message.getFuture();
+}

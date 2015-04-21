@@ -25,13 +25,9 @@
   if (logger.isDebugEnabled()) {
     logger.debug("Wrote edge {}",edge);
   }
-  ((CpEntityManager)em).indexEntityIntoCollection(edge,memberEntity);
+  indexService.queueEntityIndexUpdate(applicationScope,memberEntity);
   if (logger.isDebugEnabled()) {
     logger.debug("Added entity {}:{} to collection {}",new Object[]{itemRef.getUuid().toString(),itemRef.getType(),collName});
-  }
-  if (connectBack && collection != null && collection.getLinkedCollection() != null) {
-    getRelationManager(itemEntity).addToCollection(collection.getLinkedCollection(),headEntity,cpHeadEntity,false);
-    getRelationManager(itemEntity).addToCollection(collection.getLinkedCollection(),headEntity,false);
   }
   return itemEntity;
 }

@@ -1,0 +1,12 @@
+{
+  final String value=queryFig.getQueueImplementation();
+  final Implementations impl=Implementations.valueOf(value);
+switch (impl) {
+case LOCAL:
+    return new InMemoryAsyncReIndexService(indexService,rxTaskScheduler,entityCollectionManagerFactory);
+case SQS:
+  return new SQSAsyncReIndexService(queueManagerFactory,queryFig,metricsFactory);
+default :
+throw new IllegalArgumentException("Configuration value of " + getErrorValues() + " are allowed");
+}
+}

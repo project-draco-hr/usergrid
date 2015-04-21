@@ -1,5 +1,4 @@
 {
-  bind(EntityManagerFactory.class).toProvider(lazyEntityManagerFactoryProvider);
   install(new CommonModule());
   install(new CollectionModule(){
     /** 
@@ -27,7 +26,7 @@
     @Override public void configureMigrationProvider(){
       bind(new TypeLiteral<MigrationDataProvider<ApplicationScope>>(){
       }
-).to(AllApplicationsObservable.class);
+).to(AllApplicationsObservableImpl.class);
     }
   }
 );
@@ -48,5 +47,9 @@
   plugins.addBinding().to(AppInfoMigrationPlugin.class);
   plugins.addBinding().to(MigrationModuleVersionPlugin.class);
   bind(AllApplicationsObservable.class).to(AllApplicationsObservableImpl.class);
+  bind(AllEntityIdsObservable.class).to(AllEntityIdsObservableImpl.class);
+  bind(IndexService.class).to(IndexServiceImpl.class);
+  bind(AsyncReIndexService.class).toProvider(AsyncIndexProvider.class);
+  install(new GuicyFigModule(QueryFig.class));
   install(new GuicyFigModule(ApplicationIdCacheFig.class));
 }
