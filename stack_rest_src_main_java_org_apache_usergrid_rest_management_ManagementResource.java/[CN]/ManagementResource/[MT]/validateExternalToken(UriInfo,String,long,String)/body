@@ -20,7 +20,10 @@
       String email=userNode.get("email").getTextValue();
       String dummyPassword=RandomStringUtils.randomAlphanumeric(40);
       JsonNode orgsNode=userNode.get("organizations");
-      final Iterator<String> fieldNames=orgsNode.getFieldNames();
+      Iterator<String> fieldNames=orgsNode.getFieldNames();
+      if (!fieldNames.hasNext()) {
+        fieldNames=Collections.singletonList(username).iterator();
+      }
       while (fieldNames.hasNext()) {
         String orgName=fieldNames.next();
         if (userId == null) {
