@@ -8,15 +8,15 @@
     crs=getCandidateResults(query);
     logger.debug("Calling build results with crs {}",crs);
     results=buildResults(indexScope,query,crs);
-    if (crs.isEmpty() || !crs.hasCursor() || results.size() > 0) {
+    if (crs.isEmpty() || !crs.hasOffset() || results.size() > 0) {
       break;
     }
-    query.setCursor(results.getCursor());
+    query.setOffsetFromCursor(results.getCursor());
     query.setLimit(originalLimit - results.size());
     logger.warn("Satisfy query limit {}, new limit {} query count {}",new Object[]{originalLimit,query.getLimit(),queryCount});
   }
   if (results.hasCursor()) {
-    query.setCursor(results.getCursor());
+    query.setOffsetFromCursor(results.getCursor());
     moreToLoad=true;
   }
  else {
