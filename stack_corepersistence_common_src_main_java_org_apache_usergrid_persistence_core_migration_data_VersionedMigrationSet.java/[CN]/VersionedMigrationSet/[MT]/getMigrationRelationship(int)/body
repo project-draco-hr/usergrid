@@ -3,11 +3,18 @@
   if (relationship != null) {
     return relationship;
   }
+  int lastSpan=Integer.MAX_VALUE;
+  MigrationRelationship<T> toUse=null;
   for (  MigrationRelationship<T> current : orderedVersions) {
-    if (current.correctRelationship(currentVersion)) {
-      cacheVersion.put(currentVersion,current);
-      return current;
+    final int newSpan=current.getSpan(currentVersion);
+    if (newSpan < lastSpan) {
+      lastSpan=newSpan;
+      toUse=current;
     }
   }
-  throw new IllegalArgumentException("Could not find a migration version for version " + currentVersion + " min found was "+ orderedVersions.get(orderedVersions.size() - 1));
+  if (lastSpan == Integer.MAX_VALUE) {
+    throw new IllegalArgumentException("Could not find a migration version for version " + currentVersion + " min found was "+ orderedVersions.get(orderedVersions.size() - 1));
+  }
+  cacheVersion.put(currentVersion,toUse);
+  return toUse;
 }

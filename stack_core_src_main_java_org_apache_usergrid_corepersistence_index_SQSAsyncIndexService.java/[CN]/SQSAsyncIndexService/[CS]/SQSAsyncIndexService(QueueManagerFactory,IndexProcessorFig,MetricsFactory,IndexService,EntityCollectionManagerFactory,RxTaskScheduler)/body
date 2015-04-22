@@ -1,0 +1,19 @@
+{
+  this.indexService=indexService;
+  this.entityCollectionManagerFactory=entityCollectionManagerFactory;
+  this.rxTaskScheduler=rxTaskScheduler;
+  final QueueScope queueScope=new QueueScopeImpl(QUEUE_NAME);
+  this.queue=queueManagerFactory.getQueueManager(queueScope);
+  this.indexProcessorFig=indexProcessorFig;
+  this.writeTimer=metricsFactory.getTimer(SQSAsyncIndexService.class,"write");
+  this.readTimer=metricsFactory.getTimer(SQSAsyncIndexService.class,"read");
+  this.messageProcessingTimer=metricsFactory.getTimer(SQSAsyncIndexService.class,"message.processing");
+  this.indexErrorCounter=metricsFactory.getCounter(SQSAsyncIndexService.class,"error");
+  metricsFactory.addGauge(SQSAsyncIndexService.class,"inflight.meter",new Gauge<Long>(){
+    @Override public Long getValue(){
+      return inFlight.longValue();
+    }
+  }
+);
+  start();
+}
