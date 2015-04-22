@@ -4,8 +4,13 @@
   String metricsHost=properties.getProperty("usergrid.metrics.graphite.host",badHost);
   Graphite graphite=new Graphite(new InetSocketAddress(metricsHost,2003));
   graphiteReporter=GraphiteReporter.forRegistry(registry).prefixedWith("notifications").convertRatesTo(TimeUnit.SECONDS).convertDurationsTo(TimeUnit.MILLISECONDS).filter(MetricFilter.ALL).build(graphite);
-  if (metricsHost != badHost) {
-    graphiteReporter.start(30,TimeUnit.SECONDS);
+  if (!metricsHost.equalsIgnoreCase(badHost)) {
+    if ("true".equalsIgnoreCase(properties.getProperty("usergrid.test"))) {
+      graphiteReporter.start(200,TimeUnit.MILLISECONDS);
+    }
+ else {
+      graphiteReporter.start(30,TimeUnit.SECONDS);
+    }
     LOG.info("MetricsService: Reporter started.");
   }
  else {
