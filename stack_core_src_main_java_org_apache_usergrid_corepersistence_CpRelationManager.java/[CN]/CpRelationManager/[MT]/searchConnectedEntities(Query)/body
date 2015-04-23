@@ -3,11 +3,15 @@
   final String connection=query.getConnectionType();
   Preconditions.checkNotNull(connection,"connection must be specified");
   headEntity=em.validate(headEntity);
+  query=adjustQuery(query);
+  if (query.isGraphQuery()) {
+    final QueryExecutor executor=new ConnectionGraphQueryExecutor(this.entityCollectionManagerFactory,graphManagerFactory,applicationScope,headEntity,query.getCursor(),connection,query.getLimit());
+    return executor.next();
+  }
   final IndexScope indexScope=new IndexScopeImpl(cpHeadEntity.getId(),CpNamingUtils.getConnectionScopeName(connection));
   final SearchTypes searchTypes=SearchTypes.fromNullableTypes(query.getEntityType());
   EntityIndex ei=managerCache.getEntityIndex(applicationScope);
   logger.debug("Searching connections from the scope {}:{} with types {}",new Object[]{indexScope.getOwner().toString(),indexScope.getName(),searchTypes});
-  query=adjustQuery(query);
   final ConnectionResultsLoaderFactoryImpl resultsLoaderFactory=new ConnectionResultsLoaderFactoryImpl(managerCache,headEntity,connection);
   final QueryExecutor executor=new ElasticSearchQueryExecutor(resultsLoaderFactory,ei,applicationScope,indexScope,searchTypes,query);
   return executor.next();

@@ -6,7 +6,7 @@
   final GraphManager gm=managerCache.getGraphManager(appScope);
   String edgeType=CpNamingUtils.getEdgeTypeFromCollectionName(CpNamingUtils.APPINFOS);
   Id rootAppId=appScope.getApplication();
-  Observable<Id> appIds=gm.loadEdgesFromSource(new SimpleSearchByEdgeType(rootAppId,edgeType,Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING,null)).flatMap(new Func1<Edge,Observable<Id>>(){
+  Observable<Id> appIds=gm.loadEdgesFromSource(new SimpleSearchByEdgeType(rootAppId,edgeType,Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING,Optional.<Edge>absent())).flatMap(new Func1<Edge,Observable<Id>>(){
     @Override public Observable<Id> call(    final Edge edge){
       final Id appInfo=edge.getTargetNode();
       return collectionManager.load(appInfo).filter(new Func1<Entity,Boolean>(){

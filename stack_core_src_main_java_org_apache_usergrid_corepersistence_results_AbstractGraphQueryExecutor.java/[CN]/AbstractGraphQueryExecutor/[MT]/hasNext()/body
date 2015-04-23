@@ -1,0 +1,9 @@
+{
+  if (observableIterator == null) {
+    final CommandBuilder commandBuilder=new CommandBuilder(applicationScope,sourceId,requestCursor,limit);
+    addTraverseCommand(commandBuilder);
+    final Observable<Results> resultsObservable=commandBuilder.build(new EntityLoadCommand(entityCollectionManagerFactory,applicationScope));
+    this.observableIterator=resultsObservable.toBlocking().getIterator();
+  }
+  return observableIterator.hasNext();
+}
