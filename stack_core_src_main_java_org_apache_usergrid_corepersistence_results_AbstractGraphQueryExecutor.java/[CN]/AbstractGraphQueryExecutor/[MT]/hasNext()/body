@@ -4,6 +4,9 @@
     addTraverseCommand(commandBuilder);
     final Observable<Results> resultsObservable=commandBuilder.build(new EntityLoadCommand(entityCollectionManagerFactory,applicationScope));
     this.observableIterator=resultsObservable.toBlocking().getIterator();
+    if (!observableIterator.hasNext()) {
+      this.observableIterator=Collections.singleton(new Results()).iterator();
+    }
   }
   return observableIterator.hasNext();
 }
