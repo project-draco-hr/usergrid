@@ -1,0 +1,15 @@
+{
+  logger.debug("buildResults()  from {} candidates",crs.size());
+  final ResultsLoader resultsLoader=this.resultsLoaderFactory.getLoader(applicationScope,indexScope,query.getResultsLevel());
+  final Results results=resultsLoader.loadResults(crs);
+  resultsLoader.postProcess();
+  if (crs.getOffset().isPresent()) {
+    query.setOffset(crs.getOffset().get());
+  }
+ else {
+    query.clearOffset();
+  }
+  results.setCursorFromOffset(query.getOffset());
+  logger.debug("Returning results size {}",results.size());
+  return results;
+}
