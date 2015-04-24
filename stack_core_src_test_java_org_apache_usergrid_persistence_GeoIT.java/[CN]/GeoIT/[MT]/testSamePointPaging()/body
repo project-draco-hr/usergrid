@@ -8,9 +8,8 @@
     setPos(data,0,0);
     em.create("store",data);
   }
-  em.refreshIndex();
-  Query query=new Query();
-  query.addFilter("location within 50000000 of 0, 0");
+  app.refreshIndex();
+  Query query=Query.fromQL("location within 50000000 of 0, 0");
   query.setLimit(100);
   int count=0;
   Results results;
@@ -20,7 +19,7 @@
       assertEquals(String.valueOf(count),entity.getName());
       count++;
     }
-    query.setCursor(results.getCursor());
+    query.setOffsetFromCursor(results.getCursor());
   }
  while (results.getCursor() != null);
   assertEquals(numEntities,count);

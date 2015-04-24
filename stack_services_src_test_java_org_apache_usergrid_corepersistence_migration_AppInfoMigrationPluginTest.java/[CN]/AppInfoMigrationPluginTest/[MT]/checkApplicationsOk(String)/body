@@ -1,0 +1,13 @@
+{
+  logger.debug("\n\nChecking applications OK\n");
+  for (int i=0; i < 10; i++) {
+    String appName=orgName + "/application" + i;
+    Optional<UUID> uuid=setup.getEmf().lookupApplication(appName);
+    assertTrue("Should be able to get application",uuid.isPresent());
+    EntityManager em=setup.getEmf().getEntityManager(uuid.get());
+    Application app=em.getApplication();
+    assertEquals(appName,app.getName());
+    Results results=em.searchCollection(em.getApplicationRef(),"things",Query.fromQL("select *"));
+    assertEquals("Should have 10 entities",10,results.size());
+  }
+}

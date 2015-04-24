@@ -11,10 +11,8 @@
     entityIds.add(created.getUuid());
   }
   int pageSize=10;
-  em.refreshIndex();
-  Query query=new Query();
-  query.setLimit(pageSize);
-  query.addFilter("index < " + size * 2);
+  app.refreshIndex();
+  final Query query=Query.fromQL("index < " + size * 2 + " order by index asc");
   Results r=null;
   for (int i=0; i < size / pageSize; i++) {
     r=em.searchCollection(em.getApplicationRef(),"pages",query);
@@ -23,7 +21,7 @@
     for (int j=0; j < pageSize; j++) {
       assertEquals(entityIds.get(i * pageSize + j),r.getEntities().get(j).getUuid());
     }
-    query.setCursor(r.getCursor());
+    query.setOffsetFromCursor(r.getCursor());
   }
   r=em.searchCollection(em.getApplicationRef(),"pages",query);
   assertEquals(0,r.size());

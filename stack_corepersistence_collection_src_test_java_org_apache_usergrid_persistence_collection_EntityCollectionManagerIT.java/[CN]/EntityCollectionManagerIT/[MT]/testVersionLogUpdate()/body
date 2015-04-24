@@ -1,8 +1,8 @@
 {
-  CollectionScope context=new CollectionScopeImpl(new SimpleId("organization"),new SimpleId("test"),"test");
+  ApplicationScope context=new ApplicationScopeImpl(new SimpleId("organization"));
   final EntityCollectionManager manager=factory.createCollectionManager(context);
   final Entity newEntity=new Entity(new SimpleId("test"));
-  final Entity v1Created=manager.update(newEntity).toBlocking().lastOrDefault(null);
+  final Entity v1Created=manager.write(newEntity).toBlocking().lastOrDefault(null);
   assertNotNull("Id was assigned",v1Created.getId());
   assertNotNull("Version was assigned",v1Created.getVersion());
   final UUID v1Version=v1Created.getVersion();
@@ -12,7 +12,7 @@
   assertEquals(v1Version,version1Log.getVersion());
   assertEquals(MvccLogEntry.State.COMPLETE,version1Log.getState());
   assertEquals(Stage.COMMITTED,version1Log.getStage());
-  final Entity v2Created=manager.update(v1Created).toBlocking().last();
+  final Entity v2Created=manager.write(v1Created).toBlocking().last();
   final UUID v2Version=v2Created.getVersion();
   assertEquals("Same entityId",v1Created.getId(),v2Created.getId());
   assertTrue("Newer version in v2",UUIDComparator.staticCompare(v2Version,v1Version) > 0);

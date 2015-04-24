@@ -1,0 +1,25 @@
+{
+  Preconditions.checkNotNull(fields,"fields are required");
+  Preconditions.checkArgument(fields.size() > 0,"More than 1 field must be specified");
+  final List<ScopedRowKey<FieldKey>> keys=new ArrayList<>(fields.size());
+  final Id applicationId=appScope.getApplication();
+  for (  Field field : fields) {
+    final FieldKey key=createUniqueValueKey(applicationId,type,field);
+    final ScopedRowKey<FieldKey> rowKey=ScopedRowKey.fromKey(applicationId,key);
+    keys.add(rowKey);
+  }
+  final UniqueValueSetImpl uniqueValueSet=new UniqueValueSetImpl(fields.size());
+  Iterator<Row<ScopedRowKey<FieldKey>,EntityVersion>> results=keyspace.prepareQuery(CF_UNIQUE_VALUES).setConsistencyLevel(consistencyLevel).getKeySlice(keys).withColumnRange(new RangeBuilder().setLimit(1).build()).execute().getResult().iterator();
+  while (results.hasNext()) {
+    final Row<ScopedRowKey<FieldKey>,EntityVersion> unique=results.next();
+    final Field field=parseRowKey(unique.getKey());
+    final Iterator<Column<EntityVersion>> columnList=unique.getColumns().iterator();
+    if (!columnList.hasNext()) {
+      continue;
+    }
+    final EntityVersion entityVersion=columnList.next().getName();
+    final UniqueValueImpl uniqueValue=new UniqueValueImpl(field,entityVersion.getEntityId(),entityVersion.getEntityVersion());
+    uniqueValueSet.addValue(uniqueValue);
+  }
+  return uniqueValueSet;
+}

@@ -3,12 +3,19 @@
   response.setAction("Migrate Data");
   final Thread migrate=new Thread(){
     @Override public void run(){
-      logger.info("Rebuilding all indexes");
+      logger.info("Migrating Schema");
       try {
-        emf.migrateData();
+        getMigrationManager().migrate();
       }
  catch (      Exception e) {
-        logger.error("Unable to rebuild indexes",e);
+        logger.error("Unable to migrate data",e);
+      }
+      logger.info("Migrating Data");
+      try {
+        getDataMigrationManager().migrate();
+      }
+ catch (      Exception e) {
+        logger.error("Unable to migrate data",e);
       }
     }
   }

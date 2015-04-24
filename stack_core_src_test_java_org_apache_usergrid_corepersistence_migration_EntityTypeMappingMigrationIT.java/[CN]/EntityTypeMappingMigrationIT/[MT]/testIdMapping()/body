@@ -1,44 +1,24 @@
 {
-  assertEquals("version 1 expected",1,entityTypeMappingMigration.getVersion());
-  assertEquals("Previous version expected",0,dataMigrationManager.getCurrentVersion());
-  final EntityManager newAppEm=app.getEntityManager();
-  final String type1="type1thing";
-  final String type2="type2thing";
-  final int size=10;
-  final Set<Id> type1Identities=EntityWriteHelper.createTypes(newAppEm,type1,size);
-  final Set<Id> type2Identities=EntityWriteHelper.createTypes(newAppEm,type2,size);
-  final Set<Id> allEntities=new HashSet<>();
-  allEntities.addAll(type1Identities);
-  allEntities.addAll(type2Identities);
-  keyspace.truncateColumnFamily(MapSerializationImpl.MAP_ENTRIES);
-  keyspace.truncateColumnFamily(MapSerializationImpl.MAP_KEYS);
-  app.createApplication(GraphShardVersionMigrationIT.class.getSimpleName() + UUIDGenerator.newTimeUUID(),"migrationTest");
+  final Id applicationId=createId("application");
+  final ApplicationScope scope1=new ApplicationScopeImpl(applicationId);
+  final Id entityId1=createId("thing");
+  final EntityIdScope idScope1=new EntityIdScope(scope1,entityId1);
+  final MapScope mapScope1=new MapScopeImpl(applicationId,CpNamingUtils.TYPES_BY_UUID_MAP);
+  final ApplicationScope scope2=new ApplicationScopeImpl(applicationId);
+  final Id entityId2=createId("foo");
+  final EntityIdScope idScope2=new EntityIdScope(scope2,entityId2);
+  final MapScope mapScope2=new MapScopeImpl(applicationId,CpNamingUtils.TYPES_BY_UUID_MAP);
+  final Observable<EntityIdScope> scopes=Observable.just(idScope1,idScope2);
+  final TestMigrationDataProvider<EntityIdScope> migrationDataProvider=new TestMigrationDataProvider<>();
+  migrationDataProvider.setObservable(scopes);
+  final MapManager mapManager=mock(MapManager.class);
+  final ManagerCache managerCache=mock(ManagerCache.class);
+  when(managerCache.getMapManager(eq(mapScope1))).thenReturn(mapManager);
+  when(managerCache.getMapManager(eq(mapScope2))).thenReturn(mapManager);
   final TestProgressObserver progressObserver=new TestProgressObserver();
-  entityTypeMappingMigration.migrate(progressObserver);
-  AllEntitiesInSystemObservable.getAllEntitiesInSystem(managerCache,1000).doOnNext(new Action1<AllEntitiesInSystemObservable.ApplicationEntityGroup>(){
-    @Override public void call(    final AllEntitiesInSystemObservable.ApplicationEntityGroup entity){
-      final EntityManager em=emf.getEntityManager(entity.applicationScope.getApplication().getUuid());
-      for (      final Id id : entity.entityIds) {
-        try {
-          final Entity returned=em.get(id.getUuid());
-          if (returned != null) {
-            assertEquals(id.getUuid(),returned.getUuid());
-            assertEquals(id.getType(),returned.getType());
-          }
- else {
-            final String type=managerCache.getMapManager(CpNamingUtils.getEntityTypeMapScope(entity.applicationScope.getApplication())).getString(id.getUuid().toString());
-            assertEquals(id.getType(),type);
-          }
-        }
- catch (        Exception e) {
-          throw new RuntimeException("Unable to get entity " + id + " by UUID, migration failed",e);
-        }
-        allEntities.remove(id);
-      }
-    }
-  }
-).toBlocking().lastOrDefault(null);
-  assertEquals("Every element should have been encountered",0,allEntities.size());
-  assertFalse("Progress observer should not have failed",progressObserver.getFailed());
-  assertTrue("Progress observer should have update messages",progressObserver.getUpdates().size() > 0);
+  final EntityTypeMappingMigration migration=new EntityTypeMappingMigration(managerCache,migrationDataProvider);
+  final int returnedVersion=migration.migrate(CoreDataVersions.INITIAL.getVersion(),migrationDataProvider,progressObserver);
+  assertEquals(CoreDataVersions.ID_MAP_FIX.getVersion(),returnedVersion);
+  verify(mapManager).putString(entityId1.getUuid().toString(),entityId1.getType());
+  verify(mapManager).putString(entityId2.getUuid().toString(),entityId2.getType());
 }

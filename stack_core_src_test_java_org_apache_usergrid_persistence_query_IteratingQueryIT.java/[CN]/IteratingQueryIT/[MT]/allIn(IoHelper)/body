@@ -1,6 +1,6 @@
 {
   io.doSetup();
-  int size=300;
+  int size=30;
   long start=System.currentTimeMillis();
   LOG.info("Writing {} entities.",size);
   for (int i=0; i < size; i++) {
@@ -10,9 +10,10 @@
   }
   long stop=System.currentTimeMillis();
   LOG.info("Writes took {} ms",stop - start);
-  app.getEntityManager().refreshIndex();
+  app.refreshIndex();
+  Thread.sleep(500);
   Query query=new Query();
-  query.setLimit(100);
+  query.setLimit(10);
   int count=0;
   Results results;
   start=System.currentTimeMillis();
@@ -22,7 +23,7 @@
       assertEquals(String.valueOf(count),results.getEntities().get(i).getName());
       count++;
     }
-    query.setCursor(results.getCursor());
+    query.setOffsetFromCursor(results.getCursor());
   }
  while (results.getCursor() != null);
   stop=System.currentTimeMillis();

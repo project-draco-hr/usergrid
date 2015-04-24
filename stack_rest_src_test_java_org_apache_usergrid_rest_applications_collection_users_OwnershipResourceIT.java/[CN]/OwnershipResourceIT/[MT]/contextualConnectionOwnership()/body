@@ -3,7 +3,7 @@
   this.app().token().post(new Token(user1.getUsername(),"password"));
   Entity data=this.app().collection("restaurants").post(new Entity().chainPut("name","4peaks"));
   refreshIndex();
-  data=usersResource.entity("me").connection("likes").collection("restaurants").entity("4peaks").post();
+  Entity fourPeaksData=usersResource.entity("me").connection("likes").collection("restaurants").entity("4peaks").post();
   refreshIndex();
   this.app().token().clearToken();
   this.app().token().post(new Token(user2.getUsername(),"password"));
@@ -14,7 +14,7 @@
   String arrogantButcherId=data.getUuid().toString();
   this.app().token().post(new Token(user1.getUsername(),"password"));
   CollectionEndpoint likeRestaurants=usersResource.entity("me").connection("likes").collection("restaurants");
-  String peaksId=data.getUuid().toString();
+  String peaksId=fourPeaksData.getUuid().toString();
   data=likeRestaurants.entity(peaksId).get();
   assertNotNull(data);
   assertEquals("4peaks",data.get("name").toString());

@@ -1,8 +1,8 @@
 {
   io.doSetup();
-  int size=200;
-  int queryLimit=100;
-  int startValue=100;
+  int size=10;
+  int queryLimit=5;
+  int startValue=5;
   long start=System.currentTimeMillis();
   LOG.info("Writing {} entities.",size);
   List<String> expected=new ArrayList<String>(size);
@@ -16,9 +16,7 @@
   }
   long stop=System.currentTimeMillis();
   LOG.info("Writes took {} ms",stop - start);
-  Query query=new Query();
-  query.addSort("index desc");
-  query.addLessThanEqualFilter("index",startValue);
+  Query query=Query.fromQL("select * where index = " + startValue + " sort by index desc");
   query.setLimit(queryLimit);
   int count=0;
   int delta=size - startValue;
@@ -30,7 +28,7 @@
       assertEquals(expected.get(size - delta - count),results.getEntities().get(i).getName());
       count++;
     }
-    query.setCursor(results.getCursor());
+    query.setOffsetFromCursor(results.getCursor());
   }
  while (results.hasCursor());
   assertEquals(expected.size() - delta + 1,count);

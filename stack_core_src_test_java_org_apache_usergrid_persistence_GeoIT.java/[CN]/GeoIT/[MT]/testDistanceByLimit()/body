@@ -17,9 +17,8 @@
     data.put("location",location);
     em.create("store",data);
   }
-  em.refreshIndex();
-  Query query=new Query();
-  query.addFilter("location within 50000000 of -90, -180");
+  app.refreshIndex();
+  Query query=Query.fromQL("location within 50000000 of -90, -180");
   query.setLimit(100);
   int count=0;
   do {
@@ -29,6 +28,6 @@
       count++;
     }
   }
- while (query.getCursor() != null);
+ while (query.getOffset().isPresent());
   assertEquals(numEntities,count);
 }

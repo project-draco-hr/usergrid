@@ -1,5 +1,5 @@
 {
-  return Observable.from(node).flatMap(new Func1<Id,Observable<Integer>>(){
+  return Observable.just(node).flatMap(new Func1<Id,Observable<Integer>>(){
     @Override public Observable<Integer> call(    final Id node){
       final Optional<Long> maxVersion=nodeSerialization.getMaxVersion(scope,node);
       LOG.debug("Node with id {} has max version of {}",node,maxVersion.orNull());
@@ -8,7 +8,12 @@
       }
       return doDeletes(node,scope,maxVersion.get(),timestamp).count().doOnCompleted(new Action0(){
         @Override public void call(){
-          HystrixCassandra.async(nodeSerialization.delete(scope,node,maxVersion.get()));
+          try {
+            nodeSerialization.delete(scope,node,maxVersion.get()).execute();
+          }
+ catch (          ConnectionException e) {
+            throw new RuntimeException("Unable to connect to casandra",e);
+          }
         }
       }
 );

@@ -3,7 +3,15 @@
   install(new MapModule());
   install(new QueueModule());
   bind(EntityIndexFactory.class).to(EsEntityIndexFactoryImpl.class);
-  bind(IndexBufferProducer.class).to(EsIndexBufferProducerImpl.class);
+  bind(AliasedEntityIndex.class).to(EsEntityIndexImpl.class);
+  bind(EntityIndex.class).to(EsEntityIndexImpl.class).asEagerSingleton();
+  bind(IndexCache.class).to(EsIndexCacheImpl.class);
+  bind(IndexRefreshCommand.class).to(IndexRefreshCommandImpl.class);
+  bind(IndexIdentifier.class).to(IndexIdentifierImpl.class);
   bind(IndexBufferConsumer.class).to(EsIndexBufferConsumerImpl.class).asEagerSingleton();
-  bind(BufferQueue.class).toProvider(QueueProvider.class);
+  Multibinder<DataMigration<ApplicationScope>> dataMigrationMultibinder=Multibinder.newSetBinder(binder(),new TypeLiteral<DataMigration<ApplicationScope>>(){
+  }
+,IndexMigration.class);
+  Multibinder.newSetBinder(binder(),MigrationPlugin.class).addBinding().to(EsIndexMigrationPlugin.class);
+  configureMigrationProvider();
 }

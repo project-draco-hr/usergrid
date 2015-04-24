@@ -27,15 +27,13 @@
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
   Notification notification=app.getEntityManager().get(e.getUuid(),Notification.class);
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
-  Query query=new Query();
-  query.addEqualityFilter("state",Notification.State.FINISHED.toString());
+  Query query=Query.fromEquals("state",Notification.State.FINISHED.toString());
   Results results=app.getEntityManager().searchCollection(app.getEntityManager().getApplicationRef(),"notifications",query);
   Entity entity=results.getEntitiesMap().get(notification.getUuid());
   assertNotNull(entity);
   scheduleNotificationAndWait(notification);
   notification=app.getEntityManager().get(e.getUuid(),Notification.class);
-  query=new Query();
-  query.addEqualityFilter("state",Notification.State.FINISHED.toString());
+  query=Query.fromEquals("state",Notification.State.FINISHED.toString());
   results=app.getEntityManager().searchCollection(app.getEntityManager().getApplicationRef(),"notifications",query);
   entity=results.getEntitiesMap().get(notification.getUuid());
   assertNotNull(entity);

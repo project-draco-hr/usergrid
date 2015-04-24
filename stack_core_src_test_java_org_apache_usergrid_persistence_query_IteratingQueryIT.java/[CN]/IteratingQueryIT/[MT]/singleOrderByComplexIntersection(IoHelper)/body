@@ -22,10 +22,7 @@
   }
   long stop=System.currentTimeMillis();
   LOG.info("Writes took {} ms",stop - start);
-  Query query=new Query();
-  query.addSort("created");
-  query.addEqualityFilter("intersect",true);
-  query.addEqualityFilter("intersect2",true);
+  Query query=Query.fromQL("select * where intersect = true AND intersect2 = true sort by  created");
   query.setLimit(queryLimit);
   int count=0;
   Results results;
@@ -36,7 +33,7 @@
       assertEquals(expectedResults.get(count),results.getEntities().get(i).getName());
       count++;
     }
-    query.setCursor(results.getCursor());
+    query.setOffsetFromCursor(results.getCursor());
   }
  while (results.getCursor() != null);
   stop=System.currentTimeMillis();

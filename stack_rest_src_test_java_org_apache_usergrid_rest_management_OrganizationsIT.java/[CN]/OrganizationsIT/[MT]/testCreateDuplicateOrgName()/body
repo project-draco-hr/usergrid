@@ -4,7 +4,7 @@
   this.refreshIndex();
   assertNotNull(orgCreatedResponse);
   Token tokenPayload=new Token("password",organization.getUsername(),organization.getPassword());
-  Token tokenReturned=clientSetup.getRestClient().management().token().post(tokenPayload);
+  Token tokenReturned=clientSetup.getRestClient().management().token().post(Token.class,tokenPayload);
   assertNotNull(tokenReturned);
   Organization orgTestDuplicatePayload=new Organization(organization.getOrganization(),organization.getUsername() + "test",organization.getEmail() + "test",organization.getName() + "test",organization.getPassword(),null);
   try {
@@ -17,7 +17,7 @@
   tokenPayload=new Token("password",organization.getName() + "test",organization.getPassword());
   Token tokenError=null;
   try {
-    tokenError=clientSetup.getRestClient().management().token().post(tokenPayload);
+    tokenError=clientSetup.getRestClient().management().token().post(Token.class,tokenPayload);
     fail("Should not have created user");
   }
  catch (  UniformInterfaceException ex) {

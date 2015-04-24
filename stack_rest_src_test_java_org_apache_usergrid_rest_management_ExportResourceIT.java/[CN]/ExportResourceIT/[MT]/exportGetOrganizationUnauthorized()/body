@@ -1,15 +1,10 @@
 {
-  JsonNode node=null;
-  ClientResponse.Status responseStatus=ClientResponse.Status.OK;
   UUID fake=UUID.fromString("AAAAAAAA-FFFF-FFFF-FFFF-AAAAAAAAAAAA");
-  String orgName=context.getOrgName();
-  String appName=context.getAppName();
-  String token=context.getActiveUser().getToken();
   try {
-    node=mapper.readTree(resource().path("/management/orgs/" + orgName + "/export/"+ fake).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
+    management().orgs().organization(clientSetup.getOrganizationName()).addToPath("export").addToPath(fake.toString()).getWithoutToken(ApiResponse.class);
+    fail("Should not have passed as we didn't have an access token.");
   }
  catch (  UniformInterfaceException uie) {
-    responseStatus=uie.getResponse().getClientResponseStatus();
+    assertEquals(ClientResponse.Status.UNAUTHORIZED,uie.getResponse().getClientResponseStatus());
   }
-  assertEquals(ClientResponse.Status.UNAUTHORIZED,responseStatus);
 }

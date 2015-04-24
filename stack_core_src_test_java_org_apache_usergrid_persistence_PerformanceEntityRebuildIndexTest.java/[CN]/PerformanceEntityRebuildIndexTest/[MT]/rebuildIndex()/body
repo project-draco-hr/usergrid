@@ -43,7 +43,7 @@
     try {
       entityMap.put("key",entityCount);
       entity=em.create("testType",entityMap);
-      em.refreshIndex();
+      app.refreshIndex();
       em.createConnection(entity,"herds",cat1);
       em.createConnection(entity,"herds",cat2);
       em.createConnection(entity,"herds",cat3);
@@ -63,10 +63,10 @@
     }
   }
   logger.info("Created {} entities",entityCount);
-  em.refreshIndex();
+  app.refreshIndex();
   logger.debug("Read the data");
   readData(em,"testTypes",entityCount,3);
-  logger.debug("Deleting app index and system app index");
+  logger.debug("Deleting app index");
   deleteIndex(em.getApplicationId());
   logger.debug("Reading data, should fail this time ");
   try {
@@ -92,16 +92,16 @@
   }
 ;
   try {
-    setup.getEmf().rebuildInternalIndexes(po);
-    setup.getEmf().rebuildApplicationIndexes(em.getApplicationId(),po);
+    fail("Implement index rebuild");
     reporter.report();
     registry.remove(meterName);
     logger.info("Rebuilt index");
-    setup.getEmf().refreshIndex();
+    app.refreshIndex();
   }
  catch (  Exception ex) {
     logger.error("Error rebuilding index",ex);
     fail();
   }
+  Thread.sleep(2000);
   readData(em,"testTypes",entityCount,3);
 }

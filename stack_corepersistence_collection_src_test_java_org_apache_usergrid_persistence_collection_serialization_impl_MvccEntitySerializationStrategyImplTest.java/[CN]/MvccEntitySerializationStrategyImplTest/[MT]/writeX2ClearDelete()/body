@@ -1,8 +1,6 @@
 {
-  final Id organizationId=new SimpleId("organization");
   final Id applicationId=new SimpleId("application");
-  final String name="test";
-  CollectionScope context=new CollectionScopeImpl(organizationId,applicationId,name);
+  ApplicationScope context=new ApplicationScopeImpl(applicationId);
   final UUID entityId=UUIDGenerator.newTimeUUID();
   final UUID version1=UUIDGenerator.newTimeUUID();
   final String type="test";
@@ -23,26 +21,16 @@
   UUID version3=UUIDGenerator.newTimeUUID();
   serializationStrategy.mark(context,id,version3).execute();
   final Optional<Entity> empty=Optional.absent();
-  MvccEntity clearedV3=new MvccEntityImpl(id,version3,MvccEntity.Status.COMPLETE,empty);
+  MvccEntity clearedV3=new MvccEntityImpl(id,version3,MvccEntity.Status.DELETED,empty);
   MvccEntity returnedV3=serializationStrategy.load(context,Collections.singleton(id),version3).getEntity(id);
   assertEquals("entities are the same",clearedV3,returnedV3);
   UUID current=UUIDGenerator.newTimeUUID();
-  Iterator<MvccEntity> entities=serializationStrategy.loadDescendingHistory(context,id,current,3);
-  MvccEntity first=entities.next();
+  MvccEntity first=serializationStrategy.load(context,id).get();
   assertEquals(clearedV3,first);
-  assertEquals(id,first.getId());
-  MvccEntity second=entities.next();
-  assertEquals(returnedV2,second);
-  assertEquals(id,second.getId());
-  MvccEntity third=entities.next();
-  assertEquals(returnedV1,third);
-  assertEquals(id,third.getId());
   serializationStrategy.delete(context,id,version1).execute();
   serializationStrategy.delete(context,id,version2).execute();
-  entities=serializationStrategy.loadDescendingHistory(context,id,current,3);
-  first=entities.next();
+  first=serializationStrategy.load(context,id).get();
   assertEquals(clearedV3,first);
   serializationStrategy.delete(context,id,version3).execute();
-  entities=serializationStrategy.loadDescendingHistory(context,id,current,3);
-  Assert.assertTrue(!entities.hasNext());
+  assertFalse("Not loaded",serializationStrategy.load(context,id).isPresent());
 }

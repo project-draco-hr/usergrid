@@ -7,7 +7,7 @@
     }
   }
 );
-  em.refreshIndex();
+  app.refreshIndex();
   assertEquals(1,queryCollectionCp("things","thing","select *").size());
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=getCpEntity(thing);
   UUID oldVersion=cpEntity.getVersion();
@@ -17,10 +17,12 @@
     }
   }
 );
-  em.refreshIndex();
+  app.refreshIndex();
   org.apache.usergrid.persistence.model.entity.Entity cpUpdated=getCpEntity(thing);
   assertEquals("widget",cpUpdated.getField("stuff").getValue());
   UUID newVersion=cpUpdated.getVersion();
   assertTrue("New version is greater than old",UUIDComparator.staticCompare(newVersion,oldVersion) > 0);
-  assertEquals(2,queryCollectionCp("things","thing","select *").size());
+  CandidateResults results;
+  results=queryCollectionCp("things","thing","select *");
+  assertEquals(2,results.size());
 }

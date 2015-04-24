@@ -2,9 +2,12 @@
   ApiResponse response=createApiResponse();
   response.setAction("Migrate Schema indexes");
   ObjectNode node=JsonNodeFactory.instance.objectNode();
-  node.put("currentVersion",emf.getMigrateDataVersion());
-  node.put("lastMessage",emf.getMigrateDataStatus());
-  response.setProperty("status",node);
+  final DataMigrationManager dataMigrationManager=getDataMigrationManager();
+  final Set<String> plugins=dataMigrationManager.getPluginNames();
+  for (  final String pluginName : plugins) {
+    node.put(pluginName,dataMigrationManager.getCurrentVersion(pluginName));
+  }
+  response.setData(node);
   response.setSuccess();
   return new JSONWithPadding(response,callback);
 }

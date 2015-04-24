@@ -5,7 +5,12 @@
         @Override public void call(        final MarkedEdge markedEdge){
           if (edge.equals(markedEdge)) {
             LOG.info("Removing edge {} ",edge);
-            HystrixCassandra.async(storageSerialization.deleteEdge(scope,edge,timestamp));
+            try {
+              storageSerialization.deleteEdge(scope,edge,timestamp).execute();
+            }
+ catch (            ConnectionException e) {
+              throw new RuntimeException("Unable to connect to casandra",e);
+            }
           }
         }
       }

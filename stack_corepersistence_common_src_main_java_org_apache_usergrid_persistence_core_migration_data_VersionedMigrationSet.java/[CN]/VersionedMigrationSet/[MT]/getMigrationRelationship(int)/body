@@ -1,0 +1,20 @@
+{
+  final MigrationRelationship<T> relationship=cacheVersion.get(currentVersion);
+  if (relationship != null) {
+    return relationship;
+  }
+  int lastSpan=Integer.MAX_VALUE;
+  MigrationRelationship<T> toUse=null;
+  for (  MigrationRelationship<T> current : orderedVersions) {
+    final int newSpan=current.getSpan(currentVersion);
+    if (newSpan < lastSpan) {
+      lastSpan=newSpan;
+      toUse=current;
+    }
+  }
+  if (lastSpan == Integer.MAX_VALUE) {
+    throw new IllegalArgumentException("Could not find a migration version for version " + currentVersion + " min found was "+ orderedVersions.get(orderedVersions.size() - 1));
+  }
+  cacheVersion.put(currentVersion,toUse);
+  return toUse;
+}

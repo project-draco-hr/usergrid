@@ -9,16 +9,15 @@
   app.put("debug",true);
   Entity e=app.testRequest(ServiceAction.POST,1,"devices",device1.getUuid(),"notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
-  app.getEntityManager().refreshIndex();
+  setup.getEntityIndex().refresh();
   Notification notification=app.getEntityManager().get(e.getUuid(),Notification.class);
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
   Thread.sleep(500);
-  Query query=new Query();
-  query.addEqualityFilter("state",Notification.State.SCHEDULED.toString());
+  Query query=Query.fromEquals("state",Notification.State.SCHEDULED.toString());
   Results results=app.getEntityManager().searchCollection(app.getEntityManager().getApplicationRef(),"notifications",query);
   Entity entity=results.getEntitiesMap().get(notification.getUuid());
   assertNotNull(entity);
-  app.getEntityManager().refreshIndex();
+  setup.getEntityIndex().refresh();
   try {
     e=app.testRequest(ServiceAction.DELETE,1,"notifications",e.getUuid()).getEntity();
   }

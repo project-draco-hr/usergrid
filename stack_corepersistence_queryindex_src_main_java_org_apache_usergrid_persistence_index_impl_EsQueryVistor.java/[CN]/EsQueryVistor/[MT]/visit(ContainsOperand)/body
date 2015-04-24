@@ -1,10 +1,13 @@
 {
-  String name=op.getProperty().getValue();
-  name=name.toLowerCase();
-  Object value=op.getLiteral().getValue();
-  BoolQueryBuilder qb=QueryBuilders.boolQuery();
-  qb.minimumNumberShouldMatch(1);
-  qb=qb.should(QueryBuilders.matchQuery(name,value));
-  qb=qb.should(QueryBuilders.matchQuery(addPrefix(value.toString(),name,true),value));
-  stack.push(qb);
+  final String name=op.getProperty().getValue().toLowerCase();
+  final String value=op.getLiteral().getValue().toString().toLowerCase();
+  if (value.indexOf("*") != -1) {
+    final WildcardQueryBuilder wildcardQuery=QueryBuilders.wildcardQuery(IndexingUtils.FIELD_STRING_NESTED,value);
+    queryBuilders.push(fieldNameTerm(name,wildcardQuery));
+  }
+ else {
+    final MatchQueryBuilder termQuery=QueryBuilders.matchQuery(IndexingUtils.FIELD_STRING_NESTED,value);
+    queryBuilders.push(fieldNameTerm(name,termQuery));
+  }
+  filterBuilders.push(NoOpFilterBuilder.INSTANCE);
 }

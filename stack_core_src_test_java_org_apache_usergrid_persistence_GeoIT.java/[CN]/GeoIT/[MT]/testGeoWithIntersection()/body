@@ -13,7 +13,7 @@
     Entity e=em.create("store",data);
     created.add(e);
   }
-  em.refreshIndex();
+  app.refreshIndex();
   int startDelta=size - min;
   String queryString=String.format("select * where index >= %d and index < %d order by index",min,max);
   Query query=Query.fromQL(queryString);
@@ -25,7 +25,7 @@
       assertEquals(created.get(startDelta + count),e);
       count++;
     }
-    query.setCursor(r.getCursor());
+    query.setOffsetFromCursor(r.getCursor());
   }
  while (r.hasCursor());
   assertEquals(startDelta - (size - max),count);

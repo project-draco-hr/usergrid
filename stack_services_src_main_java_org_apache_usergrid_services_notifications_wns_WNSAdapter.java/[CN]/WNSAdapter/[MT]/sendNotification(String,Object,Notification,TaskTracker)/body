@@ -18,9 +18,20 @@ if (translatedNotification.getMessage() instanceof Integer) {
 service.pushBadge(providerId,badge);
 break;
 case "raw":
-WnsRaw raw=new WnsRaw();
-raw.stream=toBytes(translatedNotification.getMessage());
-service.pushRaw(providerId,raw);
+Object message=translatedNotification.getMessage();
+if (message instanceof String) {
+WnsRaw raw=new WnsRawBuilder().stream(((String)message).getBytes()).build();
+WnsNotificationRequestOptional opt=new WnsNotificationRequestOptional();
+opt.cachePolicy="cache";
+opt.requestForStatus="true";
+WnsNotificationResponse response=service.pushRaw(providerId,opt,raw);
+if (!response.notificationStatus.equals("received")) {
+throw new Exception(String.format("Notification failed status:%s, devicesStatus:%s, description:%s, debug flag:%s",response.notificationStatus,response.deviceConnectionStatus,response.errorDescription,response.debugTrace));
+}
+}
+ else {
+throw new IllegalArgumentException("You must send a string in the raw body. instead got this: " + message.getClass().getName());
+}
 break;
 default :
 throw new IllegalArgumentException(translatedNotification.getType() + " does not match a valid notification type (toast,badge).");

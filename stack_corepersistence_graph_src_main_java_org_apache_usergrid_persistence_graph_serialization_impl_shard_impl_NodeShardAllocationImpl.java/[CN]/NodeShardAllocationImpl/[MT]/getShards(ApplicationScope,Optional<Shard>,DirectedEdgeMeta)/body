@@ -11,7 +11,12 @@
   }
   if (existingShards == null || !existingShards.hasNext()) {
     final MutationBatch batch=edgeShardSerialization.writeShardMeta(scope,MIN_SHARD,directedEdgeMeta);
-    HystrixCassandra.user(batch);
+    try {
+      batch.execute();
+    }
+ catch (    ConnectionException e) {
+      throw new RuntimeException("Unable to connect to casandra",e);
+    }
     existingShards=Collections.singleton(MIN_SHARD).iterator();
   }
   return new ShardEntryGroupIterator(existingShards,graphFig.getShardMinDelta(),shardGroupCompaction,scope,directedEdgeMeta);

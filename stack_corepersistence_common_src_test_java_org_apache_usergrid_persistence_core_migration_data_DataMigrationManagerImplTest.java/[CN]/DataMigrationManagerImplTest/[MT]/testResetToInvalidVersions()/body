@@ -1,0 +1,13 @@
+{
+  final String name="plugin1";
+  final int version=10;
+  final Set<MigrationPlugin> plugins=new LinkedHashSet<>();
+  MigrationPlugin plugin1=mock(MigrationPlugin.class);
+  when(plugin1.getPhase()).thenReturn(PluginPhase.MIGRATE);
+  when(plugin1.getName()).thenReturn(name);
+  when(plugin1.getMaxVersion()).thenReturn(version);
+  plugins.add(plugin1);
+  final MigrationInfoSerialization migrationInfoSerialization=mock(MigrationInfoSerialization.class);
+  DataMigrationManagerImpl migrationManager=new DataMigrationManagerImpl(plugins,migrationInfoSerialization);
+  migrationManager.resetToVersion(name,version + 1);
+}

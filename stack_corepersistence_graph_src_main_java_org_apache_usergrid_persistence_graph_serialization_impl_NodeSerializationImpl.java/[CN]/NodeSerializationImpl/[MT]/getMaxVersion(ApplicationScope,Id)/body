@@ -2,14 +2,15 @@
   ValidationUtils.validateApplicationScope(scope);
   ValidationUtils.verifyIdentity(node);
   ColumnFamilyQuery<ScopedRowKey<Id>,Boolean> query=keyspace.prepareQuery(GRAPH_DELETE).setConsistencyLevel(fig.getReadCL());
+  Column<Boolean> result=null;
   try {
-    Column<Boolean> result=HystrixCassandra.user(query.getKey(ScopedRowKey.fromKey(scope.getApplication(),node)).getColumn(COLUMN_NAME)).getResult();
-    return Optional.of(result.getLongValue());
+    result=query.getKey(ScopedRowKey.fromKey(scope.getApplication(),node)).getColumn(COLUMN_NAME).execute().getResult();
   }
- catch (  RuntimeException re) {
-    if (re.getCause().getCause() instanceof NotFoundException) {
-      return Optional.absent();
-    }
-    throw re;
+ catch (  NotFoundException nfe) {
+    return Optional.absent();
   }
+catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to connect to casandra",e);
+  }
+  return Optional.of(result.getLongValue());
 }

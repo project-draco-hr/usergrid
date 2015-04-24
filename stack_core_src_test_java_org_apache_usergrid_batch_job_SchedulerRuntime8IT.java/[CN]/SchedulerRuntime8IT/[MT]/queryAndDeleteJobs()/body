@@ -9,13 +9,11 @@
   getJobListener().setExpected(1);
   JobData saved=scheduler.createJob("countdownLatch",fireTime,test);
   scheduler.refreshIndex();
-  Query query=new Query();
-  query.addEqualityFilter("notificationId",notificationId);
+  Query query=Query.fromQL("notificationId = " + notificationId);
   Results r=scheduler.queryJobData(query);
   assertEquals(1,r.size());
   assertEquals(saved.getUuid(),r.getEntity().getUuid());
-  query=new Query();
-  query.addEqualityFilter("stringprop","test");
+  query=Query.fromQL("stringprop = 'test'");
   r=scheduler.queryJobData(query);
   assertEquals(1,r.size());
   assertEquals(saved.getUuid(),r.getEntity().getUuid());

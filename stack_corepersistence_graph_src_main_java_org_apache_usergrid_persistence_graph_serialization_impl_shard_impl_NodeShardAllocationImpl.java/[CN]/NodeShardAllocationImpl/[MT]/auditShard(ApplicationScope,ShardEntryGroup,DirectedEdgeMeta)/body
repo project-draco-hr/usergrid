@@ -40,6 +40,11 @@
   final Shard newShard=new Shard(marked.getTimestamp(),createTimestamp,false);
   LOG.info("Allocating new shard {} for edge meta {}",newShard,directedEdgeMeta);
   final MutationBatch batch=this.edgeShardSerialization.writeShardMeta(scope,newShard,directedEdgeMeta);
-  HystrixCassandra.user(batch);
+  try {
+    batch.execute();
+  }
+ catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to connect to casandra",e);
+  }
   return true;
 }

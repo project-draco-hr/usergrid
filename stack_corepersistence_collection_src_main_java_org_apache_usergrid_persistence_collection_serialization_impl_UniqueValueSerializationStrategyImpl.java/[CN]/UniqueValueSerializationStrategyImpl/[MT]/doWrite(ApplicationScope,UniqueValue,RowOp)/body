@@ -1,0 +1,12 @@
+{
+  final MutationBatch batch=keyspace.prepareMutationBatch();
+  final Id applicationId=applicationScope.getApplication();
+  final FieldKey fieldKey=createUniqueValueKey(applicationId,uniqueValue.getEntityId().getType(),uniqueValue.getField());
+  op.doLookup(batch.withRow(CF_UNIQUE_VALUES,ScopedRowKey.fromKey(applicationId,fieldKey)));
+  final EntityKey entityKey=createEntityUniqueLogKey(applicationId,uniqueValue.getEntityId());
+  op.doLog(batch.withRow(CF_ENTITY_UNIQUE_VALUE_LOG,ScopedRowKey.fromKey(applicationId,entityKey)));
+  if (log.isDebugEnabled()) {
+    log.debug("Writing unique value version={} name={} value={} ",new Object[]{uniqueValue.getEntityVersion(),uniqueValue.getField().getName(),uniqueValue.getField().getValue()});
+  }
+  return batch;
+}

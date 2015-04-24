@@ -8,12 +8,11 @@
     Map<String,Object> entity=new HashMap<String,Object>();
     entity.put("name",String.valueOf(i));
     io.writeEntity(entity);
-    Thread.sleep(10);
   }
+  app.refreshIndex();
   long stop=System.currentTimeMillis();
   LOG.info("Writes took {} ms",stop - start);
-  Query query=new Query();
-  query.addSort("created");
+  Query query=Query.fromQL("sort by  created");
   query.setLimit(queryLimit);
   int count=0;
   Results results;
@@ -24,7 +23,7 @@
       assertEquals(String.valueOf(count),results.getEntities().get(i).getName());
       count++;
     }
-    query.setCursor(results.getCursor());
+    query.setOffsetFromCursor(results.getCursor());
   }
  while (results.getCursor() != null);
   stop=System.currentTimeMillis();

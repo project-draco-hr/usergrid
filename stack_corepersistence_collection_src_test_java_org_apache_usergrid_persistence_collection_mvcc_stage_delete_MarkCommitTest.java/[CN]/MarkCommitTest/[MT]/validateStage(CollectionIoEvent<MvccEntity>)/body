@@ -7,7 +7,7 @@
   final UniqueValueSerializationStrategy uniqueValueSerializationStrategy=mock(UniqueValueSerializationStrategy.class);
   final Keyspace keyspace=mock(Keyspace.class);
   when(keyspace.prepareMutationBatch()).thenReturn(entityMutation);
-  when(logStrategy.write(any(CollectionScope.class),any(MvccLogEntry.class))).thenReturn(logMutation);
-  when(mvccEntityStrategy.write(any(CollectionScope.class),any(MvccEntity.class))).thenReturn(entityMutation);
+  when(logStrategy.write(any(ApplicationScope.class),any(MvccLogEntry.class))).thenReturn(logMutation);
+  when(mvccEntityStrategy.write(any(ApplicationScope.class),any(MvccEntity.class))).thenReturn(entityMutation);
   new MarkCommit(logStrategy,mvccEntityStrategy,uniqueValueSerializationStrategy,serializationFig,keyspace).call(event);
 }

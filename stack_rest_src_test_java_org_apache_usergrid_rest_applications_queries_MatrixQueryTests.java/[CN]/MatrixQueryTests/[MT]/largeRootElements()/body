@@ -1,0 +1,31 @@
+{
+  CollectionEndpoint restaurants=this.app().collection("restaurants");
+  Entity restaurant1=new Entity().chainPut("name","Old Major");
+  UUID restaurant1Id=restaurants.post(restaurant1).getUuid();
+  Entity restaurant2=new Entity().chainPut("name","tag");
+  UUID restaurant2Id=restaurants.post(restaurant2).getUuid();
+  Entity restaurant3=new Entity().chainPut("name","Squeaky Bean");
+  UUID restaurant3Id=restaurants.post(restaurant3).getUuid();
+  CollectionEndpoint users=this.app().collection("users");
+  int max=1000;
+  int count=(int)(max * 1.1);
+  for (int i=0; i < count; i++) {
+    String username="user" + i;
+    String email=username + "@usergrid.com";
+    Entity user1=new Entity().chainPut("username",username).chainPut("email",email).chainPut("fullname",i + " Smith");
+    users.post(user1);
+    if (i % 2 == 0) {
+      users.entity(username).connection("likes").entity(restaurant1Id).post();
+      users.entity(username).connection("likes").entity(restaurant2Id).post();
+    }
+ else {
+      users.entity(username).connection("likes").entity(restaurant2Id).post();
+      users.entity(username).connection("likes").entity(restaurant3Id).post();
+    }
+  }
+  Collection queryResponse=this.app().collection("users").matrix(new QueryParameters().addParam("ql","where fullname contains 'Smith'").addParam("limit","1000")).collection("likes").get();
+  assertEquals("Old Major",queryResponse.getResponse().getEntities().get(0).get("name"));
+  assertEquals("tag",queryResponse.getResponse().getEntities().get(1).get("name"));
+  assertEquals("Squeaky Bean",queryResponse.getResponse().getEntities().get(2).get("name"));
+  assertNull(queryResponse.getResponse().getEntities().get(3));
+}

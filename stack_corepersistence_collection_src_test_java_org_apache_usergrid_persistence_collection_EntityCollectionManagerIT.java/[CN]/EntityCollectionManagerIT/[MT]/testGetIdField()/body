@@ -1,0 +1,17 @@
+{
+  ApplicationScope context=new ApplicationScopeImpl(new SimpleId("organization"));
+  EntityCollectionManager manager=factory.createCollectionManager(context);
+  Entity entity1=new Entity(new SimpleId("item"));
+  entity1.setField(new StringField("unique_id","1",true));
+  manager.write(entity1).toBlocking().last();
+  final Observable<Id> idObs=manager.getIdField("item",new StringField("unique_id","1"));
+  Id id=idObs.toBlocking().lastOrDefault(null);
+  assertEquals(entity1.getId(),id);
+  Entity entity2=new Entity(new SimpleId("deleted_item"));
+  entity2.setField(new StringField("unique_id","1",true));
+  manager=factory.createCollectionManager(context);
+  manager.write(entity2).toBlocking().last();
+  final Observable<Id> id2Obs=manager.getIdField("deleted_item",new StringField("unique_id","1"));
+  Id id2=id2Obs.toBlocking().lastOrDefault(null);
+  assertEquals(entity2.getId(),id2);
+}

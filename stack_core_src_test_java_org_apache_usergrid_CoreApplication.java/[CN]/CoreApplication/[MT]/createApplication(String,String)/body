@@ -2,8 +2,13 @@
   this.orgName=orgName;
   this.appName=appName;
   id=setup.createApplication(orgName,appName);
+  managementEm=setup.getEmf().getEntityManager(setup.getEmf().getManagementAppId());
   assertNotNull(id);
   em=setup.getEmf().getEntityManager(id);
+  Injector injector=setup.getInjector();
+  entityIndex=injector.getInstance(EntityIndex.class);
+  entityIndexFactory=injector.getInstance(EntityIndexFactory.class);
+  applicationIndex=entityIndexFactory.createApplicationEntityIndex(CpNamingUtils.getApplicationScope(id));
   assertNotNull(em);
   LOG.info("Created new application {} in organization {}",appName,orgName);
 }

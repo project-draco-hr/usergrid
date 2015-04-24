@@ -17,7 +17,7 @@
     data.put("location",location);
     em.create("store",data);
   }
-  em.refreshIndex();
+  app.refreshIndex();
   float latitude=48.38626f;
   float longitude=9.94175f;
   int distance=1000;
@@ -26,8 +26,7 @@
   }
 {
     long startTime=System.currentTimeMillis();
-    Query query=new Query();
-    query.addFilter("location within 1000 of 48.38626, 9.94175");
+    Query query=Query.fromQL("location within 1000 of 48.38626, 9.94175");
     query.setLimit(limit);
     Results results=em.searchCollection(em.getApplicationRef(),"stores",query);
     assertEquals(0,results.size());
