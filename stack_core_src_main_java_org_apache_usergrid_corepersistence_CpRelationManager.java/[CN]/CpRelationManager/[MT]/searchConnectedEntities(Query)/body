@@ -8,6 +8,10 @@
   ApplicationEntityIndex ei=managerCache.getEntityIndex(applicationScope);
   logger.debug("Searching {}",indexScope);
   query=adjustQuery(query);
+  if (query.isGraphSearch()) {
+    QueryExecutor executor=new ConnectionGraphQueryExecutor(entityCollectionManagerFactory,graphManagerFactory,applicationScope,headEntity,query.getOffsetCursor(),connection,query.getLimit());
+    return executor.next();
+  }
   final ConnectionResultsLoaderFactoryImpl resultsLoaderFactory=new ConnectionResultsLoaderFactoryImpl(managerCache,headEntity,connection);
   final QueryExecutor executor=new ElasticSearchQueryExecutor(resultsLoaderFactory,ei,applicationScope,indexScope,searchTypes,query);
   return executor.next();

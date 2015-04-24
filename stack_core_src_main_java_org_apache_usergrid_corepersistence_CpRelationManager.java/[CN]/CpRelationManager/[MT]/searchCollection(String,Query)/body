@@ -8,12 +8,16 @@
   if (collection == null) {
     throw new RuntimeException("Cannot find collection-info for '" + collName + "' of "+ headEntity.getType()+ ":"+ headEntity.getUuid());
   }
+  query.setEntityType(collection.getType());
+  query=adjustQuery(query);
+  if (query.isGraphSearch()) {
+    QueryExecutor executor=new CollectionGraphQueryExecutor(entityCollectionManagerFactory,graphManagerFactory,applicationScope,headEntity,query.getOffsetCursor(),collName,query.getLimit());
+    return executor.next();
+  }
   final SearchEdge searchEdge=createCollectionSearchEdge(cpHeadEntity.getId(),collName);
   final ApplicationEntityIndex ei=managerCache.getEntityIndex(applicationScope);
   final SearchTypes types=SearchTypes.fromTypes(collection.getType());
   logger.debug("Searching scope {}",searchEdge);
-  query.setEntityType(collection.getType());
-  query=adjustQuery(query);
   final CollectionResultsLoaderFactoryImpl resultsLoaderFactory=new CollectionResultsLoaderFactoryImpl(managerCache);
   final QueryExecutor executor=new ElasticSearchQueryExecutor(resultsLoaderFactory,ei,applicationScope,searchEdge,types,query);
   return executor.next();
