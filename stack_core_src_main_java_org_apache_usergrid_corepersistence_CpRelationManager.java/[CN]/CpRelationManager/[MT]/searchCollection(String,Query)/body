@@ -10,15 +10,16 @@
   }
   query.setEntityType(collection.getType());
   query=adjustQuery(query);
+  final ReadPipelineBuilder readPipelineBuilder=pipelineBuilderFactory.createReadPipelineBuilder(applicationScope);
+  readPipelineBuilder.withCursor(query.getOffsetCursor());
+  readPipelineBuilder.withLimit(query.getLimit());
+  readPipelineBuilder.setStartId(cpHeadEntity.getId());
   if (query.isGraphSearch()) {
-    QueryExecutor executor=new CollectionGraphQueryExecutor(entityCollectionManagerFactory,graphManagerFactory,applicationScope,headEntity,query.getOffsetCursor(),collName,query.getLimit());
-    return executor.next();
+    readPipelineBuilder.getCollection(collName);
   }
-  final SearchEdge searchEdge=createCollectionSearchEdge(cpHeadEntity.getId(),collName);
-  final ApplicationEntityIndex ei=managerCache.getEntityIndex(applicationScope);
-  final SearchTypes types=SearchTypes.fromTypes(collection.getType());
-  logger.debug("Searching scope {}",searchEdge);
-  final CollectionResultsLoaderFactoryImpl resultsLoaderFactory=new CollectionResultsLoaderFactoryImpl(managerCache);
-  final QueryExecutor executor=new ElasticSearchQueryExecutor(resultsLoaderFactory,ei,applicationScope,searchEdge,types,query);
-  return executor.next();
+ else {
+    readPipelineBuilder.getCollectionWithQuery(collName,query.getQl().get());
+  }
+  final Observable<Results> resultsObservable=readPipelineBuilder.build();
+  return new ObservableQueryExecutor(resultsObservable).next();
 }

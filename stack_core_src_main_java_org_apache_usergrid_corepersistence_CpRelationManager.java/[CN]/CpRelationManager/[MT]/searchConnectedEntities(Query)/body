@@ -3,16 +3,21 @@
   final String connection=query.getConnectionType();
   Preconditions.checkNotNull(connection,"connection must be specified");
   headEntity=em.validate(headEntity);
-  final SearchEdge indexScope=createConnectionSearchEdge(cpHeadEntity.getId(),connection);
-  final SearchTypes searchTypes=SearchTypes.fromNullableTypes(query.getEntityType());
-  ApplicationEntityIndex ei=managerCache.getEntityIndex(applicationScope);
-  logger.debug("Searching {}",indexScope);
   query=adjustQuery(query);
+  final String entityType=query.getEntityType();
+  final ReadPipelineBuilder readPipelineBuilder=pipelineBuilderFactory.createReadPipelineBuilder(applicationScope);
+  readPipelineBuilder.withCursor(query.getOffsetCursor());
+  readPipelineBuilder.withLimit(query.getLimit());
+  readPipelineBuilder.setStartId(cpHeadEntity.getId());
   if (query.isGraphSearch()) {
-    QueryExecutor executor=new ConnectionGraphQueryExecutor(entityCollectionManagerFactory,graphManagerFactory,applicationScope,headEntity,query.getOffsetCursor(),connection,query.getLimit());
-    return executor.next();
+    readPipelineBuilder.getConnection(connection);
   }
-  final ConnectionResultsLoaderFactoryImpl resultsLoaderFactory=new ConnectionResultsLoaderFactoryImpl(managerCache,headEntity,connection);
-  final QueryExecutor executor=new ElasticSearchQueryExecutor(resultsLoaderFactory,ei,applicationScope,indexScope,searchTypes,query);
-  return executor.next();
+ else   if (entityType != null) {
+    readPipelineBuilder.connectionWithQuery(connection,query.getQl().get(),entityType);
+  }
+ else {
+    readPipelineBuilder.connectionWithQuery(connection,query.getQl().get());
+  }
+  final Observable<Results> resultsObservable=readPipelineBuilder.build();
+  return new ObservableQueryExecutor(resultsObservable).next();
 }
