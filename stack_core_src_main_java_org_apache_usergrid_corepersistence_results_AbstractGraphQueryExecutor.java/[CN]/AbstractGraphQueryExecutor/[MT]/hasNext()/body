@@ -1,8 +1,8 @@
 {
   if (observableIterator == null) {
-    final CommandBuilder commandBuilder=new CommandBuilder(applicationScope,sourceId,requestCursor,limit);
-    addTraverseCommand(commandBuilder);
-    final Observable<Results> resultsObservable=commandBuilder.build(new EntityLoadCollector(entityCollectionManagerFactory,applicationScope));
+    final DataPipeline dataPipeline=new DataPipeline(applicationScope,sourceId,requestCursor,limit);
+    addTraverseCommand(dataPipeline);
+    final Observable<Results> resultsObservable=dataPipeline.build(new EntityLoadCollectorFilter(entityCollectionManagerFactory,applicationScope));
     this.observableIterator=resultsObservable.toBlocking().getIterator();
     if (!observableIterator.hasNext()) {
       this.observableIterator=Collections.singleton(new Results()).iterator();
