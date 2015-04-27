@@ -12,7 +12,7 @@
   EntityIndexBatch entityIndexBatch=entityIndex.createBatch();
   entityIndexBatch.deindex(searchEdge,crs.get(0));
   entityIndexBatch.deindex(searchEdge,crs.get(1));
-  entityIndexBatch.execute().get();
+  entityIndexBatch.execute().toBlocking().last();
   ei.refreshAsync().toBlocking().last();
   testQuery(searchEdge,searchTypes,entityIndex,"name = 'Bowers Oneil'",0);
 }

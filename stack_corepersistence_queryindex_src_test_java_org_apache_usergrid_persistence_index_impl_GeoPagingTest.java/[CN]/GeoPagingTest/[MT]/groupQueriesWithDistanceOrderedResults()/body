@@ -12,7 +12,7 @@
     cats[i]=cat;
     batch.index(edge,cat);
   }
-  batch.execute().get();
+  batch.execute().toBlocking().last();
   ei.refreshAsync().toBlocking().last();
   final String query="select * where location within 1500000 of 37, -75";
   final CandidateResults candidates=applicationEntityIndex.search(edge,SearchTypes.fromTypes("cat"),query,100);
