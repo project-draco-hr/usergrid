@@ -1,29 +1,24 @@
 {
   final int maxQueries=10;
-  final int originalLimit=query.getLimit();
   Results results=null;
   int queryCount=0;
   CandidateResults crs=null;
+  int newLimit=limit;
   while (queryCount++ < maxQueries) {
-    crs=getCandidateResults(query);
+    crs=entityIndex.search(indexScope,types,query,newLimit,offset);
     logger.debug("Calling build results with crs {}",crs);
-    results=buildResults(indexScope,query,crs);
+    results=buildResults(indexScope,crs);
     if (crs.isEmpty() || !crs.hasOffset() || results.size() > 0) {
       break;
     }
-    query.setOffsetFromCursor(results.getCursor());
-    query.setLimit(originalLimit - results.size());
-    logger.warn("Satisfy query limit {}, new limit {} query count {}",new Object[]{originalLimit,query.getLimit(),queryCount});
+    newLimit=newLimit - results.size();
+    logger.warn("Satisfy query limit {}, new limit {} query count {}",new Object[]{limit,newLimit,queryCount});
   }
   if (results.hasCursor()) {
-    query.setOffsetFromCursor(results.getCursor());
     moreToLoad=true;
   }
  else {
     moreToLoad=false;
-  }
-  if (crs != null) {
-    query.setSelectSubjects(crs.getGetFieldMappings());
   }
   this.currentResults=results;
 }

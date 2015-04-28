@@ -1,5 +1,8 @@
 {
   try {
+    if (cursors.isEmpty()) {
+      return Optional.absent();
+    }
     final ObjectNode map=MAPPER.createObjectNode();
     for (    Map.Entry<Integer,CursorEntry<?>> entry : cursors.entrySet()) {
       final CursorEntry cursorEntry=entry.getValue();
@@ -7,7 +10,8 @@
       map.put(entry.getKey().toString(),serialized);
     }
     final byte[] output=MAPPER.writeValueAsBytes(map);
-    return Base64.getUrlEncoder().encodeToString(output);
+    final String value=Base64.getUrlEncoder().encodeToString(output);
+    return Optional.of(value);
   }
  catch (  JsonProcessingException e) {
     throw new CursorParseException("Unable to serialize cursor",e);

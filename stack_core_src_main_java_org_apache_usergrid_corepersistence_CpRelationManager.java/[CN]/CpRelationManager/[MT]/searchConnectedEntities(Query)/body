@@ -6,18 +6,15 @@
   query=adjustQuery(query);
   final String entityType=query.getEntityType();
   final ReadPipelineBuilder readPipelineBuilder=pipelineBuilderFactory.createReadPipelineBuilder(applicationScope);
-  readPipelineBuilder.withCursor(query.getOffsetCursor());
+  readPipelineBuilder.withCursor(query.getCursor());
   readPipelineBuilder.withLimit(query.getLimit());
   readPipelineBuilder.setStartId(cpHeadEntity.getId());
   if (query.isGraphSearch()) {
     readPipelineBuilder.getConnection(connection);
   }
- else   if (entityType != null) {
-    readPipelineBuilder.connectionWithQuery(connection,query.getQl().get(),entityType);
-  }
  else {
-    readPipelineBuilder.connectionWithQuery(connection,query.getQl().get());
+    readPipelineBuilder.connectionWithQuery(connection,Optional.fromNullable(entityType),query.getQl().get());
   }
-  final Observable<Results> resultsObservable=readPipelineBuilder.build();
+  final Observable<PipelineResult<ResultsPage>> resultsObservable=readPipelineBuilder.execute();
   return new ObservableQueryExecutor(resultsObservable).next();
 }

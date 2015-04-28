@@ -21,11 +21,11 @@
   batch.execute().toBlocking().last();
   ei.refreshAsync().toBlocking().last();
   final String query="where username = 'edanuff'";
-  CandidateResults r=entityIndex.search(indexSCope,SearchTypes.fromTypes("edanuff"),query,10);
+  CandidateResults r=entityIndex.search(indexSCope,SearchTypes.fromTypes("edanuff"),query,10,0);
   assertEquals(user.getId(),r.get(0).getId());
   batch.deindex(indexSCope,user.getId(),user.getVersion());
   batch.execute().toBlocking().last();
   ei.refreshAsync().toBlocking().last();
-  r=entityIndex.search(indexSCope,SearchTypes.fromTypes("edanuff"),query,10);
+  r=entityIndex.search(indexSCope,SearchTypes.fromTypes("edanuff"),query,10,0);
   assertFalse(r.iterator().hasNext());
 }

@@ -1,0 +1,9 @@
+{
+  ValidationUtils.validateApplicationScope(applicationScope);
+  final Collector<?,ResultsPage> collector=collectorState.getCollector();
+  Preconditions.checkNotNull(collector,"You have not specified an operation that creates a collection filter.  This is required for loading " + "results");
+  Preconditions.checkNotNull(cursor,"A cursor should be initialized even if absent");
+  Preconditions.checkArgument(limit > 0,"limit must be > than 0");
+  Pipeline pipeline=new Pipeline(applicationScope,filters,collector,cursor,limit);
+  return pipeline.execute();
+}

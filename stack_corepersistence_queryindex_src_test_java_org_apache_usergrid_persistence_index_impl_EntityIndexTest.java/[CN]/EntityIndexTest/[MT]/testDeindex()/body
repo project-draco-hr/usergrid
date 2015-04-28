@@ -17,12 +17,12 @@
   entity.setField(new UUIDField(IndexingUtils.ENTITY_ID_FIELDNAME,UUID.randomUUID()));
   entityIndex.createBatch().index(searchEdge,entity).execute().toBlocking().last();
   ei.refreshAsync().toBlocking().last();
-  CandidateResults candidateResults=entityIndex.search(searchEdge,SearchTypes.fromTypes(entity.getId().getType()),"name contains 'Ferrari*'",10);
+  CandidateResults candidateResults=entityIndex.search(searchEdge,SearchTypes.fromTypes(entity.getId().getType()),"name contains 'Ferrari*'",10,0);
   assertEquals(1,candidateResults.size());
   EntityIndexBatch batch=entityIndex.createBatch();
   batch.deindex(searchEdge,entity).execute().toBlocking().last();
   batch.execute().toBlocking().last();
   ei.refreshAsync().toBlocking().last();
-  candidateResults=entityIndex.search(searchEdge,SearchTypes.fromTypes(entity.getId().getType()),"name contains 'Ferrari*'",10);
+  candidateResults=entityIndex.search(searchEdge,SearchTypes.fromTypes(entity.getId().getType()),"name contains 'Ferrari*'",10,0);
   assertEquals(0,candidateResults.size());
 }

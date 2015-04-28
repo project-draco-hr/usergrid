@@ -11,7 +11,7 @@
   query.setEntityType(collection.getType());
   query=adjustQuery(query);
   final ReadPipelineBuilder readPipelineBuilder=pipelineBuilderFactory.createReadPipelineBuilder(applicationScope);
-  readPipelineBuilder.withCursor(query.getOffsetCursor());
+  readPipelineBuilder.withCursor(query.getCursor());
   readPipelineBuilder.withLimit(query.getLimit());
   readPipelineBuilder.setStartId(cpHeadEntity.getId());
   if (query.isGraphSearch()) {
@@ -20,6 +20,6 @@
  else {
     readPipelineBuilder.getCollectionWithQuery(collName,query.getQl().get());
   }
-  final Observable<Results> resultsObservable=readPipelineBuilder.build();
+  final Observable<PipelineResult<ResultsPage>> resultsObservable=readPipelineBuilder.execute();
   return new ObservableQueryExecutor(resultsObservable).next();
 }
