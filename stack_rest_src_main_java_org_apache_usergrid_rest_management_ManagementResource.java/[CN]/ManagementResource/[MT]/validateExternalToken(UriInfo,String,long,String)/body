@@ -18,6 +18,7 @@
     UserInfo userInfo=management.getAdminUserByUsername(username);
     UUID userId=userInfo == null ? null : userInfo.getUuid();
     if (userId == null) {
+      logger.info("User {} does not exist locally, creating",username);
       String name=userNode.get("name").getTextValue();
       String email=userNode.get("email").getTextValue();
       String dummyPassword=RandomStringUtils.randomAlphanumeric(40);
@@ -36,11 +37,13 @@
           userInfo=ownerOrgInfo.getOwner();
           Counter createdAdminsCounter=metricsFactory.getCounter(ManagementResource.class,SSO_CREATED_LOCAL_ADMINS);
           createdAdminsCounter.inc();
+          logger.info("Created user {} and org {}",username,orgName);
         }
  else {
           final OrganizationInfo organization=management.createOrganization(orgName,userInfo,true);
           management.activateOrganization(organization);
           applicationCreator.createSampleFor(organization);
+          logger.info("Created user {}'s other org {}",username,orgName);
         }
       }
     }
