@@ -6,6 +6,8 @@
 );
   EntityIndexBatch batch=entityIndex.createBatch();
   insertJsonBlob(sampleJson,batch,entityType,indexEdge,max,startIndex);
-  batch.execute().get();
-  ei.refreshAsync().toBlocking().last();
+  batch.execute().toBlocking().last();
+  IndexRefreshCommandImpl.IndexRefreshCommandInfo info=ei.refreshAsync().toBlocking().last();
+  long time=info.getExecutionTime();
+  log.info("refresh took ms:" + time);
 }
