@@ -1,0 +1,27 @@
+{
+  final Candidate candidate=filterResult.getValue();
+  final CandidateResult candidateResult=candidate.getCandidateResult();
+  final SearchEdge searchEdge=candidate.getSearchEdge();
+  final Id candidateId=candidateResult.getId();
+  final UUID candidateVersion=candidateResult.getVersion();
+  final MvccEntity entity=entitySet.getEntity(candidateId);
+  if (entity == null) {
+    logger.warn("Searched and received candidate with entityId {} and version {}, yet was not found in cassandra." + "  Ignoring since this could be a region sync issue",candidateId,candidateVersion);
+    return;
+  }
+  final UUID entityVersion=entity.getVersion();
+  final Id entityId=entity.getId();
+  if (UUIDComparator.staticCompare(entityVersion,candidateVersion) > 0 || !entity.getEntity().isPresent()) {
+    logger.warn("Deindexing stale entity on edge {} for entityId {} and version {}",new Object[]{searchEdge,entityId,entityVersion});
+    batch.deindex(searchEdge,entityId,entityVersion);
+    return;
+  }
+  if (UUIDComparator.staticCompare(candidateVersion,entityVersion) > 0) {
+    logger.warn("Found a newer version in ES over cassandra for edge {} for entityId {} and version {}.  Repair " + "should be run",new Object[]{searchEdge,entityId,entityVersion});
+    return;
+  }
+  final Entity returnEntity=entity.getEntity().get();
+  final Optional<EdgePath> parent=filterResult.getPath();
+  final FilterResult<Entity> toReturn=new FilterResult<>(returnEntity,parent);
+  results.add(toReturn);
+}
