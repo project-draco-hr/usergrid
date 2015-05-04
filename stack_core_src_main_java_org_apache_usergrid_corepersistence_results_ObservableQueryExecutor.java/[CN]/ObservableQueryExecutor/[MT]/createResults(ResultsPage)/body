@@ -1,0 +1,15 @@
+{
+  final List<Entity> entityList=resultsPage.getEntityList();
+  final List<org.apache.usergrid.persistence.Entity> resultsEntities=new ArrayList<>(entityList.size());
+  for (  final Entity entity : entityList) {
+    resultsEntities.add(mapEntity(entity));
+  }
+  final Results results=Results.fromEntities(resultsEntities);
+  if (resultsPage.hasMoreResults()) {
+    final Optional<String> cursor=resultsPage.getResponseCursor().encodeAsString();
+    if (cursor.isPresent()) {
+      results.setCursor(cursor.get());
+    }
+  }
+  return results;
+}

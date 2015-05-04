@@ -1,0 +1,12 @@
+{
+  final Id candidateId=filterResult.getValue();
+  final MvccEntity entity=entitySet.getEntity(candidateId);
+  if (entity == null || !entity.getEntity().isPresent()) {
+    logger.warn("Read graph edge and received candidate with entityId {}, yet was not found in cassandra." + "  Ignoring since this could be a region sync issue",candidateId);
+    return;
+  }
+  final Entity returnEntity=entity.getEntity().get();
+  final Optional<EdgePath> parent=filterResult.getPath();
+  final FilterResult<Entity> toReturn=new FilterResult<>(returnEntity,parent);
+  results.add(toReturn);
+}
