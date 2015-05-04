@@ -1,7 +1,9 @@
 {
   ValidationUtils.validateApplicationScope(applicationScope);
-  final Filter<?,Entity> finalFilter=collectorState.getFinalFilter();
-  filters.add(finalFilter);
+  final Filter<?,Entity> entityLoadFilter=collectorState.getFinalFilter();
+  filters.add(entityLoadFilter);
+  final Filter<Entity,Entity> cursorEntityFilter=filterFactory.entityFilter();
+  filters.add(cursorEntityFilter);
   final Collector<?,ResultsPage> collector=collectorFactory.getResultsPageCollector();
   Preconditions.checkNotNull(collector,"You have not specified an operation that creates a collection filter.  This is required for loading " + "results");
   Preconditions.checkNotNull(cursor,"A cursor should be initialized even if absent");
