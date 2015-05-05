@@ -1,0 +1,12 @@
+{
+  ColumnList<UUID> columns;
+  try {
+    final Id applicationId=applicationScope.getApplication();
+    final ScopedRowKey<K> rowKey=createKey(applicationId,entityId);
+    columns=keyspace.prepareQuery(CF_ENTITY_LOG).getKey(rowKey).withColumnRange(minVersion,null,true,maxSize).execute().getResult();
+  }
+ catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to load log entries",e);
+  }
+  return parseResults(columns,entityId);
+}

@@ -1,6 +1,5 @@
 {
-  final Timer.Context timer=getLatestTimer.time();
-  return Observable.create(new Observable.OnSubscribe<VersionSet>(){
+  final Observable<VersionSet> observable=Observable.create(new Observable.OnSubscribe<VersionSet>(){
     @Override public void call(    final Subscriber<? super VersionSet> subscriber){
       try {
         final VersionSet logEntries=mvccLogEntrySerializationStrategy.load(applicationScope,entityIds,UUIDGenerator.newTimeUUID());
@@ -12,10 +11,6 @@
       }
     }
   }
-).doOnCompleted(new Action0(){
-    @Override public void call(){
-      timer.stop();
-    }
-  }
 );
+  return ObservableTimer.time(observable,getLatestTimer);
 }

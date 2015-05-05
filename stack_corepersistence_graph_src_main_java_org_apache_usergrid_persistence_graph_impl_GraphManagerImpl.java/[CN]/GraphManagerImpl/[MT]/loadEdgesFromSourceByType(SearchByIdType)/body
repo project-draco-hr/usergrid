@@ -1,20 +1,2 @@
 {
-  final Timer.Context timer=loadEdgesFromSourceByTypeTimer.time();
-  final Meter meter=loadEdgesFromSourceByTypeMeter;
-  return Observable.create(new ObservableIterator<MarkedEdge>("getEdgeTypesFromSource"){
-    @Override protected Iterator<MarkedEdge> getIterator(){
-      return storageEdgeSerialization.getEdgesFromSourceByTargetType(scope,search);
-    }
-  }
-).buffer(graphFig.getScanPageSize()).flatMap(new EdgeBufferFilter(search.getMaxTimestamp())).cast(Edge.class).doOnEach(new Action1<Notification<? super Edge>>(){
-    @Override public void call(    Notification<? super Edge> notification){
-      meter.mark();
-    }
-  }
-).doOnCompleted(new Action0(){
-    @Override public void call(){
-      timer.stop();
-    }
-  }
-);
 }
