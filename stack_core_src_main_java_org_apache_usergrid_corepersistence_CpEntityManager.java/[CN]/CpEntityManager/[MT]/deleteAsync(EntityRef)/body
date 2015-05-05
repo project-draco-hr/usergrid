@@ -7,6 +7,7 @@
   org.apache.usergrid.persistence.model.entity.Entity entity=load(entityId);
   if (entity != null) {
     decrementEntityCollection(Schema.defaultCollectionName(entityId.getType()));
+    indexService.queueEntityDelete(applicationScope,entityId);
     return ecm.delete(entityId);
   }
  else {
