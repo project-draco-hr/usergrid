@@ -48,7 +48,7 @@
   EntityUtils.setVersion(fred,UUIDGenerator.newTimeUUID());
   batch.index(indexScope,fred);
   batch.execute().toBlocking().last();
-  ei.refreshAsync().toBlocking().last();
+  ei.refreshAsync().toBlocking().first();
   final SearchTypes searchTypes=SearchTypes.fromTypes("user");
   CandidateResults r=entityIndex.search(indexScope,searchTypes,"where username = 'bill'",10,0);
   assertEquals(bill.getId(),r.get(0).getId());
