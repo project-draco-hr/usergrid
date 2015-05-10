@@ -1,0 +1,22 @@
+{
+  Results results;
+  long maxLength=entityManagerFig.pollForRecordsTimeout();
+  long sleepTime=entityManagerFig.sleep();
+  boolean found;
+  long current=System.currentTimeMillis(), length=0;
+  do {
+    results=searchCollection(collName,query);
+    length=System.currentTimeMillis() - current;
+    found=expectedResults == results.size();
+    if (found) {
+      break;
+    }
+    Thread.sleep(sleepTime);
+  }
+ while (!found && length <= maxLength);
+  if (logger.isInfoEnabled()) {
+    logger.info(String.format("Consistent Search finished in %s,  results=%s, expected=%s...dumping stack",length,results.size(),expectedResults));
+    Thread.dumpStack();
+  }
+  return results;
+}

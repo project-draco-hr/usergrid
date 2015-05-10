@@ -43,7 +43,6 @@
     try {
       entityMap.put("key",entityCount);
       entity=em.create("testType",entityMap);
-      app.refreshIndex();
       em.createConnection(entity,"herds",cat1);
       em.createConnection(entity,"herds",cat2);
       em.createConnection(entity,"herds",cat3);
@@ -64,8 +63,9 @@
   }
   logger.info("Created {} entities",entityCount);
   app.refreshIndex();
+  Thread.sleep(10000);
   logger.debug("Read the data");
-  readData(em,"testTypes",entityCount,3);
+  readData(em,"testType",entityCount,3);
   logger.debug("Deleting app index");
   deleteIndex(em.getApplicationId());
   logger.debug("Reading data, should fail this time ");

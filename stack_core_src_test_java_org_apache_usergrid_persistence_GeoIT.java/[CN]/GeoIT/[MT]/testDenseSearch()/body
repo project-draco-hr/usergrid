@@ -1,7 +1,7 @@
 {
   EntityManager em=app.getEntityManager();
   assertNotNull(em);
-  int numEntities=250;
+  int numEntities=25;
   float minLatitude=48.32455f;
   float maxLatitude=48.46481f;
   float minLongitude=9.89561f;
@@ -18,19 +18,12 @@
     em.create("store",data);
   }
   app.refreshIndex();
-  float latitude=48.38626f;
-  float longitude=9.94175f;
-  int distance=1000;
   int limit=8;
-{
-  }
-{
-    long startTime=System.currentTimeMillis();
-    Query query=Query.fromQL("location within 1000 of 48.38626, 9.94175");
-    query.setLimit(limit);
-    Results results=em.searchCollection(em.getApplicationRef(),"stores",query);
-    assertEquals(0,results.size());
-    long endTime=System.currentTimeMillis();
-    LOG.info("Runtime took {} milliseconds to search",endTime - startTime);
-  }
+  long startTime=System.currentTimeMillis();
+  Query query=Query.fromQL("location within 1000 of 48.38626, 9.94175");
+  query.setLimit(limit);
+  Results results=em.searchCollection(em.getApplicationRef(),"stores",query);
+  assertEquals(0,results.size());
+  long endTime=System.currentTimeMillis();
+  LOG.info("Runtime took {} milliseconds to search",endTime - startTime);
 }
