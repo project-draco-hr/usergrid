@@ -1,5 +1,5 @@
 {
-  GraphManager gm=getHelper(emf.createEdgeManager(scope));
+  GraphManager gm=emf.createEdgeManager(scope);
   Edge edge=createEdge("source","test","target");
   gm.writeEdge(edge).toBlocking().last();
   SearchByEdgeType search=createSearchByEdge(edge.getTargetNode(),edge.getType(),edge.getTimestamp(),null);
@@ -10,7 +10,7 @@
   edges=gm.loadEdgesToTargetByType(searchById);
   returned=edges.toBlocking().single();
   assertEquals("Correct edge returned",edge,returned);
-  gm.deleteEdge(edge).toBlocking().last();
+  gm.markEdge(edge).toBlocking().last();
   edges=gm.loadEdgesToTarget(search);
   returned=edges.toBlocking().singleOrDefault(null);
   assertNull("No edge returned",returned);
