@@ -3,6 +3,7 @@
   String rand=RandomStringUtils.randomAlphanumeric(5);
   final UUID appId=setup.createApplication("org_" + rand,"app_" + rand);
   final EntityManager em=setup.getEmf().getEntityManager(appId);
+  final ReIndexService reIndexService=setup.getInjector().getInstance(ReIndexService.class);
   Map<String,Object> entityMap=new HashMap<String,Object>(){
 {
       put("key1",1000);
@@ -11,16 +12,14 @@
     }
   }
 ;
-  final long stopTime=System.currentTimeMillis() + RUNTIME_MS;
   List<EntityRef> entityRefs=new ArrayList<EntityRef>();
-  int entityCount=0;
   int herderCount=0;
   int shepardCount=0;
-  while (System.currentTimeMillis() < stopTime) {
+  for (int i=0; i < ENTITIES_TO_INDEX; i++) {
     final Entity entity;
     try {
-      entityMap.put("key",entityCount);
-      if (entityCount % 2 == 0) {
+      entityMap.put("key",i);
+      if (i % 2 == 0) {
         entity=em.create("catherder",entityMap);
         herderCount++;
       }
@@ -34,17 +33,11 @@
       throw new RuntimeException("Error creating entity",ex);
     }
     entityRefs.add(new SimpleEntityRef(entity.getType(),entity.getUuid()));
-    if (entityCount % 10 == 0) {
-      logger.info("Created {} entities",entityCount);
-    }
-    entityCount++;
-    try {
-      Thread.sleep(WRITE_DELAY_MS);
-    }
- catch (    InterruptedException ignored) {
+    if (i % 10 == 0) {
+      logger.info("Created {} entities",i);
     }
   }
-  logger.info("Created {} entities",entityCount);
+  logger.info("Created {} entities",ENTITIES_TO_INDEX);
   app.refreshIndex();
   logger.debug("Read the data");
   readData(em,"catherders",herderCount,0);
@@ -53,7 +46,7 @@
   deleteIndex(em.getApplicationId());
   logger.debug("Reading data, should fail this time ");
   try {
-    readData(em,"testTypes",entityCount,0);
+    readData(em,"testTypes",ENTITIES_TO_INDEX,0);
     fail("should have failed to read data");
   }
  catch (  Exception expected) {
@@ -75,7 +68,7 @@
   }
 ;
   try {
-    setup.getEmf().rebuildCollectionIndex(Optional.of(em.getApplicationId()),Optional.<String>of("catherders"));
+    reIndexService.rebuildIndex(Optional.of(em.getApplicationId()),Optional.<String>of("catherders"),Optional.absent(),Optional.absent());
     reporter.report();
     registry.remove(meterName);
     logger.info("Rebuilt index");

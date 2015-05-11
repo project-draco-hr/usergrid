@@ -35,10 +35,9 @@
   Entity cat1=em.create("cat",cat1map);
   Entity cat2=em.create("cat",cat2map);
   Entity cat3=em.create("cat",cat3map);
-  final long stopTime=System.currentTimeMillis() + RUNTIME_MS;
   List<EntityRef> entityRefs=new ArrayList<EntityRef>();
   int entityCount=0;
-  while (System.currentTimeMillis() < stopTime) {
+  for (int i=0; i < ENTITIES_TO_INDEX; i++) {
     final Entity entity;
     try {
       entityMap.put("key",entityCount);
@@ -53,12 +52,6 @@
     entityRefs.add(new SimpleEntityRef(entity.getType(),entity.getUuid()));
     if (entityCount % 10 == 0) {
       logger.info("Created {} entities",entityCount);
-    }
-    entityCount++;
-    try {
-      Thread.sleep(WRITE_DELAY_MS);
-    }
- catch (    InterruptedException ignored) {
     }
   }
   logger.info("Created {} entities",entityCount);
