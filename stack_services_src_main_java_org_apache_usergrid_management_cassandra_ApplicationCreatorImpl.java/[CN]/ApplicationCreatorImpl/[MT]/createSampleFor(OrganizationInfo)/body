@@ -2,15 +2,15 @@
   Preconditions.checkArgument(organizationInfo != null,"OrganizationInfo was null");
   Preconditions.checkArgument(organizationInfo.getUuid() != null,"OrganizationInfo had no UUID");
   logger.info("create sample app {} in: {}",sampleAppName,organizationInfo.getName());
-  UUID appId=null;
+  ApplicationInfo info;
   try {
-    appId=managementService.createApplication(organizationInfo.getUuid(),sampleAppName).getId();
+    info=managementService.createApplication(organizationInfo.getUuid(),sampleAppName);
   }
  catch (  Exception ex) {
     throw new ApplicationCreationException("'" + sampleAppName + "' could not be created for organization: "+ organizationInfo.getUuid(),ex);
   }
   logger.info("granting permissions for: {} in: {}",sampleAppName,organizationInfo.getName());
-  EntityManager em=entityManagerFactory.getEntityManager(appId);
+  EntityManager em=entityManagerFactory.getEntityManager(info.getId());
   try {
     em.grantRolePermissions("guest",Arrays.asList("get,post,put,delete:/**"));
     em.grantRolePermissions("default",Arrays.asList("get,put,post,delete:/**"));
@@ -19,7 +19,9 @@
     throw new ApplicationCreationException("Could not grant permissions to guest for default collections in '" + sampleAppName + "'",ex);
   }
   try {
-    return managementService.getApplicationInfo(appId);
+    ApplicationInfo returnInfo=managementService.getApplicationInfo(info.getId());
+    returnInfo=returnInfo != null ? returnInfo : new ApplicationInfo(info.getId(),info.getName());
+    return returnInfo;
   }
  catch (  Exception ex) {
     throw new ApplicationCreationException("Could not load new Application.",ex);

@@ -3,12 +3,12 @@
   MvccValidationUtils.verifyMvccEntityOptionalEntity(entity);
   final Id entityId=entity.getId();
   final UUID version=entity.getVersion();
-  final CollectionScope collectionScope=idIoEvent.getEntityCollection();
+  final ApplicationScope applicationScope=idIoEvent.getEntityCollection();
   LOG.debug("Inserting tombstone for entity {} at version {}",entityId,version);
   final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,Stage.COMMITTED,MvccLogEntry.State.DELETED);
-  final MutationBatch entityStateBatch=logStrat.write(collectionScope,startEntry);
+  final MutationBatch entityStateBatch=logStrat.write(applicationScope,startEntry);
   try {
-    final MutationBatch entityBatch=entityStrat.mark(collectionScope,entityId,version);
+    final MutationBatch entityBatch=entityStrat.mark(applicationScope,entityId,version);
     entityStateBatch.mergeShallow(entityBatch);
     entityStateBatch.execute();
   }

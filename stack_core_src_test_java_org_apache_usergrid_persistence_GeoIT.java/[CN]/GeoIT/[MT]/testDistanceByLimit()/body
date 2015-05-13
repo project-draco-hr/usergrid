@@ -1,7 +1,7 @@
 {
   EntityManager em=app.getEntityManager();
   assertNotNull(em);
-  int numEntities=100;
+  int numEntities=10;
   float minLattitude=-90;
   float maxLattitude=90;
   float minLongitude=-180;
@@ -17,10 +17,9 @@
     data.put("location",location);
     em.create("store",data);
   }
-  em.refreshIndex();
-  Query query=new Query();
-  query.addFilter("location within 50000000 of -90, -180");
-  query.setLimit(100);
+  app.refreshIndex();
+  Query query=Query.fromQL("location within 50000000 of -90, -180");
+  query.setLimit(10);
   int count=0;
   do {
     Results results=em.searchCollection(em.getApplicationRef(),"stores",query);
@@ -29,6 +28,6 @@
       count++;
     }
   }
- while (query.getCursor() != null);
+ while (query.getCursor().isPresent());
   assertEquals(numEntities,count);
 }

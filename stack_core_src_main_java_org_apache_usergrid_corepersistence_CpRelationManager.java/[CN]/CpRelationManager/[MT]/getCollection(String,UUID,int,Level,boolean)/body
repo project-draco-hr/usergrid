@@ -1,9 +1,13 @@
 {
-  Query query=Query.fromQL("select *");
+  final String ql;
+  if (startResult != null) {
+    ql="select * where created > " + startResult.timestamp();
+  }
+ else {
+    ql="select *";
+  }
+  Query query=Query.fromQL(ql);
   query.setLimit(count);
   query.setReversed(reversed);
-  if (startResult != null) {
-    query.addGreaterThanEqualFilter("created",startResult.timestamp());
-  }
   return searchCollection(collectionName,query);
 }

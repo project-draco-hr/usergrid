@@ -1,10 +1,9 @@
 {
   Preconditions.checkNotNull(entityIds,"entityIds cannot be null");
-  final Timer.Context timer=loadTimer.time();
-  return Observable.create(new Observable.OnSubscribe<EntitySet>(){
+  final Observable<EntitySet> entitySetObservable=Observable.create(new Observable.OnSubscribe<EntitySet>(){
     @Override public void call(    final Subscriber<? super EntitySet> subscriber){
       try {
-        final EntitySet results=entitySerializationStrategy.load(collectionScope,entityIds,UUIDGenerator.newTimeUUID());
+        final EntitySet results=entitySerializationStrategy.load(applicationScope,entityIds,UUIDGenerator.newTimeUUID());
         subscriber.onNext(results);
         subscriber.onCompleted();
       }
@@ -13,15 +12,6 @@
       }
     }
   }
-).doOnNext(new Action1<EntitySet>(){
-    @Override public void call(    EntitySet entitySet){
-      loadMeter.mark();
-    }
-  }
-).doOnCompleted(new Action0(){
-    @Override public void call(){
-      timer.stop();
-    }
-  }
 );
+  return ObservableTimer.time(entitySetObservable,loadTimer);
 }

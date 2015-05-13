@@ -1,0 +1,10 @@
+{
+  final MvccLogEntrySerializationStrategy logEntrySerializationStrategy=mock(MvccLogEntrySerializationStrategy.class);
+  final ApplicationScope scope=new ApplicationScopeImpl(new SimpleId("application"));
+  final Id entityId=new SimpleId("entity");
+  final int pageSize=100;
+  UUID start=UUIDGenerator.newTimeUUID();
+  when(logEntrySerializationStrategy.load(same(scope),same(entityId),same(start),same(pageSize))).thenReturn(new ArrayList<MvccLogEntry>());
+  MinMaxLogEntryIterator itr=new MinMaxLogEntryIterator(logEntrySerializationStrategy,scope,entityId,pageSize);
+  assertFalse(itr.hasNext());
+}

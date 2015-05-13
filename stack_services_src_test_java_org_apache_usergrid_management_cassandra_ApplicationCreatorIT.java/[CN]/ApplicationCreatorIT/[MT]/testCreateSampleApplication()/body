@@ -5,6 +5,9 @@
   final String expectedName=orgName + "/" + expecteAppname;
   OrganizationOwnerInfo orgOwner=setup.getMgmtSvc().createOwnerAndOrganization(orgName,appName,uniqueUsername(),uniqueEmail(),"password",true,false);
   ApplicationInfo appInfo=setup.getAppCreator().createSampleFor(orgOwner.getOrganization());
+  if (appInfo == null) {
+    appInfo=setup.getMgmtSvc().getApplicationInfo("sandbox");
+  }
   assertNotNull(appInfo);
   assertEquals(expectedName,appInfo.getName());
   Set<String> rolePerms=setup.getEmf().getEntityManager(appInfo.getId()).getRolePermissions("guest");

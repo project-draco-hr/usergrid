@@ -3,7 +3,7 @@
     @Override public Observable<MarkedEdge> call(    final String edgeType){
       return Observable.create(new ObservableIterator<MarkedEdge>("getTargetEdges"){
         @Override protected Iterator<MarkedEdge> getIterator(){
-          return storageSerialization.getEdgesToTarget(scope,new SimpleSearchByEdgeType(node,edgeType,maxVersion,SearchByEdgeType.Order.DESCENDING,null));
+          return storageSerialization.getEdgesToTarget(scope,new SimpleSearchByEdgeType(node,edgeType,maxVersion,SearchByEdgeType.Order.DESCENDING,Optional.<Edge>absent()));
         }
       }
 );
@@ -14,7 +14,7 @@
     @Override public Observable<MarkedEdge> call(    final String edgeType){
       return Observable.create(new ObservableIterator<MarkedEdge>("getSourceEdges"){
         @Override protected Iterator<MarkedEdge> getIterator(){
-          return storageSerialization.getEdgesFromSource(scope,new SimpleSearchByEdgeType(node,edgeType,maxVersion,SearchByEdgeType.Order.DESCENDING,null));
+          return storageSerialization.getEdgesFromSource(scope,new SimpleSearchByEdgeType(node,edgeType,maxVersion,SearchByEdgeType.Order.DESCENDING,Optional.<Edge>absent()));
         }
       }
 );
@@ -32,7 +32,12 @@
         sourceNodes.add(new TargetPair(edge.getSourceNode(),edge.getType()));
         targetNodes.add(new TargetPair(edge.getTargetNode(),edge.getType()));
       }
-      HystrixCassandra.async(batch);
+      try {
+        batch.execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException("Unable to connect to casandra",e);
+      }
       LOG.debug("About to audit {} source types",sourceNodes.size());
       Observable<Integer> sourceMetaCleanup=Observable.from(sourceNodes).flatMap(new Func1<TargetPair,Observable<Integer>>(){
         @Override public Observable<Integer> call(        final TargetPair targetPair){

@@ -9,9 +9,8 @@
   properties.put("name",groupName);
   Entity group=em.create("group",properties);
   assertNotNull(group);
-  em.refreshIndex();
-  Query query=new Query();
-  query.addEqualityFilter("name",groupName);
+  app.refreshIndex();
+  final Query query=Query.fromQL("name = '" + groupName + "'");
   Results r=em.searchCollection(em.getApplicationRef(),"groups",query);
   assertTrue(r.size() > 0);
   Entity returned=r.getEntities().get(0);

@@ -16,7 +16,7 @@
     }
 ));
   }
-  em.refreshIndex();
+  app.refreshIndex();
   CandidateResults crs=queryCollectionCp("things","thing","select * order by updateCount asc");
   Assert.assertEquals("Expect no stale candidates yet",numEntities,crs.size());
   int count=0;
@@ -34,7 +34,7 @@
     }
     maxVersions.add(toUpdate);
   }
-  em.refreshIndex();
+  app.refreshIndex();
   crs=queryCollectionCp("things","thing","select * order by updateCount asc");
   Assert.assertEquals("Expect stale candidates",numEntities * (numUpdates + 1),crs.size());
   final int limit=8;
@@ -59,7 +59,7 @@
   }
  while (cursor != null);
   assertEquals("Expect no stale candidates",numEntities,thingCount);
-  em.refreshIndex();
+  app.refreshIndex();
   crs=queryCollectionCp("things","thing","select *");
   Assert.assertEquals("Expect stale candidates de-indexed",numEntities,crs.size());
 }

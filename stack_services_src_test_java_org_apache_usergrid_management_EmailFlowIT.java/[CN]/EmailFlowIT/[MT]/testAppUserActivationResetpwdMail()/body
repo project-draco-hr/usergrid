@@ -7,13 +7,14 @@
   OrganizationOwnerInfo orgOwner=createOwnerAndOrganization(orgName,appName,adminUserName,adminEmail,adminPasswd,false,false);
   assertNotNull(orgOwner);
   ApplicationInfo app=setup.getMgmtSvc().createApplication(orgOwner.getOrganization().getUuid(),appName);
+  this.app.refreshIndex();
   enableAdminApproval(app.getId());
   final String appUserUsername=uniqueUsername();
   final String appUserEmail=uniqueEmail();
   User appUser=setupAppUser(app.getId(),appUserUsername,appUserEmail,false);
   String subject="Request For User Account Activation " + appUserEmail;
   String activation_url=String.format(setup.get(PROPERTIES_USER_ACTIVATION_URL),orgName,appName,appUser.getUuid().toString());
-  setup.getEmf().refreshIndex();
+  setup.refreshIndex();
   setup.getMgmtSvc().startAppUserActivationFlow(app.getId(),appUser);
   List<Message> inbox=Mailbox.get(adminEmail);
   assertFalse(inbox.isEmpty());

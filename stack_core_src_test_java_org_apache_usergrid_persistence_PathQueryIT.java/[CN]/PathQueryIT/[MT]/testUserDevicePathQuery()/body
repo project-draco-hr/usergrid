@@ -19,28 +19,25 @@
       em.addToCollection(user,"devices",created);
     }
   }
-  em.refreshIndex();
+  app.refreshIndex();
   Results devices=em.getCollection(users.get(10),"devices",null,20,Level.IDS,false);
   assertEquals(5,devices.size());
   int pageSize=10;
-  Query userQuery=new Query();
+  Query userQuery=Query.fromQL("select * where index >= 2 AND index <= 13");
   userQuery.setCollection("users");
   userQuery.setLimit(pageSize);
-  userQuery.addFilter("index >= 2");
-  userQuery.addFilter("index <= 13");
   int expectedUserQuerySize=12;
   Results results=em.searchCollection(em.getApplicationRef(),"users",userQuery);
   PagingResultsIterator pri=new PagingResultsIterator(results);
-  int count=2;
+  int count=13;
   while (pri.hasNext()) {
     Entity e=(Entity)pri.next();
-    assertEquals(count++,e.getProperty("index"));
+    assertEquals(count--,e.getProperty("index"));
   }
-  assertEquals(count,expectedUserQuerySize + 2);
-  Query deviceQuery=new Query();
+  assertEquals(count,1);
+  Query deviceQuery=Query.fromQL("select * where index >= 2 ");
   deviceQuery.setCollection("devices");
   deviceQuery.setLimit(pageSize);
-  deviceQuery.addFilter("index >= 2");
   int expectedDeviceQuerySize=3;
   PathQuery<EntityRef> usersPQ=new PathQuery<EntityRef>(new SimpleEntityRef(em.getApplicationRef()),userQuery);
   PathQuery<Entity> devicesPQ=usersPQ.chain(deviceQuery);

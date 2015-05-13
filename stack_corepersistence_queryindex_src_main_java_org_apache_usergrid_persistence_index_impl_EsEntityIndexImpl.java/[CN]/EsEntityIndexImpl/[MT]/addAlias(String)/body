@@ -1,26 +1,31 @@
 {
-  final Timer.Context timeRemoveAlias=updateAliasTimer.time();
+  Timer.Context timer=updateAliasTimer.time();
   try {
+    Boolean isAck;
     String indexName=indexIdentifier.getIndex(indexSuffix);
     final AdminClient adminClient=esProvider.getClient().admin();
-    String[] indexNames=getIndexesFromEs(AliasType.Write);
-    final IndicesAliasesRequestBuilder aliasesRequestBuilder=adminClient.indices().prepareAliases();
+    String[] indexNames=getIndexes(AliasType.Write);
+    int count=0;
+    IndicesAliasesRequestBuilder aliasesRequestBuilder=adminClient.indices().prepareAliases();
     for (    String currentIndex : indexNames) {
       aliasesRequestBuilder.removeAlias(currentIndex,alias.getWriteAlias());
-      logger.info("Removing existing write Alias Name [{}] from Index [{}]",alias.getWriteAlias(),currentIndex);
+      count++;
     }
+    if (count > 0) {
+      isAck=aliasesRequestBuilder.execute().actionGet().isAcknowledged();
+      logger.info("Removed Index Name from Alias=[{}] ACK=[{}]",alias,isAck);
+    }
+    aliasesRequestBuilder=adminClient.indices().prepareAliases();
     aliasesRequestBuilder.addAlias(indexName,alias.getReadAlias());
-    logger.info("Created new read Alias Name [{}] on Index [{}]",alias.getReadAlias(),indexName);
     aliasesRequestBuilder.addAlias(indexName,alias.getWriteAlias());
-    logger.info("Created new write Alias Name [{}] on Index [{}]",alias.getWriteAlias(),indexName);
-    final IndicesAliasesResponse result=aliasesRequestBuilder.execute().actionGet();
-    final boolean isAcknowledged=result.isAcknowledged();
-    if (!isAcknowledged) {
-      throw new RuntimeException("Unable to add aliases to the new index.  Elasticsearch did not acknowledge to the alias change for index '" + indexSuffix + "'");
-    }
-  }
-  finally {
+    isAck=aliasesRequestBuilder.execute().actionGet().isAcknowledged();
+    logger.info("Created new read and write aliases ACK=[{}]",isAck);
     aliasCache.invalidate(alias);
-    timeRemoveAlias.stop();
+  }
+ catch (  Exception e) {
+    logger.warn("Failed to create alias ",e);
+  }
+ finally {
+    timer.stop();
   }
 }

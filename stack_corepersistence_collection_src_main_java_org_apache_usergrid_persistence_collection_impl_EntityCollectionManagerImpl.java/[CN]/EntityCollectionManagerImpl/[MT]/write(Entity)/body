@@ -2,24 +2,8 @@
   Preconditions.checkNotNull(entity,"Entity is required in the new stage of the mvcc write");
   final Id entityId=entity.getId();
   ValidationUtils.verifyIdentity(entityId);
-  final CollectionIoEvent<Entity> writeData=new CollectionIoEvent<Entity>(collectionScope,entity);
+  final CollectionIoEvent<Entity> writeData=new CollectionIoEvent<Entity>(applicationScope,entity);
   Observable<CollectionIoEvent<MvccEntity>> observable=stageRunner(writeData,writeStart);
-  final Timer.Context timer=writeTimer.time();
-  return observable.map(writeCommit).doOnNext(new Action1<Entity>(){
-    @Override public void call(    final Entity entity){
-      taskExecutor.submit(entityVersionTaskFactory.getCreatedTask(collectionScope,entity));
-      taskExecutor.submit(entityVersionTaskFactory.getCleanupTask(collectionScope,entityId,entity.getVersion(),false));
-    }
-  }
-).doOnError(rollback).doOnEach(new Action1<Notification<? super Entity>>(){
-    @Override public void call(    Notification<? super Entity> notification){
-      writeMeter.mark();
-    }
-  }
-).doOnCompleted(new Action0(){
-    @Override public void call(){
-      timer.stop();
-    }
-  }
-);
+  final Observable<Entity> write=observable.map(writeCommit);
+  return ObservableTimer.time(write,writeTimer);
 }

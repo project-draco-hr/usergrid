@@ -1,5 +1,6 @@
 {
   WebResource resource=parent.getResource().path(getPath());
   token=token != null ? token : this.context.getToken();
-  return useToken ? resource.queryParam("access_token",token.getAccessToken()) : parent.getResource().path(getPath());
+  if (token == null)   return resource;
+  return useToken ? resource.queryParam("access_token",token.getAccessToken()) : resource;
 }

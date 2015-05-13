@@ -1,0 +1,10 @@
+{
+  final MigrationRelationship<MvccEntitySerializationStrategy> migration=getMigrationRelationShip();
+  if (migration.needsMigration()) {
+    final MutationBatch aggregateBatch=keyspace.prepareMutationBatch();
+    aggregateBatch.mergeShallow(migration.from.write(context,entity));
+    aggregateBatch.mergeShallow(migration.to.write(context,entity));
+    return aggregateBatch;
+  }
+  return migration.to.write(context,entity);
+}

@@ -1,0 +1,30 @@
+{
+  if (encodedValue != null) {
+    return encodedValue;
+  }
+  if (!edgePath.isPresent()) {
+    encodedValue=Optional.absent();
+    return encodedValue;
+  }
+  try {
+    final ObjectNode map=MAPPER.createObjectNode();
+    Optional<EdgePath> current=edgePath;
+    do {
+      final EdgePath edgePath=current.get();
+      final Object cursorValue=edgePath.getCursorValue();
+      final CursorSerializer serializer=edgePath.getSerializer();
+      final int filterId=edgePath.getFilterId();
+      final JsonNode serialized=serializer.toNode(MAPPER,cursorValue);
+      map.put(String.valueOf(filterId),serialized);
+      current=current.get().getPrevious();
+    }
+ while (current.isPresent());
+    final byte[] output=MAPPER.writeValueAsBytes(map);
+    final String value=Base64.getUrlEncoder().encodeToString(output);
+    encodedValue=Optional.of(value);
+  }
+ catch (  JsonProcessingException e) {
+    throw new CursorParseException("Unable to serialize cursor",e);
+  }
+  return encodedValue;
+}

@@ -1,6 +1,6 @@
 {
   io.doSetup();
-  int size=200;
+  int size=10;
   int queryLimit=Query.MAX_LIMIT;
   int matchMax=queryLimit - 1;
   long start=System.currentTimeMillis();
@@ -17,12 +17,11 @@
       expected.add(name);
     }
   }
+  app.refreshIndex();
   long stop=System.currentTimeMillis();
   LOG.info("Writes took {} ms",stop - start);
-  Query query=new Query();
-  query.addSort("created");
+  Query query=Query.fromQL("select * where searched = true order by created");
   query.setLimit(queryLimit);
-  query.addEqualityFilter("searched",true);
   int count=0;
   start=System.currentTimeMillis();
   Results results=io.getResults(query);

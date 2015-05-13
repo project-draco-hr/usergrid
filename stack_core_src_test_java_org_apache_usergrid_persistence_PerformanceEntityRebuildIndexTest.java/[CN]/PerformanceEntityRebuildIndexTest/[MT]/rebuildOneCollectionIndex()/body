@@ -28,7 +28,7 @@
         entity=em.create("catshepard",entityMap);
         shepardCount++;
       }
-      em.refreshIndex();
+      app.refreshIndex();
     }
  catch (    Exception ex) {
       throw new RuntimeException("Error creating entity",ex);
@@ -45,11 +45,11 @@
     }
   }
   logger.info("Created {} entities",entityCount);
-  em.refreshIndex();
+  app.refreshIndex();
   logger.debug("Read the data");
   readData(em,"catherders",herderCount,0);
   readData(em,"catshepards",shepardCount,0);
-  logger.debug("Deleting app index index");
+  logger.debug("Deleting apps");
   deleteIndex(em.getApplicationId());
   logger.debug("Reading data, should fail this time ");
   try {
@@ -75,8 +75,7 @@
   }
 ;
   try {
-    setup.getEmf().rebuildCollectionIndex(em.getApplicationId(),"catherders",false,po);
-    setup.getEmf().rebuildCollectionIndex(em.getApplicationId(),"catherders",true,po);
+    setup.getEmf().rebuildCollectionIndex(Optional.of(em.getApplicationId()),Optional.<String>of("catherders"));
     reporter.report();
     registry.remove(meterName);
     logger.info("Rebuilt index");

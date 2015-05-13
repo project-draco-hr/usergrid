@@ -1,0 +1,12 @@
+{
+  final String userAppId=indexTestFig.getApplicationId();
+  final String uniqueIdentifier=UUIDGenerator.newTimeUUID().toString();
+  final UUID applicationUUID=UUID.fromString(userAppId);
+  final Id applicationId=new SimpleId(applicationUUID,"application");
+  batchWriteTPS=metricsFactory.getMeter(IndexLoadTestsIT.class,"write.tps");
+  batchWriteTimer=metricsFactory.getTimer(IndexLoadTestsIT.class,"write.timer");
+  queryTps=metricsFactory.getMeter(IndexLoadTestsIT.class,"query.tps");
+  queryTimer=metricsFactory.getTimer(IndexLoadTestsIT.class,"query.timer");
+  reporter=Slf4jReporter.forRegistry(metricsFactory.getRegistry()).outputTo(log).convertRatesTo(TimeUnit.SECONDS).convertDurationsTo(TimeUnit.MILLISECONDS).build();
+  reporter.start(30,TimeUnit.SECONDS);
+}

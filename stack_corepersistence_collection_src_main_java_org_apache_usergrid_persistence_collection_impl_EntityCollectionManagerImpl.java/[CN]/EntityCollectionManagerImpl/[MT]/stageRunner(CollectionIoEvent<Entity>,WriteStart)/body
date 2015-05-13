@@ -1,10 +1,2 @@
 {
-  return Observable.from(writeData).map(writeState).doOnNext(new Action1<CollectionIoEvent<MvccEntity>>(){
-    @Override public void call(    final CollectionIoEvent<MvccEntity> mvccEntityCollectionIoEvent){
-      Observable<CollectionIoEvent<MvccEntity>> unique=Observable.from(mvccEntityCollectionIoEvent).subscribeOn(Schedulers.io()).doOnNext(writeVerifyUnique);
-      Observable<CollectionIoEvent<MvccEntity>> optimistic=Observable.from(mvccEntityCollectionIoEvent).subscribeOn(Schedulers.io()).doOnNext(writeOptimisticVerify);
-      Observable.merge(unique,optimistic).toBlocking().last();
-    }
-  }
-);
 }

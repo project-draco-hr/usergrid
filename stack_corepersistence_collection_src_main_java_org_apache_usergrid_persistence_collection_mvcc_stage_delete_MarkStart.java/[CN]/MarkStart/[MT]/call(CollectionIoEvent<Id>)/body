@@ -2,16 +2,16 @@
   final Id entityId=entityIoEvent.getEvent();
   ValidationUtils.verifyIdentity(entityId);
   final UUID version=uuidService.newTimeUUID();
-  final CollectionScope collectionScope=entityIoEvent.getEntityCollection();
+  final ApplicationScope applicationScope=entityIoEvent.getEntityCollection();
   final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,Stage.ACTIVE,MvccLogEntry.State.DELETED);
-  MutationBatch write=logStrategy.write(collectionScope,startEntry);
+  MutationBatch write=logStrategy.write(applicationScope,startEntry);
   try {
     write.execute();
   }
  catch (  ConnectionException e) {
     LOG.error("Failed to execute write asynchronously ",e);
-    throw new CollectionRuntimeException(null,collectionScope,"Failed to execute write asynchronously ",e);
+    throw new CollectionRuntimeException(null,applicationScope,"Failed to execute write asynchronously ",e);
   }
   final MvccEntityImpl nextStage=new MvccEntityImpl(entityId,version,MvccEntity.Status.COMPLETE,Optional.<Entity>absent());
-  return new CollectionIoEvent<MvccEntity>(collectionScope,nextStage);
+  return new CollectionIoEvent<MvccEntity>(applicationScope,nextStage);
 }

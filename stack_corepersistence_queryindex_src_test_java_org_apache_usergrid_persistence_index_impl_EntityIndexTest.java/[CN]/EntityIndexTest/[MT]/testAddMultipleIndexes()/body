@@ -1,17 +1,15 @@
 {
   Id appId=new SimpleId("application");
   ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
-  AliasedEntityIndex entityIndex=(AliasedEntityIndex)eif.createEntityIndex(applicationScope);
-  entityIndex.initializeIndex();
+  ApplicationEntityIndex entityIndex=eif.createApplicationEntityIndex(applicationScope);
   final String entityType="thing";
-  IndexScope indexScope=new IndexScopeImpl(appId,"things");
+  IndexEdge searchEdge=new IndexEdgeImpl(appId,"things",SearchEdge.NodeType.SOURCE,10);
   final SearchTypes searchTypes=SearchTypes.fromTypes(entityType);
-  insertJsonBlob(entityIndex,entityType,indexScope,"/sample-large.json",101,0);
-  entityIndex.refresh();
-  testQueries(indexScope,searchTypes,entityIndex);
-  entityIndex.addIndex("v2",1,0,"one");
-  insertJsonBlob(entityIndex,entityType,indexScope,"/sample-large.json",101,100);
-  entityIndex.refresh();
-  testQuery(indexScope,searchTypes,entityIndex,"name = 'Hilda Young'",1);
-  testQuery(indexScope,searchTypes,entityIndex,"name = 'Lowe Kelley'",1);
+  insertJsonBlob(entityIndex,entityType,searchEdge,"/sample-large.json",101,0);
+  testQueries(searchEdge,searchTypes,entityIndex);
+  ei.addIndex("v2",1,0,"one");
+  insertJsonBlob(entityIndex,entityType,searchEdge,"/sample-large.json",101,100);
+  testQuery(searchEdge,searchTypes,entityIndex,"name = 'Hilda Young'",1);
+  testQuery(searchEdge,searchTypes,entityIndex,"name = 'Lowe Kelley'",1);
+  log.info("hi");
 }

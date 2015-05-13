@@ -1,0 +1,26 @@
+{
+  int maxRangeLimit=9;
+  Entity[] cats=new Entity[maxRangeLimit + 1];
+  final ApplicationEntityIndex applicationEntityIndex=eif.createApplicationEntityIndex(new ApplicationScopeImpl(createId("application")));
+  final EntityIndexBatch batch=applicationEntityIndex.createBatch();
+  final IndexEdge edge=new IndexEdgeImpl(createId("root"),"testType",SearchEdge.NodeType.SOURCE,1000);
+  for (int i=maxRangeLimit; i >= 0; i--) {
+    Entity cat=new Entity("cat");
+    EntityUtils.setVersion(cat,UUIDGenerator.newTimeUUID());
+    cat.setField(new StringField("name","cat" + i));
+    cat.setField(new LocationField("location",new Location(37.0 + i,-75.0 + i)));
+    cats[i]=cat;
+    batch.index(edge,cat);
+  }
+  batch.execute().toBlocking().last();
+  ei.refreshAsync().toBlocking().last();
+  final String query="select * where location within 1500000 of 37, -75";
+  final CandidateResults candidates=applicationEntityIndex.search(edge,SearchTypes.fromTypes("cat"),query,100,0);
+  assertNotNull(candidates);
+  for (int consistent=0; consistent < maxRangeLimit; consistent++) {
+    CandidateResult candidate=candidates.get(consistent);
+    assertNotNull(candidate);
+    final Entity expected=cats[consistent];
+    assertEquals(expected.getId(),candidate.getId());
+  }
+}

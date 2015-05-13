@@ -1,9 +1,9 @@
 {
   io.doSetup();
-  int size=200;
-  int queryLimit=100;
-  int startValue=50;
-  int endValue=150;
+  int size=20;
+  int queryLimit=10;
+  int startValue=5;
+  int endValue=15;
   long start=System.currentTimeMillis();
   LOG.info("Writing {} entities.",size);
   List<String> expected=new ArrayList<String>(size);
@@ -15,6 +15,7 @@
     io.writeEntity(entity);
     expected.add(name);
   }
+  app.refreshIndex();
   long stop=System.currentTimeMillis();
   LOG.info("Writes took {} ms",stop - start);
   Query query=Query.fromQL(String.format("select * where index >= %d AND index <= %d order by index asc",startValue,endValue));

@@ -1,0 +1,8 @@
+{
+  final MutationBatch batch=keyspace.prepareMutationBatch();
+  final Id applicationId=applicationScope.getApplication();
+  final ScopedRowKey<Id> rowKey=ScopedRowKey.fromKey(applicationId,entityId);
+  final long timestamp=version.timestamp();
+  op.doOp(batch.withRow(CF_ENTITY_DATA,rowKey).setTimestamp(timestamp));
+  return batch;
+}

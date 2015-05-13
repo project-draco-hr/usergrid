@@ -23,9 +23,10 @@
 ;
   Entity user=em.create("user",userProperties);
   assertNotNull(user);
+  app.refreshIndex();
   em.createConnection(user,"likes",restaurant);
-  em.refreshIndex();
-  Results emSearchResults=em.searchConnectedEntities(user,Query.fromQL("location within 2000 of " + ((LinkedHashMap<String,Object>)userProperties.get("location")).get("latitude") + ", "+ ((LinkedHashMap<String,Object>)userProperties.get("location")).get("longitude")).setConnectionType("likes"));
+  app.refreshIndex();
+  Results emSearchResults=em.searchConnectedEntities(user,Query.fromQL("location within 5000 of " + ((LinkedHashMap<String,Object>)userProperties.get("location")).get("latitude") + ", "+ ((LinkedHashMap<String,Object>)userProperties.get("location")).get("longitude")).setConnectionType("likes"));
   assertEquals(1,emSearchResults.size());
   emSearchResults=em.searchConnectedEntities(user,Query.fromQL("location within 1000 of " + ((LinkedHashMap<String,Object>)userProperties.get("location")).get("latitude") + ", "+ ((LinkedHashMap<String,Object>)userProperties.get("location")).get("longitude")).setConnectionType("likes"));
   assertEquals(0,emSearchResults.size());

@@ -1,9 +1,8 @@
 {
   Id appId=new SimpleId("application");
   ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
-  IndexScope indexScope=new IndexScopeImpl(appId,"fastcars");
-  EntityIndex entityIndex=eif.createEntityIndex(applicationScope);
-  entityIndex.initializeIndex();
+  IndexEdge searchEdge=new IndexEdgeImpl(appId,"fastcars",SearchEdge.NodeType.SOURCE,1);
+  ApplicationEntityIndex entityIndex=eif.createApplicationEntityIndex(applicationScope);
   Map entityMap=new HashMap(){
 {
       put("name","Ferrari 212 Inter");
@@ -15,15 +14,15 @@
   Entity entity=EntityIndexMapUtils.fromMap(entityMap);
   EntityUtils.setId(entity,new SimpleId("fastcar"));
   EntityUtils.setVersion(entity,UUIDGenerator.newTimeUUID());
-  entity.setField(new UUIDField(IndexingUtils.ENTITYID_ID_FIELDNAME,UUID.randomUUID()));
-  entityIndex.createBatch().index(indexScope,entity).execute().get();
-  entityIndex.refresh();
-  CandidateResults candidateResults=entityIndex.search(indexScope,SearchTypes.fromTypes(entity.getId().getType()),Query.fromQL("name contains 'Ferrari*'"));
+  entity.setField(new UUIDField(IndexingUtils.ENTITY_ID_FIELDNAME,UUID.randomUUID()));
+  entityIndex.createBatch().index(searchEdge,entity).execute().toBlocking().last();
+  ei.refreshAsync().toBlocking().first();
+  CandidateResults candidateResults=entityIndex.search(searchEdge,SearchTypes.fromTypes(entity.getId().getType()),"name contains 'Ferrari*'",10,0);
   assertEquals(1,candidateResults.size());
   EntityIndexBatch batch=entityIndex.createBatch();
-  batch.deindex(indexScope,entity).execute().get();
-  batch.execute().get();
-  entityIndex.refresh();
-  candidateResults=entityIndex.search(indexScope,SearchTypes.fromTypes(entity.getId().getType()),Query.fromQL("name contains 'Ferrari*'"));
+  batch.deindex(searchEdge,entity);
+  batch.execute().toBlocking().last();
+  ei.refreshAsync().toBlocking().first();
+  candidateResults=entityIndex.search(searchEdge,SearchTypes.fromTypes(entity.getId().getType()),"name contains 'Ferrari*'",10,0);
   assertEquals(0,candidateResults.size());
 }

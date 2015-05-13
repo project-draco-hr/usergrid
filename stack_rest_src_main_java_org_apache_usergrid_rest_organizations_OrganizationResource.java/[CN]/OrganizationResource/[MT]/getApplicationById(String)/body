@@ -14,9 +14,11 @@
   if (organizationId == null) {
     return null;
   }
-  BiMap<UUID,String> apps=management.getApplicationsForOrganization(organizationId);
-  if (apps.get(applicationId) == null) {
-    return null;
+  if (!hc.getRequest().getMethod().equalsIgnoreCase("PUT")) {
+    BiMap<UUID,String> apps=management.getApplicationsForOrganization(organizationId);
+    if (apps.get(applicationId) == null) {
+      return null;
+    }
   }
   return appResourceFor(applicationId);
 }

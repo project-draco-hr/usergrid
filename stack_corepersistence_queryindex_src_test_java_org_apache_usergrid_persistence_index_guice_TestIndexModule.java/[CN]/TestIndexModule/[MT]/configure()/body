@@ -1,5 +1,12 @@
 {
   install(new CommonModule());
-  install(new CollectionModule());
-  install(new IndexModule());
+  install(new IndexModule(){
+    @Override public void configureMigrationProvider(){
+      bind(new TypeLiteral<MigrationDataProvider<ApplicationScope>>(){
+      }
+).to(TestAllApplicationsObservable.class);
+    }
+  }
+);
+  install(new GuicyFigModule(IndexTestFig.class));
 }

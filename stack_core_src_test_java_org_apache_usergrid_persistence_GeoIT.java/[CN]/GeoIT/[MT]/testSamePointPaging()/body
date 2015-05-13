@@ -1,17 +1,17 @@
 {
   EntityManager em=app.getEntityManager();
   assertNotNull(em);
-  int numEntities=500;
+  int numEntities=10;
   for (int i=0; i < numEntities; i++) {
     Map<String,Object> data=new HashMap<String,Object>(2);
     data.put("name",String.valueOf(i));
     setPos(data,0,0);
     em.create("store",data);
   }
-  em.refreshIndex();
-  Query query=new Query();
-  query.addFilter("location within 50000000 of 0, 0");
-  query.setLimit(100);
+  app.refreshIndex();
+  Thread.sleep(2000);
+  Query query=Query.fromQL("location within 50000000 of 0, 0");
+  query.setLimit(5);
   int count=0;
   Results results;
   do {

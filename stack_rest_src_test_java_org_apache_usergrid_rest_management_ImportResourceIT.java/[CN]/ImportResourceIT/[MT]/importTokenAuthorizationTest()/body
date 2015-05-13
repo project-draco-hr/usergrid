@@ -2,7 +2,7 @@
   String org=clientSetup.getOrganizationName();
   String app=clientSetup.getAppName();
   Entity payload=payloadBuilder();
-  Entity entity=this.management().orgs().organization(org).app().addToPath(app).addToPath("imports").post(payload);
+  Entity entity=this.management().orgs().organization(org).app().addToPath(app).addToPath("imports").post(Entity.class,payload);
   assertNotNull(entity);
   this.management().orgs().organization(org).app().addToPath(app).addToPath("imports").addToPath(entity.getUuid().toString()).get();
   String newOrgName="org" + UUIDUtils.newTimeUUID();
@@ -14,7 +14,7 @@
   this.refreshIndex();
   assertNotNull(orgCreatedResponse);
   Token tokenPayload=new Token("password",newOrgUsername,newOrgPassword);
-  Token newOrgToken=clientSetup.getRestClient().management().token().post(tokenPayload);
+  Token newOrgToken=clientSetup.getRestClient().management().token().post(Token.class,tokenPayload);
   context().setToken(newOrgToken);
   try {
     this.management().orgs().organization(org).app().addToPath(app).addToPath("imports").addToPath(entity.getUuid().toString()).get();

@@ -1,0 +1,30 @@
+{
+  final FieldBuffer fieldBuffer;
+  try {
+    fieldBuffer=FIELD_BUFFER_SERIALIZER.fromByteBuffer(byteBuffer);
+  }
+ catch (  Exception e) {
+    throw new DataCorruptionException("Unable to de-serialze entity",e);
+  }
+  final FieldBufferParser parser=new FieldBufferParser(fieldBuffer);
+  final byte version=parser.readByte();
+  if (VERSION != version) {
+    throw new UnsupportedOperationException("A version of type " + version + " is unsupported");
+  }
+  final UUID entityVersion=parser.readUUID();
+  final byte state=parser.readByte();
+  if (STATE_DELETED == state) {
+    return new EntityWrapper(MvccEntity.Status.DELETED,entityVersion,Optional.<Entity>absent());
+  }
+  EntityMap storedEntity;
+  byte[] array=parser.readBytes();
+  try {
+    storedEntity=MAPPER.readValue(array,EntityMap.class);
+  }
+ catch (  Exception e) {
+    throw new DataCorruptionException("Unable to read entity data",e);
+  }
+  Entity entityObject=Entity.fromMap(storedEntity);
+  final Optional<Entity> entity=Optional.of(entityObject);
+  return new EntityWrapper(MvccEntity.Status.COMPLETE,entityVersion,entity);
+}

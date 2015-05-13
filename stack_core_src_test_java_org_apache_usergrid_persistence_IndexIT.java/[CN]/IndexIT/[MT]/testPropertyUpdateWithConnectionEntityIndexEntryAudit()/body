@@ -10,7 +10,7 @@
   Entity entity1Ref=em.create("names",entity1);
   Entity entity2Ref=em.create("names",entity2);
   em.createConnection(entity2Ref,"connecting",entity1Ref);
-  em.refreshIndex();
+  app.refreshIndex();
   Query query=Query.fromQL("select * where status = 'pickled'");
   Results r=em.searchCollection(em.getApplicationRef(),"names",query);
   assertEquals(1,r.size());
@@ -20,7 +20,7 @@
   assertEquals(entity1Ref.getUuid(),r.getEntity().getUuid());
   entity1Ref.setProperty("status","herring");
   em.update(entity1Ref);
-  em.refreshIndex();
+  app.refreshIndex();
   query=Query.fromQL("select * where status = 'pickled'");
   r=em.searchCollection(em.getApplicationRef(),"names",query);
   assertEquals(0,r.size());
@@ -33,28 +33,4 @@
   r=em.searchCollection(em.getApplicationRef(),"names",query);
   assertEquals(1,r.size());
   assertEquals(entity1Ref.getUuid(),r.getEntity().getUuid());
-  RelationManager rm=em.getRelationManager(entity2Ref);
-  if (rm instanceof RelationManagerImpl) {
-    RelationManagerImpl impl=(RelationManagerImpl)rm;
-    CassandraService cass=SpringResource.getInstance().getBean(CassandraService.class);
-    ByteBufferSerializer buf=ByteBufferSerializer.get();
-    Keyspace ko=cass.getApplicationKeyspace(applicationId);
-    Mutator<ByteBuffer> m=createMutator(ko,buf);
-    IndexUpdate update=impl.batchStartIndexUpdate(m,entity1Ref,"status","ignore",UUIDUtils.newTimeUUID(),false,false,true,false);
-    int count=0;
-    IndexEntry lastMatch=null;
-    for (    IndexEntry entry : update.getPrevEntries()) {
-      if ("status".equals(entry.getPath())) {
-        count++;
-        lastMatch=entry;
-      }
-    }
-    assertEquals(1,count);
-    if (lastMatch != null) {
-      assertEquals("herring",lastMatch.getValue());
-    }
- else {
-      fail("The last match was null but should have been herring!");
-    }
-  }
 }

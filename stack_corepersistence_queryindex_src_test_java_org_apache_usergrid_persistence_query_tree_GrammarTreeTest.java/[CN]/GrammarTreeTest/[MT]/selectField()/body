@@ -4,7 +4,9 @@
   CpQueryFilterLexer lexer=new CpQueryFilterLexer(in);
   TokenRewriteStream tokens=new TokenRewriteStream(lexer);
   CpQueryFilterParser parser=new CpQueryFilterParser(tokens);
-  Query query=parser.ql().query;
-  Set<String> identifiers=query.getSelectSubjects();
-  assertTrue(identifiers.contains("c"));
+  ParsedQuery query=parser.ql().parsedQuery;
+  Collection<SelectFieldMapping> identifiers=query.getSelectFieldMappings();
+  final SelectFieldMapping fieldMapping=identifiers.iterator().next();
+  assertEquals("c",fieldMapping.getSourceFieldName());
+  assertEquals("c",fieldMapping.getTargetFieldName());
 }

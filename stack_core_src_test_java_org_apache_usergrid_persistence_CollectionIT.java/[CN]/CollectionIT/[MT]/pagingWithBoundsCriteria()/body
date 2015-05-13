@@ -10,18 +10,19 @@
     Entity created=em.create("page",properties);
     entityIds.add(created.getUuid());
   }
-  em.refreshIndex();
+  app.refreshIndex();
   int pageSize=10;
-  Query query=Query.fromQL("select * where index >= 10 and index <= 29");
+  Query query=Query.fromQL("select * where index >= 10 and index <= 29 sort by index asc");
   query.setLimit(pageSize);
-  query.addSort(new Query.SortPredicate("index",Query.SortDirection.ASCENDING));
   Results r=null;
   for (int i=1; i < 3; i++) {
     r=em.searchCollection(em.getApplicationRef(),"pages",query);
     LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
     assertEquals(pageSize,r.size());
     for (int j=0; j < pageSize; j++) {
-      assertEquals(entityIds.get(i * pageSize + j),r.getEntities().get(j).getUuid());
+      final int index=size - 1 - (i * pageSize + j);
+      final UUID expectedId=entityIds.get(index);
+      assertEquals(expectedId,r.getEntities().get(j).getUuid());
     }
     query.setCursor(r.getCursor());
   }

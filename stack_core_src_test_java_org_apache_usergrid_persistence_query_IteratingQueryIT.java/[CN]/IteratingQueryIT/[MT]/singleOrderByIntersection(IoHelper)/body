@@ -1,6 +1,6 @@
 {
   io.doSetup();
-  int size=700;
+  int size=70;
   int queryLimit=Query.MAX_LIMIT;
   int intersectIncrement=5;
   long start=System.currentTimeMillis();
@@ -17,11 +17,10 @@
       expected.add(name);
     }
   }
+  app.refreshIndex();
   long stop=System.currentTimeMillis();
   LOG.info("Writes took {} ms",stop - start);
-  Query query=new Query();
-  query.addSort("created");
-  query.addEqualityFilter("intersect",true);
+  Query query=Query.fromQL("select * where intersect = true order by created asc");
   query.setLimit(queryLimit);
   int count=0;
   Results results;

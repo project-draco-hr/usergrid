@@ -1,29 +1,36 @@
 {
+  String entityName=UUID.randomUUID() + "thing";
   System.setProperty(EVENTS_DISABLED,"true");
   final EntityManager em=app.getEntityManager();
-  Entity thing=em.create("thing",new HashMap<String,Object>(){
+  Entity thing=em.create(entityName,new HashMap<String,Object>(){
 {
       put("ordinal",0);
     }
   }
 );
-  em.refreshIndex();
-  assertEquals(1,queryCollectionCp("things","thing","select *").size());
+  UUID originalVersion=getCpEntity(thing).getVersion();
+  app.refreshIndex();
+  assertEquals(1,queryCollectionCp(entityName + "s",entityName,"select *").size());
   em.updateProperties(thing,new HashMap<String,Object>(){
 {
       put("ordinal",1);
     }
   }
 );
-  em.refreshIndex();
+  app.refreshIndex();
   UUID newVersion=getCpEntity(thing).getVersion();
-  assertEquals(2,queryCollectionCp("things","thing","select * order by ordinal desc").size());
+  CandidateResults candidateResults=null;
+  candidateResults=queryCollectionCp(entityName + "s",entityName,"select * order by ordinal desc");
+  if (candidateResults.size() != 2) {
+    Thread.sleep(200);
+  }
+  assertEquals(2,candidateResults.size());
   System.setProperty(EVENTS_DISABLED,"false");
-  final Results results=queryCollectionEm("things","select * order by ordinal desc");
+  Results results=queryCollectionEm(entityName + "s","select * order by ordinal desc");
   assertEquals(1,results.size());
   assertEquals(1,results.getEntities().get(0).getProperty("ordinal"));
-  em.refreshIndex();
-  final CandidateResults candidates=queryCollectionCp("things","thing","select * order by ordinal desc");
-  assertEquals(1,candidates.size());
-  assertEquals(newVersion,candidates.get(0).getVersion());
+  app.refreshIndex();
+  candidateResults=queryCollectionCp(entityName + "s",entityName,"select * order by ordinal desc");
+  assertEquals(1,candidateResults.size());
+  assertEquals(newVersion,candidateResults.get(0).getVersion());
 }

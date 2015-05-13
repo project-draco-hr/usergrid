@@ -108,12 +108,13 @@
 ;
   Entity userFred=em.create("user",properties);
   assertNotNull(userFred);
-  em.refreshIndex();
-  Point center=new Point(37.774277,-122.404744);
-  Query query=Query.fromQL("select * where NOT blockedBy.name='bart' and location within 400 of " + center.getLat() + ","+ center.getLon());
+  app.refreshIndex();
+  final double lat=37.774277;
+  final double lon=-122.404744;
+  Query query=Query.fromQL("select * where NOT blockedBy.name='bart' and location within 400 of " + lat + ","+ lon);
   Results listResults=em.searchCollection(em.getApplicationRef(),"users",query);
   assertEquals(1,listResults.size());
-  query=Query.fromQL("select * where blockedBy.name='bart' and location within 400 of " + center.getLat() + ","+ center.getLon());
+  query=Query.fromQL("select * where blockedBy.name='bart' and location within 400 of " + lat + ","+ lon);
   listResults=em.searchCollection(em.getApplicationRef(),"users",query);
   assertEquals(1,listResults.size());
 }

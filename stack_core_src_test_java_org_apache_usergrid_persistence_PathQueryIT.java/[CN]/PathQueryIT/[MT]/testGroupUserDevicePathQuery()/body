@@ -20,7 +20,7 @@
       users.add(created);
     }
   }
-  em.refreshIndex();
+  app.refreshIndex();
   Results ru=em.getCollection(groups.get(2),"users",null,20,Level.IDS,false);
   assertEquals(7,ru.size());
   List<EntityRef> devices=new ArrayList<EntityRef>();
@@ -33,25 +33,21 @@
       em.addToCollection(user,"devices",created);
     }
   }
-  em.refreshIndex();
+  app.refreshIndex();
   Results rd=em.getCollection(users.get(6),"devices",null,20,Level.IDS,false);
   assertEquals(7,rd.size());
   int pageSize=3;
-  Query groupQuery=new Query();
+  Query groupQuery=Query.fromQL("select * where index <= 7 ");
   groupQuery.setCollection("groups");
   groupQuery.setLimit(pageSize);
-  groupQuery.addFilter("index <= 7");
   int expectedGroupQuerySize=4;
-  Query userQuery=new Query();
+  Query userQuery=Query.fromQL("select * where index >= 2 AND index <= 6");
   userQuery.setCollection("users");
   userQuery.setLimit(pageSize);
-  userQuery.addFilter("index >= 2");
-  userQuery.addFilter("index <= 6");
   int expectedUserQuerySize=5;
-  Query deviceQuery=new Query();
+  Query deviceQuery=Query.fromQL("select * where index >= 4 ");
   deviceQuery.setCollection("devices");
   deviceQuery.setLimit(pageSize);
-  deviceQuery.addFilter("index >= 4");
   int expectedDeviceQuerySize=3;
   final PathQuery groupsPQ=new PathQuery(new SimpleEntityRef(em.getApplicationRef()),groupQuery);
   HashSet groupSet=new HashSet(expectedGroupQuerySize);

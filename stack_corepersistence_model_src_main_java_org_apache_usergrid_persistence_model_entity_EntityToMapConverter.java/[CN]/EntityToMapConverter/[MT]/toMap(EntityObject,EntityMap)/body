@@ -1,0 +1,35 @@
+{
+  for (  Field field : entity.getFields()) {
+    if (field instanceof ListField || field instanceof ArrayField || field instanceof SetField) {
+      Collection list=(Collection)field.getValue();
+      entityMap.put(field.getName(),processCollection(list));
+    }
+ else     if (field instanceof EntityObjectField) {
+      EntityObject eo=(EntityObject)field.getValue();
+      entityMap.put(field.getName(),toMap(eo));
+    }
+ else     if (field instanceof LocationField) {
+      LocationField locField=(LocationField)field;
+      Map<String,Object> locMap=new HashMap<String,Object>();
+      locMap.put(LAT,locField.getValue().getLatitude());
+      locMap.put(LON,locField.getValue().getLongitude());
+      entityMap.put(field.getName(),locMap);
+    }
+ else     if (field instanceof ByteArrayField) {
+      ByteArrayField bf=(ByteArrayField)field;
+      byte[] serilizedObj=bf.getValue();
+      Object o;
+      try {
+        o=objectMapper.readValue(serilizedObj,bf.getClassinfo());
+      }
+ catch (      IOException e) {
+        throw new RuntimeException("Can't deserialize object ",e);
+      }
+      entityMap.put(bf.getName(),o);
+    }
+ else {
+      entityMap.put(field.getName(),field.getValue());
+    }
+  }
+  return entityMap;
+}

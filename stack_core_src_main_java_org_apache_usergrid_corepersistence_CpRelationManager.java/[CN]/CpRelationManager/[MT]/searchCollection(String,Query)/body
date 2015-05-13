@@ -1,20 +1,26 @@
 {
   if (query == null) {
     query=new Query();
-    query.setCollection(collName);
+    query.setCollection(collectionName);
   }
   headEntity=em.validate(headEntity);
-  CollectionInfo collection=getDefaultSchema().getCollection(headEntity.getType(),collName);
+  CollectionInfo collection=getDefaultSchema().getCollection(headEntity.getType(),collectionName);
   if (collection == null) {
-    throw new RuntimeException("Cannot find collection-info for '" + collName + "' of "+ headEntity.getType()+ ":"+ headEntity.getUuid());
+    throw new RuntimeException("Cannot find collection-info for '" + collectionName + "' of "+ headEntity.getType()+ ":"+ headEntity.getUuid());
   }
-  final IndexScope indexScope=new IndexScopeImpl(cpHeadEntity.getId(),CpNamingUtils.getCollectionScopeNameFromCollectionName(collName));
-  final EntityIndex ei=managerCache.getEntityIndex(applicationScope);
-  final SearchTypes types=SearchTypes.fromTypes(collection.getType());
-  logger.debug("Searching scope {}:{}",indexScope.getOwner().toString(),indexScope.getName());
   query.setEntityType(collection.getType());
   query=adjustQuery(query);
-  final CollectionResultsLoaderFactoryImpl resultsLoaderFactory=new CollectionResultsLoaderFactoryImpl(managerCache);
-  final QueryExecutor executor=new ElasticSearchQueryExecutor(resultsLoaderFactory,ei,applicationScope,indexScope,types,query);
-  return executor.next();
+  final ReadPipelineBuilder readPipelineBuilder=pipelineBuilderFactory.createReadPipelineBuilder(applicationScope);
+  readPipelineBuilder.withCursor(query.getCursor());
+  readPipelineBuilder.withLimit(Optional.of(query.getLimit()));
+  readPipelineBuilder.setStartId(cpHeadEntity.getId());
+  if (query.isGraphSearch()) {
+    readPipelineBuilder.getCollection(collectionName);
+  }
+ else {
+    final String entityType=collection.getType();
+    readPipelineBuilder.getCollectionWithQuery(collectionName,entityType,query.getQl().get());
+  }
+  final Observable<ResultsPage> resultsObservable=readPipelineBuilder.execute();
+  return new ObservableQueryExecutor(resultsObservable).next();
 }

@@ -1,20 +1,9 @@
 {
-  final Timer.Context timer=getIdTypesToTargetTimer.time();
-  final Meter meter=getIdTypesToTargetMeter;
-  return Observable.create(new ObservableIterator<String>("getIdTypesToTarget"){
+  final Observable<String> edgeTypes=Observable.create(new ObservableIterator<String>("getIdTypesToTarget"){
     @Override protected Iterator<String> getIterator(){
       return edgeMetadataSerialization.getIdTypesToTarget(scope,search);
     }
   }
-).doOnEach(new Action1<Notification<? super String>>(){
-    @Override public void call(    Notification<? super String> notification){
-      meter.mark();
-    }
-  }
-).doOnCompleted(new Action0(){
-    @Override public void call(){
-      timer.stop();
-    }
-  }
 );
+  return ObservableTimer.time(edgeTypes,getIdTypesToTargetTimer);
 }

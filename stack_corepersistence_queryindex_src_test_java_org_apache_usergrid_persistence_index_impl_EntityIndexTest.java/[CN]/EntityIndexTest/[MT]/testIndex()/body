@@ -1,12 +1,10 @@
 {
   Id appId=new SimpleId("application");
   ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
-  EntityIndex entityIndex=eif.createEntityIndex(applicationScope);
-  entityIndex.initializeIndex();
+  ApplicationEntityIndex entityIndex=eif.createApplicationEntityIndex(applicationScope);
   final String entityType="thing";
-  IndexScope indexScope=new IndexScopeImpl(appId,"things");
+  IndexEdge searchEdge=new IndexEdgeImpl(appId,"things",SearchEdge.NodeType.SOURCE,1);
   final SearchTypes searchTypes=SearchTypes.fromTypes(entityType);
-  insertJsonBlob(entityIndex,entityType,indexScope,"/sample-large.json",101,0);
-  entityIndex.refresh();
-  testQueries(indexScope,searchTypes,entityIndex);
+  insertJsonBlob(entityIndex,entityType,searchEdge,"/sample-large.json",101,0);
+  testQueries(searchEdge,searchTypes,entityIndex);
 }

@@ -10,7 +10,13 @@
   }
   rangeBuilder.setLimit(selectSize);
   final RowSliceQuery<R,C> query=keyspace.prepareQuery(cf).setConsistencyLevel(consistencyLevel).getKeySlice(rowKeys).withColumnRange(rangeBuilder.build());
-  final Rows<R,C> result=HystrixCassandra.user(query).getResult();
+  final Rows<R,C> result;
+  try {
+    result=query.execute().getResult();
+  }
+ catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to connect to casandra",e);
+  }
   final List<T> mergedResults;
   if (containsSingleRowOnly(result)) {
     mergedResults=singleRowResult(result);

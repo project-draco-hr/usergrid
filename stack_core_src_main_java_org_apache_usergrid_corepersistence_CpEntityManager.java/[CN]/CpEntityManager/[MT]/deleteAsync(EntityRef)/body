@@ -2,13 +2,13 @@
   if (applicationScope == null || entityRef == null) {
     return Observable.empty();
   }
-  CollectionScope collectionScope=getCollectionScopeNameFromEntityType(getApplicationScope().getApplication(),entityRef.getType());
-  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(collectionScope);
+  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(applicationScope);
   Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
-  org.apache.usergrid.persistence.model.entity.Entity entity=load(new EntityScope(collectionScope,entityId));
+  org.apache.usergrid.persistence.model.entity.Entity entity=load(entityId);
   if (entity != null) {
     decrementEntityCollection(Schema.defaultCollectionName(entityId.getType()));
-    return ecm.delete(entityId);
+    indexService.queueEntityDelete(applicationScope,entityId);
+    return ecm.mark(entityId);
   }
  else {
     return Observable.empty();

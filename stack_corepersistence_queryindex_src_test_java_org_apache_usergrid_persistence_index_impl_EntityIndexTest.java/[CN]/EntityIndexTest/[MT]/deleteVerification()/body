@@ -2,9 +2,8 @@
   Id appId=new SimpleId("application");
   Id ownerId=new SimpleId("owner");
   ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
-  IndexScope appScope=new IndexScopeImpl(ownerId,"user");
-  EntityIndex ei=eif.createEntityIndex(applicationScope);
-  ei.initializeIndex();
+  IndexEdge indexSCope=new IndexEdgeImpl(ownerId,"user",SearchEdge.NodeType.SOURCE,10);
+  ApplicationEntityIndex entityIndex=eif.createApplicationEntityIndex(applicationScope);
   final String middleName="middleName" + UUIDUtils.newTimeUUID();
   Map entityMap=new HashMap(){
 {
@@ -17,19 +16,16 @@
   Entity user=EntityIndexMapUtils.fromMap(entityMap);
   EntityUtils.setId(user,new SimpleId("edanuff"));
   EntityUtils.setVersion(user,UUIDGenerator.newTimeUUID());
-  EntityIndexBatch batch=ei.createBatch();
-  batch.index(appScope,user);
-  batch.execute().get();
-  ei.refresh();
-  Query query=new Query();
-  query.addEqualityFilter("username","edanuff");
-  CandidateResults r=ei.search(appScope,SearchTypes.fromTypes("edanuff"),query);
+  EntityIndexBatch batch=entityIndex.createBatch();
+  batch.index(indexSCope,user);
+  batch.execute().toBlocking().last();
+  ei.refreshAsync().toBlocking().first();
+  final String query="where username = 'edanuff'";
+  CandidateResults r=entityIndex.search(indexSCope,SearchTypes.fromTypes("edanuff"),query,10,0);
   assertEquals(user.getId(),r.get(0).getId());
-  batch.deindex(appScope,user.getId(),user.getVersion());
-  batch.execute().get();
-  ei.refresh();
-  query=new Query();
-  query.addEqualityFilter("username","edanuff");
-  r=ei.search(appScope,SearchTypes.fromTypes("edanuff"),query);
+  batch.deindex(indexSCope,user.getId(),user.getVersion());
+  batch.execute().toBlocking().last();
+  ei.refreshAsync().toBlocking().first();
+  r=entityIndex.search(indexSCope,SearchTypes.fromTypes("edanuff"),query,10,0);
   assertFalse(r.iterator().hasNext());
 }

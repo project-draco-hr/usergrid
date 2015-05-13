@@ -1,21 +1,18 @@
 {
-  Id appId=new SimpleId("application");
+  Id appId=new SimpleId(UUID.randomUUID(),"application");
   ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
-  AliasedEntityIndex entityIndex=(AliasedEntityIndex)eif.createEntityIndex(applicationScope);
-  entityIndex.initializeIndex();
+  ApplicationEntityIndex entityIndex=eif.createApplicationEntityIndex(applicationScope);
   final String entityType="thing";
-  IndexScope indexScope=new IndexScopeImpl(appId,"things");
+  IndexEdge searchEdge=new IndexEdgeImpl(appId,"things",SearchEdge.NodeType.SOURCE,1);
   final SearchTypes searchTypes=SearchTypes.fromTypes(entityType);
-  insertJsonBlob(entityIndex,entityType,indexScope,"/sample-large.json",1,0);
-  entityIndex.refresh();
-  entityIndex.addIndex("v2",1,0,"one");
-  insertJsonBlob(entityIndex,entityType,indexScope,"/sample-large.json",1,0);
-  entityIndex.refresh();
-  CandidateResults crs=testQuery(indexScope,searchTypes,entityIndex,"name = 'Bowers Oneil'",2);
+  insertJsonBlob(entityIndex,entityType,searchEdge,"/sample-large.json",1,0);
+  ei.addIndex("v2",1,0,"one");
+  ei.refreshAsync().toBlocking().first();
+  insertJsonBlob(entityIndex,entityType,searchEdge,"/sample-large.json",1,1);
+  CandidateResults crs=testQuery(searchEdge,searchTypes,entityIndex,"name = 'Bowers Oneil'",1);
   EntityIndexBatch entityIndexBatch=entityIndex.createBatch();
-  entityIndexBatch.deindex(indexScope,crs.get(0));
-  entityIndexBatch.deindex(indexScope,crs.get(1));
-  entityIndexBatch.execute().get();
-  entityIndex.refresh();
-  testQuery(indexScope,searchTypes,entityIndex,"name = 'Bowers Oneil'",0);
+  entityIndexBatch.deindex(searchEdge,crs.get(0));
+  entityIndexBatch.execute().toBlocking().last();
+  ei.refreshAsync().toBlocking().first();
+  testQuery(searchEdge,searchTypes,entityIndex,"name = 'Bowers Oneil'",0);
 }

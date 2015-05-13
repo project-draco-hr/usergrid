@@ -1,0 +1,32 @@
+{
+  final GraphManager gm=emf.createEdgeManager(scope);
+  Id sourceId=new SimpleId("source");
+  Id targetId1=new SimpleId("target");
+  Id targetId2=new SimpleId("target2");
+  long startTime=System.currentTimeMillis();
+  long edge1Time=startTime;
+  long edge2Time=edge1Time + 1;
+  final long maxVersion=edge2Time;
+  Edge edge1=createEdge(sourceId,"test",targetId1,edge1Time);
+  gm.writeEdge(edge1).toBlocking().singleOrDefault(null);
+  Edge edge2=createEdge(sourceId,"test",targetId2,edge2Time);
+  gm.writeEdge(edge2).toBlocking().singleOrDefault(null);
+  assertTrue(Long.compare(maxVersion,edge2.getTimestamp()) >= 0);
+  assertTrue(Long.compare(maxVersion,edge1.getTimestamp()) >= 0);
+  gm.markEdge(edge1).toBlocking().last();
+  Observable<Edge> edges=gm.loadEdgesFromSource(createSearchByEdgeUnfiltered(edge1.getSourceNode(),edge1.getType(),maxVersion,null));
+  Iterator<Edge> results=edges.toBlocking().getIterator();
+  assertEquals("Edges correct",edge2.getTargetNode(),results.next().getTargetNode());
+  assertEquals("Edges correct",edge1.getTargetNode(),results.next().getTargetNode());
+  assertFalse("No more edges",results.hasNext());
+  gm.deleteEdge(edge1).toBlocking().last();
+  edges=gm.loadEdgesFromSource(createSearchByEdgeUnfiltered(edge1.getSourceNode(),edge1.getType(),maxVersion,null));
+  results=edges.toBlocking().getIterator();
+  assertEquals("Edges correct",edge2.getTargetNode(),results.next().getTargetNode());
+  assertFalse("No more edges",results.hasNext());
+  gm.deleteEdge(edge2).toBlocking().lastOrDefault(null);
+  edges=gm.loadEdgesFromSource(createSearchByEdgeUnfiltered(edge1.getSourceNode(),edge1.getType(),maxVersion,null));
+  results=edges.toBlocking().getIterator();
+  assertEquals("Edges correct",edge2.getSourceNode(),results.next().getSourceNode());
+  assertFalse("No more edges",results.hasNext());
+}

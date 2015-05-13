@@ -1,0 +1,9 @@
+{
+  ValidationUtils.verifyIdentity(entityId);
+  return Observable.create(new ObservableIterator<MvccLogEntry>("Log entry iterator"){
+    @Override protected Iterator<MvccLogEntry> getIterator(){
+      return new MinMaxLogEntryIterator(mvccLogEntrySerializationStrategy,applicationScope,entityId,serializationFig.getBufferSize());
+    }
+  }
+);
+}

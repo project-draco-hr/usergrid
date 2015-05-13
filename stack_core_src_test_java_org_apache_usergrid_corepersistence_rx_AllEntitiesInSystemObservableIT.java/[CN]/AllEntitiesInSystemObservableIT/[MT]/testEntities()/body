@@ -1,4 +1,7 @@
 {
+  Injector injector=SpringResource.getInstance().getBean(Injector.class);
+  AllEntitiesInSystemImpl allEntitiesInSystemObservableImpl=injector.getInstance(AllEntitiesInSystemImpl.class);
+  TargetIdObservable targetIdObservable=injector.getInstance(TargetIdObservable.class);
   final EntityManager em=app.getEntityManager();
   final String type1="type1thing";
   final String type2="type2thing";
@@ -16,30 +19,24 @@
   }
   ManagerCache managerCache=SpringResource.getInstance().getBean(Injector.class).getInstance(ManagerCache.class);
   final ApplicationScope scope=CpNamingUtils.getApplicationScope(app.getId());
-  final Id applicationId=scope.getApplication();
   final GraphManager gm=managerCache.getGraphManager(scope);
-  AllEntitiesInSystemObservable.getAllEntitiesInSystem(managerCache,1000).doOnNext(new Action1<AllEntitiesInSystemObservable.ApplicationEntityGroup>(){
-    @Override public void call(    final AllEntitiesInSystemObservable.ApplicationEntityGroup entity){
-      assertNotNull(entity);
-      assertNotNull(entity.applicationScope);
-      assertNotNull(entity.entityIds);
-      if (!applicationId.equals(entity.applicationScope.getApplication())) {
-        return;
+  allEntitiesInSystemObservableImpl.getData().doOnNext(new Action1<EntityIdScope>(){
+    @Override public void call(    final EntityIdScope entityIdScope){
+      assertNotNull(entityIdScope);
+      assertNotNull(entityIdScope.getApplicationScope());
+      assertNotNull(entityIdScope.getId());
+      if (entityIdScope.getId().getType().equals(type1)) {
+        assertTrue("Element should be present on removal",type1Identities.remove(entityIdScope.getId()));
       }
-      for (      Id id : entity.entityIds) {
-        if (id.getType().equals(type1)) {
-          assertTrue("Element should be present on removal",type1Identities.remove(id));
-        }
- else         if (id.getType().equals(type2)) {
-          assertTrue("Element should be present on removal",type2Identities.remove(id));
-        }
+ else       if (entityIdScope.getId().getType().equals(type2)) {
+        assertTrue("Element should be present on removal",type2Identities.remove(entityIdScope.getId()));
       }
     }
   }
 ).toBlocking().lastOrDefault(null);
   assertEquals("Every element should have been encountered",0,type1Identities.size());
   assertEquals("Every element should have been encountered",0,type2Identities.size());
-  TargetIdObservable.getTargetNodes(gm,source).doOnNext(new Action1<Id>(){
+  targetIdObservable.getTargetNodes(gm,source).doOnNext(new Action1<Id>(){
     @Override public void call(    final Id target){
       assertTrue("Element should be present on removal",connections.remove(target));
     }

@@ -1,0 +1,9 @@
+{
+  String orgName=clientSetup.getOrganization().getName();
+  String appName=clientSetup.getAppName() + "_new_app";
+  Token orgAdminToken=getAdminToken(clientSetup.getUsername(),clientSetup.getUsername());
+  ApiResponse appCreateResponse=clientSetup.getRestClient().management().orgs().organization(orgName).app().getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).post(ApiResponse.class,new Application(appName));
+  appCreateResponse.getEntities().get(0).getUuid();
+  ApiResponse response=clientSetup.getRestClient().getResource().path("/" + clientSetup.getOrganizationName() + "/"+ appName+ "/roles").queryParam("access_token",orgAdminToken.getAccessToken()).get(ApiResponse.class);
+  assertTrue(!response.getEntities().isEmpty());
+}

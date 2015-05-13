@@ -11,16 +11,15 @@
   props.put("location",new MapUtils.HashMapBuilder<String,Double>().map("latitude",-33.746369).map("longitude",150.952183));
   this.app().collection("users").post(props);
   this.refreshIndex();
-  List<Point> points=new ArrayList<Point>();
-  points.add(new Point(33.746369,-89));
-  points.add(new Point(33.746369,-91));
-  points.add(new Point(-1.000000,102.000000));
-  points.add(new Point(-90.000000,90.000000));
-  points.add(new Point(90,90));
-  Iterator<Point> pointIterator=points.iterator();
-  for (Point p=pointIterator.next(); pointIterator.hasNext(); p=pointIterator.next()) {
-    Point center=new Point(p.getLat(),p.getLon());
-    String query="select * where location within 10000 of " + center.getLat() + ", "+ center.getLon();
+  List<double[]> points=new ArrayList<>();
+  points.add(new double[]{33.746369,-89});
+  points.add(new double[]{33.746369,-91});
+  points.add(new double[]{-1.000000,102.000000});
+  points.add(new double[]{-90.000000,90.000000});
+  points.add(new double[]{90,90});
+  Iterator<double[]> pointIterator=points.iterator();
+  for (double[] p=pointIterator.next(); pointIterator.hasNext(); p=pointIterator.next()) {
+    String query="select * where location within 10000 of " + p[0] + ", "+ p[1];
     QueryParameters params=new QueryParameters();
     params.setQuery(query);
     Collection collection=this.app().collection("users").get(params);

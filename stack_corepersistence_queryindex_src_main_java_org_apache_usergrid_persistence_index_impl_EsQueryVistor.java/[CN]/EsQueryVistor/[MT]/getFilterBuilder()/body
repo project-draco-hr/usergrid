@@ -1,17 +1,10 @@
 {
-  if (filterBuilders.size() > 1) {
-    FilterBuilder andFilter=null;
-    for (    FilterBuilder fb : filterBuilders) {
-      if (andFilter == null) {
-        andFilter=FilterBuilders.andFilter(fb);
-      }
- else {
-        andFilter=FilterBuilders.andFilter(andFilter,fb);
-      }
-    }
+  if (filterBuilders.empty()) {
+    return Optional.absent();
   }
- else   if (!filterBuilders.isEmpty()) {
-    return filterBuilders.get(0);
+  final FilterBuilder builder=filterBuilders.peek();
+  if (!use(builder)) {
+    return Optional.absent();
   }
-  return null;
+  return Optional.of(builder);
 }

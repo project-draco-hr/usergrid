@@ -5,9 +5,9 @@
   passwordPayload.put("newpassword","testPassword");
   management.users().user(username).password().post(clientSetup.getSuperuserToken(),passwordPayload);
   this.refreshIndex();
-  assertNotNull(management.token().post(new Token(username,"testPassword")));
+  assertNotNull(management.token().post(Token.class,new Token(username,"testPassword")));
   try {
-    management.token().post(new Token(username,password));
+    management.token().post(Token.class,new Token(username,password));
     fail("We shouldn't be able to get a token using the old password");
   }
  catch (  UniformInterfaceException uie) {

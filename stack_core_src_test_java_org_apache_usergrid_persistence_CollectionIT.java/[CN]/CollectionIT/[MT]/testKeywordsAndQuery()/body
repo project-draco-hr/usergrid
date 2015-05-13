@@ -14,11 +14,11 @@
   properties.put("title","Hot Shots Extreme");
   properties.put("keywords","Action, New");
   Entity thirdGame=em.create("game",properties);
-  em.refreshIndex();
+  app.refreshIndex();
   Query query=Query.fromQL("select * where keywords contains 'new' and title contains 'extreme'");
   Results r=em.searchCollection(em.getApplicationRef(),"games",query);
   LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   assertEquals(2,r.size());
-  assertEquals(secondGame.getUuid(),r.getEntities().get(0).getUuid());
-  assertEquals(thirdGame.getUuid(),r.getEntities().get(1).getUuid());
+  assertEquals(thirdGame.getUuid(),r.getEntities().get(0).getUuid());
+  assertEquals(secondGame.getUuid(),r.getEntities().get(1).getUuid());
 }
