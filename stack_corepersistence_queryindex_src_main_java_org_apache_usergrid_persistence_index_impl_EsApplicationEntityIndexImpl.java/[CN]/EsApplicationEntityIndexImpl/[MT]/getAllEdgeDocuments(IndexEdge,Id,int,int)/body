@@ -1,0 +1,24 @@
+{
+  IndexValidationUtils.validateSearchEdge(edge);
+  Preconditions.checkNotNull(entityId,"entityId cannot be null");
+  Preconditions.checkArgument(limit > 0,"limit must be > 0");
+  SearchResponse searchResponse;
+  final ParsedQuery parsedQuery=ParsedQueryBuilder.build("select *");
+  FilterBuilders.idsFilter(entityId.getType());
+  final SearchRequestBuilder srb=searchRequest.getBuilder(edge,SearchTypes.fromTypes(entityId.getType()),parsedQuery,limit,offset).setTimeout(TimeValue.timeValueMillis(queryTimeout));
+  if (logger.isDebugEnabled()) {
+    logger.debug("Searching for edge index (read alias): {}\n  nodeId: {}, edgeType: {},  \n type: {}\n   query: {} ",this.alias.getReadAlias(),edge.getNodeId(),edge.getEdgeName(),SearchTypes.fromTypes(entityId.getType()),srb);
+  }
+  try {
+    Timer.Context timeSearch=searchTimer.time();
+    searchResponse=srb.execute().actionGet();
+    timeSearch.stop();
+  }
+ catch (  Throwable t) {
+    logger.error("Unable to communicate with Elasticsearch",t);
+    failureMonitor.fail("Unable to execute batch",t);
+    throw t;
+  }
+  failureMonitor.success();
+  return parseResults(searchResponse,parsedQuery,limit,offset);
+}
