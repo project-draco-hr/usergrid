@@ -1,0 +1,12 @@
+{
+  Preconditions.checkArgument(base64EncodedJson.length() <= MAX_SIZE,"Your cursor must be less than " + MAX_SIZE + " chars in length");
+  final byte[] data=Base64.getUrlDecoder().decode(base64EncodedJson);
+  JsonNode jsonNode;
+  try {
+    jsonNode=MAPPER.readTree(data);
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("Unable to parse json node from string " + base64EncodedJson);
+  }
+  return jsonNode;
+}

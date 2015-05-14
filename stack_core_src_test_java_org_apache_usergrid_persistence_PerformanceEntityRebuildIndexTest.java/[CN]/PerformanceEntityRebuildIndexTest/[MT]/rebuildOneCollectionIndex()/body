@@ -68,7 +68,8 @@
   }
 ;
   try {
-    reIndexService.rebuildIndex(Optional.of(em.getApplicationId()),Optional.<String>of("catherders"),Optional.absent(),Optional.absent());
+    final IndexServiceRequestBuilder builder=reIndexService.getBuilder().withApplicationId(em.getApplicationId()).withCollection("catherders");
+    reIndexService.rebuildIndex(builder);
     reporter.report();
     registry.remove(meterName);
     logger.info("Rebuilt index");
