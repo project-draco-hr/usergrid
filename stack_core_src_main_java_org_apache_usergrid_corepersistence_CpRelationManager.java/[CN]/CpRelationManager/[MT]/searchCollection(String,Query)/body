@@ -1,12 +1,12 @@
 {
   if (query == null) {
     query=new Query();
-    query.setCollection(collName);
+    query.setCollection(collectionName);
   }
   headEntity=em.validate(headEntity);
-  CollectionInfo collection=getDefaultSchema().getCollection(headEntity.getType(),collName);
+  CollectionInfo collection=getDefaultSchema().getCollection(headEntity.getType(),collectionName);
   if (collection == null) {
-    throw new RuntimeException("Cannot find collection-info for '" + collName + "' of "+ headEntity.getType()+ ":"+ headEntity.getUuid());
+    throw new RuntimeException("Cannot find collection-info for '" + collectionName + "' of "+ headEntity.getType()+ ":"+ headEntity.getUuid());
   }
   query.setEntityType(collection.getType());
   query=adjustQuery(query);
@@ -15,11 +15,11 @@
   readPipelineBuilder.withLimit(Optional.of(query.getLimit()));
   readPipelineBuilder.setStartId(cpHeadEntity.getId());
   if (query.isGraphSearch()) {
-    readPipelineBuilder.getCollection(collName);
+    readPipelineBuilder.getCollection(collectionName);
   }
  else {
     final String entityType=collection.getType();
-    readPipelineBuilder.getCollectionWithQuery(collName,entityType,query.getQl().get());
+    readPipelineBuilder.getCollectionWithQuery(collectionName,entityType,query.getQl().get());
   }
   final Observable<ResultsPage> resultsObservable=readPipelineBuilder.execute();
   return new ObservableQueryExecutor(resultsObservable).next();
