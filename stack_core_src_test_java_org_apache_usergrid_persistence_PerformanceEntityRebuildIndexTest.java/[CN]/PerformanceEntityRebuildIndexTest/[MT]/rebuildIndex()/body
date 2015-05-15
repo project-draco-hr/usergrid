@@ -3,6 +3,7 @@
   String rand=RandomStringUtils.randomAlphanumeric(5);
   final UUID appId=setup.createApplication("org_" + rand,"app_" + rand);
   final EntityManager em=setup.getEmf().getEntityManager(appId);
+  final ReIndexService reIndexService=setup.getInjector().getInstance(ReIndexService.class);
   Map<String,Object> entityMap=new HashMap<String,Object>(){
 {
       put("key1",1000);
@@ -35,12 +36,11 @@
   Entity cat1=em.create("cat",cat1map);
   Entity cat2=em.create("cat",cat2map);
   Entity cat3=em.create("cat",cat3map);
-  List<EntityRef> entityRefs=new ArrayList<EntityRef>();
-  int entityCount=0;
+  List<EntityRef> entityRefs=new ArrayList<>();
   for (int i=0; i < ENTITIES_TO_INDEX; i++) {
     final Entity entity;
     try {
-      entityMap.put("key",entityCount);
+      entityMap.put("key",i);
       entity=em.create("testType",entityMap);
       em.createConnection(entity,"herds",cat1);
       em.createConnection(entity,"herds",cat2);
@@ -50,44 +50,27 @@
       throw new RuntimeException("Error creating entity",ex);
     }
     entityRefs.add(new SimpleEntityRef(entity.getType(),entity.getUuid()));
-    if (entityCount % 10 == 0) {
-      logger.info("Created {} entities",entityCount);
+    if (i % 10 == 0) {
+      logger.info("Created {} entities",i);
     }
   }
-  logger.info("Created {} entities",entityCount);
+  logger.info("Created {} entities",ENTITIES_TO_INDEX);
   app.refreshIndex();
-  Thread.sleep(10000);
   logger.debug("Read the data");
-  readData(em,"testType",entityCount,3);
+  final String collectionName="testtypes";
+  readData(em,collectionName,ENTITIES_TO_INDEX,3);
   logger.debug("Deleting app index");
   deleteIndex(em.getApplicationId());
   logger.debug("Reading data, should fail this time ");
-  try {
-    readData(em,"testTypes",entityCount,3);
-    fail("should have failed to read data");
-  }
- catch (  Exception expected) {
-  }
+  readData(em,collectionName,0,0);
   logger.debug("Preparing to rebuild all indexes");
   ;
-  final String meterName=this.getClass().getSimpleName() + ".rebuildIndex";
-  final Meter meter=registry.meter(meterName);
-  EntityManagerFactory.ProgressObserver po=new EntityManagerFactory.ProgressObserver(){
-    int counter=0;
-    @Override public void onProgress(    final EntityRef entity){
-      meter.mark();
-      logger.debug("Indexing {}:{}",entity.getType(),entity.getUuid());
-      if (counter % 100 == 0) {
-        logger.info("Reindexed {} entities",counter);
-      }
-      counter++;
-    }
-  }
-;
   try {
-    fail("Implement index rebuild");
-    reporter.report();
-    registry.remove(meterName);
+    final IndexServiceRequestBuilder builder=reIndexService.getBuilder().withApplicationId(em.getApplicationId());
+    ReIndexService.ReIndexStatus status=reIndexService.rebuildIndex(builder);
+    assertNotNull(status.getJobId(),"JobId is present");
+    logger.info("Rebuilt index");
+    waitForRebuild(status,reIndexService);
     logger.info("Rebuilt index");
     app.refreshIndex();
   }
@@ -96,5 +79,5 @@
     fail();
   }
   Thread.sleep(2000);
-  readData(em,"testTypes",entityCount,3);
+  readData(em,collectionName,ENTITIES_TO_INDEX,3);
 }

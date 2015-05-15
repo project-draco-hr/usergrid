@@ -27,7 +27,6 @@
         entity=em.create("catshepard",entityMap);
         shepardCount++;
       }
-      app.refreshIndex();
     }
  catch (    Exception ex) {
       throw new RuntimeException("Error creating entity",ex);
@@ -45,39 +44,13 @@
   logger.debug("Deleting apps");
   deleteIndex(em.getApplicationId());
   logger.debug("Reading data, should fail this time ");
-  try {
-    readData(em,"testTypes",ENTITIES_TO_INDEX,0);
-    fail("should have failed to read data");
-  }
- catch (  Exception expected) {
-  }
+  readData(em,"testTypes",0,0);
   logger.debug("Preparing to rebuild all indexes");
-  ;
-  final String meterName=this.getClass().getSimpleName() + ".rebuildIndex";
-  final Meter meter=registry.meter(meterName);
-  EntityManagerFactory.ProgressObserver po=new EntityManagerFactory.ProgressObserver(){
-    int counter=0;
-    @Override public void onProgress(    final EntityRef entity){
-      meter.mark();
-      logger.debug("Indexing {}:{}",entity.getType(),entity.getUuid());
-      if (counter % 100 == 0) {
-        logger.info("Reindexed {} entities",counter);
-      }
-      counter++;
-    }
-  }
-;
-  try {
-    final IndexServiceRequestBuilder builder=reIndexService.getBuilder().withApplicationId(em.getApplicationId()).withCollection("catherders");
-    reIndexService.rebuildIndex(builder);
-    reporter.report();
-    registry.remove(meterName);
-    logger.info("Rebuilt index");
-  }
- catch (  Exception ex) {
-    logger.error("Error rebuilding index",ex);
-    fail();
-  }
+  final IndexServiceRequestBuilder builder=reIndexService.getBuilder().withApplicationId(em.getApplicationId()).withCollection("catherders");
+  ReIndexService.ReIndexStatus status=reIndexService.rebuildIndex(builder);
+  assertNotNull(status.getJobId(),"JobId is present");
+  logger.info("Rebuilt index");
+  waitForRebuild(status,reIndexService);
   readData(em,"catherders",herderCount,0);
   readData(em,"catshepards",0,0);
 }

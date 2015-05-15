@@ -1,9 +1,10 @@
 {
-  final String status=mapManager.getString(jobId + MAP_STATUS_KEY);
-  if (status == null) {
+  final String stringStatus=mapManager.getString(jobId + MAP_STATUS_KEY);
+  if (stringStatus == null) {
     throw new IllegalArgumentException("Could not find a job with id " + jobId);
   }
+  final Status status=Status.valueOf(stringStatus);
   final long processedCount=mapManager.getLong(jobId + MAP_COUNT_KEY);
   final long lastUpdated=mapManager.getLong(jobId + MAP_COUNT_KEY);
-  return new IndexResponse(jobId,status,processedCount,lastUpdated);
+  return new ReIndexStatus(jobId,status,processedCount,lastUpdated);
 }
