@@ -8,7 +8,8 @@
   final ReadPipelineBuilder readPipelineBuilder=pipelineBuilderFactory.createReadPipelineBuilder(applicationScope);
   readPipelineBuilder.withCursor(query.getCursor()).withLimit(Optional.of(query.getLimit())).setStartId(cpHeadEntity.getId());
   if (query.isGraphSearch()) {
-    readPipelineBuilder.getConnection(connection);
+    if (entityType == null)     readPipelineBuilder.getConnection(connection);
+ else     readPipelineBuilder.getConnection(connection,entityType);
   }
  else {
     readPipelineBuilder.getConnectionWithQuery(connection,Optional.fromNullable(entityType),query.getQl().get());
