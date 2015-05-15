@@ -1,0 +1,9 @@
+{
+  if (applicationScope == null || entityRef == null) {
+    return Observable.empty();
+  }
+  GraphManager gm=graphManagerFactory.createEdgeManager(applicationScope);
+  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(applicationScope);
+  Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
+  return ecm.mark(entityId).mergeWith(gm.markNode(entityId,entityRef.getUuid().timestamp()));
+}
