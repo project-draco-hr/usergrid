@@ -10,17 +10,15 @@
   }
   query.setEntityType(collection.getType());
   query=adjustQuery(query);
-  final ReadPipelineBuilder readPipelineBuilder=pipelineBuilderFactory.createReadPipelineBuilder(applicationScope);
-  readPipelineBuilder.withCursor(query.getCursor());
-  readPipelineBuilder.withLimit(Optional.of(query.getLimit()));
-  readPipelineBuilder.setStartId(cpHeadEntity.getId());
+  final FilterPipeline<Id> filterPipeline=new FilterPipeline(applicationScope,query.getCursor(),query.getLimit()).withFilter(filterFactory.getEntityIdFilter(cpHeadEntity.getId()));
+  final FilterPipeline<org.apache.usergrid.persistence.model.entity.Entity> entityFilterPipeline;
   if (query.isGraphSearch()) {
-    readPipelineBuilder.getCollection(collectionName);
+    entityFilterPipeline=filterPipeline.withFilter(filterFactory.readGraphCollectionFilter(collectionName)).withFilter(filterFactory.entityLoadFilter());
   }
  else {
     final String entityType=collection.getType();
-    readPipelineBuilder.getCollectionWithQuery(collectionName,entityType,query.getQl().get());
+    entityFilterPipeline=filterPipeline.withFilter(filterFactory.elasticSearchCollectionFilter(query.getQl().get(),collectionName,entityType)).withFilter(filterFactory.candidateEntityFilter());
   }
-  final Observable<ResultsPage> resultsObservable=readPipelineBuilder.execute();
+  final Observable<ResultsPage> resultsObservable=entityFilterPipeline.withFilter(filterFactory.entityResumeFilter()).withCollector(collectorFactory.getResultsPageCollector()).execute();
   return new ObservableQueryExecutor(resultsObservable).next();
 }
