@@ -1,7 +1,6 @@
 {
   app.refreshIndex();
-  Query q=Query.fromQL("select * where key1=1000");
-  q.setLimit(40);
+  Query q=Query.fromQL("select * where key1=1000").withLimit(1000);
   Results results=em.searchCollectionConsistent(em.getApplicationRef(),collectionName,q,expectedEntities);
   int count=0;
   while (true) {
@@ -23,8 +22,6 @@
       break;
     }
   }
-  if (expectedEntities != -1 && expectedEntities != count) {
-    throw new RuntimeException("Did not get expected " + expectedEntities + " entities, instead got "+ count);
-  }
+  assertEquals("Did not get expected entities",expectedEntities,count);
   return count;
 }
