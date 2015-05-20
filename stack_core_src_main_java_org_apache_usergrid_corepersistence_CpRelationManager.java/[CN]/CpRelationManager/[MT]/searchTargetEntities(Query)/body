@@ -4,15 +4,27 @@
   Preconditions.checkNotNull(connection,"connection must be specified");
   headEntity=em.validate(headEntity);
   query=adjustQuery(query);
-  final String entityType=query.getEntityType();
-  final FilterPipeline<Id> filterPipeline=new FilterPipeline(applicationScope,query.getCursor(),query.getLimit()).withFilter(filterFactory.getEntityIdFilter(cpHeadEntity.getId()));
-  final FilterPipeline<org.apache.usergrid.persistence.model.entity.Entity> entityFilterPipeline;
+  final Optional<String> entityType=Optional.fromNullable(query.getEntityType());
+  final IdBuilder pipelineBuilder=pipelineBuilderFactory.create(applicationScope).withCursor(query.getCursor()).withLimit(query.getLimit()).fromId(cpHeadEntity.getId());
+  if (query.getResultsLevel() == Level.REFS) {
+    final Observable<ResultsPage<ConnectionRef>> results;
+    if (query.isGraphSearch()) {
+      results=pipelineBuilder.traverseConnection(connection,entityType).loadConnectionRefs(cpHeadEntity.getId(),connection).build();
+    }
+ else {
+      results=pipelineBuilder.searchConnection(connection,query.getQl().get(),entityType).loadIds().loadConnectionRefs(cpHeadEntity.getId(),connection).build();
+    }
+    throw new UnsupportedOperationException("Implement me");
+  }
+  if (query.getResultsLevel() == Level.IDS) {
+    throw new UnsupportedOperationException("Not yet implemented");
+  }
+  final Observable<ResultsPage<org.apache.usergrid.persistence.model.entity.Entity>> results;
   if (query.isGraphSearch()) {
-    entityFilterPipeline=filterPipeline.withFilter(filterFactory.readGraphConnectionFilter(connection)).withFilter(filterFactory.entityLoadFilter());
+    results=pipelineBuilder.traverseConnection(connection,entityType).loadEntities().build();
   }
  else {
-    entityFilterPipeline=filterPipeline.withFilter(filterFactory.elasticSearchConnectionFilter(query.getQl().get(),connection,Optional.fromNullable(entityType))).withFilter(filterFactory.candidateEntityFilter());
+    results=pipelineBuilder.searchConnection(connection,query.getQl().get(),entityType).loadEntities().build();
   }
-  final Observable<ResultsPage> resultsObservable=entityFilterPipeline.withFilter(filterFactory.entityResumeFilter()).withCollector(collectorFactory.getResultsPageCollector()).execute();
-  return new ObservableQueryExecutor(resultsObservable).next();
+  return new ObservableQueryExecutor(results).next();
 }
