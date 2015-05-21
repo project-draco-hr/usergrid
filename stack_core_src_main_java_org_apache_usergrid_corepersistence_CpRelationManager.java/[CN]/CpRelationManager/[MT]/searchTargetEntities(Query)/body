@@ -7,14 +7,15 @@
   final Optional<String> entityType=Optional.fromNullable(query.getEntityType());
   final IdBuilder pipelineBuilder=pipelineBuilderFactory.create(applicationScope).withCursor(query.getCursor()).withLimit(query.getLimit()).fromId(cpHeadEntity.getId());
   if (query.getResultsLevel() == Level.REFS) {
-    final Observable<ResultsPage<ConnectionRef>> results;
+    final IdBuilder traversedIds;
     if (query.isGraphSearch()) {
-      results=pipelineBuilder.traverseConnection(connection,entityType).loadConnectionRefs(cpHeadEntity.getId(),connection).build();
+      traversedIds=pipelineBuilder.traverseConnection(connection,entityType);
     }
  else {
-      results=pipelineBuilder.searchConnection(connection,query.getQl().get(),entityType).loadIds().loadConnectionRefs(cpHeadEntity.getId(),connection).build();
+      traversedIds=pipelineBuilder.searchConnection(connection,query.getQl().get(),entityType).loadIds();
     }
-    throw new UnsupportedOperationException("Implement me");
+    final Observable<ResultsPage<ConnectionRef>> results=traversedIds.loadConnectionRefs(cpHeadEntity.getId(),connection).build();
+    return new ConnectionRefQueryExecutor(results).next();
   }
   if (query.getResultsLevel() == Level.IDS) {
     throw new UnsupportedOperationException("Not yet implemented");
@@ -26,5 +27,5 @@
  else {
     results=pipelineBuilder.searchConnection(connection,query.getQl().get(),entityType).loadEntities().build();
   }
-  return new ObservableQueryExecutor(results).next();
+  return new EntityQueryExecutor(results).next();
 }
