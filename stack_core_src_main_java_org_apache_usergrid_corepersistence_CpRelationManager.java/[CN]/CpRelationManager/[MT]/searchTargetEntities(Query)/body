@@ -6,7 +6,7 @@
   query=adjustQuery(query);
   final Optional<String> entityType=Optional.fromNullable(query.getEntityType());
   final IdBuilder pipelineBuilder=pipelineBuilderFactory.create(applicationScope).withCursor(query.getCursor()).withLimit(query.getLimit()).fromId(cpHeadEntity.getId());
-  if (query.getResultsLevel() == Level.REFS) {
+  if (query.getResultsLevel() == Level.REFS || query.getResultsLevel() == Level.IDS) {
     final IdBuilder traversedIds;
     if (query.isGraphSearch()) {
       traversedIds=pipelineBuilder.traverseConnection(connection,entityType);
@@ -16,9 +16,6 @@
     }
     final Observable<ResultsPage<ConnectionRef>> results=traversedIds.loadConnectionRefs(cpHeadEntity.getId(),connection).build();
     return new ConnectionRefQueryExecutor(results).next();
-  }
-  if (query.getResultsLevel() == Level.IDS) {
-    throw new UnsupportedOperationException("Not yet implemented");
   }
   final Observable<ResultsPage<org.apache.usergrid.persistence.model.entity.Entity>> results;
   if (query.isGraphSearch()) {
