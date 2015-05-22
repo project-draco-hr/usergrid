@@ -27,13 +27,13 @@
   if (logger.isDebugEnabled()) {
     logger.debug("Wrote edge {}",edge);
   }
-  indexService.queueNewEdge(applicationScope,memberEntity,edge);
-  if (!cpHeadEntity.getId().getType().equals("application")) {
+  final String linkedCollection=collection.getLinkedCollection();
+  if (linkedCollection != null) {
     String pluralType=InflectionUtils.pluralize(cpHeadEntity.getId().getType());
     final Edge reverseEdge=createCollectionEdge(memberEntity.getId(),pluralType,cpHeadEntity.getId());
     gm.writeEdge(reverseEdge).toBlocking().last();
-    indexService.queueNewEdge(applicationScope,cpHeadEntity,reverseEdge);
   }
+  indexService.queueNewEdge(applicationScope,memberEntity,edge);
   if (logger.isDebugEnabled()) {
     logger.debug("Added entity {}:{} to collection {}",new Object[]{itemRef.getUuid().toString(),itemRef.getType(),collectionName});
   }
