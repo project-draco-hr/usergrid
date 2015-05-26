@@ -4,16 +4,25 @@
   Preconditions.checkNotNull(connection,"connection must be specified");
   headEntity=em.validate(headEntity);
   query=adjustQuery(query);
-  final String entityType=query.getEntityType();
-  final ReadPipelineBuilder readPipelineBuilder=pipelineBuilderFactory.createReadPipelineBuilder(applicationScope);
-  readPipelineBuilder.withCursor(query.getCursor()).withLimit(Optional.of(query.getLimit())).setStartId(cpHeadEntity.getId());
+  final Optional<String> entityType=Optional.fromNullable(query.getEntityType());
+  final IdBuilder pipelineBuilder=pipelineBuilderFactory.create(applicationScope).withCursor(query.getCursor()).withLimit(query.getLimit()).fromId(cpHeadEntity.getId());
+  if (query.getResultsLevel() == Level.REFS || query.getResultsLevel() == Level.IDS) {
+    final IdBuilder traversedIds;
+    if (query.isGraphSearch()) {
+      traversedIds=pipelineBuilder.traverseConnection(connection,entityType);
+    }
+ else {
+      traversedIds=pipelineBuilder.searchConnection(connection,query.getQl().get(),entityType).loadIds();
+    }
+    final Observable<ResultsPage<ConnectionRef>> results=traversedIds.loadConnectionRefs(cpHeadEntity.getId(),connection).build();
+    return new ConnectionRefQueryExecutor(results).next();
+  }
+  final Observable<ResultsPage<org.apache.usergrid.persistence.model.entity.Entity>> results;
   if (query.isGraphSearch()) {
-    if (entityType == null)     readPipelineBuilder.getConnection(connection);
- else     readPipelineBuilder.getConnection(connection,entityType);
+    results=pipelineBuilder.traverseConnection(connection,entityType).loadEntities().build();
   }
  else {
-    readPipelineBuilder.getConnectionWithQuery(connection,Optional.fromNullable(entityType),query.getQl().get());
+    results=pipelineBuilder.searchConnection(connection,query.getQl().get(),entityType).loadEntities().build();
   }
-  final Observable<ResultsPage> resultsObservable=readPipelineBuilder.execute();
-  return new ObservableQueryExecutor(resultsObservable).next();
+  return new EntityQueryExecutor(results).next();
 }
