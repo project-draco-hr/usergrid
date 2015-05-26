@@ -1,0 +1,16 @@
+{
+  ListTopicsResult listTopicsResult=sns.listTopics();
+  String topicArn=null;
+  for (  Topic topic : listTopicsResult.getTopics()) {
+    String arn=topic.getTopicArn();
+    if (queueName.equals(arn.substring(arn.lastIndexOf(':')))) {
+      topicArn=arn;
+    }
+  }
+  if (topicArn == null && createOnMissing) {
+    CreateTopicResult createTopicResult=sns.createTopic(queueName);
+    topicArn=createTopicResult.getTopicArn();
+    logger.info("Created topic with name {} and arn {}",queueName,topicArn);
+  }
+  return topicArn;
+}

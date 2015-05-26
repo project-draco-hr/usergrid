@@ -1,0 +1,13 @@
+{
+  String queueArn=null;
+  try {
+    GetQueueAttributesRequest queueAttributesRequest=new GetQueueAttributesRequest(queueUrl).withAttributeNames("All");
+    GetQueueAttributesResult queueAttributesResult=sqs.getQueueAttributes(queueAttributesRequest);
+    Map<String,String> sqsAttributeMap=queueAttributesResult.getAttributes();
+    return sqsAttributeMap.get("QueueArn");
+  }
+ catch (  Exception e) {
+    logger.error("Failed to get queue URL from service",e);
+    throw e;
+  }
+}
