@@ -1,6 +1,6 @@
 {
   if (headEntity.getUuid().equals(applicationId)) {
-    if (collName.equals(COLLECTION_ROLES)) {
+    if (collectionName.equals(COLLECTION_ROLES)) {
       Entity itemEntity=em.get(itemRef);
       if (itemEntity != null) {
         RoleRef roleRef=SimpleRoleRef.forRoleEntity(itemEntity);
@@ -19,15 +19,15 @@
   Id entityId=new SimpleId(itemRef.getUuid(),itemRef.getType());
   org.apache.usergrid.persistence.model.entity.Entity memberEntity=((CpEntityManager)em).load(entityId);
   GraphManager gm=managerCache.getGraphManager(applicationScope);
-  final Edge collectionToItemEdge=createCollectionEdge(cpHeadEntity.getId(),collName,memberEntity.getId());
+  final Edge collectionToItemEdge=createCollectionEdge(cpHeadEntity.getId(),collectionName,memberEntity.getId());
   gm.markEdge(collectionToItemEdge).toBlocking().last();
   final ApplicationEntityIndex ei=managerCache.getEntityIndex(applicationScope);
   final EntityIndexBatch batch=ei.createBatch();
-  SearchEdge indexScope=createCollectionSearchEdge(cpHeadEntity.getId(),collName);
+  SearchEdge indexScope=createCollectionSearchEdge(cpHeadEntity.getId(),collectionName);
   batch.deindex(indexScope,memberEntity);
   batch.execute();
   if (headEntity.getType().equals(Group.ENTITY_TYPE)) {
-    if (collName.equals(COLLECTION_ROLES)) {
+    if (collectionName.equals(COLLECTION_ROLES)) {
       String path=(String)((Entity)itemRef).getMetadata("path");
       if (path.startsWith("/roles/")) {
         Entity itemEntity=em.get(new SimpleEntityRef(memberEntity.getId().getType(),memberEntity.getId().getUuid()));

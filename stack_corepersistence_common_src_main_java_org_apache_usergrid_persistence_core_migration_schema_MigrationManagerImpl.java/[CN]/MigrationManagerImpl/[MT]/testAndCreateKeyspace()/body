@@ -3,15 +3,11 @@
   try {
     keyspaceDefinition=keyspace.describeKeyspace();
   }
- catch (  BadRequestException badRequestException) {
-    final String message=badRequestException.getMessage();
-    boolean missingKeyspace=message.contains("why:Keyspace") && message.contains("does not exist");
-    if (!missingKeyspace) {
-      throw badRequestException;
-    }
-  }
-catch (  NotFoundException nfe) {
+ catch (  NotFoundException nfe) {
     logger.info("Received a NotFoundException when attempting to describe keyspace.  It does not exist");
+  }
+catch (  Exception e) {
+    AstayanxUtils.isKeyspaceMissing("Unable to connect to cassandra",e);
   }
   if (keyspaceDefinition != null) {
     return;

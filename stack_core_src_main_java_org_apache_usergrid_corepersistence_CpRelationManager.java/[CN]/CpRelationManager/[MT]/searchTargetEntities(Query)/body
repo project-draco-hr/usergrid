@@ -1,0 +1,19 @@
+{
+  Preconditions.checkNotNull(query,"query cannot be null");
+  final String connection=query.getConnectionType();
+  Preconditions.checkNotNull(connection,"connection must be specified");
+  headEntity=em.validate(headEntity);
+  query=adjustQuery(query);
+  final String entityType=query.getEntityType();
+  final ReadPipelineBuilder readPipelineBuilder=pipelineBuilderFactory.createReadPipelineBuilder(applicationScope);
+  readPipelineBuilder.withCursor(query.getCursor()).withLimit(Optional.of(query.getLimit())).setStartId(cpHeadEntity.getId());
+  if (query.isGraphSearch()) {
+    if (entityType == null)     readPipelineBuilder.getConnection(connection);
+ else     readPipelineBuilder.getConnection(connection,entityType);
+  }
+ else {
+    readPipelineBuilder.getConnectionWithQuery(connection,Optional.fromNullable(entityType),query.getQl().get());
+  }
+  final Observable<ResultsPage> resultsObservable=readPipelineBuilder.execute();
+  return new ObservableQueryExecutor(resultsObservable).next();
+}

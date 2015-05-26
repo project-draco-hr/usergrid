@@ -1,0 +1,12 @@
+{
+  if (!cursor.isPresent()) {
+    return Optional.absent();
+  }
+  final String persistedCursor=mapManager.getString(cursor.get());
+  if (persistedCursor == null) {
+    return Optional.absent();
+  }
+  final JsonNode node=CursorSerializerUtil.fromString(persistedCursor);
+  final EdgeScope edgeScope=EdgeScopeSerializer.INSTANCE.fromJsonNode(node,CursorSerializerUtil.getMapper());
+  return Optional.of(edgeScope);
+}
