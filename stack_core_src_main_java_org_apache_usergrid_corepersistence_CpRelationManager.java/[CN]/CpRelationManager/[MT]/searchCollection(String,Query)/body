@@ -10,17 +10,14 @@
   }
   query.setEntityType(collection.getType());
   query=adjustQuery(query);
-  final ReadPipelineBuilder readPipelineBuilder=pipelineBuilderFactory.createReadPipelineBuilder(applicationScope);
-  readPipelineBuilder.withCursor(query.getCursor());
-  readPipelineBuilder.withLimit(Optional.of(query.getLimit()));
-  readPipelineBuilder.setStartId(cpHeadEntity.getId());
+  final IdBuilder pipelineBuilder=pipelineBuilderFactory.create(applicationScope).withCursor(query.getCursor()).withLimit(query.getLimit()).fromId(cpHeadEntity.getId());
+  final EntityBuilder results;
   if (query.isGraphSearch()) {
-    readPipelineBuilder.getCollection(collectionName);
+    results=pipelineBuilder.traverseCollection(collectionName).loadEntities();
   }
  else {
     final String entityType=collection.getType();
-    readPipelineBuilder.getCollectionWithQuery(collectionName,entityType,query.getQl().get());
+    results=pipelineBuilder.searchCollection(collectionName,query.getQl().get(),entityType).loadEntities();
   }
-  final Observable<ResultsPage> resultsObservable=readPipelineBuilder.execute();
-  return new ObservableQueryExecutor(resultsObservable).next();
+  return new EntityQueryExecutor(results.build()).next();
 }
