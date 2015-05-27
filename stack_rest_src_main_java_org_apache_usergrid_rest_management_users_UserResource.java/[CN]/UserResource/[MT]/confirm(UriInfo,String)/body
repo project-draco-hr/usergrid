@@ -1,4 +1,8 @@
 {
+  final boolean externalTokensEnabled=!StringUtils.isEmpty(properties.getProperty(ManagementResource.USERGRID_CENTRAL_URL));
+  if (externalTokensEnabled) {
+    throw new IllegalArgumentException("Admin Users must confirm via " + properties.getProperty(ManagementResource.USERGRID_CENTRAL_URL));
+  }
   try {
     ActivationState state=management.handleConfirmationTokenForAdminUser(user.getUuid(),token);
     if (state == ActivationState.CONFIRMED_AWAITING_ACTIVATION) {

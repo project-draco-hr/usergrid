@@ -1,11 +1,11 @@
 {
   Map<String,String> data=new HashMap<String,String>();
   data.put("name","mgmt-org-app");
-  String orgName=context.getOrgName();
-  JsonNode appdata=mapper.readTree(resource().path("/management/orgs/" + orgName + "/applications").queryParam("access_token",context.getActiveUser().getToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,data));
+  String orgName=orgInfo.getName();
+  JsonNode appdata=mapper.readTree(resource().path("/management/orgs/" + orgName + "/applications").queryParam("access_token",this.adminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,data));
   logNode(appdata);
   appdata=getEntity(appdata,0);
-  refreshIndex(orgName,context.getAppName());
+  refreshIndex(this.orgInfo.getName(),this.appInfo.getName());
   assertEquals(orgName.toLowerCase() + "/mgmt-org-app",appdata.get("name").asText());
   assertNotNull(appdata.get("metadata"));
   assertNotNull(appdata.get("metadata").get("collections"));
@@ -13,8 +13,8 @@
   assertNotNull(appdata.get("metadata").get("collections").get("roles").get("title"));
   assertEquals("Roles",appdata.get("metadata").get("collections").get("roles").get("title").asText());
   assertEquals(3,appdata.get("metadata").get("collections").get("roles").get("count").asInt());
-  refreshIndex(orgName,context.getAppName());
-  appdata=mapper.readTree(resource().path("/management/orgs/" + context.getOrgUuid() + "/applications/mgmt-org-app").queryParam("access_token",context.getActiveUser().getToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
+  refreshIndex(this.orgInfo.getName(),this.appInfo.getName());
+  appdata=mapper.readTree(resource().path("/management/orgs/" + orgInfo.getUuid() + "/applications/mgmt-org-app").queryParam("access_token",this.adminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   logNode(appdata);
   assertEquals(orgName.toLowerCase(),appdata.get("organization").asText());
   assertEquals("mgmt-org-app",appdata.get("applicationName").asText());

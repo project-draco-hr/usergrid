@@ -2,8 +2,18 @@
   String testClass=description.getTestClass().getName();
   String methodName=description.getMethodName();
   String name=testClass + "." + methodName;
-  restClient.superuserSetup();
-  superuserToken=restClient.management().token().post(new Token(superuserName,superuserPassword));
+  try {
+    restClient.superuserSetup();
+    superuserToken=restClient.management().token().post(new Token(superuserName,superuserPassword));
+  }
+ catch (  Exception e) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Error creating superuser, may already exist",e);
+    }
+ else {
+      logger.warn("Error creating superuser, may already exist");
+    }
+  }
   username="user_" + name + UUIDUtils.newTimeUUID();
   password=username;
   orgName="org_" + name + UUIDUtils.newTimeUUID();

@@ -1,12 +1,12 @@
 {
-  String uploadFileName=AssetUtils.buildAssetKey(appId,entity);
   ByteArrayOutputStream baos=new ByteArrayOutputStream();
   long written=IOUtils.copyLarge(inputStream,baos,0,FIVE_MB);
   byte[] data=baos.toByteArray();
-  final Map<String,Object> fileMetadata=AssetUtils.getFileMetadata(entity);
-  fileMetadata.put(AssetUtils.LAST_MODIFIED,System.currentTimeMillis());
-  String mimeType=AssetMimeHandler.get().getMimeType(entity,data);
   if (written < FIVE_MB) {
+    final String uploadFileName=AssetUtils.buildAssetKey(appId,entity);
+    final String mimeType=AssetMimeHandler.get().getMimeType(entity,data);
+    final Map<String,Object> fileMetadata=AssetUtils.getFileMetadata(entity);
+    fileMetadata.put(AssetUtils.LAST_MODIFIED,System.currentTimeMillis());
     BlobStore blobStore=getContext().getBlobStore();
     BlobBuilder.PayloadBlobBuilder bb=blobStore.blobBuilder(uploadFileName).payload(data).contentMD5(Hashing.md5().newHasher().putBytes(data).hash()).contentType(mimeType);
     fileMetadata.put(AssetUtils.CONTENT_LENGTH,written);
@@ -20,44 +20,7 @@
     fileMetadata.put(AssetUtils.E_TAG,eTag);
   }
  else {
-    final AsyncBlobStore blobStore=getContext().getAsyncBlobStore();
-    File tempFile=File.createTempFile(entity.getUuid().toString(),"tmp");
-    tempFile.deleteOnExit();
-    OutputStream os=null;
-    try {
-      os=new BufferedOutputStream(new FileOutputStream(tempFile.getAbsolutePath()));
-      os.write(data);
-      written+=IOUtils.copyLarge(inputStream,os,0,(FileUtils.ONE_GB * 5));
-    }
-  finally {
-      IOUtils.closeQuietly(os);
-    }
-    BlobBuilder.PayloadBlobBuilder bb=blobStore.blobBuilder(uploadFileName).payload(tempFile).contentMD5(Files.hash(tempFile,Hashing.md5())).contentType(mimeType);
-    fileMetadata.put(AssetUtils.CONTENT_LENGTH,written);
-    if (fileMetadata.get(AssetUtils.CONTENT_DISPOSITION) != null) {
-      bb.contentDisposition(fileMetadata.get(AssetUtils.CONTENT_DISPOSITION).toString());
-    }
-    final Blob blob=bb.build();
-    final File finalTempFile=tempFile;
-    final ListenableFuture<String> future=blobStore.putBlob(bucketName,blob,PutOptions.Builder.multipart());
-    Runnable listener=new Runnable(){
-      @Override public void run(){
-        try {
-          String eTag=future.get();
-          fileMetadata.put(AssetUtils.E_TAG,eTag);
-          EntityManager em=emf.getEntityManager(appId);
-          em.update(entity);
-          finalTempFile.delete();
-        }
- catch (        Exception e) {
-          LOG.error("error uploading",e);
-        }
-        if (finalTempFile != null && finalTempFile.exists()) {
-          finalTempFile.delete();
-        }
-      }
-    }
-;
-    future.addListener(listener,executor);
+    ExecutorService executors=getExecutorService();
+    executors.submit(new UploadWorker(appId,entity,inputStream,data,written));
   }
 }

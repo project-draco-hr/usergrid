@@ -1,0 +1,34 @@
+{
+  String rand=RandomStringUtils.randomAlphanumeric(10);
+  final String username="user_" + rand;
+  OrganizationOwnerInfo orgInfo=setup.getMgmtSvc().createOwnerAndOrganization(username,username,"Test User",username + "@example.com","password");
+  Map<String,Object> loginInfo=new HashMap<String,Object>(){
+{
+      put("username",username);
+      put("password","password");
+      put("grant_type","password");
+    }
+  }
+;
+  JsonNode accessInfoNode=resource().path("/management/token").type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,loginInfo);
+  String accessToken=accessInfoNode.get("access_token").textValue();
+  String suToken=superAdminToken();
+  Map<String,String> props=new HashMap<String,String>();
+  props.put(USERGRID_CENTRAL_URL,getBaseURI().toURL().toExternalForm());
+  resource().path("/testproperties").queryParam("access_token",suToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(props);
+  JsonNode validatedNode=resource().path("/management/externaltoken").queryParam("access_token",suToken).queryParam("ext_access_token",accessToken).queryParam("ttl","1000").get(JsonNode.class);
+  String validatedAccessToken=validatedNode.get("access_token").textValue();
+  assertEquals(accessToken,validatedAccessToken);
+  try {
+    resource().path("/management/externaltoken").queryParam("access_token",suToken).queryParam("ext_access_token","rubbish_token").queryParam("ttl","1000").get(JsonNode.class);
+    fail("Validation should have failed");
+  }
+ catch (  UniformInterfaceException actual) {
+    assertEquals(404,actual.getResponse().getStatus());
+    String errorMsg=actual.getResponse().getEntity(JsonNode.class).get("error_description").toString();
+    logger.error("ERROR: " + errorMsg);
+    assertTrue(errorMsg.contains("Cannot find Admin User"));
+  }
+  props.put(USERGRID_CENTRAL_URL,"");
+  resource().path("/testproperties").queryParam("access_token",suToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(props);
+}

@@ -1,17 +1,27 @@
 {
+  this.refreshIndex();
   byte[] data=IOUtils.toByteArray(this.getClass().getResourceAsStream("/file-bigger-than-5M"));
   FormDataMultiPart form=new FormDataMultiPart().field("file",data,MediaType.MULTIPART_FORM_DATA_TYPE);
-  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/foos").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.MULTIPART_FORM_DATA).post(String.class,form));
+  String orgAppPath=clientSetup.getOrganizationName() + "/" + clientSetup.getAppName();
+  JsonNode node=mapper.readTree(resource().path(orgAppPath + "/foos").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.MULTIPART_FORM_DATA).post(String.class,form));
   JsonNode idNode=node.get("entities").get(0).get("uuid");
   String uuid=idNode.textValue();
   assertNotNull(uuid);
-  node=mapper.readTree(resource().path("/test-organization/test-app/foos/" + uuid).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-  assertEquals("application/octet-stream",node.findValue(AssetUtils.CONTENT_TYPE).textValue());
-  assertEquals(5324800,node.findValue(AssetUtils.CONTENT_LENGTH).intValue());
-  idNode=node.get("entities").get(0).get("uuid");
-  assertEquals(uuid,idNode.textValue());
-  InputStream is=resource().path("/test-organization/test-app/foos/" + uuid).queryParam("access_token",access_token).accept(MediaType.APPLICATION_OCTET_STREAM_TYPE).get(InputStream.class);
-  byte[] foundData=IOUtils.toByteArray(is);
+  this.refreshIndex();
+  int retries=0;
+  boolean done=false;
+  byte[] foundData=new byte[0];
+  while (!done && retries < 30) {
+    try {
+      InputStream is=resource().path(orgAppPath + "/foos/" + uuid).queryParam("access_token",access_token).accept(MediaType.APPLICATION_OCTET_STREAM_TYPE).get(InputStream.class);
+      foundData=IOUtils.toByteArray(is);
+      done=true;
+    }
+ catch (    Exception intentiallyIgnored) {
+    }
+    Thread.sleep(1000);
+    retries++;
+  }
   assertEquals(5324800,foundData.length);
-  node=mapper.readTree(resource().path("/test-organization/test-app/foos/" + uuid).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON_TYPE).delete(String.class));
+  node=mapper.readTree(resource().path(orgAppPath + "/foos/" + uuid).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON_TYPE).delete(String.class));
 }

@@ -1,0 +1,16 @@
+{
+  if (executorService == null) {
+synchronized (this) {
+      int workers=40;
+      String workersString=properties.getProperty(WORKERS_PROP_NAME,"40");
+      if (StringUtils.isNumeric(workersString)) {
+        workers=Integer.parseInt(workersString);
+      }
+ else       if (!StringUtils.isEmpty(workersString)) {
+        LOG.error("Ignoring invalid setting for {}",WORKERS_PROP_NAME);
+      }
+      executorService=Executors.newFixedThreadPool(workers);
+    }
+  }
+  return executorService;
+}

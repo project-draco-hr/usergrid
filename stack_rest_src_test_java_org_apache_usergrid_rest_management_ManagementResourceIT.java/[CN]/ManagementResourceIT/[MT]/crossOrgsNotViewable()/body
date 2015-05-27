@@ -8,7 +8,7 @@
   JsonNode node=mapper.readTree(resource().path("/management/organizations").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
   Status status=null;
   try {
-    resource().path(String.format("/management/orgs/%s",orgName)).queryParam("access_token",context.getActiveUser().getToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
+    this.resource().path(String.format("/management/orgs/%s",orgName)).queryParam("access_token",this.adminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getClientResponseStatus();
@@ -17,7 +17,7 @@
   assertEquals(Status.UNAUTHORIZED,status);
   status=null;
   try {
-    resource().path("/management/orgs/" + context.getOrgName()).queryParam("access_token",context.getActiveUser().getToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
+    resource().path("/management/orgs/" + this.orgInfo.getName()).queryParam("access_token",this.adminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getClientResponseStatus();
@@ -25,7 +25,7 @@
   assertNull(status);
   status=null;
   try {
-    resource().path(String.format("/management/orgs/%s",context.getOrgUuid())).queryParam("access_token",context.getActiveUser().getToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
+    resource().path(String.format("/management/orgs/%s",this.orgInfo.getUuid())).queryParam("access_token",this.adminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getClientResponseStatus();
