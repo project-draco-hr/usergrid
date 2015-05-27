@@ -1,4 +1,5 @@
 {
+  ReIndexService reIndexService=setup.getInjector().getInstance(ReIndexService.class);
   int maxRetries=10;
   String rand=UUIDGenerator.newTimeUUID().toString();
   String appName="test-app-" + rand;
@@ -44,10 +45,24 @@
   found=findApps.call(deletedAppId,emf.getApplications());
   assertFalse("Deleted app must not be found in apps collection",found);
   emf.restoreApplication(deletedAppId);
-  fail("Implement index rebuild");
+  final ReIndexRequestBuilder builder=reIndexService.getBuilder().withApplicationId(deletedAppId);
+  ReIndexService.ReIndexStatus status=reIndexService.rebuildIndex(builder);
+  int count=0;
+  do {
+    status=reIndexService.getStatus(status.getJobId());
+    count++;
+    if (count > 0) {
+      if (count > 10) {
+        break;
+      }
+      Thread.sleep(1000);
+    }
+  }
+ while (status.getStatus() != ReIndexService.Status.COMPLETE);
   this.app.refreshIndex();
   found=findApps.call(deletedAppId,emf.getDeletedApplications());
   assertFalse("Restored app found in deleted apps collection",found);
+  this.app.refreshIndex();
   Map<String,UUID> apps=setup.getEmf().getApplications();
   found=findApps.call(deletedAppId,apps);
   assertTrue("Restored app not found in apps collection",found);
