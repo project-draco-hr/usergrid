@@ -1,0 +1,63 @@
+{
+  String uploadFileName=AssetUtils.buildAssetKey(appId,entity);
+  ByteArrayOutputStream baos=new ByteArrayOutputStream();
+  long written=IOUtils.copyLarge(inputStream,baos,0,FIVE_MB);
+  byte[] data=baos.toByteArray();
+  InputStream awsInputStream=new ByteArrayInputStream(data);
+  final Map<String,Object> fileMetadata=AssetUtils.getFileMetadata(entity);
+  fileMetadata.put(AssetUtils.LAST_MODIFIED,System.currentTimeMillis());
+  String mimeType=AssetMimeHandler.get().getMimeType(entity,data);
+  if (written < FIVE_MB) {
+    ObjectMetadata om=new ObjectMetadata();
+    om.setContentLength(written);
+    om.setContentType(mimeType);
+    PutObjectResult result=getS3Client().putObject(bucketName,uploadFileName,awsInputStream,om);
+    String md5sum=Hex.encodeHexString(Base64.decodeBase64(result.getContentMd5()));
+    String eTag=result.getETag();
+    fileMetadata.put(AssetUtils.CONTENT_LENGTH,written);
+    if (md5sum != null)     fileMetadata.put(AssetUtils.CHECKSUM,md5sum);
+    fileMetadata.put(AssetUtils.E_TAG,eTag);
+  }
+ else {
+    written=0;
+    int partNumber=1;
+    int firstByte=0;
+    Boolean isFirstChunck=true;
+    List<PartETag> partETags=new ArrayList<PartETag>();
+    InitiateMultipartUploadRequest initRequest=new InitiateMultipartUploadRequest(bucketName,uploadFileName);
+    InitiateMultipartUploadResult initResponse=getS3Client().initiateMultipartUpload(initRequest);
+    InputStream firstChunck=new ByteArrayInputStream(data);
+    PushbackInputStream chunckableInputStream=new PushbackInputStream(inputStream,1);
+    while (-1 != (firstByte=chunckableInputStream.read())) {
+      long partSize=0;
+      chunckableInputStream.unread(firstByte);
+      File tempFile=File.createTempFile(entity.getUuid().toString().concat("-part").concat(String.valueOf(partNumber)),"tmp");
+      tempFile.deleteOnExit();
+      OutputStream os=null;
+      try {
+        os=new BufferedOutputStream(new FileOutputStream(tempFile.getAbsolutePath()));
+        if (isFirstChunck == true) {
+          partSize=IOUtils.copyLarge(firstChunck,os,0,(FIVE_MB));
+          isFirstChunck=false;
+        }
+ else {
+          partSize=IOUtils.copyLarge(chunckableInputStream,os,0,(FIVE_MB));
+        }
+        written+=partSize;
+      }
+  finally {
+        IOUtils.closeQuietly(os);
+      }
+      FileInputStream chunck=new FileInputStream(tempFile);
+      Boolean isLastPart=-1 == (firstByte=chunckableInputStream.read());
+      if (!isLastPart)       chunckableInputStream.unread(firstByte);
+      UploadPartRequest uploadRequest=new UploadPartRequest().withUploadId(initResponse.getUploadId()).withBucketName(bucketName).withKey(uploadFileName).withInputStream(chunck).withPartNumber(partNumber).withPartSize(partSize).withLastPart(isLastPart);
+      partETags.add(getS3Client().uploadPart(uploadRequest).getPartETag());
+      partNumber++;
+    }
+    CompleteMultipartUploadRequest request=new CompleteMultipartUploadRequest(bucketName,uploadFileName,initResponse.getUploadId(),partETags);
+    CompleteMultipartUploadResult amazonResult=getS3Client().completeMultipartUpload(request);
+    fileMetadata.put(AssetUtils.CONTENT_LENGTH,written);
+    fileMetadata.put(AssetUtils.E_TAG,amazonResult.getETag());
+  }
+}

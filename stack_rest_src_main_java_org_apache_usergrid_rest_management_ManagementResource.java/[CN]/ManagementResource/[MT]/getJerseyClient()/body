@@ -1,0 +1,32 @@
+{
+  if (jerseyClient == null) {
+synchronized (this) {
+      int poolSize=100;
+      final String poolSizeStr=properties.getProperty(CENTRAL_CONNECTION_POOL_SIZE);
+      if (poolSizeStr != null) {
+        poolSize=Integer.parseInt(poolSizeStr);
+      }
+      MultiThreadedHttpConnectionManager cm=new MultiThreadedHttpConnectionManager();
+      HttpConnectionManagerParams cmParams=cm.getParams();
+      cmParams.setMaxTotalConnections(poolSize);
+      HttpClient httpClient=new HttpClient(cm);
+      int timeout=20000;
+      final String timeoutStr=properties.getProperty(CENTRAL_CONNECTION_TIMEOUT);
+      if (timeoutStr != null) {
+        timeout=Integer.parseInt(timeoutStr);
+      }
+      int readTimeout=20000;
+      final String readTimeoutStr=properties.getProperty(CENTRAL_READ_TIMEOUT);
+      if (readTimeoutStr != null) {
+        readTimeout=Integer.parseInt(readTimeoutStr);
+      }
+      ClientConfig clientConfig=new DefaultClientConfig();
+      clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING,Boolean.TRUE);
+      clientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT,timeout);
+      clientConfig.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT,readTimeout);
+      ApacheHttpClientHandler handler=new ApacheHttpClientHandler(httpClient,clientConfig);
+      jerseyClient=new ApacheHttpClient(handler);
+    }
+  }
+  return jerseyClient;
+}
