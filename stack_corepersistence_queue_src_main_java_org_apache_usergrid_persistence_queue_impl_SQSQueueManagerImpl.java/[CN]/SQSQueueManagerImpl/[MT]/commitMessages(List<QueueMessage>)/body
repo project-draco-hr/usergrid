@@ -1,6 +1,6 @@
 {
   String url=getQueue().getUrl();
-  LOG.debug("Commit messages {} to queue {}",queueMessages.size(),url);
+  if (logger.isDebugEnabled())   logger.debug("Commit messages {} to queue {}",queueMessages.size(),url);
   List<DeleteMessageBatchRequestEntry> entries=new ArrayList<>();
   for (  QueueMessage message : queueMessages) {
     entries.add(new DeleteMessageBatchRequestEntry(message.getMessageId(),message.getHandle()));
@@ -10,7 +10,7 @@
   boolean successful=result.getFailed().size() <= 0;
   if (!successful) {
     for (    BatchResultErrorEntry failed : result.getFailed()) {
-      LOG.error("Commit failed reason: {} messages id: {}",failed.getMessage(),failed.getId());
+      logger.error("Commit failed reason: {} messages id: {}",failed.getMessage(),failed.getId());
     }
   }
 }

@@ -1,16 +1,6 @@
 {
-  if (applicationScope == null || entityRef == null) {
-    return Observable.empty();
-  }
-  EntityCollectionManager ecm=managerCache.getEntityCollectionManager(applicationScope);
   Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
-  org.apache.usergrid.persistence.model.entity.Entity entity=load(entityId);
-  if (entity != null) {
-    decrementEntityCollection(Schema.defaultCollectionName(entityId.getType()));
-    indexService.queueEntityDelete(applicationScope,entityId);
-    return ecm.mark(entityId);
-  }
- else {
-    return Observable.empty();
-  }
+  indexService.queueEntityDelete(applicationScope,entityId);
+  MapManager mm=getMapManagerForTypes();
+  mm.delete(entityRef.getUuid().toString());
 }

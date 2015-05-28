@@ -1,0 +1,29 @@
+{
+  if (sqs == null) {
+    logger.error("SQS is null - was not initialized properly");
+    return new ArrayList<>();
+  }
+  String url=getReadQueue().getUrl();
+  if (logger.isDebugEnabled())   logger.debug("Getting {} messages from {}",limit,url);
+  ReceiveMessageRequest receiveMessageRequest=new ReceiveMessageRequest(url);
+  receiveMessageRequest.setMaxNumberOfMessages(limit);
+  receiveMessageRequest.setVisibilityTimeout(transactionTimeout / 1000);
+  receiveMessageRequest.setWaitTimeSeconds(waitTime / 1000);
+  ReceiveMessageResult result=sqs.receiveMessage(receiveMessageRequest);
+  List<Message> messages=result.getMessages();
+  if (logger.isDebugEnabled())   logger.debug("Received {} messages from {}",messages.size(),url);
+  List<QueueMessage> queueMessages=new ArrayList<>(messages.size());
+  for (  Message message : messages) {
+    Object body;
+    try {
+      body=fromString(message.getBody(),klass);
+    }
+ catch (    Exception e) {
+      logger.error("failed to deserialize message",e);
+      throw new RuntimeException(e);
+    }
+    QueueMessage queueMessage=new QueueMessage(message.getMessageId(),message.getReceiptHandle(),body,message.getAttributes().get("type"));
+    queueMessages.add(queueMessage);
+  }
+  return queueMessages;
+}

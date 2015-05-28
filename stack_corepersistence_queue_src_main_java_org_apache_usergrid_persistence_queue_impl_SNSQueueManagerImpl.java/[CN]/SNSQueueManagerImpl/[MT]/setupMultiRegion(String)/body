@@ -1,0 +1,39 @@
+{
+  String primaryTopicArn=AmazonNotificationUtils.getTopicArn(queueName,sns,true);
+  String primaryQueueArn=AmazonNotificationUtils.getQueueArnByName(queueName,sqs);
+  if (primaryQueueArn == null) {
+    String queueUrl=AmazonNotificationUtils.createQueue(queueName,sqs,fig);
+    primaryQueueArn=AmazonNotificationUtils.getQueueArnByUrl(queueUrl,sqs);
+  }
+  AmazonNotificationUtils.subscribeQueueToTopic(primaryTopicArn,primaryQueueArn,sns);
+  if (fig.isMultiRegion()) {
+    String multiRegion=fig.getRegionList();
+    String[] regionNames=multiRegion.split(",");
+    final Set<String> arrQueueArns=new HashSet<>(regionNames.length + 1);
+    final Map<String,AmazonSNSClient> topicArns=new HashMap<>(regionNames.length + 1);
+    arrQueueArns.add(primaryQueueArn);
+    topicArns.put(primaryTopicArn,sns);
+    for (    String regionName : regionNames) {
+      Regions regions=Regions.fromName(regionName);
+      Region region=Region.getRegion(regions);
+      AmazonSQSClient sqsClient=createSQSClient(region);
+      AmazonSNSClient snsClient=createSNSClient(region);
+      String topicArn=AmazonNotificationUtils.getTopicArn(queueName,snsClient,true);
+      topicArns.put(topicArn,snsClient);
+      String queueArn=AmazonNotificationUtils.getQueueArnByName(queueName,sqsClient);
+      if (queueArn == null) {
+        String queueUrl=AmazonNotificationUtils.createQueue(queueName,sqsClient,fig);
+        queueArn=AmazonNotificationUtils.getQueueArnByUrl(queueUrl,sqsClient);
+      }
+      arrQueueArns.add(queueArn);
+    }
+    for (    String queueArn : arrQueueArns) {
+      for (      Map.Entry<String,AmazonSNSClient> topicArnEntry : topicArns.entrySet()) {
+        String topicArn=topicArnEntry.getKey();
+        AmazonSNSClient snsClient=topicArnEntry.getValue();
+        AmazonNotificationUtils.subscribeQueueToTopic(topicArn,queueArn,snsClient);
+      }
+    }
+  }
+  return primaryTopicArn;
+}

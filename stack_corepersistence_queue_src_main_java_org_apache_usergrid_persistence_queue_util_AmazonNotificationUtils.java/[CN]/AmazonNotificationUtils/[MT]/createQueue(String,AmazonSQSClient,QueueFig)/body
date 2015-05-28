@@ -1,0 +1,18 @@
+{
+  final String deadletterQueueName=String.format("%s_dead",queueName);
+  final Map<String,String> deadLetterAttributes=new HashMap<>(2);
+  deadLetterAttributes.put("MessageRetentionPeriod",fig.getDeadletterRetentionPeriod());
+  CreateQueueRequest createDeadLetterQueueRequest=new CreateQueueRequest().withQueueName(deadletterQueueName).withAttributes(deadLetterAttributes);
+  final CreateQueueResult deadletterResult=sqs.createQueue(createDeadLetterQueueRequest);
+  logger.info("Created deadletter queue with url {}",deadletterResult.getQueueUrl());
+  final String deadletterArn=AmazonNotificationUtils.getQueueArnByName(deadletterQueueName,sqs);
+  String redrivePolicy=String.format("{\"maxReceiveCount\":\"%s\"," + " \"deadLetterTargetArn\":\"%s\"}",fig.getQueueDeliveryLimit(),deadletterArn);
+  final Map<String,String> queueAttributes=new HashMap<>(2);
+  deadLetterAttributes.put("MessageRetentionPeriod",fig.getRetentionPeriod());
+  deadLetterAttributes.put("RedrivePolicy",redrivePolicy);
+  CreateQueueRequest createQueueRequest=new CreateQueueRequest().withQueueName(queueName).withAttributes(queueAttributes);
+  CreateQueueResult result=sqs.createQueue(createQueueRequest);
+  String url=result.getQueueUrl();
+  logger.info("Created SQS queue with url {}",url);
+  return url;
+}
