@@ -1,7 +1,7 @@
 {
   if (sqs == null) {
     logger.error("Sqs is null");
-    return new ArrayList<>();
+    return rx.Observable.empty();
   }
   String url=getQueue().getUrl();
   if (logger.isDebugEnabled())   logger.debug("Getting Max {} messages from {}",limit,url);
@@ -25,5 +25,5 @@
     QueueMessage queueMessage=new QueueMessage(message.getMessageId(),message.getReceiptHandle(),body,message.getAttributes().get("type"));
     queueMessages.add(queueMessage);
   }
-  return queueMessages;
+  return rx.Observable.from(queueMessages);
 }
