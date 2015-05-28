@@ -1,5 +1,5 @@
 {
-  Map<String,String> originalProperties=getRemoteTestProperties();
+  Map<String,Object> originalProperties=getRemoteTestProperties();
   try {
     setTestProperty(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"false");
     setTestProperty(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
@@ -8,36 +8,31 @@
     final String username="registrationUser" + UUIDGenerator.newTimeUUID();
     final String email=username + "@usergrid.com";
     final String password="password";
-    final TestUser user1=new TestAppUser(username,password,email);
-    context.withOrg("org" + UUIDGenerator.newTimeUUID()).withApp("app" + UUIDGenerator.newTimeUUID()).withUser(user1).createNewOrgAndUser();
-    context.createAppForOrg();
-    final UUID owner_uuid=context.getActiveUser().getUuid();
+    Organization organization=this.management().orgs().post(new Organization("org" + UUIDGenerator.newTimeUUID(),username,email,username,password,new HashMap<String,Object>()),this.getAdminToken());
+    Application application=new Application("app" + UUIDGenerator.newTimeUUID());
+    this.management().orgs().organization(organization.getName()).app().post(application);
     List<Message> inbox=org.jvnet.mock_javamail.Mailbox.get("test-user-1@mockserver.com");
     assertFalse(inbox.isEmpty());
     Message account_confirmation_message=inbox.get(0);
     assertEquals("User Account Confirmation: " + email,account_confirmation_message.getSubject());
     String token=getTokenFromMessage(account_confirmation_message);
     logger.info(token);
-    setup.getMgmtSvc().disableAdminUser(owner_uuid);
-    refreshIndex(context.getOrgName(),context.getAppName());
+    setTestProperty(AccountCreationProps.PROPERTIES_SYSADMIN_LOGIN_ALLOWED,"false");
+    refreshIndex();
     try {
-      resource().path("/management/token").queryParam("grant_type","password").queryParam("username",username).queryParam("password",password).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
+      this.management().orgs().organization(organization.getName()).users().user(username).getResource(false).queryParam("username",username).queryParam("password",password).get(String.class);
       fail("request for disabled user should fail");
     }
  catch (    UniformInterfaceException uie) {
-      ClientResponse.Status status=uie.getResponse().getClientResponseStatus();
-      JsonNode body=mapper.readTree(uie.getResponse().getEntity(String.class));
-      assertEquals("user disabled",body.findPath("error_description").textValue());
+      assertEquals("user disabled",uie.getMessage());
     }
-    setup.getMgmtSvc().deactivateUser(setup.getEmf().getManagementAppId(),owner_uuid);
+    this.management().orgs().organization(organization.getName()).users().user(username).put(new Entity().chainPut("activated",false).chainPut("deactivated",System.currentTimeMillis()));
     try {
-      resource().path("/management/token").queryParam("grant_type","password").queryParam("username",username).queryParam("password",password).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class);
+      management().token().get(new QueryParameters().addParam("grant_type","password").addParam("username",username).addParam("password",password));
       fail("request for deactivated user should fail");
     }
  catch (    UniformInterfaceException uie) {
-      ClientResponse.Status status=uie.getResponse().getClientResponseStatus();
-      JsonNode body=mapper.readTree(uie.getResponse().getEntity(String.class));
-      assertEquals("user not activated",body.findPath("error_description").textValue());
+      assertEquals("user not activated",uie.getMessage());
     }
   }
   finally {

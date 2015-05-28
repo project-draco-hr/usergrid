@@ -1,20 +1,11 @@
 {
-  BasicHttpParams params=new BasicHttpParams();
-  params.setParameter("organization","formUrlContentOrg");
-  params.setParameter("username","formUrlContentOrg");
-  params.setParameter("name","Test User");
-  params.setParameter("email",UUIDUtils.newTimeUUID() + "@usergrid.org");
-  params.setParameter("password","foobar");
-  params.setParameter("grant_type","password");
-  DefaultHttpClient client=new DefaultHttpClient();
-  HttpHost host=new HttpHost(super.getBaseURI().getHost(),super.getBaseURI().getPort());
-  HttpPost post=new HttpPost("/management/orgs");
-  post.setParams(params);
-  post.setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_FORM_URLENCODED);
-  HttpResponse rsp=client.execute(host,post);
-  printResponse(rsp);
-  assertEquals(200,rsp.getStatusLine().getStatusCode());
-  Header[] headers=rsp.getHeaders(HttpHeaders.CONTENT_TYPE);
-  assertEquals(1,headers.length);
-  assertEquals(MediaType.APPLICATION_JSON,headers[0].getValue());
+  String orgName=clientSetup.getOrganizationName().toLowerCase();
+  String appName=clientSetup.getAppName().toLowerCase();
+  WebResource.Builder builder=resource().path(String.format("/%s/%s",orgName,appName)).queryParam("organization","formUrlContentOrg").queryParam("username","formUrlContentOrg").queryParam("name","Test User").queryParam("email",UUIDUtils.newTimeUUID() + "@usergrid.org").queryParam("password","foobar").queryParam("grant_type","password").type(MediaType.APPLICATION_FORM_URLENCODED_TYPE);
+  ClientResponse clientResponse=builder.post(ClientResponse.class);
+  assertEquals(200,clientResponse.getStatus());
+  MultivaluedMap<String,String> headers=clientResponse.getHeaders();
+  List<String> contentType=headers.get("Content-Type");
+  assertEquals(1,contentType.size());
+  assertEquals(MediaType.APPLICATION_JSON,contentType.get(0));
 }

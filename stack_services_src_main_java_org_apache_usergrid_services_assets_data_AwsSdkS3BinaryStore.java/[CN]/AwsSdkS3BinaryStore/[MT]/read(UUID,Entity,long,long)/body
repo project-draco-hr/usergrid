@@ -1,0 +1,11 @@
+{
+  S3Object object=getS3Client().getObject(bucketName,AssetUtils.buildAssetKey(appId,entity));
+  byte data[]=null;
+  if (offset == 0 && length == FIVE_MB) {
+    return object.getObjectContent();
+  }
+ else {
+    object.getObjectContent().read(data,Ints.checkedCast(offset),Ints.checkedCast(length));
+  }
+  return new ByteArrayInputStream(data);
+}
