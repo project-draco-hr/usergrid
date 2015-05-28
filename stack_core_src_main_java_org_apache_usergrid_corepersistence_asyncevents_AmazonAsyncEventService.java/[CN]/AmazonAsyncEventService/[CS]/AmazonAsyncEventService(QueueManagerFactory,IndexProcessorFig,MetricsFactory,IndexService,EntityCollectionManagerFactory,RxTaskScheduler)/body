@@ -1,0 +1,19 @@
+{
+  this.indexService=indexService;
+  this.entityCollectionManagerFactory=entityCollectionManagerFactory;
+  this.rxTaskScheduler=rxTaskScheduler;
+  final QueueScope queueScope=new QueueScopeImpl(QUEUE_NAME);
+  this.queue=queueManagerFactory.getQueueManager(queueScope);
+  this.indexProcessorFig=indexProcessorFig;
+  this.writeTimer=metricsFactory.getTimer(AmazonAsyncEventService.class,"write");
+  this.readTimer=metricsFactory.getTimer(AmazonAsyncEventService.class,"read");
+  this.messageProcessingTimer=metricsFactory.getTimer(AmazonAsyncEventService.class,"message.processing");
+  this.indexErrorCounter=metricsFactory.getCounter(AmazonAsyncEventService.class,"error");
+  metricsFactory.addGauge(AmazonAsyncEventService.class,"inflight.meter",new Gauge<Long>(){
+    @Override public Long getValue(){
+      return inFlight.longValue();
+    }
+  }
+);
+  start();
+}

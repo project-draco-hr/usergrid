@@ -1,0 +1,23 @@
+{
+  if (logger.isDebugEnabled())   logger.debug("handleMessages with {} message",messages.size());
+  for (  QueueMessage message : messages) {
+    final AsyncEvent event=(AsyncEvent)message.getBody();
+    if (logger.isDebugEnabled())     logger.debug("Processing {} event",event.getEventType());
+switch (event.getEventType()) {
+case EDGE_DELETE:
+      handleEdgeDelete(message);
+    break;
+case EDGE_INDEX:
+  handleEdgeIndex(message);
+break;
+case ENTITY_DELETE:
+handleEntityDelete(message);
+break;
+case ENTITY_INDEX:
+handleEntityIndexUpdate(message);
+break;
+default :
+logger.error("Unknown EventType: {}",event.getEventType());
+}
+}
+}

@@ -1,18 +1,17 @@
 {
   if (sqs == null) {
-    LOG.error("Sqs is null");
+    logger.error("Sqs is null");
     return new ArrayList<>();
   }
-  waitTime=waitTime / 1000;
   String url=getQueue().getUrl();
-  LOG.debug("Getting {} messages from {}",limit,url);
+  if (logger.isDebugEnabled())   logger.debug("Getting Max {} messages from {}",limit,url);
   ReceiveMessageRequest receiveMessageRequest=new ReceiveMessageRequest(url);
   receiveMessageRequest.setMaxNumberOfMessages(limit);
-  receiveMessageRequest.setVisibilityTimeout(transactionTimeout);
-  receiveMessageRequest.setWaitTimeSeconds(waitTime);
+  receiveMessageRequest.setVisibilityTimeout(transactionTimeout / 1000);
+  receiveMessageRequest.setWaitTimeSeconds(waitTime / 1000);
   ReceiveMessageResult result=sqs.receiveMessage(receiveMessageRequest);
   List<Message> messages=result.getMessages();
-  LOG.debug("Received {} messages from {}",messages.size(),url);
+  if (logger.isDebugEnabled())   logger.debug("Received {} messages from {}",messages.size(),url);
   List<QueueMessage> queueMessages=new ArrayList<>(messages.size());
   for (  Message message : messages) {
     Object body;
@@ -20,7 +19,7 @@
       body=fromString(message.getBody(),klass);
     }
  catch (    Exception e) {
-      LOG.error("failed to deserialize message",e);
+      logger.error("failed to deserialize message",e);
       throw new RuntimeException(e);
     }
     QueueMessage queueMessage=new QueueMessage(message.getMessageId(),message.getReceiptHandle(),body,message.getAttributes().get("type"));
