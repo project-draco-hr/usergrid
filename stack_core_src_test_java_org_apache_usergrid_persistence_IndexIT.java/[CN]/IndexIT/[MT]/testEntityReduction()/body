@@ -1,0 +1,24 @@
+{
+  UUID applicationId=app.getId();
+  EntityManager em=setup.getEmf().getEntityManager(applicationId);
+  Map<String,Object> entity1=new LinkedHashMap<String,Object>();
+  entity1.put("name","name_1");
+  entity1.put("status","pickled");
+  em.create("names",entity1);
+  app.refreshIndex();
+  Query query=Query.fromQL("select status where status = 'pickled'");
+  Results r=em.searchCollection(em.getApplicationRef(),"names",query);
+  assertTrue(r.getEntities() != null && r.getEntities().size() > 0);
+  Entity first=r.getEntities().get(0);
+  assertTrue(first.getDynamicProperties().size() == 1);
+  query=Query.fromQL("select uuid where status = 'pickled'");
+  r=em.searchCollection(em.getApplicationRef(),"names",query);
+  assertTrue(r.getEntities() != null && r.getEntities().size() > 0);
+  first=r.getEntities().get(0);
+  assertTrue(first.getDynamicProperties().size() == 0);
+  query=Query.fromQL("select uuid:myid where status = 'pickled'");
+  r=em.searchCollection(em.getApplicationRef(),"names",query);
+  assertTrue(r.getEntities() != null && r.getEntities().size() > 0);
+  first=r.getEntities().get(0);
+  assertTrue(first.getDynamicProperties().size() == 0);
+}
