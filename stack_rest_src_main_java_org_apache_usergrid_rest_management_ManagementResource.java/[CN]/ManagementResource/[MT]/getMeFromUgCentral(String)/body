@@ -1,0 +1,19 @@
+{
+  Counter tokensRejectedCounter=getMetricsFactory().getCounter(ManagementResource.class,SSO_TOKENS_REJECTED);
+  Counter tokensValidatedCounter=getMetricsFactory().getCounter(ManagementResource.class,SSO_TOKENS_VALIDATED);
+  String externalUrl=properties.getProperty(USERGRID_CENTRAL_URL).trim();
+  externalUrl=!externalUrl.endsWith("/") ? externalUrl + "/" : externalUrl;
+  String me=externalUrl + "management/me?access_token=" + extAccessToken;
+  Client client=getJerseyClient();
+  final JsonNode accessInfoNode;
+  try {
+    accessInfoNode=client.resource(me).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+    tokensValidatedCounter.inc();
+  }
+ catch (  Exception e) {
+    tokensRejectedCounter.inc();
+    String msg="Cannot find Admin User associated with " + extAccessToken;
+    throw new EntityNotFoundException(msg,e);
+  }
+  return accessInfoNode;
+}

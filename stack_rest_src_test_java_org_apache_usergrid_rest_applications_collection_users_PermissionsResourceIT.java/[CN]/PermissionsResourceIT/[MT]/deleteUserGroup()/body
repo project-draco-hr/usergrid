@@ -4,21 +4,21 @@
   Entity node=this.app().collection("groups").post(data);
   assertNull(node.get("error"));
   refreshIndex();
-  node=this.app().collection("groups").entity(groupPath).collection("users").entity(USER).post();
+  node=this.app().collection("groups").entity(groupPath).collection("users").entity(user).post();
   assertNull(node.get("error"));
   refreshIndex();
-  Collection groups=this.app().collection("users").entity(USER).collection("groups").get();
+  Collection groups=this.app().collection("users").entity(user).collection("groups").get();
   assertEquals(groups.next().get("name"),groupPath);
-  ApiResponse response=this.app().collection("groups").entity(groupPath).collection("users").entity(USER).delete();
+  ApiResponse response=this.app().collection("groups").entity(groupPath).collection("users").entity(user).delete();
   assertNull(response.getError());
   refreshIndex();
   int status=0;
   try {
-    groups=this.app().collection("users").entity(USER).collection("groups").get();
-    assertFalse(groups.hasNext());
+    this.app().collection("users").entity(user).collection("groups").entity(groupPath).collection("users").entity(user).get();
+    fail("Should not have been able to retrieve the user as it was deleted");
   }
  catch (  UniformInterfaceException e) {
     status=e.getResponse().getStatus();
-    fail();
+    assertEquals(404,status);
   }
 }

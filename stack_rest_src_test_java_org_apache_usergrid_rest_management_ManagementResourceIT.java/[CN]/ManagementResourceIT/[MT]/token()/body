@@ -1,0 +1,14 @@
+{
+  Token myToken=management.token().get(new QueryParameters().addParam("grant_type","password").addParam("username",clientSetup.getEmail()).addParam("password",clientSetup.getPassword()));
+  String token=myToken.getAccessToken();
+  assertNotNull(token);
+  Organization payload=new Organization();
+  Map<String,Object> properties=new HashMap<String,Object>();
+  properties.put("securityLevel",5);
+  payload.put(OrganizationsResource.ORGANIZATION_PROPERTIES,properties);
+  management.orgs().organization(clientSetup.getOrganizationName()).put(payload);
+  myToken=myToken=management.token().get(new QueryParameters().addParam("access_token",token));
+  Object securityLevel=myToken.get("securityLevel");
+  assertNotNull(securityLevel);
+  assertEquals(5L,(long)securityLevel);
+}

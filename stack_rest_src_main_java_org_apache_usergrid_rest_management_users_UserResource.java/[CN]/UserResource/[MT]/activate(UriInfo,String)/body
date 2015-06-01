@@ -1,4 +1,8 @@
 {
+  final boolean externalTokensEnabled=!StringUtils.isEmpty(properties.getProperty(ManagementResource.USERGRID_CENTRAL_URL));
+  if (externalTokensEnabled) {
+    throw new IllegalArgumentException("Admin Users must activate via " + properties.getProperty(ManagementResource.USERGRID_CENTRAL_URL));
+  }
   try {
     management.handleActivationTokenForAdminUser(user.getUuid(),token);
     return handleViewable("activate",this);

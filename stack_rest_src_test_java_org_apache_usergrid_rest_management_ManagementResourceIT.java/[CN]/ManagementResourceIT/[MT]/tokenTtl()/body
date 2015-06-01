@@ -1,0 +1,17 @@
+{
+  long ttl=2000;
+  Token token=management.token().get(new QueryParameters().addParam("grant_type","password").addParam("username",clientSetup.getEmail()).addParam("password",clientSetup.getPassword()).addParam("ttl",String.valueOf(ttl)));
+  long startTime=System.currentTimeMillis();
+  assertNotNull(token);
+  Entity userdata=management.users().entity(clientSetup.getEmail()).get(token);
+  assertNotNull(userdata.get("email").toString());
+  Thread.sleep((System.currentTimeMillis() - startTime) + ttl);
+  Status responseStatus=null;
+  try {
+    userdata=management.users().user(clientSetup.getEmail()).get();
+  }
+ catch (  UniformInterfaceException uie) {
+    responseStatus=uie.getResponse().getClientResponseStatus();
+  }
+  assertEquals(Status.UNAUTHORIZED,responseStatus);
+}
