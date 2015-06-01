@@ -13,9 +13,10 @@
     userForm.add("name",adminUserEmail);
     userForm.add("email",adminUserEmail);
     userForm.add("password","password1");
-    Map adminUserResponse=(Map<String,Object>)(management().users().post(User.class,userForm)).get("data");
-    Entity adminUser=new Entity((Map<String,Object>)adminUserResponse.get("user"));
+    Map adminUserPostResponse=(management().users().post(User.class,userForm));
     refreshIndex();
+    Map adminDataMap=(Map)adminUserPostResponse.get("data");
+    Entity adminUser=new Entity((Map<String,Object>)adminDataMap.get("user"));
     assertNotNull(adminUser);
     Entity node=postAddAdminToOrg(this.clientSetup.getOrganizationName(),adminUserEmail,"password1");
     UUID userId=node.getUuid();
