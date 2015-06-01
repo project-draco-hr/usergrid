@@ -25,7 +25,9 @@
   review=new Entity().chainPut("rating","4").chainPut("name","4peaks").chainPut("review","Huge beer selection");
   this.app().collection("reviews").post(review);
   refreshIndex();
-  Collection reviews=this.app().collection("reviews").get();
+  QueryParameters queryParameters=new QueryParameters();
+  queryParameters.setQuery("select * ORDER BY created");
+  Collection reviews=this.app().collection("reviews").get(queryParameters);
   assertEquals("noca",reviews.next().get("name"));
   assertEquals("4peaks",reviews.next().get("name"));
   int status=0;
@@ -53,7 +55,9 @@
   review=new Entity().chainPut("rating","4").chainPut("name","currycorner").chainPut("review","Authentic");
   this.app().collection("reviews").post(review);
   refreshIndex();
-  reviews=this.app().collection("reviews").get();
+  queryParameters=new QueryParameters();
+  queryParameters.setQuery("select * ORDER BY created");
+  reviews=this.app().collection("reviews").get(queryParameters);
   assertEquals("noca",reviews.next().get("name").toString());
   assertEquals("4peaks",reviews.next().get("name").toString());
   assertEquals("cowboyciao",reviews.next().get("name").toString());
