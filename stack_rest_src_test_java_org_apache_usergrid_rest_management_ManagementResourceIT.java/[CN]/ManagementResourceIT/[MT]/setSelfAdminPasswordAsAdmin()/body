@@ -1,13 +1,14 @@
 {
-  String newPassword="foo";
+  management.token().setToken(this.getAdminToken());
+  management.users().post(User.class,new User("test","test","test@email.com","test"));
   Map<String,Object> data=new HashMap<>();
-  data.put("newpassword",newPassword);
+  data.put("newpassword","foo");
   data.put("oldpassword","test");
-  JsonNode responseNode=resource().path("/management/users/test/password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,data);
-  logNode(responseNode);
-  String adminAccessToken=context().getToken().getAccessToken();
-  data.put("oldpassword",newPassword);
+  management.users().user("test").password().post(Entity.class,data);
+  data.clear();
+  data.put("oldpassword","foo");
   data.put("newpassword","test");
-  responseNode=resource().path("/management/users/test/password").queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,data);
-  logNode(responseNode);
+  Token token=management.token().post(Token.class,new Token("test","foo"));
+  management.token().setToken(token);
+  management.users().user("test").password().post(Entity.class,data);
 }

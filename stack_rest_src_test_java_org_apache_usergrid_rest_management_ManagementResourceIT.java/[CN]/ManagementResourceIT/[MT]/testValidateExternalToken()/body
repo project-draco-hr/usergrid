@@ -2,25 +2,21 @@
   String rand=RandomStringUtils.randomAlphanumeric(10);
   final String username="user_" + rand;
   management().orgs().post(new Organization(username,username,username + "@example.com",username,"password",null));
-  Map<String,Object> loginInfo=new HashMap<String,Object>(){
-{
-      put("username",username);
-      put("password","password");
-      put("grant_type","password");
-    }
-  }
-;
-  JsonNode accessInfoNode=resource().path("/management/token").type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,loginInfo);
-  String accessToken=accessInfoNode.get("access_token").textValue();
+  refreshIndex();
+  QueryParameters queryParams=new QueryParameters().addParam("username",username).addParam("password","password").addParam("grant_type","password");
+  Token accessInfoNode=management.token().get(queryParams);
+  String accessToken=accessInfoNode.getAccessToken();
   String suToken=clientSetup.getSuperuserToken().getAccessToken();
   Map<String,String> props=new HashMap<String,String>();
   props.put(USERGRID_CENTRAL_URL,getBaseURI().toURL().toExternalForm());
   resource().path("/testproperties").queryParam("access_token",suToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(props);
-  JsonNode validatedNode=resource().path("/management/externaltoken").queryParam("access_token",suToken).queryParam("ext_access_token",accessToken).queryParam("ttl","1000").get(JsonNode.class);
-  String validatedAccessToken=validatedNode.get("access_token").textValue();
+  queryParams=new QueryParameters().addParam("access_token",suToken).addParam("ext_access_token",accessToken).addParam("ttl","1000");
+  Entity validatedNode=management.externaltoken().get(Entity.class,queryParams);
+  String validatedAccessToken=validatedNode.get("access_token").toString();
   assertEquals(accessToken,validatedAccessToken);
   try {
-    resource().path("/management/externaltoken").queryParam("access_token",suToken).queryParam("ext_access_token","rubbish_token").queryParam("ttl","1000").get(JsonNode.class);
+    queryParams=new QueryParameters().addParam("access_token",suToken).addParam("ext_access_token","rubbish_token").addParam("ttl","1000");
+    validatedNode=management.externaltoken().get(Entity.class,queryParams);
     fail("Validation should have failed");
   }
  catch (  UniformInterfaceException actual) {
