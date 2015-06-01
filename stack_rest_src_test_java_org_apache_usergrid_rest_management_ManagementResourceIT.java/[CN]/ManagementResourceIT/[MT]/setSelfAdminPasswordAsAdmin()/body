@@ -1,0 +1,13 @@
+{
+  String newPassword="foo";
+  Map<String,Object> data=new HashMap<>();
+  data.put("newpassword",newPassword);
+  data.put("oldpassword","test");
+  JsonNode responseNode=resource().path("/management/users/test/password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,data);
+  logNode(responseNode);
+  String adminAccessToken=context().getToken().getAccessToken();
+  data.put("oldpassword",newPassword);
+  data.put("newpassword","test");
+  responseNode=resource().path("/management/users/test/password").queryParam("access_token",adminAccessToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,data);
+  logNode(responseNode);
+}

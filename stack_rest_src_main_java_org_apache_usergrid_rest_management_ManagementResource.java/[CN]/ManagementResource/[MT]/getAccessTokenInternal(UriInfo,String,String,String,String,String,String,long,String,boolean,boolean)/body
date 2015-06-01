@@ -1,0 +1,77 @@
+{
+  UserInfo user=null;
+  try {
+    if (SubjectUtils.getUser() != null) {
+      user=SubjectUtils.getUser();
+    }
+    logger.info("ManagementResource.getAccessToken with username: {}",username);
+    String errorDescription="invalid username or password";
+    if (user == null) {
+      if (!me) {
+        ensureAuthenticationAllowed(username,grant_type);
+      }
+      if (authorization != null) {
+        String type=stringOrSubstringBeforeFirst(authorization,' ').toUpperCase();
+        if ("BASIC".equals(type)) {
+          String token=stringOrSubstringAfterFirst(authorization,' ');
+          String[] values=Base64.decodeToString(token).split(":");
+          if (values.length >= 2) {
+            client_id=values[0];
+            client_secret=values[1];
+          }
+        }
+      }
+      if (GrantType.PASSWORD.toString().equals(grant_type)) {
+        try {
+          user=management.verifyAdminUserPasswordCredentials(username,password);
+          if (user != null) {
+            logger.info("found user from verify: {}",user.getUuid());
+          }
+        }
+ catch (        UnactivatedAdminUserException uaue) {
+          errorDescription="user not activated";
+          logger.error(errorDescription,uaue);
+        }
+catch (        DisabledAdminUserException daue) {
+          errorDescription="user disabled";
+          logger.error(errorDescription,daue);
+        }
+catch (        UnconfirmedAdminUserException uaue) {
+          errorDescription="User must be confirmed to authenticate";
+          logger.warn("Responding with HTTP 403 forbidden response for unconfirmed user {}",user);
+          OAuthResponse response=OAuthResponse.errorResponse(SC_FORBIDDEN).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription(errorDescription).buildJSONMessage();
+          return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
+        }
+catch (        Exception e1) {
+          logger.error(errorDescription,e1);
+        }
+      }
+ else       if ("client_credentials".equals(grant_type)) {
+        try {
+          AccessInfo access_info=management.authorizeClient(client_id,client_secret,ttl);
+          if (access_info != null) {
+            return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
+          }
+        }
+ catch (        Exception e1) {
+          logger.error("failed authorizeClient",e1);
+        }
+      }
+    }
+    if (user == null) {
+      OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription(errorDescription).buildJSONMessage();
+      return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
+    }
+    String token=management.getAccessTokenForAdminUser(user.getUuid(),ttl);
+    Long passwordChanged=management.getLastAdminPasswordChange(user.getUuid());
+    AccessInfo access_info=new AccessInfo().withExpiresIn(tokens.getMaxTokenAgeInSeconds(token)).withAccessToken(token).withPasswordChanged(passwordChanged);
+    access_info.setProperty("user",management.getAdminUserOrganizationData(user,me));
+    management.countAdminUserAction(user,"login");
+    return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
+  }
+ catch (  OAuthProblemException e) {
+    logger.error("OAuth Error",e);
+    OAuthResponse res=OAuthResponse.errorResponse(SC_BAD_REQUEST).error(e).buildJSONMessage();
+    return Response.status(res.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(res.getBody(),callback)).build();
+  }
+}
