@@ -1,9 +1,9 @@
 {
   Entity payload=new Entity().chainPut("name","foo");
   UUID uuid=UUID.randomUUID();
-  refreshIndex();
   CollectionEndpoint devicesResource=this.app().collection("devices");
   Entity entity=devicesResource.entity(uuid).put(payload);
+  refreshIndex();
   assertNotNull(entity);
   String newUuid=entity.getUuid().toString();
   assertEquals(uuid.toString(),newUuid);
@@ -17,6 +17,7 @@
  catch (  UniformInterfaceException e) {
     assertEquals(404,e.getResponse().getStatus());
   }
+  refreshIndex();
   entity=devicesResource.entity(uuid).put(payload);
   assertNotNull(entity);
   refreshIndex();

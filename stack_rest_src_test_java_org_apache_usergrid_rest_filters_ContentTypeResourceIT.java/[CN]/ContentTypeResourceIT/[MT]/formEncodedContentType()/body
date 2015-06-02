@@ -1,15 +1,10 @@
 {
   Form payload=new Form();
-  payload.add("organization","formContentOrg");
-  payload.add("username","formContentOrg");
-  payload.add("name","Test User");
+  payload.add("organization","formContentOrg" + UUIDUtils.newTimeUUID());
+  payload.add("username","formContentOrg" + UUIDUtils.newTimeUUID());
+  payload.add("name","Test User" + UUIDUtils.newTimeUUID());
   payload.add("email",UUIDUtils.newTimeUUID() + "@usergrid.org");
   payload.add("password","foobar");
-  WebResource.Builder builder=app().getResource(true,this.getAdminToken(clientSetup.getSuperuserName(),clientSetup.getSuperuserPassword())).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE);
-  ClientResponse clientResponse=builder.post(ClientResponse.class,payload);
-  assertEquals(200,clientResponse.getStatus());
-  MultivaluedMap<String,String> headers=clientResponse.getHeaders();
-  List<String> contentType=headers.get("Content-Type");
-  assertEquals(1,contentType.size());
-  assertEquals(MediaType.APPLICATION_JSON,contentType.get(0));
+  Organization newlyCreatedOrganizationForm=management().orgs().post(payload);
+  assertNotNull(newlyCreatedOrganizationForm);
 }

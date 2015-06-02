@@ -7,8 +7,6 @@
   properties.put("securityLevel",5);
   payload.put(OrganizationsResource.ORGANIZATION_PROPERTIES,properties);
   management.orgs().organization(clientSetup.getOrganizationName()).put(payload);
-  myToken=myToken=management.token().get(new QueryParameters().addParam("access_token",token));
-  Object securityLevel=myToken.get("securityLevel");
-  assertNotNull(securityLevel);
-  assertEquals(5L,(long)securityLevel);
+  String obj=management.token().get(String.class,new QueryParameters().addParam("access_token",token));
+  assertTrue(obj.indexOf("securityLevel") > 0);
 }
