@@ -6,18 +6,9 @@
   JsonNode node=mapper.readTree(resource().path(orgAppPath + "/foos").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.MULTIPART_FORM_DATA).post(String.class,form));
   JsonNode idNode=node.get("entities").get(0).get("uuid");
   String uuid=idNode.textValue();
-  long timeout=System.currentTimeMillis() + 60000;
-  while (true) {
-    LOG.info("Waiting for upload to finish...");
-    Thread.sleep(2000);
-    node=mapper.readTree(resource().path(orgAppPath + "/foos/" + uuid).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-    if (node.findValue(AssetUtils.E_TAG) != null) {
-      break;
-    }
-    if (System.currentTimeMillis() > timeout) {
-      throw new TimeoutException();
-    }
-  }
+  LOG.info("Waiting for upload to finish...");
+  Thread.sleep(2000);
+  node=mapper.readTree(resource().path(orgAppPath + "/foos/" + uuid).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON_TYPE).get(String.class));
   LOG.info("Upload complete!");
   InputStream is=resource().path(orgAppPath + "/foos/" + uuid).queryParam("access_token",access_token).accept(MediaType.APPLICATION_OCTET_STREAM_TYPE).get(InputStream.class);
   byte[] foundData=IOUtils.toByteArray(is);

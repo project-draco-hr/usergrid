@@ -1,11 +1,25 @@
 {
   File file=path(appId,entity);
   FileUtils.copyInputStreamToFile(inputStream,file);
+  long maxSizeBytes=50 * FileUtils.ONE_MB;
   long size=FileUtils.sizeOf(file);
+  String maxSizeMbString=properties.getProperty("usergrid.binary.max-size-mb","50");
   Map<String,Object> fileMetadata=AssetUtils.getFileMetadata(entity);
-  fileMetadata.put(AssetUtils.CONTENT_LENGTH,size);
-  fileMetadata.put(AssetUtils.LAST_MODIFIED,System.currentTimeMillis());
-  if (file.exists()) {
-    AssetMimeHandler.get().getMimeType(entity,file);
+  if (StringUtils.isNumeric(maxSizeMbString)) {
+    maxSizeBytes=Long.parseLong(maxSizeMbString) * FileUtils.ONE_MB;
+  }
+  if (size > maxSizeBytes) {
+    try {
+      fileMetadata.put("error","Asset size " + file.length() + " is larger than max size of "+ maxSizeBytes);
+    }
+ catch (    Exception e) {
+    }
+  }
+ else {
+    fileMetadata.put(AssetUtils.CONTENT_LENGTH,size);
+    fileMetadata.put(AssetUtils.LAST_MODIFIED,System.currentTimeMillis());
+    if (file.exists()) {
+      AssetMimeHandler.get().getMimeType(entity,file);
+    }
   }
 }
