@@ -1,0 +1,20 @@
+{
+  Set<String> collections=em.getCollections(entity);
+  if ((collections == null) || collections.isEmpty()) {
+    return;
+  }
+  jg.writeFieldName(entity.getUuid().toString());
+  jg.writeStartObject();
+  for (  String collectionName : collections) {
+    jg.writeFieldName(collectionName);
+    jg.writeStartArray();
+    Results collectionMembers=em.getCollection(entity,collectionName,null,100000,Level.IDS,false);
+    List<UUID> entityIds=collectionMembers.getIds();
+    if ((entityIds != null) && !entityIds.isEmpty()) {
+      for (      UUID childEntityUUID : entityIds) {
+        jg.writeObject(childEntityUUID.toString());
+      }
+    }
+    jg.writeEndArray();
+  }
+}

@@ -1,0 +1,45 @@
+{
+  String rand1=RandomStringUtils.randomAlphanumeric(10);
+  String rand2=RandomStringUtils.randomAlphanumeric(10);
+  UUID user_uuid_1=UUIDUtils.newTimeUUID();
+  UUID user_uuid_2=UUIDUtils.newTimeUUID();
+  UUID org_uuid_1=UUIDUtils.newTimeUUID();
+  UUID org_uuid_2=UUIDUtils.newTimeUUID();
+  String user_name_1="user_" + rand1;
+  String user_name_2="user_" + rand2;
+  String org_name_1="org_" + rand1;
+  String org_name_2="org_" + rand2;
+  File resourcesDir=new File("./target/test-classes");
+  String[] fileNames=resourcesDir.list();
+  File tempDir=Files.createTempDir();
+  for (  String fileName : fileNames) {
+    if (fileName.startsWith("admin-user")) {
+      String fileContent=IOUtils.toString(new FileInputStream(resourcesDir.getAbsolutePath() + File.separator + fileName));
+      fileContent=fileContent.replaceAll("USER_UUID_1",user_uuid_1.toString());
+      fileContent=fileContent.replaceAll("USER_UUID_2",user_uuid_2.toString());
+      fileContent=fileContent.replaceAll("ORG_UUID_1",org_uuid_1.toString());
+      fileContent=fileContent.replaceAll("ORG_UUID_2",org_uuid_2.toString());
+      fileContent=fileContent.replaceAll("USER_NAME_1",user_name_1);
+      fileContent=fileContent.replaceAll("USER_NAME_2",user_name_2);
+      fileContent=fileContent.replaceAll("ORG_NAME_1",org_name_1);
+      fileContent=fileContent.replaceAll("ORG_NAME_2",org_name_2);
+      FileOutputStream os=new FileOutputStream(tempDir.getAbsolutePath() + File.separator + fileName);
+      IOUtils.write(fileContent,os);
+      os.close();
+    }
+  }
+  ImportAdmins importAdmins=new ImportAdmins();
+  importAdmins.startTool(new String[]{"-host","localhost:" + ServiceITSuite.cassandraResource.getRpcPort(),"-inputDir",tempDir.getAbsolutePath()},false);
+  OrganizationInfo orgInfo1=setup.getMgmtSvc().getOrganizationByUuid(org_uuid_1);
+  assertNotNull(orgInfo1);
+  OrganizationInfo orgInfo2=setup.getMgmtSvc().getOrganizationByUuid(org_uuid_2);
+  assertNotNull(orgInfo2);
+  BiMap<UUID,String> user1_orgs=setup.getMgmtSvc().getOrganizationsForAdminUser(user_uuid_1);
+  assertEquals("user1 has two orgs",2,user1_orgs.size());
+  BiMap<UUID,String> user2_orgs=setup.getMgmtSvc().getOrganizationsForAdminUser(user_uuid_2);
+  assertEquals("user2 has one orgs",1,user2_orgs.size());
+  List<UserInfo> org1_users=setup.getMgmtSvc().getAdminUsersForOrganization(org_uuid_1);
+  assertEquals("org1 has one user",1,org1_users.size());
+  List<UserInfo> org2_users=setup.getMgmtSvc().getAdminUsersForOrganization(org_uuid_2);
+  assertEquals("org2 has two users",2,org2_users.size());
+}

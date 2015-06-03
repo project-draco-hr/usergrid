@@ -1,0 +1,26 @@
+{
+  if ((organizationName == null) || (user == null)) {
+    return null;
+  }
+  logger.info("createOrganizationInternal: {}",organizationName);
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  Group organizationEntity=new Group();
+  organizationEntity.setPath(organizationName);
+  if (orgUuid == null) {
+    organizationEntity=em.create(organizationEntity);
+  }
+ else {
+    em.create(orgUuid,Group.ENTITY_TYPE,organizationEntity.getProperties());
+    organizationEntity=em.get(orgUuid,Group.class);
+  }
+  em.addToCollection(organizationEntity,"users",new SimpleEntityRef(User.ENTITY_TYPE,user.getUuid()));
+  writeUserToken(MANAGEMENT_APPLICATION_ID,organizationEntity,encryptionService.plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.ORGANIZATION),user.getUuid(),MANAGEMENT_APPLICATION_ID));
+  OrganizationInfo organization=new OrganizationInfo(organizationEntity.getUuid(),organizationName,properties);
+  updateOrganization(organization);
+  if (orgUuid == null) {
+    logger.info("createOrganizationInternal: {}",organizationName);
+    postOrganizationActivity(organization.getUuid(),user,"create",organizationEntity,"Organization",organization.getName(),"<a href=\"mailto:" + user.getEmail() + "\">"+ user.getName()+ " ("+ user.getEmail()+ ")</a> created a new organization account named "+ organizationName,null);
+    startOrganizationActivationFlow(organization);
+  }
+  return organization;
+}
