@@ -1,11 +1,7 @@
 {
-  ApiResponse appCreateResponse=clientSetup.getRestClient().management().orgs().organization(orgName).app().getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).post(ApiResponse.class,new Application(appName));
+  ApiResponse appCreateResponse=clientSetup.getRestClient().management().orgs().organization(orgName).app().post(new Application(appName));
   UUID appId=appCreateResponse.getEntities().get(0).getUuid();
-  try {
-    Thread.sleep(1000);
-  }
- catch (  InterruptedException ignored) {
-  }
+  refreshIndex();
   for (int i=0; i < 5; i++) {
     final String entityName="entity" + i;
     Entity entity=new Entity();

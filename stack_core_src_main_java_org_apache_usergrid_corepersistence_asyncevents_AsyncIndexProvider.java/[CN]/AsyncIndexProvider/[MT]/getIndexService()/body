@@ -5,7 +5,9 @@ switch (impl) {
 case LOCAL:
     return new InMemoryAsyncEventService(eventBuilder,rxTaskScheduler,indexProcessorFig.resolveSynchronously());
 case SQS:
-  return new SQSAsyncEventService(queueManagerFactory,indexProcessorFig,metricsFactory,indexService,entityCollectionManagerFactory,rxTaskScheduler);
+  return new AmazonAsyncEventService(queueManagerFactory,indexProcessorFig,metricsFactory,indexService,entityCollectionManagerFactory,rxTaskScheduler);
+case SNS:
+return new AmazonAsyncEventService(queueManagerFactory,indexProcessorFig,metricsFactory,indexService,entityCollectionManagerFactory,rxTaskScheduler);
 default :
 throw new IllegalArgumentException("Configuration value of " + getErrorValues() + " are allowed");
 }

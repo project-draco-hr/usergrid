@@ -1,0 +1,11 @@
+{
+  Map<String,String> payload=hashMap("grant_type","password").map("username",clientSetup.getUsername()).map("password",clientSetup.getPassword()).map("ttl",Long.MAX_VALUE + "");
+  Status responseStatus=null;
+  try {
+    management.token().post(JsonNode.class,payload);
+  }
+ catch (  UniformInterfaceException uie) {
+    responseStatus=uie.getResponse().getClientResponseStatus();
+  }
+  assertEquals(Status.BAD_REQUEST,responseStatus);
+}

@@ -1,15 +1,17 @@
 {
   String username="test" + UUIDUtils.newTimeUUID();
-  String name=username;
-  String email=username + "@usergrid.com";
+  String name="someguy2";
+  String email="someguy" + "@usergrid.com";
   String password="password";
-  String orgName=username;
+  String orgName="someneworg";
   Entity payload=new Entity().chainPut("company","Apigee");
   Organization organization=new Organization(orgName,username,email,name,password,payload);
   Organization node=management().orgs().post(organization);
+  management.token().get(clientSetup.getUsername(),clientSetup.getPassword());
   Status status=null;
+  String returnVal="";
   try {
-    this.management().orgs().organization(this.clientSetup.getOrganizationName()).get(String.class);
+    returnVal=this.management().orgs().organization(orgName).get(String.class);
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getClientResponseStatus();

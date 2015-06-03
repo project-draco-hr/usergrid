@@ -3,11 +3,12 @@
   String password=clientSetup.getPassword();
   Map<String,Object> passwordPayload=new HashMap<String,Object>();
   passwordPayload.put("newpassword","testPassword");
-  management.users().user(username).password().post(clientSetup.getSuperuserToken(),passwordPayload);
+  management.token().setToken(clientSetup.getSuperuserToken());
+  management.users().user(username).password().post(passwordPayload);
   this.refreshIndex();
-  assertNotNull(management.token().post(Token.class,new Token(username,"testPassword")));
+  assertNotNull(management.token().post(false,Token.class,new Token(username,"testPassword"),null));
   try {
-    management.token().post(Token.class,new Token(username,password));
+    management.token().post(false,Token.class,new Token(username,password),null);
     fail("We shouldn't be able to get a token using the old password");
   }
  catch (  UniformInterfaceException uie) {

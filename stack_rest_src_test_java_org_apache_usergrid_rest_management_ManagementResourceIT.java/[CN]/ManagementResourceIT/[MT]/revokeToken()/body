@@ -1,0 +1,30 @@
+{
+  Token token1=management.token().get(clientSetup.getUsername(),clientSetup.getPassword());
+  Entity response=management.users().user(clientSetup.getUsername()).get();
+  assertNotNull(response.get("email").toString());
+  response=management.users().user(clientSetup.getUsername()).get();
+  assertNotNull(response.get("email").toString());
+  response=management.users().user(clientSetup.getUsername()).revokeTokens().post(true,Entity.class,null,null);
+  Status status=null;
+  try {
+    response=management.users().user(clientSetup.getUsername()).get();
+  }
+ catch (  UniformInterfaceException uie) {
+    status=uie.getResponse().getClientResponseStatus();
+  }
+  assertEquals(Status.UNAUTHORIZED,status);
+  Token token3=management.token().get(clientSetup.getUsername(),clientSetup.getPassword());
+  response=management.users().user(clientSetup.getUsername()).get();
+  assertNotNull(response.get("email").toString());
+  QueryParameters queryParameters=new QueryParameters();
+  queryParameters.addParam("token",token3.getAccessToken());
+  management.users().user(clientSetup.getUsername()).revokeToken().post(false,Entity.class,null,queryParameters);
+  status=null;
+  try {
+    management.users().user(clientSetup.getUsername()).get();
+  }
+ catch (  UniformInterfaceException uie) {
+    status=uie.getResponse().getClientResponseStatus();
+  }
+  assertEquals(Status.UNAUTHORIZED,status);
+}

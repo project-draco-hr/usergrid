@@ -1,0 +1,30 @@
+{
+  String rand=RandomStringUtils.randomAlphanumeric(10);
+  final String username="user_" + rand;
+  management().orgs().post(new Organization(username,username,username + "@example.com",username,"password",null));
+  refreshIndex();
+  QueryParameters queryParams=new QueryParameters().addParam("username",username).addParam("password","password").addParam("grant_type","password");
+  Token accessInfoNode=management.token().get(queryParams);
+  String accessToken=accessInfoNode.getAccessToken();
+  String suToken=clientSetup.getSuperuserToken().getAccessToken();
+  Map<String,String> props=new HashMap<String,String>();
+  props.put(USERGRID_CENTRAL_URL,getBaseURI().toURL().toExternalForm());
+  resource().path("/testproperties").queryParam("access_token",suToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(props);
+  queryParams=new QueryParameters().addParam("access_token",suToken).addParam("ext_access_token",accessToken).addParam("ttl","1000");
+  Entity validatedNode=management.externaltoken().get(Entity.class,queryParams);
+  String validatedAccessToken=validatedNode.get("access_token").toString();
+  assertEquals(accessToken,validatedAccessToken);
+  try {
+    queryParams=new QueryParameters().addParam("access_token",suToken).addParam("ext_access_token","rubbish_token").addParam("ttl","1000");
+    validatedNode=management.externaltoken().get(Entity.class,queryParams);
+    fail("Validation should have failed");
+  }
+ catch (  UniformInterfaceException actual) {
+    assertEquals(404,actual.getResponse().getStatus());
+    String errorMsg=actual.getResponse().getEntity(JsonNode.class).get("error_description").toString();
+    logger.error("ERROR: " + errorMsg);
+    assertTrue(errorMsg.contains("Cannot find Admin User"));
+  }
+  props.put(USERGRID_CENTRAL_URL,"");
+  resource().path("/testproperties").queryParam("access_token",suToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(props);
+}

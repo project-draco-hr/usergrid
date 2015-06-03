@@ -1,20 +1,10 @@
 {
-  List<NameValuePair> pairs=new ArrayList<NameValuePair>();
-  pairs.add(new BasicNameValuePair("organization","formContentOrg"));
-  pairs.add(new BasicNameValuePair("username","formContentOrg"));
-  pairs.add(new BasicNameValuePair("name","Test User"));
-  pairs.add(new BasicNameValuePair("email",UUIDUtils.newTimeUUID() + "@usergrid.org"));
-  pairs.add(new BasicNameValuePair("password","foobar"));
-  UrlEncodedFormEntity entity=new UrlEncodedFormEntity(pairs,"UTF-8");
-  DefaultHttpClient client=new DefaultHttpClient();
-  HttpHost host=new HttpHost(super.getBaseURI().getHost(),super.getBaseURI().getPort());
-  HttpPost post=new HttpPost("/management/orgs");
-  post.setEntity(entity);
-  post.setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_FORM_URLENCODED);
-  HttpResponse rsp=client.execute(host,post);
-  printResponse(rsp);
-  assertEquals(200,rsp.getStatusLine().getStatusCode());
-  Header[] headers=rsp.getHeaders(HttpHeaders.CONTENT_TYPE);
-  assertEquals(1,headers.length);
-  assertEquals(MediaType.APPLICATION_JSON,headers[0].getValue());
+  Form payload=new Form();
+  payload.add("organization","formContentOrg" + UUIDUtils.newTimeUUID());
+  payload.add("username","formContentOrg" + UUIDUtils.newTimeUUID());
+  payload.add("name","Test User" + UUIDUtils.newTimeUUID());
+  payload.add("email",UUIDUtils.newTimeUUID() + "@usergrid.org");
+  payload.add("password","foobar");
+  Organization newlyCreatedOrganizationForm=management().orgs().post(payload);
+  assertNotNull(newlyCreatedOrganizationForm);
 }

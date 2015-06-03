@@ -1,0 +1,27 @@
+{
+  this.refreshIndex();
+  Map<String,String> props=new HashMap<String,String>();
+  props.put("usergrid.binary.max-size-mb","6");
+  resource().path("/testproperties").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(props);
+  try {
+    byte[] data=IOUtils.toByteArray(this.getClass().getResourceAsStream("/cat-larger-than-6mb.jpg"));
+    FormDataMultiPart form=new FormDataMultiPart().field("file",data,MediaType.MULTIPART_FORM_DATA_TYPE);
+    String orgAppPath=clientSetup.getOrganizationName() + "/" + clientSetup.getAppName();
+    JsonNode node=resource().path(orgAppPath + "/bars").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.MULTIPART_FORM_DATA).post(JsonNode.class,form);
+    JsonNode idNode=node.get("entities").get(0).get("uuid");
+    String uuid=idNode.textValue();
+    String errorMessage=null;
+    LOG.info("Waiting for upload to finish...");
+    Thread.sleep(2000);
+    node=resource().path(orgAppPath + "/bars/" + uuid).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+    if (node.findValue("error") != null) {
+      errorMessage=node.findValue("error").asText();
+    }
+    assertTrue(errorMessage.startsWith("Asset size "));
+  }
+  finally {
+    props=new HashMap<String,String>();
+    props.put("usergrid.binary.max-size-mb","25");
+    resource().path("/testproperties").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(props);
+  }
+}

@@ -1,20 +1,20 @@
 {
-  Map<String,String> originalProperties=getRemoteTestProperties();
+  Map<String,Object> originalProperties=getRemoteTestProperties();
   try {
     Mailbox.clearAll();
     setTestProperty(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"false");
     setTestProperty(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
     setTestProperty(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"false");
     setTestProperty(PROPERTIES_SYSADMIN_EMAIL,"sysadmin-1@mockserver.com");
-    String adminToken=adminToken();
-    JsonNode node=postAddAdminToOrg("test-organization","test-admin-nopwd@mockserver.com","",adminToken);
-    String uuid=node.get("data").get("user").get("uuid").textValue();
-    UUID userId=UUID.fromString(uuid);
-    refreshIndex("test-organization","test-app");
+    String adminToken=getAdminToken().getAccessToken();
+    Entity node=postAddAdminToOrg(this.clientSetup.getOrganizationName(),this.clientSetup.getUsername() + "@servertest.com","");
+    UUID userId=node.getUuid();
+    refreshIndex();
     String subject="Password Reset";
-    String reset_url=String.format(setup.getProps().getProperty(PROPERTIES_ADMIN_RESETPW_URL),uuid);
+    Map<String,Object> testProperties=this.getRemoteTestProperties();
+    String reset_url=String.format((String)testProperties.get(PROPERTIES_ADMIN_RESETPW_URL),userId.toString());
     String invited="User Invited To Organization";
-    Message[] msgs=getMessages("mockserver.com","test-admin-nopwd","password");
+    Message[] msgs=getMessages("servertest.com",this.clientSetup.getUsername(),"password");
     assertTrue(msgs.length == 2);
     assertEquals(subject,msgs[0].getSubject());
     assertEquals(invited,msgs[1].getSubject());
@@ -22,7 +22,7 @@
     logger.info(mailContent);
     assertTrue(StringUtils.contains(mailContent,reset_url));
     String token=getTokenFromMessage(msgs[0]);
-    assertTrue(setup.getMgmtSvc().checkPasswordResetTokenForAdminUser(userId,token));
+    this.management().orgs().organization(this.clientSetup.getOrganizationName()).users().getResource(false).queryParam("access_token",token).get(String.class);
   }
   finally {
     setTestProperties(originalProperties);

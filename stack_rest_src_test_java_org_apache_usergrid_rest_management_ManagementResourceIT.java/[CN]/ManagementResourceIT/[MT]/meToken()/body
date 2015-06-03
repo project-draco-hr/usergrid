@@ -1,0 +1,23 @@
+{
+  QueryParameters queryParameters=new QueryParameters().addParam("grant_type","password").addParam("username",clientSetup.getUsername()).addParam("password",clientSetup.getPassword());
+  Token myToken=management.me().get(Token.class,queryParameters);
+  String token=myToken.getAccessToken();
+  assertNotNull(token);
+  Entity entity=management.me().get(Entity.class);
+  assertNotNull(entity.get("passwordChanged"));
+  assertNotNull(entity.get("access_token"));
+  assertNotNull(entity.get("expires_in"));
+  Map<String,Object> userNode=(Map<String,Object>)entity.get("user");
+  assertNotNull(userNode);
+  assertNotNull(userNode.get("uuid"));
+  assertNotNull(userNode.get("username"));
+  assertNotNull(userNode.get("email"));
+  assertNotNull(userNode.get("name"));
+  assertNotNull(userNode.get("properties"));
+  Map<String,Object> orgsNode=(Map<String,Object>)userNode.get("organizations");
+  assertNotNull(orgsNode);
+  Map<String,Object> orgNode=(Map<String,Object>)orgsNode.entrySet().iterator().next().getValue();
+  assertNotNull(orgNode);
+  assertNotNull(orgNode.get("name"));
+  assertNotNull(orgNode.get("properties"));
+}

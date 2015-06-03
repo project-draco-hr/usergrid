@@ -1,16 +1,18 @@
 {
-  int appCount=40;
+  int appCount=10;
   String random=RandomStringUtils.randomAlphabetic(10);
-  String orgName="org_" + random;
-  String appName="app_" + random;
-  Token orgAdminToken=getAdminToken(clientSetup.getUsername(),clientSetup.getUsername());
+  String orgName=clientSetup.getOrganizationName();
+  String appName="testCreateAndImmediateList_app_" + random;
+  Token orgAdminToken=getAdminToken(clientSetup.getUsername(),clientSetup.getPassword());
   for (int i=0; i < appCount; i++) {
     createAppWithCollection(orgName,appName + i,orgAdminToken,new ArrayList<>());
   }
   ManagementResponse orgAppResponse=clientSetup.getRestClient().management().orgs().organization(orgName).apps().getOrganizationApplications();
   int count=0;
   for (  String name : orgAppResponse.getData().keySet()) {
-    count++;
+    if (name.contains("testcreateandimmediatelist_app")) {
+      count++;
+    }
   }
   assertEquals(appCount,count);
 }

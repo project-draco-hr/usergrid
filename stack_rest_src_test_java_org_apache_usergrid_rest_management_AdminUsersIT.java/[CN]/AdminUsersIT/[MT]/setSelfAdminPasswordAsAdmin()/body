@@ -6,10 +6,10 @@
   passwordPayload.put("oldpassword",password);
   management.users().user(username).password().post(Entity.class,passwordPayload);
   this.refreshIndex();
-  Token adminToken=management.token().post(Token.class,new Token(username,"testPassword"));
+  Token adminToken=management.token().post(false,Token.class,new Token(username,"testPassword"),null);
   management.token().setToken(adminToken);
   try {
-    management.token().post(Token.class,new Token(username,password));
+    management.token().post(false,Token.class,new Token(username,password),null);
     fail("We shouldn't be able to get a token using the old password");
   }
  catch (  UniformInterfaceException uie) {

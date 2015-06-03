@@ -1,15 +1,15 @@
 {
-  Map<String,String> originalProperties=getRemoteTestProperties();
+  Map<String,Object> originalProperties=getRemoteTestProperties();
   try {
     setTestProperty(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"false");
     setTestProperty(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
     setTestProperty(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"false");
     setTestProperty(PROPERTIES_SYSADMIN_EMAIL,"sysadmin-1@mockserver.com");
-    String t=adminToken();
-    MultivaluedMap formData=new MultivaluedMapImpl();
-    formData.add("foo","bar");
+    String t=this.getAdminToken().getAccessToken();
+    Form form=new Form();
+    form.add("foo","bar");
     try {
-      resource().path("/management/organizations/test-organization/users/test-admin-null@mockserver.com").queryParam("access_token",t).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_FORM_URLENCODED).put(String.class,formData);
+      this.org().getResource(false).path("/users/test-admin-null@mockserver.com").queryParam("access_token",t).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_FORM_URLENCODED).put(String.class,form);
     }
  catch (    UniformInterfaceException e) {
       assertEquals("Should receive a 400 Not Found",400,e.getResponse().getStatus());
