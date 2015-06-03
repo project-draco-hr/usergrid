@@ -8,7 +8,7 @@
   Organization orgPayload=new Organization(org,username,email,username,password,null);
   Organization organization=clientSetup.getRestClient().management().orgs().post(orgPayload);
   assertNotNull(organization);
-  Token tokenReturned=clientSetup.getRestClient().management().token().post(Token.class,new Token("password",username,password));
+  Token tokenReturned=clientSetup.getRestClient().management().token().post(false,Token.class,new Token("password",username,password),null);
   assertNotNull(tokenReturned);
   this.app().token().setToken(tokenReturned);
   clientSetup.getRestClient().management().orgs().organization(organization.getName()).app().post(new Application(app));
