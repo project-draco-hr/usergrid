@@ -1,5 +1,6 @@
 {
-  Entity user=this.management().orgs().organization(organizationName).users().post(this.getAdminToken(),new User().chainPut("email",email).chainPut("password",password));
+  this.management().token().setToken(this.getAdminToken());
+  ApiResponse user=this.management().orgs().organization(organizationName).users().post(new User().chainPut("email",email).chainPut("password",password));
   assertNotNull(user);
-  return user;
+  return new Entity(user);
 }

@@ -6,10 +6,10 @@
   adminUserPayload.put("name",username);
   adminUserPayload.put("email",username + "@usergrid.com");
   adminUserPayload.put("password",username);
-  Entity adminUserResponse=management().orgs().organization(clientSetup.getOrganizationName()).users().postWithToken(Entity.class,adminUserPayload);
-  LinkedHashMap user=((LinkedHashMap)((LinkedHashMap)adminUserResponse.get("data")).get("user"));
+  ApiResponse adminUserEntityResponse=management().orgs().organization(clientSetup.getOrganizationName()).users().post(ApiResponse.class,adminUserPayload);
+  Entity adminUserResponse=new Entity(adminUserEntityResponse);
   assertNotNull(adminUserResponse);
-  assertEquals(username,user.get("username"));
+  assertEquals(username,adminUserResponse.get("username"));
   adminUserResponse=management().users().entity(username).get(this.getAdminToken(username,username));
   assertNotNull(adminUserResponse);
   assertEquals(username,adminUserResponse.get("username"));

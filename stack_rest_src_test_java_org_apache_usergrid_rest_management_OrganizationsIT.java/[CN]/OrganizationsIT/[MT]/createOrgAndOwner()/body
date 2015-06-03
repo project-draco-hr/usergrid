@@ -1,11 +1,11 @@
 {
-  management().token().setToken(clientSetup.getSuperuserToken());
   Map<String,Object> userProperties=new HashMap<String,Object>();
   userProperties.put("company","Apigee");
   Organization organization=createOrgPayload("createOrgAndOwner",userProperties);
   Organization organizationResponse=clientSetup.getRestClient().management().orgs().post(organization);
   assertNotNull(organizationResponse);
-  Token token=clientSetup.getRestClient().management().token().post(Token.class,new Token("password",organization.getUsername(),organization.getPassword()));
+  Token token=clientSetup.getRestClient().management().token().post(false,Token.class,new Token("password",organization.getUsername(),organization.getPassword()),null);
+  this.management().token().setToken(token);
   assertNotNull(token);
   Organization returnedOrg=clientSetup.getRestClient().management().orgs().organization(organization.getOrganization()).get();
   assertTrue(returnedOrg != null && returnedOrg.getName().equals(organization.getOrganization()));
