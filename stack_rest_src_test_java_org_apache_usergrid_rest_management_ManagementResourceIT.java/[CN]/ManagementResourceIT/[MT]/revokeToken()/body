@@ -4,7 +4,7 @@
   assertNotNull(response.get("email").toString());
   response=management.users().user(clientSetup.getUsername()).get();
   assertNotNull(response.get("email").toString());
-  response=management.users().user(clientSetup.getUsername()).revokeTokens().post(true,Entity.class);
+  response=management.users().user(clientSetup.getUsername()).revokeTokens().post(true,Entity.class,null);
   Status status=null;
   try {
     response=management.users().user(clientSetup.getUsername()).get();
@@ -18,11 +18,10 @@
   assertNotNull(response.get("email").toString());
   QueryParameters queryParameters=new QueryParameters();
   queryParameters.addParam("token",token3.getAccessToken());
-  response=management.users().user(clientSetup.getUsername()).revokeToken().post(Entity.class,queryParameters);
-  ;
+  management.users().user(clientSetup.getUsername()).revokeToken().post(false,Entity.class,queryParameters);
   status=null;
   try {
-    response=management.users().user(clientSetup.getUsername()).get();
+    management.users().user(clientSetup.getUsername()).get();
   }
  catch (  UniformInterfaceException uie) {
     status=uie.getResponse().getClientResponseStatus();
