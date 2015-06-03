@@ -1,9 +1,10 @@
 {
   String orgName=clientSetup.getOrganizationName();
   String appName=clientSetup.getAppName() + "_new_app";
+  Token orgAdminToken=getAdminToken(clientSetup.getUsername(),clientSetup.getPassword());
   Map applicationMap=new HashMap<String,Object>();
   applicationMap.put("name",appName);
-  Entity appCreateResponse=this.management().orgs().organization(orgName).apps().post(clientSetup.getSuperuserToken(),applicationMap);
+  this.management().orgs().organization(orgName).apps().post(orgAdminToken,applicationMap);
   Entity response=this.management().orgs().organization(orgName).addToPath("apps").addToPath(appName).get();
   assertNotNull(response);
 }
