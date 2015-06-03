@@ -4,8 +4,7 @@
   String name=testClass + "." + methodName;
   try {
     restClient.superuserSetup();
-    superuserToken=restClient.management().token().post(Token.class,new Token(superuserName,superuserPassword));
-    restClient.management().token().setToken(superuserToken);
+    superuserToken=restClient.management().token().get(superuserName,superuserPassword);
   }
  catch (  Exception e) {
     if (logger.isDebugEnabled()) {
@@ -21,6 +20,7 @@
   appName="app_" + name + UUIDUtils.newTimeUUID();
   organization=restClient.management().orgs().post(new Organization(orgName,username,username + "@usergrid.com",username,username,null));
   clientCredentials=restClient.management().orgs().organization(orgName).credentials().get();
+  restClient.management().token().get(username,password);
   ApiResponse appResponse=restClient.management().orgs().organization(organization.getName()).app().post(new Application(appName));
   appUuid=(String)appResponse.getEntities().get(0).get("uuid");
   refreshIndex();
