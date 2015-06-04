@@ -4,18 +4,18 @@
   response.setAction("rebuild indexes");
   final Thread rebuild=new Thread(){
     public void run(){
-      logger.info("Started rebuilding application {} in collection {}",appId,collectionName);
+      logger.info("Started rebuilding application {} in collection {}",appId,collectionName.toLowerCase());
       try {
         rebuildCollection(appId,collectionName,reverse);
       }
  catch (      Exception e) {
         throw new RuntimeException("Error rebuilding collection");
       }
-      logger.info("Completed rebuilding application {} in collection {}",appId,collectionName);
+      logger.info("Completed rebuilding application {} in collection {}",appId,collectionName.toLowerCase());
     }
   }
 ;
-  rebuild.setName(String.format("Index rebuild for app %s and collection %s",appId,collectionName));
+  rebuild.setName(String.format("Index rebuild for app %s and collection %s",appId,collectionName.toLowerCase()));
   rebuild.setDaemon(true);
   rebuild.start();
   response.setSuccess();
