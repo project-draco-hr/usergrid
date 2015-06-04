@@ -1,17 +1,3 @@
 {
-  if ((organizationName == null) || (user == null)) {
-    return null;
-  }
-  Lock groupLock=getUniqueUpdateLock(lockManager,MANAGEMENT_APPLICATION_ID,organizationName,"groups","path");
-  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
-  if (!em.isPropertyValueUniqueForEntity("group","path",organizationName)) {
-    throw new DuplicateUniquePropertyExistsException("group","path",organizationName);
-  }
-  try {
-    groupLock.lock();
-    return createOrganizationInternal(organizationName,user,activated);
-  }
-  finally {
-    groupLock.unlock();
-  }
+  return createOrganization(organizationName,user,activated);
 }
