@@ -1,21 +1,16 @@
 {
   this.entityIndex=entityIndex;
   this.indexBatchBufferProducer=indexBatchBufferProducer;
-  this.indexFig=indexFig;
-  this.indexIdentifier=indexIdentifier;
-  ValidationUtils.validateApplicationScope(appScope);
-  this.applicationScope=appScope;
-  final MapScope mapScope=new MapScopeImpl(appScope.getApplication(),"cursorcache");
+  this.indexIdentifier=indexLocationStrategy.getIndexIdentifier();
   this.failureMonitor=new FailureMonitorImpl(config,provider);
   this.esProvider=provider;
-  mapManager=mapManagerFactory.createMapManager(mapScope);
   this.searchTimer=metricsFactory.getTimer(EsApplicationEntityIndexImpl.class,"search.timer");
-  this.cursorTimer=metricsFactory.getTimer(EsApplicationEntityIndexImpl.class,"search.cursor.timer");
   this.cursorTimeout=config.getQueryCursorTimeout();
   this.queryTimeout=config.getWriteTimeout();
   this.deleteApplicationTimer=metricsFactory.getTimer(EsApplicationEntityIndexImpl.class,"delete.application");
   this.deleteApplicationMeter=metricsFactory.getMeter(EsApplicationEntityIndexImpl.class,"delete.application.meter");
   this.alias=indexIdentifier.getAlias();
-  this.searchRequest=new SearchRequestBuilderStrategy(esProvider,appScope,alias,cursorTimeout);
-  this.searchRequestBuilderStrategyV2=new SearchRequestBuilderStrategyV2(esProvider,appScope,alias,cursorTimeout);
+  this.applicationScope=indexLocationStrategy.getApplicationScope();
+  this.searchRequest=new SearchRequestBuilderStrategy(esProvider,applicationScope,alias,cursorTimeout);
+  this.searchRequestBuilderStrategyV2=new SearchRequestBuilderStrategyV2(esProvider,applicationScope,alias,cursorTimeout);
 }
