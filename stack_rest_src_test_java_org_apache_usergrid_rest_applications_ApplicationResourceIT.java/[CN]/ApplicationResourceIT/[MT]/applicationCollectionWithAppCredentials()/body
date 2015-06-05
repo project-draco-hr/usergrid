@@ -1,0 +1,8 @@
+{
+  Credentials appCredentials=getAppCredentials();
+  ApiResponse apiResponse=this.app().collection("roles").getResource(false).queryParam("grant_type","client_credentials").queryParam("client_id",appCredentials.getClientId()).queryParam("client_secret",appCredentials.getClientSecret()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(ApiResponse.class);
+  assertNotNull(apiResponse);
+  assertNull(apiResponse.getError());
+  Collection roles=new Collection(apiResponse);
+  assertEquals(3,roles.getNumOfEntities());
+}
