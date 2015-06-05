@@ -1,0 +1,23 @@
+{
+  this.indexFig=indexFig;
+  this.indexLocationStrategy=indexLocationStrategy;
+  this.indexBatchBufferProducer=indexBatchBufferProducer;
+  this.failureMonitor=new FailureMonitorImpl(indexFig,provider);
+  this.esProvider=provider;
+  this.indexRefreshCommand=indexRefreshCommand;
+  this.alias=indexLocationStrategy.getAlias();
+  this.aliasCache=indexCache;
+  this.applicationScope=indexLocationStrategy.getApplicationScope();
+  this.cursorTimeout=indexFig.getQueryCursorTimeout();
+  this.queryTimeout=indexFig.getWriteTimeout();
+  this.searchRequest=new SearchRequestBuilderStrategy(esProvider,applicationScope,alias,cursorTimeout);
+  this.searchRequestBuilderStrategyV2=new SearchRequestBuilderStrategyV2(esProvider,applicationScope,alias,cursorTimeout);
+  this.addTimer=metricsFactory.getTimer(EsEntityIndexImpl.class,"add.timer");
+  this.updateAliasTimer=metricsFactory.getTimer(EsEntityIndexImpl.class,"update.alias.timer");
+  this.mappingTimer=metricsFactory.getTimer(EsEntityIndexImpl.class,"create.mapping.timer");
+  this.deleteApplicationTimer=metricsFactory.getTimer(EsEntityIndexImpl.class,"delete.application");
+  this.deleteApplicationMeter=metricsFactory.getMeter(EsEntityIndexImpl.class,"delete.application.meter");
+  this.refreshIndexMeter=metricsFactory.getMeter(EsEntityIndexImpl.class,"refresh.meter");
+  this.searchTimer=metricsFactory.getTimer(EsEntityIndexImpl.class,"search.timer");
+  initialize();
+}

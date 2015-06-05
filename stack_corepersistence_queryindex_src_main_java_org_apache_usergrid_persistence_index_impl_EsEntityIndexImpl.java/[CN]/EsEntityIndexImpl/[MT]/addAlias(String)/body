@@ -2,7 +2,7 @@
   Timer.Context timer=updateAliasTimer.time();
   try {
     Boolean isAck;
-    String indexName=indexIdentifier.getIndex(indexSuffix);
+    String indexName=indexLocationStrategy.getIndex(indexSuffix);
     final AdminClient adminClient=esProvider.getClient().admin();
     String[] indexNames=getIndexes(AliasType.Write);
     int count=0;
@@ -16,8 +16,8 @@
       logger.info("Removed Index Name from Alias=[{}] ACK=[{}]",alias,isAck);
     }
     aliasesRequestBuilder=adminClient.indices().prepareAliases();
-    aliasesRequestBuilder.addAlias(indexName,alias.getReadAlias());
     aliasesRequestBuilder.addAlias(indexName,alias.getWriteAlias());
+    aliasesRequestBuilder.addAlias(indexName,alias.getReadAlias());
     isAck=aliasesRequestBuilder.execute().actionGet().isAcknowledged();
     logger.info("Created new read and write aliases ACK=[{}]",isAck);
     aliasCache.invalidate(alias);

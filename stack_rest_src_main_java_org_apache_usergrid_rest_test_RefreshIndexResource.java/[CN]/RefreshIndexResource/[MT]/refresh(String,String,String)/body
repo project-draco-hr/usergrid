@@ -5,7 +5,12 @@
     if (testProp == null || !Boolean.parseBoolean(testProp)) {
       throw new UnsupportedOperationException();
     }
-    getEntityIndex().refreshAsync().toBlocking().first();
+    UUID appid=UUIDUtils.tryExtractUUID(appIdString);
+    if (appid == null) {
+      throw new IllegalArgumentException("app id is null");
+    }
+    EntityManager em=this.getEmf().getEntityManager(appid);
+    em.refreshIndex();
   }
  catch (  Exception e) {
     logger.error("Error in refresh",e);

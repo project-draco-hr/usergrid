@@ -24,7 +24,7 @@
   device2=app.getEntityManager().get(e.getUuid(),Device.class);
   Map<String,Object> props=app.getEntityManager().getProperties(e);
   assertEquals(device2.getProperty(notifierKey),PUSH_TOKEN);
-  setup.getEntityIndex().refresh();
+  setup.getEntityIndex().refresh(app.getId());
   user1=new User();
   user1.setUsername("user1");
   user1.setEmail("user1@usergrid.org");
@@ -35,7 +35,7 @@
   user2=app.getEntityManager().create(user2);
   ns=getNotificationService();
   DefaultQueueManager qm=new DefaultQueueManager();
-  setup.getEntityIndex().refresh();
+  setup.getEntityIndex().refresh(app.getId());
   listener=new QueueListener(ns.getServiceManagerFactory(),ns.getEntityManagerFactory(),new Properties());
   listener.TEST_QUEUE_MANAGER=qm;
   listener.DEFAULT_SLEEP=200;

@@ -9,13 +9,13 @@
   Entity entity=app.testRequest(ServiceAction.POST,1,"notifiers").getEntity();
   Notifier notifier=app.getEntityManager().get(entity.getUuid(),Notifier.class);
   final String notifierKey=notifier.getName() + NOTIFIER_ID_POSTFIX;
-  setup.getEntityIndex().refresh();
+  setup.getEntityIndex().refresh(app.getId());
   for (int i=0; i < NUM_DEVICES; i++) {
     app.clear();
     app.put(notifierKey,PUSH_TOKEN);
     app.put("name","device" + i * 10);
     app.testRequest(ServiceAction.POST,1,"devices").getEntity();
-    setup.getEntityIndex().refresh();
+    setup.getEntityIndex().refresh(app.getId());
   }
   app.clear();
   String payload=getPayload();
@@ -26,7 +26,7 @@
   app.put("debug",true);
   entity=app.testRequest(ServiceAction.POST,1,"devices","notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",entity.getUuid());
-  setup.getEntityIndex().refresh();
+  setup.getEntityIndex().refresh(app.getId());
   final Notification notification=(Notification)entity.toTypedEntity();
   try {
     scheduleNotificationAndWait(notification);
