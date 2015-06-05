@@ -57,26 +57,31 @@
   }
   List<Object> organizationsList=(List<Object>)metadata.get("organizations");
   if (organizationsList != null && !organizationsList.isEmpty()) {
-    for (    Object orgObject : organizationsList) {
-      Map<String,Object> orgMap=(Map<String,Object>)orgObject;
-      UUID orgUuid=UUID.fromString((String)orgMap.get("uuid"));
-      String orgName=(String)orgMap.get("name");
-      User user=em.get(entityRef,User.class);
-      final UserInfo userInfo=managementService.getAdminUserByEmail(user.getEmail());
-      OrganizationInfo orgInfo=managementService.getOrganizationByUuid(orgUuid);
-      if (orgInfo == null) {
-        try {
-          managementService.createOrganization(orgUuid,orgName,userInfo,false);
-          orgInfo=managementService.getOrganizationByUuid(orgUuid);
-          logger.debug("Created new org {} for user {}",new Object[]{orgInfo.getName(),user.getEmail()});
-        }
- catch (        DuplicateUniquePropertyExistsException dpee) {
-          logger.error("Org {} already exists",orgName);
-        }
-      }
+    User user=em.get(entityRef,User.class);
+    if (user == null) {
+      logger.error("User with uuid={} not found, not adding to organizations");
+    }
  else {
-        managementService.addAdminUserToOrganization(userInfo,orgInfo,false);
-        logger.debug("Added user {} to org {}",new Object[]{user.getEmail(),orgName});
+      final UserInfo userInfo=managementService.getAdminUserByEmail(user.getEmail());
+      for (      Object orgObject : organizationsList) {
+        Map<String,Object> orgMap=(Map<String,Object>)orgObject;
+        UUID orgUuid=UUID.fromString((String)orgMap.get("uuid"));
+        String orgName=(String)orgMap.get("name");
+        OrganizationInfo orgInfo=managementService.getOrganizationByUuid(orgUuid);
+        if (orgInfo == null) {
+          try {
+            managementService.createOrganization(orgUuid,orgName,userInfo,false);
+            orgInfo=managementService.getOrganizationByUuid(orgUuid);
+            logger.debug("Created new org {} for user {}",new Object[]{orgInfo.getName(),user.getEmail()});
+          }
+ catch (          DuplicateUniquePropertyExistsException dpee) {
+            logger.error("Org {} already exists",orgName);
+          }
+        }
+ else {
+          managementService.addAdminUserToOrganization(userInfo,orgInfo,false);
+          logger.debug("Added user {} to org {}",new Object[]{user.getEmail(),orgName});
+        }
       }
     }
   }
