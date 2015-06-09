@@ -1,4 +1,10 @@
 {
   IndexLocationStrategy indexLocationStrategy=indexLocationStrategyFactory.getIndexLocationStrategy(applicationScope);
-  assertTrue(indexLocationStrategy.getIndex(null).equals(applicationLocationStrategy.getIndex(null)));
+  assertEquals(indexLocationStrategy.getIndex(null),applicationLocationStrategy.getIndex(null));
+  assertTrue(indexLocationStrategy.getIndex(null).contains(indexFig.getIndexPrefix()));
+  assertTrue(indexLocationStrategy.getIndex(null).contains(cassandraFig.getApplicationKeyspace().toLowerCase()));
+  assertTrue(indexLocationStrategy.getAlias().getReadAlias().contains(applicationScope.getApplication().getUuid().toString().toLowerCase()));
+  assertTrue(indexLocationStrategy.getAlias().getWriteAlias().contains(applicationScope.getApplication().getUuid().toString().toLowerCase()));
+  assertTrue(indexLocationStrategy.getAlias().getWriteAlias().contains("write"));
+  assertTrue(indexLocationStrategy.getAlias().getReadAlias().contains("read"));
 }
