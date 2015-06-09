@@ -1,0 +1,16 @@
+{
+  Map payload=new HashMap<>();
+  payload.put("name","wazer wifle!!");
+  Entity payloadEntity=new Entity(payload);
+  Entity collectionResponse=this.clientSetup.getRestClient().org(clientSetup.getOrganizationName()).app(clientSetup.getAppName()).collection("belp").post(payloadEntity);
+  assertNotNull(collectionResponse);
+  Token superUserToken=clientSetup.getRestClient().management().token().post(new Token(clientSetup.getSuperuserName(),clientSetup.getSuperuserPassword()));
+  QueryParameters queryParameters=new QueryParameters();
+  queryParameters.addParam("access_token",superUserToken.getAccessToken());
+  org.apache.usergrid.rest.test.resource2point0.model.ApiResponse result=this.clientSetup.getRestClient().system().addToPath("index").addToPath("rebuild").addToPath(clientSetup.getAppUuid()).addToPath("bElp").put();
+  assertNotNull(result);
+  queryParameters=new QueryParameters();
+  queryParameters.addParam("access_token",superUserToken.getAccessToken());
+  result=this.clientSetup.getRestClient().system().addToPath("index").addToPath("rebuild").addToPath(clientSetup.getAppUuid()).addToPath("belp").put();
+  assertNotNull(result);
+}
