@@ -1,0 +1,14 @@
+{
+  WebResource resource=getResource(useToken);
+  resource=addParametersToResource(resource,queryParameters);
+  WebResource.Builder builder=resource.type(MediaType.APPLICATION_JSON_TYPE).accept(MediaType.APPLICATION_JSON);
+  if (entity != null) {
+    builder.entity(entity);
+  }
+  if (useBasicAuthentication) {
+    HTTPBasicAuthFilter httpBasicAuthFilter=new HTTPBasicAuthFilter("superuser","superpassword");
+    resource.addFilter(httpBasicAuthFilter);
+  }
+  GenericType<T> gt=new GenericType<>((Class)type);
+  return builder.post(gt.getRawClass());
+}
