@@ -1,0 +1,45 @@
+{
+  final String random1=RandomStringUtils.randomAlphanumeric(10);
+  final OrganizationOwnerInfo orgOwnerInfo1=setup.getMgmtSvc().createOwnerAndOrganization("org_" + random1,"user_" + random1,"user_" + random1,"user_" + random1 + "@example.com","password");
+  final String random2=RandomStringUtils.randomAlphanumeric(10);
+  final OrganizationOwnerInfo orgOwnerInfo2=setup.getMgmtSvc().createOwnerAndOrganization("org_" + random2,"user_" + random2,"user_" + random2,"user_" + random2 + "@example.com","password");
+  setup.getMgmtSvc().addAdminUserToOrganization(orgOwnerInfo1.getOwner(),orgOwnerInfo2.getOrganization(),false);
+  setup.getMgmtSvc().addAdminUserToOrganization(orgOwnerInfo1.getOwner(),orgOwnerInfo2.getOrganization(),false);
+  String directoryName="./target/export" + RandomStringUtils.randomAlphanumeric(10);
+  ExportAdmins exportAdmins=new ExportAdmins();
+  exportAdmins.startTool(new String[]{"-host","localhost:" + ServiceITSuite.cassandraResource.getRpcPort(),"-outputDir",directoryName},false);
+  File directory=new File(directoryName);
+  String[] adminUsersFileNames=directory.list(new FilenameFilter(){
+    public boolean accept(    File dir,    String name){
+      return name.startsWith("admin-users.");
+    }
+  }
+);
+  File adminUsersFile=new File(directory.getAbsolutePath() + File.separator + adminUsersFileNames[0]);
+  ObjectMapper mapper=new ObjectMapper();
+  JsonNode node=mapper.readTree(adminUsersFile);
+  assertTrue(node.isArray());
+  Set<String> usernames=new HashSet<String>();
+  for (int i=0; i < node.size(); i++) {
+    JsonNode jsonNode=node.get(i);
+    usernames.add(jsonNode.get("username").asText());
+  }
+  assertTrue(usernames.contains("user_" + random1));
+  assertTrue(usernames.contains("user_" + random2));
+  String[] metadataFileNames=directory.list(new FilenameFilter(){
+    public boolean accept(    File dir,    String name){
+      return name.startsWith("admin-user-metadata.");
+    }
+  }
+);
+  File metadataFile=new File(directory.getAbsolutePath() + File.separator + metadataFileNames[0]);
+  mapper=new ObjectMapper();
+  node=mapper.readTree(metadataFile);
+  assertTrue(node.isObject());
+  JsonNode user1node=node.findValue(orgOwnerInfo1.getOwner().getUuid().toString());
+  JsonNode orgs1=user1node.findValue("organizations");
+  assertEquals(2,orgs1.size());
+  JsonNode user2node=node.findValue(orgOwnerInfo2.getOwner().getUuid().toString());
+  JsonNode orgs2=user2node.findValue("organizations");
+  assertEquals(1,orgs2.size());
+}
