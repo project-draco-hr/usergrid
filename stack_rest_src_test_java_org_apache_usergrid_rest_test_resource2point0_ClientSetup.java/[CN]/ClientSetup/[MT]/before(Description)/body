@@ -21,7 +21,7 @@
   organization=restClient.management().orgs().post(new Organization(orgName,username,username + "@usergrid.com",username,username,null));
   refreshIndex();
   restClient.management().token().post(new Token(username,username));
-  refreshIndex();
-  restClient.management().orgs().organization(organization.getName()).app().post(new Application(appName));
+  application=restClient.management().orgs().organization(organization.getName()).app().post(new Application(appName));
+  appUuid=(String)((LinkedHashMap)application.getDynamicProperties().get("data")).get(orgName + "/" + appName);
   refreshIndex();
 }
