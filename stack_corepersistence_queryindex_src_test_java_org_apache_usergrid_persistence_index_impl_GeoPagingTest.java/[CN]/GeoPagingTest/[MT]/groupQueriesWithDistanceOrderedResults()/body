@@ -1,8 +1,7 @@
 {
   int maxRangeLimit=9;
   Entity[] cats=new Entity[maxRangeLimit + 1];
-  final ApplicationEntityIndex applicationEntityIndex=eif.createApplicationEntityIndex(new ApplicationScopeImpl(createId("application")));
-  final EntityIndexBatch batch=applicationEntityIndex.createBatch();
+  final EntityIndexBatch batch=entityIndex.createBatch();
   final IndexEdge edge=new IndexEdgeImpl(createId("root"),"testType",SearchEdge.NodeType.SOURCE,1000);
   for (int i=maxRangeLimit; i >= 0; i--) {
     Entity cat=new Entity("cat");
@@ -13,9 +12,9 @@
     batch.index(edge,cat);
   }
   batch.execute().toBlocking().last();
-  ei.refreshAsync().toBlocking().last();
+  entityIndex.refreshAsync().toBlocking().last();
   final String query="select * where location within 1500000 of 37, -75";
-  final CandidateResults candidates=applicationEntityIndex.search(edge,SearchTypes.fromTypes("cat"),query,100,0);
+  final CandidateResults candidates=entityIndex.search(edge,SearchTypes.fromTypes("cat"),query,100,0);
   assertNotNull(candidates);
   for (int consistent=0; consistent < maxRangeLimit; consistent++) {
     CandidateResult candidate=candidates.get(consistent);

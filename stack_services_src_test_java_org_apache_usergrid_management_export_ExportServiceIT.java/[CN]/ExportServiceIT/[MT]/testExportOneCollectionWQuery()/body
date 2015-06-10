@@ -9,7 +9,7 @@
   f.deleteOnExit();
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
   em.createApplicationCollection("baconators");
-  setup.getEntityIndex().refresh();
+  setup.getEntityIndex().refresh(applicationId);
   Map<String,Object> userProperties=null;
   Entity[] entity;
   entity=new Entity[entitiesToCreate];
@@ -31,7 +31,7 @@
   JobData jobData=jobDataCreator(payload,exportUUID,s3Export);
   JobExecution jobExecution=mock(JobExecution.class);
   when(jobExecution.getJobData()).thenReturn(jobData);
-  setup.getEntityIndex().refresh();
+  setup.getEntityIndex().refresh(applicationId);
   exportService.doExport(jobExecution);
   TypeReference<HashMap<String,Object>> typeRef=new TypeReference<HashMap<String,Object>>(){
   }

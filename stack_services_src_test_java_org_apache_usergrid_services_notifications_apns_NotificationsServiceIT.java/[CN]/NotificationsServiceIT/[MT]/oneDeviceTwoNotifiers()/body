@@ -11,7 +11,7 @@
   fis.close();
   Entity e=app.testRequest(ServiceAction.POST,1,"notifiers").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifiers",nameValue);
-  setup.getEntityIndex().refresh();
+  setup.getEntityIndex().refresh(app.getId());
   Notifier notifier2=app.getEntityManager().get(e.getUuid(),Notifier.class);
   assertEquals(notifier2.getName(),nameValue);
   assertEquals(notifier2.getProvider(),PROVIDER);
@@ -19,7 +19,7 @@
   String key2=notifier2.getName() + NOTIFIER_ID_POSTFIX;
   device1.setProperty(key2,PUSH_TOKEN);
   app.getEntityManager().update(device1);
-  setup.getEntityIndex().refresh();
+  setup.getEntityIndex().refresh(app.getId());
   app.clear();
   String payload=getPayload();
   Map<String,String> payloads=new HashMap<String,String>(1);
@@ -30,12 +30,12 @@
   app.put("debug",true);
   e=app.testRequest(ServiceAction.POST,1,"devices",device1.getUuid(),"notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
-  setup.getEntityIndex().refresh();
+  setup.getEntityIndex().refresh(app.getId());
   Notification notification=app.getEntityManager().get(e.getUuid(),Notification.class);
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
   ns.addDevice(notification,device1);
-  setup.getEntityIndex().refresh();
+  setup.getEntityIndex().refresh(app.getId());
   notification=scheduleNotificationAndWait(notification);
-  setup.getEntityIndex().refresh();
+  setup.getEntityIndex().refresh(app.getId());
   checkReceipts(notification,2);
 }

@@ -4,26 +4,35 @@
     return rx.Observable.empty();
   }
   String url=getReadQueue().getUrl();
-  if (logger.isDebugEnabled())   logger.debug("Getting {} messages from {}",limit,url);
+  if (logger.isDebugEnabled())   logger.debug("Getting up to {} messages from {}",limit,url);
   ReceiveMessageRequest receiveMessageRequest=new ReceiveMessageRequest(url);
   receiveMessageRequest.setMaxNumberOfMessages(limit);
   receiveMessageRequest.setVisibilityTimeout(transactionTimeout / 1000);
   receiveMessageRequest.setWaitTimeSeconds(waitTime / 1000);
-  ReceiveMessageResult result=sqs.receiveMessage(receiveMessageRequest);
-  List<Message> messages=result.getMessages();
-  if (logger.isDebugEnabled())   logger.debug("Received {} messages from {}",messages.size(),url);
-  List<QueueMessage> queueMessages=new ArrayList<>(messages.size());
-  for (  Message message : messages) {
-    Object body;
-    try {
-      body=fromString(message.getBody(),klass);
+  try {
+    ReceiveMessageResult result=sqs.receiveMessage(receiveMessageRequest);
+    List<Message> messages=result.getMessages();
+    if (logger.isDebugEnabled())     logger.debug("Received {} messages from {}",messages.size(),url);
+    List<QueueMessage> queueMessages=new ArrayList<>(messages.size());
+    for (    Message message : messages) {
+      Object body;
+      try {
+        body=fromString(message.getBody(),klass);
+      }
+ catch (      Exception e) {
+        logger.error(String.format("failed to deserialize message: %s",message.getBody()),e);
+        throw new RuntimeException(e);
+      }
+      QueueMessage queueMessage=new QueueMessage(message.getMessageId(),message.getReceiptHandle(),body,message.getAttributes().get("type"));
+      queueMessages.add(queueMessage);
     }
- catch (    Exception e) {
-      logger.error("failed to deserialize message",e);
-      throw new RuntimeException(e);
-    }
-    QueueMessage queueMessage=new QueueMessage(message.getMessageId(),message.getReceiptHandle(),body,message.getAttributes().get("type"));
-    queueMessages.add(queueMessage);
+    return rx.Observable.from(queueMessages);
   }
-  return rx.Observable.from(queueMessages);
+ catch (  com.amazonaws.services.sqs.model.QueueDoesNotExistException dne) {
+    logger.error(String.format("Queue does not exist! [%s]",url),dne);
+  }
+catch (  Exception e) {
+    logger.error(String.format("Programming error getting messages from queue=[%s] exist!",url),e);
+  }
+  return rx.Observable.from(new ArrayList<>(0));
 }

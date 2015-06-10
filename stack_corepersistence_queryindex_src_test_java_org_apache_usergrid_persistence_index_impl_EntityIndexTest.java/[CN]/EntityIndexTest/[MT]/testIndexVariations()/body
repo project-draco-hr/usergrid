@@ -1,7 +1,5 @@
 {
   Id appId=new SimpleId("application");
-  ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
-  ApplicationEntityIndex entityIndex=eif.createApplicationEntityIndex(applicationScope);
   final String entityType="thing";
   IndexEdge indexEdge=new IndexEdgeImpl(appId,"things",SearchEdge.NodeType.SOURCE,1);
   final SearchTypes searchTypes=SearchTypes.fromTypes(entityType);
@@ -21,7 +19,7 @@
   entity2.setField(new IntegerField("ordinal",1));
   batch.index(indexEdge,entity2);
   batch.execute().toBlocking().last();
-  ei.refreshAsync().toBlocking().first();
+  entityIndex.refreshAsync().toBlocking().first();
   StopWatch timer=new StopWatch();
   timer.start();
   CandidateResults candidateResults=entityIndex.search(indexEdge,searchTypes,"select * where testfield = 'test' order by ordinal",100,0);

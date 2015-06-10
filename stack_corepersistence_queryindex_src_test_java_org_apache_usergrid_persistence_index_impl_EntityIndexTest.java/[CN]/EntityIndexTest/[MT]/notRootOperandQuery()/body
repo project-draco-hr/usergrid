@@ -1,8 +1,6 @@
 {
   Id appId=new SimpleId("application");
   Id ownerId=new SimpleId("owner");
-  ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
-  ApplicationEntityIndex entityIndex=eif.createApplicationEntityIndex(applicationScope);
   final Entity first=new Entity("search");
   first.setField(new StringField("string","I ate a sammich"));
   EntityUtils.setVersion(first,UUIDGenerator.newTimeUUID());
@@ -15,7 +13,7 @@
   IndexEdge indexScope2=new IndexEdgeImpl(ownerId,"searches",SearchEdge.NodeType.SOURCE,11);
   batch.index(indexScope2,second);
   batch.execute().toBlocking().last();
-  ei.refreshAsync().toBlocking().first();
+  entityIndex.refreshAsync().toBlocking().first();
   final String notFirst="NOT string = 'I ate a sammich'";
   final CandidateResults notFirstResults=entityIndex.search(indexScope1,SearchTypes.fromTypes(first.getId().getType()),notFirst,10,0);
   assertEquals(1,notFirstResults.size());

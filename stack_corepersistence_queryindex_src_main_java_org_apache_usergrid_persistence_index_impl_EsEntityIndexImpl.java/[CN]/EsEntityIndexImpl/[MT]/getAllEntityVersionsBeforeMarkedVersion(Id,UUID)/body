@@ -1,0 +1,34 @@
+{
+  Preconditions.checkNotNull(entityId,"entityId cannot be null");
+  Preconditions.checkNotNull(markedVersion,"markedVersion cannot be null");
+  ValidationUtils.verifyVersion(markedVersion);
+  SearchResponse searchResponse;
+  List<CandidateResult> candidates=new ArrayList<>();
+  final ParsedQuery parsedQuery=ParsedQueryBuilder.build("select *");
+  final SearchRequestBuilder srb=searchRequestBuilderStrategyV2.getBuilder();
+  FilterBuilder entityIdFilter=FilterBuilders.termFilter(IndexingUtils.ENTITY_ID_FIELDNAME,IndexingUtils.entityId(entityId));
+  FilterBuilder entityVersionFilter=FilterBuilders.rangeFilter(IndexingUtils.ENTITY_VERSION_FIELDNAME).lte(markedVersion);
+  FilterBuilder andFilter=FilterBuilders.andFilter(entityIdFilter,entityVersionFilter);
+  srb.setPostFilter(andFilter);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Searching for marked versions in index (read alias): {}\n  nodeId: {},\n   query: {} ",this.alias.getReadAlias(),entityId,srb);
+  }
+  try {
+    searchResponse=srb.setScroll(new TimeValue(6000)).setSize(100).execute().actionGet();
+    while (true) {
+      candidates=aggregateScrollResults(candidates,searchResponse);
+      SearchScrollRequestBuilder ssrb=searchRequestBuilderStrategyV2.getScrollBuilder(searchResponse.getScrollId()).setScroll(new TimeValue(6000));
+      searchResponse=ssrb.execute().actionGet();
+      if (searchResponse.getHits().getHits().length == 0) {
+        break;
+      }
+    }
+  }
+ catch (  Throwable t) {
+    logger.error("Unable to communicate with Elasticsearch",t);
+    failureMonitor.fail("Unable to execute batch",t);
+    throw t;
+  }
+  failureMonitor.success();
+  return new CandidateResults(candidates,parsedQuery.getSelectFieldMappings());
+}

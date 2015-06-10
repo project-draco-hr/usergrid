@@ -1,18 +1,19 @@
 {
-  String superToken=superAdminToken();
   Map<String,Object> data=new HashMap<String,Object>();
   data.put("replicas",0);
   data.put("shards",1);
   data.put("writeConsistency","one");
-  UUID appId=this.context.getAppUuid();
-  JsonNode node=null;
+  String appId=this.clientSetup.getAppUuid();
+  org.apache.usergrid.rest.test.resource2point0.model.ApiResponse node=null;
   try {
-    node=mapper.readTree(resource().path("/system/index/" + appId).queryParam("access_token",superToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,data));
+    WebResource resource=this.clientSetup.getRestClient().pathResource("/system/index/" + appId).getResource();
+    HTTPBasicAuthFilter httpBasicAuthFilter=new HTTPBasicAuthFilter(clientSetup.getSuperuserName(),clientSetup.getSuperuserPassword());
+    resource.addFilter(httpBasicAuthFilter);
+    node=resource.type(MediaType.APPLICATION_JSON_TYPE).accept(MediaType.APPLICATION_JSON).get(org.apache.usergrid.rest.test.resource2point0.model.ApiResponse.class);
   }
  catch (  Exception e) {
     LOG.error("failed",e);
     fail(e.toString());
   }
-  assertNull(getError(node));
-  refreshIndex("test-organization","test-app");
+  assertNotNull(node);
 }

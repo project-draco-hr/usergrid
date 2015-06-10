@@ -1,9 +1,7 @@
 {
   Id appId=new SimpleId("application");
   Id ownerId=new SimpleId("owner");
-  ApplicationScope applicationScope=new ApplicationScopeImpl(appId);
   IndexEdge indexSCope=new IndexEdgeImpl(ownerId,"user",SearchEdge.NodeType.SOURCE,10);
-  ApplicationEntityIndex entityIndex=eif.createApplicationEntityIndex(applicationScope);
   final Entity first=new Entity("search");
   first.setField(new StringField("string","alpha long string"));
   EntityUtils.setVersion(first,UUIDGenerator.newTimeUUID());
@@ -14,7 +12,7 @@
   batch.index(indexSCope,first);
   batch.index(indexSCope,second);
   batch.execute().toBlocking().last();
-  ei.refreshAsync().toBlocking().first();
+  entityIndex.refreshAsync().toBlocking().first();
   final String ascQuery="order by string";
   final CandidateResults ascResults=entityIndex.search(indexSCope,SearchTypes.fromTypes(first.getId().getType()),ascQuery,10,0);
   assertEquals(first.getId(),ascResults.get(0).getId());

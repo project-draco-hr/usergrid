@@ -2,7 +2,8 @@
   EntityManager em=app.getEntityManager();
   EntityIndexFactory eif=SpringResource.getInstance().getBean(Injector.class).getInstance(EntityIndexFactory.class);
   ApplicationScope as=new ApplicationScopeImpl(new SimpleId(em.getApplicationId(),TYPE_APPLICATION));
-  ApplicationEntityIndex ei=eif.createApplicationEntityIndex(as);
+  IndexLocationStrategyFactory indexLocationStrategyFactory=SpringResource.getInstance().getBean(Injector.class).getInstance(IndexLocationStrategyFactory.class);
+  EntityIndex ei=eif.createEntityIndex(indexLocationStrategyFactory.getIndexLocationStrategy(as));
   final Id rootId=createId(em.getApplicationId(),TYPE_APPLICATION);
   SearchEdge is=CpNamingUtils.createCollectionSearchEdge(rootId,collName);
   return ei.search(is,SearchTypes.fromTypes(type),query,1000,0);
