@@ -6,10 +6,10 @@
   UUID appToDeleteId=createAppWithCollection(orgName,appToDeleteName,orgAdminToken,entities);
   logger.debug("\n\nDeleting app\n");
   clientSetup.getRestClient().org(orgName).app(appToDeleteName).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("app_delete_confirm","confirm_delete_of_application_and_data").delete();
-  Thread.sleep(INDEXING_WAIT);
+  refreshIndex();
   logger.debug("\n\nRestoring app\n");
   clientSetup.getRestClient().org(orgName).app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).put();
-  Thread.sleep(INDEXING_WAIT);
+  refreshIndex();
   logger.debug("\n\nGetting app list from management end-point\n");
   ManagementResponse orgAppResponse=clientSetup.getRestClient().management().orgs().organization(orgName).apps().getOrganizationApplications();
   boolean found=false;
