@@ -1,14 +1,14 @@
 {
   final EntityCollectionManager collectionManager=entityCollectionManagerFactory.createCollectionManager(applicationScope);
-  final AliasedEntityIndex AliasedEntityIndex=entityIndexFactory.createEntityIndex(indexLocationStrategyFactory.getIndexLocationStrategy(applicationScope));
+  final EntityIndex EntityIndex=entityIndexFactory.createEntityIndex(indexLocationStrategyFactory.getIndexLocationStrategy(applicationScope));
   final Edge collectionEdge=createEntityandCollectionEdge(applicationScope,graphManager,testEntity);
   final Id connectingId=createId("connecting");
   final Edge connectionEdge=CpNamingUtils.createConnectionEdge(connectingId,"likes",testEntity.getId());
   final Edge connectionSearch=graphManager.writeEdge(connectionEdge).toBlocking().last();
   indexService.indexEntity(applicationScope,testEntity).count().toBlocking().last();
   final SearchEdge collectionSearchEdge=CpNamingUtils.createSearchEdgeFromSource(collectionEdge);
-  getResults(AliasedEntityIndex,collectionSearchEdge,SearchTypes.fromTypes(testEntity.getId().getType()),1);
+  getResults(EntityIndex,collectionSearchEdge,SearchTypes.fromTypes(testEntity.getId().getType()),1);
   final SearchEdge connectionSearchEdge=CpNamingUtils.createSearchEdgeFromSource(connectionSearch);
-  getResults(AliasedEntityIndex,connectionSearchEdge,SearchTypes.fromTypes(testEntity.getId().getType()),1);
+  getResults(EntityIndex,connectionSearchEdge,SearchTypes.fromTypes(testEntity.getId().getType()),1);
   return connectionSearch;
 }
