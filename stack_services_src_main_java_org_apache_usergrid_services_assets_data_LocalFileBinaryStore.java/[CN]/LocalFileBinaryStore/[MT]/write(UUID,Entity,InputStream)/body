@@ -1,25 +1,34 @@
 {
   File file=path(appId,entity);
   FileUtils.copyInputStreamToFile(inputStream,file);
-  long maxSizeBytes=50 * FileUtils.ONE_MB;
   long size=FileUtils.sizeOf(file);
+  long maxSizeBytes=50 * FileUtils.ONE_MB;
   String maxSizeMbString=properties.getProperty("usergrid.binary.max-size-mb","50");
-  Map<String,Object> fileMetadata=AssetUtils.getFileMetadata(entity);
   if (StringUtils.isNumeric(maxSizeMbString)) {
     maxSizeBytes=Long.parseLong(maxSizeMbString) * FileUtils.ONE_MB;
   }
+  if (maxSizeBytes < 5 * FileUtils.ONE_MB) {
+    maxSizeBytes=5 * FileUtils.ONE_MB;
+  }
+  EntityManager em=emf.getEntityManager(appId);
+  Map<String,Object> fileMetadata=AssetUtils.getFileMetadata(entity);
   if (size > maxSizeBytes) {
     try {
-      fileMetadata.put("error","Asset size " + file.length() + " is larger than max size of "+ maxSizeBytes);
+      fileMetadata.put("error","Asset size " + size + " is larger than max size of "+ maxSizeBytes);
+      em.update(entity);
     }
  catch (    Exception e) {
+      LOG.error("Error updating entity with error message",e);
     }
+    return;
   }
- else {
-    fileMetadata.put(AssetUtils.CONTENT_LENGTH,size);
-    fileMetadata.put(AssetUtils.LAST_MODIFIED,System.currentTimeMillis());
-    if (file.exists()) {
-      AssetMimeHandler.get().getMimeType(entity,file);
-    }
+  fileMetadata.put(AssetUtils.CONTENT_LENGTH,size);
+  fileMetadata.put(AssetUtils.LAST_MODIFIED,System.currentTimeMillis());
+  fileMetadata.put(AssetUtils.E_TAG,RandomStringUtils.randomAlphanumeric(10));
+  try {
+    em.update(entity);
+  }
+ catch (  Exception e) {
+    throw new IOException("Unable to update entity filedata",e);
   }
 }

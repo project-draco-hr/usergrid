@@ -1,0 +1,27 @@
+{
+  CommandLineParser parser=new GnuParser();
+  CommandLine line=null;
+  try {
+    line=parser.parse(createOptions(),args);
+  }
+ catch (  ParseException exp) {
+    printCliHelp("Parsing failed.  Reason: " + exp.getMessage());
+  }
+  if (line == null) {
+    return;
+  }
+  if (line.hasOption("host")) {
+    System.setProperty("cassandra.url",line.getOptionValue("host"));
+    System.setProperty("elasticsearch.hosts",line.getOptionValue("eshost"));
+    System.setProperty("elasticsearch.cluster_name",line.getOptionValue("escluster"));
+  }
+  try {
+    runTool(line);
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+  if (exit) {
+    System.exit(0);
+  }
+}

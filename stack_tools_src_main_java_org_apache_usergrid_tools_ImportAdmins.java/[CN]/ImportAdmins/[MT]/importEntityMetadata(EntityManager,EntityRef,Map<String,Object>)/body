@@ -1,0 +1,88 @@
+{
+  Map<String,Object> connectionsMap=(Map<String,Object>)metadata.get("connections");
+  if (connectionsMap != null && !connectionsMap.isEmpty()) {
+    for (    String type : connectionsMap.keySet()) {
+      try {
+        UUID uuid=UUID.fromString((String)connectionsMap.get(type));
+        EntityRef connectedEntityRef=em.getRef(uuid);
+        em.createConnection(entityRef,type,connectedEntityRef);
+        logger.debug("Creating connection from {} type {} target {}",new Object[]{entityRef,type,connectedEntityRef});
+      }
+ catch (      Exception e) {
+        if (logger.isDebugEnabled()) {
+          logger.error("Error importing connection of type " + type + " for user "+ entityRef.getUuid(),e);
+        }
+ else {
+          logger.error("Error importing connection of type " + type + " for user "+ entityRef.getUuid());
+        }
+      }
+    }
+  }
+  Map<String,Object> dictionariesMap=(Map<String,Object>)metadata.get("dictionaries");
+  if (dictionariesMap != null && !dictionariesMap.isEmpty()) {
+    for (    String name : dictionariesMap.keySet()) {
+      try {
+        Map<String,Object> dictionary=(Map<String,Object>)dictionariesMap.get(name);
+        em.addMapToDictionary(entityRef,name,dictionary);
+        logger.debug("Creating dictionary for {} name {} map {}",new Object[]{entityRef,name,dictionary});
+      }
+ catch (      Exception e) {
+        if (logger.isDebugEnabled()) {
+          logger.error("Error importing dictionary name " + name + " for user "+ entityRef.getUuid(),e);
+        }
+ else {
+          logger.error("Error importing dictionary name " + name + " for user "+ entityRef.getUuid());
+        }
+      }
+    }
+  }
+  List<String> collectionsList=(List<String>)metadata.get("collections");
+  if (collectionsList != null && !collectionsList.isEmpty()) {
+    for (    String name : collectionsList) {
+      try {
+        UUID uuid=UUID.fromString((String)connectionsMap.get(name));
+        EntityRef collectedEntityRef=em.getRef(uuid);
+        em.addToCollection(entityRef,name,collectedEntityRef);
+        logger.debug("Add to collection of {} name {} entity {}",new Object[]{entityRef,name,collectedEntityRef});
+      }
+ catch (      Exception e) {
+        if (logger.isDebugEnabled()) {
+          logger.error("Error adding to collection " + name + " for user "+ entityRef.getUuid(),e);
+        }
+ else {
+          logger.error("Error adding to collection " + name + " for user "+ entityRef.getUuid());
+        }
+      }
+    }
+  }
+  List<Object> organizationsList=(List<Object>)metadata.get("organizations");
+  if (organizationsList != null && !organizationsList.isEmpty()) {
+    User user=em.get(entityRef,User.class);
+    if (user == null) {
+      logger.error("User with uuid={} not found, not adding to organizations");
+    }
+ else {
+      final UserInfo userInfo=managementService.getAdminUserByEmail(user.getEmail());
+      for (      Object orgObject : organizationsList) {
+        Map<String,Object> orgMap=(Map<String,Object>)orgObject;
+        UUID orgUuid=UUID.fromString((String)orgMap.get("uuid"));
+        String orgName=(String)orgMap.get("name");
+        OrganizationInfo orgInfo=managementService.getOrganizationByUuid(orgUuid);
+        if (orgInfo == null) {
+          try {
+            managementService.createOrganization(orgUuid,orgName,userInfo,false);
+            orgInfo=managementService.getOrganizationByUuid(orgUuid);
+            logger.debug("Created new org {} for user {}",new Object[]{orgInfo.getName(),user.getEmail()});
+          }
+ catch (          DuplicateUniquePropertyExistsException dpee) {
+            logger.error("Org {} already exists",orgName);
+          }
+        }
+ else {
+          managementService.addAdminUserToOrganization(userInfo,orgInfo,false);
+          logger.debug("Added user {} to org {}",new Object[]{user.getEmail(),orgName});
+        }
+      }
+    }
+  }
+}
