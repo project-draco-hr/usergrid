@@ -11,7 +11,6 @@
     logger.debug("Searching for marked versions in index (read alias): {}\n  nodeId: {},\n   query: {} ",this.alias.getReadAlias(),entityId,srb);
   }
   try {
-    Timer.Context timeSearch=searchTimer.time();
     searchResponse=srb.setScroll(new TimeValue(6000)).setSize(100).execute().actionGet();
     while (true) {
       candidates=aggregateScrollResults(candidates,searchResponse);
@@ -21,7 +20,6 @@
         break;
       }
     }
-    timeSearch.stop();
   }
  catch (  Throwable t) {
     logger.error("Unable to communicate with Elasticsearch",t);
