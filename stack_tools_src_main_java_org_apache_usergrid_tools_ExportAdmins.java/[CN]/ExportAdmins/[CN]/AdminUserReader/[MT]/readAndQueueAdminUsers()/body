@@ -1,0 +1,24 @@
+{
+  EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+  while (true) {
+    UUID uuid=null;
+    try {
+      uuid=readQueue.poll(30,TimeUnit.SECONDS);
+      logger.debug("Got item from entityId queue: " + uuid);
+      if (uuid == null && done) {
+        break;
+      }
+      Entity entity=em.get(uuid);
+      AdminUserWriteTask task=new AdminUserWriteTask();
+      task.adminUser=entity;
+      addCollectionsToTask(task,entity);
+      addDictionariesToTask(task,entity);
+      addConnectionsToTask(task,entity);
+      addOrganizationsToTask(task,entity);
+      writeQueue.add(task);
+    }
+ catch (    Exception e) {
+      logger.error("Error reading data for user " + uuid,e);
+    }
+  }
+}
