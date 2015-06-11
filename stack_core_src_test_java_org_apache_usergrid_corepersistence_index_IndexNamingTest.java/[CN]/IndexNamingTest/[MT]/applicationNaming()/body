@@ -7,4 +7,16 @@
   assertTrue(indexLocationStrategy.getAlias().getWriteAlias().contains(applicationScope.getApplication().getUuid().toString().toLowerCase()));
   assertTrue(indexLocationStrategy.getAlias().getWriteAlias().contains("write"));
   assertTrue(indexLocationStrategy.getAlias().getReadAlias().contains("read"));
+  Set<String> names=new HashSet<>();
+  for (int i=0; i < 10; i++) {
+    IndexLocationStrategy indexLocationStrategyBucket=new ApplicationIndexLocationStrategy(cassandraFig,indexFig,applicationScope,new ApplicationIndexBucketLocator(indexProcessorFig));
+    names.add(indexLocationStrategyBucket.getIndexBucketName());
+  }
+  assertTrue(names.size() == 1);
+  names=new HashSet<>();
+  for (int i=0; i < 10; i++) {
+    IndexLocationStrategy indexLocationStrategyBucket=new ApplicationIndexLocationStrategy(cassandraFig,indexFig,new ApplicationScopeImpl(CpNamingUtils.generateApplicationId(UUID.randomUUID())),new ApplicationIndexBucketLocator(indexProcessorFig));
+    names.add(indexLocationStrategyBucket.getIndexBucketName());
+  }
+  assertTrue(names.size() > 1);
 }
