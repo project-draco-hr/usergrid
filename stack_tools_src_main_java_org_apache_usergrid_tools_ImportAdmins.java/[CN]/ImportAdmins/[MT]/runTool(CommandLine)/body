@@ -2,6 +2,14 @@
   startSpring();
   setVerbose(line);
   openImportDirectory(line);
-  importAdminUsers();
-  importMetadata();
+  int auditThreadCount=1;
+  int writeThreadCount=1;
+  if (line.hasOption(AUDIT_THREAD_COUNT)) {
+    auditThreadCount=Integer.parseInt(line.getOptionValue(AUDIT_THREAD_COUNT));
+  }
+  if (line.hasOption(WRITE_THREAD_COUNT)) {
+    writeThreadCount=Integer.parseInt(line.getOptionValue(WRITE_THREAD_COUNT));
+  }
+  importAdminUsers(writeThreadCount,auditThreadCount);
+  importMetadata(writeThreadCount);
 }

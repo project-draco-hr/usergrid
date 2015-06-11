@@ -1,0 +1,28 @@
+{
+  int count=0;
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  long durationSum=0;
+  while (!done) {
+    try {
+      ImportMetadataTask task=this.workQueue.poll(30,TimeUnit.SECONDS);
+      if (task == null) {
+        logger.warn("Reading from metadata queue was null!");
+        Thread.sleep(1000);
+        continue;
+      }
+      count++;
+      long startTime=System.currentTimeMillis();
+      importEntityMetadata(em,task.entityRef,task.metadata);
+      long stopTime=System.currentTimeMillis();
+      long duration=stopTime - startTime;
+      durationSum+=duration;
+      logger.debug(String.format("Imported [%s]th metadata",count));
+      logger.info(String.format("Average metadata Imported Rate: %s(ms)",durationSum / count));
+    }
+ catch (    Exception e) {
+      e.printStackTrace();
+      logger.debug("EXCEPTION",e);
+    }
+  }
+  logger.warn("Done!");
+}

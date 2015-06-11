@@ -5,6 +5,8 @@
   JsonParser jp=getJsonParserForFile(metadataFile);
   JsonToken jsonToken=null;
   int depth=1;
+  BlockingQueue<ImportMetadataTask> workQueue=new LinkedBlockingQueue<ImportMetadataTask>();
+  startMetadataWorkers(workQueue,writeThreads);
   while (depth > 0) {
     jsonToken=jp.nextToken();
     if (jsonToken == null) {
@@ -22,9 +24,10 @@
       String entityOwnerId=jp.getCurrentName();
       EntityRef entityRef=em.getRef(UUID.fromString(entityOwnerId));
       Map<String,Object> metadata=(Map<String,Object>)jp.readValueAs(Map.class);
-      importEntityMetadata(em,entityRef,metadata);
+      workQueue.put(new ImportMetadataTask(entityRef,metadata));
     }
   }
+  waitForQueueAndMeasure(workQueue,metadataWorkerThreadMap,"Metadata Load");
   logger.info("----- End of metadata -----");
   jp.close();
 }
