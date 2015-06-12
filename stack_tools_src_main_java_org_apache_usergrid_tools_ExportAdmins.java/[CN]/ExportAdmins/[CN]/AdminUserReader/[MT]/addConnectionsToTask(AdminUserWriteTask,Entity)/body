@@ -1,0 +1,16 @@
+{
+  EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+  task.connectionsByType=new HashMap<String,List<ConnectionRef>>();
+  Set<String> connectionTypes=em.getConnectionTypes(entity);
+  for (  String connectionType : connectionTypes) {
+    List<ConnectionRef> connRefs=task.connectionsByType.get(connectionType);
+    if (connRefs == null) {
+      connRefs=new ArrayList<ConnectionRef>();
+    }
+    Results results=em.getConnectedEntities(entity.getUuid(),connectionType,null,Level.IDS);
+    List<ConnectionRef> connections=results.getConnections();
+    for (    ConnectionRef connectionRef : connections) {
+      connRefs.add(connectionRef);
+    }
+  }
+}
