@@ -2,7 +2,7 @@
   Set<String> names=new HashSet<>();
   for (int i=0; i < 10; i++) {
     IndexLocationStrategy indexLocationStrategyBucket=new ApplicationIndexLocationStrategy(clusterFig,cassandraFig,indexFig,applicationScope,new ApplicationIndexBucketLocator(indexProcessorFig));
-    names.add(indexLocationStrategyBucket.getIndexBucketName());
+    names.add(indexLocationStrategyBucket.getIndexInitialName());
   }
   String expectedName=clusterName + "_" + keyspacename+ "_\\d+";
   Pattern regex=Pattern.compile(expectedName);
@@ -10,7 +10,7 @@
   names=new HashSet<>();
   for (int i=0; i < 100; i++) {
     IndexLocationStrategy indexLocationStrategyBucket=new ApplicationIndexLocationStrategy(clusterFig,cassandraFig,indexFig,new ApplicationScopeImpl(CpNamingUtils.generateApplicationId(UUID.randomUUID())),new ApplicationIndexBucketLocator(indexProcessorFig));
-    String name=indexLocationStrategyBucket.getIndexBucketName();
+    String name=indexLocationStrategyBucket.getIndexInitialName();
     assertTrue("failed to match correct name",regex.matcher(name).matches());
     names.add(name);
   }
