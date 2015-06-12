@@ -5,10 +5,10 @@
   List<Entity> entities=new ArrayList<>();
   UUID appToDeleteId=createAppWithCollection(orgName,appToDeleteName,orgAdminToken,entities);
   logger.debug("\n\nDeleting app\n");
-  clientSetup.getRestClient().org(orgName).app(appToDeleteName).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("app_delete_confirm","confirm_delete_of_application_and_data").delete();
+  clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteName).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("app_delete_confirm","confirm_delete_of_application_and_data").delete();
   refreshIndex();
   logger.debug("\n\nRestoring app\n");
-  clientSetup.getRestClient().org(orgName).app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).put();
+  clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).put();
   refreshIndex();
   logger.debug("\n\nGetting app list from management end-point\n");
   ManagementResponse orgAppResponse=clientSetup.getRestClient().management().orgs().org(orgName).apps().getOrganizationApplications();

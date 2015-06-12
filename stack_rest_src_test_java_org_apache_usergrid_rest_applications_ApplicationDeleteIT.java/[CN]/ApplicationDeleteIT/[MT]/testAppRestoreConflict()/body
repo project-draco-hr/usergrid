@@ -4,10 +4,10 @@
   Token orgAdminToken=getAdminToken(clientSetup.getUsername(),clientSetup.getUsername());
   List<Entity> entities=new ArrayList<>();
   UUID appToDeleteId=createAppWithCollection(orgName,appToDeleteName,orgAdminToken,entities);
-  clientSetup.getRestClient().org(orgName).app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("app_delete_confirm","confirm_delete_of_application_and_data").delete();
+  clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("app_delete_confirm","confirm_delete_of_application_and_data").delete();
   createAppWithCollection(orgName,appToDeleteName,orgAdminToken,entities);
   try {
-    clientSetup.getRestClient().org(orgName).app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).put();
+    clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).put();
     fail("Must fail to restore app with same name as existing app");
   }
  catch (  UniformInterfaceException e) {

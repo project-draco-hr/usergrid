@@ -8,8 +8,10 @@
     clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).delete();
     fail("Delete must fail without app_delete_confirm parameter");
   }
- catch (  Exception e) {
-    logger.error("Error",e);
+ catch (  UniformInterfaceException expected) {
+    Assert.assertEquals("Error must be 400",400,expected.getResponse().getStatus());
+    JsonNode node=mapper.readTree(expected.getResponse().getEntity(String.class));
+    Assert.assertEquals("Cannot delete application without app_delete_confirm parameter",node.get("error_description").textValue());
   }
   clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("app_delete_confirm","confirm_delete_of_application_and_data").delete();
   try {
@@ -17,7 +19,16 @@
     fail("Must not be able to get deleted app");
   }
  catch (  UniformInterfaceException expected) {
-    Assert.assertEquals("Error must be 400",400,expected.getResponse().getStatus());
+    Assert.assertEquals("Error must be 404",404,expected.getResponse().getStatus());
+    JsonNode node=mapper.readTree(expected.getResponse().getEntity(String.class));
+    Assert.assertEquals("entity_not_found",node.get("error").textValue());
+  }
+  try {
+    clientSetup.getRestClient().org(orgName).app(appToDeleteName).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).get(ApiResponse.class);
+    fail("Must not be able to get deleted app");
+  }
+ catch (  UniformInterfaceException expected) {
+    Assert.assertEquals("Error must be 404",404,expected.getResponse().getStatus());
     JsonNode node=mapper.readTree(expected.getResponse().getEntity(String.class));
     Assert.assertEquals("organization_application_not_found",node.get("error").textValue());
   }
@@ -26,7 +37,7 @@
     fail("Must not be able to get deleted app's collection");
   }
  catch (  UniformInterfaceException expected) {
-    Assert.assertEquals("Error must be 400",400,expected.getResponse().getStatus());
+    Assert.assertEquals("Error must be 400",404,expected.getResponse().getStatus());
     JsonNode node=mapper.readTree(expected.getResponse().getEntity(String.class));
     Assert.assertEquals("organization_application_not_found",node.get("error").textValue());
   }
@@ -36,7 +47,7 @@
     fail("Must not be able to get deleted app entity");
   }
  catch (  UniformInterfaceException expected) {
-    Assert.assertEquals("Error must be 400",400,expected.getResponse().getStatus());
+    Assert.assertEquals("Error must be 400",404,expected.getResponse().getStatus());
     JsonNode node=mapper.readTree(expected.getResponse().getEntity(String.class));
     Assert.assertEquals("organization_application_not_found",node.get("error").textValue());
   }
@@ -48,12 +59,13 @@
     }
   }
   try {
-    clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).delete();
+    clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getResource().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("app_delete_confirm","confirm_delete_of_application_and_data").delete();
+    fail("Can't delete a non existent app twice");
   }
  catch (  UniformInterfaceException expected) {
     Assert.assertEquals("Error must be 404",404,expected.getResponse().getStatus());
     JsonNode node=mapper.readTree(expected.getResponse().getEntity(String.class));
-    Assert.assertEquals("not_found",node.get("error").textValue());
+    Assert.assertEquals("entity_not_found",node.get("error").textValue());
   }
   ApiResponse appCreateAgainResponse=clientSetup.getRestClient().management().orgs().org(orgName).app().getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).post(ApiResponse.class,new Application(appToDeleteName));
   Assert.assertEquals("Must be able to create app with same name as deleted app",(orgName + "/" + appToDeleteName).toLowerCase(),appCreateAgainResponse.getEntities().get(0).get("name"));
