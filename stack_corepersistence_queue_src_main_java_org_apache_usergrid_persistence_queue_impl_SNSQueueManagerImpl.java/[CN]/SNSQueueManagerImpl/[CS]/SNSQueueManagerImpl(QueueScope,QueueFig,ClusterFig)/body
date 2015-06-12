@@ -1,11 +1,13 @@
 {
   this.scope=scope;
   this.fig=fig;
+  this.clusterFig=clusterFig;
   try {
     smileFactory.delegateToTextual(true);
     mapper=new ObjectMapper(smileFactory);
     mapper.enableDefaultTypingAsProperty(ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT,"@class");
-    sqs=createClient();
+    sqs=createSQSClient(getRegion());
+    sns=createSNSClient(getRegion());
   }
  catch (  Exception e) {
     throw new RuntimeException("Error setting up mapper",e);
