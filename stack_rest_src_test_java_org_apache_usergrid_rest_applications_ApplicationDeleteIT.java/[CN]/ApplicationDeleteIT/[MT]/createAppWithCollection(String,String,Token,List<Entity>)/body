@@ -1,5 +1,5 @@
 {
-  ApiResponse appCreateResponse=clientSetup.getRestClient().management().orgs().organization(orgName).app().getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).post(ApiResponse.class,new Application(appName));
+  ApiResponse appCreateResponse=clientSetup.getRestClient().management().orgs().org(orgName).app().getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).post(ApiResponse.class,new Application(appName));
   UUID appId=appCreateResponse.getEntities().get(0).getUuid();
   try {
     Thread.sleep(INDEXING_WAIT);
@@ -18,6 +18,5 @@
     ApiResponse createResponse=clientSetup.getRestClient().org(orgName).app(appName).collection("things").getResource().queryParam("access_token",orgAdminToken.getAccessToken()).type(MediaType.APPLICATION_JSON).post(ApiResponse.class,entity);
     entities.add(createResponse.getEntities().get(0));
   }
-  refreshIndex();
   return appId;
 }
