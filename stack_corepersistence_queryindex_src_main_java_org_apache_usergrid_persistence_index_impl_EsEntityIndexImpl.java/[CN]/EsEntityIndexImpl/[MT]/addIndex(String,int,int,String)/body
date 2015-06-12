@@ -1,6 +1,6 @@
 {
   try {
-    final String indexName=indexNameOverride.or(indexLocationStrategy.getIndexBucketName());
+    Preconditions.checkNotNull(indexName,"must have an indexname");
     try {
       final AdminClient admin=esProvider.getClient().admin();
       Settings settings=ImmutableSettings.settingsBuilder().put("index.number_of_shards",numberOfShards).put("index.number_of_replicas",numberOfReplicas).put("index.query.parse.allow_unmapped_fields",false).put("index.mapper.dynamic",false).put("action.write_consistency",writeConsistency).build();
@@ -13,7 +13,7 @@
  catch (    IndexAlreadyExistsException e) {
       logger.info("Index Name [{}] already exists",indexName);
     }
-    addAlias();
+    addAlias(indexName);
     testNewIndex();
   }
  catch (  IndexAlreadyExistsException expected) {
