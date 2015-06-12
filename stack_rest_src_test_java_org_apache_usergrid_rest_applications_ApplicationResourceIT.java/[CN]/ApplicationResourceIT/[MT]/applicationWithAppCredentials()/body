@@ -1,7 +1,15 @@
 {
-  ApplicationInfo appInfo=setup.getMgmtSvc().getApplicationInfo("test-organization/test-app");
+  String orgName="MiXedApplicationResourceTest";
+  String appName="mgmt-org-app-test";
+  Map payload=hashMap("email","test-user-1@mockserver.com").map("username","ApplicationAppCredsTest").map("name","App Creds User").map("password","password").map("organization",orgName);
+  resource().path("/management/organizations").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,payload);
+  Map<String,String> data=new HashMap<String,String>();
+  data.put("name",appName);
+  JsonNode appdata=resource().path("/management/orgs/" + orgName + "/applications").queryParam("access_token",superAdminToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class,data);
+  ApplicationInfo appInfo=setup.getMgmtSvc().getApplicationInfo(orgName + "/" + appName);
   String clientId=setup.getMgmtSvc().getClientIdForApplication(appInfo.getId());
   String clientSecret=setup.getMgmtSvc().getClientSecretForApplication(appInfo.getId());
-  JsonNode node=resource().path("/test-organization/test-app/users").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  JsonNode applicationCredentials=resource().path("/" + orgName.toLowerCase() + "/"+ appName+ "/credentials").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+  JsonNode node=resource().path("/" + orgName.toLowerCase() + "/"+ appName+ "/users").queryParam("client_id",applicationCredentials.get("credentials").get("client_id").asText()).queryParam("client_secret",applicationCredentials.get("credentials").get("client_secret").asText()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
   assertNotNull(node.get("entities"));
 }
