@@ -2,9 +2,9 @@
   IndexValidationUtils.validateSearchEdge(searchEdge);
   ValidationUtils.verifyIdentity(id);
   ValidationUtils.verifyVersion(version);
-  String[] indexes=entityIndex.getUniqueIndexes();
+  String[] indexes=entityIndex.getIndexes();
   if (indexes == null || indexes.length == 0) {
-    indexes=new String[]{indexIdentifier.getIndex()};
+    throw new IllegalStateException("No indexes exist for " + indexLocationStrategy.getAlias().getWriteAlias());
   }
   if (log.isDebugEnabled()) {
     log.debug("Deindexing to indexes {} with scope {} on edge {} with id {} and version {} ",new Object[]{indexes,applicationScope,searchEdge,id,version});
