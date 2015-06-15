@@ -1,0 +1,15 @@
+{
+  Credentials appCredentials=getAppCredentials();
+  QueryParameters queryParameters=new QueryParameters();
+  queryParameters.addParam("grant_type","client_credentials");
+  queryParameters.addParam("client_id",appCredentials.getClientId());
+  queryParameters.addParam("client_secret",appCredentials.getClientSecret());
+  Entity testUser=new Entity();
+  testUser.chainPut("name","temp").chainPut("password","temp1");
+  Token appToken=this.app().token().post(new Token("client_credentials",appCredentials.getClientId(),appCredentials.getClientSecret()));
+  ApiResponse apiResponse=this.app().collection("roles").getResource(true,appToken).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(ApiResponse.class);
+  assertNotNull(apiResponse);
+  assertNull(apiResponse.getError());
+  Collection roles=new Collection(apiResponse);
+  assertEquals(3,roles.getNumOfEntities());
+}
