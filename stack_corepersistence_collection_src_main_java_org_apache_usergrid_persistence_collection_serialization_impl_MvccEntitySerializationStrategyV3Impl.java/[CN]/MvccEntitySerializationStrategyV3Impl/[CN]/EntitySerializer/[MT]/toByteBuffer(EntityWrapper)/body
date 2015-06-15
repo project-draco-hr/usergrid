@@ -2,33 +2,30 @@
   if (wrapper == null) {
     return null;
   }
-  FieldBufferBuilder builder=new FieldBufferBuilder(3);
-  builder.addByte(VERSION);
-  builder.addUUID(wrapper.version);
-  if (!wrapper.entity.isPresent()) {
-    builder.addByte(STATE_DELETED);
-    return FIELD_BUFFER_SERIALIZER.toByteBuffer(builder.build());
+  wrapper.setSerailizationVersion(VERSION);
+  if (wrapper.getEntity() == null) {
+    wrapper.setStatus(MvccEntity.Status.DELETED);
+    try {
+      return ByteBuffer.wrap(MAPPER.writeValueAsBytes(wrapper));
+    }
+ catch (    JsonProcessingException jpe) {
+      throw new RuntimeException("Unable to serialize entity",jpe);
+    }
   }
-  if (wrapper.status != MvccEntity.Status.COMPLETE) {
+  if (wrapper.getStatus() != MvccEntity.Status.COMPLETE) {
     throw new UnsupportedOperationException("Only states " + MvccEntity.Status.DELETED + " and "+ MvccEntity.Status.COMPLETE+ " are supported");
   }
-  builder.addByte(STATE_COMPLETE);
-  final Entity entity=wrapper.entity.get();
-  final String entityString;
+  wrapper.setStatus(MvccEntity.Status.COMPLETE);
+  final byte[] wrapperBytes;
   try {
-    final EntityMap entityMap=EntityMap.fromEntity(entity);
-    entityString=MAPPER.writeValueAsString(entityMap);
+    wrapperBytes=MAPPER.writeValueAsBytes(wrapper);
+    final int maxEntrySize=serializationFig.getMaxEntitySize();
+    if (wrapperBytes.length > maxEntrySize) {
+      throw new EntityTooLargeException(Entity.fromMap(wrapper.getEntity()),maxEntrySize,wrapperBytes.length,"Your entity cannot exceed " + maxEntrySize + " bytes. The entity you tried to save was "+ wrapperBytes.length+ " bytes");
+    }
   }
  catch (  JsonProcessingException jpe) {
     throw new RuntimeException("Unable to serialize entity",jpe);
   }
-  final int maxEntrySize=serializationFig.getMaxEntitySize();
-  if (entityString.length() > maxEntrySize) {
-    throw new EntityTooLargeException(entity,maxEntrySize,entityString.length(),"Your entity cannot exceed " + maxEntrySize + " bytes. The entity you tried to save was "+ entityString.length()+ " bytes");
-  }
-  if (log.isDebugEnabled()) {
-    log.debug("Entity(" + entityString + ") Version("+ wrapper.version+ ") State("+ wrapper.status+ ")");
-  }
-  builder.addString(entityString);
-  return FIELD_BUFFER_SERIALIZER.toByteBuffer(builder.build());
+  return ByteBuffer.wrap(wrapperBytes);
 }
