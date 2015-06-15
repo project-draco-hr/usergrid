@@ -7,8 +7,10 @@
     log.error("DATA CORRUPTION DETECTED when de-serializing entity with Id {}.  This means the" + " write was truncated.",id,e);
     return new MvccEntityImpl(id,UUIDGenerator.newTimeUUID(),MvccEntity.Status.DELETED,Optional.<Entity>absent());
   }
-  Optional<Entity> entity=deSerialized.getOptionalEntity();
-  if (entity.isPresent()) {
+  EntityMap entityMap=deSerialized.getEntity();
+  Optional<Entity> entity=Optional.absent();
+  if (entityMap != null) {
+    entity=Optional.of(Entity.fromMap(entityMap));
     EntityUtils.setId(entity.get(),id);
   }
   return new MvccEntityImpl(id,deSerialized.getVersion(),deSerialized.getStatus(),entity);
