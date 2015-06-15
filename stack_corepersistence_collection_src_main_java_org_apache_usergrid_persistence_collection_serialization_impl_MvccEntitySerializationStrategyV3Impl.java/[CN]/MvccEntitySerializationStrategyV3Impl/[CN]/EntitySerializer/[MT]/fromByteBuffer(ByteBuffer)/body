@@ -17,9 +17,12 @@
     return new EntityWrapper(MvccEntity.Status.DELETED,entityVersion,Optional.<Entity>absent());
   }
   EntityMap storedEntity;
-  byte[] array=parser.readBytes();
+  String entityString=parser.readString();
+  if (log.isDebugEnabled()) {
+    log.debug("Entity(" + entityString + ") Version("+ version+ ") State("+ state+ ")");
+  }
   try {
-    storedEntity=MAPPER.readValue(array,EntityMap.class);
+    storedEntity=MAPPER.readValue(entityString,EntityMap.class);
   }
  catch (  Exception e) {
     throw new DataCorruptionException("Unable to read entity data",e);
