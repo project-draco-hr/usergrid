@@ -3,7 +3,7 @@
     return null;
   }
   wrapper.setSerailizationVersion(VERSION);
-  if (wrapper.getEntity() == null) {
+  if (wrapper.getEntityMap() == null) {
     try {
       return ByteBuffer.wrap(MAPPER.writeValueAsBytes(wrapper));
     }
@@ -20,7 +20,7 @@
     wrapperBytes=MAPPER.writeValueAsBytes(wrapper);
     final int maxEntrySize=serializationFig.getMaxEntitySize();
     if (wrapperBytes.length > maxEntrySize) {
-      throw new EntityTooLargeException(Entity.fromMap(wrapper.getEntity()),maxEntrySize,wrapperBytes.length,"Your entity cannot exceed " + maxEntrySize + " bytes. The entity you tried to save was "+ wrapperBytes.length+ " bytes");
+      throw new EntityTooLargeException(Entity.fromMap(wrapper.getEntityMap()),maxEntrySize,wrapperBytes.length,"Your entity cannot exceed " + maxEntrySize + " bytes. The entity you tried to save was "+ wrapperBytes.length+ " bytes");
     }
   }
  catch (  JsonProcessingException jpe) {
