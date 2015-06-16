@@ -2,9 +2,6 @@
   EntityWrapper entityWrapper;
   try {
     entityWrapper=MAPPER.readValue(byteBuffer.array(),EntityWrapper.class);
-    if (VERSION != entityWrapper.getSerailizationVersion()) {
-      throw new UnsupportedOperationException("A version of type " + entityWrapper.getSerailizationVersion() + " is unsupported");
-    }
   }
  catch (  Exception e) {
     if (log.isDebugEnabled()) {
@@ -13,7 +10,7 @@
     throw new DataCorruptionException("Unable to read entity data",e);
   }
   if (entityWrapper.getEntityMap() == null) {
-    return new EntityWrapper(entityWrapper.getId(),entityWrapper.getVersion(),MvccEntity.Status.DELETED,VERSION,null);
+    return new EntityWrapper(entityWrapper.getId(),entityWrapper.getVersion(),MvccEntity.Status.DELETED,null);
   }
   entityWrapper.setStatus(MvccEntity.Status.COMPLETE);
   return entityWrapper;
