@@ -2,26 +2,22 @@
   if (!hasMore) {
     return false;
   }
-  List<String> keys=indexBucketLocator.getBuckets(applicationId,indexType,indexPath);
-  List<Object> cassKeys=new ArrayList<Object>(keys.size());
-  for (  String bucket : keys) {
-    cassKeys.add(key(keyPrefix,bucket));
-  }
+  final Object rowKey=key(keyPrefix,bucket);
   int selectSize=pageSize;
   final boolean firstPageSkipFirst=this.skipFirst && start == scanStart;
   if (firstPageSkipFirst) {
     selectSize++;
   }
-  TreeSet<HColumn<ByteBuffer,ByteBuffer>> resultsTree=IndexMultiBucketSetLoader.load(cass,columnFamily,applicationId,cassKeys,start,finish,selectSize,reversed);
+  final List<HColumn<ByteBuffer,ByteBuffer>> resultsTree=cass.getColumns(cass.getApplicationKeyspace(applicationId),columnFamily,rowKey,start,finish,selectSize,reversed);
   if (resultsTree.size() == selectSize) {
     hasMore=true;
-    start=resultsTree.pollLast().getName();
+    start=resultsTree.get(resultsTree.size() - 1).getName();
   }
  else {
     hasMore=false;
   }
   if (firstPageSkipFirst) {
-    resultsTree.pollFirst();
+    resultsTree.remove(0);
   }
   lastResults=resultsTree;
   return lastResults != null && lastResults.size() > 0;

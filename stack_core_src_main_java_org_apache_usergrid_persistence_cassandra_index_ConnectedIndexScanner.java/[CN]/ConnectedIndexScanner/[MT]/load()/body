@@ -7,21 +7,12 @@
   if (skipFirst) {
     totalSelectSize++;
   }
-  lastResults=new LinkedHashSet<HColumn<ByteBuffer,ByteBuffer>>();
-  HColumn<ByteBuffer,ByteBuffer> first=null;
-  HColumn<ByteBuffer,ByteBuffer> last=null;
   while (currentConnectionType != null) {
     int selectSize=totalSelectSize - lastResults.size();
     Object key=key(entityId,dictionaryType,currentConnectionType);
     List<HColumn<ByteBuffer,ByteBuffer>> results=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_COMPOSITE_DICTIONARIES,key,start,null,selectSize,reversed);
     final int resultSize=results.size();
-    if (resultSize > 0) {
-      last=results.get(resultSize - 1);
-      if (first == null) {
-        first=results.get(0);
-      }
-    }
-    lastResults.addAll(results);
+    lastResults=results;
     if (resultSize == selectSize) {
       hasMore=true;
       break;
@@ -35,12 +26,11 @@
       currentConnectionType=connectionTypes.next();
     }
   }
-  if (skipFirst && first != null) {
-    lastResults.remove(first);
+  if (skipFirst && lastResults.size() > 0) {
+    lastResults.remove(0);
   }
-  if (hasMore && last != null) {
-    start=last.getName();
-    lastResults.remove(last);
+  if (hasMore && lastResults.size() > 0) {
+    lastResults.remove(lastResults.size() - 1);
   }
   return lastResults != null && lastResults.size() > 0;
 }
