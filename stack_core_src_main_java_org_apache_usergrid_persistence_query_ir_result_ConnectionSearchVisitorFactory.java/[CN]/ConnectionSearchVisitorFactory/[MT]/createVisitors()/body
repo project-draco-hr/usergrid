@@ -1,2 +1,9 @@
 {
+  final List<String> buckets=indexBucketLocator.getBuckets(applicationId,IndexBucketLocator.IndexType.CONNECTION,prefix);
+  final List<SearchVisitor> visitors=new ArrayList<SearchVisitor>(buckets.size());
+  for (  final String bucket : buckets) {
+    final SearchVisitor searchVisitor=new SearchConnectionVisitor(cassandraService,indexBucketLocator,queryProcessor,applicationId,headEntity,connectionRef,outgoing,bucket);
+    visitors.add(searchVisitor);
+  }
+  return visitors;
 }
