@@ -1,7 +1,12 @@
 {
-  Preconditions.checkArgument(payload.containsKey(UPDATED_FIELD),"You must specified the field \"updated\" in the payload");
-  if (!payload.containsKey(UPDATED_FIELD)) {
-    final long timestamp=(long)payload.get(UPDATED_FIELD);
+  Map<String,Object> newPayload=payload;
+  if (newPayload == null || !payload.containsKey(UPDATED_FIELD)) {
+    newPayload=new HashMap<>(1);
+    newPayload.put(UPDATED_FIELD,0);
+  }
+  Preconditions.checkArgument(payload.get(UPDATED_FIELD) instanceof Number,"You must specified the field \"updated\" in the payload and it must be a timestamp");
+  if (payload.containsKey(UPDATED_FIELD)) {
+    final long timestamp=ConversionUtils.getLong(payload.get(UPDATED_FIELD));
     request.withStartTimestamp(timestamp);
   }
   return executeAndCreateResponse(request,callback);
