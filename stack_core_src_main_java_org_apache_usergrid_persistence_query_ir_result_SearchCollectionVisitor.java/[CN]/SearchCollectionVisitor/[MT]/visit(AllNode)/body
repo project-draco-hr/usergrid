@@ -4,7 +4,7 @@
   queryProcessor.applyCursorAndSort(slice);
   UUID startId=null;
   if (slice.hasCursor()) {
-    startId=UUID_PARSER.parse(slice.getCursor(),null).getUUID();
+    startId=UUID_PARSER.parse(slice.getCursor(),false).getUUID();
   }
   IndexScanner indexScanner=cassandraService.getIdList(cassandraService.getApplicationKeyspace(applicationId),key(headEntity.getUuid(),DICTIONARY_COLLECTIONS,collectionName),startId,null,queryProcessor.getPageSizeHint(node),query.isReversed(),indexBucketLocator,applicationId,collectionName,node.isForceKeepFirst());
   this.results.push(new SliceIterator(slice,indexScanner,UUID_PARSER));
