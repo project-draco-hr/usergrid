@@ -1,0 +1,17 @@
+{
+  Set<String> names=new HashSet<>();
+  for (int i=0; i < 10; i++) {
+    IndexLocationStrategy indexLocationStrategyBucket=new ApplicationIndexLocationStrategy(clusterFig,cassandraFig,indexFig,applicationScope,new ApplicationIndexBucketLocator(indexProcessorFig));
+    names.add(indexLocationStrategyBucket.getIndexInitialName());
+  }
+  Pattern regex=Pattern.compile(clusterName + "_" + keyspacename+ "_applications_\\d+");
+  assertTrue(names.size() == 1);
+  names=new HashSet<>();
+  for (int i=0; i < 100; i++) {
+    IndexLocationStrategy indexLocationStrategyBucket=new ApplicationIndexLocationStrategy(clusterFig,cassandraFig,indexFig,new ApplicationScopeImpl(CpNamingUtils.generateApplicationId(UUID.randomUUID())),new ApplicationIndexBucketLocator(indexProcessorFig));
+    String name=indexLocationStrategyBucket.getIndexInitialName();
+    assertTrue("failed to match correct name",regex.matcher(name).matches());
+    names.add(name);
+  }
+  assertTrue(names.size() == indexProcessorFig.getNumberOfIndexBuckets());
+}

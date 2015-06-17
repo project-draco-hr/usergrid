@@ -1,0 +1,11 @@
+{
+  if (applicationId == null) {
+    throw new IllegalArgumentException("Application ID not specified in request");
+  }
+  management.restoreApplication(applicationId);
+  ApiResponse response=createApiResponse();
+  response.setAction("restore");
+  response.setApplication(emf.getEntityManager(applicationId).getApplication());
+  response.setParams(ui.getQueryParameters());
+  return new JSONWithPadding(response,callback);
+}

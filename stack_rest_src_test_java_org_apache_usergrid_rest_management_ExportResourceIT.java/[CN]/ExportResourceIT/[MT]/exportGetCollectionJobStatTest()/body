@@ -1,12 +1,12 @@
 {
   ApiResponse exportEntity=null;
-  exportEntity=management().orgs().organization(clientSetup.getOrganizationName()).app().addToPath(clientSetup.getAppUuid()).addToPath("collection").addToPath("users").addToPath("export").post(ApiResponse.class,payloadBuilder());
+  exportEntity=management().orgs().org(clientSetup.getOrganizationName()).app().addToPath(clientSetup.getAppUuid()).addToPath("collection").addToPath("users").addToPath("export").post(ApiResponse.class,payloadBuilder());
   assertNotNull(exportEntity);
   String uuid=(String)exportEntity.getProperties().get("Export Entity");
   assertNotNull(uuid);
   exportEntity=null;
   try {
-    exportEntity=management().orgs().organization(clientSetup.getOrganizationName()).addToPath("export").addToPath(uuid).get(ApiResponse.class);
+    exportEntity=management().orgs().org(clientSetup.getOrganizationName()).addToPath("export").addToPath(uuid).get(ApiResponse.class);
   }
  catch (  UniformInterfaceException uie) {
     fail("We got back " + uie.getResponse().getClientResponseStatus() + " instead of having a successful call");

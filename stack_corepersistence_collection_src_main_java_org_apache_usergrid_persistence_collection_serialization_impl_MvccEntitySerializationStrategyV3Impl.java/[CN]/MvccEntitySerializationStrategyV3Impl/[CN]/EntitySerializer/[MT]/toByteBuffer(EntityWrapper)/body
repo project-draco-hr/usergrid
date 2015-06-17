@@ -2,30 +2,28 @@
   if (wrapper == null) {
     return null;
   }
-  FieldBufferBuilder builder=new FieldBufferBuilder(3);
-  builder.addByte(VERSION);
-  builder.addUUID(wrapper.version);
-  if (!wrapper.entity.isPresent()) {
-    builder.addByte(STATE_DELETED);
-    return FIELD_BUFFER_SERIALIZER.toByteBuffer(builder.build());
+  if (wrapper.getEntityMap() == null) {
+    try {
+      return ByteBuffer.wrap(MAPPER.writeValueAsBytes(wrapper));
+    }
+ catch (    JsonProcessingException jpe) {
+      throw new RuntimeException("Unable to serialize entity",jpe);
+    }
   }
-  if (wrapper.status != MvccEntity.Status.COMPLETE) {
+  if (wrapper.getStatus() != MvccEntity.Status.COMPLETE) {
     throw new UnsupportedOperationException("Only states " + MvccEntity.Status.DELETED + " and "+ MvccEntity.Status.COMPLETE+ " are supported");
   }
-  builder.addByte(STATE_COMPLETE);
-  final Entity entity=wrapper.entity.get();
-  final EntityMap entityMap=EntityMap.fromEntity(entity);
-  final byte[] entityBytes;
+  wrapper.setStatus(MvccEntity.Status.COMPLETE);
+  final byte[] wrapperBytes;
   try {
-    entityBytes=MAPPER.writeValueAsBytes(entityMap);
+    wrapperBytes=MAPPER.writeValueAsBytes(wrapper);
+    final int maxEntrySize=serializationFig.getMaxEntitySize();
+    if (wrapperBytes.length > maxEntrySize) {
+      throw new EntityTooLargeException(Entity.fromMap(wrapper.getEntityMap()),maxEntrySize,wrapperBytes.length,"Your entity cannot exceed " + maxEntrySize + " bytes. The entity you tried to save was "+ wrapperBytes.length+ " bytes");
+    }
   }
- catch (  Exception e) {
-    throw new RuntimeException("Unable to serialize entity",e);
+ catch (  JsonProcessingException jpe) {
+    throw new RuntimeException("Unable to serialize entity",jpe);
   }
-  final int maxEntrySize=serializationFig.getMaxEntitySize();
-  if (entityBytes.length > maxEntrySize) {
-    throw new EntityTooLargeException(entity,maxEntrySize,entityBytes.length,"Your entity cannot exceed " + maxEntrySize + " bytes. The entity you tried to save was "+ entityBytes.length+ " bytes");
-  }
-  builder.addBytes(entityBytes);
-  return FIELD_BUFFER_SERIALIZER.toByteBuffer(builder.build());
+  return ByteBuffer.wrap(wrapperBytes);
 }
