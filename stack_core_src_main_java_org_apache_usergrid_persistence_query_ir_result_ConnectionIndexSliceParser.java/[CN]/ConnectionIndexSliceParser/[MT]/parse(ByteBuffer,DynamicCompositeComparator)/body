@@ -1,0 +1,11 @@
+{
+  DynamicComposite composite=DynamicComposite.fromByteBuffer(buff.duplicate());
+  String connectedType=(String)composite.get(1);
+  if (connectedEntityType != null && !connectedEntityType.equals(connectedType)) {
+    return null;
+  }
+  if ((connectedEntityType != null && !connectedEntityType.equalsIgnoreCase(connectedType)) || Schema.TYPE_CONNECTION.equalsIgnoreCase(connectedType)) {
+    return null;
+  }
+  return new ConnectionColumn((UUID)composite.get(0),connectedType,buff,cfComparator);
+}
