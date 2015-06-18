@@ -4,10 +4,7 @@
   }
   final Object rowKey=key(keyPrefix,bucket);
   int selectSize=pageSize;
-  final boolean firstPageSkipFirst=this.skipFirst && start == scanStart;
-  if (firstPageSkipFirst) {
-    selectSize++;
-  }
+  final boolean shouldCheckFirst=(this.skipFirst && initialStartValue != null) || start != null;
   final List<HColumn<ByteBuffer,ByteBuffer>> resultsTree=cass.getColumns(cass.getApplicationKeyspace(applicationId),columnFamily,rowKey,start,finish,selectSize,reversed);
   if (resultsTree.size() == selectSize) {
     hasMore=true;
@@ -16,8 +13,16 @@
  else {
     hasMore=false;
   }
-  if (firstPageSkipFirst) {
-    resultsTree.remove(0);
+  if (shouldCheckFirst && resultsTree.size() > 0 && start != null) {
+    final int startIndex=start.position();
+    final int startLength=start.remaining();
+    final ByteBuffer returnedBuffer=resultsTree.get(0).getName();
+    final int returnedIndex=returnedBuffer.position();
+    final int returnedLength=returnedBuffer.remaining();
+    final int compare=FBUtilities.compareUnsigned(start.array(),returnedBuffer.array(),startIndex,returnedIndex,startLength,returnedLength);
+    if (compare == 0) {
+      resultsTree.remove(0);
+    }
   }
   lastResults=resultsTree;
   return lastResults != null && lastResults.size() > 0;

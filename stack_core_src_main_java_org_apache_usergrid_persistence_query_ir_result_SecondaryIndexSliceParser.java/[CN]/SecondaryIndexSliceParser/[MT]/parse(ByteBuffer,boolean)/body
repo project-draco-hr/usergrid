@@ -1,4 +1,9 @@
 {
-  DynamicComposite composite=DynamicComposite.fromByteBuffer(buff.duplicate());
-  throw new UnsupportedOperationException("Implement me with static comparators");
+  final DynamicComposite composite=DynamicComposite.fromByteBuffer(buff.duplicate());
+  final UUID uuid=(UUID)composite.get(2);
+  final Object value=composite.get(1);
+  if (typeComparator == null) {
+    typeComparator=getTypeComparator(value,isReversed);
+  }
+  return new SecondaryIndexColumn(uuid,value,buff,typeComparator);
 }
