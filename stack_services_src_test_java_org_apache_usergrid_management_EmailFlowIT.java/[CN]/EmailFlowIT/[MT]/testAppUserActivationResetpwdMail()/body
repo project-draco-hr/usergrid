@@ -23,7 +23,7 @@
   assertEquals(subject,activation.getSubject());
   String mailContent=(String)((MimeMultipart)activation.getContent()).getBodyPart(1).getContent();
   LOG.info(mailContent);
-  assertTrue(StringUtils.contains(mailContent,activation_url));
+  assertTrue(StringUtils.contains(mailContent.toLowerCase(),activation_url.toLowerCase()));
   String token=getTokenFromMessage(activation);
   LOG.info(token);
   ActivationState activeState=setup.getMgmtSvc().handleActivationTokenForAppUser(app.getId(),appUser.getUuid(),token);
@@ -39,7 +39,7 @@
   assertEquals(subject,reset.getSubject());
   mailContent=(String)((MimeMultipart)reset.getContent()).getBodyPart(1).getContent();
   LOG.info(mailContent);
-  assertTrue(StringUtils.contains(mailContent,reset_url));
+  assertTrue(StringUtils.contains(mailContent.toLowerCase(),reset_url.toLowerCase()));
   token=getTokenFromMessage(reset);
   LOG.info(token);
   assertTrue(setup.getMgmtSvc().checkPasswordResetTokenForAppUser(app.getId(),appUser.getUuid(),token));

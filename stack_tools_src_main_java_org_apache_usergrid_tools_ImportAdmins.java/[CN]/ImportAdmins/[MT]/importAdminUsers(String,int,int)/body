@@ -1,0 +1,23 @@
+{
+  int count=0;
+  File adminUsersFile=new File(importDir,fileName);
+  logger.info("----- Loading file: " + adminUsersFile.getAbsolutePath());
+  JsonParser jp=getJsonParserForFile(adminUsersFile);
+  int loopCounter=0;
+  BlockingQueue<Map<String,Object>> workQueue=new LinkedBlockingQueue<Map<String,Object>>();
+  BlockingQueue<Map<String,Object>> auditQueue=new LinkedBlockingQueue<Map<String,Object>>();
+  startAdminWorkers(workQueue,auditQueue,writeThreadCount);
+  startAdminAuditors(auditQueue,auditThreadCount);
+  JsonToken token=jp.nextToken();
+  validateStartArray(token);
+  while (jp.nextValue() != JsonToken.END_ARRAY) {
+    loopCounter+=1;
+    @SuppressWarnings("unchecked") Map<String,Object> entityProps=jp.readValueAs(HashMap.class);
+    if (loopCounter % 100 == 1)     logger.info("Publishing to queue... counter=" + loopCounter);
+    workQueue.add(entityProps);
+  }
+  waitForQueueAndMeasure(workQueue,adminWriteThreads,"Admin Write");
+  waitForQueueAndMeasure(auditQueue,adminAuditThreads,"Admin Audit");
+  logger.info("----- End: Imported {} admin users from file {}",count,adminUsersFile.getAbsolutePath());
+  jp.close();
+}
