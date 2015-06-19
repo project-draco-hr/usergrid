@@ -5,7 +5,7 @@
   CreateQueueRequest createDeadLetterQueueRequest=new CreateQueueRequest().withQueueName(deadletterQueueName).withAttributes(deadLetterAttributes);
   final CreateQueueResult deadletterResult=sqs.createQueue(createDeadLetterQueueRequest);
   logger.info("Created deadletter queue with url {}",deadletterResult.getQueueUrl());
-  final String deadletterArn=AmazonNotificationUtils.getQueueArnByName(deadletterQueueName,sqs);
+  final String deadletterArn=AmazonNotificationUtils.getQueueArnByName(sqs,deadletterQueueName);
   String redrivePolicy=String.format("{\"maxReceiveCount\":\"%s\"," + " \"deadLetterTargetArn\":\"%s\"}",fig.getQueueDeliveryLimit(),deadletterArn);
   final Map<String,String> queueAttributes=new HashMap<>(2);
   deadLetterAttributes.put("MessageRetentionPeriod",fig.getRetentionPeriod());
