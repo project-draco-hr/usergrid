@@ -17,7 +17,8 @@
     for (    Message message : messages) {
       Object body;
       try {
-        body=fromString(message.getBody(),klass);
+        JsonNode bodyObj=mapper.readTree(message.getBody()).get("Message");
+        body=fromString(bodyObj.textValue(),klass);
       }
  catch (      Exception e) {
         logger.error(String.format("failed to deserialize message: %s",message.getBody()),e);
