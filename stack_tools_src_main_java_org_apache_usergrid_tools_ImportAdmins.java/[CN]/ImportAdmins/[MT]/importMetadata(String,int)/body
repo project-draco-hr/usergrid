@@ -1,0 +1,33 @@
+{
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  File metadataFile=new File(importDir,fileName);
+  logger.info("----- Loading metadata file: " + metadataFile.getAbsolutePath());
+  JsonParser jp=getJsonParserForFile(metadataFile);
+  JsonToken jsonToken=null;
+  int depth=1;
+  BlockingQueue<ImportMetadataTask> workQueue=new LinkedBlockingQueue<ImportMetadataTask>();
+  startMetadataWorkers(workQueue,writeThreads);
+  while (depth > 0) {
+    jsonToken=jp.nextToken();
+    if (jsonToken == null) {
+      logger.info("token is null, breaking");
+      break;
+    }
+    if (jsonToken.equals(JsonToken.START_OBJECT)) {
+      depth++;
+    }
+ else     if (jsonToken.equals(JsonToken.END_OBJECT)) {
+      depth--;
+    }
+    if (jsonToken.equals(JsonToken.FIELD_NAME) && depth == 2) {
+      jp.nextToken();
+      String entityOwnerId=jp.getCurrentName();
+      EntityRef entityRef=em.getRef(UUID.fromString(entityOwnerId));
+      Map<String,Object> metadata=(Map<String,Object>)jp.readValueAs(Map.class);
+      workQueue.put(new ImportMetadataTask(entityRef,metadata));
+    }
+  }
+  waitForQueueAndMeasure(workQueue,metadataWorkerThreadMap,"Metadata Load");
+  logger.info("----- End of metadata -----");
+  jp.close();
+}

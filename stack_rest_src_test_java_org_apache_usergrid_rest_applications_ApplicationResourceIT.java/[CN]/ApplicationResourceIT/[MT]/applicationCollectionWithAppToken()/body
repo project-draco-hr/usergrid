@@ -1,0 +1,47 @@
+{
+  String username=RandomStringUtils.randomAlphanumeric(20);
+  String orgName="MiXedApplicationResourceTest_" + username;
+  String appName="mgmt-org-app-test";
+  Map payload=hashMap("email",username + "@example.com").map("username",username).map("name","App Creds User").map("password","password").map("organization",orgName);
+  QueryParameters tokenParams=new QueryParameters();
+  tokenParams.addParam("access_token",getAdminToken("superuser","superpassword").getAccessToken());
+  pathResource("management/organizations").post(false,payload,tokenParams);
+  Map<String,String> data=new HashMap<String,String>();
+  data.put("name",appName);
+  ApiResponse appResponse=pathResource("management/orgs/" + orgName + "/applications").post(false,data,tokenParams);
+  UUID appId=appResponse.getEntities().get(0).getUuid();
+  String clientId=null;
+  String clientSecret=null;
+  Map<String,String> loginMap=new HashMap<String,String>(){
+{
+      put("username",username);
+      put("password","password");
+      put("grant_type","password");
+    }
+  }
+;
+  ApiResponse authResponse=pathResource("management/token").post(loginMap);
+  int tries=0;
+  SpringResource springResource=ConcurrentProcessSingleton.getInstance().getSpringResource();
+  ManagementService mgmt=springResource.getBean(ManagementService.class);
+  while (tries++ < 20) {
+    try {
+      clientId=mgmt.getClientIdForApplication(appId);
+      clientSecret=mgmt.getClientSecretForApplication(appId);
+    }
+ catch (    Exception intentionallyIgnored) {
+    }
+    if (clientId != null && clientSecret != null) {
+      break;
+    }
+    logger.info("Waiting for app to become available");
+    Thread.sleep(500);
+    refreshIndex();
+  }
+  assertNotNull(clientId);
+  assertNotNull(clientSecret);
+  QueryParameters adminTokenParams=new QueryParameters();
+  adminTokenParams.addParam("grant_type","client_credentials").addParam("client_id",clientId).addParam("client_secret",clientSecret);
+  ApiResponse rolesResponse=pathResource(orgName.toLowerCase() + "/" + appName+ "/roles").get(ApiResponse.class,adminTokenParams,false);
+  assertTrue(rolesResponse.getEntityCount() > 0);
+}
