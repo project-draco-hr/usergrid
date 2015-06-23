@@ -1,0 +1,69 @@
+{
+  logger.info("Setting up setupTopics SNS/SQS...");
+  String primaryTopicArn=AmazonNotificationUtils.getTopicArn(sns,queueName,true);
+  if (logger.isDebugEnabled())   logger.debug("SNS/SQS Setup: primaryTopicArn=" + primaryTopicArn);
+  String queueUrl=AmazonNotificationUtils.getQueueUrlByName(sqs,queueName);
+  String primaryQueueArn=AmazonNotificationUtils.getQueueArnByName(sqs,queueName);
+  if (logger.isDebugEnabled())   logger.debug("SNS/SQS Setup: primaryQueueArn=" + primaryQueueArn);
+  if (primaryQueueArn == null) {
+    if (logger.isDebugEnabled())     logger.debug("SNS/SQS Setup: primaryQueueArn is null, creating queue...");
+    queueUrl=AmazonNotificationUtils.createQueue(sqs,queueName,fig);
+    primaryQueueArn=AmazonNotificationUtils.getQueueArnByUrl(sqs,queueUrl);
+    if (logger.isDebugEnabled())     logger.debug("SNS/SQS Setup: New Queue URL=[{}] ARN=[{}]",queueUrl,primaryQueueArn);
+  }
+  try {
+    Topics.subscribeQueue(sns,sqs,primaryTopicArn,queueUrl);
+  }
+ catch (  AmazonServiceException e) {
+    logger.error(String.format("Unable to subscribe PRIMARY queue=[%s] to topic=[%s]",queueUrl,primaryTopicArn),e);
+  }
+  if (fig.isMultiRegion()) {
+    String multiRegion=fig.getRegionList();
+    if (logger.isDebugEnabled())     logger.debug("MultiRegion Setup specified, regions: [{}]",multiRegion);
+    String[] regionNames=multiRegion.split(",");
+    final Map<String,String> arrQueueArns=new HashMap<>(regionNames.length + 1);
+    final Map<String,String> topicArns=new HashMap<>(regionNames.length + 1);
+    arrQueueArns.put(primaryQueueArn,fig.getRegion());
+    topicArns.put(primaryTopicArn,fig.getRegion());
+    for (    String regionName : regionNames) {
+      regionName=regionName.trim();
+      Regions regions=Regions.fromName(regionName);
+      Region region=Region.getRegion(regions);
+      final AmazonSQSClient sqsClient=createSQSClient(region);
+      final AmazonSNSClient snsClient=createSNSClient(region);
+      String topicArn=AmazonNotificationUtils.getTopicArn(snsClient,queueName,true);
+      topicArns.put(topicArn,regionName);
+      String queueArn=AmazonNotificationUtils.getQueueArnByName(sqsClient,queueName);
+      if (queueArn == null) {
+        queueUrl=AmazonNotificationUtils.createQueue(sqsClient,queueName,fig);
+        queueArn=AmazonNotificationUtils.getQueueArnByUrl(sqsClient,queueUrl);
+      }
+      arrQueueArns.put(queueArn,regionName);
+    }
+    logger.debug("Creating Subscriptions...");
+    for (    Map.Entry<String,String> queueArnEntry : arrQueueArns.entrySet()) {
+      String queueARN=queueArnEntry.getKey();
+      String strSqsRegion=queueArnEntry.getValue();
+      Regions sqsRegions=Regions.fromName(strSqsRegion);
+      Region sqsRegion=Region.getRegion(sqsRegions);
+      final AmazonSQSClient sqsClient=createSQSClient(sqsRegion);
+      logger.info("Creating subscriptions for QUEUE ARN=[{}]",queueARN);
+      for (      Map.Entry<String,String> topicArnEntry : topicArns.entrySet()) {
+        String topicARN=topicArnEntry.getKey();
+        logger.info("Creating subscriptions for TOPIC ARN=[{}]",topicArnEntry.getKey());
+        String strSnsRegion=queueArnEntry.getValue();
+        Regions snsRegions=Regions.fromName(strSnsRegion);
+        Region snsRegion=Region.getRegion(snsRegions);
+        final AmazonSNSClient snsClient=createSNSClient(snsRegion);
+        try {
+          logger.info("Subscribing Queue ARN/Region=[{} / {}] and Topic ARN/Region=[{} / {}]",queueARN,strSqsRegion,topicARN,strSnsRegion);
+          Topics.subscribeQueue(snsClient,sqsClient,topicArnEntry.getKey(),queueArnEntry.getKey());
+        }
+ catch (        Exception e) {
+          logger.error(String.format("ERROR Subscribing Queue ARN/Region=[%s / %s] and Topic ARN/Region=[%s / %s]",queueARN,strSqsRegion,topicARN,strSnsRegion),e);
+        }
+      }
+    }
+  }
+  return primaryTopicArn;
+}
