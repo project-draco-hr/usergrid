@@ -8,9 +8,10 @@
     totalSelectSize++;
   }
   while (currentConnectionType != null) {
-    int selectSize=totalSelectSize - lastResults.size();
-    Object key=key(entityId,dictionaryType,currentConnectionType);
-    List<HColumn<ByteBuffer,ByteBuffer>> results=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_COMPOSITE_DICTIONARIES,key,start,null,selectSize,reversed);
+    final int lastResultsSize=lastResults == null ? 0 : lastResults.size();
+    final int selectSize=totalSelectSize - lastResultsSize;
+    final Object key=key(entityId,dictionaryType,currentConnectionType);
+    final List<HColumn<ByteBuffer,ByteBuffer>> results=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_COMPOSITE_DICTIONARIES,key,start,null,selectSize,reversed);
     final int resultSize=results.size();
     lastResults=results;
     if (resultSize == selectSize) {
@@ -30,7 +31,7 @@
     lastResults.remove(0);
   }
   if (hasMore && lastResults != null && lastResults.size() > 0) {
-    lastResults.remove(lastResults.size() - 1);
+    start=lastResults.remove(lastResults.size() - 1).getName();
   }
   return lastResults != null && lastResults.size() > 0;
 }
