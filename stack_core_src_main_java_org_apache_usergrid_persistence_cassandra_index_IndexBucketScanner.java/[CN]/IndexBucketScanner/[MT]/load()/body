@@ -3,27 +3,22 @@
     return false;
   }
   final Object rowKey=key(keyPrefix,bucket);
-  int selectSize=pageSize;
-  final boolean shouldCheckFirst=(this.skipFirst && initialStartValue != null) || start != null;
-  final List<HColumn<ByteBuffer,ByteBuffer>> resultsTree=cass.getColumns(cass.getApplicationKeyspace(applicationId),columnFamily,rowKey,start,finish,selectSize,reversed);
-  if (resultsTree.size() == selectSize) {
+  int selectSize=pageSize + 1;
+  if (resumedFromCursor) {
+    selectSize++;
+  }
+  final List<HColumn<ByteBuffer,ByteBuffer>> results=cass.getColumns(cass.getApplicationKeyspace(applicationId),columnFamily,rowKey,start,finish,selectSize,reversed);
+  if (results.size() == selectSize) {
     hasMore=true;
-    start=resultsTree.get(resultsTree.size() - 1).getName();
+    start=results.remove(results.size() - 1).getName();
   }
  else {
     hasMore=false;
   }
-  if (shouldCheckFirst && resultsTree.size() > 0 && start != null) {
-    final int startIndex=start.position();
-    final int startLength=start.remaining();
-    final ByteBuffer returnedBuffer=resultsTree.get(0).getName();
-    final int returnedIndex=returnedBuffer.position();
-    final int returnedLength=returnedBuffer.remaining();
-    final int compare=FBUtilities.compareUnsigned(start.array(),returnedBuffer.array(),startIndex,returnedIndex,startLength,returnedLength);
-    if (compare == 0) {
-      resultsTree.remove(0);
-    }
+  if (resumedFromCursor) {
+    CassandraColumnUtils.maybeRemoveFirst(results,scanStartSerializer.toBytes(initialStartValue));
+    resumedFromCursor=false;
   }
-  lastResults=resultsTree;
+  lastResults=results;
   return lastResults != null && lastResults.size() > 0;
 }
