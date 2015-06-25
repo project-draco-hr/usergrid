@@ -1,6 +1,9 @@
 {
   EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
   Set<String> dictionaries=em.getDictionaries(entity);
+  if (dictionaries.isEmpty()) {
+    logger.error("User {}:{} has no dictionaries",task.adminUser.getName(),task.adminUser.getUuid());
+  }
   task.dictionariesByName=new HashMap<String,Map<Object,Object>>();
   for (  String dictionary : dictionaries) {
     Map<Object,Object> dict=em.getDictionaryAsMap(entity,dictionary);

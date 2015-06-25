@@ -10,19 +10,19 @@
         Thread.sleep(1000);
         continue;
       }
-      count++;
       long startTime=System.currentTimeMillis();
       importEntityMetadata(em,task.entityRef,task.metadata);
+      metadataCount.addAndGet(1);
       long stopTime=System.currentTimeMillis();
       long duration=stopTime - startTime;
       durationSum+=duration;
-      logger.debug(String.format("Imported [%s]th metadata",count));
-      logger.info(String.format("Average metadata Imported Rate: %s(ms)",durationSum / count));
+      count++;
+      if (count % 30 == 0) {
+        logger.info("Imported {} metadata of total {}. Average metadata Imported Rate: {}(ms)",new Object[]{count,metadataCount.get(),durationSum / count});
+      }
     }
  catch (    Exception e) {
-      e.printStackTrace();
-      logger.debug("EXCEPTION",e);
+      logger.debug("Error reading writing metadata",e);
     }
   }
-  logger.warn("Done!");
 }
