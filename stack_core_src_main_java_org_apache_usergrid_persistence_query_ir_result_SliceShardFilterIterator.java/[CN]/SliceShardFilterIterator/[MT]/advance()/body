@@ -1,0 +1,13 @@
+{
+  final Set<ScanColumn> results=new LinkedHashSet<ScanColumn>();
+  while (resultsIterator.hasNext()) {
+    final Iterator<ScanColumn> scanColumns=resultsIterator.next().iterator();
+    while (results.size() < pageSize && scanColumns.hasNext()) {
+      final ScanColumn scanColumn=scanColumns.next();
+      if (shardBucketValidator.isInShard(scanColumn.getUUID())) {
+        results.add(scanColumn);
+      }
+    }
+  }
+  current=results;
+}

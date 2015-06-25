@@ -2,5 +2,10 @@
   if (!(o instanceof LocationScanColumn)) {
     throw new UnsupportedOperationException("Cannot compare another ScanColumn that is not an instance of LocationScanColumn");
   }
-  return this.location.compareTo(((LocationScanColumn)o).location);
+  final int locationCompare=this.location.compareTo(((LocationScanColumn)o).location);
+  if (locationCompare == 0) {
+    final int uuidCompare=UUIDComparator.staticCompare(getUUID(),o.getUUID());
+    return uuidCompare;
+  }
+  return locationCompare;
 }

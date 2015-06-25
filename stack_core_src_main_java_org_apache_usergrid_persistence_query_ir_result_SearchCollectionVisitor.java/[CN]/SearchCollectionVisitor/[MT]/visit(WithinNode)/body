@@ -1,6 +1,8 @@
 {
   QuerySlice slice=node.getSlice();
   queryProcessor.applyCursorAndSort(slice);
-  GeoIterator itr=new GeoIterator(new CollectionGeoSearch(em,indexBucketLocator,cassandraService,headEntity,collection.getName()),query.getLimit(),slice,node.getPropertyName(),new Point(node.getLattitude(),node.getLongitude()),node.getDistance());
-  results.push(itr);
+  final int size=queryProcessor.getPageSizeHint(node);
+  GeoIterator itr=new GeoIterator(new CollectionGeoSearch(em,indexBucketLocator,cassandraService,headEntity,collection.getName()),size,slice,node.getPropertyName(),new Point(node.getLattitude(),node.getLongitude()),node.getDistance());
+  final SliceShardFilterIterator.ShardBucketValidator validator=new SliceShardFilterIterator.ShardBucketValidator(indexBucketLocator,bucket,applicationId,IndexBucketLocator.IndexType.COLLECTION,collection.getName());
+  this.results.push(new SliceShardFilterIterator(validator,itr,size));
 }

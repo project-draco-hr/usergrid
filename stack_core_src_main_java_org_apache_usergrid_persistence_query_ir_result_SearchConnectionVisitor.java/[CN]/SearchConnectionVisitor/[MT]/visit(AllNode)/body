@@ -30,6 +30,7 @@
     connectionTypes=new ConnectionTypesIterator(cassandraService,applicationId,entityIdToUse,outgoing,size);
   }
   IndexScanner connectionScanner=new ConnectedIndexScanner(cassandraService,dictionaryType,applicationId,entityIdToUse,connectionTypes,start,slice.isReversed(),size,skipFirst);
-  final SliceShardIterator.ShardBucketValidator validator=new SliceShardIterator.ShardBucketValidator(indexBucketLocator,bucket,applicationId,IndexBucketLocator.IndexType.CONNECTION,"");
-  this.results.push(new SliceShardIterator(validator,slice,connectionScanner,connectionParser));
+  final SliceShardFilterIterator.ShardBucketValidator validator=new SliceShardFilterIterator.ShardBucketValidator(indexBucketLocator,bucket,applicationId,IndexBucketLocator.IndexType.CONNECTION,"");
+  final SliceIterator sliceIterator=new SliceIterator(slice,connectionScanner,connectionParser);
+  this.results.push(new SliceShardFilterIterator(validator,sliceIterator,size));
 }
