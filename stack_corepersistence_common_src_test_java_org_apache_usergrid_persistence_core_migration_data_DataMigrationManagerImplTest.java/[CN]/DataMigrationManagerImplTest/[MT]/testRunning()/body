@@ -6,7 +6,8 @@
   plugins.add(plugin1);
   final MigrationInfoSerialization migrationInfoSerialization=mock(MigrationInfoSerialization.class);
   when(migrationInfoSerialization.getStatusCode("plugin1")).thenReturn(DataMigrationManagerImpl.StatusCode.RUNNING.status);
-  DataMigrationManagerImpl migrationManager=new DataMigrationManagerImpl(plugins,migrationInfoSerialization);
+  final MigrationInfoCache migrationInfoCache=mock(MigrationInfoCache.class);
+  DataMigrationManagerImpl migrationManager=new DataMigrationManagerImpl(plugins,migrationInfoSerialization,migrationInfoCache);
   boolean status=migrationManager.isRunning();
   assertTrue("Status is set",status);
   when(migrationInfoSerialization.getStatusCode("plugin1")).thenReturn(DataMigrationManagerImpl.StatusCode.COMPLETE.status);
