@@ -3,13 +3,17 @@
   for (  QueueMessage message : messages) {
     final AsyncEvent event=(AsyncEvent)message.getBody();
     if (logger.isDebugEnabled())     logger.debug("Processing {} event",event.getEventType());
+    if (event == null || event.getEventType() == null) {
+      logger.error("AsyncEvent type or event is null!");
+    }
+ else {
 switch (event.getEventType()) {
 case EDGE_DELETE:
-      handleEdgeDelete(message);
-    break;
+        handleEdgeDelete(message);
+      break;
 case EDGE_INDEX:
-  handleEdgeIndex(message);
-break;
+    handleEdgeIndex(message);
+  break;
 case ENTITY_DELETE:
 handleEntityDelete(message);
 break;
@@ -19,5 +23,7 @@ break;
 default :
 logger.error("Unknown EventType: {}",event.getEventType());
 }
+}
+messageCycle.update(System.currentTimeMillis() - event.getCreationTime());
 }
 }

@@ -1,0 +1,44 @@
+{
+  int count=0;
+  EntityManager em=emf.getEntityManager(MANAGEMENT_APPLICATION_ID);
+  long durationSum=0;
+  while (!done) {
+    try {
+      Map<String,Object> entityProps=this.workQueue.poll(30,TimeUnit.SECONDS);
+      if (entityProps == null) {
+        logger.warn("Reading from admin import queue was null!");
+        Thread.sleep(1000);
+        continue;
+      }
+      UUID uuid=getId(entityProps);
+      String type=getType(entityProps);
+      try {
+        long startTime=System.currentTimeMillis();
+        em.create(uuid,type,entityProps);
+        auditQueue.put(entityProps);
+        long stopTime=System.currentTimeMillis();
+        long duration=stopTime - startTime;
+        durationSum+=duration;
+        count++;
+        logger.debug(String.format("Imported [%s]th admin user %s  / %s",count,uuid,entityProps.get("username")));
+        logger.info(String.format("Average Creation Rate: %s(ms)",durationSum / count));
+        if (count % 100 == 0) {
+          logger.info("Imported {} admin users",count);
+        }
+      }
+ catch (      DuplicateUniquePropertyExistsException de) {
+        logger.warn("Unable to create entity. It appears to be a duplicate: " + "id={}, type={}, name={}, username={}",new Object[]{uuid,type,entityProps.get("name"),entityProps.get("username")});
+        if (logger.isDebugEnabled()) {
+          logger.debug("Exception",de);
+        }
+      }
+catch (      Exception e) {
+        e.printStackTrace();
+      }
+    }
+ catch (    InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+  logger.warn("Done!");
+}

@@ -9,7 +9,8 @@
   plugins.add(plugin1);
   plugins.add(plugin2);
   final MigrationInfoSerialization migrationInfoSerialization=mock(MigrationInfoSerialization.class);
-  DataMigrationManagerImpl migrationManager=new DataMigrationManagerImpl(plugins,migrationInfoSerialization);
+  final MigrationInfoCache migrationInfoCache=mock(MigrationInfoCache.class);
+  DataMigrationManagerImpl migrationManager=new DataMigrationManagerImpl(plugins,migrationInfoSerialization,migrationInfoCache);
   Set<String> pluginNames=migrationManager.getPluginNames();
   assertEquals(2,pluginNames.size());
   assertTrue(pluginNames.contains("plugin1"));
@@ -18,4 +19,5 @@
   InOrder inOrderVerification=inOrder(plugin1,plugin2);
   inOrderVerification.verify(plugin2).run(any(ProgressObserver.class));
   inOrderVerification.verify(plugin1).run(any(ProgressObserver.class));
+  verify(migrationInfoCache,Mockito.times(2)).invalidateAll();
 }

@@ -2,16 +2,14 @@
   this.refreshIndex();
   byte[] data=IOUtils.toByteArray(this.getClass().getResourceAsStream("/file-bigger-than-5M"));
   FormDataMultiPart form=new FormDataMultiPart().field("file",data,MediaType.MULTIPART_FORM_DATA_TYPE);
-  String orgAppPath=clientSetup.getOrganizationName() + "/" + clientSetup.getAppName();
-  JsonNode node=mapper.readTree(resource().path(orgAppPath + "/foos").queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON).type(MediaType.MULTIPART_FORM_DATA).post(String.class,form));
-  JsonNode idNode=node.get("entities").get(0).get("uuid");
-  String uuid=idNode.textValue();
+  ApiResponse postResponse=pathResource(getOrgAppPath("foos")).post(form);
+  UUID assetId=postResponse.getEntities().get(0).getUuid();
   LOG.info("Waiting for upload to finish...");
   Thread.sleep(2000);
-  node=mapper.readTree(resource().path(orgAppPath + "/foos/" + uuid).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON_TYPE).get(String.class));
+  ApiResponse getResponse=pathResource(getOrgAppPath("foos/" + assetId)).get(ApiResponse.class);
   LOG.info("Upload complete!");
-  InputStream is=resource().path(orgAppPath + "/foos/" + uuid).queryParam("access_token",access_token).accept(MediaType.APPLICATION_OCTET_STREAM_TYPE).get(InputStream.class);
+  InputStream is=pathResource(getOrgAppPath("foos/" + assetId)).getAssetAsStream();
   byte[] foundData=IOUtils.toByteArray(is);
   assertEquals(data.length,foundData.length);
-  node=mapper.readTree(resource().path(orgAppPath + "/foos/" + uuid).queryParam("access_token",access_token).accept(MediaType.APPLICATION_JSON_TYPE).delete(String.class));
+  pathResource(getOrgAppPath("foos/" + assetId)).delete();
 }

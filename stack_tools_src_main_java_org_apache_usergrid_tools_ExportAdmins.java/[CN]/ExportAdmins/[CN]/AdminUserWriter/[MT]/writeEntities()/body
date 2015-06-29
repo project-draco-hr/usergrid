@@ -1,0 +1,35 @@
+{
+  EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+  JsonGenerator usersFile=getJsonGenerator(createOutputFile(ADMIN_USERS_PREFIX,em.getApplication().getName()));
+  usersFile.writeStartArray();
+  JsonGenerator metadataFile=getJsonGenerator(createOutputFile(ADMIN_USER_METADATA_PREFIX,em.getApplication().getName()));
+  metadataFile.writeStartObject();
+  int count=0;
+  while (true) {
+    try {
+      AdminUserWriteTask task=taskQueue.poll(30,TimeUnit.SECONDS);
+      if (task == null && done) {
+        break;
+      }
+      usersFile.writeObject(task.adminUser);
+      echo(task.adminUser);
+      saveCollections(metadataFile,task);
+      saveConnections(metadataFile,task);
+      saveOrganizations(metadataFile,task);
+      saveDictionaries(metadataFile,task);
+      logger.debug("Exported user {}",task.adminUser.getProperty("email"));
+      count++;
+      if (count % 1000 == 0) {
+        logger.info("Exported {} admin users",count);
+      }
+    }
+ catch (    InterruptedException e) {
+      throw new Exception("Interrupted",e);
+    }
+  }
+  metadataFile.writeEndObject();
+  metadataFile.close();
+  usersFile.writeEndArray();
+  usersFile.close();
+  logger.info("Exported TOTAL {} admin users",count);
+}
