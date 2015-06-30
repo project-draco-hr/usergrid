@@ -1,20 +1,20 @@
 {
   double rateAverageSum=0;
-  int iterationCounter=0;
+  int iterations=0;
   while (!workQueue.isEmpty()) {
-    iterationCounter+=1;
+    iterations+=1;
     int sizeLast=workQueue.size();
     long lastTime=System.currentTimeMillis();
     logger.info("Queue {} is not empty, remaining size={}, waiting...",identifier,sizeLast);
-    Thread.sleep(5000);
+    Thread.sleep(10000);
     long timeNow=System.currentTimeMillis();
     int sizeNow=workQueue.size();
     int processed=sizeLast - sizeNow;
     long timeDelta=timeNow - lastTime;
     double rateLast=(double)processed / (timeDelta / 1000);
     rateAverageSum+=rateLast;
-    long timeRemaining=(long)(sizeLast / (rateAverageSum / iterationCounter));
-    logger.info(String.format("++PROGRESS (%s): sizeLast=%s nowSize=%s processed=%s rateLast=%s/s rateAvg=%s/s timeRemaining=%s(s)",identifier,sizeLast,sizeNow,processed,rateLast,(rateAverageSum / iterationCounter),timeRemaining));
+    long timeRemaining=(long)(sizeLast / (rateAverageSum / iterations));
+    logger.info("++PROGRESS ({}): sizeLast={} nowSize={} processed={} rateLast={}/s rateAvg={}/s timeRemaining={}s",new Object[]{identifier,sizeLast,sizeNow,processed,rateLast,(rateAverageSum / iterations),timeRemaining});
   }
   for (  Stoppable worker : threadMap.keySet()) {
     worker.setDone(true);

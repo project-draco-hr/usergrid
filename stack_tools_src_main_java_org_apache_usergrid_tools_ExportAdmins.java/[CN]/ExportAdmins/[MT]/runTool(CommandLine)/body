@@ -17,6 +17,7 @@
  else {
     readThreadCount=20;
   }
+  buildOrgMap();
   BlockingQueue<AdminUserWriteTask> writeQueue=new LinkedBlockingQueue<AdminUserWriteTask>();
   AdminUserWriter adminUserWriter=new AdminUserWriter(writeQueue);
   Thread writeThread=new Thread(adminUserWriter);
@@ -39,7 +40,6 @@
   while (ids.size() > 0) {
     for (    UUID uuid : ids.getIds()) {
       readQueue.add(uuid);
-      logger.debug("Added uuid to readQueue: " + uuid);
     }
     if (ids.getCursor() == null) {
       break;
@@ -52,5 +52,10 @@
     aur.setDone(true);
   }
   logger.debug("Waiting for write thread to complete");
-  writeThread.join();
+  boolean done=false;
+  while (!done) {
+    writeThread.join(10000,0);
+    done=!writeThread.isAlive();
+    logger.info("Wrote {} users",count.get());
+  }
 }

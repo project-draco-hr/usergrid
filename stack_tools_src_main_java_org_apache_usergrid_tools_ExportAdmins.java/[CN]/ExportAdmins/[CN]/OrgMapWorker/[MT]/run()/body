@@ -1,0 +1,23 @@
+{
+  try {
+    final String orgName=orgEntity.getProperty("path").toString();
+    final UUID orgId=orgEntity.getUuid();
+    for (    UserInfo user : managementService.getAdminUsersForOrganization(orgEntity.getUuid())) {
+      try {
+        Entity admin=managementService.getAdminUserEntityByUuid(user.getUuid());
+        List<Org> orgs=orgMap.get(admin.getProperty("username"));
+        if (orgs == null) {
+          orgs=new ArrayList<Org>();
+          orgMap.put(admin.getProperty("username").toString().toLowerCase(),orgs);
+        }
+        orgs.add(new Org(orgId,orgName));
+      }
+ catch (      Exception e) {
+        logger.warn("Cannot get orgs for userId {}",user.getUuid());
+      }
+    }
+  }
+ catch (  Exception e) {
+    logger.error("Error getting users for org {}:{}",orgEntity.getName(),orgEntity.getUuid());
+  }
+}
