@@ -13,7 +13,7 @@
     Set<String> collectionNames=em.getApplicationCollections();
     for (    String collectionName : collectionNames) {
       IndexScanner scanner=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(applicationId,DICTIONARY_COLLECTIONS,collectionName),null,null,PAGE_SIZE,false,indexBucketLocator,applicationId,collectionName,false);
-      SliceIterator itr=new SliceIterator(null,scanner,new UUIDIndexSliceParser());
+      SliceIterator itr=new SliceIterator(null,scanner,new UUIDIndexSliceParser(uuidCursorGenerator));
       while (itr.hasNext()) {
         Set<ScanColumn> copy=new LinkedHashSet<ScanColumn>(itr.next());
         results=em.get(ScanColumnTransformer.getIds(copy));

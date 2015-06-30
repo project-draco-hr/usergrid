@@ -3,9 +3,11 @@
   QuerySlice slice=node.getSlice();
   queryProcessor.applyCursorAndSort(slice);
   UUID startId=null;
+  final UUIDCursorGenerator uuidCursorGenerator=new UUIDCursorGenerator(slice.hashCode());
+  final UUIDIndexSliceParser uuidIndexSliceParser=new UUIDIndexSliceParser(uuidCursorGenerator);
   if (slice.hasCursor()) {
-    startId=UUID_PARSER.parse(slice.getCursor(),false).getUUID();
+    startId=uuidIndexSliceParser.parse(slice.getCursor(),false).getUUID();
   }
   IndexScanner indexScanner=cassandraService.getIdList(key(headEntity.getUuid(),DICTIONARY_COLLECTIONS,collectionName),startId,null,queryProcessor.getPageSizeHint(node),query.isReversed(),bucket,applicationId,node.isForceKeepFirst());
-  this.results.push(new SliceIterator(slice,indexScanner,UUID_PARSER));
+  this.results.push(new SliceIterator(slice,indexScanner,uuidIndexSliceParser));
 }
