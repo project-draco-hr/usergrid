@@ -1,0 +1,29 @@
+{
+  int size=100;
+  final Multimap<String,ScanColumn> shards=HashMultimap.create();
+  final IndexBucketLocator indexBucketLocator=new SimpleIndexBucketLocatorImpl(20);
+  final UUID applicationId=UUIDUtils.newTimeUUID();
+  final String components="things";
+  final Set<ScanColumn> allColumns=new LinkedHashSet<ScanColumn>(size);
+  final UUIDCursorGenerator uuidCursorGenerator=new UUIDCursorGenerator(1);
+  for (int i=0; i < size; i++) {
+    final UUID entityId=UUIDUtils.newTimeUUID();
+    final String shard=indexBucketLocator.getBucket(entityId);
+    final UUIDColumn uuidColumn=new UUIDColumn(entityId,1,uuidCursorGenerator);
+    shards.put(shard,uuidColumn);
+    allColumns.add(uuidColumn);
+  }
+  for (  final String shard : shards.keySet()) {
+    final Set<ScanColumn> expected=new HashSet<ScanColumn>(shards.get(shard));
+    final TestIterator testIterator=new TestIterator(new HashSet<ScanColumn>(shards.get(shard)));
+    final TestEntityFilter collectionSliceShardFilter=new TestEntityFilter(indexBucketLocator,shard);
+    final ShardFilterIterator shardFilterIterator=new ShardFilterIterator(collectionSliceShardFilter,testIterator,10);
+    while (shardFilterIterator.hasNext()) {
+      for (      final ScanColumn column : shardFilterIterator.next()) {
+        final boolean contained=expected.remove(column);
+        assertTrue("Column should be present",contained);
+      }
+    }
+    assertTrue("expected should be empty",expected.isEmpty());
+  }
+}

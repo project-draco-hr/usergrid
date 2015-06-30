@@ -1,0 +1,13 @@
+{
+  final Set<ScanColumn> results=new LinkedHashSet<ScanColumn>();
+  while (resultsIterator.hasNext()) {
+    final Iterator<ScanColumn> scanColumns=resultsIterator.next().iterator();
+    while (results.size() < pageSize && scanColumns.hasNext()) {
+      final ScanColumn scanColumn=scanColumns.next();
+      if (shardFilter.isInShard(scanColumn)) {
+        results.add(scanColumn);
+      }
+    }
+  }
+  current=results;
+}

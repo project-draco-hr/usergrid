@@ -5,7 +5,7 @@
   int bucketSize=20;
   float distributionPercentage=.05f;
   SimpleIndexBucketLocatorImpl locator=new SimpleIndexBucketLocatorImpl(bucketSize);
-  List<String> buckets=locator.getBuckets(appId,IndexType.COLLECTION,entityType,propName);
+  List<String> buckets=locator.getBuckets();
   assertEquals(bucketSize,buckets.size());
   int testSize=2000000;
   Map<String,Float> counts=new HashMap<String,Float>();
@@ -13,7 +13,7 @@
   for (int i=0; i < testSize; i++) {
     UUID id=UUIDUtils.newTimeUUID();
     final TimerContext context=hashes.time();
-    String bucket=locator.getBucket(appId,IndexType.COLLECTION,id,entityType,propName);
+    String bucket=locator.getBucket(id);
     context.stop();
     Float count=counts.get(bucket);
     if (count == null) {

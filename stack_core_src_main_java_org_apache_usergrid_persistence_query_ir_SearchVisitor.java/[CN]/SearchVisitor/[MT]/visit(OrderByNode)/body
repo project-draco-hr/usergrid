@@ -12,7 +12,7 @@
     if (subResults == null) {
       QuerySlice firstFieldSlice=new QuerySlice(slice.getPropertyName(),-1);
       final SliceCursorGenerator sliceCursorGenerator=new SliceCursorGenerator(firstFieldSlice);
-      subResults=new SliceIterator(slice,secondaryIndexScan(orderByNode,firstFieldSlice),new SecondaryIndexSliceParser(sliceCursorGenerator));
+      subResults=new SliceIterator(secondaryIndexScan(orderByNode,firstFieldSlice),new SecondaryIndexSliceParser(sliceCursorGenerator));
     }
     orderIterator=new OrderByIterator(slice,orderByNode.getSecondarySorts(),subResults,em,queryProcessor.getPageSizeHint(orderByNode));
   }
@@ -25,7 +25,7 @@
       scanner=secondaryIndexScan(orderByNode,slice);
     }
     final SliceCursorGenerator sliceCursorGenerator=new SliceCursorGenerator(slice);
-    SliceIterator joinSlice=new SliceIterator(slice,scanner,new SecondaryIndexSliceParser(sliceCursorGenerator));
+    SliceIterator joinSlice=new SliceIterator(scanner,new SecondaryIndexSliceParser(sliceCursorGenerator));
     IntersectionIterator union=new IntersectionIterator(queryProcessor.getPageSizeHint(orderByNode));
     union.addIterator(joinSlice);
     if (subResults != null) {
