@@ -10,8 +10,10 @@
     org.apache.usergrid.persistence.Entity appInfo=getApplicationInfo(applicationId);
     if (appInfo == null) {
       observer.update(getMaxVersion(),"Created application_info for " + appName);
-      EntityRef orgRef=managementEm.getAlias(Group.ENTITY_TYPE,orgName);
-      managementService.createApplication(orgRef.getUuid(),name,applicationId,null);
+      if (!orgName.equals("usergrid")) {
+        EntityRef orgRef=managementEm.getAlias(Group.ENTITY_TYPE,orgName);
+        managementService.createApplication(orgRef.getUuid(),name,applicationId,null);
+      }
     }
  else {
       observer.update(getMaxVersion(),"Received existing application_info for " + appName + " don't do anything");
