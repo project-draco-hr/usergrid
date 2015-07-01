@@ -30,6 +30,13 @@
  catch (  Exception e) {
     throw new RuntimeException("Fatal error loading configuration.",e);
   }
-  injector=Guice.createInjector(new CoreModule(),new PersistenceModule(applicationContext));
+  List<Module> moduleList=new ArrayList<>();
+  if (applicationContext.containsBean("serviceModule")) {
+    Module serviceModule=(Module)applicationContext.getBean("serviceModule");
+    moduleList.add(serviceModule);
+  }
+  moduleList.add(new CoreModule());
+  moduleList.add(new PersistenceModule(applicationContext));
+  injector=Guice.createInjector(moduleList);
   return injector;
 }
