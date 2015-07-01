@@ -1,6 +1,10 @@
 {
-  UUID mgmtAppId=setup.getEmf().getManagementAppId();
-  EntityManager rootEm=setup.getEmf().getEntityManager(mgmtAppId);
-  final Results applicationInfoResults=rootEm.searchCollection(new SimpleEntityRef("application",mgmtAppId),"application_infos",Query.fromQL("select * where applicationId=" + appId.toString()));
-  return applicationInfoResults.getEntity();
+  Map<String,UUID> apps=setup.getEmf().getApplications();
+  if (apps.containsValue(appId)) {
+    return setup.getEmf().getManagementEntityManager().get(appId);
+  }
+ else {
+    fail("no app " + appId);
+    return null;
+  }
 }

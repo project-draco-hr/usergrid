@@ -7,14 +7,11 @@
     final String appName=name.split("/")[1];
     UUID applicationId=getUuid(oldAppInfoMap,"applicationUuid");
     applicationId=applicationId == null ? getUuid(oldAppInfoMap,"appUuid") : applicationId;
-    Entity appInfo=getApplicationInfo(applicationId);
+    org.apache.usergrid.persistence.Entity appInfo=getApplicationInfo(applicationId);
     if (appInfo == null) {
-      appInfo=createNewAppInfo(managementEm,name,applicationId);
       observer.update(getMaxVersion(),"Created application_info for " + appName);
-      if (!orgName.equals("usergrid")) {
-        EntityRef orgRef=managementEm.getAlias(Group.ENTITY_TYPE,orgName);
-        managementEm.createConnection(orgRef,"owns",appInfo);
-      }
+      EntityRef orgRef=managementEm.getAlias(Group.ENTITY_TYPE,orgName);
+      managementService.createApplication(orgRef.getUuid(),name,applicationId,null);
     }
  else {
       observer.update(getMaxVersion(),"Received existing application_info for " + appName + " don't do anything");
