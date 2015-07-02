@@ -30,7 +30,7 @@
       Regions regions=Regions.fromName(regionName);
       Region region=Region.getRegion(regions);
       final AmazonSQSClient sqsClient=createSQSClient(region);
-      final AmazonSNSClient snsClient=createSNSClient(region);
+      final AmazonSNSAsyncClient snsClient=createSNSClient(region);
       String topicArn=AmazonNotificationUtils.getTopicArn(snsClient,queueName,true);
       topicArns.put(topicArn,regionName);
       String queueArn=AmazonNotificationUtils.getQueueArnByName(sqsClient,queueName);
@@ -54,7 +54,7 @@
         String strSnsRegion=queueArnEntry.getValue();
         Regions snsRegions=Regions.fromName(strSnsRegion);
         Region snsRegion=Region.getRegion(snsRegions);
-        final AmazonSNSClient snsClient=createSNSClient(snsRegion);
+        final AmazonSNSAsyncClient snsClient=createSNSClient(snsRegion);
         try {
           logger.info("Subscribing Queue ARN/Region=[{} / {}] and Topic ARN/Region=[{} / {}]",queueARN,strSqsRegion,topicARN,strSnsRegion);
           Topics.subscribeQueue(snsClient,sqsClient,topicArnEntry.getKey(),queueArnEntry.getKey());
