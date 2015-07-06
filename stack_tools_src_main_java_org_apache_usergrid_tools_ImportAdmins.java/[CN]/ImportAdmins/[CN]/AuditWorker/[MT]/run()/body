@@ -7,9 +7,11 @@
       Map<String,Object> entityProps=this.workQueue.poll(30,TimeUnit.SECONDS);
       if (entityProps == null) {
         logger.warn("Reading from AUDIT queue was null!");
+        auditEmptyCount.getAndIncrement();
         Thread.sleep(1000);
         continue;
       }
+      auditEmptyCount.set(0);
       count++;
       long startTime=System.currentTimeMillis();
       UUID uuid=(UUID)entityProps.get(PROPERTY_UUID);

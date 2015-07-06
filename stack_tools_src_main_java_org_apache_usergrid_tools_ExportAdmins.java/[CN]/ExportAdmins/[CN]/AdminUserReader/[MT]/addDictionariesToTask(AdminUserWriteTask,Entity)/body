@@ -7,6 +7,23 @@
   task.dictionariesByName=new HashMap<String,Map<Object,Object>>();
   for (  String dictionary : dictionaries) {
     Map<Object,Object> dict=em.getDictionaryAsMap(entity,dictionary);
+    if (dict.isEmpty()) {
+      continue;
+    }
     task.dictionariesByName.put(dictionary,dict);
+  }
+  if (task.dictionariesByName.isEmpty()) {
+    logger.error("User {}:{} has no dictionaries",new Object[]{task.adminUser.getName(),task.adminUser.getUuid()});
+  }
+ else   if (task.dictionariesByName.get("credentials") == null) {
+    logger.error("User {}:{} has no credentials dictionary",new Object[]{task.adminUser.getName(),task.adminUser.getUuid()});
+  }
+ else {
+    if (task.dictionariesByName.get("credentials").get("password") == null) {
+      logger.error("User {}:{} has no password in credential dictionary",new Object[]{task.adminUser.getName(),task.adminUser.getUuid()});
+    }
+    if (task.dictionariesByName.get("credentials").get("secret") == null) {
+      logger.error("User {}:{} has no secret in credential dictionary",new Object[]{task.adminUser.getName(),task.adminUser.getUuid()});
+    }
   }
 }

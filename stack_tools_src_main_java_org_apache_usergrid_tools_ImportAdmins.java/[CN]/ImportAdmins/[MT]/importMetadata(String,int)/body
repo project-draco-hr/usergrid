@@ -22,12 +22,18 @@
     if (jsonToken.equals(JsonToken.FIELD_NAME) && depth == 2) {
       jp.nextToken();
       String entityOwnerId=jp.getCurrentName();
-      EntityRef entityRef=em.getRef(UUID.fromString(entityOwnerId));
-      Map<String,Object> metadata=(Map<String,Object>)jp.readValueAs(Map.class);
-      workQueue.put(new ImportMetadataTask(entityRef,metadata));
+      try {
+        EntityRef entityRef=em.getRef(UUID.fromString(entityOwnerId));
+        Map<String,Object> metadata=(Map<String,Object>)jp.readValueAs(Map.class);
+        workQueue.put(new ImportMetadataTask(entityRef,metadata));
+        logger.debug("Put user {} in metadata queue",entityRef.getUuid());
+      }
+ catch (      Exception e) {
+        logger.debug("Error with user {}, not putting in metadata queue",entityOwnerId);
+      }
     }
   }
-  waitForQueueAndMeasure(workQueue,metadataWorkerThreadMap,"Metadata Load");
+  waitForQueueAndMeasure(workQueue,metadataEmptyCount,metadataWorkerThreadMap,"Metadata Load");
   logger.info("----- End of metadata -----");
   jp.close();
 }

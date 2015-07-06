@@ -7,9 +7,11 @@
       Map<String,Object> entityProps=this.workQueue.poll(30,TimeUnit.SECONDS);
       if (entityProps == null) {
         logger.warn("Reading from admin import queue was null!");
+        writeEmptyCount.getAndIncrement();
         Thread.sleep(1000);
         continue;
       }
+      writeEmptyCount.set(0);
       UUID uuid=getId(entityProps);
       String type=getType(entityProps);
       try {

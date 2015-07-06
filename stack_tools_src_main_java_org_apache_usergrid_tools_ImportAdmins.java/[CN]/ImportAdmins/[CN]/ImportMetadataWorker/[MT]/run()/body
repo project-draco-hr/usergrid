@@ -7,12 +7,13 @@
       ImportMetadataTask task=this.workQueue.poll(30,TimeUnit.SECONDS);
       if (task == null) {
         logger.warn("Reading from metadata queue was null!");
+        metadataEmptyCount.getAndIncrement();
         Thread.sleep(1000);
         continue;
       }
+      metadataEmptyCount.set(0);
       long startTime=System.currentTimeMillis();
       importEntityMetadata(em,task.entityRef,task.metadata);
-      metadataCount.addAndGet(1);
       long stopTime=System.currentTimeMillis();
       long duration=stopTime - startTime;
       durationSum+=duration;
