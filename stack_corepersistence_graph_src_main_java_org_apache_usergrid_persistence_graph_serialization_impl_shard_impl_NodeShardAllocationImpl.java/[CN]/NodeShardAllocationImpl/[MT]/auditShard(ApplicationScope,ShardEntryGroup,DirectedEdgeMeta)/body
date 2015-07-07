@@ -18,6 +18,9 @@
   if (count < shardSize) {
     return false;
   }
+  if (LOG.isDebugEnabled()) {
+    LOG.debug("Count of {} has exceeded shard config of {} will begin compacting",count,shardSize);
+  }
   final Iterator<MarkedEdge> edges=directedEdgeMeta.loadEdges(shardedEdgeSerialization,edgeColumnFamilies,scope,shardEntryGroup.getReadShards(),0,SearchByEdgeType.Order.ASCENDING);
   if (!edges.hasNext()) {
     LOG.warn("Tried to allocate a new shard for edge meta data {}, " + "but no max value could be found in that row",directedEdgeMeta);
