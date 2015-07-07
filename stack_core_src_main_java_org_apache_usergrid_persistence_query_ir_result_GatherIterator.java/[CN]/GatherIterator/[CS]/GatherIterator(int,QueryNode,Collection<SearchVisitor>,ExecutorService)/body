@@ -1,0 +1,9 @@
+{
+  this.merge=new ConcurrentResultMerge(pageSize);
+  this.iterators=new ArrayList<Future<Void>>(searchVisitors.size());
+  this.merged=false;
+  for (  SearchVisitor visitor : searchVisitors) {
+    final Future<Void> result=executorService.submit(new VisitorExecutor(rootNode,merge,visitor));
+    iterators.add(result);
+  }
+}
