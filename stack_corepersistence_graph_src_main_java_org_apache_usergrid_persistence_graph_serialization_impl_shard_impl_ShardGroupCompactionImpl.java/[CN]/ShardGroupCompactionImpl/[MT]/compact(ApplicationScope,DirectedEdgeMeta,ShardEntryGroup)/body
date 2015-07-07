@@ -3,6 +3,9 @@
   Preconditions.checkNotNull(group,"group cannot be null");
   Preconditions.checkArgument(group.isCompactionPending(),"Compaction is pending");
   Preconditions.checkArgument(group.shouldCompact(startTime),"Compaction cannot be run yet.  Ignoring compaction.");
+  if (LOG.isDebugEnabled()) {
+    LOG.debug("Compacting shard group. count is {} ",countAudits.get());
+  }
   final CompactionResult.CompactionBuilder resultBuilder=CompactionResult.builder();
   final Shard targetShard=group.getCompactionTarget();
   final Set<Shard> sourceShards=new HashSet<>(group.getReadShards());
