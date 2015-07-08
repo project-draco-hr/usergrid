@@ -1,9 +1,22 @@
 {
   EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
-  Set<String> dictionaries=em.getDictionaries(entity);
   task.dictionariesByName=new HashMap<String,Map<Object,Object>>();
-  for (  String dictionary : dictionaries) {
-    Map<Object,Object> dict=em.getDictionaryAsMap(entity,dictionary);
-    task.dictionariesByName.put(dictionary,dict);
+  Set<String> dictionaries=em.getDictionaries(entity);
+  if (dictionaries.isEmpty()) {
+    logger.error("User {}:{} has no dictionaries",task.adminUser.getName(),task.adminUser.getUuid());
+    return;
+  }
+  Map<Object,Object> credentialsDictionary=em.getDictionaryAsMap(entity,"credentials");
+  if (credentialsDictionary != null && !credentialsDictionary.isEmpty()) {
+    task.dictionariesByName.put("credentials",credentialsDictionary);
+    if (credentialsDictionary.get("password") == null) {
+      logger.error("User {}:{} has no password in credential dictionary",new Object[]{task.adminUser.getName(),task.adminUser.getUuid()});
+    }
+    if (credentialsDictionary.get("secret") == null) {
+      logger.error("User {}:{} has no secret in credential dictionary",new Object[]{task.adminUser.getName(),task.adminUser.getUuid()});
+    }
+  }
+ else {
+    logger.error("User {}:{} has no or empty credentials dictionary",new Object[]{task.adminUser.getName(),task.adminUser.getUuid()});
   }
 }

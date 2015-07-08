@@ -13,11 +13,13 @@
   while (jp.nextValue() != JsonToken.END_ARRAY) {
     loopCounter+=1;
     @SuppressWarnings("unchecked") Map<String,Object> entityProps=jp.readValueAs(HashMap.class);
-    if (loopCounter % 100 == 1)     logger.info("Publishing to queue... counter=" + loopCounter);
+    if (loopCounter % 1000 == 0) {
+      logger.debug("Publishing to queue... counter=" + loopCounter);
+    }
     workQueue.add(entityProps);
   }
-  waitForQueueAndMeasure(workQueue,adminWriteThreads,"Admin Write");
-  waitForQueueAndMeasure(auditQueue,adminAuditThreads,"Admin Audit");
+  waitForQueueAndMeasure(workQueue,writeEmptyCount,adminWriteThreads,"Admin Write");
+  waitForQueueAndMeasure(auditQueue,auditEmptyCount,adminAuditThreads,"Admin Audit");
   logger.info("----- End: Imported {} admin users from file {}",count,adminUsersFile.getAbsolutePath());
   jp.close();
 }

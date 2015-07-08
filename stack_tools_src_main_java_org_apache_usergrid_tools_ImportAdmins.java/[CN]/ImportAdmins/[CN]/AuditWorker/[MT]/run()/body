@@ -7,23 +7,26 @@
       Map<String,Object> entityProps=this.workQueue.poll(30,TimeUnit.SECONDS);
       if (entityProps == null) {
         logger.warn("Reading from AUDIT queue was null!");
+        auditEmptyCount.getAndIncrement();
         Thread.sleep(1000);
         continue;
       }
+      auditEmptyCount.set(0);
       count++;
       long startTime=System.currentTimeMillis();
       UUID uuid=(UUID)entityProps.get(PROPERTY_UUID);
       String type=getType(entityProps);
       if (em.get(uuid) == null) {
-        logger.error("Holy hell, we wrote an entity and it's missing.  " + "Entity Id was {} and type is {}",uuid,type);
+        logger.error("FATAL ERROR: wrote an entity {}:{} and it's missing",uuid,type);
         System.exit(1);
       }
       echo(entityProps);
       long stopTime=System.currentTimeMillis();
       long duration=stopTime - startTime;
       durationSum+=duration;
-      logger.debug(String.format("Audited [%s]th admin",count));
-      logger.info(String.format("Average Audit Rate: %s(ms)",durationSum / count));
+      if (count % 100 == 0) {
+        logger.info("Audited {}. Average Audit Rate: {}(ms)",count,durationSum / count);
+      }
     }
  catch (    InterruptedException e) {
       e.printStackTrace();
@@ -32,5 +35,4 @@ catch (    Exception e) {
       e.printStackTrace();
     }
   }
-  logger.warn("Done!");
 }
