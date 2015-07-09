@@ -2,7 +2,7 @@
   LOG.debug("testPagingWithGetNextResults");
   EntityManager em=app.getEntityManager();
   assertNotNull(em);
-  int size=40;
+  int size=60;
   List<UUID> entityIds=new ArrayList<UUID>();
   for (int i=0; i < size; i++) {
     Map<String,Object> properties=new LinkedHashMap<String,Object>();
@@ -11,11 +11,11 @@
     entityIds.add(created.getUuid());
   }
   app.refreshIndex();
-  int pageSize=10;
-  Query query=Query.fromQL("select * where index >= 10 and index <= 29 order by index asc");
+  int pageSize=5;
+  Query query=Query.fromQL("select * where index >= 5 and index <= 49 order by index asc");
   query.setLimit(pageSize);
   Results r=em.searchCollection(em.getApplicationRef(),"pages",query);
-  for (int i=1; i < 3; i++) {
+  for (int i=1; i < 10; i++) {
     LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
     assertEquals(pageSize,r.size());
     for (int j=0; j < pageSize; j++) {
@@ -24,6 +24,7 @@
       final UUID returnedId=r.getEntities().get(j).getUuid();
       assertEquals(entityId,returnedId);
     }
+    LOG.info("collection loop " + i);
     r=r.getNextPageResults();
   }
   assertEquals(0,r.size());
