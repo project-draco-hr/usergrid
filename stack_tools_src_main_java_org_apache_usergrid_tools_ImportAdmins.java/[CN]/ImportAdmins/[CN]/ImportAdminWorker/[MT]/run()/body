@@ -18,14 +18,14 @@
         long startTime=System.currentTimeMillis();
         em.create(uuid,type,entityProps);
         logger.debug("Imported admin user {} / {}",new Object[]{uuid,entityProps.get("username")});
-        userCount.addAndGet(1);
+        userCount.getAndIncrement();
         auditQueue.put(entityProps);
         long stopTime=System.currentTimeMillis();
         long duration=stopTime - startTime;
         durationSum+=duration;
         count++;
         if (count % 30 == 0) {
-          logger.info("Imported {} admin users of total {}. Average Creation Rate: {}ms",new Object[]{count,userCount.get(),durationSum / count});
+          logger.info("This worked has imported {} users of total {} imported so far. " + "Average Creation Rate: {}ms",new Object[]{count,userCount.get(),durationSum / count});
         }
       }
  catch (      DuplicateUniquePropertyExistsException de) {
