@@ -1,0 +1,19 @@
+{
+  String queueARN=getQueueArnByUrl(sqs,queueUrl);
+  Statement statement=new Statement(Statement.Effect.Allow).withActions(SQSActions.SendMessage).withPrincipals(new Principal("*")).withResources(new Resource(queueARN));
+  List<Condition> conditions=new ArrayList<>();
+  for (  String topicARN : topicARNs) {
+    conditions.add(ConditionFactory.newSourceArnCondition(topicARN));
+  }
+  statement.setConditions(conditions);
+  Policy policy=new Policy("SubscriptionPermission").withStatements(statement);
+  final Map<String,String> queueAttributes=new HashMap<>();
+  queueAttributes.put("Policy",policy.toJson());
+  SetQueueAttributesRequest queueAttributesRequest=new SetQueueAttributesRequest(queueUrl,queueAttributes);
+  try {
+    sqs.setQueueAttributes(queueAttributesRequest);
+  }
+ catch (  Exception e) {
+    logger.error("Failed to set permissions on QUEUE ARN=[{}] for TOPIC ARNs=[{}]",queueARN,topicARNs.toString());
+  }
+}
