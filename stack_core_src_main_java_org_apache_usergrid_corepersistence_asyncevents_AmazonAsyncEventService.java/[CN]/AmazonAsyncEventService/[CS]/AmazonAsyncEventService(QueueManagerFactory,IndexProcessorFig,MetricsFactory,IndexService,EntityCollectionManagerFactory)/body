@@ -1,13 +1,11 @@
 {
   this.indexService=indexService;
   this.entityCollectionManagerFactory=entityCollectionManagerFactory;
-  this.rxTaskScheduler=rxTaskScheduler;
   final QueueScope queueScope=new QueueScopeImpl(QUEUE_NAME);
   this.queue=queueManagerFactory.getQueueManager(queueScope);
   this.indexProcessorFig=indexProcessorFig;
   this.writeTimer=metricsFactory.getTimer(AmazonAsyncEventService.class,"async_event.write");
   this.readTimer=metricsFactory.getTimer(AmazonAsyncEventService.class,"async_event.read");
-  this.messageProcessingTimer=metricsFactory.getTimer(AmazonAsyncEventService.class,"async_event.message_processing");
   this.indexErrorCounter=metricsFactory.getCounter(AmazonAsyncEventService.class,"async_event.error");
   this.messageCycle=metricsFactory.getHistogram(AmazonAsyncEventService.class,"async_event.message_cycle");
   metricsFactory.addGauge(AmazonAsyncEventService.class,"async-event.inflight",new Gauge<Long>(){
