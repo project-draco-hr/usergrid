@@ -1,0 +1,15 @@
+{
+  final Optional<String> query=search.getQuery();
+  final Id sourceNodeId=search.getSourceNodeId();
+  final IdBuilder pipelineBuilder=pipelineBuilderFactory.create(search.getApplicationScope()).withCursor(search.getCursor()).withLimit(search.getLimit()).fromId(sourceNodeId);
+  final IdBuilder traversedIds;
+  final String connectionName=search.getConnectionName();
+  if (!query.isPresent()) {
+    traversedIds=pipelineBuilder.traverseConnection(connectionName,search.getEntityType());
+  }
+ else {
+    traversedIds=pipelineBuilder.searchConnection(connectionName,query.get(),search.getEntityType()).loadIds();
+  }
+  final Observable<ResultsPage<ConnectionRef>> results=traversedIds.loadConnectionRefs(sourceNodeId,connectionName).build();
+  return results;
+}

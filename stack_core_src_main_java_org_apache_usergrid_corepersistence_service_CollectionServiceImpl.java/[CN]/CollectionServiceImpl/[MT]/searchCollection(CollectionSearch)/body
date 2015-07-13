@@ -1,0 +1,14 @@
+{
+  final ApplicationScope applicationScope=search.getApplicationScope();
+  final String collectionName=search.getCollectionName();
+  final Optional<String> query=search.getQuery();
+  final IdBuilder pipelineBuilder=pipelineBuilderFactory.create(applicationScope).withCursor(search.getCursor()).withLimit(search.getLimit()).fromId(search.getCollectionOwnerId());
+  final EntityBuilder results;
+  if (!query.isPresent()) {
+    results=pipelineBuilder.traverseCollection(collectionName).loadEntities();
+  }
+ else {
+    results=pipelineBuilder.searchCollection(collectionName,query.get(),search.getEntityType()).loadEntities();
+  }
+  return results.build();
+}

@@ -3,26 +3,24 @@
   final String connection=query.getConnectionType();
   Preconditions.checkNotNull(connection,"connection must be specified");
   headEntity=em.validate(headEntity);
-  query=adjustQuery(query);
+  final Query toExecute=adjustQuery(query);
   final Optional<String> entityType=Optional.fromNullable(query.getEntityType());
-  final IdBuilder pipelineBuilder=pipelineBuilderFactory.create(applicationScope).withCursor(query.getCursor()).withLimit(query.getLimit()).fromId(cpHeadEntity.getId());
+  final Id sourceId=headEntity.asId();
+  final Optional<String> queryString=query.isGraphSearch() ? Optional.<String>absent() : query.getQl();
   if (query.getResultsLevel() == Level.REFS || query.getResultsLevel() == Level.IDS) {
-    final IdBuilder traversedIds;
-    if (query.isGraphSearch()) {
-      traversedIds=pipelineBuilder.traverseConnection(connection,entityType);
+    return new ConnectionRefQueryExecutor(toExecute.getCursor()){
+      @Override protected Observable<ResultsPage<ConnectionRef>> buildNewResultsPage(      final Optional<String> cursor){
+        final ConnectionSearch search=new ConnectionSearch(applicationScope,sourceId,entityType,connection,toExecute.getLimit(),queryString,cursor);
+        return connectionService.searchConnectionAsRefs(search);
+      }
     }
- else {
-      traversedIds=pipelineBuilder.searchConnection(connection,query.getQl().get(),entityType).loadIds();
+.next();
+  }
+  return new EntityQueryExecutor(toExecute.getCursor()){
+    @Override protected Observable<ResultsPage<org.apache.usergrid.persistence.model.entity.Entity>> buildNewResultsPage(    final Optional<String> cursor){
+      final ConnectionSearch search=new ConnectionSearch(applicationScope,sourceId,entityType,connection,toExecute.getLimit(),queryString,cursor);
+      return connectionService.searchConnection(search);
     }
-    final Observable<ResultsPage<ConnectionRef>> results=traversedIds.loadConnectionRefs(cpHeadEntity.getId(),connection).build();
-    return new ConnectionRefQueryExecutor(results).next();
   }
-  final Observable<ResultsPage<org.apache.usergrid.persistence.model.entity.Entity>> results;
-  if (query.isGraphSearch()) {
-    results=pipelineBuilder.traverseConnection(connection,entityType).loadEntities().build();
-  }
- else {
-    results=pipelineBuilder.searchConnection(connection,query.getQl().get(),entityType).loadEntities().build();
-  }
-  return new EntityQueryExecutor(results).next();
+.next();
 }

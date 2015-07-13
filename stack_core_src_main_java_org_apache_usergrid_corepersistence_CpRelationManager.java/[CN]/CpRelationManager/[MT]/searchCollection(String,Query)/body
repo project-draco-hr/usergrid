@@ -9,15 +9,14 @@
     throw new RuntimeException("Cannot find collection-info for '" + collectionName + "' of "+ headEntity.getType()+ ":"+ headEntity.getUuid());
   }
   query.setEntityType(collection.getType());
-  query=adjustQuery(query);
-  final IdBuilder pipelineBuilder=pipelineBuilderFactory.create(applicationScope).withCursor(query.getCursor()).withLimit(query.getLimit()).fromId(cpHeadEntity.getId());
-  final EntityBuilder results;
-  if (query.isGraphSearch()) {
-    results=pipelineBuilder.traverseCollection(collectionName).loadEntities();
+  final Query toExecute=adjustQuery(query);
+  final Optional<String> queryString=query.isGraphSearch() ? Optional.<String>absent() : query.getQl();
+  final Id ownerId=headEntity.asId();
+  return new EntityQueryExecutor(toExecute.getCursor()){
+    @Override protected Observable<ResultsPage<org.apache.usergrid.persistence.model.entity.Entity>> buildNewResultsPage(    final Optional<String> cursor){
+      final CollectionSearch search=new CollectionSearch(applicationScope,ownerId,collectionName,collection.getType(),toExecute.getLimit(),queryString,cursor);
+      return collectionService.searchCollection(search);
+    }
   }
- else {
-    final String entityType=collection.getType();
-    results=pipelineBuilder.searchCollection(collectionName,query.getQl().get(),entityType).loadEntities();
-  }
-  return new EntityQueryExecutor(results.build()).next();
+.next();
 }

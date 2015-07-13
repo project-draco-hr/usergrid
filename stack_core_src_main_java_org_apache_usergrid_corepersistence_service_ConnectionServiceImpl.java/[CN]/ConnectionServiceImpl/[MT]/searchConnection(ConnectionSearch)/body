@@ -1,0 +1,12 @@
+{
+  final Optional<String> query=search.getQuery();
+  final IdBuilder pipelineBuilder=pipelineBuilderFactory.create(search.getApplicationScope()).withCursor(search.getCursor()).withLimit(search.getLimit()).fromId(search.getSourceNodeId());
+  final EntityBuilder results;
+  if (!query.isPresent()) {
+    results=pipelineBuilder.traverseConnection(search.getConnectionName(),search.getEntityType()).loadEntities();
+  }
+ else {
+    results=pipelineBuilder.searchConnection(search.getConnectionName(),query.get(),search.getEntityType()).loadEntities();
+  }
+  return results.build();
+}
