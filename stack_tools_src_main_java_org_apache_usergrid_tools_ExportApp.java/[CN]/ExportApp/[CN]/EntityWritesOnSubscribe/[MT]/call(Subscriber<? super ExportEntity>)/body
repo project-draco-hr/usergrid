@@ -1,0 +1,29 @@
+{
+  int count=0;
+  while (true) {
+    ExportEntity entity=null;
+    try {
+      activePollers.getAndIncrement();
+      entity=queue.poll(pollTimeoutSeconds,TimeUnit.SECONDS);
+    }
+ catch (    InterruptedException e) {
+      logger.error("Entity poll interrupted",e);
+      continue;
+    }
+ finally {
+      activePollers.getAndDecrement();
+    }
+    if (entity == null) {
+      break;
+    }
+    subscriber.onNext(entity);
+    count++;
+  }
+  logger.info("Done. Wrote {} entities",count);
+  if (count > 0) {
+    subscriber.onCompleted();
+  }
+ else {
+    subscriber.unsubscribe();
+  }
+}

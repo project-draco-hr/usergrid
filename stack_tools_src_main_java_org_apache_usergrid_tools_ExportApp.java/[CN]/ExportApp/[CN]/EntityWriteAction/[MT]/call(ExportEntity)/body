@@ -1,0 +1,28 @@
+{
+  boolean wroteData=false;
+  String fileName="target/" + Thread.currentThread().getName() + ".ude";
+  JsonGenerator gen=entityGeneratorsByThread.get(Thread.currentThread());
+  if (gen == null) {
+    try {
+      gen=jsonFactory.createJsonGenerator(new FileOutputStream(fileName));
+    }
+ catch (    IOException e) {
+      throw new RuntimeException("Error opening output file: " + fileName,e);
+    }
+    gen.setPrettyPrinter(new MinimalPrettyPrinter(""));
+    gen.setCodec(mapper);
+    entityGeneratorsByThread.put(Thread.currentThread(),gen);
+  }
+  try {
+    gen.writeObject(entity);
+    gen.writeRaw('\n');
+    entitiesWritten.getAndIncrement();
+    wroteData=true;
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("Error writing to output file: " + fileName,e);
+  }
+  if (!wroteData) {
+    emptyFiles.add(fileName);
+  }
+}

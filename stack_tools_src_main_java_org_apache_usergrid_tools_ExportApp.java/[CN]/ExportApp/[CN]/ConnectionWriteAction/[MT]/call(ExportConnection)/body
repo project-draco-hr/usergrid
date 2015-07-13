@@ -1,0 +1,28 @@
+{
+  boolean wroteData=false;
+  String fileName="target/" + Thread.currentThread().getName() + ".ugc";
+  JsonGenerator gen=connectionGeneratorsByThread.get(Thread.currentThread());
+  if (gen == null) {
+    try {
+      gen=jsonFactory.createJsonGenerator(new FileOutputStream(fileName));
+    }
+ catch (    IOException e) {
+      throw new RuntimeException("Error opening output file: " + fileName,e);
+    }
+    gen.setPrettyPrinter(new MinimalPrettyPrinter(""));
+    gen.setCodec(mapper);
+    connectionGeneratorsByThread.put(Thread.currentThread(),gen);
+  }
+  try {
+    gen.writeObject(conn);
+    gen.writeRaw('\n');
+    connectionsWritten.getAndIncrement();
+    wroteData=true;
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("Error writing to output file: " + fileName,e);
+  }
+  if (!wroteData) {
+    emptyFiles.add(fileName);
+  }
+}

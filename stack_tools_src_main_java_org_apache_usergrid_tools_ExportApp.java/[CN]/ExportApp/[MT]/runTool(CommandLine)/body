@@ -1,0 +1,60 @@
+{
+  String applicationName=line.getOptionValue(APPLICATION_NAME);
+  startSpring();
+  setVerbose(line);
+  applyOrgId(line);
+  prepareBaseOutputFileName(line);
+  outputDir=createOutputParentDir();
+  logger.info("Export directory: " + outputDir.getAbsolutePath());
+  UUID applicationId=emf.lookupApplication(applicationName);
+  final EntityManager em=emf.getEntityManager(applicationId);
+  EntityWritesOnSubscribe entityWritesOnSub=new EntityWritesOnSubscribe(entityWriteQueue);
+  rx.Observable entityWritesObservable=rx.Observable.create(entityWritesOnSub);
+  entityWritesObservable.flatMap(new Func1<ExportEntity,Observable<?>>(){
+    public Observable<ExportEntity> call(    ExportEntity exportEntity){
+      return Observable.just(exportEntity).doOnNext(new EntityWriteAction()).subscribeOn(scheduler);
+    }
+  }
+,10).subscribeOn(scheduler).subscribe();
+  ConnectionWritesOnSubscribe connectionWritesOnSub=new ConnectionWritesOnSubscribe(connectionWriteQueue);
+  rx.Observable connectionWritesObservable=rx.Observable.create(connectionWritesOnSub);
+  connectionWritesObservable.flatMap(new Func1<ExportConnection,Observable<?>>(){
+    public Observable<ExportConnection> call(    ExportConnection connection){
+      return Observable.just(connection).doOnNext(new ConnectionWriteAction()).subscribeOn(scheduler);
+    }
+  }
+,10).subscribeOn(scheduler).subscribe();
+  CollectionsOnSubscribe onSubscribe=new CollectionsOnSubscribe(em);
+  rx.Observable collectionsObservable=rx.Observable.create(onSubscribe);
+  collectionsObservable.flatMap(new Func1<String,Observable<String>>(){
+    public Observable<String> call(    String collection){
+      return Observable.just(collection).doOnNext(new CollectionAction(em)).subscribeOn(Schedulers.io());
+    }
+  }
+,40).subscribeOn(Schedulers.io()).subscribe();
+  try {
+    Thread.sleep(1000);
+  }
+ catch (  InterruptedException ignored) {
+  }
+  while (activePollers.get() > 0) {
+    logger.info("Active write threads: {}\n" + "Entities written:     {}\n" + "Entities queued:      {}\n"+ "Connections written:  {}\n"+ "Connections queued:   {}\n",new Object[]{activePollers.get(),entitiesWritten.get(),entitiesQueued.get(),connectionsWritten.get(),connectionsQueued.get()});
+    try {
+      Thread.sleep(5000);
+    }
+ catch (    InterruptedException ignored) {
+    }
+  }
+  for (  JsonGenerator gen : entityGeneratorsByThread.values()) {
+    gen.flush();
+    gen.close();
+  }
+  for (  JsonGenerator gen : connectionGeneratorsByThread.values()) {
+    gen.flush();
+    gen.close();
+  }
+  for (  String fileName : emptyFiles) {
+    File emptyFile=new File(fileName);
+    emptyFile.deleteOnExit();
+  }
+}

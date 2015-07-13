@@ -1,0 +1,39 @@
+{
+  String rand=RandomStringUtils.randomAlphanumeric(10);
+  OrganizationOwnerInfo orgInfo=setup.getMgmtSvc().createOwnerAndOrganization("org_" + rand,"user_" + rand,rand.toUpperCase(),rand + "@example.com",rand);
+  ApplicationInfo appInfo=setup.getMgmtSvc().createApplication(orgInfo.getOrganization().getUuid(),"app_" + rand);
+  EntityManager em=setup.getEmf().getEntityManager(appInfo.getId());
+  List<Entity> connectedThings=new ArrayList<Entity>();
+  String connectedType="connected_thing";
+  em.createApplicationCollection(connectedType);
+  for (int j=0; j < 10; j++) {
+    final String name="connected_thing_" + j;
+    connectedThings.add(em.create(connectedType,new HashMap<String,Object>(){
+{
+        put("name",name);
+      }
+    }
+));
+  }
+  for (int i=0; i < 10; i++) {
+    String type="thing_" + i;
+    em.createApplicationCollection(type);
+    for (int j=0; j < 10; j++) {
+      final String name="thing_" + j;
+      Entity source=em.create(type,new HashMap<String,Object>(){
+{
+          put("name",name);
+        }
+      }
+);
+      if (j % 2 == 0) {
+        for (        Entity target : connectedThings) {
+          em.createConnection(source,"has",target);
+        }
+      }
+    }
+  }
+  String directoryName="./target/export" + rand;
+  ExportApp exportApp=new ExportApp();
+  exportApp.startTool(new String[]{"-application",appInfo.getName(),"-host","localhost:" + ServiceITSuite.cassandraResource.getRpcPort(),"-outputDir",directoryName},false);
+}

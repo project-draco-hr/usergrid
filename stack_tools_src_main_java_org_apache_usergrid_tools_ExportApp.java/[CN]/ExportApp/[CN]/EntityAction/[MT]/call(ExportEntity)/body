@@ -1,0 +1,20 @@
+{
+  entityWriteQueue.add(exportEntity);
+  entitiesQueued.getAndIncrement();
+  try {
+    Results connectedEntities=em.getConnectedEntities(exportEntity.getEntity().getUuid(),null,null,Results.Level.CORE_PROPERTIES);
+    if (!connectedEntities.isEmpty()) {
+      ConnectionsOnSubscribe onSubscribe=new ConnectionsOnSubscribe(em,exportEntity);
+      rx.Observable entityObservable=rx.Observable.create(onSubscribe);
+      entityObservable.flatMap(new Func1<ExportConnection,Observable<ExportConnection>>(){
+        public Observable<ExportConnection> call(        ExportConnection connection){
+          return Observable.just(connection).doOnNext(new ConnectionsAction()).subscribeOn(Schedulers.io());
+        }
+      }
+,8).subscribeOn(Schedulers.io()).toBlocking().last();
+    }
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Error getting connections",e);
+  }
+}

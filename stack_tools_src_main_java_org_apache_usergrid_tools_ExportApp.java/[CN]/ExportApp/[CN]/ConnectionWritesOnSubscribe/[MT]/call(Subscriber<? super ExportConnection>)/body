@@ -1,0 +1,29 @@
+{
+  int count=0;
+  while (true) {
+    ExportConnection connection=null;
+    try {
+      activePollers.getAndIncrement();
+      connection=queue.poll(pollTimeoutSeconds,TimeUnit.SECONDS);
+    }
+ catch (    InterruptedException e) {
+      logger.error("Connection poll interrupted",e);
+      continue;
+    }
+ finally {
+      activePollers.getAndDecrement();
+    }
+    if (connection == null) {
+      break;
+    }
+    subscriber.onNext(connection);
+    count++;
+  }
+  logger.info("Done. Wrote {} connections",count);
+  if (count > 0) {
+    subscriber.onCompleted();
+  }
+ else {
+    subscriber.unsubscribe();
+  }
+}
