@@ -3,8 +3,7 @@
   final AsyncEvent event=(AsyncEvent)message.getBody();
   Preconditions.checkNotNull(message,"QueueMessage Body cannot be null for handleInitializeApplicationIndex");
   Preconditions.checkArgument(event.getEventType() == AsyncEvent.EventType.APPLICATION_INDEX,String.format("Event Type for handleInitializeApplicationIndex must be APPLICATION_INDEX, got %s",event.getEventType()));
-  final ApplicationScope applicationScope=event.getApplicationScope();
-  final IndexLocationStrategy indexLocationStrategy=indexLocationStrategyFactory.getIndexLocationStrategy(applicationScope);
+  final IndexLocationStrategy indexLocationStrategy=event.getIndexLocationStrategy();
   final EntityIndex index=entityIndexFactory.createEntityIndex(indexLocationStrategy);
   index.initialize();
   ack(message);
