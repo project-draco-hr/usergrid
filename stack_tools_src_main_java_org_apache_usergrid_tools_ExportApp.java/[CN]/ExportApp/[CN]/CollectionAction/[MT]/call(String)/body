@@ -3,8 +3,8 @@
   rx.Observable entityObservable=rx.Observable.create(onSubscribe);
   entityObservable.flatMap(new Func1<ExportEntity,Observable<ExportEntity>>(){
     public Observable<ExportEntity> call(    ExportEntity exportEntity){
-      return Observable.just(exportEntity).doOnNext(new EntityAction(em)).subscribeOn(Schedulers.io());
+      return Observable.just(exportEntity).doOnNext(new EntityAction(em)).subscribeOn(readScheduler);
     }
   }
-,8).subscribeOn(Schedulers.io()).toBlocking().last();
+,8).subscribeOn(readScheduler).toBlocking().last();
 }

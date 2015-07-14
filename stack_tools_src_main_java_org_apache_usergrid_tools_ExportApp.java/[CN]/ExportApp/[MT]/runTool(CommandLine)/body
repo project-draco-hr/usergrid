@@ -1,5 +1,27 @@
 {
-  String applicationName=line.getOptionValue(APPLICATION_NAME);
+  applicationName=line.getOptionValue(APPLICATION_NAME);
+  if (StringUtils.isNotEmpty(line.getOptionValue(READ_THREAD_COUNT))) {
+    try {
+      readThreadCount=Integer.parseInt(line.getOptionValue(READ_THREAD_COUNT));
+    }
+ catch (    NumberFormatException nfe) {
+      logger.error("-" + READ_THREAD_COUNT + " must be specified as an integer. Aborting...");
+      return;
+    }
+  }
+  if (StringUtils.isNotEmpty(line.getOptionValue(WRITE_THREAD_COUNT))) {
+    try {
+      writeThreadCount=Integer.parseInt(line.getOptionValue(WRITE_THREAD_COUNT));
+    }
+ catch (    NumberFormatException nfe) {
+      logger.error("-" + WRITE_THREAD_COUNT + " must be specified as an integer. Aborting...");
+      return;
+    }
+  }
+  ExecutorService readThreadPoolExecutor=Executors.newFixedThreadPool(readThreadCount);
+  readScheduler=Schedulers.from(readThreadPoolExecutor);
+  ExecutorService writeThreadPoolExecutor=Executors.newFixedThreadPool(writeThreadCount);
+  final Scheduler writeScheduler=Schedulers.from(writeThreadPoolExecutor);
   startSpring();
   setVerbose(line);
   applyOrgId(line);
@@ -8,30 +30,31 @@
   logger.info("Export directory: " + outputDir.getAbsolutePath());
   UUID applicationId=emf.lookupApplication(applicationName);
   final EntityManager em=emf.getEntityManager(applicationId);
+  organizationName=em.getApplication().getOrganizationName();
   EntityWritesOnSubscribe entityWritesOnSub=new EntityWritesOnSubscribe(entityWriteQueue);
   rx.Observable entityWritesObservable=rx.Observable.create(entityWritesOnSub);
   entityWritesObservable.flatMap(new Func1<ExportEntity,Observable<?>>(){
     public Observable<ExportEntity> call(    ExportEntity exportEntity){
-      return Observable.just(exportEntity).doOnNext(new EntityWriteAction()).subscribeOn(scheduler);
+      return Observable.just(exportEntity).doOnNext(new EntityWriteAction()).subscribeOn(writeScheduler);
     }
   }
-,10).subscribeOn(scheduler).subscribe();
+,10).subscribeOn(writeScheduler).subscribe();
   ConnectionWritesOnSubscribe connectionWritesOnSub=new ConnectionWritesOnSubscribe(connectionWriteQueue);
   rx.Observable connectionWritesObservable=rx.Observable.create(connectionWritesOnSub);
   connectionWritesObservable.flatMap(new Func1<ExportConnection,Observable<?>>(){
     public Observable<ExportConnection> call(    ExportConnection connection){
-      return Observable.just(connection).doOnNext(new ConnectionWriteAction()).subscribeOn(scheduler);
+      return Observable.just(connection).doOnNext(new ConnectionWriteAction()).subscribeOn(writeScheduler);
     }
   }
-,10).subscribeOn(scheduler).subscribe();
+,10).subscribeOn(writeScheduler).subscribe();
   CollectionsOnSubscribe onSubscribe=new CollectionsOnSubscribe(em);
   rx.Observable collectionsObservable=rx.Observable.create(onSubscribe);
   collectionsObservable.flatMap(new Func1<String,Observable<String>>(){
     public Observable<String> call(    String collection){
-      return Observable.just(collection).doOnNext(new CollectionAction(em)).subscribeOn(Schedulers.io());
+      return Observable.just(collection).doOnNext(new CollectionAction(em)).subscribeOn(readScheduler);
     }
   }
-,40).subscribeOn(Schedulers.io()).subscribe();
+,40).subscribeOn(readScheduler).subscribe();
   try {
     Thread.sleep(1000);
   }
