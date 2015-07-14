@@ -1,0 +1,21 @@
+{
+  int count=0;
+  try {
+    Map<String,Object> collectionMetadata=em.getApplicationCollectionMetadata();
+    for (    String collection : collectionMetadata.keySet()) {
+      subscriber.onNext(collection);
+      count++;
+    }
+  }
+ catch (  Exception e) {
+    subscriber.onError(e);
+  }
+  if (count > 0) {
+    subscriber.onCompleted();
+    logger.info("Completed. Read {} collection names",count);
+  }
+ else {
+    subscriber.unsubscribe();
+    logger.info("No collections found");
+  }
+}

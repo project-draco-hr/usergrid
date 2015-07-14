@@ -1,11 +1,11 @@
 {
-  boolean wroteData=false;
   String[] parts=Thread.currentThread().getName().split("-");
-  String fileName="target/" + applicationName + "-"+ organizationName+ parts[3]+ ".connections";
+  String fileName=outputDir.getAbsolutePath() + File.separator + applicationName.replace('/','-')+ "-"+ parts[3]+ ".connections";
   JsonGenerator gen=connectionGeneratorsByThread.get(Thread.currentThread());
   if (gen == null) {
     try {
       gen=jsonFactory.createJsonGenerator(new FileOutputStream(fileName));
+      logger.info("Opened output file {}",fileName);
     }
  catch (    IOException e) {
       throw new RuntimeException("Error opening output file: " + fileName,e);
@@ -18,12 +18,8 @@
     gen.writeObject(conn);
     gen.writeRaw('\n');
     connectionsWritten.getAndIncrement();
-    wroteData=true;
   }
  catch (  IOException e) {
     throw new RuntimeException("Error writing to output file: " + fileName,e);
-  }
-  if (!wroteData) {
-    emptyFiles.add(fileName);
   }
 }

@@ -1,0 +1,47 @@
+{
+  logger.info("Starting to read entities of collection {}",collection);
+  subscriber.onStart();
+  try {
+    int count=0;
+    Query query=new Query();
+    query.setLimit(MAX_ENTITY_FETCH);
+    Results results=em.searchCollection(em.getApplicationRef(),collection,query);
+    while (results.size() > 0) {
+      for (      Entity entity : results.getEntities()) {
+        try {
+          Set<String> dictionaries=em.getDictionaries(entity);
+          Map dictionariesByName=new HashMap<String,Map<Object,Object>>();
+          for (          String dictionary : dictionaries) {
+            Map<Object,Object> dict=em.getDictionaryAsMap(entity,dictionary);
+            if (dict.isEmpty()) {
+              continue;
+            }
+            dictionariesByName.put(dictionary,dict);
+          }
+          ExportEntity exportEntity=new ExportEntity(organizationName,applicationName,entity,dictionariesByName);
+          subscriber.onNext(exportEntity);
+          count++;
+        }
+ catch (        Exception e) {
+          logger.error("Error reading entity " + entity.getUuid() + " from collection "+ collection);
+        }
+      }
+      if (results.getCursor() == null) {
+        break;
+      }
+      query.setCursor(results.getCursor());
+      results=em.searchCollection(em.getApplicationRef(),collection,query);
+    }
+    if (count > 0) {
+      subscriber.onCompleted();
+      logger.info("Completed collection {}. Read {} entities",collection,count);
+    }
+ else {
+      logger.info("Completed collection {} empty",collection);
+      subscriber.unsubscribe();
+    }
+  }
+ catch (  Exception e) {
+    subscriber.onError(e);
+  }
+}
