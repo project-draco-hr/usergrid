@@ -18,19 +18,19 @@
       return;
     }
   }
-  ExecutorService readThreadPoolExecutor=Executors.newFixedThreadPool(readThreadCount);
-  readScheduler=Schedulers.from(readThreadPoolExecutor);
-  ExecutorService writeThreadPoolExecutor=Executors.newFixedThreadPool(writeThreadCount);
-  writeScheduler=Schedulers.from(writeThreadPoolExecutor);
-  startSpring();
   setVerbose(line);
   applyOrgId(line);
   prepareBaseOutputFileName(line);
   outputDir=createOutputParentDir();
   logger.info("Export directory: " + outputDir.getAbsolutePath());
+  startSpring();
   UUID applicationId=emf.lookupApplication(applicationName);
   final EntityManager em=emf.getEntityManager(applicationId);
   organizationName=em.getApplication().getOrganizationName();
+  ExecutorService readThreadPoolExecutor=Executors.newFixedThreadPool(readThreadCount);
+  readScheduler=Schedulers.from(readThreadPoolExecutor);
+  ExecutorService writeThreadPoolExecutor=Executors.newFixedThreadPool(writeThreadCount);
+  writeScheduler=Schedulers.from(writeThreadPoolExecutor);
   Observable<String> collectionsObservable=Observable.create(new CollectionsObservable(em));
   collectionsObservable.flatMap(new Func1<String,Observable<ExportEntity>>(){
     public Observable<ExportEntity> call(    String collection){
