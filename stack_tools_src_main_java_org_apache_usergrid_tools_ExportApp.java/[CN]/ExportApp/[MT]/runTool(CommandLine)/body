@@ -1,14 +1,5 @@
 {
   applicationName=line.getOptionValue(APPLICATION_NAME);
-  if (StringUtils.isNotEmpty(line.getOptionValue(READ_THREAD_COUNT))) {
-    try {
-      readThreadCount=Integer.parseInt(line.getOptionValue(READ_THREAD_COUNT));
-    }
- catch (    NumberFormatException nfe) {
-      logger.error("-" + READ_THREAD_COUNT + " must be specified as an integer. Aborting...");
-      return;
-    }
-  }
   if (StringUtils.isNotEmpty(line.getOptionValue(WRITE_THREAD_COUNT))) {
     try {
       writeThreadCount=Integer.parseInt(line.getOptionValue(WRITE_THREAD_COUNT));
@@ -27,8 +18,6 @@
   UUID applicationId=emf.lookupApplication(applicationName);
   final EntityManager em=emf.getEntityManager(applicationId);
   organizationName=em.getApplication().getOrganizationName();
-  ExecutorService readThreadPoolExecutor=Executors.newFixedThreadPool(readThreadCount);
-  readScheduler=Schedulers.from(readThreadPoolExecutor);
   ExecutorService writeThreadPoolExecutor=Executors.newFixedThreadPool(writeThreadCount);
   writeScheduler=Schedulers.from(writeThreadPoolExecutor);
   Observable<String> collectionsObservable=Observable.create(new CollectionsObservable(em));
@@ -37,10 +26,10 @@
       return Observable.create(new EntityObservable(em,collection)).doOnNext(new EntityWriteAction()).subscribeOn(writeScheduler);
     }
   }
-,10).flatMap(new Func1<ExportEntity,Observable<ExportConnection>>(){
+,writeThreadCount).flatMap(new Func1<ExportEntity,Observable<ExportConnection>>(){
     public Observable<ExportConnection> call(    ExportEntity exportEntity){
       return Observable.create(new ConnectionsObservable(em,exportEntity)).doOnNext(new ConnectionWriteAction()).subscribeOn(writeScheduler);
     }
   }
-,10).subscribeOn(readScheduler).doOnCompleted(new FileWrapUpAction()).toBlocking().last();
+,writeThreadCount).doOnCompleted(new FileWrapUpAction()).toBlocking().last();
 }
