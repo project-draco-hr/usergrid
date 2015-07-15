@@ -1,13 +1,13 @@
 {
   String collectionType="stores";
-  JsonNode node=null;
+  Entity node=null;
   Double lat=37.776753;
   Double lon=-122.407846;
   Map<String,Double> latitudeOnly=hashMap("latitude",lat);
   Map<String,Object> latitudeOnlyEntityData=new HashMap<String,Object>();
   latitudeOnlyEntityData.put("location",latitudeOnly);
   try {
-    node=context.collection(collectionType).post(latitudeOnlyEntityData);
+    node=this.app().collection(collectionType).post(latitudeOnlyEntityData).getEntity();
     fail("System allowed location with only one point, latitude, which it should not");
   }
  catch (  UniformInterfaceException e) {
@@ -19,7 +19,7 @@
   Map<String,Object> notDoubleLatLonEntityData=new HashMap<String,Object>();
   notDoubleLatLonEntityData.put("location",notDoubleLatLon);
   try {
-    node=context.collection(collectionType).post(notDoubleLatLonEntityData);
+    node=this.app().collection(collectionType).post(notDoubleLatLonEntityData).getEntity();
     fail("System allowed misspelled location values that are not doubles for latitude and longitude, which it should not");
   }
  catch (  UniformInterfaceException e) {

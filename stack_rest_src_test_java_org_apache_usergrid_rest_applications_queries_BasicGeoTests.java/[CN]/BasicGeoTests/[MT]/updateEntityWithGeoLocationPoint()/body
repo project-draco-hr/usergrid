@@ -1,7 +1,7 @@
 {
   String collectionType="stores";
   String entityName="cornerStore";
-  JsonNode entity=null;
+  Entity entity=null;
   Double lat=37.776753;
   Double lon=-122.407846;
   Map<String,Double> latLon=hashMap("latitude",lat);
@@ -10,15 +10,15 @@
   entityData.put("location",latLon);
   entityData.put("name",entityName);
   try {
-    entity=context.collection(collectionType).post(entityData);
+    entity=this.app().collection(collectionType).post(entityData).getEntities().get(0);
   }
  catch (  UniformInterfaceException e) {
     JsonNode nodeError=mapper.readTree(e.getResponse().getEntity(String.class));
     fail(nodeError.get("error").textValue());
   }
   assertNotNull(entity);
-  assertEquals(lat.toString(),entity.get("location").get("latitude").asText());
-  assertEquals(lon.toString(),entity.get("location").get("longitude").asText());
-  context.refreshIndex();
-  context.refreshIndex();
+  assertEquals(lat.toString(),entity.getMap("location").get("latitude").toString());
+  assertEquals(lon.toString(),entity.getMap("location").get("longitude").toString());
+  this.refreshIndex();
+  this.refreshIndex();
 }
