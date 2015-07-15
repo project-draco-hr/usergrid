@@ -18,13 +18,13 @@
   password=username;
   orgName="org_" + name + UUIDUtils.newTimeUUID();
   appName="app_" + name + UUIDUtils.newTimeUUID();
-  organization=restClient.management().orgs().post(new Organization(orgName,username,username + "@usergrid.com",username,username,null));
+  organization=restClient.management().orgs().post(new Organization(orgName,username,username + "@usergrid.com",username,password,null));
   restClient.management().token().get(username,password);
   clientCredentials=restClient.management().orgs().org(orgName).credentials().get(Credentials.class);
   ApiResponse appResponse=restClient.management().orgs().org(organization.getName()).app().post(new Application(appName));
   appUuid=(String)appResponse.getEntities().get(0).get("uuid");
   application=new Application(appResponse);
   refreshIndex();
-  restClient.management().token().post(new Token(username,username));
+  ApiResponse response=restClient.management().token().post(new Token(username,password));
   refreshIndex();
 }
