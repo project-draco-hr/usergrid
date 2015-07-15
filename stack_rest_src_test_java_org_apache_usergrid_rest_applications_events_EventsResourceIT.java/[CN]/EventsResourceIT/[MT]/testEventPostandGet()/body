@@ -8,10 +8,9 @@
     }
   }
 );
-  Token token=getAppUserToken(clientSetup.getUsername(),clientSetup.getPassword());
-  JsonNode node=mapper.readTree(resource().path("/test-organization/test-app/events").queryParam("access_token",token.getAccessToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
-  assertNotNull(node.get("entities"));
-  String advertising=node.get("entities").get(0).get("uuid").asText();
+  ApiResponse node=this.app().collection("events").post(payload);
+  assertNotNull(node.getEntities());
+  String advertising=node.getEntity().get("uuid").toString();
   refreshIndex();
   payload=new LinkedHashMap<String,Object>();
   payload.put("timestamp",0);
@@ -22,9 +21,9 @@
     }
   }
 );
-  node=mapper.readTree(resource().path("/test-organization/test-app/events").queryParam("access_token",token.getAccessToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
-  assertNotNull(node.get("entities"));
-  String sales=node.get("entities").get(0).get("uuid").asText();
+  node=this.app().collection("events").post(payload);
+  assertNotNull(node.getEntities());
+  String sales=node.getEntity().get("uuid").toString();
   refreshIndex();
   payload=new LinkedHashMap<String,Object>();
   payload.put("timestamp",0);
@@ -35,19 +34,20 @@
     }
   }
 );
-  node=mapper.readTree(resource().path("/test-organization/test-app/events").queryParam("access_token",token.getAccessToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(String.class,payload));
-  assertNotNull(node.get("entities"));
-  String marketing=node.get("entities").get(0).get("uuid").asText();
+  node=this.app().collection("events").post(payload);
+  assertNotNull(node.getEntities());
+  String marketing=node.getEntity().get("uuid").toString();
   refreshIndex();
   String lastId=null;
+  Collection collection;
   for (int i=0; i < 3; i++) {
-    node=mapper.readTree(resource().path("/test-organization/test-app/events").queryParam("access_token",token.getAccessToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-    assertEquals("Expected Advertising",advertising,node.get("messages").get(0).get("uuid").asText());
-    lastId=node.get("last").asText();
+    collection=this.app().collection("events").get();
+    assertEquals("Expected Advertising",advertising,((Map<String,Object>)((Map<String,Object>)collection.getResponse().getProperties().get("messages")).get(0)).get("uuid").toString());
+    lastId=collection.getResponse().getProperties().get("last").toString();
   }
-  node=mapper.readTree(resource().path("/test-organization/test-app/events").queryParam("last",lastId).queryParam("access_token",token.getAccessToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-  assertEquals("Expected Sales",sales,node.get("messages").get(0).get("uuid").asText());
-  lastId=node.get("last").asText();
-  node=mapper.readTree(resource().path("/test-organization/test-app/events").queryParam("last",lastId).queryParam("access_token",token.getAccessToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(String.class));
-  assertEquals("Expected Marketing",marketing,node.get("messages").get(0).get("uuid").asText());
+  collection=this.app().collection("events").get();
+  assertEquals("Expected Sales",sales,((Map<String,Object>)((Map<String,Object>)collection.getResponse().getProperties().get("messages")).get(0)).get("uuid").toString());
+  lastId=collection.getResponse().getProperties().get("last").toString();
+  collection=this.app().collection("events").get();
+  assertEquals("Expected Marketing",marketing,((Map<String,Object>)((Map<String,Object>)collection.getResponse().getProperties().get("messages")).get(0)).get("uuid").toString());
 }
