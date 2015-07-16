@@ -17,7 +17,7 @@
       try {
         long startTime=System.currentTimeMillis();
         em.create(uuid,type,entityProps);
-        logger.debug("Imported admin user {} / {}",new Object[]{uuid,entityProps.get("username")});
+        logger.debug("Imported admin user {}:{}:{}",new Object[]{uuid,entityProps.get("username"),entityProps.get("email")});
         userCount.getAndIncrement();
         auditQueue.put(entityProps);
         long stopTime=System.currentTimeMillis();
@@ -29,17 +29,16 @@
         }
       }
  catch (      DuplicateUniquePropertyExistsException de) {
-        logger.warn("Unable to create admin user {}:{}, duplicate property {}",new Object[]{uuid,entityProps.get("username"),de.getPropertyName()});
-        if (logger.isDebugEnabled()) {
-          logger.debug("Exception",de);
-        }
+        String dupProperty=de.getPropertyName();
+        handleDuplicateAccount(em,dupProperty,entityProps);
+        continue;
       }
 catch (      Exception e) {
-        e.printStackTrace();
+        logger.error("Error",e);
       }
     }
  catch (    InterruptedException e) {
-      e.printStackTrace();
+      logger.error("Error",e);
     }
   }
 }
