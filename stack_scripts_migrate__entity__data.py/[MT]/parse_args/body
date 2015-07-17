@@ -1,0 +1,16 @@
+def parse_args():
+    parser = argparse.ArgumentParser(description='Usergrid Migration Tool')
+    parser.add_argument('-d', '--date', help='A date from which to start the migration', type=str)
+    parser.add_argument('-e', '--endpoint', help='The endpoint to use for making API requests.', type=str, default='http://localhost:8080')
+    parser.add_argument('-u', '--user', help='System Admin Credentials used to authenticate with Usergrid  <user:pass>', type=str, required=True)
+    parser.add_argument('-f', '--force', help='Force the entity data migration to run.  Used for delta data migrations.', action='store_true', default=False)
+    my_args = parser.parse_args(sys.argv[1:])
+    arg_vars = vars(my_args)
+    creds = arg_vars['user'].split(':')
+    if (len(creds) != 2):
+        print 'Credentials not properly specified.  Must be "-u <user:pass>". Exiting...'
+        exit_on_error()
+    else:
+        arg_vars['user'] = creds[0]
+        arg_vars['pass'] = creds[1]
+    return arg_vars
