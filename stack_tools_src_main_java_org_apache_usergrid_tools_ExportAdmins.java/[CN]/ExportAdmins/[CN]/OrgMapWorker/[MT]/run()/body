@@ -5,12 +5,28 @@
     for (    UserInfo user : managementService.getAdminUsersForOrganization(orgEntity.getUuid())) {
       try {
         Entity admin=managementService.getAdminUserEntityByUuid(user.getUuid());
-        List<Org> orgs=orgMap.get(admin.getProperty("username"));
-        if (orgs == null) {
-          orgs=new ArrayList<Org>();
-          orgMap.put(admin.getProperty("username").toString().toLowerCase(),orgs);
+        Org org=new Org(orgId,orgName);
+synchronized (userToOrgsMap) {
+          List<Org> userOrgs=userToOrgsMap.get(admin.getUuid());
+          if (userOrgs == null) {
+            userOrgs=new ArrayList<Org>();
+            userToOrgsMap.put(admin.getUuid(),userOrgs);
+          }
+          userOrgs.add(org);
         }
-        orgs.add(new Org(orgId,orgName));
+synchronized (orgNameToUUID) {
+          UUID existingOrgId=orgNameToUUID.get(orgName);
+          ;
+          if (existingOrgId != null && !orgId.equals(existingOrgId)) {
+            if (!duplicateOrgs.contains(orgId)) {
+              logger.info("Org {}:{} is a duplicate",orgId,orgName);
+              duplicateOrgs.add(orgId);
+            }
+          }
+ else {
+            orgNameToUUID.put(orgName,orgId);
+          }
+        }
       }
  catch (      Exception e) {
         logger.warn("Cannot get orgs for userId {}",user.getUuid());
