@@ -1,48 +1,13 @@
 {
   String rand=RandomStringUtils.randomAlphanumeric(10);
-  OrganizationOwnerInfo orgInfo=setup.getMgmtSvc().createOwnerAndOrganization("org_" + rand,"user_" + rand,rand.toUpperCase(),rand + "@example.com",rand);
-  ApplicationInfo appInfo=setup.getMgmtSvc().createApplication(orgInfo.getOrganization().getUuid(),"app_" + rand);
-  final EntityManager em=setup.getEmf().getEntityManager(appInfo.getId());
-  final List<Entity> connectedThings=new ArrayList<Entity>();
-  String connectedType="connected_thing";
-  em.createApplicationCollection(connectedType);
-  for (int j=0; j < NUM_CONNECTIONS; j++) {
-    final String name="connected_thing_" + j;
-    connectedThings.add(em.create(connectedType,new HashMap<String,Object>(){
-{
-        put("name",name);
-      }
-    }
-));
-  }
-  final AtomicInteger entitiesCount=new AtomicInteger(0);
-  final AtomicInteger connectionCount=new AtomicInteger(0);
-  ExecutorService execService=Executors.newFixedThreadPool(50);
-  final Scheduler scheduler=Schedulers.from(execService);
-  for (int i=0; i < NUM_COLLECTIONS; i++) {
-    final String type="thing_" + i;
-    em.createApplicationCollection(type);
-    connectionCount.getAndIncrement();
-    for (int j=0; j < NUM_ENTITIES; j++) {
-      final String name="thing_" + j;
-      final Entity source=em.create(type,new HashMap<String,Object>(){
-{
-          put("name",name);
-        }
-      }
-);
-      entitiesCount.getAndIncrement();
-      for (      Entity target : connectedThings) {
-        em.createConnection(source,"has",target);
-        connectionCount.getAndIncrement();
-      }
-    }
-  }
-  logger.info("Done. Created {} entities and {} connections",entitiesCount.get(),connectionCount.get());
+  String orgName="org_" + rand;
+  String appName="app_" + rand;
+  ExportDataCreator creator=new ExportDataCreator();
+  creator.startTool(new String[]{"-organization",orgName,"-application",appName,"-host","localhost:" + ServiceITSuite.cassandraResource.getRpcPort()},false);
   long start=System.currentTimeMillis();
   String directoryName="target/export" + rand;
   ExportApp exportApp=new ExportApp();
-  exportApp.startTool(new String[]{"-application",appInfo.getName(),"-readThreads","100","-writeThreads","100","-host","localhost:" + ServiceITSuite.cassandraResource.getRpcPort(),"-outputDir",directoryName},false);
+  exportApp.startTool(new String[]{"-application",orgName + "/" + appName,"-writeThreads","100","-host","localhost:" + ServiceITSuite.cassandraResource.getRpcPort(),"-outputDir",directoryName},false);
   logger.info("100 read and 100 write threads = " + (System.currentTimeMillis() - start) / 1000 + "s");
   File exportDir=new File(directoryName);
   assertTrue(getFileCount(exportDir,"entities") > 0);
@@ -50,7 +15,7 @@
   assertTrue(getFileCount(exportDir,"entities") <= 100);
   assertTrue(getFileCount(exportDir,"connections") <= 100);
   File exportDir1=new File(directoryName + "1");
-  exportApp.startTool(new String[]{"-application",appInfo.getName(),"-readThreads","1","-writeThreads","1","-host","localhost:" + ServiceITSuite.cassandraResource.getRpcPort(),"-outputDir",directoryName + "1"},false);
+  exportApp.startTool(new String[]{"-application",orgName + "/" + appName,"-writeThreads","1","-host","localhost:" + ServiceITSuite.cassandraResource.getRpcPort(),"-outputDir",directoryName + "1"},false);
   logger.info("1 thread time = " + (System.currentTimeMillis() - start) / 1000 + "s");
   assertEquals(1,getFileCount(exportDir1,"entities"));
   assertEquals(1,getFileCount(exportDir1,"connections"));

@@ -16,6 +16,9 @@
   logger.info("Export directory: " + outputDir.getAbsolutePath());
   startSpring();
   UUID applicationId=emf.lookupApplication(applicationName);
+  if (applicationId == null) {
+    throw new RuntimeException("Cannot find application " + applicationName);
+  }
   final EntityManager em=emf.getEntityManager(applicationId);
   organizationName=em.getApplication().getOrganizationName();
   ExecutorService writeThreadPoolExecutor=Executors.newFixedThreadPool(writeThreadCount);
