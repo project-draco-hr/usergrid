@@ -1,12 +1,14 @@
 {
-  List<Object> organizationsList=(List<Object>)metadata.get("organizations");
-  if (organizationsList != null && !organizationsList.isEmpty()) {
+  DuplicateUser dup=dupsByDupUuid.get(entityRef.getUuid());
+  if (dup == null) {
     User user=em.get(entityRef,User.class);
-    if (user == null) {
-      logger.error("User not found, not adding to organizations: " + (entityRef == null ? null : entityRef.getUuid()));
+    final UserInfo userInfo=managementService.getAdminUserByEmail(user.getEmail());
+    if (user == null || userInfo == null) {
+      logger.error("User {} does not exist, not processing metadata",entityRef.getUuid());
+      return;
     }
- else {
-      final UserInfo userInfo=managementService.getAdminUserByEmail(user.getEmail());
+    List<Object> organizationsList=(List<Object>)metadata.get("organizations");
+    if (organizationsList != null && !organizationsList.isEmpty()) {
       for (      Object orgObject : organizationsList) {
         Map<String,Object> orgMap=(Map<String,Object>)orgObject;
         UUID orgUuid=UUID.fromString((String)orgMap.get("uuid"));
@@ -25,7 +27,7 @@
  else {
           try {
             managementService.addAdminUserToOrganization(userInfo,orgInfo,false);
-            logger.debug("Added user {} to org {}",new Object[]{user.getEmail(),orgName});
+            logger.debug("Added to org user {}:{}:{}",new Object[]{orgInfo.getName(),user.getUsername(),user.getEmail(),user.getUuid()});
           }
  catch (          Exception e) {
             logger.error("Error Adding user {} to org {}",new Object[]{user.getEmail(),orgName});
@@ -33,29 +35,62 @@
         }
       }
     }
-  }
- else {
-    logger.warn("User {} has no organizations",entityRef.getUuid());
-  }
-  Map<String,Object> dictionariesMap=(Map<String,Object>)metadata.get("dictionaries");
-  if (dictionariesMap != null && !dictionariesMap.isEmpty()) {
-    for (    String name : dictionariesMap.keySet()) {
-      try {
-        Map<String,Object> dictionary=(Map<String,Object>)dictionariesMap.get(name);
-        em.addMapToDictionary(entityRef,name,dictionary);
-        logger.debug("Creating dictionary for {} name {}",new Object[]{entityRef,name});
-      }
- catch (      Exception e) {
-        if (logger.isDebugEnabled()) {
-          logger.error("Error importing dictionary name " + name + " for user "+ entityRef.getUuid(),e);
+    Map<String,Object> dictionariesMap=(Map<String,Object>)metadata.get("dictionaries");
+    if (dictionariesMap != null && !dictionariesMap.isEmpty()) {
+      for (      String name : dictionariesMap.keySet()) {
+        try {
+          Map<String,Object> dictionary=(Map<String,Object>)dictionariesMap.get(name);
+          em.addMapToDictionary(entityRef,name,dictionary);
+          logger.debug("Creating dictionary for {} name {}",new Object[]{entityRef,name});
         }
+ catch (        Exception e) {
+          if (logger.isDebugEnabled()) {
+            logger.error("Error importing dictionary name " + name + " for user "+ entityRef.getUuid(),e);
+          }
  else {
-          logger.error("Error importing dictionary name " + name + " for user "+ entityRef.getUuid());
+            logger.error("Error importing dictionary name " + name + " for user "+ entityRef.getUuid());
+          }
         }
       }
     }
+ else {
+      logger.warn("User {} has no dictionaries",entityRef.getUuid());
+    }
   }
  else {
-    logger.warn("User {} has no dictionaries",entityRef.getUuid());
+    logger.info("Processing duplicate username={} email={}",dup.email,dup.username);
+    Identifier identifier=dup.email != null ? Identifier.fromEmail(dup.email) : Identifier.from(dup.username);
+    User originalUser=em.get(em.getUserByIdentifier(identifier),User.class);
+    UserInfo originalUserInfo=managementService.getAdminUserByEmail(originalUser.getEmail());
+    Map<String,Object> originalUserOrgData=managementService.getAdminUserOrganizationData(originalUser.getUuid());
+    Map<String,Map<String,Object>> originalUserOrgs=(Map<String,Map<String,Object>>)originalUserOrgData.get("organizations");
+    List<Object> organizationsList=(List<Object>)metadata.get("organizations");
+    for (    Object orgObject : organizationsList) {
+      Map<String,Object> orgMap=(Map<String,Object>)orgObject;
+      UUID orgUuid=UUID.fromString((String)orgMap.get("uuid"));
+      String orgName=(String)orgMap.get("name");
+      if (originalUserOrgs.get(orgName) == null) {
+        OrganizationInfo orgInfo=managementService.getOrganizationByUuid(orgUuid);
+        if (orgInfo == null) {
+          try {
+            managementService.createOrganization(orgUuid,orgName,originalUserInfo,false);
+            orgInfo=managementService.getOrganizationByUuid(orgUuid);
+            logger.debug("Created new org {} for user {}:{}:{} from duplicate user {}:{}",new Object[]{orgInfo.getName(),originalUser.getUsername(),originalUser.getEmail(),originalUser.getUuid(),dup.username,dup.email});
+          }
+ catch (          DuplicateUniquePropertyExistsException dpee) {
+            logger.debug("Org {} already exists",orgName);
+          }
+        }
+ else {
+          try {
+            managementService.addAdminUserToOrganization(originalUserInfo,orgInfo,false);
+            logger.debug("Added to org user {}:{}:{} from duplicate user {}:{}",new Object[]{orgInfo.getName(),originalUser.getUsername(),originalUser.getEmail(),originalUser.getUuid(),dup.username,dup.email});
+          }
+ catch (          Exception e) {
+            logger.error("Error Adding user {} to org {}",new Object[]{originalUserInfo.getEmail(),orgName});
+          }
+        }
+      }
+    }
   }
 }
