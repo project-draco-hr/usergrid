@@ -1,15 +1,46 @@
 {
+  Timer.Context time;
 switch (context.getAction()) {
 case GET:
+    time=getByNameTimer.time();
+  try {
     return getItemByName(context,name);
+  }
+  finally {
+    time.stop();
+  }
 case POST:
-  return postItemByName(context,name);
+time=postByNameTimer.time();
+try {
+return postItemByName(context,name);
+}
+  finally {
+time.stop();
+}
 case PUT:
+time=putByNameTimer.time();
+try {
 return putItemByName(context,name);
+}
+  finally {
+time.stop();
+}
 case DELETE:
+time=deleteByNameTimer.time();
+try {
 return deleteItemByName(context,name);
+}
+  finally {
+time.stop();
+}
 case HEAD:
+time=headByNameTimer.time();
+try {
 return headItemByName(context,name);
+}
+  finally {
+time.stop();
+}
 }
 throw new ServiceInvocationException(context,"Request action unhandled " + context.getAction());
 }
