@@ -7,6 +7,7 @@
   final Map<String,Object> fileMetadata=AssetUtils.getFileMetadata(entity);
   fileMetadata.put(AssetUtils.LAST_MODIFIED,System.currentTimeMillis());
   String mimeType=AssetMimeHandler.get().getMimeType(entity,data);
+  Boolean overSizeLimit=false;
   if (written < FIVE_MB) {
     ObjectMetadata om=new ObjectMetadata();
     om.setContentLength(written);
@@ -28,6 +29,14 @@
     InitiateMultipartUploadResult initResponse=getS3Client().initiateMultipartUpload(initRequest);
     InputStream firstChunck=new ByteArrayInputStream(data);
     PushbackInputStream chunckableInputStream=new PushbackInputStream(inputStream,1);
+    long maxSizeBytes=50 * FileUtils.ONE_MB;
+    String maxSizeMbString=properties.getProperty("usergrid.binary.max-size-mb","50");
+    if (StringUtils.isNumeric(maxSizeMbString)) {
+      maxSizeBytes=Long.parseLong(maxSizeMbString) * FileUtils.ONE_MB;
+    }
+    if (maxSizeBytes < 5 * FileUtils.ONE_MB) {
+      maxSizeBytes=5 * FileUtils.ONE_MB;
+    }
     while (-1 != (firstByte=chunckableInputStream.read())) {
       long partSize=0;
       chunckableInputStream.unread(firstByte);
@@ -44,20 +53,43 @@
           partSize=IOUtils.copyLarge(chunckableInputStream,os,0,(FIVE_MB));
         }
         written+=partSize;
+        if (written > maxSizeBytes) {
+          overSizeLimit=true;
+          break;
+        }
       }
   finally {
         IOUtils.closeQuietly(os);
       }
-      FileInputStream chunck=new FileInputStream(tempFile);
+      FileInputStream chunk=new FileInputStream(tempFile);
       Boolean isLastPart=-1 == (firstByte=chunckableInputStream.read());
       if (!isLastPart)       chunckableInputStream.unread(firstByte);
-      UploadPartRequest uploadRequest=new UploadPartRequest().withUploadId(initResponse.getUploadId()).withBucketName(bucketName).withKey(uploadFileName).withInputStream(chunck).withPartNumber(partNumber).withPartSize(partSize).withLastPart(isLastPart);
+      UploadPartRequest uploadRequest=new UploadPartRequest().withUploadId(initResponse.getUploadId()).withBucketName(bucketName).withKey(uploadFileName).withInputStream(chunk).withPartNumber(partNumber).withPartSize(partSize).withLastPart(isLastPart);
       partETags.add(getS3Client().uploadPart(uploadRequest).getPartETag());
       partNumber++;
     }
-    CompleteMultipartUploadRequest request=new CompleteMultipartUploadRequest(bucketName,uploadFileName,initResponse.getUploadId(),partETags);
-    CompleteMultipartUploadResult amazonResult=getS3Client().completeMultipartUpload(request);
-    fileMetadata.put(AssetUtils.CONTENT_LENGTH,written);
-    fileMetadata.put(AssetUtils.E_TAG,amazonResult.getETag());
+    if (overSizeLimit) {
+      EntityManager em=emf.getEntityManager(appId);
+      AbortMultipartUploadRequest abortRequest=new AbortMultipartUploadRequest(bucketName,uploadFileName,initResponse.getUploadId());
+      ListMultipartUploadsRequest listRequest=new ListMultipartUploadsRequest(bucketName);
+      MultipartUploadListing listResult=getS3Client().listMultipartUploads(listRequest);
+      try {
+        fileMetadata.put("error","Asset size is larger than max size of " + maxSizeBytes);
+        em.update(entity);
+      }
+ catch (      Exception e) {
+        LOG.error("Error updating entity with error message",e);
+      }
+      while (listResult.getMultipartUploads().size() != 0) {
+        getS3Client().abortMultipartUpload(abortRequest);
+        listResult=getS3Client().listMultipartUploads(listRequest);
+      }
+    }
+ else {
+      CompleteMultipartUploadRequest request=new CompleteMultipartUploadRequest(bucketName,uploadFileName,initResponse.getUploadId(),partETags);
+      CompleteMultipartUploadResult amazonResult=getS3Client().completeMultipartUpload(request);
+      fileMetadata.put(AssetUtils.CONTENT_LENGTH,written);
+      fileMetadata.put(AssetUtils.E_TAG,amazonResult.getETag());
+    }
   }
 }
