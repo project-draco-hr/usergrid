@@ -1,6 +1,7 @@
 {
   try {
     Preconditions.checkNotNull(indexName,"must have an indexname");
+    Preconditions.checkArgument(!indexName.contains("alias"),indexName + " name cannot contain alias ");
     try {
       final AdminClient admin=esProvider.getClient().admin();
       Settings settings=ImmutableSettings.settingsBuilder().put("index.number_of_shards",numberOfShards).put("index.number_of_replicas",numberOfReplicas).put("index.query.parse.allow_unmapped_fields",false).put("index.mapper.dynamic",false).put("action.write_consistency",writeConsistency).build();
