@@ -1,49 +1,55 @@
 {
-  if (entity == null) {
-    return null;
-  }
-  if (!isRootService()) {
-    return sm.importEntity(request,entity);
-  }
-  String path=request.getPath() + "/" + entity.getUuid();
-  Map<String,Object> metadata=new LinkedHashMap<String,Object>();
-  metadata.put("path",path);
-  if (defaultEntityMetadata != null) {
-    metadata.putAll(defaultEntityMetadata);
-  }
-  Set<Object> connections=getConnectedTypesSet(entity);
-  if (connections != null) {
-    Map<String,Object> m=new LinkedHashMap<String,Object>();
-    for (    Object n : connections) {
-      m.put(n.toString(),path + "/" + n);
+  Timer.Context getEntityTimer=entityGetTimer.time();
+  try {
+    if (entity == null) {
+      return null;
     }
-    metadata.put("connections",m);
-  }
-  Set<Object> connecting=getConnectingTypesSet(entity);
-  if (connecting != null) {
-    Map<String,Object> m=new LinkedHashMap<String,Object>();
-    for (    Object n : connecting) {
-      m.put(n.toString(),path + "/connecting/" + n);
+    if (!isRootService()) {
+      return sm.importEntity(request,entity);
     }
-    metadata.put("connecting",m);
-  }
-  Set<String> collections=getCollectionSet(entity);
-  if (collections != null) {
-    Map<String,Object> m=new LinkedHashMap<String,Object>();
-    for (    Object n : collections) {
-      m.put(n.toString(),path + "/" + n);
+    String path=request.getPath() + "/" + entity.getUuid();
+    Map<String,Object> metadata=new LinkedHashMap<String,Object>();
+    metadata.put("path",path);
+    if (defaultEntityMetadata != null) {
+      metadata.putAll(defaultEntityMetadata);
     }
-    metadata.put("collections",m);
-  }
-  if (entityDictionaries != null) {
-    Map<String,Object> m=new LinkedHashMap<String,Object>();
-    for (    EntityDictionaryEntry dict : entityDictionaries) {
-      m.put(dict.getName(),path + "/" + dict.getPath());
+    Set<Object> connections=getConnectedTypesSet(entity);
+    if (connections != null) {
+      Map<String,Object> m=new LinkedHashMap<String,Object>();
+      for (      Object n : connections) {
+        m.put(n.toString(),path + "/" + n);
+      }
+      metadata.put("connections",m);
     }
-    metadata.put("sets",m);
+    Set<Object> connecting=getConnectingTypesSet(entity);
+    if (connecting != null) {
+      Map<String,Object> m=new LinkedHashMap<String,Object>();
+      for (      Object n : connecting) {
+        m.put(n.toString(),path + "/connecting/" + n);
+      }
+      metadata.put("connecting",m);
+    }
+    Set<String> collections=getCollectionSet(entity);
+    if (collections != null) {
+      Map<String,Object> m=new LinkedHashMap<String,Object>();
+      for (      Object n : collections) {
+        m.put(n.toString(),path + "/" + n);
+      }
+      metadata.put("collections",m);
+    }
+    if (entityDictionaries != null) {
+      Map<String,Object> m=new LinkedHashMap<String,Object>();
+      for (      EntityDictionaryEntry dict : entityDictionaries) {
+        m.put(dict.getName(),path + "/" + dict.getPath());
+      }
+      metadata.put("sets",m);
+    }
+    if (metadata.size() > 0) {
+      entity.mergeMetadata(metadata);
+    }
+    return entity;
   }
-  if (metadata.size() > 0) {
-    entity.mergeMetadata(metadata);
+  finally {
+    getEntityTimer.stop();
   }
-  return entity;
 }
