@@ -6,27 +6,12 @@
   overrides.setProperty("s3" + ".identity",accessId);
   overrides.setProperty("s3" + ".credential",secretKey);
   final Iterable<? extends Module> MODULES=ImmutableSet.of(new JavaUrlHttpCommandExecutorServiceModule(),new Log4JLoggingModule(),new NettyPayloadModule());
-  BlobStoreContext context=ContextBuilder.newBuilder("s3").credentials(accessId,secretKey).modules(MODULES).overrides(overrides).buildView(BlobStoreContext.class);
-  try {
-    AsyncBlobStore blobStore=context.getAsyncBlobStore();
-    ListenableFuture<Boolean> container=blobStore.createContainerInLocation(null,bucketName);
-    if (container.get()) {
-      LOG.info("Created bucket " + bucketName);
-    }
-  }
- catch (  Exception ex) {
-    logger.error("Could not start binary service: {}",ex.getMessage());
-    throw new RuntimeException(ex);
-  }
-  try {
-    File file=new File(fileName);
-    AsyncBlobStore blobStore=context.getAsyncBlobStore();
-    BlobBuilder blobBuilder=blobStore.blobBuilder(file.getName()).payload(file).calculateMD5().contentType("text/plain").contentLength(file.length());
-    Blob blob=blobBuilder.build();
-    ListenableFuture<String> futureETag=blobStore.putBlob(bucketName,blob,PutOptions.Builder.multipart());
-    LOG.info("Uploaded file etag=" + futureETag.get());
-  }
- catch (  Exception e) {
-    LOG.error("Error uploading to blob store",e);
-  }
+  AWSCredentials credentials=new BasicAWSCredentials(accessId,secretKey);
+  ClientConfiguration clientConfig=new ClientConfiguration();
+  clientConfig.setProtocol(Protocol.HTTP);
+  AmazonS3Client s3Client=new AmazonS3Client(credentials,clientConfig);
+  s3Client.createBucket(bucketName);
+  File uploadFile=new File(fileName);
+  PutObjectResult putObjectResult=s3Client.putObject(bucketName,uploadFile.getName(),uploadFile);
+  LOG.info("Uploaded file etag={}",putObjectResult.getETag());
 }
