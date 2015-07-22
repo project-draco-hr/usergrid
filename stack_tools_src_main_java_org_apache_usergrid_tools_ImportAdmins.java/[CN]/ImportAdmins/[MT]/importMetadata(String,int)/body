@@ -23,7 +23,7 @@
       jp.nextToken();
       String entityOwnerId=jp.getCurrentName();
       try {
-        EntityRef entityRef=em.get(UUID.fromString(entityOwnerId));
+        EntityRef entityRef=new SimpleEntityRef("user",UUID.fromString(entityOwnerId));
         Map<String,Object> metadata=(Map<String,Object>)jp.readValueAs(Map.class);
         workQueue.put(new ImportMetadataTask(entityRef,metadata));
         logger.debug("Put user {} in metadata queue",entityRef.getUuid());
