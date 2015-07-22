@@ -1,0 +1,15 @@
+{
+  this.refreshIndex();
+  byte[] data=IOUtils.toByteArray(this.getClass().getResourceAsStream("/file-bigger-than-5M"));
+  FormDataMultiPart form=new FormDataMultiPart().field("file",data,MediaType.MULTIPART_FORM_DATA_TYPE);
+  ApiResponse postResponse=pathResource(getOrgAppPath("foos")).post(form);
+  UUID assetId=postResponse.getEntities().get(0).getUuid();
+  LOG.info("Waiting for upload to finish...");
+  Thread.sleep(2000);
+  ApiResponse getResponse=pathResource(getOrgAppPath("foos/" + assetId)).get(ApiResponse.class);
+  LOG.info("Upload complete!");
+  InputStream is=pathResource(getOrgAppPath("foos/" + assetId)).getAssetAsStream();
+  byte[] foundData=IOUtils.toByteArray(is);
+  assertEquals(data.length,foundData.length);
+  pathResource(getOrgAppPath("foos/" + assetId)).delete();
+}
