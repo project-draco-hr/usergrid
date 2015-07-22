@@ -17,6 +17,7 @@
  else {
     readThreadCount=20;
   }
+  buildOrgMap();
   BlockingQueue<AdminUserWriteTask> writeQueue=new LinkedBlockingQueue<AdminUserWriteTask>();
   AdminUserWriter adminUserWriter=new AdminUserWriter(writeQueue);
   Thread writeThread=new Thread(adminUserWriter);
@@ -33,13 +34,12 @@
   logger.debug(readThreadCount + " read worker threads started");
   Query query=new Query();
   query.setLimit(MAX_ENTITY_FETCH);
-  query.setResultsLevel(Level.IDS);
-  EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+  query.setResultsLevel(Query.Level.IDS);
+  EntityManager em=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
   Results ids=em.searchCollection(em.getApplicationRef(),"users",query);
   while (ids.size() > 0) {
     for (    UUID uuid : ids.getIds()) {
       readQueue.add(uuid);
-      logger.debug("Added uuid to readQueue: " + uuid);
     }
     if (ids.getCursor() == null) {
       break;
@@ -47,10 +47,11 @@
     query.setCursor(ids.getCursor());
     ids=em.searchCollection(em.getApplicationRef(),"users",query);
   }
-  adminUserWriter.setDone(true);
-  for (  AdminUserReader aur : readers) {
-    aur.setDone(true);
-  }
   logger.debug("Waiting for write thread to complete");
-  writeThread.join();
+  boolean done=false;
+  while (!done) {
+    writeThread.join(10000,0);
+    done=!writeThread.isAlive();
+    logger.info("Wrote {} users",count.get());
+  }
 }

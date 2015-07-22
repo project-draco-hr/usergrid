@@ -1,0 +1,26 @@
+{
+  logger.info("Building org map");
+  ExecutorService execService=Executors.newFixedThreadPool(this.readThreadCount);
+  EntityManager em=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+  String queryString="select *";
+  Query query=Query.fromQL(queryString);
+  query.withLimit(1000);
+  Results organizations=null;
+  int count=0;
+  do {
+    organizations=em.searchCollection(em.getApplicationRef(),"groups",query);
+    for (    Entity organization : organizations.getEntities()) {
+      execService.submit(new OrgMapWorker(organization));
+    }
+    count++;
+    if (count % 1000 == 0) {
+      logger.info("Processed {} orgs for org map",count);
+    }
+    query.setCursor(organizations.getCursor());
+  }
+ while (organizations != null && organizations.hasCursor());
+  execService.shutdown();
+  while (!execService.awaitTermination(10,TimeUnit.SECONDS)) {
+    logger.info("Processed {} orgs for map",orgMap.size());
+  }
+}
