@@ -11,16 +11,17 @@
     organizations=em.searchCollection(em.getApplicationRef(),"groups",query);
     for (    Entity organization : organizations.getEntities()) {
       execService.submit(new OrgMapWorker(organization));
+      count++;
     }
-    count++;
     if (count % 1000 == 0) {
-      logger.info("Processed {} orgs for org map",count);
+      logger.info("Queued {} org map workers",count);
     }
     query.setCursor(organizations.getCursor());
   }
  while (organizations != null && organizations.hasCursor());
   execService.shutdown();
   while (!execService.awaitTermination(10,TimeUnit.SECONDS)) {
-    logger.info("Processed {} orgs for map",orgMap.size());
+    logger.info("Processed {} orgs for map",userToOrgsMap.size());
   }
+  logger.info("Org map complete, counted {} organizations",count);
 }
