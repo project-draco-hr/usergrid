@@ -1,5 +1,16 @@
 {
   if (s3Client == null) {
+    try {
+      final UsergridAwsCredentialsProvider ugProvider=new UsergridAwsCredentialsProvider();
+      this.accessId=ugProvider.getCredentials().getAWSAccessKeyId();
+      this.secretKey=ugProvider.getCredentials().getAWSSecretKey();
+      this.bucketName=ugProvider.getBucketName();
+    }
+ catch (    Exception e) {
+      if (e instanceof AmazonClientException) {
+        throw new AwsPropertiesNotFoundException("Access Keys");
+      }
+    }
     AWSCredentials credentials=new BasicAWSCredentials(accessId,secretKey);
     ClientConfiguration clientConfig=new ClientConfiguration();
     clientConfig.setProtocol(Protocol.HTTP);
