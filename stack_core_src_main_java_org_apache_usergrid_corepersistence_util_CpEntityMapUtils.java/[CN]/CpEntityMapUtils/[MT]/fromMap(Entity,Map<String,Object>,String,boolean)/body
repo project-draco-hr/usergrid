@@ -36,18 +36,14 @@
       entity.setField(new StringField(fieldName,value.toString(),unique && topLevel));
     }
  else     if (value != null) {
-      byte[] valueSerialized;
+      String valueSerialized;
       try {
-        valueSerialized=objectMapper.writeValueAsBytes(value);
+        valueSerialized=objectMapper.writeValueAsString(value);
       }
  catch (      JsonProcessingException e) {
         throw new RuntimeException("Can't serialize object ",e);
       }
-catch (      IOException e) {
-        throw new RuntimeException("Can't serialize object ",e);
-      }
-      ByteBuffer byteBuffer=ByteBuffer.wrap(valueSerialized);
-      ByteArrayField bf=new ByteArrayField(fieldName,byteBuffer.array(),value.getClass());
+      SerializedObjectField bf=new SerializedObjectField(fieldName,valueSerialized,value.getClass());
       entity.setField(bf);
     }
   }
