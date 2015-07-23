@@ -55,6 +55,7 @@
         written+=partSize;
         if (written > maxSizeBytes) {
           overSizeLimit=true;
+          logger.error("OVERSIZED FILE. STARTING ABORT");
           break;
         }
       }
@@ -74,11 +75,12 @@
       ListMultipartUploadsRequest listRequest=new ListMultipartUploadsRequest(bucketName);
       MultipartUploadListing listResult=getS3Client().listMultipartUploads(listRequest);
       try {
+        logger.error("starting update of entity due to oversized asset");
         fileMetadata.put("error","Asset size is larger than max size of " + maxSizeBytes);
         em.update(entity);
       }
  catch (      Exception e) {
-        LOG.error("Error updating entity with error message",e);
+        logger.error("Error updating entity with error message",e);
       }
       while (listResult.getMultipartUploads().size() != 0) {
         getS3Client().abortMultipartUpload(abortRequest);

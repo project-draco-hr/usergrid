@@ -1,5 +1,11 @@
 {
   LOG.debug("ServiceResource.executeStreamGet");
+  if (properties.getProperty(PROPERTIES_USERGRID_BINARY_UPLOADER).equals("local")) {
+    this.binaryStore=localFileBinaryStore;
+  }
+ else {
+    this.binaryStore=awsSdkS3BinaryStore;
+  }
   ApiResponse response=createApiResponse();
   response.setAction("get");
   response.setApplication(services.getApplication());
