@@ -1,0 +1,23 @@
+{
+  logger.info("-------------------------------------------------------------------");
+  logger.info("DONE! Entities: {} Connections: {}",entitiesWritten.get(),connectionsWritten.get());
+  logger.info("-------------------------------------------------------------------");
+  for (  JsonGenerator gen : entityGeneratorsByThread.values()) {
+    try {
+      gen.flush();
+      gen.close();
+    }
+ catch (    IOException e) {
+      logger.error("Error closing output file",e);
+    }
+  }
+  for (  JsonGenerator gen : connectionGeneratorsByThread.values()) {
+    try {
+      gen.flush();
+      gen.close();
+    }
+ catch (    IOException e) {
+      logger.error("Error closing output file",e);
+    }
+  }
+}

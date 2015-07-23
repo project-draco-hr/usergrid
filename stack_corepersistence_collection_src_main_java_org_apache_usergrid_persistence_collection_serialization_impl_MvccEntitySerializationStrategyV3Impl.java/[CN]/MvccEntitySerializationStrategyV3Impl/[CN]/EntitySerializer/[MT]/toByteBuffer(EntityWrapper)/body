@@ -2,6 +2,7 @@
   if (wrapper == null) {
     return null;
   }
+  final byte[] wrapperBytes;
   if (wrapper.getEntityMap() == null) {
     try {
       return ByteBuffer.wrap(MAPPER.writeValueAsBytes(wrapper));
@@ -14,10 +15,10 @@
     throw new UnsupportedOperationException("Only states " + MvccEntity.Status.DELETED + " and "+ MvccEntity.Status.COMPLETE+ " are supported");
   }
   wrapper.setStatus(MvccEntity.Status.COMPLETE);
-  final byte[] wrapperBytes;
   try {
     wrapperBytes=MAPPER.writeValueAsBytes(wrapper);
     final int maxEntrySize=serializationFig.getMaxEntitySize();
+    bytesInHistorgram.update(wrapperBytes.length);
     if (wrapperBytes.length > maxEntrySize) {
       throw new EntityTooLargeException(Entity.fromMap(wrapper.getEntityMap()),maxEntrySize,wrapperBytes.length,"Your entity cannot exceed " + maxEntrySize + " bytes. The entity you tried to save was "+ wrapperBytes.length+ " bytes");
     }

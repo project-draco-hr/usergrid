@@ -6,7 +6,19 @@
     logger.info("user {} not found",userName);
     return;
   }
+  logger.info("--- User information:");
   logger.info(mapToFormattedJsonString(userInfo));
+  logger.info("--- User organizations:");
+  final BiMap<UUID,String> orgs=managementService.getOrganizationsForAdminUser(userInfo.getUuid());
+  logger.info(mapToFormattedJsonString(orgs));
+  logger.info("--- User dictionaries:");
+  EntityManager em=emf.getEntityManager(CassandraService.MANAGEMENT_APPLICATION_ID);
+  User user=em.get(userInfo.getUuid(),User.class);
+  Set<String> dictionaries=em.getDictionaries(user);
+  for (  String dictionary : dictionaries) {
+    Map<Object,Object> dict=em.getDictionaryAsMap(user,dictionary);
+    logger.info(dictionary + " : " + mapToFormattedJsonString(dict));
+  }
   if (line.hasOption("p")) {
     String password=line.getOptionValue("p");
     managementService.setAdminUserPassword(userInfo.getUuid(),password);

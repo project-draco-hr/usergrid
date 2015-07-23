@@ -1,0 +1,25 @@
+{
+  logger.info("Starting to read connections for entity {} type {}",exportEntity.getEntity().getName(),exportEntity.getEntity().getType());
+  int count=0;
+  try {
+    Set<String> connectionTypes=em.getConnectionTypes(exportEntity.getEntity());
+    for (    String connectionType : connectionTypes) {
+      Results results=em.getConnectedEntities(exportEntity.getEntity().getUuid(),connectionType,null,Results.Level.CORE_PROPERTIES);
+      for (      Entity connectedEntity : results.getEntities()) {
+        try {
+          ExportConnection connection=new ExportConnection(applicationName,organizationName,connectionType,exportEntity.getEntity().getUuid(),connectedEntity.getUuid());
+          subscriber.onNext(connection);
+          count++;
+        }
+ catch (        Exception e) {
+          logger.error("Error reading connection entity " + exportEntity.getEntity().getUuid() + " -> "+ connectedEntity.getType());
+        }
+      }
+    }
+  }
+ catch (  Exception e) {
+    subscriber.onError(e);
+  }
+  subscriber.onCompleted();
+  logger.info("Completed entity {} type {} connections count {}",new Object[]{exportEntity.getEntity().getName(),exportEntity.getEntity().getType(),count});
+}
