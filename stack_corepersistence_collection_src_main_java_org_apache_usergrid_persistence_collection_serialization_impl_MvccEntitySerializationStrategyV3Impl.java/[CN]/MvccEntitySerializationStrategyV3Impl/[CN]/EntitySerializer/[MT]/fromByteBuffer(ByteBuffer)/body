@@ -1,7 +1,11 @@
 {
   EntityWrapper entityWrapper;
   try {
-    entityWrapper=MAPPER.readValue(byteBuffer.array(),EntityWrapper.class);
+    Timer.Context time=bytesOutTimer.time();
+    byte[] arr=byteBuffer.array();
+    bytesOutHistorgram.update(arr == null ? 0 : arr.length);
+    entityWrapper=MAPPER.readValue(arr,EntityWrapper.class);
+    time.stop();
   }
  catch (  Exception e) {
     if (log.isDebugEnabled()) {

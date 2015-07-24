@@ -18,7 +18,10 @@
   Entity storedEntity;
   byte[] array=parser.readBytes();
   try {
+    Timer.Context time=bytesOutTimer.time();
+    bytesOutHistorgram.update(array == null ? 0 : array.length);
     storedEntity=MAPPER.readValue(array,Entity.class);
+    time.stop();
   }
  catch (  Exception e) {
     throw new DataCorruptionException("Unable to read entity data",e);
