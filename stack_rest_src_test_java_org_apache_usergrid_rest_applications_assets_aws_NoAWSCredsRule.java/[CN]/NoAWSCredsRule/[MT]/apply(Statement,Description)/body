@@ -1,7 +1,17 @@
 {
   return new Statement(){
     @Override public void evaluate() throws Throwable {
+      String accessId;
+      String secretKey;
+      String bucketName;
       try {
+        Map<String,Object> properties=getRemoteTestProperties();
+        accessId=(String)properties.get(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR);
+        secretKey=(String)properties.get(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR);
+        bucketName=(String)properties.get("usergrid.binary.bucketname");
+        if (accessId == null || secretKey == null || bucketName == null) {
+          throw new AwsPropertiesNotFoundException("Access Keys");
+        }
         base.evaluate();
       }
  catch (      Throwable t) {

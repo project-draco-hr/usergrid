@@ -1,15 +1,10 @@
 {
   if (s3Client == null) {
-    try {
-      final UsergridAwsCredentialsProvider ugProvider=new UsergridAwsCredentialsProvider();
-      this.accessId=ugProvider.getCredentials().getAWSAccessKeyId();
-      this.secretKey=ugProvider.getCredentials().getAWSSecretKey();
-      this.bucketName=ugProvider.getBucketName();
-    }
- catch (    Exception e) {
-      if (e instanceof AmazonClientException) {
-        throw new AwsPropertiesNotFoundException("Access Keys");
-      }
+    this.accessId=properties.getProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR);
+    this.secretKey=properties.getProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR);
+    this.bucketName=properties.getProperty("usergrid.binary.bucketname");
+    if (accessId == null || secretKey == null || bucketName == null) {
+      throw new AwsPropertiesNotFoundException("Access Keys");
     }
     AWSCredentials credentials=new BasicAWSCredentials(accessId,secretKey);
     ClientConfiguration clientConfig=new ClientConfiguration();
