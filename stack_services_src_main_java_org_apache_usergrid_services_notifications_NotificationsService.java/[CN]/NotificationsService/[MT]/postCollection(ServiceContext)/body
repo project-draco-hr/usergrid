@@ -4,9 +4,9 @@
   postMeter.mark();
   try {
     validate(null,context.getPayload());
-    PathQuery<Device> pathQuery=getPathQuery(context.getRequest().getOriginalParameters());
+    Notification.PathTokens pathTokens=getPathTokens(context.getRequest().getOriginalParameters());
     context.getProperties().put("state",Notification.State.CREATED);
-    context.getProperties().put("pathQuery",pathQuery);
+    context.getProperties().put("pathTokens",pathTokens);
     context.setOwner(sm.getApplication());
     ServiceResults results=super.postCollection(context);
     Notification notification=(Notification)results.getEntity();
@@ -24,7 +24,11 @@
     LOG.info("NotificationService: notification {} post queue duration {} ms ",notification.getUuid(),System.currentTimeMillis() - now);
     return results;
   }
-  finally {
+ catch (  Exception e) {
+    LOG.error("serialization failed",e);
+    throw e;
+  }
+ finally {
     timer.stop();
   }
 }
