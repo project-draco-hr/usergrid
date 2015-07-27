@@ -27,6 +27,18 @@
       }
       entityMap.put(bf.getName(),o);
     }
+ else     if (field instanceof SerializedObjectField) {
+      SerializedObjectField bf=(SerializedObjectField)field;
+      String serilizedObj=bf.getValue();
+      Object o;
+      try {
+        o=objectMapper.readValue(serilizedObj,bf.getClassinfo());
+      }
+ catch (      IOException e) {
+        throw new RuntimeException("Can't deserialize object " + serilizedObj,e);
+      }
+      entityMap.put(bf.getName(),o);
+    }
  else {
       entityMap.put(field.getName(),field.getValue());
     }

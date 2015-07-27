@@ -1,35 +1,36 @@
 {
   for (  String fieldName : map.keySet()) {
     Object value=map.get(fieldName);
+    boolean unique=schemaManager == null ? topLevel : topLevel && schemaManager.isPropertyUnique(entityType,fieldName);
     if (value instanceof String) {
-      entity.setField(new StringField(fieldName,(String)value,topLevel));
+      entity.setField(new StringField(fieldName,(String)value,unique));
     }
  else     if (value instanceof Boolean) {
-      entity.setField(new BooleanField(fieldName,(Boolean)value,topLevel));
+      entity.setField(new BooleanField(fieldName,(Boolean)value,unique));
     }
  else     if (value instanceof Integer) {
-      entity.setField(new IntegerField(fieldName,(Integer)value,topLevel));
+      entity.setField(new IntegerField(fieldName,(Integer)value,unique));
     }
  else     if (value instanceof Double) {
-      entity.setField(new DoubleField(fieldName,(Double)value,topLevel));
+      entity.setField(new DoubleField(fieldName,(Double)value,unique));
     }
  else     if (value instanceof Float) {
-      entity.setField(new FloatField(fieldName,(Float)value,topLevel));
+      entity.setField(new FloatField(fieldName,(Float)value,unique));
     }
  else     if (value instanceof Long) {
-      entity.setField(new LongField(fieldName,(Long)value,topLevel));
+      entity.setField(new LongField(fieldName,(Long)value,unique));
     }
  else     if (value instanceof List) {
       entity.setField(listToListField(fieldName,(List)value));
     }
  else     if (value instanceof UUID) {
-      entity.setField(new UUIDField(fieldName,(UUID)value,topLevel));
+      entity.setField(new UUIDField(fieldName,(UUID)value,unique));
     }
  else     if (value instanceof Map) {
       processMapValue(value,fieldName,entity);
     }
  else     if (value instanceof Enum) {
-      entity.setField(new StringField(fieldName,value.toString(),topLevel));
+      entity.setField(new StringField(fieldName,value.toString(),unique));
     }
  else     if (value != null) {
       byte[] valueSerialized;
@@ -37,9 +38,6 @@
         valueSerialized=objectMapper.writeValueAsBytes(value);
       }
  catch (      JsonProcessingException e) {
-        throw new RuntimeException("Can't serialize object ",e);
-      }
-catch (      IOException e) {
         throw new RuntimeException("Can't serialize object ",e);
       }
       ByteBuffer byteBuffer=ByteBuffer.wrap(valueSerialized);

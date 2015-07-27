@@ -1,7 +1,11 @@
 {
   if (value instanceof Map) {
     if (EntityMap.isLocationField((Map)value)) {
-      fields.add(EntityField.create(fieldStack.peek(),(Map)value));
+      Map<String,Object> map=(Map)value;
+      Map<String,Object> location=new HashMap<>(2);
+      location.put("lat",map.get("latitude"));
+      location.put("lon",map.get("longitude"));
+      fields.add(EntityField.create(fieldStack.peek(),location));
       return;
     }
     iterate((Map<String,?>)value);
