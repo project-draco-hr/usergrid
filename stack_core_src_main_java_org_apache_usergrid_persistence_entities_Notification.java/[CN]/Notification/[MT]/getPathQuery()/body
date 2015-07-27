@@ -1,3 +1,19 @@
 {
+  PathQuery pathQuery=null;
+  for (  PathToken pathToken : pathTokens.getPathTokens()) {
+    String collection=pathToken.getCollection();
+    Query query=new Query();
+    if (pathToken.getIdentifier() != null) {
+      query.addIdentifier(pathToken.getIdentifier());
+    }
+    query.setLimit(100);
+    query.setCollection(collection);
+    if (pathQuery == null) {
+      pathQuery=new PathQuery(pathTokens.getApplicationRef(),query);
+    }
+ else {
+      pathQuery=pathQuery.chain(query);
+    }
+  }
   return pathQuery;
 }
