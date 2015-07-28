@@ -1,0 +1,46 @@
+def run(self):
+    self.logger.info('Initializing...')
+    reindex_only = False
+    if (not self.is_endpoint_available()):
+        exit_on_error('Endpoint is not available, aborting')
+    if (self.start_date is not None):
+        self.logger.info('Date Provided.  Only-Re-index will run from date=[%s]', self.start_date)
+        reindex_only = True
+    elif self.is_data_migrated():
+        if self.force_migration:
+            self.logger.info('Force option provided.')
+            self.reset_data_migration()
+            time.sleep(STATUS_INTERVAL_SECONDS)
+            self.is_data_migrated()
+        else:
+            self.logger.error('Entity Data has already been migrated.  To re-run data migration provide the force parameter: python migrate.py -u <user:pass> -f')
+            exit_on_error('Entity Data has already been migrated')
+    try:
+        job = self.start_reindex()
+        self.metrics['reindex_start'] = get_current_time()
+        self.logger.info('Started Re-index.  Job=[%s]', job)
+        is_running = True
+        while is_running:
+            time.sleep(STATUS_INTERVAL_SECONDS)
+            is_running = self.is_reindex_running(job)
+            if (not is_running):
+                break
+        self.logger.info('Finished Re-index. Job=[%s]', job)
+        self.metrics['reindex_end'] = get_current_time()
+        if (not reindex_only):
+            self.start_data_migration()
+            self.metrics['data_migration_start'] = get_current_time()
+            self.logger.info('Entity Data Migration Started')
+            is_migrated = False
+            while (not is_migrated):
+                time.sleep(STATUS_INTERVAL_SECONDS)
+                is_migrated = self.is_data_migrated()
+                if is_migrated:
+                    break
+            self.metrics['data_migration_end'] = get_current_time()
+            self.logger.info('Entity Data Migration completed')
+        self.log_metrics()
+        self.logger.info('Finished...')
+    except KeyboardInterrupt:
+        self.log_metrics()
+        self.logger.error('Keyboard interrupted migration. Please run again to ensure the migration finished.')
