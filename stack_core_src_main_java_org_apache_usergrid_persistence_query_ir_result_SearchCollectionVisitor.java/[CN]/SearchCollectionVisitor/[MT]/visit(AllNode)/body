@@ -1,0 +1,13 @@
+{
+  String collectionName=collection.getName();
+  QuerySlice slice=node.getSlice();
+  queryProcessor.applyCursorAndSort(slice);
+  UUID startId=null;
+  final UUIDCursorGenerator uuidCursorGenerator=new UUIDCursorGenerator(slice.hashCode());
+  final UUIDIndexSliceParser uuidIndexSliceParser=new UUIDIndexSliceParser(uuidCursorGenerator);
+  if (slice.hasCursor()) {
+    startId=uuidIndexSliceParser.parse(slice.getCursor(),false).getUUID();
+  }
+  IndexScanner indexScanner=cassandraService.getIdList(key(headEntity.getUuid(),DICTIONARY_COLLECTIONS,collectionName),startId,null,queryProcessor.getPageSizeHint(node),query.isReversed(),bucket,applicationId,node.isForceKeepFirst());
+  this.results.push(new SliceIterator(indexScanner,uuidIndexSliceParser));
+}

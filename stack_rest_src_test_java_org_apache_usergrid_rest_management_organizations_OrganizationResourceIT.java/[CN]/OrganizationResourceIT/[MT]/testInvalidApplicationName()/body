@@ -1,0 +1,12 @@
+{
+  try {
+    final String encodedAppName=URLEncoder.encode("<bob>","UTF-8");
+    resource().path("/applications/" + encodedAppName).get(String.class);
+    Assert.fail("Expected exception");
+  }
+ catch (  UniformInterfaceException e) {
+    final ApiResponse response=e.getResponse().getEntity(ApiResponse.class);
+    assertEquals("Incorrect exception type",IllegalArgumentException.class.getName(),response.getException());
+    Assert.assertEquals("Incorrect error description","Invalid application name",response.getErrorDescription());
+  }
+}

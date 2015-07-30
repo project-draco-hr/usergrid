@@ -17,56 +17,58 @@
     UUID timestampUuid=newTimeUUID();
     long timestamp=getTimestampInMicros(timestampUuid);
     for (    String collectionName : getCollectionNames(em,line)) {
-      IndexScanner scanner=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(applicationId,DICTIONARY_COLLECTIONS,collectionName),null,null,PAGE_SIZE,false,indexBucketLocator,applicationId,collectionName,false);
-      SliceIterator itr=new SliceIterator(null,scanner,new UUIDIndexSliceParser());
-      while (itr.hasNext()) {
-        Set<ScanColumn> ids=itr.next();
-        CollectionInfo collection=getDefaultSchema().getCollection("application",collectionName);
-        Set<String> indexed=collection.getPropertiesIndexed();
-        logger.info("Auditing {} entities for collection {} in app {}",new Object[]{ids.size(),collectionName,app.getValue()});
-        for (        ScanColumn col : ids) {
-          final UUID id=col.getUUID();
-          boolean reIndex=false;
-          Mutator<ByteBuffer> m=createMutator(ko,be);
-          try {
-            for (            String prop : indexed) {
-              String bucket=indexBucketLocator.getBucket(applicationId,IndexType.COLLECTION,id,prop);
-              Object rowKey=key(applicationId,collection.getName(),prop,bucket);
-              List<HColumn<ByteBuffer,ByteBuffer>> indexCols=scanIndexForAllTypes(ko,indexBucketLocator,applicationId,rowKey,id,prop);
-              for (              HColumn<ByteBuffer,ByteBuffer> index : indexCols) {
-                DynamicComposite secondaryIndexValue=DynamicComposite.fromByteBuffer(index.getName().duplicate());
-                Object code=secondaryIndexValue.get(0);
-                Object propValue=secondaryIndexValue.get(1);
-                UUID timestampId=(UUID)secondaryIndexValue.get(3);
-                DynamicComposite existingEntryStart=new DynamicComposite(prop,code,propValue,timestampId);
-                DynamicComposite existingEntryFinish=new DynamicComposite(prop,code,propValue,timestampId);
-                setEqualityFlag(existingEntryFinish,ComponentEquality.GREATER_THAN_EQUAL);
-                List<HColumn<ByteBuffer,ByteBuffer>> entries=cass.getColumns(ko,ENTITY_INDEX_ENTRIES,id,existingEntryStart,existingEntryFinish,INDEX_ENTRY_LIST_COUNT,false);
-                if (entries.size() == 0) {
-                  logger.info("Could not find reference to value '{}' for property '{}' on entity " + "{} in collection {}. " + " Forcing reindex",new Object[]{propValue,prop,id,collectionName});
-                  addDeleteToMutator(m,ENTITY_INDEX,rowKey,index.getName().duplicate(),timestamp);
-                  reIndex=true;
-                }
-                if (entries.size() > 1) {
-                  logger.info("Found more than 1 entity referencing unique index for property '{}' " + "with value " + "'{}'",prop,propValue);
-                  reIndex=true;
+      for (      final String bucketName : indexBucketLocator.getBuckets()) {
+        IndexScanner scanner=cass.getIdList(key(applicationId,DICTIONARY_COLLECTIONS,collectionName),null,null,PAGE_SIZE,false,bucketName,applicationId,false);
+        SliceIterator itr=new SliceIterator(scanner,new UUIDIndexSliceParser(null));
+        while (itr.hasNext()) {
+          Set<ScanColumn> ids=itr.next();
+          CollectionInfo collection=getDefaultSchema().getCollection("application",collectionName);
+          Set<String> indexed=collection.getPropertiesIndexed();
+          logger.info("Auditing {} entities for collection {} in app {}",new Object[]{ids.size(),collectionName,app.getValue()});
+          for (          ScanColumn col : ids) {
+            final UUID id=col.getUUID();
+            boolean reIndex=false;
+            Mutator<ByteBuffer> m=createMutator(ko,be);
+            try {
+              for (              String prop : indexed) {
+                String bucket=indexBucketLocator.getBucket(id);
+                Object rowKey=key(applicationId,collection.getName(),prop,bucket);
+                List<HColumn<ByteBuffer,ByteBuffer>> indexCols=scanIndexForAllTypes(ko,indexBucketLocator,applicationId,rowKey,id,prop);
+                for (                HColumn<ByteBuffer,ByteBuffer> index : indexCols) {
+                  DynamicComposite secondaryIndexValue=DynamicComposite.fromByteBuffer(index.getName().duplicate());
+                  Object code=secondaryIndexValue.get(0);
+                  Object propValue=secondaryIndexValue.get(1);
+                  UUID timestampId=(UUID)secondaryIndexValue.get(3);
+                  DynamicComposite existingEntryStart=new DynamicComposite(prop,code,propValue,timestampId);
+                  DynamicComposite existingEntryFinish=new DynamicComposite(prop,code,propValue,timestampId);
+                  setEqualityFlag(existingEntryFinish,ComponentEquality.GREATER_THAN_EQUAL);
+                  List<HColumn<ByteBuffer,ByteBuffer>> entries=cass.getColumns(ko,ENTITY_INDEX_ENTRIES,id,existingEntryStart,existingEntryFinish,INDEX_ENTRY_LIST_COUNT,false);
+                  if (entries.size() == 0) {
+                    logger.info("Could not find reference to value '{}' for property '{}' on entity " + "{} in collection {}. " + " Forcing reindex",new Object[]{propValue,prop,id,collectionName});
+                    addDeleteToMutator(m,ENTITY_INDEX,rowKey,index.getName().duplicate(),timestamp);
+                    reIndex=true;
+                  }
+                  if (entries.size() > 1) {
+                    logger.info("Found more than 1 entity referencing unique index for property " + "'{}' " + "with value "+ "'{}'",prop,propValue);
+                    reIndex=true;
+                  }
                 }
               }
-            }
-            if (reIndex) {
-              Entity entity=em.get(id);
-              if (entity == null) {
-                logger.warn("Entity with id {} did not exist in app {}",id,applicationId);
+              if (reIndex) {
+                Entity entity=em.get(id);
+                if (entity == null) {
+                  logger.warn("Entity with id {} did not exist in app {}",id,applicationId);
+                  m.execute();
+                  continue;
+                }
+                logger.info("Reindex complete for entity with id '{} ",id);
+                em.update(entity);
                 m.execute();
-                continue;
               }
-              logger.info("Reindex complete for entity with id '{} ",id);
-              em.update(entity);
-              m.execute();
             }
-          }
- catch (          Exception e) {
-            logger.error("Unable to process entity with id '{}'",id,e);
+ catch (            Exception e) {
+              logger.error("Unable to process entity with id '{}'",id,e);
+            }
           }
         }
       }

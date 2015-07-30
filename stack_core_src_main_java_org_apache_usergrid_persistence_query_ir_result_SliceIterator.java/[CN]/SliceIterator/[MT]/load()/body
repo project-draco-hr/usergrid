@@ -3,16 +3,14 @@
     return false;
   }
   Iterator<HColumn<ByteBuffer,ByteBuffer>> results=scanner.next().iterator();
-  cols.clear();
   parsedCols.clear();
   while (results.hasNext()) {
-    ByteBuffer colName=results.next().getName().duplicate();
-    ScanColumn parsed=parser.parse(colName);
+    final HColumn<ByteBuffer,ByteBuffer> column=results.next();
+    final ByteBuffer colName=column.getName().duplicate();
+    final ScanColumn parsed=parser.parse(colName,isReversed);
     if (parsed == null) {
       continue;
     }
-    last=parsed;
-    cols.put(parsed.getUUID(),parsed);
     parsedCols.add(parsed);
   }
   pagesLoaded++;

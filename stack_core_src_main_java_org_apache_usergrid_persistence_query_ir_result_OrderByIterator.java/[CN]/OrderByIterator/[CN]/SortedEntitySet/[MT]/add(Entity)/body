@@ -2,10 +2,9 @@
   if (minEntity != null && comparator.compare(entity,minEntity) <= 0) {
     return false;
   }
-  boolean added=super.add(entity);
-  while (size() > maxSize) {
-    Entity e=this.pollLast();
-    cursorVal.remove(e.getUuid());
+  boolean added=sortedEntities.add(new MultiColumnSort(entity,comparator,generator));
+  while (sortedEntities.size() > maxSize) {
+    sortedEntities.pollLast();
   }
   return added;
 }

@@ -2,26 +2,18 @@
   if (!hasMore) {
     return false;
   }
-  boolean skipFirst=this.skipFirst && start == scanStart;
+  boolean shouldDropFirst=skipFirst && start == scanStart;
   int totalSelectSize=pageSize + 1;
-  if (skipFirst) {
+  if (shouldDropFirst) {
     totalSelectSize++;
   }
-  lastResults=new LinkedHashSet<HColumn<ByteBuffer,ByteBuffer>>();
-  HColumn<ByteBuffer,ByteBuffer> first=null;
-  HColumn<ByteBuffer,ByteBuffer> last=null;
   while (currentConnectionType != null) {
-    int selectSize=totalSelectSize - lastResults.size();
-    Object key=key(entityId,dictionaryType,currentConnectionType);
-    List<HColumn<ByteBuffer,ByteBuffer>> results=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_COMPOSITE_DICTIONARIES,key,start,null,selectSize,reversed);
+    final int lastResultsSize=results == null ? 0 : results.size();
+    final int selectSize=totalSelectSize - lastResultsSize;
+    final Object key=key(entityId,dictionaryType,currentConnectionType);
+    final List<HColumn<ByteBuffer,ByteBuffer>> results=cass.getColumns(cass.getApplicationKeyspace(applicationId),ENTITY_COMPOSITE_DICTIONARIES,key,start,null,selectSize,reversed);
     final int resultSize=results.size();
-    if (resultSize > 0) {
-      last=results.get(resultSize - 1);
-      if (first == null) {
-        first=results.get(0);
-      }
-    }
-    lastResults.addAll(results);
+    this.results=results;
     if (resultSize == selectSize) {
       hasMore=true;
       break;
@@ -35,12 +27,11 @@
       currentConnectionType=connectionTypes.next();
     }
   }
-  if (skipFirst && first != null) {
-    lastResults.remove(first);
+  if (shouldDropFirst) {
+    results.remove(0);
   }
-  if (hasMore && last != null) {
-    start=last.getName();
-    lastResults.remove(last);
+  if (hasMore && results != null && results.size() > 0) {
+    start=results.remove(results.size() - 1).getName();
   }
-  return lastResults != null && lastResults.size() > 0;
+  return results != null && results.size() > 0;
 }
