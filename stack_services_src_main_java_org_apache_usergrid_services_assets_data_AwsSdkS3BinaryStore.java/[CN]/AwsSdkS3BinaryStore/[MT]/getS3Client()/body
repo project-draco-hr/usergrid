@@ -1,16 +1,23 @@
 {
-  if (s3Client == null) {
-    this.accessId=properties.getProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR);
-    this.secretKey=properties.getProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR);
-    this.bucketName=properties.getProperty("usergrid.binary.bucketname");
-    if (accessId == null || secretKey == null || bucketName == null) {
-      throw new AwsPropertiesNotFoundException("Access Keys");
-    }
-    AWSCredentials credentials=new BasicAWSCredentials(accessId,secretKey);
-    ClientConfiguration clientConfig=new ClientConfiguration();
-    clientConfig.setProtocol(Protocol.HTTP);
-    s3Client=new AmazonS3Client(credentials,clientConfig);
-    if (regionName != null)     s3Client.setRegion(Region.getRegion(Regions.fromName(regionName)));
+  this.accessId=properties.getProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR);
+  if (accessId == null) {
+    logger.error(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR + " not properly set so amazon access key is null");
+    throw new AwsPropertiesNotFoundException(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR);
   }
+  this.secretKey=properties.getProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR);
+  if (secretKey == null) {
+    logger.error(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR + " not properly set so amazon secret key is null");
+    throw new AwsPropertiesNotFoundException(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR);
+  }
+  this.bucketName=properties.getProperty("usergrid.binary.bucketname");
+  if (bucketName == null) {
+    logger.error("usergrid.binary.bucketname  not properly set so amazon bucket is null");
+    throw new AwsPropertiesNotFoundException("usergrid.binary.bucketname");
+  }
+  AWSCredentials credentials=new BasicAWSCredentials(accessId,secretKey);
+  ClientConfiguration clientConfig=new ClientConfiguration();
+  clientConfig.setProtocol(Protocol.HTTP);
+  s3Client=new AmazonS3Client(credentials,clientConfig);
+  if (regionName != null)   s3Client.setRegion(Region.getRegion(Regions.fromName(regionName)));
   return s3Client;
 }
