@@ -11,7 +11,17 @@
   response.setParams(ui.getQueryParameters());
   ServiceResults serviceResults=executeServiceRequest(ui,response,ServiceAction.GET,null);
   Entity entity=serviceResults.getEntity();
-  binaryStore.write(getApplicationId(),entity,uploadedInputStream);
+  try {
+    binaryStore.write(getApplicationId(),entity,uploadedInputStream);
+  }
+ catch (  AwsPropertiesNotFoundException apnfe) {
+    logger.error("Amazon Property needed for this operation not found",apnfe);
+    return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+  }
+catch (  RuntimeException re) {
+    logger.error(re.getMessage());
+    return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+  }
   EntityManager em=emf.getEntityManager(getApplicationId());
   em.update(entity);
   return Response.status(200).build();
