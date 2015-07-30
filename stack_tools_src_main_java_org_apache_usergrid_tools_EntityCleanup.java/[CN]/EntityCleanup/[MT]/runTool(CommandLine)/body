@@ -12,27 +12,29 @@
     long timestamp=getTimestampInMicros(timestampUuid);
     Set<String> collectionNames=em.getApplicationCollections();
     for (    String collectionName : collectionNames) {
-      IndexScanner scanner=cass.getIdList(cass.getApplicationKeyspace(applicationId),key(applicationId,DICTIONARY_COLLECTIONS,collectionName),null,null,PAGE_SIZE,false,indexBucketLocator,applicationId,collectionName,false);
-      SliceIterator itr=new SliceIterator(null,scanner,new UUIDIndexSliceParser());
-      while (itr.hasNext()) {
-        Set<ScanColumn> copy=new LinkedHashSet<ScanColumn>(itr.next());
-        results=em.get(ScanColumnTransformer.getIds(copy));
-        if (copy.size() == results.size()) {
-          continue;
+      for (      final String bucketName : indexBucketLocator.getBuckets()) {
+        IndexScanner scanner=cass.getIdList(key(applicationId,DICTIONARY_COLLECTIONS,collectionName),null,null,PAGE_SIZE,false,bucketName,applicationId,false);
+        SliceIterator itr=new SliceIterator(scanner,new UUIDIndexSliceParser(null));
+        while (itr.hasNext()) {
+          Set<ScanColumn> copy=new LinkedHashSet<ScanColumn>(itr.next());
+          results=em.get(ScanColumnTransformer.getIds(copy));
+          if (copy.size() == results.size()) {
+            continue;
+          }
+          for (          Entity returned : results.getEntities()) {
+            copy.remove(returned.getUuid());
+          }
+          logger.info("Cleaning up {} orphaned entities for app {}",copy.size(),app.getValue());
+          Keyspace ko=cass.getApplicationKeyspace(applicationId);
+          Mutator<ByteBuffer> m=createMutator(ko,be);
+          for (          ScanColumn col : copy) {
+            final UUID id=col.getUUID();
+            Object collections_key=key(applicationId,Schema.DICTIONARY_COLLECTIONS,collectionName,indexBucketLocator.getBucket(id));
+            addDeleteToMutator(m,ENTITY_ID_SETS,collections_key,id,timestamp);
+            logger.info("Deleting entity with id '{}' from collection '{}'",id,collectionName);
+          }
+          m.execute();
         }
-        for (        Entity returned : results.getEntities()) {
-          copy.remove(returned.getUuid());
-        }
-        logger.info("Cleaning up {} orphaned entities for app {}",copy.size(),app.getValue());
-        Keyspace ko=cass.getApplicationKeyspace(applicationId);
-        Mutator<ByteBuffer> m=createMutator(ko,be);
-        for (        ScanColumn col : copy) {
-          final UUID id=col.getUUID();
-          Object collections_key=key(applicationId,Schema.DICTIONARY_COLLECTIONS,collectionName,indexBucketLocator.getBucket(applicationId,IndexType.COLLECTION,id,collectionName));
-          addDeleteToMutator(m,ENTITY_ID_SETS,collections_key,id,timestamp);
-          logger.info("Deleting entity with id '{}' from collection '{}'",id,collectionName);
-        }
-        m.execute();
       }
     }
   }

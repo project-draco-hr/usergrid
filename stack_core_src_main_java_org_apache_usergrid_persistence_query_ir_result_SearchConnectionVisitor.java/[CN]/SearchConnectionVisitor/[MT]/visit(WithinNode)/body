@@ -1,0 +1,8 @@
+{
+  QuerySlice slice=node.getSlice();
+  queryProcessor.applyCursorAndSort(slice);
+  final int size=queryProcessor.getPageSizeHint(node);
+  GeoIterator itr=new GeoIterator(new ConnectionGeoSearch(em,indexBucketLocator,cassandraService,connection.getIndexId()),size,slice,node.getPropertyName(),new Point(node.getLattitude(),node.getLongitude()),node.getDistance());
+  final ConnectionShardFilter validator=new ConnectionShardFilter(indexBucketLocator,bucket);
+  this.results.push(new ShardFilterIterator(validator,itr,size));
+}

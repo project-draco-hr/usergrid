@@ -3,7 +3,7 @@
   query.setResultsLevel(resultsLevel);
   ConnectionRefImpl connectionRef=new ConnectionRefImpl(sourceEntity,connectionType,new SimpleEntityRef(connectedEntityType,null));
   final ConnectionResultsLoaderFactory factory=new ConnectionResultsLoaderFactory(connectionRef);
-  QueryProcessor qp=new QueryProcessor(query,null,em,factory);
-  SearchConnectionVisitor visitor=new SearchConnectionVisitor(qp,connectionRef,true);
-  return qp.getResults(visitor);
+  QueryProcessor qp=new QueryProcessor(em,executorService,query,null,factory);
+  ConnectionSearchVisitorFactory collectionSearchVisitorFactory=new ConnectionSearchVisitorFactory(cass,indexBucketLocator,qp,applicationId,headEntity,connectionRef,true,"");
+  return qp.getResults(collectionSearchVisitorFactory);
 }

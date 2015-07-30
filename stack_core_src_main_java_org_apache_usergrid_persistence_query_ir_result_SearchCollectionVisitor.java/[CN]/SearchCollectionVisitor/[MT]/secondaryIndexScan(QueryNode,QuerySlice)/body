@@ -1,0 +1,12 @@
+{
+  Object indexKey=key(headEntity.getUuid(),collection.getName());
+  queryProcessor.applyCursorAndSort(slice);
+  IndexScanner columns;
+  if (slice.isComplete()) {
+    columns=new NoOpIndexScanner();
+  }
+ else {
+    columns=searchIndexBuckets(indexKey,slice,queryProcessor.getPageSizeHint(node));
+  }
+  return columns;
+}

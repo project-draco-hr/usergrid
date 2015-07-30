@@ -1,8 +1,9 @@
 {
-  if (COMP.compare(min,col) >= 0) {
+  final UnionScanColumn unionScanColumn=new UnionScanColumn(col,uuidCursorGenerator);
+  if (min != null && min.compareTo(unionScanColumn) >= 0) {
     return;
   }
-  int index=Collections.binarySearch(this.list,col,COMP);
+  int index=Collections.binarySearch(this.list,unionScanColumn);
   if (index > -1) {
     return;
   }
@@ -10,7 +11,7 @@
   if (index >= maxSize) {
     return;
   }
-  this.list.add(index,col);
+  this.list.add(index,unionScanColumn);
   final int size=this.list.size();
   if (size > maxSize) {
     this.list.subList(maxSize,size).clear();

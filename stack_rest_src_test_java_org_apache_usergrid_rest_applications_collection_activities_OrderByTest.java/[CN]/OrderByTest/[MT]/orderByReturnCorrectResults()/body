@@ -1,6 +1,6 @@
 {
   CustomCollection activities=context.collection("activities");
-  int size=200;
+  int size=50;
   Map<String,String> actor=hashMap("displayName","Erin");
   Map<String,Object> props=new HashMap<String,Object>();
   props.put("actor",actor);
@@ -13,11 +13,11 @@
     activites.add(activity);
   }
   long lastCreated=activites.get(activites.size() - 1).get("created").asLong();
-  String errorQuery=String.format("select * where created <= %d order by created desc",lastCreated);
+  String query=String.format("select * where created <= %d order by created desc",lastCreated);
   String cursor=null;
   int index=size - 1;
   do {
-    JsonNode response=activities.withQuery(errorQuery).get();
+    JsonNode response=activities.withQuery(query).get();
     JsonNode cursorNode=response.get("cursor");
     cursor=cursorNode != null ? cursorNode.asText() : null;
     JsonNode entities=response.get("entities");
