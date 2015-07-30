@@ -12,7 +12,8 @@
     ObjectMetadata om=new ObjectMetadata();
     om.setContentLength(written);
     om.setContentType(mimeType);
-    PutObjectResult result=getS3Client().putObject(bucketName,uploadFileName,awsInputStream,om);
+    PutObjectResult result=null;
+    result=getS3Client().putObject(bucketName,uploadFileName,awsInputStream,om);
     String md5sum=Hex.encodeHexString(Base64.decodeBase64(result.getContentMd5()));
     String eTag=result.getETag();
     fileMetadata.put(AssetUtils.CONTENT_LENGTH,written);
@@ -83,9 +84,20 @@
  catch (      Exception e) {
         logger.error("Error updating entity with error message",e);
       }
-      while (listResult.getMultipartUploads().size() != 0) {
+      int timesIterated=20;
+      while (listResult.getMultipartUploads().size() != 0 && timesIterated > 0) {
         getS3Client().abortMultipartUpload(abortRequest);
+        Thread.sleep(1000);
+        timesIterated--;
         listResult=getS3Client().listMultipartUploads(listRequest);
+        logger.debug("Files that haven't been aborted are: ",listResult.getMultipartUploads().listIterator().toString());
+      }
+      if (timesIterated == 0) {
+        logger.error("Files parts that couldn't be aborted in 20 seconds are:");
+        Iterator<MultipartUpload> multipartUploadIterator=listResult.getMultipartUploads().iterator();
+        while (multipartUploadIterator.hasNext()) {
+          logger.error(multipartUploadIterator.next().getKey());
+        }
       }
     }
  else {
