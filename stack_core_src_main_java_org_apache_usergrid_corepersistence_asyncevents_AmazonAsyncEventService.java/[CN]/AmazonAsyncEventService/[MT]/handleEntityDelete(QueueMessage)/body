@@ -1,2 +1,14 @@
 {
+  Preconditions.checkNotNull(message,"Queue Message cannot be null for handleEntityDelete");
+  final AsyncEvent event=(AsyncEvent)message.getBody();
+  Preconditions.checkNotNull(message,"QueueMessage Body cannot be null for handleEntityDelete");
+  Preconditions.checkArgument(event instanceof EntityDeleteEvent,String.format("Event Type for handleEntityDelete must be ENTITY_DELETE, got %s",event.getClass()));
+  final EntityDeleteEvent entityDeleteEvent=(EntityDeleteEvent)event;
+  final ApplicationScope applicationScope=entityDeleteEvent.getEntityIdScope().getApplicationScope();
+  final Id entityId=entityDeleteEvent.getEntityIdScope().getId();
+  if (logger.isDebugEnabled())   logger.debug("Deleting entity id from index in app scope {} with entityId {}",applicationScope,entityId);
+  ack(message);
+  final EventBuilderImpl.EntityDeleteResults entityDeleteResults=eventBuilder.buildEntityDelete(applicationScope,entityId);
+  final Observable merged=Observable.merge(entityDeleteResults.getEntitiesCompacted(),entityDeleteResults.getIndexObservable());
+  subscribeAndAck(merged,message);
 }
