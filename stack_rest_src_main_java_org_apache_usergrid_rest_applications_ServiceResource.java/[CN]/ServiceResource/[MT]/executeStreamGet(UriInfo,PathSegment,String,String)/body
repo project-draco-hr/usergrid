@@ -1,12 +1,18 @@
 {
-  LOG.debug("ServiceResource.executeStreamGet");
+  logger.debug("ServiceResource.executeStreamGet");
+  if (properties.getProperty(PROPERTIES_USERGRID_BINARY_UPLOADER).equals("local")) {
+    this.binaryStore=localFileBinaryStore;
+  }
+ else {
+    this.binaryStore=awsSdkS3BinaryStore;
+  }
   ApiResponse response=createApiResponse();
   response.setAction("get");
   response.setApplication(services.getApplication());
   response.setParams(ui.getQueryParameters());
   ServiceResults serviceResults=executeServiceRequest(ui,response,ServiceAction.GET,null);
   Entity entity=serviceResults.getEntity();
-  LOG.info("In ServiceResource.executeStreamGet with id: {}, range: {}, modifiedSince: {}",new Object[]{entityId,rangeHeader,modifiedSince});
+  logger.info("In ServiceResource.executeStreamGet with id: {}, range: {}, modifiedSince: {}",new Object[]{entityId,rangeHeader,modifiedSince});
   Map<String,Object> fileMetadata=AssetUtils.getFileMetadata(entity);
   Date modified=AssetUtils.fromIfModifiedSince(modifiedSince);
   if (modified != null) {
@@ -17,7 +23,7 @@
   }
   boolean range=StringUtils.isNotBlank(rangeHeader);
   long start=0, end=0, contentLength=0;
-  InputStream inputStream;
+  InputStream inputStream=null;
   if (range) {
     String rangeValue=rangeHeader.trim().substring("bytes=".length());
     contentLength=(Long)fileMetadata.get(AssetUtils.CONTENT_LENGTH);
@@ -38,10 +44,30 @@
         }
       }
     }
-    inputStream=binaryStore.read(getApplicationId(),entity,start,end - start);
+    try {
+      inputStream=binaryStore.read(getApplicationId(),entity,start,end - start);
+    }
+ catch (    AwsPropertiesNotFoundException apnfe) {
+      logger.error("Amazon Property needed for this operation not found",apnfe);
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    }
+catch (    RuntimeException re) {
+      logger.error(re.getMessage());
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    }
   }
  else {
-    inputStream=binaryStore.read(getApplicationId(),entity);
+    try {
+      inputStream=binaryStore.read(getApplicationId(),entity);
+    }
+ catch (    AwsPropertiesNotFoundException apnfe) {
+      logger.error("Amazon Property needed for this operation not found",apnfe);
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    }
+catch (    RuntimeException re) {
+      logger.error(re.getMessage());
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    }
   }
   if (inputStream == null) {
     return Response.status(Response.Status.NOT_FOUND).build();

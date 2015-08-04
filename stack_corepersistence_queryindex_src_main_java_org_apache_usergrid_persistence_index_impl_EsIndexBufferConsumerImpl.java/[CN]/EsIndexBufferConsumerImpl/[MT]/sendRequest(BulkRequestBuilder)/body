@@ -3,6 +3,7 @@
     return;
   }
   final BulkResponse responses;
+  final Timer.Context timer=indexTimer.time();
   try {
     responses=bulkRequest.execute().actionGet();
   }
@@ -10,6 +11,9 @@
     log.error("Unable to communicate with elasticsearch");
     failureMonitor.fail("Unable to execute batch",t);
     throw t;
+  }
+ finally {
+    timer.stop();
   }
   failureMonitor.success();
   boolean error=false;

@@ -4,4 +4,8 @@
   queryParameters.addParam("resolution","all").addParam("counter","application.requests");
   Collection countersResponse=org().app(clientSetup.getAppName()).collection("counters").get(queryParameters,true);
   assertNotNull(countersResponse);
+  ArrayList counterValues=(ArrayList)countersResponse.getResponse().getProperties().get("counters");
+  LinkedHashMap counters=(LinkedHashMap)counterValues.get(0);
+  assertEquals("application.requests",counters.get("name"));
+  assertEquals(2,((LinkedHashMap)((ArrayList)counters.get("values")).get(0)).get("value"));
 }

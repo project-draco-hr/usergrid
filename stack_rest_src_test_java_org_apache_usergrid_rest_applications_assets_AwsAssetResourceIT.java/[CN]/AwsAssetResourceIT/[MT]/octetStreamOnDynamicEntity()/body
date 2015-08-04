@@ -1,0 +1,21 @@
+{
+  this.refreshIndex();
+  Map<String,String> payload=hashMap("name","assetname");
+  ApiResponse postResponse=pathResource(getOrgAppPath("foos")).post(payload);
+  UUID assetId=postResponse.getEntities().get(0).getUuid();
+  assertNotNull(assetId);
+  byte[] data=IOUtils.toByteArray(getClass().getResourceAsStream("/cassandra_eye.jpg"));
+  ApiResponse putResponse=pathResource(getOrgAppPath("foos/" + assetId)).put(data,MediaType.APPLICATION_OCTET_STREAM_TYPE);
+  ApiResponse getResponse=pathResource(getOrgAppPath("foos/" + assetId)).get(ApiResponse.class);
+  Entity entity=getResponse.getEntities().get(0);
+  Map<String,Object> fileMetadata=(Map<String,Object>)entity.get("file-metadata");
+  Assert.assertEquals("image/jpeg",fileMetadata.get("content-type"));
+  Assert.assertEquals(7979,fileMetadata.get("content-length"));
+  assertEquals(assetId,entity.getUuid());
+  InputStream is=pathResource(getOrgAppPath("foos/" + assetId)).getAssetAsStream();
+  byte[] foundData=IOUtils.toByteArray(is);
+  assertEquals(7979,foundData.length);
+  is=pathResource(getOrgAppPath("foos/assetname")).getAssetAsStream();
+  foundData=IOUtils.toByteArray(is);
+  assertEquals(7979,foundData.length);
+}

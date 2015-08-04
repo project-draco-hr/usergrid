@@ -9,6 +9,7 @@
   if (logger.isDebugEnabled()) {
     logger.debug("Searching index (read alias): {}\n  nodeId: {}, edgeType: {},  \n type: {}\n   query: {} ",this.alias.getReadAlias(),searchEdge.getNodeId(),searchEdge.getEdgeName(),searchTypes.getTypeNames(applicationScope),srb);
   }
+  final Timer.Context timerContext=searchTimer.time();
   try {
     searchResponse=srb.execute().actionGet();
   }
@@ -16,6 +17,9 @@
     logger.error("Unable to communicate with Elasticsearch",t);
     failureMonitor.fail("Unable to execute batch",t);
     throw t;
+  }
+ finally {
+    timerContext.stop();
   }
   failureMonitor.success();
   return parseResults(searchResponse,parsedQuery,limit,offset);
