@@ -1,2 +1,13 @@
 {
+  Preconditions.checkNotNull(message,"Queue Message cannot be null for handleEntityIndexUpdate");
+  final EntityIndexEvent event=(EntityIndexEvent)message.getBody();
+  Preconditions.checkNotNull(message,"QueueMessage Body cannot be null for handleEntityIndexUpdate");
+  Preconditions.checkArgument(event.getEventType() == AsyncEvent.EventType.ENTITY_INDEX,String.format("Event Type for handleEntityIndexUpdate must be ENTITY_INDEX, got %s",event.getEventType()));
+  final EntityIdScope entityIdScope=event.getEntityIdScope();
+  final ApplicationScope applicationScope=entityIdScope.getApplicationScope();
+  final Id entityId=entityIdScope.getId();
+  final long updatedAfter=event.getUpdatedAfter();
+  final EntityIndexOperation entityIndexOperation=new EntityIndexOperation(applicationScope,entityId,updatedAfter);
+  final Observable<IndexOperationMessage> observable=eventBuilder.buildEntityIndex(entityIndexOperation);
+  subscibeAndAck(observable,message);
 }
