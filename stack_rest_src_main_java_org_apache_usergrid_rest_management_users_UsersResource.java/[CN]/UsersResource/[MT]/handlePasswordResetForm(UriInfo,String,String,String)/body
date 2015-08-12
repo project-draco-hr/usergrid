@@ -2,40 +2,31 @@
   try {
     if (isBlank(email)) {
       errorMsg="No email provided, try again...";
-      return handleViewable("resetpw_email_form",this);
+      throw new Exception("No email provided");
     }
-    boolean reCaptchaPassed=false;
-    if (useReCaptcha()) {
+ else     if (useReCaptcha()) {
       ReCaptchaImpl reCaptcha=new ReCaptchaImpl();
       reCaptcha.setPrivateKey(properties.getRecaptchaPrivate());
       ReCaptchaResponse reCaptchaResponse=reCaptcha.checkAnswer(httpServletRequest.getRemoteAddr(),challenge,uresponse);
-      if (reCaptchaResponse.isValid()) {
-        reCaptchaPassed=true;
+      if (!reCaptchaResponse.isValid()) {
+        errorMsg="Incorrect Captcha, try again...";
+        throw new Exception("reCAPTCHA error message: " + reCaptchaResponse.getErrorMessage());
       }
     }
- else {
-      reCaptchaPassed=true;
+    user=management.findAdminUser(email);
+    if (user == null) {
+      errorMsg="We don't recognize that email, try again...";
+      throw new Exception("Unrecognized email address");
     }
-    if (reCaptchaPassed) {
-      user=management.findAdminUser(email);
-      if (user != null) {
-        management.startAdminUserPasswordResetFlow(user);
-        return handleViewable("resetpw_email_success",this);
-      }
- else {
-        errorMsg="We don't recognize that email, try again...";
-        return handleViewable("resetpw_email_form",this);
-      }
-    }
- else {
-      errorMsg="Incorrect Captcha, try again...";
-      return handleViewable("resetpw_email_form",this);
-    }
+    logger.info("Starting Admin User Password Reset Flow for " + user.getUuid());
+    management.startAdminUserPasswordResetFlow(user);
+    return handleViewable("resetpw_email_success",this);
   }
  catch (  RedirectionException e) {
     throw e;
   }
 catch (  Exception e) {
-    return handleViewable("error",e);
+    logger.error(String.format("Exception in password reset form. (%s) %s ",e.getClass().getCanonicalName(),e.getMessage()));
+    return handleViewable("resetpw_email_form",this);
   }
 }
