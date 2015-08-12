@@ -8,8 +8,8 @@
   final String deadletterArn=AmazonNotificationUtils.getQueueArnByName(sqs,deadletterQueueName);
   String redrivePolicy=String.format("{\"maxReceiveCount\":\"%s\"," + " \"deadLetterTargetArn\":\"%s\"}",fig.getQueueDeliveryLimit(),deadletterArn);
   final Map<String,String> queueAttributes=new HashMap<>(2);
-  deadLetterAttributes.put("MessageRetentionPeriod",fig.getRetentionPeriod());
-  deadLetterAttributes.put("RedrivePolicy",redrivePolicy);
+  queueAttributes.put("MessageRetentionPeriod",fig.getRetentionPeriod());
+  queueAttributes.put("RedrivePolicy",redrivePolicy);
   CreateQueueRequest createQueueRequest=new CreateQueueRequest().withQueueName(queueName).withAttributes(queueAttributes);
   CreateQueueResult result=sqs.createQueue(createQueueRequest);
   String url=result.getQueueUrl();
