@@ -1,5 +1,8 @@
 {
   ApiResponse response=createApiResponse();
+  QueueManagerFactory queueManagerFactory=injector.getInstance(QueueManagerFactory.class);
+  QueueScope queueScope=new QueueScopeImpl("es_queue",QueueScope.RegionImplementation.ALLREGIONS);
+  QueueManager queue=queueManagerFactory.getQueueManager(queueScope);
   if (!ignoreError) {
     if (!emf.getEntityStoreHealth().equals(Health.GREEN)) {
       throw new RuntimeException("Error connecting to datastore");
@@ -14,8 +17,8 @@
   node.put("version",usergridSystemMonitor.getBuildNumber());
   node.put("cassandraAvailable",usergridSystemMonitor.getIsCassandraAlive());
   node.put("cassandraStatus",emf.getEntityStoreHealth().toString());
-  EntityManager em=emf.getEntityManager(emf.getManagementAppId());
   node.put("managementAppIndexStatus",emf.getIndexHealth().toString());
+  node.put("queueDepth",queue.getQueueDepth());
   dumpMetrics(node);
   response.setProperty("status",node);
   return new JSONWithPadding(response,callback);

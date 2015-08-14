@@ -1,0 +1,12 @@
+{
+  String key="ApproximateNumberOfMessages";
+  try {
+    GetQueueAttributesResult result=sqs.getQueueAttributes(getReadQueue().getUrl(),Collections.singletonList(key));
+    String depthString=result.getAttributes().get(key);
+    return depthString != null ? Long.parseLong(depthString) : 0;
+  }
+ catch (  Exception e) {
+    logger.error("Exception getting queue depth",e);
+    return -1;
+  }
+}
