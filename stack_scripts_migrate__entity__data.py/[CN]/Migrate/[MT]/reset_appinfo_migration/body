@@ -1,10 +1,10 @@
 def reset_appinfo_migration(self):
     version = (TARGET_VERSION - 1)
-    body = json.dumps({'appinfo-migration': version, })
+    body = json.dumps({PLUGIN_APPINFO: version, })
     try:
         r = requests.put(url=self.get_reset_migration_url(), data=body, auth=(self.admin_user, self.admin_pass))
         response = r.json()
-        self.logger.info('Resetting appinfo migration versions to appinfo-migration=[v%s]', version)
+        self.logger.info('Resetting appinfo migration versions to %s=[%s]', PLUGIN_APPINFO, version)
         return response
     except requests.exceptions.RequestException as e:
         self.logger.error('Failed to reset appinfo migration version, %s', e)
