@@ -6,10 +6,10 @@
   }
  catch (  DataCorruptionException e) {
     log.error("DATA CORRUPTION DETECTED when de-serializing entity with Id {} and version {}.  This means the" + " write was truncated.",id,version,e);
-    return new MvccEntityImpl(id,version,MvccEntity.Status.DELETED,Optional.<Entity>absent());
+    return new MvccEntityImpl(id,version,MvccEntity.Status.DELETED,Optional.<Entity>absent(),0);
   }
   if (deSerialized.entity.isPresent()) {
     EntityUtils.setId(deSerialized.entity.get(),id);
   }
-  return new MvccEntityImpl(id,version,deSerialized.status,deSerialized.entity);
+  return new MvccEntityImpl(id,version,deSerialized.status,deSerialized.entity,0);
 }
