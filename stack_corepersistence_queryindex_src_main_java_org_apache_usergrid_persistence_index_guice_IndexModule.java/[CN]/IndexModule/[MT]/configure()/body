@@ -9,6 +9,8 @@
   Multibinder<DataMigration<ApplicationScope>> dataMigrationMultibinder=Multibinder.newSetBinder(binder(),new TypeLiteral<DataMigration<ApplicationScope>>(){
   }
 ,IndexMigration.class);
-  Multibinder.newSetBinder(binder(),MigrationPlugin.class).addBinding().to(EsIndexMigrationPlugin.class);
+  final Multibinder<MigrationPlugin> plugins=Multibinder.newSetBinder(binder(),MigrationPlugin.class);
+  plugins.addBinding().to(EsIndexMigrationPlugin.class);
+  plugins.addBinding().to(EsIndexMappingMigrationPlugin.class);
   configureMigrationProvider();
 }
