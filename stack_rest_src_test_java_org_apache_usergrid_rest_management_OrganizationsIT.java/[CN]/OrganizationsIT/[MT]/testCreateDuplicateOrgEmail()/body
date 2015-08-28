@@ -11,7 +11,7 @@
     clientSetup.getRestClient().management().orgs().post(orgDuplicatePayload);
     fail("Should not have created organization");
   }
- catch (  UniformInterfaceException ex) {
+ catch (  ResponseProcessingException ex) {
     errorParse(400,duplicateUniquePropertyExistsErrorMessage,ex);
   }
   tokenPayload=new Token("password",organization.getUsername() + "test",organization.getPassword() + "test");
@@ -20,7 +20,7 @@
     tokenError=clientSetup.getRestClient().management().token().post(false,Token.class,tokenPayload,null);
     fail("Should not have created organization");
   }
- catch (  UniformInterfaceException ex) {
+ catch (  ResponseProcessingException ex) {
     errorParse(400,invalidGrantErrorMessage,ex);
   }
   assertNull(tokenError);

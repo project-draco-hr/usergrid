@@ -1,17 +1,16 @@
 {
   Credentials orgCredentials=getOrgCredentials();
   Form payload=new Form();
-  payload.add("response_type","code");
-  payload.add("grant_type","client_credentials");
-  payload.add("client_id",orgCredentials.getClientId());
-  payload.add("client_secret",orgCredentials.getClientSecret());
-  payload.add("scope","none");
-  payload.add("redirect_uri","http://www.my_test.com");
-  client().setFollowRedirects(false);
+  payload.param("response_type","code");
+  payload.param("grant_type","client_credentials");
+  payload.param("client_id",orgCredentials.getClientId());
+  payload.param("client_secret",orgCredentials.getClientSecret());
+  payload.param("scope","none");
+  payload.param("redirect_uri","http://www.my_test.com");
   try {
-    clientSetup.getRestClient().management().authorize().getResource().accept(MediaType.TEXT_HTML).post(String.class,payload);
+    clientSetup.getRestClient().management().authorize().getTarget().property(ClientProperties.FOLLOW_REDIRECTS,Boolean.TRUE).request().accept(MediaType.TEXT_HTML).post(javax.ws.rs.client.Entity.form(payload),String.class);
   }
- catch (  UniformInterfaceException uie) {
-    assertEquals(String.valueOf(Status.TEMPORARY_REDIRECT.getStatusCode()),uie.getResponse().getStatus());
+ catch (  ResponseProcessingException uie) {
+    assertEquals(String.valueOf(Response.Status.TEMPORARY_REDIRECT.getStatusCode()),uie.getResponse().getStatus());
   }
 }

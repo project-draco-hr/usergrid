@@ -6,7 +6,7 @@
   String token=Base64.encodeToString(clientCredentials.getBytes());
   Map<String,String> map=new HashMap<>(1);
   map.put("grant_type","client_credentials");
-  Token apiResponse=clientSetup.getRestClient().management().token().getResource(false).header("Authorization","Basic " + token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(Token.class,map);
+  Token apiResponse=clientSetup.getRestClient().management().token().getTarget(false).request().header("Authorization","Basic " + token).accept(MediaType.APPLICATION_JSON).post(javax.ws.rs.client.Entity.entity(map,MediaType.APPLICATION_JSON_TYPE),Token.class);
   assertNotNull("A valid response was returned.",apiResponse);
   assertNull("There is no error.",apiResponse.getError());
   assertNotNull("It has access_token.",apiResponse.getAccessToken());

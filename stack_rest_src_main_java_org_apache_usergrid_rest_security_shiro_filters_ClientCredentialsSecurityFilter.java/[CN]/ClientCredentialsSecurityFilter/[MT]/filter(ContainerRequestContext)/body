@@ -1,0 +1,14 @@
+{
+  String clientId=httpServletRequest.getParameter("client_id");
+  String clientSecret=httpServletRequest.getParameter("client_secret");
+  if (isNotBlank(clientId) && isNotBlank(clientSecret)) {
+    try {
+      PrincipalCredentialsToken token=management.getPrincipalCredentialsTokenForClientCredentials(clientId,clientSecret);
+      Subject subject=SubjectUtils.getSubject();
+      subject.login(token);
+    }
+ catch (    Exception e) {
+      throw mappableSecurityException(OAUTH2_INVALID_CLIENT);
+    }
+  }
+}

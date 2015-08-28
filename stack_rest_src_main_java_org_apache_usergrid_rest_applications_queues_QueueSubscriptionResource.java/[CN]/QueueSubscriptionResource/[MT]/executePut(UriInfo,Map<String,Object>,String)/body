@@ -1,0 +1,16 @@
+{
+  logger.info("QueueSubscriptionResource.executePut: " + queuePath);
+  Map<String,Object> json=body;
+  if (StringUtils.isNotBlank(subscriptionPath)) {
+    return mq.subscribeToQueue(subscriptionPath,queuePath);
+  }
+ else   if ((json != null) && (json.containsKey("subscriber"))) {
+    String supscription=(String)json.get("supscription");
+    return mq.subscribeToQueue(supscription,queuePath);
+  }
+ else   if ((json != null) && (json.containsKey("subscribers"))) {
+    @SuppressWarnings("unchecked") List<String> supscriptions=(List<String>)json.get("supscriptions");
+    return mq.unsubscribeFromQueues(queuePath,supscriptions);
+  }
+  return null;
+}

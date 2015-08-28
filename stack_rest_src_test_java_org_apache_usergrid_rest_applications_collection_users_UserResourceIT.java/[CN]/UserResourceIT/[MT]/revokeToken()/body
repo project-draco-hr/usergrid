@@ -19,19 +19,19 @@
     usersResource.entity("edanuff").get();
     assertFalse(true);
   }
- catch (  UniformInterfaceException uie) {
+ catch (  ResponseProcessingException uie) {
     status=uie.getResponse().getStatus();
   }
-  assertEquals(Status.UNAUTHORIZED.getStatusCode(),status);
+  assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(),status);
   status=0;
   try {
     this.app().token().setToken(token2);
     usersResource.entity("edanuff").get();
   }
- catch (  UniformInterfaceException uie) {
+ catch (  ResponseProcessingException uie) {
     status=uie.getResponse().getStatus();
   }
-  assertEquals(Status.UNAUTHORIZED.getStatusCode(),status);
+  assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(),status);
   Token token3=this.app().token().post(new Token("edanuff","sesame"));
   Token token4=this.app().token().post(new Token("edanuff","sesame"));
   this.app().token().setToken(token3);
@@ -49,18 +49,18 @@
     this.app().token().setToken(token3);
     usersResource.entity("edanuff").get();
   }
- catch (  UniformInterfaceException uie) {
+ catch (  ResponseProcessingException uie) {
     status=uie.getResponse().getStatus();
   }
-  assertEquals(Status.UNAUTHORIZED.getStatusCode(),status);
+  assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(),status);
   status=0;
   try {
     this.app().token().setToken(token4);
     usersResource.entity("edanuff").get();
-    status=Status.OK.getStatusCode();
+    status=Response.Status.OK.getStatusCode();
   }
- catch (  UniformInterfaceException uie) {
+ catch (  ResponseProcessingException uie) {
     status=uie.getResponse().getStatus();
   }
-  assertEquals(Status.UNAUTHORIZED.getStatusCode(),status);
+  assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(),status);
 }

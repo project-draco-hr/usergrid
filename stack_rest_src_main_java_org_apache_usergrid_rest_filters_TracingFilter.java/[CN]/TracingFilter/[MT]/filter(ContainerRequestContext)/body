@@ -1,0 +1,18 @@
+{
+  if (!traceTagManager.getTraceEnabled() && !traceTagManager.getExplicitOnly()) {
+    return;
+  }
+  String traceId;
+  if (traceTagManager.getExplicitOnly()) {
+    String id=httpServletRequest.getHeader("XX-TRACE-ID");
+    if (StringUtils.isBlank(id)) {
+      return;
+    }
+    traceId=id.concat("-REST-").concat(request.getUriInfo().getPath(true));
+  }
+ else {
+    traceId="TRACE-".concat(request.getUriInfo().getPath(true));
+  }
+  TraceTag traceTag=traceTagManager.create(traceId);
+  traceTagManager.attach(traceTag);
+}

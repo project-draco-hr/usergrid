@@ -4,7 +4,7 @@
     management().orgs().org(clientSetup.getOrganizationName()).app().addToPath(clientSetup.getAppUuid()).addToPath("export").addToPath(fake.toString()).get(ApiResponse.class,false);
     fail("Should not have passed as we didn't have an access token.");
   }
- catch (  UniformInterfaceException uie) {
-    assertEquals(ClientResponse.Status.UNAUTHORIZED,uie.getResponse().getClientResponseStatus());
+ catch (  ResponseProcessingException uie) {
+    assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(),uie.getResponse().getStatus());
   }
 }

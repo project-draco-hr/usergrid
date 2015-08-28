@@ -6,12 +6,12 @@
   Entity userdata=management.users().entity(clientSetup.getEmail()).get(token);
   assertNotNull(userdata.get("email").toString());
   Thread.sleep((System.currentTimeMillis() - startTime) + ttl);
-  Status responseStatus=null;
+  Response.Status responseStatus=null;
   try {
     userdata=management.users().user(clientSetup.getEmail()).get();
   }
- catch (  UniformInterfaceException uie) {
-    responseStatus=uie.getResponse().getClientResponseStatus();
+ catch (  ResponseProcessingException uie) {
+    responseStatus=Response.Status.fromStatusCode(uie.getResponse().getStatus());
   }
-  assertEquals(Status.UNAUTHORIZED,responseStatus);
+  assertEquals(Response.Status.UNAUTHORIZED,responseStatus);
 }

@@ -10,8 +10,8 @@
   try {
     node=this.app().collection(collectionType).post(entityData).getEntity();
   }
- catch (  UniformInterfaceException e) {
-    JsonNode nodeError=mapper.readTree(e.getResponse().getEntity(String.class));
+ catch (  ResponseProcessingException e) {
+    JsonNode nodeError=mapper.readTree(e.getResponse().readEntity(String.class));
     fail(nodeError.get("error").textValue());
   }
   assertNotNull(node);

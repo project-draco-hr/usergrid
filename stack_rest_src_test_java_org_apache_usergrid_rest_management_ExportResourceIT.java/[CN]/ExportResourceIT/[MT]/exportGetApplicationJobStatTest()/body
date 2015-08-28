@@ -3,8 +3,8 @@
   try {
     exportEntity=management().orgs().org(clientSetup.getOrganizationName()).app().addToPath(clientSetup.getAppUuid()).addToPath("export").post(ApiResponse.class,payloadBuilder());
   }
- catch (  UniformInterfaceException uie) {
-    fail("We got back " + uie.getResponse().getClientResponseStatus() + " instead of having a successful call");
+ catch (  ResponseProcessingException uie) {
+    fail("We got back " + uie.getResponse().getStatus() + " instead of having a successful call");
   }
   assertNotNull(exportEntity);
   String uuid=(String)exportEntity.getProperties().get("Export Entity");
@@ -14,8 +14,8 @@
   try {
     exportEntity=management().orgs().org(clientSetup.getOrganizationName()).addToPath("export").addToPath(uuid).get(ApiResponse.class);
   }
- catch (  UniformInterfaceException uie) {
-    fail("We got back " + uie.getResponse().getClientResponseStatus() + " instead of having a successful call");
+ catch (  ResponseProcessingException uie) {
+    fail("We got back " + uie.getResponse().getStatus() + " instead of having a successful call");
   }
   assertNotNull(exportEntity);
   String state=(String)exportEntity.getProperties().get("state");

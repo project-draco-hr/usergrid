@@ -12,20 +12,20 @@
     userResource.entity("test_1").connection("token").get(new QueryParameters().addParam("access_token","blah"),false);
     assertTrue(false);
   }
- catch (  UniformInterfaceException uie) {
+ catch (  ResponseProcessingException uie) {
     status=uie.getResponse().getStatus();
-    log.info("Error Response Body: " + uie.getResponse().getEntity(String.class));
+    log.info("Error Response Body: " + uie.getResponse().readEntity(String.class));
   }
-  assertEquals(Status.UNAUTHORIZED.getStatusCode(),status);
+  assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(),status);
   try {
     userResource.entity("test_2").connection("token").get(new QueryParameters().addParam("access_token",token.getAccessToken()),false);
     assertTrue(false);
   }
- catch (  UniformInterfaceException uie) {
+ catch (  ResponseProcessingException uie) {
     status=uie.getResponse().getStatus();
-    log.info("Error Response Body: " + uie.getResponse().getEntity(String.class));
+    log.info("Error Response Body: " + uie.getResponse().readEntity(String.class));
   }
-  assertEquals(Status.FORBIDDEN.getStatusCode(),status);
+  assertEquals(Response.Status.FORBIDDEN.getStatusCode(),status);
   String adminToken=this.getAdminToken().getAccessToken();
   Collection tokens=userResource.entity("test_1").connection("token").get(new QueryParameters().addParam("access_token",adminToken),false);
   assertTrue(tokens.getResponse().getProperties().get("user") != null);
@@ -37,9 +37,9 @@
     this.app().token().post(new Token("test_1","test123"));
     fail("request for deactivated user should fail");
   }
- catch (  UniformInterfaceException uie) {
+ catch (  ResponseProcessingException uie) {
     status=uie.getResponse().getStatus();
-    JsonNode body=mapper.readTree(uie.getResponse().getEntity(String.class));
+    JsonNode body=mapper.readTree(uie.getResponse().readEntity(String.class));
     assertEquals("user not activated",body.findPath("error_description").textValue());
   }
 }

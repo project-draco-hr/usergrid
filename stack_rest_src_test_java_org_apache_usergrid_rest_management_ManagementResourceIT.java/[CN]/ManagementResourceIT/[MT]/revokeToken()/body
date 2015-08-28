@@ -5,14 +5,14 @@
   response=management.users().user(clientSetup.getUsername()).get();
   assertNotNull(response.get("email").toString());
   response=management.users().user(clientSetup.getUsername()).revokeTokens().post(true,Entity.class,null,null,false);
-  Status status=null;
+  Response.Status status=null;
   try {
     response=management.users().user(clientSetup.getUsername()).get();
   }
- catch (  UniformInterfaceException uie) {
-    status=uie.getResponse().getClientResponseStatus();
+ catch (  ResponseProcessingException uie) {
+    status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
   }
-  assertEquals(Status.UNAUTHORIZED,status);
+  assertEquals(Response.Status.UNAUTHORIZED,status);
   Token token3=management.token().get(clientSetup.getUsername(),clientSetup.getPassword());
   response=management.users().user(clientSetup.getUsername()).get();
   assertNotNull(response.get("email").toString());
@@ -23,8 +23,8 @@
   try {
     management.users().user(clientSetup.getUsername()).get();
   }
- catch (  UniformInterfaceException uie) {
-    status=uie.getResponse().getClientResponseStatus();
+ catch (  ResponseProcessingException uie) {
+    status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
   }
-  assertEquals(Status.UNAUTHORIZED,status);
+  assertEquals(Response.Status.UNAUTHORIZED,status);
 }

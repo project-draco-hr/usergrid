@@ -8,30 +8,30 @@
   Organization organization=new Organization(orgName,username,email,name,password,payload);
   Organization node=management().orgs().post(organization);
   management.token().get(clientSetup.getUsername(),clientSetup.getPassword());
-  Status status=null;
+  Response.Status status=null;
   String returnVal="";
   try {
     returnVal=this.management().orgs().org(orgName).get(String.class);
   }
- catch (  UniformInterfaceException uie) {
-    status=uie.getResponse().getClientResponseStatus();
+ catch (  ResponseProcessingException uie) {
+    status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
   }
   assertNotNull(status);
-  assertEquals(Status.UNAUTHORIZED,status);
+  assertEquals(Response.Status.UNAUTHORIZED,status);
   status=null;
   try {
     this.management().orgs().org(this.clientSetup.getOrganizationName()).get(String.class);
   }
- catch (  UniformInterfaceException uie) {
-    status=uie.getResponse().getClientResponseStatus();
+ catch (  ResponseProcessingException uie) {
+    status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
   }
   assertNull(status);
   status=null;
   try {
     this.management().orgs().org(this.clientSetup.getOrganizationName()).get(String.class);
   }
- catch (  UniformInterfaceException uie) {
-    status=uie.getResponse().getClientResponseStatus();
+ catch (  ResponseProcessingException uie) {
+    status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
   }
   assertNull(status);
 }

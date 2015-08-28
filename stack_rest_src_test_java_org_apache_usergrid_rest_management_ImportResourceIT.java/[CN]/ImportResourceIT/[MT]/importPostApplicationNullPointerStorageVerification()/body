@@ -1,7 +1,7 @@
 {
   String org=clientSetup.getOrganizationName();
   String app=clientSetup.getAppName();
-  ClientResponse.Status responseStatus=ClientResponse.Status.OK;
+  Response.Status responseStatus=Response.Status.OK;
   Entity payload=payloadBuilder();
   Entity properties=(Entity)payload.get("properties");
   Entity storage_info=(Entity)properties.get("storage_info");
@@ -9,10 +9,10 @@
   try {
     this.management().orgs().org(org).app().addToPath(app).addToPath("imports").post(Entity.class,payload);
   }
- catch (  UniformInterfaceException uie) {
-    responseStatus=uie.getResponse().getClientResponseStatus();
+ catch (  ResponseProcessingException uie) {
+    responseStatus=Response.Status.fromStatusCode(uie.getResponse().getStatus());
   }
-  assertEquals(ClientResponse.Status.BAD_REQUEST,responseStatus);
+  assertEquals(Response.Status.BAD_REQUEST,responseStatus);
   payload=payloadBuilder();
   properties=(Entity)payload.get("properties");
   storage_info=(Entity)properties.get("storage_info");
@@ -20,10 +20,10 @@
   try {
     this.management().orgs().org(org).app().addToPath(app).addToPath("imports").post(Entity.class,payload);
   }
- catch (  UniformInterfaceException uie) {
-    responseStatus=uie.getResponse().getClientResponseStatus();
+ catch (  ResponseProcessingException uie) {
+    responseStatus=Response.Status.fromStatusCode(uie.getResponse().getStatus());
   }
-  assertEquals(ClientResponse.Status.BAD_REQUEST,responseStatus);
+  assertEquals(Response.Status.BAD_REQUEST,responseStatus);
   payload=payloadBuilder();
   properties=(Entity)payload.get("properties");
   storage_info=(Entity)properties.get("storage_info");
@@ -31,8 +31,8 @@
   try {
     this.management().orgs().org(org).app().addToPath(app).addToPath("imports").post(Entity.class,payload);
   }
- catch (  UniformInterfaceException uie) {
-    responseStatus=uie.getResponse().getClientResponseStatus();
+ catch (  ResponseProcessingException uie) {
+    responseStatus=Response.Status.fromStatusCode(uie.getResponse().getStatus());
   }
-  assertEquals(ClientResponse.Status.BAD_REQUEST,responseStatus);
+  assertEquals(Response.Status.BAD_REQUEST,responseStatus);
 }

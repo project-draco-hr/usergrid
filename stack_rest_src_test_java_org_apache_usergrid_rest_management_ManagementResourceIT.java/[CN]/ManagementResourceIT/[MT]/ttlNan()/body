@@ -1,11 +1,11 @@
 {
   Map<String,String> payload=hashMap("grant_type","password").map("username",clientSetup.getUsername()).map("password",clientSetup.getPassword()).map("ttl","derp");
-  Status responseStatus=null;
+  Response.Status responseStatus=null;
   try {
     management.token().post(JsonNode.class,payload);
   }
- catch (  UniformInterfaceException uie) {
-    responseStatus=uie.getResponse().getClientResponseStatus();
+ catch (  ResponseProcessingException uie) {
+    responseStatus=Response.Status.fromStatusCode(uie.getResponse().getStatus());
   }
-  assertEquals(Status.BAD_REQUEST,responseStatus);
+  assertEquals(Response.Status.BAD_REQUEST,responseStatus);
 }

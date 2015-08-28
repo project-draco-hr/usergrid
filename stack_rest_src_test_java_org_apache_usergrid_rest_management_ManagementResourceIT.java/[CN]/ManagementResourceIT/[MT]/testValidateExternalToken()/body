@@ -21,9 +21,9 @@
       validatedNode=management.externaltoken().get(Entity.class,queryParams);
       fail("Validation should have failed");
     }
- catch (    UniformInterfaceException actual) {
+ catch (    ResponseProcessingException actual) {
       assertEquals(404,actual.getResponse().getStatus());
-      String errorMsg=actual.getResponse().getEntity(JsonNode.class).get("error_description").toString();
+      String errorMsg=actual.getResponse().readEntity(JsonNode.class).get("error_description").toString();
       logger.error("ERROR: " + errorMsg);
       assertTrue(errorMsg.contains("Cannot find Admin User"));
     }
