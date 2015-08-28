@@ -1,0 +1,36 @@
+{
+  Entity e1=new Entity();
+  e1.put("name","entity1");
+  e1=this.app().collection(collectionName).post(e1);
+  assertNotNull(e1);
+  Entity e2=new Entity();
+  e2.put("name","entity2");
+  e2=this.app().collection(collectionName).post(e2);
+  assertNotNull(e2);
+  Entity e3=new Entity();
+  e3.put("name","entity3");
+  e3=this.app().collection(collectionName).post(e3);
+  assertNotNull(e3);
+  refreshIndex();
+  this.app().collection(collectionName).entity(e1).connection("hates").entity(e3).post();
+  this.app().collection(collectionName).entity(e2).connection("likes").entity(e1).post();
+  refreshIndex();
+  checkMetadata(e1,null,"hates","likes");
+  checkMetadata(e1,"all","hates","likes");
+  checkMetadata(e1,"foo","hates","likes");
+  checkMetadata(e2,null,"likes",null);
+  checkMetadata(e2,"all","likes",null);
+  checkMetadata(e2,"foo","likes",null);
+  checkMetadata(e3,null,null,"hates");
+  checkMetadata(e3,"all",null,"hates");
+  checkMetadata(e3,"foo",null,"hates");
+  checkMetadata(e1,"none",null,null);
+  checkMetadata(e2,"none",null,null);
+  checkMetadata(e3,"none",null,null);
+  checkMetadata(e1,"in",null,"likes");
+  checkMetadata(e2,"in",null,null);
+  checkMetadata(e3,"in",null,"hates");
+  checkMetadata(e1,"out","hates",null);
+  checkMetadata(e2,"out","likes",null);
+  checkMetadata(e3,"out",null,null);
+}

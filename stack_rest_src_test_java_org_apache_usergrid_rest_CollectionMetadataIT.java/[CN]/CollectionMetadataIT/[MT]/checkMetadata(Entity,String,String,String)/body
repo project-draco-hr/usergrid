@@ -1,0 +1,23 @@
+{
+  QueryParameters params=new QueryParameters();
+  if (paramStr != null)   params.setConnections(paramStr);
+  Entity e=this.app().collection(collectionName).entity(origEntity).get(params,true);
+  Map<String,Object> metadata=(Map<String,Object>)e.get("metadata");
+  assertNotNull(metadata);
+  Map<String,Object> connections=(Map<String,Object>)metadata.get("connections");
+  if (connectionsType != null) {
+    assertNotNull(connections);
+    assertNotNull(connections.get(connectionsType));
+  }
+ else {
+    assertNull(connections);
+  }
+  Map<String,Object> connecting=(Map<String,Object>)metadata.get("connecting");
+  if (connectingType != null) {
+    assertNotNull(connecting);
+    assertNotNull(connecting.get(connectingType));
+  }
+ else {
+    assertNull(connecting);
+  }
+}
