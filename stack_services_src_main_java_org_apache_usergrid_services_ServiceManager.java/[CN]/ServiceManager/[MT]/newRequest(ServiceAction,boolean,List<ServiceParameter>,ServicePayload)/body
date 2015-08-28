@@ -1,22 +1,3 @@
 {
-  if (em != null) {
-    if (action != null) {
-      em.incrementAggregateCounters(null,null,null,APPLICATION_REQUESTS_PER.concat(action.toString().toLowerCase()),1);
-    }
-  }
-  if (!ServiceParameter.moreParameters(parameters)) {
-    return getApplicationRequest(action,returnsTree,parameters,payload);
-  }
-  if (!ServiceParameter.firstParameterIsName(parameters)) {
-    return null;
-  }
-  String nameParam=ServiceParameter.firstParameter(parameters).getName();
-  if (appService.hasEntityCommand(nameParam) || appService.hasEntityDictionary(nameParam)) {
-    return getApplicationRequest(action,returnsTree,parameters,payload);
-  }
-  if (action == ServiceAction.POST && ServiceParameter.lastParameterIsName(parameters) && "notifications".equals(parameters.get(parameters.size() - 1).getName())) {
-    return new ServiceRequest(this,action,"notifications",parameters,payload,returnsTree);
-  }
-  String serviceName=pluralize(ServiceParameter.dequeueParameter(parameters).getName());
-  return new ServiceRequest(this,action,serviceName,parameters,payload,returnsTree);
+  return newRequest(action,returnsTree,parameters,payload,true,true);
 }
