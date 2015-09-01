@@ -7,7 +7,7 @@ def run(self):
     try:
         migration_system_updated = self.is_migration_system_updated()
         if (not migration_system_updated):
-            self.logger.info('Migration system needs to updated.  Updating migration system..')
+            self.logger.info('Migration system needs to be updated.  Updating migration system..')
             self.start_migration_system_update()
             while (not migration_system_updated):
                 time.sleep(STATUS_INTERVAL_SECONDS)
@@ -32,6 +32,15 @@ def run(self):
             self.logger.info('AppInfo Migration Ended.')
         else:
             self.logger.info('Full Data Migration previously ran... skipping AppInfo migration.')
+        index_mapping_updated = self.is_index_mapping_updated()
+        if (not index_mapping_updated):
+            self.logger.info('Index Mapping needs to be updated.  Updating index mapping..')
+            self.start_index_mapping_migration()
+            while (not index_mapping_updated):
+                time.sleep(STATUS_INTERVAL_SECONDS)
+                index_mapping_updated = self.is_index_mapping_updated()
+                if index_mapping_updated:
+                    break
         job = self.start_reindex()
         self.metrics['reindex_start'] = get_current_time()
         self.logger.info('Started Re-index.  Job=[%s]', job)
