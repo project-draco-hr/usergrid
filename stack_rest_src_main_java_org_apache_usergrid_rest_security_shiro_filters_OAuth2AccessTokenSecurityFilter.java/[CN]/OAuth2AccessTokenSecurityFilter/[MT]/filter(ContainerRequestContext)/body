@@ -1,4 +1,5 @@
 {
+  logger.debug("Filtering: " + request.getUriInfo().getBaseUri());
   try {
     try {
       String accessToken=httpServletRequest.getParameter("access_token");
@@ -27,11 +28,11 @@ catch (      IndexOutOfBoundsException ioobe) {
         throw mappableSecurityException(BAD_ACCESS_TOKEN_ERROR);
       }
 catch (      Exception e) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Unable to verify OAuth token: " + accessToken,e);
+        if (logger.isDebugEnabled()) {
+          logger.debug("Unable to verify OAuth token: " + accessToken,e);
         }
  else {
-          LOG.warn("Unable to verify OAuth token");
+          logger.warn("Unable to verify OAuth token");
         }
         throw mappableSecurityException(UNVERIFIED_OAUTH_ERROR);
       }
@@ -48,7 +49,7 @@ catch (      Exception e) {
           throw mappableSecurityException(e,BAD_ACCESS_TOKEN_ERROR);
         }
 catch (        Exception e) {
-          LOG.error("failed to get admin user info from access token",e);
+          logger.error("failed to get admin user info from access token",e);
         }
         if (user == null) {
           throw mappableSecurityException(BAD_ACCESS_TOKEN_ERROR);
@@ -64,7 +65,7 @@ catch (        Exception e) {
           throw mappableSecurityException(e,BAD_ACCESS_TOKEN_ERROR);
         }
 catch (        Exception e) {
-          LOG.error("failed to get app user from access token",e);
+          logger.error("failed to get app user from access token",e);
         }
         if (user == null) {
           throw mappableSecurityException(BAD_ACCESS_TOKEN_ERROR);
@@ -80,7 +81,7 @@ catch (        Exception e) {
           throw mappableSecurityException(e,BAD_ACCESS_TOKEN_ERROR);
         }
 catch (        Exception e) {
-          LOG.error("failed to get organization info from access token",e);
+          logger.error("failed to get organization info from access token",e);
         }
         if (organization == null) {
           throw mappableSecurityException(BAD_ACCESS_TOKEN_ERROR);
@@ -96,7 +97,7 @@ catch (        Exception e) {
           throw mappableSecurityException(e,BAD_ACCESS_TOKEN_ERROR);
         }
 catch (        Exception e) {
-          LOG.error("failed to get application info from access token",e);
+          logger.error("failed to get application info from access token",e);
         }
         if (application == null) {
           throw mappableSecurityException(BAD_ACCESS_TOKEN_ERROR);

@@ -12,7 +12,7 @@
     userResource.entity("test_1").connection("token").get(new QueryParameters().addParam("access_token","blah"),false);
     assertTrue(false);
   }
- catch (  ResponseProcessingException uie) {
+ catch (  ClientErrorException uie) {
     status=uie.getResponse().getStatus();
     log.info("Error Response Body: " + uie.getResponse().readEntity(String.class));
   }
@@ -21,7 +21,7 @@
     userResource.entity("test_2").connection("token").get(new QueryParameters().addParam("access_token",token.getAccessToken()),false);
     assertTrue(false);
   }
- catch (  ResponseProcessingException uie) {
+ catch (  ClientErrorException uie) {
     status=uie.getResponse().getStatus();
     log.info("Error Response Body: " + uie.getResponse().readEntity(String.class));
   }
@@ -37,7 +37,7 @@
     this.app().token().post(new Token("test_1","test123"));
     fail("request for deactivated user should fail");
   }
- catch (  ResponseProcessingException uie) {
+ catch (  ClientErrorException uie) {
     status=uie.getResponse().getStatus();
     JsonNode body=mapper.readTree(uie.getResponse().readEntity(String.class));
     assertEquals("user not activated",body.findPath("error_description").textValue());

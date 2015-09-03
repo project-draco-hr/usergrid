@@ -3,7 +3,9 @@
   resource=addParametersToResource(resource,queryParameters);
   Invocation.Builder builder=resource.request().accept(MediaType.APPLICATION_JSON);
   if (useBasicAuthentication) {
-    builder=builder.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME,"superuser").property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD,"superpassword");
+    String uname=(String)entity.get("username");
+    String pword=(String)entity.get("password");
+    builder=builder.property(HTTP_AUTHENTICATION_BASIC_USERNAME,uname).property(HTTP_AUTHENTICATION_BASIC_PASSWORD,pword);
   }
   GenericType<T> gt=new GenericType<>((Class)type);
   return builder.post(javax.ws.rs.client.Entity.json(entity),gt);

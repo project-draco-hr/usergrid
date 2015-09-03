@@ -1,9 +1,10 @@
 {
-  String username="test" + UUIDUtils.newTimeUUID();
-  String name="someguy2";
-  String email="someguy" + "@usergrid.com";
+  String differentiator=UUIDUtils.newTimeUUID().toString();
+  String username="test" + differentiator;
+  String name="someguy2" + differentiator;
+  String email="someguy" + differentiator + "@usergrid.com";
   String password="password";
-  String orgName="someneworg" + UUIDUtils.newTimeUUID();
+  String orgName="someneworg" + differentiator;
   Entity payload=new Entity().chainPut("company","Apigee");
   Organization organization=new Organization(orgName,username,email,name,password,payload);
   Organization node=management().orgs().post(organization);
@@ -13,7 +14,7 @@
   try {
     returnVal=this.management().orgs().org(orgName).get(String.class);
   }
- catch (  ResponseProcessingException uie) {
+ catch (  ClientErrorException uie) {
     status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
   }
   assertNotNull(status);
@@ -22,7 +23,7 @@
   try {
     this.management().orgs().org(this.clientSetup.getOrganizationName()).get(String.class);
   }
- catch (  ResponseProcessingException uie) {
+ catch (  ClientErrorException uie) {
     status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
   }
   assertNull(status);
@@ -30,7 +31,7 @@
   try {
     this.management().orgs().org(this.clientSetup.getOrganizationName()).get(String.class);
   }
- catch (  ResponseProcessingException uie) {
+ catch (  ClientErrorException uie) {
     status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
   }
   assertNull(status);

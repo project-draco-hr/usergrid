@@ -1,4 +1,5 @@
 {
+  logger.info("Filtering: " + request.getUriInfo().getBaseUri());
   Map<String,String> auth_types=getAuthTypes(request);
   if ((auth_types == null) || !auth_types.containsKey(AUTH_BASIC_TYPE)) {
     return;
@@ -14,6 +15,6 @@
   boolean sysadmin_login_allowed=Boolean.parseBoolean(properties.getProperty("usergrid.sysadmin.login.allowed"));
   if (name.equals(sysadmin_login_name) && password.equals(sysadmin_login_password) && sysadmin_login_allowed) {
     request.setSecurityContext(new SysAdminRoleAuthenticator());
-    logger.info("System administrator access allowed");
+    logger.debug("System administrator access allowed");
   }
 }

@@ -11,14 +11,14 @@
     management().users().user(clientSetup.getUsername()).get();
     fail("Token1 should have been revoked");
   }
- catch (  ResponseProcessingException uie) {
+ catch (  ClientErrorException uie) {
     assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(),uie.getResponse().getStatus());
   }
   try {
     management().token().setToken(token2);
     management().users().user(clientSetup.getUsername()).get();
   }
- catch (  ResponseProcessingException uie) {
+ catch (  ClientErrorException uie) {
     fail("Token2 shouldn't have been revoked");
   }
 }

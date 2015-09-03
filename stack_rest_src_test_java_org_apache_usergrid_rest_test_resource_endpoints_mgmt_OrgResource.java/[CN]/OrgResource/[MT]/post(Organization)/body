@@ -1,6 +1,11 @@
 {
-  String responseString=getTarget(false).request().accept(MediaType.APPLICATION_JSON).post(Entity.json(organization),String.class);
-  logger.debug("Response from post: " + responseString);
+  String responseString=null;
+  try {
+    responseString=getTarget(false).request().accept(MediaType.APPLICATION_JSON).post(Entity.json(organization),String.class);
+  }
+ catch (  ClientErrorException e) {
+    logger.info("Response from post: " + e.getMessage() + ": "+ e.getResponse().readEntity(String.class));
+  }
   ObjectMapper mapper=new ObjectMapper();
   ApiResponse response;
   try {

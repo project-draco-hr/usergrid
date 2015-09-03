@@ -19,14 +19,14 @@
       ApiResponse postResponse=pathResource("management/token").post(false,ApiResponse.class,loginInfo);
       fail("Login as Admin User must fail when validate external tokens is enabled");
     }
- catch (    ResponseProcessingException actual) {
+ catch (    ClientErrorException actual) {
       assertEquals(400,actual.getResponse().getStatus());
       String errorMsg=actual.getResponse().readEntity(JsonNode.class).get("error_description").toString();
       logger.error("ERROR: " + errorMsg);
       assertTrue(errorMsg.contains("Admin Users must login via"));
     }
 catch (    Exception e) {
-      fail("We expected a ResponseProcessingException");
+      fail("We expected a ClientErrorException");
     }
     Map<String,Object> loginInfo=new HashMap<String,Object>(){
 {

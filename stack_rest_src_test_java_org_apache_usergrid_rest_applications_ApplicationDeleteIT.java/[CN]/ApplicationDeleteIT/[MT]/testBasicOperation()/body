@@ -4,21 +4,14 @@
   Token orgAdminToken=getAdminToken(clientSetup.getUsername(),clientSetup.getUsername());
   List<Entity> entities=new ArrayList<>();
   UUID appToDeleteId=createAppWithCollection(orgName,appToDeleteName,orgAdminToken,entities);
-  try {
-    clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).request().delete();
-    fail("Delete must fail without app_delete_confirm parameter");
-  }
- catch (  ResponseProcessingException expected) {
-    Assert.assertEquals("Error must be 400",400,expected.getResponse().getStatus());
-    JsonNode node=mapper.readTree(expected.getResponse().readEntity(String.class));
-    Assert.assertEquals("Cannot delete application without app_delete_confirm parameter",node.get("error_description").textValue());
-  }
+  final Response response=clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).request().delete();
+  Assert.assertEquals("Error must be 400",400,response.getStatus());
   clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("app_delete_confirm","confirm_delete_of_application_and_data").request().delete();
   try {
     clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteName).getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).request().get(ApiResponse.class);
     fail("Must not be able to get deleted app");
   }
- catch (  ResponseProcessingException expected) {
+ catch (  ClientErrorException expected) {
     Assert.assertEquals("Error must be 404",404,expected.getResponse().getStatus());
     JsonNode node=mapper.readTree(expected.getResponse().readEntity(String.class));
     Assert.assertEquals("entity_not_found",node.get("error").textValue());
@@ -27,7 +20,7 @@
     clientSetup.getRestClient().org(orgName).app(appToDeleteName).getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).request().get(ApiResponse.class);
     fail("Must not be able to get deleted app");
   }
- catch (  ResponseProcessingException expected) {
+ catch (  ClientErrorException expected) {
     Assert.assertEquals("Error must be 404",404,expected.getResponse().getStatus());
     JsonNode node=mapper.readTree(expected.getResponse().readEntity(String.class));
     Assert.assertEquals("organization_application_not_found",node.get("error").textValue());
@@ -36,7 +29,7 @@
     clientSetup.getRestClient().org(orgName).app(appToDeleteName).collection("things").getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).request().get(ApiResponse.class);
     fail("Must not be able to get deleted app's collection");
   }
- catch (  ResponseProcessingException expected) {
+ catch (  ClientErrorException expected) {
     Assert.assertEquals("Error must be 400",404,expected.getResponse().getStatus());
     JsonNode node=mapper.readTree(expected.getResponse().readEntity(String.class));
     Assert.assertEquals("organization_application_not_found",node.get("error").textValue());
@@ -46,7 +39,7 @@
     clientSetup.getRestClient().org(orgName).app(appToDeleteName).collection("things").entity(entityId).getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).request().get(ApiResponse.class);
     fail("Must not be able to get deleted app entity");
   }
- catch (  ResponseProcessingException expected) {
+ catch (  ClientErrorException expected) {
     Assert.assertEquals("Error must be 400",404,expected.getResponse().getStatus());
     JsonNode node=mapper.readTree(expected.getResponse().readEntity(String.class));
     Assert.assertEquals("organization_application_not_found",node.get("error").textValue());
@@ -58,15 +51,8 @@
       fail("Deleted app must not be included in list of org apps");
     }
   }
-  try {
-    clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("app_delete_confirm","confirm_delete_of_application_and_data").request().delete();
-    fail("Can't delete a non existent app twice");
-  }
- catch (  ResponseProcessingException expected) {
-    Assert.assertEquals("Error must be 404",404,expected.getResponse().getStatus());
-    JsonNode node=mapper.readTree(expected.getResponse().readEntity(String.class));
-    Assert.assertEquals("entity_not_found",node.get("error").textValue());
-  }
+  final Response response1=clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("app_delete_confirm","confirm_delete_of_application_and_data").request().delete();
+  Assert.assertEquals("Error must be 404",404,response1.getStatus());
   ApiResponse appCreateAgainResponse=clientSetup.getRestClient().management().orgs().org(orgName).app().getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).request().post(javax.ws.rs.client.Entity.json(new Application(appToDeleteName)),ApiResponse.class);
   Assert.assertEquals("Must be able to create app with same name as deleted app",(orgName + "/" + appToDeleteName).toLowerCase(),appCreateAgainResponse.getEntities().get(0).get("name"));
 }

@@ -6,11 +6,6 @@
   UUID appToDeleteId=createAppWithCollection(orgName,appToDeleteName,orgAdminToken,entities);
   clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("app_delete_confirm","confirm_delete_of_application_and_data").request().delete();
   UUID newAppId=createAppWithCollection(orgName,appToDeleteName,orgAdminToken,entities);
-  try {
-    clientSetup.getRestClient().management().orgs().org(orgName).apps().app(newAppId.toString()).getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("app_delete_confirm","confirm_delete_of_application_and_data").request().delete();
-    fail("Must fail to delete app with same name as deleted app");
-  }
- catch (  ResponseProcessingException e) {
-    Assert.assertEquals(409,e.getResponse().getStatus());
-  }
+  final Response response=clientSetup.getRestClient().management().orgs().org(orgName).apps().app(newAppId.toString()).getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("app_delete_confirm","confirm_delete_of_application_and_data").request().delete();
+  Assert.assertEquals(409,response.getStatus());
 }

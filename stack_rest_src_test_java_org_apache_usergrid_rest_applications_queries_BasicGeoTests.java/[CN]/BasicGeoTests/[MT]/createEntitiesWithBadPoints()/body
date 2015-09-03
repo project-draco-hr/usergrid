@@ -10,7 +10,7 @@
     node=this.app().collection(collectionType).post(latitudeOnlyEntityData).getEntity();
     fail("System allowed location with only one point, latitude, which it should not");
   }
- catch (  ResponseProcessingException e) {
+ catch (  ClientErrorException e) {
     JsonNode nodeError=mapper.readTree(e.getResponse().readEntity(String.class));
     assertEquals("illegal_argument",nodeError.get("error").textValue());
   }
@@ -22,7 +22,7 @@
     node=this.app().collection(collectionType).post(notDoubleLatLonEntityData).getEntity();
     fail("System allowed misspelled location values that are not doubles for latitude and longitude, which it should not");
   }
- catch (  ResponseProcessingException e) {
+ catch (  ClientErrorException e) {
     JsonNode nodeError=mapper.readTree(e.getResponse().readEntity(String.class));
     assertEquals("illegal_argument",nodeError.get("error").textValue());
   }
