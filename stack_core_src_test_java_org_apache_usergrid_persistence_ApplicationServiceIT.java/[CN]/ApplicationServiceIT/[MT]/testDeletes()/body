@@ -1,0 +1,13 @@
+{
+  EntityManager entityManager=this.app.getEntityManager();
+  Map<String,Object> map=new HashMap<>();
+  Entity entity=entityManager.create("tests",map);
+  this.app.refreshIndex();
+  Thread.sleep(500);
+  Observable<Id> ids=this.app.getApplicationService().deleteAllEntities(CpNamingUtils.getApplicationScope(entityManager.getApplicationId()));
+  ids.toBlocking().last();
+  this.app.refreshIndex();
+  Thread.sleep(500);
+  entity=entityManager.get(entity);
+  Assert.assertNull(entity);
+}
