@@ -19,8 +19,13 @@
   SimpleSearchByEdgeType simpleSearchByEdgeType=new SimpleSearchByEdgeType(appScope.getApplication(),CpNamingUtils.getEdgeTypeFromCollectionName("tests"),Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING,Optional.<Edge>absent());
   Iterator<Edge> results=graphManager.loadEdgesFromSource(simpleSearchByEdgeType).toBlocking().getIterator();
   if (results.hasNext()) {
-    Assert.fail();
+    Assert.fail("should be empty");
   }
  else {
+    Results searchCollection=entityManager.searchCollection(entityManager.getApplication(),"tests",Query.all());
+    Assert.assertEquals(searchCollection.size(),0);
+    AggregationServiceFactory aggregationServiceFactory=injector.getInstance(AggregationServiceFactory.class);
+    long size=aggregationServiceFactory.getAggregationService().getCollectionSize(appScope,"tests");
+    Assert.assertEquals(size,0);
   }
 }
