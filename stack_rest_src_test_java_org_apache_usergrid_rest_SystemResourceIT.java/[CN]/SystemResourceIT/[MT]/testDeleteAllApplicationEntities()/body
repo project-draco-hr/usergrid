@@ -1,9 +1,14 @@
 {
+  int count=10;
+  for (int i=0; i < count; i++) {
+    this.app().collection("tests").post(new Entity().chainPut("testval","test"));
+  }
+  this.refreshIndex();
   QueryParameters queryParameters=new QueryParameters();
   queryParameters.addParam("access_token",clientSetup.getSuperuserToken().getAccessToken());
   queryParameters.addParam("confirmApplicationId",this.clientSetup.getAppUuid());
   org.apache.usergrid.rest.test.resource.model.ApiResponse result=clientSetup.getRestClient().system().applications(this.clientSetup.getAppUuid()).delete(queryParameters);
   assertNotNull(result);
   assertNotNull("ok",result.getStatus());
-  assertEquals(((LinkedHashMap)result.getData()).get("count"),0);
+  assertEquals(((LinkedHashMap)result.getData()).get("count"),count);
 }
