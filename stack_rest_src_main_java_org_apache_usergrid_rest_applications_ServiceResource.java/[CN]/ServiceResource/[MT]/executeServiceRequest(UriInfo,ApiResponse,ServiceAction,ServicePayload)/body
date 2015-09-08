@@ -10,13 +10,25 @@
       returnOutboundConnections=false;
     }
  else     if ("in".equalsIgnoreCase(connectionQueryParm)) {
+      returnInboundConnections=true;
       returnOutboundConnections=false;
     }
  else     if ("out".equalsIgnoreCase(connectionQueryParm)) {
       returnInboundConnections=false;
+      returnOutboundConnections=true;
     }
- else     if (!"all".equalsIgnoreCase(connectionQueryParm)) {
-      if (connectionQueryParm != null)       logger.error(String.format("Invalid connection query parameter=%s, ignoring.",connectionQueryParm));
+ else     if ("all".equalsIgnoreCase(connectionQueryParm)) {
+      returnInboundConnections=true;
+      returnOutboundConnections=true;
+    }
+ else {
+      if (connectionQueryParm != null) {
+        logger.error(String.format("Invalid connections query parameter=%s, ignoring.",connectionQueryParm));
+      }
+      OrganizationConfig orgConfig=management.getOrganizationConfigForApplication(services.getApplicationId());
+      String defaultConnectionQueryParm=orgConfig.getDefaultConnectionParam();
+      returnInboundConnections=(defaultConnectionQueryParm == "in") || (defaultConnectionQueryParm == "all");
+      returnOutboundConnections=(defaultConnectionQueryParm == "out") || (defaultConnectionQueryParm == "all");
     }
   }
   boolean collectionGet=false;
