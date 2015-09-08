@@ -1,6 +1,7 @@
 {
   final UsergridAwsCredentialsProvider ugProvider=new UsergridAwsCredentialsProvider();
-  final AmazonSNSAsyncClient sns=new AmazonSNSAsyncClient(ugProvider.getCredentials());
+  final Executor executor=TaskExecutorFactory.createTaskExecutor("amazon-async-io",queueFig.getAsyncMaxThreads(),queueFig.getAsyncQueueSize(),TaskExecutorFactory.RejectionAction.CALLERRUNS);
+  final AmazonSNSAsyncClient sns=new AmazonSNSAsyncClient(ugProvider.getCredentials(),(ExecutorService)executor);
   sns.setRegion(region);
   return sns;
 }
