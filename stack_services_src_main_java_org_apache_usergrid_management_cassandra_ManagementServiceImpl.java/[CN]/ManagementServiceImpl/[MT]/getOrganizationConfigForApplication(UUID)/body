@@ -1,0 +1,13 @@
+{
+  if (applicationInfoId == null) {
+    return null;
+  }
+  final EntityManager em=emf.getEntityManager(smf.getManagementAppId());
+  Results r=em.getSourceEntities(new SimpleEntityRef(CpNamingUtils.APPLICATION_INFO,applicationInfoId),ORG_APP_RELATIONSHIP,Group.ENTITY_TYPE,Level.ALL_PROPERTIES);
+  Entity entity=r.getEntity();
+  if (entity != null) {
+    Map properties=em.getDictionaryAsMap(entity,ORGANIZATION_CONFIG_DICTIONARY);
+    return new OrganizationConfig(entity.getUuid(),entity.getName(),properties);
+  }
+  return null;
+}
