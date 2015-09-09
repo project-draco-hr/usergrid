@@ -1,0 +1,13 @@
+{
+  final StatusService statusService=injector.getInstance(StatusService.class);
+  final ApiResponse response=createApiResponse();
+  response.setAction("clear application");
+  StatusService.JobStatus jobStatus=statusService.getStatus(applicationId,jobId).toBlocking().lastOrDefault(null);
+  Map<String,Object> data=new HashMap<>();
+  data.put("jobId",jobId);
+  data.put("status",jobStatus.getStatus().toString());
+  data.put("metadata",jobStatus.getData());
+  response.setData(data);
+  response.setSuccess();
+  return response;
+}
