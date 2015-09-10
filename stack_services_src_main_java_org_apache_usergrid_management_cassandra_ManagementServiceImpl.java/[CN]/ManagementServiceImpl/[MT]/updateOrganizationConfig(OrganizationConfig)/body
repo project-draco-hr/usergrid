@@ -1,0 +1,15 @@
+{
+  Map<String,Object> properties=organizationConfig.getProperties();
+  if (properties != null) {
+    EntityRef organizationEntity=new SimpleEntityRef(Group.ENTITY_TYPE,organizationConfig.getUuid());
+    EntityManager em=emf.getEntityManager(smf.getManagementAppId());
+    for (    Map.Entry<String,Object> entry : properties.entrySet()) {
+      if ("".equals(entry.getValue())) {
+        em.removeFromDictionary(organizationEntity,ORGANIZATION_CONFIG_DICTIONARY,entry.getKey());
+      }
+ else {
+        em.addToDictionary(organizationEntity,ORGANIZATION_CONFIG_DICTIONARY,entry.getKey(),entry.getValue());
+      }
+    }
+  }
+}
