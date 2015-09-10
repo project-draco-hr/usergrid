@@ -10,9 +10,26 @@
   Organization node=management().orgs().post(organization);
   management.token().get(clientSetup.getUsername(),clientSetup.getPassword());
   Response.Status status=null;
-  String returnVal="";
   try {
-    returnVal=this.management().orgs().org(orgName).get(String.class);
+    this.management().orgs().org(orgName).get(String.class);
+  }
+ catch (  ClientErrorException uie) {
+    status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
+  }
+  assertNotNull(status);
+  assertEquals(Response.Status.UNAUTHORIZED,status);
+  status=null;
+  try {
+    this.management().orgs().org(orgName).users().get(String.class);
+  }
+ catch (  ClientErrorException uie) {
+    status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
+  }
+  assertNotNull(status);
+  assertEquals(Response.Status.UNAUTHORIZED,status);
+  status=null;
+  try {
+    this.management().orgs().org(orgName).applications().get(String.class);
   }
  catch (  ClientErrorException uie) {
     status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
@@ -22,6 +39,22 @@
   status=null;
   try {
     this.management().orgs().org(this.clientSetup.getOrganizationName()).get(String.class);
+  }
+ catch (  ClientErrorException uie) {
+    status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
+  }
+  assertNull(status);
+  status=null;
+  try {
+    this.management().orgs().org(this.clientSetup.getOrganizationName()).users().get(String.class);
+  }
+ catch (  ClientErrorException uie) {
+    status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
+  }
+  assertNull(status);
+  status=null;
+  try {
+    this.management().orgs().org(this.clientSetup.getOrganizationName()).applications().get(String.class);
   }
  catch (  ClientErrorException uie) {
     status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
