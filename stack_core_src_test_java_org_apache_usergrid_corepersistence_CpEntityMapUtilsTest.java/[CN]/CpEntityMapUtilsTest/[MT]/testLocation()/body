@@ -1,0 +1,20 @@
+{
+  Map<String,Object> locMap=new HashMap<>();
+  locMap.put("latitude",123.1);
+  locMap.put("longitude",123.1);
+  Map<String,Object> properties=new LinkedHashMap<String,Object>();
+  properties.put("location",locMap);
+  Entity cpEntity=CpEntityMapUtils.fromMap(properties,"loc",true);
+  assertTrue(cpEntity.getFieldMap().get("location") instanceof LocationField);
+  locMap=new HashMap<>();
+  locMap.put("latitude",123.1);
+  locMap.put("lgnosoos",123.1);
+  properties=new LinkedHashMap<String,Object>();
+  properties.put("location",locMap);
+  cpEntity=CpEntityMapUtils.fromMap(properties,"loc",true);
+  assertNull(cpEntity.getFieldMap().get("location"));
+  properties=new LinkedHashMap<String,Object>();
+  properties.put("location","denver");
+  cpEntity=CpEntityMapUtils.fromMap(properties,"loc",true);
+  assertNull(cpEntity.getFieldMap().get("location"));
+}

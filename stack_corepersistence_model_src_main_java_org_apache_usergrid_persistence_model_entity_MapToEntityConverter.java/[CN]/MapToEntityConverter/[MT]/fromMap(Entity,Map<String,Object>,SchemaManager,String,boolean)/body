@@ -5,8 +5,13 @@
     }
     Object value=map.get(fieldName);
     boolean unique=schemaManager == null ? topLevel : topLevel && schemaManager.isPropertyUnique(entityType,fieldName);
+    if (fieldName.toLowerCase().equals(locationKey) && !(value instanceof Map)) {
+      logger.warn("can't map entity with location field");
+      continue;
+    }
     if (value instanceof String) {
-      entity.setField(new StringField(fieldName,(String)value,unique));
+      String stringValue=(String)value;
+      entity.setField(new StringField(fieldName,stringValue,unique));
     }
  else     if (value instanceof Boolean) {
       entity.setField(new BooleanField(fieldName,(Boolean)value,unique));

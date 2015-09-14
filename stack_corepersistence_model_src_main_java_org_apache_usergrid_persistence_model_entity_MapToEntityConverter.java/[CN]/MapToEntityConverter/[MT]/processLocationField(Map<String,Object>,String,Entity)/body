@@ -4,22 +4,22 @@
   for (  String key : origMap.keySet()) {
     m.put(key.toLowerCase(),origMap.get(key));
   }
-  if (m.size() >= 2) {
-    Double lat=null;
-    Double lon=null;
-    if (m.get("latitude") != null && m.get("longitude") != null) {
+  if (m.size() >= 2 && ((m.containsKey(lat) && m.containsKey(lon)) || (m.containsKey("lat") && m.containsKey("lon")))) {
+    Double latVal, lonVal;
+    if (m.containsKey(lat) && m.containsKey(lon)) {
       try {
-        lat=Double.parseDouble(m.get("latitude").toString());
-        lon=Double.parseDouble(m.get("longitude").toString());
+        latVal=Double.parseDouble(m.get(lat).toString());
+        lonVal=Double.parseDouble(m.get(lon).toString());
       }
  catch (      NumberFormatException ignored) {
         throw new IllegalArgumentException("Latitude and longitude must be doubles (e.g. 32.1234).");
       }
     }
- else     if (m.get("lat") != null && m.get("lon") != null) {
+ else     if (m.containsKey("lat") && m.containsKey("lon")) {
+      logger.warn("Entity contains latitude and longitude in old format location{lat,long}");
       try {
-        lat=Double.parseDouble(m.get("lat").toString());
-        lon=Double.parseDouble(m.get("lon").toString());
+        latVal=Double.parseDouble(m.get("lat").toString());
+        lonVal=Double.parseDouble(m.get("lon").toString());
       }
  catch (      NumberFormatException ignored) {
         throw new IllegalArgumentException("" + "Latitude and longitude must be doubles (e.g. 32.1234).");
@@ -28,14 +28,9 @@
  else {
       throw new IllegalArgumentException("Location properties require two fields - " + "latitude and longitude, or lat and lon");
     }
-    if (lat != null && lon != null) {
-      entity.setField(new LocationField(fieldName,new Location(lat,lon)));
-    }
- else {
-      throw new IllegalArgumentException("Unable to parse location field properties " + "- make sure they conform - lat and lon, and should be doubles.");
-    }
+    entity.setField(new LocationField(fieldName,new Location(latVal,lonVal)));
   }
  else {
-    throw new IllegalArgumentException("Location properties requires two fields - " + "latitude and longitude, or lat and lon.");
+    logger.warn("entity cannot process location values that don't have valid location{latitude,longitude} values");
   }
 }
