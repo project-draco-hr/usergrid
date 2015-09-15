@@ -17,6 +17,8 @@
   final Edge connection3=CpNamingUtils.createConnectionEdge(source,connectionType,target);
   final Edge written3=gm.writeEdge(connection3).toBlocking().last();
   logger.info("Wrote edge 3 with edge {}",written3);
+  assertTrue("Expected edge timestamp to be in order",written1.getTimestamp() <= written2.getTimestamp());
+  assertTrue("Expected edge timestamp to be in order",written2.getTimestamp() <= written3.getTimestamp());
   final List<ConnectionScope> deletedConnections=connectionService.deDupeConnections(Observable.just(applicationScope)).toList().toBlocking().last();
   assertEdgeData(written2,deletedConnections.get(0).getEdge());
   assertEdgeData(written3,deletedConnections.get(1).getEdge());

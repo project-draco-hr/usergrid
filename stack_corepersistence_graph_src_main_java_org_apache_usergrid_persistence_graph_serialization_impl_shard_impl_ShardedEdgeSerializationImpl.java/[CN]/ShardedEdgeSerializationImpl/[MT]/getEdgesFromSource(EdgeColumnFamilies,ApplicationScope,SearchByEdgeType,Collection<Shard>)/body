@@ -17,6 +17,10 @@
     @Override protected DirectedEdge createColumn(    final MarkedEdge last){
       return new DirectedEdge(last.getTargetNode(),last.getTimestamp());
     }
+    @Override protected void setTimeScan(    final RangeBuilder rangeBuilder){
+      final ByteBuffer buffer=EdgeSerializer.INSTANCE.fromTimeRange(maxTimestamp);
+      rangeBuilder.setStart(buffer);
+    }
     @Override protected MarkedEdge createEdge(    final DirectedEdge edge,    final boolean marked){
       return new SimpleMarkedEdge(sourceId,type,edge.id,edge.timestamp,marked);
     }
