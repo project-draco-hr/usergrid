@@ -1,0 +1,42 @@
+{
+  EntityManager em=app.getEntityManager();
+  assertNotNull(em);
+  List<Map<String,Object>> locations=new ArrayList<Map<String,Object>>();
+  locations.add(new LinkedHashMap<String,Object>(){
+{
+      put("name","norwest");
+      put("location","texas");
+    }
+  }
+);
+  locations.add(new LinkedHashMap<String,Object>(){
+{
+      put("type","store");
+      put("name","ashfield");
+      put("location","new jersey");
+    }
+  }
+);
+  for (  Map<String,Object> location : locations) {
+    Entity entity=em.create("store",location);
+    assertNotNull(entity);
+    LOG.debug("Entity {} created",entity.getProperty("name"));
+  }
+  app.refreshIndex();
+  Query query=new Query();
+  Results listResults=em.searchCollection(em.getApplicationRef(),"stores",query);
+  assertEquals("total number of 'stores'",locations.size(),listResults.size());
+  for (  Entity entity : listResults.entities) {
+    Object location=entity.getProperty("location");
+    assertNotNull(location);
+    assertTrue(location instanceof String);
+  }
+  query=Query.fromQL("select * where location='texas'");
+  listResults=em.searchCollection(em.getApplicationRef(),"stores",query);
+  assertEquals("total number of 'stores'",1,listResults.size());
+  for (  Entity entity : listResults.entities) {
+    Object location=entity.getProperty("location");
+    assertNotNull(location);
+    assertTrue(location instanceof String);
+  }
+}
