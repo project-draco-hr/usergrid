@@ -12,18 +12,12 @@
   assertEquals("Same entity",entity1,returned1);
   assertEquals("Same entity",entity2,returned2);
   final Observable<EntityIdScope> entityIdScope=Observable.just(new EntityIdScope(scope,entity1.getId()),new EntityIdScope(scope,entity2.getId()));
-  final MigrationDataProvider<EntityIdScope> migrationProvider=new MigrationDataProvider<EntityIdScope>(){
-    @Override public Observable<EntityIdScope> getData(){
-      return entityIdScope;
-    }
-  }
-;
   final TestProgressObserver progressObserver=new TestProgressObserver();
   final CollectionDataVersions startVersion=getSourceVersion();
   final MigrationRelationship<MvccEntitySerializationStrategy> tuple=versions.getMigrationRelationship(startVersion.getVersion());
   assertEquals("Same instance for from",v1Impl.getClass(),tuple.from.getClass());
   assertEquals("Same instance for to",v3Impl.getClass(),tuple.to.getClass());
-  final int newVersion=mvccEntityDataMigrationImpl.migrate(startVersion.getVersion(),migrationProvider,progressObserver);
+  final int newVersion=mvccEntityDataMigrationImpl.migrate(startVersion.getVersion(),progressObserver);
   final CollectionDataVersions expectedVersion=expectedTargetVersion();
   assertEquals("Correct version returned",newVersion,expectedVersion.getVersion());
   assertFalse("Progress observer should not have failed",progressObserver.isFailed());
