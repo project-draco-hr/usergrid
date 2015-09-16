@@ -14,7 +14,7 @@
   EntityUtils.setVersion(user,UUIDGenerator.newTimeUUID());
   EntityIndexBatch batch=entityIndex.createBatch();
   batch.index(indexSCope,user);
-  batch.execute().toBlocking().last();
+  indexProducer.put(batch).subscribe();
   entityIndex.refreshAsync().toBlocking().first();
   final String query="where string = 'I am*'";
   final CandidateResults r=entityIndex.search(indexSCope,SearchTypes.fromTypes(entityId.getType()),query,10,0);

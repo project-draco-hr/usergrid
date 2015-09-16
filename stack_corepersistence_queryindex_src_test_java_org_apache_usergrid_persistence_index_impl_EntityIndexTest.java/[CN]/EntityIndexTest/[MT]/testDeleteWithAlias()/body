@@ -9,7 +9,7 @@
   CandidateResults crs=testQuery(searchEdge,searchTypes,"name = 'Bowers Oneil'",1);
   EntityIndexBatch entityIndexBatch=entityIndex.createBatch();
   entityIndexBatch.deindex(searchEdge,crs.get(0));
-  entityIndexBatch.execute().toBlocking().last();
+  indexProducer.put(entityIndex.createBatch()).subscribe();
   entityIndex.refreshAsync().toBlocking().first();
   testQuery(searchEdge,searchTypes,"name = 'Bowers Oneil'",0);
 }
