@@ -1,0 +1,14 @@
+{
+  final String roleNameLowerCase=roleName.toLowerCase();
+  Set<String> permissions=getRolePermissions(roleNameLowerCase);
+  Iterator<String> itrPermissions=permissions.iterator();
+  while (itrPermissions.hasNext()) {
+    revokeRolePermission(roleNameLowerCase,itrPermissions.next());
+  }
+  removeFromDictionary(getApplicationRef(),DICTIONARY_ROLENAMES,roleNameLowerCase);
+  removeFromDictionary(getApplicationRef(),DICTIONARY_ROLETIMES,roleNameLowerCase);
+  final EntityRef entity=roleRef.isPresent() ? roleRef.get() : getRoleRef(roleNameLowerCase);
+  if (entity != null) {
+    delete(entity);
+  }
+}
