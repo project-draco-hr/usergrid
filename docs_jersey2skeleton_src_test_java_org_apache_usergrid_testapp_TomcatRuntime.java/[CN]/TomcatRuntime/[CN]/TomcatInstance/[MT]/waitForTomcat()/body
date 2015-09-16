@@ -1,0 +1,21 @@
+{
+  String url="http://localhost:" + port + "/status";
+  int count=0;
+  while (count++ < 30) {
+    try {
+      Thread.sleep(1000);
+      Client c=ClientBuilder.newClient();
+      WebTarget wr=c.target(url);
+      wr.request().get(String.class);
+      log.info("Tomcat is started.");
+      started=true;
+      break;
+    }
+ catch (    Exception e) {
+      log.info("Waiting for Tomcat on url {}",url);
+    }
+  }
+  if (!started) {
+    throw new RuntimeException("Tomcat process never started.");
+  }
+}
