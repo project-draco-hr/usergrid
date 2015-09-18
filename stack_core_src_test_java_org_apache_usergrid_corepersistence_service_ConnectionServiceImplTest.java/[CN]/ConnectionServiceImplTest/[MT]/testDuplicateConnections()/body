@@ -1,0 +1,30 @@
+{
+  final ApplicationScope applicationScope=new ApplicationScopeImpl(new SimpleId("application"));
+  final GraphManager gm=graphManagerFactory.createEdgeManager(applicationScope);
+  final Id source=new SimpleId("source");
+  final String collectionName="testCollection";
+  final Edge collectionEdge=CpNamingUtils.createCollectionEdge(applicationScope.getApplication(),collectionName,source);
+  final Edge writtenCollection=gm.writeEdge(collectionEdge).toBlocking().last();
+  assertNotNull("Collection edge written",writtenCollection);
+  final Id target=new SimpleId("target");
+  final String connectionType="testConnection";
+  final Edge connection1=CpNamingUtils.createConnectionEdge(source,connectionType,target);
+  final Edge written1=gm.writeEdge(connection1).toBlocking().last();
+  logger.info("Wrote edge 1 with edge {}",written1);
+  final Edge connection2=CpNamingUtils.createConnectionEdge(source,connectionType,target);
+  final Edge written2=gm.writeEdge(connection2).toBlocking().last();
+  logger.info("Wrote edge 2 with edge {}",written2);
+  final Edge connection3=CpNamingUtils.createConnectionEdge(source,connectionType,target);
+  final Edge written3=gm.writeEdge(connection3).toBlocking().last();
+  logger.info("Wrote edge 3 with edge {}",written3);
+  assertTrue("Expected edge timestamp to be in order",written1.getTimestamp() <= written2.getTimestamp());
+  assertTrue("Expected edge timestamp to be in order",written2.getTimestamp() <= written3.getTimestamp());
+  final List<ConnectionScope> deletedConnections=connectionService.deDupeConnections(Observable.just(applicationScope)).toList().toBlocking().last();
+  assertEdgeData(written2,deletedConnections.get(0).getEdge());
+  assertEdgeData(written3,deletedConnections.get(1).getEdge());
+  assertEquals("2 edges deleted",2,deletedConnections.size());
+  final SearchByEdge simpleSearchByEdge=new SimpleSearchByEdge(source,connection1.getType(),target,Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING,Optional.absent());
+  final List<Edge> edges=gm.loadEdgeVersions(simpleSearchByEdge).toList().toBlocking().last();
+  assertEquals(1,edges.size());
+  assertEquals(written1,edges.get(0));
+}

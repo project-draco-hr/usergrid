@@ -1,0 +1,25 @@
+{
+  GraphManager gm=emf.createEdgeManager(scope);
+  final Id sourceId=createId("source");
+  final Id target=createId("target");
+  final Edge edge1=createEdge(sourceId,"test",target,1,false);
+  gm.writeEdge(edge1).subscribe();
+  final Edge edge2=createEdge(sourceId,"test",target,2,false);
+  gm.writeEdge(edge2).subscribe();
+  final Edge edge3=createEdge(sourceId,"test",target,3,false);
+  gm.writeEdge(edge3).subscribe();
+  final SearchByEdge searchDescending=new SimpleSearchByEdge(edge1.getSourceNode(),edge1.getType(),edge1.getTargetNode(),Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING,Optional.<Edge>absent());
+  final Observable<Edge> edgesDescending=gm.loadEdgeVersions(searchDescending);
+  final List<Edge> descending=edgesDescending.toList().toBlocking().single();
+  assertEquals("Correct size returned",3,descending.size());
+  assertEquals("Correct edges returned",edge3,descending.get(0));
+  assertEquals("Correct edges returned",edge2,descending.get(1));
+  assertEquals("Correct edges returned",edge1,descending.get(2));
+  final SearchByEdge searchAscending=new SimpleSearchByEdge(edge1.getSourceNode(),edge1.getType(),edge1.getTargetNode(),0,SearchByEdgeType.Order.ASCENDING,Optional.<Edge>absent());
+  Observable<Edge> edgesAscending=gm.loadEdgeVersions(searchAscending);
+  List<Edge> ascending=edgesAscending.toList().toBlocking().single();
+  assertEquals("Correct size returned",3,ascending.size());
+  assertEquals("Correct edges returned",edge1,ascending.get(0));
+  assertEquals("Correct edges returned",edge2,ascending.get(1));
+  assertEquals("Correct edges returned",edge3,ascending.get(2));
+}

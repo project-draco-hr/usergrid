@@ -1,7 +1,7 @@
 {
-  DataMigration<T> migrationToExecute=null;
+  DataMigration migrationToExecute=null;
   final int version=migrationInfoSerialization.getVersion(getName());
-  for (  DataMigration<T> entityMigration : entityDataMigrations) {
+  for (  DataMigration entityMigration : entityDataMigrations) {
     if (entityMigration.supports(version)) {
       if (migrationToExecute != null) {
         throw new DataMigrationException("Two migrations attempted to migration the same version, this is not allowed.  Class '" + migrationToExecute.getClass().getName() + "' and class '"+ entityMigration.getClass().getName()+ "' both support this version. This means something is wired incorrectly");
@@ -14,7 +14,7 @@
     return false;
   }
   po.start();
-  final int newSystemVersion=migrationToExecute.migrate(version,entityIdScopeDataMigrationProvider,po);
+  final int newSystemVersion=migrationToExecute.migrate(version,po);
   migrationInfoSerialization.setVersion(getName(),newSystemVersion);
   po.complete();
   return true;
