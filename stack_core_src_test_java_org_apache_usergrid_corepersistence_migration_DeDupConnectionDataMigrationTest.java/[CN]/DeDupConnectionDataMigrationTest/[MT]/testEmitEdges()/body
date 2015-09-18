@@ -1,0 +1,19 @@
+{
+  final int version=0;
+  final ConnectionService connectionService=mock(ConnectionService.class);
+  final AllApplicationsObservable allApplicationsObservable=mock(AllApplicationsObservable.class);
+  final int count=3000;
+  final Observable<ConnectionScope> edgeEmitter=Observable.create(new DupConnectionEmitter(count));
+  when(connectionService.deDupeConnections(any(Observable.class))).thenReturn(edgeEmitter);
+  final DeDupConnectionDataMigration plugin=new DeDupConnectionDataMigration(connectionService,allApplicationsObservable);
+  final TestProgressObserver testProgressObserver=new TestProgressObserver();
+  plugin.migrate(version,testProgressObserver);
+  final List<String> updates=testProgressObserver.getUpdates();
+  assertEquals("Expected 3 updates",3,updates.size());
+  assertEquals("De duped 1000 edges",updates.get(0));
+  assertEquals("De duped 2000 edges",updates.get(1));
+  assertEquals("De duped 3000 edges",updates.get(2));
+  assertTrue("Should complete",testProgressObserver.isComplete());
+  assertTrue("Should start",testProgressObserver.isStarted());
+  assertFalse("Should not fail",testProgressObserver.isFailed());
+}
