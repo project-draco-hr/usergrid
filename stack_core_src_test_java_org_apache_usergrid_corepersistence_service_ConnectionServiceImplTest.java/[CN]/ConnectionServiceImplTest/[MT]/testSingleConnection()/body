@@ -1,0 +1,19 @@
+{
+  final ApplicationScope applicationScope=new ApplicationScopeImpl(new SimpleId("application"));
+  final GraphManager gm=graphManagerFactory.createEdgeManager(applicationScope);
+  final Id source=new SimpleId("source");
+  final String collectionName="testCollection";
+  final Edge collectionEdge=CpNamingUtils.createCollectionEdge(applicationScope.getApplication(),collectionName,source);
+  final Edge writtenCollection=gm.writeEdge(collectionEdge).toBlocking().last();
+  assertNotNull("Collection edge written",writtenCollection);
+  final Id target=new SimpleId("target");
+  final String connectionType="testConnection";
+  final Edge connectionEdge=CpNamingUtils.createConnectionEdge(source,connectionType,target);
+  final Edge writtenConnection=gm.writeEdge(connectionEdge).toBlocking().last();
+  final int count=connectionService.deDupeConnections(Observable.just(applicationScope)).count().toBlocking().last();
+  assertEquals("No edges deleted",0,count);
+  final SearchByEdge simpleSearchByEdge=new SimpleSearchByEdge(source,connectionEdge.getType(),target,Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING,Optional.absent());
+  final List<Edge> edges=gm.loadEdgeVersions(simpleSearchByEdge).toList().toBlocking().last();
+  assertEquals(1,edges.size());
+  assertEquals(writtenConnection,edges.get(0));
+}
