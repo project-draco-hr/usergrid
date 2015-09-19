@@ -4,6 +4,10 @@ synchronized (this) {
     Sender sender=new Sender(notifier.getApiKey());
     Message.Builder builder=new Message.Builder();
     builder.setData(payload);
+    if (payload.containsKey("time_to_live")) {
+      int ttl=(int)payload.get("time_to_live");
+      builder.timeToLive(ttl);
+    }
     Message message=builder.build();
     MulticastResult multicastResult=sender.send(message,ids,SEND_RETRIES);
     LOG.debug("sendNotification result: {}",multicastResult);
