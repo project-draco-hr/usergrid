@@ -1,0 +1,20 @@
+{
+  logger.info("Filtering: " + request.getUriInfo().getBaseUri());
+  Map<String,String> auth_types=getAuthTypes(request);
+  if ((auth_types == null) || !auth_types.containsKey(AUTH_BASIC_TYPE)) {
+    return;
+  }
+  String[] values=Base64.decodeToString(auth_types.get(AUTH_BASIC_TYPE)).split(":");
+  if (values.length < 2) {
+    return;
+  }
+  String name=values[0].toLowerCase();
+  String password=values[1];
+  String sysadmin_login_name=properties.getProperty("usergrid.sysadmin.login.name");
+  String sysadmin_login_password=properties.getProperty("usergrid.sysadmin.login.password");
+  boolean sysadmin_login_allowed=Boolean.parseBoolean(properties.getProperty("usergrid.sysadmin.login.allowed"));
+  if (name.equals(sysadmin_login_name) && password.equals(sysadmin_login_password) && sysadmin_login_allowed) {
+    request.setSecurityContext(new SysAdminRoleAuthenticator());
+    logger.debug("System administrator access allowed");
+  }
+}

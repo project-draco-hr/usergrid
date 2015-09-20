@@ -1,0 +1,35 @@
+{
+  if (request.getHeaders().containsKey(ACCESS_CONTROL_REQUEST_METHOD)) {
+    for (    String value : request.getHeaders().get(ACCESS_CONTROL_REQUEST_METHOD)) {
+      response.getHeaders().add(ACCESS_CONTROL_ALLOW_METHODS,value);
+    }
+  }
+  if (request.getHeaders().containsKey(ACCESS_CONTROL_REQUEST_HEADERS)) {
+    for (    String value : request.getHeaders().get(ACCESS_CONTROL_REQUEST_HEADERS)) {
+      response.getHeaders().add(ACCESS_CONTROL_ALLOW_HEADERS,value);
+    }
+  }
+  boolean origin_sent=false;
+  if (request.getHeaders().containsKey(ORIGIN_HEADER)) {
+    for (    String value : request.getHeaders().get(ORIGIN_HEADER)) {
+      if (value != null) {
+        origin_sent=true;
+        response.getHeaders().add(ACCESS_CONTROL_ALLOW_ORIGIN,value);
+      }
+    }
+  }
+  if (!origin_sent) {
+    String origin=getOrigin(request);
+    if (origin != null) {
+      response.getHeaders().add(ACCESS_CONTROL_ALLOW_CREDENTIALS,"true");
+      response.getHeaders().add(ACCESS_CONTROL_ALLOW_ORIGIN,origin);
+    }
+ else {
+      response.getHeaders().add(ACCESS_CONTROL_ALLOW_ORIGIN,"*");
+    }
+  }
+ else {
+    response.getHeaders().add(ACCESS_CONTROL_ALLOW_CREDENTIALS,"true");
+  }
+  return response;
+}

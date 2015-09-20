@@ -5,12 +5,12 @@
   Entity user=new Entity(management().users().user(clientSetup.getUsername()).get(ApiResponse.class));
   assertEquals(clientSetup.getUsername(),user.get("username"));
   Thread.sleep(ttl - (System.currentTimeMillis() - startTime) + 1000);
-  ClientResponse.Status responseStatus=null;
+  Response.Status responseStatus=null;
   try {
     management().users().user(clientSetup.getUsername()).get(ApiResponse.class);
   }
- catch (  UniformInterfaceException uie) {
-    responseStatus=uie.getResponse().getClientResponseStatus();
+ catch (  ClientErrorException uie) {
+    responseStatus=Response.Status.fromStatusCode(uie.getResponse().getStatus());
   }
-  assertEquals(ClientResponse.Status.UNAUTHORIZED,responseStatus);
+  assertEquals(Response.Status.UNAUTHORIZED,responseStatus);
 }

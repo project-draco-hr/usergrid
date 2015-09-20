@@ -3,10 +3,10 @@
   String clientId=orgCredentials.getClientId();
   String clientSecret=orgCredentials.getClientSecret();
   Form payload=new Form();
-  payload.add("grant_type","client_credentials");
-  payload.add("client_id",clientId);
-  payload.add("client_secret",clientSecret);
-  Token apiResponse=this.app().token().getResource(false).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).post(Token.class,payload);
+  payload.param("grant_type","client_credentials");
+  payload.param("client_id",clientId);
+  payload.param("client_secret",clientSecret);
+  Token apiResponse=this.app().token().getTarget(false).request().accept(MediaType.APPLICATION_JSON).post(javax.ws.rs.client.Entity.form(payload),Token.class);
   assertNotNull("It has access_token.",apiResponse.getAccessToken());
   assertNotNull("It has expires_in.",apiResponse.getExpirationDate());
 }

@@ -12,18 +12,14 @@
     @Override protected Serializer<Long> getSerializer(){
       return serializer;
     }
-    @Override public void buildRange(    final RangeBuilder builder){
-      if (last.isPresent()) {
-        super.buildRange(builder);
-        return;
-      }
-      builder.setStart(maxTimestamp);
-    }
     @Override protected EdgeRowKey generateRowKey(    long shard){
       return new EdgeRowKey(sourceId,type,targetId,shard);
     }
     @Override protected Long createColumn(    final MarkedEdge last){
       return last.getTimestamp();
+    }
+    @Override protected void setTimeScan(    final RangeBuilder rangeBuilder){
+      rangeBuilder.setStart(maxTimestamp);
     }
     @Override protected MarkedEdge createEdge(    final Long column,    final boolean marked){
       return new SimpleMarkedEdge(sourceId,type,targetId,column.longValue(),marked);

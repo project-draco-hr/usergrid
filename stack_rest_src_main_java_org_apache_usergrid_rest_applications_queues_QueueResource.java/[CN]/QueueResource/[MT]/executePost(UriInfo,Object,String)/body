@@ -1,0 +1,11 @@
+{
+  logger.info("QueueResource.executePost: " + queuePath);
+  Object json=body;
+  if (json instanceof Map) {
+    return new QueueResults(mq.postToQueue(queuePath,new Message((Map<String,Object>)json)));
+  }
+ else   if (json instanceof List) {
+    return new QueueResults(mq.postToQueue(queuePath,Message.fromList((List<Map<String,Object>>)json)));
+  }
+  return null;
+}

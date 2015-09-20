@@ -25,8 +25,8 @@
     this.app().collection("role").entity(role).get();
     fail("Entity still exists");
   }
- catch (  UniformInterfaceException e) {
-    JsonNode node=mapper.readTree(e.getResponse().getEntity(String.class));
+ catch (  ClientErrorException e) {
+    JsonNode node=mapper.readTree(e.getResponse().readEntity(String.class));
     assertEquals("entity_not_found",node.get("error").textValue());
   }
 }

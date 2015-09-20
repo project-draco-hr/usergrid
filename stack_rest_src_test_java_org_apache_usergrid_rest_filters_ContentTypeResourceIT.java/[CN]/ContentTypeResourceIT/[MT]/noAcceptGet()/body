@@ -12,16 +12,22 @@
   post.setHeader(HttpHeaders.ACCEPT,MediaType.APPLICATION_JSON);
   post.setHeader(HttpHeaders.CONTENT_TYPE,"*/*");
   HttpResponse rsp=client.execute(host,post);
-  WebResource.Builder builder=app().collection("games").getResource(true).queryParam("access_token",this.getAdminToken().getAccessToken()).type(MediaType.APPLICATION_JSON_TYPE);
-  ClientResponse clientResponse=builder.post(ClientResponse.class,JsonUtils.mapToJsonString(hashMap("name","bar2")));
+  Invocation.Builder builder=app().collection("games").getTarget().queryParam("access_token",this.getAdminToken().getAccessToken()).request();
+  Response clientResponse=builder.post(javax.ws.rs.client.Entity.json(new HashMap(){
+{
+      put("name","bar2");
+    }
+  }
+),Response.class);
   assertEquals(200,clientResponse.getStatus());
-  MultivaluedMap<String,String> headers=clientResponse.getHeaders();
-  List<String> contentType=headers.get("Content-Type");
+  MultivaluedMap<String,Object> headers=clientResponse.getHeaders();
+  List contentType=headers.get("Content-Type");
   assertEquals(1,contentType.size());
   assertEquals(MediaType.APPLICATION_JSON,contentType.get(0));
-  HttpPost get=new HttpPost(String.format("/%s/%s/games",this.clientSetup.getOrganization().getName(),this.clientSetup.getAppName()));
+  builder=app().collection("games").getTarget().queryParam("access_token",this.getAdminToken().getAccessToken()).request();
+  HttpGet get=new HttpGet(String.format("/%s/%s/games",this.clientSetup.getOrganization().getName(),this.clientSetup.getAppName()));
   get.setHeader(HttpHeaders.AUTHORIZATION,"Bearer " + token.getAccessToken());
-  clientResponse=builder.get(ClientResponse.class);
+  clientResponse=builder.get(Response.class);
   assertEquals(200,clientResponse.getStatus());
   headers=clientResponse.getHeaders();
   contentType=headers.get("Content-Type");

@@ -1,9 +1,8 @@
 {
-  ClientConfig clientConfig=new DefaultClientConfig();
-  clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING,Boolean.TRUE);
-  Client client=Client.create(clientConfig);
-  WebResource web_resource=client.resource("https://api.foursquare.com/v2/users/self");
-  Map<String,Object> body=web_resource.queryParam("oauth_token",externalToken).queryParam("v","20120623").accept(MediaType.APPLICATION_JSON).get(Map.class);
+  ClientConfig clientConfig=new ClientConfig();
+  clientConfig.register(new JacksonFeature());
+  client=ClientBuilder.newClient(clientConfig);
+  Map<String,Object> body=client.target("https://api.foursquare.com/v2/users/self").queryParam("oauth_token",externalToken).queryParam("v","20120623").request().accept(MediaType.APPLICATION_JSON).get(Map.class);
   Map<String,Object> fq_user=(Map<String,Object>)((Map<?,?>)body.get("response")).get("user");
   String fq_user_id=(String)fq_user.get("id");
   String fq_user_username=(String)fq_user.get("id");

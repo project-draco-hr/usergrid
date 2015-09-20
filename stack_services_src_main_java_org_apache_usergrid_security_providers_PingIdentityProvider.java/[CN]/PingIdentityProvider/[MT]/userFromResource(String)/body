@@ -4,7 +4,7 @@
   formData.add("client_id",clientId);
   formData.add("client_secret",clientSecret);
   formData.add("token",externalToken);
-  JsonNode node=client.resource(apiUrl).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).post(JsonNode.class,formData);
+  JsonNode node=client.target(apiUrl).request().post(Entity.entity(formData,MediaType.APPLICATION_FORM_URLENCODED_TYPE),JsonNode.class);
   String rawEmail=node.get("access_token").get("subject").asText();
   Map<String,Object> userMap=new HashMap<String,Object>();
   userMap.put("expiration",node.get("expires_in").asLong());

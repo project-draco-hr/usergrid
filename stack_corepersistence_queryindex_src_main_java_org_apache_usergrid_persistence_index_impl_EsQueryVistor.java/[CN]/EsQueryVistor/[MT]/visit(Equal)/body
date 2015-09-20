@@ -1,8 +1,8 @@
 {
   final String name=op.getProperty().getValue().toLowerCase();
   final Object value=op.getLiteral().getValue();
-  if (value instanceof String) {
-    final String stringValue=((String)value).toLowerCase().trim();
+  if (value instanceof String || value instanceof UUID) {
+    final String stringValue=((value instanceof String) ? (String)value : value.toString()).toLowerCase().trim();
     if (stringValue.contains("*")) {
       final WildcardQueryBuilder wildcardQuery=QueryBuilders.wildcardQuery(IndexingUtils.FIELD_STRING_NESTED_UNANALYZED,stringValue);
       queryBuilders.push(fieldNameTerm(name,wildcardQuery));

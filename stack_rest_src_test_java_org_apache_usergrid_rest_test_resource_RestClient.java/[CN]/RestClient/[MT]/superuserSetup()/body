@@ -1,6 +1,4 @@
 {
-  HTTPBasicAuthFilter httpBasicAuthFilter=new HTTPBasicAuthFilter("superuser","superpassword");
-  client.addFilter(httpBasicAuthFilter);
-  this.getResource().path("system/superuser/setup").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(JsonNode.class);
-  client.removeFilter(httpBasicAuthFilter);
+  HttpAuthenticationFeature feature=HttpAuthenticationFeature.basicBuilder().credentials("superuser","superpassword").build();
+  getTarget().path("system/superuser/setup").register(feature).request().accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
 }

@@ -32,16 +32,16 @@
     this.app().collection("cats").uniqueID(catName).put(fluffy);
     fail("permissions should not allow this");
   }
- catch (  UniformInterfaceException e) {
-    JsonNode node=mapper.readTree(e.getResponse().getEntity(String.class));
+ catch (  ClientErrorException e) {
+    JsonNode node=mapper.readTree(e.getResponse().readEntity(String.class));
     assertEquals("unauthorized",node.get("error").textValue());
   }
   try {
     this.app().collection("cats").uniqueID(catName).delete();
     fail("permissions should not allow this");
   }
- catch (  UniformInterfaceException e) {
-    JsonNode node=mapper.readTree(e.getResponse().getEntity(String.class));
+ catch (  ClientErrorException e) {
+    JsonNode node=mapper.readTree(e.getResponse().readEntity(String.class));
     assertEquals("unauthorized",node.get("error").textValue());
   }
 }
