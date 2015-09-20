@@ -11,7 +11,7 @@
   EntityIndexBatch batch=entityIndex.createBatch();
   batch.index(indexSCope,first);
   batch.index(indexSCope,second);
-  batch.execute().toBlocking().last();
+  indexProducer.put(batch).subscribe();
   entityIndex.refreshAsync().toBlocking().first();
   final String ascQuery="order by string";
   final CandidateResults ascResults=entityIndex.search(indexSCope,SearchTypes.fromTypes(first.getId().getType()),ascQuery,10,0);

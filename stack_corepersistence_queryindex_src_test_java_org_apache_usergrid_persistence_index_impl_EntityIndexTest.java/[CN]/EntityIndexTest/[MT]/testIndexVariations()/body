@@ -12,7 +12,7 @@
   entity1.setField(new IntegerField("ordinal",0));
   entity1.setField(new UUIDField("testuuid",uuid));
   batch.index(indexEdge,entity1);
-  batch.execute().toBlocking().last();
+  indexProducer.put(batch).subscribe();
   Entity entity2=new Entity(entityType);
   EntityUtils.setVersion(entity2,UUIDGenerator.newTimeUUID());
   List<String> list=new ArrayList<>();
@@ -20,7 +20,7 @@
   entity2.setField(new ArrayField<>("testfield",list));
   entity2.setField(new IntegerField("ordinal",1));
   batch.index(indexEdge,entity2);
-  batch.execute().toBlocking().last();
+  indexProducer.put(batch).subscribe();
   entityIndex.refreshAsync().toBlocking().first();
   StopWatch timer=new StopWatch();
   timer.start();

@@ -17,13 +17,10 @@
   app.refreshIndex();
   CandidateResults crs=queryCollectionCp("dogs","dog","select *");
   Assert.assertEquals("Expect no stale candidates yet",numEntities,crs.size());
-  System.setProperty(EVENTS_DISABLED,"false");
-  List<Entity> maxVersions=new ArrayList<>(numEntities);
   int count=0;
   for (  Entity dog : dogs) {
-    Entity toUpdate=null;
     for (int j=0; j < numUpdates; j++) {
-      toUpdate=em.get(dog.getUuid());
+      Entity toUpdate=em.get(dog.getUuid());
       toUpdate.setProperty("property",RandomStringUtils.randomAlphanumeric(10));
       em.update(toUpdate);
       count++;
@@ -31,7 +28,6 @@
         logger.info("Updated {} of {} times",count,numEntities * numUpdates);
       }
     }
-    maxVersions.add(toUpdate);
   }
   app.refreshIndex();
   count=0;
