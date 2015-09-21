@@ -1,4 +1,14 @@
 {
-  ScopedCache cache=cf.getScopedCache(scope);
-  assertNotNull(cache);
+  ScopedCache<String,Map<String,Object>> cache=cf.getScopedCache(scope);
+  assertNotNull("should get a cache",cache);
+  Map<String,Object> item=new HashMap<String,Object>(){
+{
+      put("field1","value1");
+    }
+  }
+;
+  cache.put("item",item,0);
+  Map<String,Object> retrievedItem=cache.get("item");
+  assertNotNull("should get back item",retrievedItem);
+  assertEquals("value1",retrievedItem.get("field1"));
 }

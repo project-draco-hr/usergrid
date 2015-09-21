@@ -1,3 +1,28 @@
 {
+  Preconditions.checkNotNull(scope,"scope is required");
+  Preconditions.checkNotNull(key,"key is required");
+  String rowKeyString=scope.getApplication().getUuid().toString();
+  final int bucket=BUCKET_LOCATOR.getCurrentBucket(rowKeyString);
+  final BucketScopedRowKey<String> keyRowKey=BucketScopedRowKey.fromKey(scope.getApplication(),rowKeyString,bucket);
+  String columnName=key.toString();
+  try {
+    try {
+      Column<String> result=keyspace.prepareQuery(SCOPED_CACHE).getKey(keyRowKey).getColumn(columnName).execute().getResult();
+      result.getByteBufferValue();
+      V value=MAPPER.readValue(result.getByteArrayValue(),new TypeReference<V>(){
+      }
+);
+      return value;
+    }
+ catch (    NotFoundException nfe) {
+      logger.info("Value not found");
+    }
+catch (    IOException ioe) {
+      logger.error("Error reading column value",ioe);
+    }
+  }
+ catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to connect to cassandra",e);
+  }
   return null;
 }
