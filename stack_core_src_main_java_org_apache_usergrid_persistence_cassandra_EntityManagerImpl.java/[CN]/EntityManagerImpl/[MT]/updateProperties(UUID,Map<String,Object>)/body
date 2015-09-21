@@ -8,5 +8,8 @@
   UUID timestampUuid=newTimeUUID();
   properties.put(PROPERTY_MODIFIED,getTimestampInMillis(timestampUuid));
   batchUpdateProperties(m,entity,properties,timestampUuid);
+  final CollectionInfo collection=Schema.getDefaultSchema().getCollection(Application.ENTITY_TYPE,defaultCollectionName(entity.getType()));
+  final EntityRef applicationRef=getApplicationRef();
+  getRelationManager(applicationRef).batchAddEntityToCollection(m,collection.getName(),applicationRef,entity,timestampUuid);
   batchExecute(m,CassandraService.RETRY_COUNT);
 }

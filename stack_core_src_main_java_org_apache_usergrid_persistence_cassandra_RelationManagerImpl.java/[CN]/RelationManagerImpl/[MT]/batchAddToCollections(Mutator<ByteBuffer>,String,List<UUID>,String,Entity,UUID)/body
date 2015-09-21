@@ -6,11 +6,10 @@
   }
   Map<UUID,CollectionRef> membershipRefs=new LinkedHashMap<UUID,CollectionRef>();
   for (  UUID ownerId : ownerIds) {
-    CollectionRef membershipRef=new SimpleCollectionRef(new SimpleEntityRef(ownerType,ownerId),collectionName,entity);
+    final EntityRef ownerRef=new SimpleEntityRef(ownerType,ownerId);
+    CollectionRef membershipRef=new SimpleCollectionRef(ownerRef,collectionName,entity);
     membershipRefs.put(ownerId,membershipRef);
-    String bucketId=indexBucketLocator.getBucket(entity.getUuid());
-    Object collections_key=key(ownerId,Schema.DICTIONARY_COLLECTIONS,collectionName,bucketId);
-    addInsertToMutator(batch,ENTITY_ID_SETS,collections_key,entity.getUuid(),membershipRef.getUuid(),timestamp);
+    batchAddEntityToCollection(batch,collectionName,ownerRef,entity,timestampUuid);
     addInsertToMutator(batch,ENTITY_COMPOSITE_DICTIONARIES,key(entity.getUuid(),Schema.DICTIONARY_CONTAINER_ENTITIES),asList(ownerType,collectionName,ownerId),membershipRef.getUuid(),timestamp);
   }
   Schema schema=getDefaultSchema();
