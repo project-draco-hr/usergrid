@@ -14,7 +14,7 @@
   batch.index(indexScope1,first);
   IndexEdge indexScope2=new IndexEdgeImpl(ownerId,type + "er",SearchEdge.NodeType.SOURCE,11);
   batch.index(indexScope2,second);
-  batch.execute().toBlocking().last();
+  indexProducer.put(batch).subscribe();
   entityIndex.refreshAsync().toBlocking().first();
   long size=entityIndex.getEntitySize(new SearchEdgeImpl(ownerId,type,SearchEdge.NodeType.SOURCE));
   assertTrue(size == 100);

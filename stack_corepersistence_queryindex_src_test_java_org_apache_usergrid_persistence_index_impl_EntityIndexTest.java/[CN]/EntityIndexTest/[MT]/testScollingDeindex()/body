@@ -18,7 +18,7 @@
     EntityUtils.setId(entity[i],entityId);
     EntityUtils.setVersion(entity[i],UUIDGenerator.newTimeUUID());
     entity[i].setField(new UUIDField(IndexingUtils.ENTITY_ID_FIELDNAME,entityUUID));
-    entityIndex.createBatch().index(searchEdge,entity[i]).execute().toBlocking().last();
+    indexProducer.put(entityIndex.createBatch().index(searchEdge,entity[i])).toBlocking().last();
   }
   entityIndex.refreshAsync().toBlocking().first();
   CandidateResults candidateResults=entityIndex.getAllEntityVersionsBeforeMarkedVersion(entity[versionToSearchFor].getId(),entity[versionToSearchFor].getVersion());
