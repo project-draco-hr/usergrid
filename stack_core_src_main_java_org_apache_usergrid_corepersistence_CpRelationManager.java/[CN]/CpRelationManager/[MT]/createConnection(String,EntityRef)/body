@@ -1,22 +1,2 @@
 {
-  headEntity=em.validate(headEntity);
-  connectedEntityRef=em.validate(connectedEntityRef);
-  ConnectionRefImpl connection=new ConnectionRefImpl(headEntity,connectionType,connectedEntityRef);
-  if (logger.isDebugEnabled()) {
-    logger.debug("createConnection(): " + "Indexing connection type '{}'\n   from source {}:{}]\n" + "   to target {}:{}\n   app {}",new Object[]{connectionType,headEntity.getType(),headEntity.getUuid(),connectedEntityRef.getType(),connectedEntityRef.getUuid(),applicationScope});
-  }
-  final Id entityId=new SimpleId(connectedEntityRef.getUuid(),connectedEntityRef.getType());
-  final org.apache.usergrid.persistence.model.entity.Entity targetEntity=((CpEntityManager)em).load(entityId);
-  final Edge edge=createConnectionEdge(cpHeadEntity.getId(),connectionType,targetEntity.getId());
-  final GraphManager gm=managerCache.getGraphManager(applicationScope);
-  final SearchByEdge searchByEdge=new SimpleSearchByEdge(edge.getSourceNode(),edge.getType(),edge.getTargetNode(),Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING,Optional.absent());
-  final int count=gm.loadEdgeVersions(searchByEdge).take(1).count().toBlocking().last();
-  if (count == 0) {
-    if (logger.isDebugEnabled()) {
-      logger.debug("No edge exists between {} and {} of type {}.  Creating",new Object[]{edge.getSourceNode(),edge.getTargetNode(),edge.getType()});
-    }
-    gm.writeEdge(edge).toBlocking().last();
-    indexService.queueNewEdge(applicationScope,targetEntity,edge);
-  }
-  return connection;
 }
