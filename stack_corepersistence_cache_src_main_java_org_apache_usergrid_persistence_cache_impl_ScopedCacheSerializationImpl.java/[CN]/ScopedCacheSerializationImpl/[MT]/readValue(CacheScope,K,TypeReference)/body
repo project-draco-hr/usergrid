@@ -9,9 +9,8 @@
     try {
       Column<String> result=keyspace.prepareQuery(SCOPED_CACHE).getKey(keyRowKey).getColumn(columnName).execute().getResult();
       result.getByteBufferValue();
-      V value=MAPPER.readValue(result.getByteArrayValue(),new TypeReference<V>(){
-      }
-);
+      V value=MAPPER.readValue(result.getByteArrayValue(),typeRef);
+      logger.info("Read cache item\n   key/value types {}/{}\n   key:value: {}:{}",new Object[]{key.getClass().getSimpleName(),value.getClass().getSimpleName(),key,value});
       return value;
     }
  catch (    NotFoundException nfe) {
@@ -24,5 +23,6 @@ catch (    IOException ioe) {
  catch (  ConnectionException e) {
     throw new RuntimeException("Unable to connect to cassandra",e);
   }
+  logger.info("Cache value not found for key {}",key);
   return null;
 }

@@ -1,0 +1,12 @@
+{
+  if (key instanceof SimplePrincipalCollection) {
+    SimplePrincipalCollection spc=(SimplePrincipalCollection)key;
+    if (spc.getPrimaryPrincipal() instanceof AdminUserPrincipal) {
+      AdminUserPrincipal p=(AdminUserPrincipal)spc.getPrimaryPrincipal();
+      CacheScope scope=new CacheScope(new SimpleId(p.getApplicationId(),"application"));
+      ScopedCache<String,V> scopedCache=cacheFactory.getScopedCache(scope);
+      return scopedCache;
+    }
+  }
+  return null;
+}
