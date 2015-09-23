@@ -21,10 +21,10 @@
   assertTrue("Expected edge timestamp to be in order",written2.getTimestamp() <= written3.getTimestamp());
   final List<ConnectionScope> deletedConnections=connectionService.deDupeConnections(Observable.just(applicationScope)).toList().toBlocking().last();
   assertEdgeData(written2,deletedConnections.get(0).getEdge());
-  assertEdgeData(written3,deletedConnections.get(1).getEdge());
+  assertEdgeData(written1,deletedConnections.get(1).getEdge());
   assertEquals("2 edges deleted",2,deletedConnections.size());
   final SearchByEdge simpleSearchByEdge=new SimpleSearchByEdge(source,connection1.getType(),target,Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING,Optional.absent());
   final List<Edge> edges=gm.loadEdgeVersions(simpleSearchByEdge).toList().toBlocking().last();
   assertEquals(1,edges.size());
-  assertEquals(written1,edges.get(0));
+  assertEquals(written3,edges.get(0));
 }
