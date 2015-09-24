@@ -3,6 +3,8 @@
   Entity entity=sm.getService("/roles").getEntity(context.getRequest(),name);
   if (entity != null) {
     em.addUserToRole(user.getUuid(),entity.getName());
+    ScopedCache scopedCache=cacheFactory.getScopedCache(new CacheScope(em.getApplication().asId()));
+    scopedCache.invalidate();
   }
   return new ServiceResults(this,context,Type.COLLECTION,Results.fromRef(entity),null,null);
 }

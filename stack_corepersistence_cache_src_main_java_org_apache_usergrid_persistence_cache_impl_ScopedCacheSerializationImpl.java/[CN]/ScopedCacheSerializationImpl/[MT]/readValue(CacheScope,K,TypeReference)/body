@@ -10,13 +10,14 @@
       Column<String> result=keyspace.prepareQuery(SCOPED_CACHE).getKey(keyRowKey).getColumn(columnName).execute().getResult();
       result.getByteBufferValue();
       V value=MAPPER.readValue(result.getByteArrayValue(),typeRef);
-      logger.info("Read cache item\n   key/value types {}/{}\n   key:value: {}:{}",new Object[]{key.getClass().getSimpleName(),value.getClass().getSimpleName(),key,value});
+      logger.debug("Read cache item\n   key/value types {}/{}\n   key:value: {}:{}",new Object[]{key.getClass().getSimpleName(),value.getClass().getSimpleName(),key,value});
       return value;
     }
  catch (    NotFoundException nfe) {
       logger.info("Value not found");
     }
 catch (    IOException ioe) {
+      logger.error("Unable to read cached value",ioe);
       throw new RuntimeException("Unable to read cached value",ioe);
     }
   }

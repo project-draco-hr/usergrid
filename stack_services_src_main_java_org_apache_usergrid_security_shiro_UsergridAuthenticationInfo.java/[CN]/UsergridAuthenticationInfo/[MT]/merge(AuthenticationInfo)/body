@@ -1,0 +1,38 @@
+{
+  if (info == null || info.getPrincipals() == null || info.getPrincipals().isEmpty()) {
+    return;
+  }
+  if (this.principals == null) {
+    this.principals=info.getPrincipals();
+  }
+ else {
+    if (!(this.principals instanceof MutablePrincipalCollection)) {
+      this.principals=new SimplePrincipalCollection(this.principals);
+    }
+    ((MutablePrincipalCollection)this.principals).addAll(info.getPrincipals());
+  }
+  if (this.credentialsSalt == null && info instanceof SaltedAuthenticationInfo) {
+    this.credentialsSalt=((SaltedAuthenticationInfo)info).getCredentialsSalt();
+  }
+  Object thisCredentials=getCredentials();
+  Object otherCredentials=info.getCredentials();
+  if (otherCredentials == null) {
+    return;
+  }
+  if (thisCredentials == null) {
+    this.credentials=otherCredentials;
+    return;
+  }
+  if (!(thisCredentials instanceof Collection)) {
+    Set newSet=new HashSet();
+    newSet.add(thisCredentials);
+    setCredentials(newSet);
+  }
+  Collection credentialCollection=(Collection)getCredentials();
+  if (otherCredentials instanceof Collection) {
+    credentialCollection.addAll((Collection)otherCredentials);
+  }
+ else {
+    credentialCollection.add(otherCredentials);
+  }
+}

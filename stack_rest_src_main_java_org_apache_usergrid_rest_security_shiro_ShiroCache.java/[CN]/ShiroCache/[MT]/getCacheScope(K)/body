@@ -7,6 +7,17 @@
       ScopedCache<String,V> scopedCache=cacheFactory.getScopedCache(scope);
       return scopedCache;
     }
+ else {
+      throw new RuntimeException("Cannot determine application ID for cache scope");
+    }
   }
-  return null;
+ else   if (key instanceof AdminUserPrincipal) {
+    AdminUserPrincipal p=(AdminUserPrincipal)key;
+    CacheScope scope=new CacheScope(new SimpleId(p.getApplicationId(),"application"));
+    ScopedCache<String,V> scopedCache=cacheFactory.getScopedCache(scope);
+    return scopedCache;
+  }
+ else {
+    throw new RuntimeException("Cannot determine application ID for cache scope");
+  }
 }

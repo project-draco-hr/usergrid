@@ -1,0 +1,72 @@
+{
+  UserInfo user=this.getUser();
+  Map<UUID,String> organizationSet=HashBiMap.create();
+  Map<UUID,String> applicationSet=HashBiMap.create();
+  OrganizationInfo organization=null;
+  ApplicationInfo application=null;
+  boolean superUserEnabled=false;
+  final String s=management.getProperties().getProperty(AccountCreationProps.PROPERTIES_SYSADMIN_LOGIN_ALLOWED);
+  if (s != null && "true".equalsIgnoreCase(s.trim())) {
+    superUserEnabled=true;
+  }
+  String superUser=management.getProperties().getProperty(AccountCreationProps.PROPERTIES_SYSADMIN_LOGIN_NAME);
+  if (superUserEnabled && (superUser != null) && superUser.equals(user.getUsername())) {
+    role(info,Realm.ROLE_SERVICE_ADMIN);
+    role(info,Realm.ROLE_ORGANIZATION_ADMIN);
+    role(info,Realm.ROLE_APPLICATION_ADMIN);
+    role(info,Realm.ROLE_ADMIN_USER);
+    grant(info,"system:access");
+    grant(info,"organizations:admin,access,get,put,post,delete:*");
+    grant(info,"applications:admin,access,get,put,post,delete:*");
+    grant(info,"organizations:admin,access,get,put,post,delete:*:/**");
+    grant(info,"applications:admin,access,get,put,post,delete:*:/**");
+    grant(info,"users:access:*");
+    grant(info,SubjectUtils.getPermissionFromPath(emf.getManagementAppId(),"access"));
+    grant(info,SubjectUtils.getPermissionFromPath(emf.getManagementAppId(),"get,put,post,delete","/**"));
+    try {
+      Map<UUID,String> allOrganizations=management.getOrganizations();
+      if (allOrganizations != null) {
+        for (        UUID id : allOrganizations.keySet()) {
+          grant(info,"organizations:admin,access,get,put,post,delete:" + id);
+        }
+        organizationSet.putAll(allOrganizations);
+        Map<UUID,String> allApplications=management.getApplicationsForOrganizations(allOrganizations.keySet());
+        if ((allApplications != null) && !allApplications.isEmpty()) {
+          grant(info,"applications:admin,access,get,put,post,delete:" + StringUtils.join(allApplications.keySet(),','));
+          applicationSet.putAll(allApplications);
+        }
+      }
+    }
+ catch (    Exception e) {
+      logger.error("Unable to construct superuser permissions",e);
+    }
+  }
+ else {
+    grant(info,getPermissionFromPath(emf.getManagementAppId(),"access"));
+    grant(info,getPermissionFromPath(emf.getManagementAppId(),"get,put,post,delete","/**"));
+    role(info,Realm.ROLE_ADMIN_USER);
+    try {
+      Map<UUID,String> userOrganizations=management.getOrganizationsForAdminUser(user.getUuid());
+      if (userOrganizations != null) {
+        for (        UUID id : userOrganizations.keySet()) {
+          grant(info,"organizations:admin,access,get,put,post,delete:" + id);
+        }
+        organizationSet.putAll(userOrganizations);
+        Map<UUID,String> userApplications=management.getApplicationsForOrganizations(userOrganizations.keySet());
+        if ((userApplications != null) && !userApplications.isEmpty()) {
+          grant(info,"applications:admin,access,get,put,post,delete:" + StringUtils.join(userApplications.keySet(),','));
+          applicationSet.putAll(userApplications);
+        }
+        role(info,Realm.ROLE_ORGANIZATION_ADMIN);
+        role(info,Realm.ROLE_APPLICATION_ADMIN);
+      }
+    }
+ catch (    Exception e) {
+      logger.error("Unable to construct admin user permissions",e);
+    }
+  }
+  info.setOrganization(organization);
+  info.addOrganizationSet(organizationSet);
+  info.setApplication(application);
+  info.addApplicationSet(applicationSet);
+}

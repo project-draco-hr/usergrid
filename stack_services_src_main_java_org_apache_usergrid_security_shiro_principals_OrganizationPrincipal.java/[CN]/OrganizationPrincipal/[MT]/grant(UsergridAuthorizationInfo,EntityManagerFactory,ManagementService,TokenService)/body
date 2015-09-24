@@ -1,0 +1,24 @@
+{
+  Map<UUID,String> organizationSet=HashBiMap.create();
+  Map<UUID,String> applicationSet=HashBiMap.create();
+  ApplicationInfo application=null;
+  role(info,Realm.ROLE_ORGANIZATION_ADMIN);
+  role(info,Realm.ROLE_APPLICATION_ADMIN);
+  grant(info,"organizations:access:" + organization.getUuid());
+  organizationSet.put(organization.getUuid(),organization.getName());
+  Map<UUID,String> applications=null;
+  try {
+    applications=management.getApplicationsForOrganization(organization.getUuid());
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+  if ((applications != null) && !applications.isEmpty()) {
+    grant(info,"applications:admin,access,get,put,post,delete:" + StringUtils.join(applications.keySet(),','));
+    applicationSet.putAll(applications);
+  }
+  info.setOrganization(organization);
+  info.addOrganizationSet(organizationSet);
+  info.setApplication(application);
+  info.addApplicationSet(applicationSet);
+}

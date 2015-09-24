@@ -3,6 +3,8 @@
   ServiceResults results=getItemById(context,id);
   if (!results.isEmpty()) {
     em.removeUserFromRole(user.getUuid(),results.getEntity().getName());
+    ScopedCache scopedCache=cacheFactory.getScopedCache(new CacheScope(em.getApplication().asId()));
+    scopedCache.invalidate();
   }
   return results;
 }

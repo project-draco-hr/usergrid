@@ -1,0 +1,14 @@
+{
+  UsergridAuthorizationInfo info=(UsergridAuthorizationInfo)super.getAuthorizationInfo(principals);
+  Subject currentUser=SecurityUtils.getSubject();
+  Session session=currentUser.getSession();
+  session.setAttribute("applications",info.getApplicationSet());
+  session.setAttribute("organizations",info.getOrganizationSet());
+  if (info.getOrganization() != null) {
+    session.setAttribute("organization",info.getOrganization());
+  }
+  if (info.getApplication() != null) {
+    session.setAttribute("application",info.getApplication());
+  }
+  return info;
+}
