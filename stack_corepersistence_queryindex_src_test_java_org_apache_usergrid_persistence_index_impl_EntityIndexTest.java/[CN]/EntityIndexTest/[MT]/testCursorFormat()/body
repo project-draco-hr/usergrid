@@ -25,7 +25,8 @@
     entityIds.add(userId);
     batch.index(indexEdge,user);
   }
-  batch.execute().toBlocking().last();
+  indexProducer.put(batch.build()).subscribe();
+  ;
   entityIndex.refreshAsync().toBlocking().first();
   final int limit=5;
   final int expectedPages=size / limit;

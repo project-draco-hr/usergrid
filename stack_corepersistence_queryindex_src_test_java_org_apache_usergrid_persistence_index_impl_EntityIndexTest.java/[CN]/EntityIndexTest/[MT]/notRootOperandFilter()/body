@@ -12,7 +12,8 @@
   batch.index(indexScope1,first);
   IndexEdge indexScope2=new IndexEdgeImpl(ownerId,"searches",SearchEdge.NodeType.SOURCE,11);
   batch.index(indexScope2,second);
-  batch.execute().toBlocking().last();
+  indexProducer.put(batch.build()).subscribe();
+  ;
   entityIndex.refreshAsync().toBlocking().first();
   final String notFirst="NOT int = 1";
   final CandidateResults notFirstResults=entityIndex.search(indexScope1,SearchTypes.fromTypes(first.getId().getType()),notFirst,10,0);
