@@ -13,6 +13,10 @@
  else     if (spc.getPrimaryPrincipal() instanceof OrganizationPrincipal) {
       applicationId=CpNamingUtils.MANAGEMENT_APPLICATION_ID;
     }
+ else     if (spc.getPrimaryPrincipal() instanceof ApplicationGuestPrincipal) {
+      ApplicationGuestPrincipal p=(ApplicationGuestPrincipal)spc.getPrimaryPrincipal();
+      applicationId=p.getApplicationId();
+    }
  else {
       logger.error("Unknown principal type: " + spc.getPrimaryPrincipal().getClass().getSimpleName());
       throw new RuntimeException("Unknown principal type: " + spc.getPrimaryPrincipal().getClass().getSimpleName());
@@ -28,6 +32,10 @@
   }
  else   if (key instanceof OrganizationPrincipal) {
     applicationId=CpNamingUtils.MANAGEMENT_APPLICATION_ID;
+  }
+ else   if (key instanceof ApplicationGuestPrincipal) {
+    ApplicationGuestPrincipal p=(ApplicationGuestPrincipal)key;
+    applicationId=p.getApplicationId();
   }
  else {
     logger.error("Unknown key type: " + key.getClass().getSimpleName());
