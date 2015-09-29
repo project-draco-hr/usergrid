@@ -2,18 +2,20 @@
   ShiroCache shiroCache=caches.get(name);
   if (shiroCache == null) {
     if ("realm.authorizationCache".equals(name)) {
+      TypeLiteral typeLit=new TypeLiteral<CacheFactory<String,UsergridAuthorizationInfo>>(){
+      }
+;
       shiroCache=new ShiroCache(new TypeReference<UsergridAuthorizationInfo>(){
       }
-,injector.getInstance(Key.get(new TypeLiteral<CacheFactory<String,UsergridAuthorizationInfo>>(){
-      }
-)));
+,(CacheFactory)injector.getInstance(Key.get(typeLit)),getCacheTtl());
     }
  else     if ("realm.authenticationCache".equals(name)) {
+      TypeLiteral typeLit=new TypeLiteral<CacheFactory<String,UsergridAuthenticationInfo>>(){
+      }
+;
       shiroCache=new ShiroCache(new TypeReference<UsergridAuthenticationInfo>(){
       }
-,injector.getInstance(Key.get(new TypeLiteral<CacheFactory<String,UsergridAuthenticationInfo>>(){
-      }
-)));
+,(CacheFactory)injector.getInstance(Key.get(typeLit)),getCacheTtl());
     }
  else {
       throw new RuntimeException("Unknown Shiro cache name");
