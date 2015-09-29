@@ -24,6 +24,8 @@
     for (    String permission : permissions) {
       em.revokeGroupPermission(entityRef.getUuid(),permission);
     }
+    ScopedCache scopedCache=cacheFactory.getScopedCache(new CacheScope(em.getApplication().asId()));
+    scopedCache.invalidate();
     return genericServiceResults().withData(em.getGroupPermissions(entityRef.getUuid()));
   }
   return super.deleteEntityDictionary(context,refs,dictionary);

@@ -1,23 +1,39 @@
 {
+  UUID applicationId;
   if (key instanceof SimplePrincipalCollection) {
     SimplePrincipalCollection spc=(SimplePrincipalCollection)key;
-    if (spc.getPrimaryPrincipal() instanceof AdminUserPrincipal) {
-      AdminUserPrincipal p=(AdminUserPrincipal)spc.getPrimaryPrincipal();
-      CacheScope scope=new CacheScope(new SimpleId(p.getApplicationId(),"application"));
-      ScopedCache<String,V> scopedCache=cacheFactory.getScopedCache(scope);
-      return scopedCache;
+    if (spc.getPrimaryPrincipal() instanceof UserPrincipal) {
+      UserPrincipal p=(UserPrincipal)spc.getPrimaryPrincipal();
+      applicationId=p.getApplicationId();
+    }
+ else     if (spc.getPrimaryPrincipal() instanceof ApplicationPrincipal) {
+      ApplicationPrincipal p=(ApplicationPrincipal)spc.getPrimaryPrincipal();
+      applicationId=p.getApplicationId();
+    }
+ else     if (spc.getPrimaryPrincipal() instanceof OrganizationPrincipal) {
+      applicationId=CpNamingUtils.MANAGEMENT_APPLICATION_ID;
     }
  else {
-      throw new RuntimeException("Cannot determine application ID for cache scope");
+      logger.error("Unknown principal type: " + spc.getPrimaryPrincipal().getClass().getSimpleName());
+      throw new RuntimeException("Unknown principal type: " + spc.getPrimaryPrincipal().getClass().getSimpleName());
     }
   }
- else   if (key instanceof AdminUserPrincipal) {
-    AdminUserPrincipal p=(AdminUserPrincipal)key;
-    CacheScope scope=new CacheScope(new SimpleId(p.getApplicationId(),"application"));
-    ScopedCache<String,V> scopedCache=cacheFactory.getScopedCache(scope);
-    return scopedCache;
+ else   if (key instanceof UserPrincipal) {
+    UserPrincipal p=(UserPrincipal)key;
+    applicationId=p.getApplicationId();
+  }
+ else   if (key instanceof ApplicationPrincipal) {
+    ApplicationPrincipal p=(ApplicationPrincipal)key;
+    applicationId=p.getApplicationId();
+  }
+ else   if (key instanceof OrganizationPrincipal) {
+    applicationId=CpNamingUtils.MANAGEMENT_APPLICATION_ID;
   }
  else {
-    throw new RuntimeException("Cannot determine application ID for cache scope");
+    logger.error("Unknown key type: " + key.getClass().getSimpleName());
+    throw new RuntimeException("Unknown key type: " + key.getClass().getSimpleName());
   }
+  CacheScope scope=new CacheScope(new SimpleId(applicationId,"application"));
+  ScopedCache<String,V> scopedCache=cacheFactory.getScopedCache(scope);
+  return scopedCache;
 }

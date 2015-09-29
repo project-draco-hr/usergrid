@@ -2,16 +2,18 @@
   ScopedCache<String,V> scopedCache=getCacheScope(key);
   if (scopedCache != null) {
     V value=scopedCache.get(getKeyString(key),typeRef);
-    if (value instanceof UsergridAuthorizationInfo) {
-      UsergridAuthorizationInfo info=(UsergridAuthorizationInfo)value;
-      logger.debug("Got from AUTHZ cache {} for app {}",getKeyString(key),info.toString());
-    }
- else     if (value instanceof UsergridAuthenticationInfo) {
-      UsergridAuthenticationInfo info=(UsergridAuthenticationInfo)value;
-      logger.debug("Got from AUTHC cache {} for app {}",getKeyString(key),info.toString());
-    }
- else     if (value == null) {
-      logger.debug("Got NULL from cache app {} for key {}",getKeyString(key),key.toString());
+    if (logger.isDebugEnabled()) {
+      if (value instanceof UsergridAuthorizationInfo) {
+        UsergridAuthorizationInfo info=(UsergridAuthorizationInfo)value;
+        logger.debug("Got from AUTHZ cache {} for app {}",getKeyString(key),info.toString());
+      }
+ else       if (value instanceof UsergridAuthenticationInfo) {
+        UsergridAuthenticationInfo info=(UsergridAuthenticationInfo)value;
+        logger.debug("Got from AUTHC cache {} for app {}",getKeyString(key),info.toString());
+      }
+ else       if (value == null) {
+        logger.debug("Got NULL from cache app {} for key {}",getKeyString(key),key.toString());
+      }
     }
     return value;
   }
