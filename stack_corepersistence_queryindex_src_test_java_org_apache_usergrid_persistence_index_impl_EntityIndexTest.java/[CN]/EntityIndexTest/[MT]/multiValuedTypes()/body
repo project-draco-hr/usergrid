@@ -45,7 +45,8 @@
   EntityUtils.setId(fred,new SimpleId(UUIDGenerator.newTimeUUID(),"user"));
   EntityUtils.setVersion(fred,UUIDGenerator.newTimeUUID());
   batch.index(indexScope,fred);
-  batch.execute().toBlocking().last();
+  indexProducer.put(batch.build()).subscribe();
+  ;
   entityIndex.refreshAsync().toBlocking().first();
   final SearchTypes searchTypes=SearchTypes.fromTypes("user");
   CandidateResults r=entityIndex.search(indexScope,searchTypes,"where username = 'bill'",10,0);
