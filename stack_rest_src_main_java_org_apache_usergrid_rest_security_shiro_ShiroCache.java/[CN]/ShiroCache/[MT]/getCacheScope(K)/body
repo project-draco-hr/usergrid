@@ -1,45 +1,31 @@
 {
-  UUID applicationId;
+  PrincipalIdentifier principal;
   if (key instanceof SimplePrincipalCollection) {
     SimplePrincipalCollection spc=(SimplePrincipalCollection)key;
-    if (spc.getPrimaryPrincipal() instanceof UserPrincipal) {
-      UserPrincipal p=(UserPrincipal)spc.getPrimaryPrincipal();
-      applicationId=p.getApplicationId();
-    }
- else     if (spc.getPrimaryPrincipal() instanceof ApplicationPrincipal) {
-      ApplicationPrincipal p=(ApplicationPrincipal)spc.getPrimaryPrincipal();
-      applicationId=p.getApplicationId();
-    }
- else     if (spc.getPrimaryPrincipal() instanceof OrganizationPrincipal) {
-      applicationId=CpNamingUtils.MANAGEMENT_APPLICATION_ID;
-    }
- else     if (spc.getPrimaryPrincipal() instanceof ApplicationGuestPrincipal) {
-      ApplicationGuestPrincipal p=(ApplicationGuestPrincipal)spc.getPrimaryPrincipal();
-      applicationId=p.getApplicationId();
-    }
+    principal=(PrincipalIdentifier)spc.getPrimaryPrincipal();
+  }
  else {
-      logger.error("Unknown principal type: " + spc.getPrimaryPrincipal().getClass().getSimpleName());
-      throw new RuntimeException("Unknown principal type: " + spc.getPrimaryPrincipal().getClass().getSimpleName());
-    }
+    principal=(PrincipalIdentifier)key;
   }
- else   if (key instanceof UserPrincipal) {
-    UserPrincipal p=(UserPrincipal)key;
+  UUID applicationId;
+  if (principal instanceof UserPrincipal) {
+    UserPrincipal p=(UserPrincipal)principal;
     applicationId=p.getApplicationId();
   }
- else   if (key instanceof ApplicationPrincipal) {
-    ApplicationPrincipal p=(ApplicationPrincipal)key;
+ else   if (principal instanceof ApplicationPrincipal) {
+    ApplicationPrincipal p=(ApplicationPrincipal)principal;
     applicationId=p.getApplicationId();
   }
- else   if (key instanceof OrganizationPrincipal) {
+ else   if (principal instanceof OrganizationPrincipal) {
     applicationId=CpNamingUtils.MANAGEMENT_APPLICATION_ID;
   }
- else   if (key instanceof ApplicationGuestPrincipal) {
-    ApplicationGuestPrincipal p=(ApplicationGuestPrincipal)key;
+ else   if (principal instanceof ApplicationGuestPrincipal) {
+    ApplicationGuestPrincipal p=(ApplicationGuestPrincipal)principal;
     applicationId=p.getApplicationId();
   }
  else {
     logger.error("Unknown key type: " + key.getClass().getSimpleName());
-    throw new RuntimeException("Unknown key type: " + key.getClass().getSimpleName());
+    throw new RuntimeException("Unknown key type: " + principal.getClass().getSimpleName());
   }
   CacheScope scope=new CacheScope(new SimpleId(applicationId,"application"));
   ScopedCache<String,V> scopedCache=cacheFactory.getScopedCache(scope);
