@@ -26,7 +26,6 @@
       toUpdate=em.get(thing.getUuid());
       toUpdate.setProperty("property" + j,RandomStringUtils.randomAlphanumeric(10));
       em.update(toUpdate);
-      Thread.sleep(writeDelayMs);
       count++;
       if (count % 100 == 0) {
         logger.info("Updated {} of {} times",count,numEntities * numUpdates);
@@ -34,9 +33,14 @@
     }
     maxVersions.add(toUpdate);
   }
-  app.refreshIndex();
-  crs=queryCollectionCp("things","thing","select *");
-  Assert.assertEquals("Expect stale candidates",numEntities * (numUpdates + 1),crs.size());
+  em.refreshIndex();
+  for (int i=0; i < 10; i++) {
+    if (numEntities * (numUpdates + 1) == crs.size()) {
+      break;
+    }
+    Thread.sleep(250);
+    crs=queryCollectionCp("things","thing","select *");
+  }
   System.setProperty(EVENTS_DISABLED,"false");
   for (  Entity thing : things) {
     em.delete(thing);
