@@ -1,37 +1,71 @@
 {
-  String username="test" + UUIDUtils.newTimeUUID();
-  String name="someguy2";
-  String email="someguy" + "@usergrid.com";
+  String differentiator=UUIDUtils.newTimeUUID().toString();
+  String username="test" + differentiator;
+  String name="someguy2" + differentiator;
+  String email="someguy" + differentiator + "@usergrid.com";
   String password="password";
-  String orgName="someneworg" + UUIDUtils.newTimeUUID();
+  String orgName="someneworg" + differentiator;
   Entity payload=new Entity().chainPut("company","Apigee");
   Organization organization=new Organization(orgName,username,email,name,password,payload);
   Organization node=management().orgs().post(organization);
   management.token().get(clientSetup.getUsername(),clientSetup.getPassword());
-  Status status=null;
-  String returnVal="";
+  Response.Status status=null;
   try {
-    returnVal=this.management().orgs().org(orgName).get(String.class);
+    this.management().orgs().org(orgName).get(String.class);
   }
- catch (  UniformInterfaceException uie) {
-    status=uie.getResponse().getClientResponseStatus();
+ catch (  ClientErrorException uie) {
+    status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
   }
   assertNotNull(status);
-  assertEquals(Status.UNAUTHORIZED,status);
+  assertEquals(Response.Status.UNAUTHORIZED,status);
+  status=null;
+  try {
+    this.management().orgs().org(orgName).users().get(String.class);
+  }
+ catch (  ClientErrorException uie) {
+    status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
+  }
+  assertNotNull(status);
+  assertEquals(Response.Status.UNAUTHORIZED,status);
+  status=null;
+  try {
+    this.management().orgs().org(orgName).applications().get(String.class);
+  }
+ catch (  ClientErrorException uie) {
+    status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
+  }
+  assertNotNull(status);
+  assertEquals(Response.Status.UNAUTHORIZED,status);
   status=null;
   try {
     this.management().orgs().org(this.clientSetup.getOrganizationName()).get(String.class);
   }
- catch (  UniformInterfaceException uie) {
-    status=uie.getResponse().getClientResponseStatus();
+ catch (  ClientErrorException uie) {
+    status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
+  }
+  assertNull(status);
+  status=null;
+  try {
+    this.management().orgs().org(this.clientSetup.getOrganizationName()).users().get(String.class);
+  }
+ catch (  ClientErrorException uie) {
+    status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
+  }
+  assertNull(status);
+  status=null;
+  try {
+    this.management().orgs().org(this.clientSetup.getOrganizationName()).applications().get(String.class);
+  }
+ catch (  ClientErrorException uie) {
+    status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
   }
   assertNull(status);
   status=null;
   try {
     this.management().orgs().org(this.clientSetup.getOrganizationName()).get(String.class);
   }
- catch (  UniformInterfaceException uie) {
-    status=uie.getResponse().getClientResponseStatus();
+ catch (  ClientErrorException uie) {
+    status=Response.Status.fromStatusCode(uie.getResponse().getStatus());
   }
   assertNull(status);
 }

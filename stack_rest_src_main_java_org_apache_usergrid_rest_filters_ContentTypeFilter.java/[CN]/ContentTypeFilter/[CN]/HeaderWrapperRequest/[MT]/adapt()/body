@@ -1,23 +1,23 @@
 {
-  @SuppressWarnings("rawtypes") Enumeration contentType=origRequest.getHeaders(HttpHeaders.ACCEPT);
-  if (!contentType.hasMoreElements()) {
+  String path=origRequest.getRequestURI();
+  String method=origRequest.getMethod();
+  logger.debug("Content path is '{}'",path);
+  @SuppressWarnings("rawtypes") Enumeration acceptHeaders=origRequest.getHeaders(HttpHeaders.ACCEPT);
+  if (!acceptHeaders.hasMoreElements()) {
     setHeader(HttpHeaders.ACCEPT,MediaType.APPLICATION_JSON);
   }
-  String path=origRequest.getRequestURI();
-  logger.debug("Content path is '{}'",path);
   int initial=inputStream.read();
-  String method=origRequest.getMethod();
   if (initial == -1) {
     if ((HttpMethod.POST.equals(method) || HttpMethod.PUT.equals(method)) && !MediaType.APPLICATION_FORM_URLENCODED.equals(getContentType())) {
-      logger.debug("Setting content type to application/json for POST or PUT with no content at path '{}'",path);
+      logger.debug("Setting content type to application/json " + "for POST or PUT with no content at path '{}'",path);
       setHeader(HttpHeaders.ACCEPT,MediaType.APPLICATION_JSON);
       setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON);
     }
     return;
   }
   char firstChar=(char)initial;
-  if (firstChar == '{' || firstChar == '[') {
-    logger.debug("Setting content type to application/json for POST or PUT with json content at path '{}'",path);
+  if ((firstChar == '{' || firstChar == '[') && !MediaType.APPLICATION_JSON.equals(getContentType())) {
+    logger.debug("Setting content type to application/json " + "for POST or PUT with json content at path '{}'",path);
     setHeader(HttpHeaders.ACCEPT,MediaType.APPLICATION_JSON);
     setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON);
   }

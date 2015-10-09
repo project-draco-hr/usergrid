@@ -6,10 +6,8 @@ synchronized (this) {
       if (poolSizeStr != null) {
         poolSize=Integer.parseInt(poolSizeStr);
       }
-      MultiThreadedHttpConnectionManager cm=new MultiThreadedHttpConnectionManager();
-      HttpConnectionManagerParams cmParams=cm.getParams();
-      cmParams.setMaxTotalConnections(poolSize);
-      HttpClient httpClient=new HttpClient(cm);
+      PoolingClientConnectionManager connectionManager=new PoolingClientConnectionManager();
+      connectionManager.setMaxTotal(poolSize);
       int timeout=20000;
       final String timeoutStr=properties.getProperty(CENTRAL_CONNECTION_TIMEOUT);
       if (timeoutStr != null) {
@@ -20,12 +18,13 @@ synchronized (this) {
       if (readTimeoutStr != null) {
         readTimeout=Integer.parseInt(readTimeoutStr);
       }
-      ClientConfig clientConfig=new DefaultClientConfig();
-      clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING,Boolean.TRUE);
-      clientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT,timeout);
-      clientConfig.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT,readTimeout);
-      ApacheHttpClientHandler handler=new ApacheHttpClientHandler(httpClient,clientConfig);
-      jerseyClient=new ApacheHttpClient(handler);
+      ClientConfig clientConfig=new ClientConfig();
+      clientConfig.register(new JacksonFeature());
+      clientConfig.property(ApacheClientProperties.CONNECTION_MANAGER,connectionManager);
+      clientConfig.connectorProvider(new ApacheConnectorProvider());
+      jerseyClient=ClientBuilder.newClient(clientConfig);
+      jerseyClient.property(ClientProperties.CONNECT_TIMEOUT,timeout);
+      jerseyClient.property(ClientProperties.READ_TIMEOUT,readTimeout);
     }
   }
   return jerseyClient;

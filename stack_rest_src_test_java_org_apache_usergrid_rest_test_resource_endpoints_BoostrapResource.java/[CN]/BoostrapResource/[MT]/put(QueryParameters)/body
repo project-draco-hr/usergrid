@@ -1,7 +1,6 @@
 {
-  WebResource resource=getResource();
+  WebTarget resource=getTarget();
   resource=addParametersToResource(resource,queryParameters);
-  HTTPBasicAuthFilter httpBasicAuthFilter=new HTTPBasicAuthFilter("superuser","superpassword");
-  resource.addFilter(httpBasicAuthFilter);
-  return resource.type(MediaType.APPLICATION_JSON_TYPE).accept(MediaType.APPLICATION_JSON).put(Entity.class);
+  HttpAuthenticationFeature feature=HttpAuthenticationFeature.basicBuilder().credentials("superuser","superpassword").build();
+  return resource.register(feature).request().accept(MediaType.APPLICATION_JSON).put(javax.ws.rs.client.Entity.json(""),Entity.class);
 }

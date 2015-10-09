@@ -1,15 +1,6 @@
 {
-  String responseString=getResource(false).type(MediaType.APPLICATION_JSON_TYPE).accept(MediaType.APPLICATION_JSON).post(String.class,organization);
-  logger.debug("Response from post: " + responseString);
-  ObjectMapper mapper=new ObjectMapper();
-  ApiResponse response;
-  try {
-    response=mapper.readValue(new StringReader(responseString),ApiResponse.class);
-  }
- catch (  IOException e) {
-    throw new RuntimeException("Error parsing response",e);
-  }
-  Organization org=new Organization(response);
-  org.setOwner(response);
+  ApiResponse apiResponse=getTarget(false).request().accept(MediaType.APPLICATION_JSON).post(Entity.json(organization),ApiResponse.class);
+  Organization org=new Organization(apiResponse);
+  org.setOwner(apiResponse);
   return org;
 }

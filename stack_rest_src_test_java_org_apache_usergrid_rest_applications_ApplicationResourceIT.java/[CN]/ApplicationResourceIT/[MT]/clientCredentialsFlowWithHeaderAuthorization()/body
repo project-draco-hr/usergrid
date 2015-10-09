@@ -3,7 +3,7 @@
   String clientId=orgCredentials.getClientId();
   String clientSecret=orgCredentials.getClientSecret();
   Token token=clientSetup.getRestClient().management().token().post(Token.class,new Token("client_credentials",clientId,clientSecret));
-  Token apiResponse=this.app().token().getResource(false).header("Authorization","Bearer " + token.getAccessToken()).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(Token.class,hashMap("grant_type","client_credentials"));
+  Token apiResponse=this.app().token().getTarget(false).request().header("Authorization","Bearer " + token.getAccessToken()).accept(MediaType.APPLICATION_JSON).post(javax.ws.rs.client.Entity.entity(hashMap("grant_type","client_credentials"),MediaType.APPLICATION_JSON_TYPE),Token.class);
   assertNotNull("A valid response was returned.",apiResponse);
   assertNull("There is no error.",apiResponse.getError());
   assertNotNull("It has access_token.",apiResponse.getAccessToken());

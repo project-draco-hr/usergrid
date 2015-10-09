@@ -1,10 +1,7 @@
 {
-  WebResource resource=getResource(useToken);
+  WebTarget resource=getTarget(useToken);
   resource=addParametersToResource(resource,queryParameters);
-  WebResource.Builder builder=resource.type(MediaType.APPLICATION_JSON_TYPE).accept(MediaType.APPLICATION_JSON);
-  if (entity != null) {
-    builder.entity(entity);
-  }
+  Invocation.Builder builder=resource.request().accept(MediaType.APPLICATION_JSON);
   GenericType<T> gt=new GenericType<>((Class)type);
-  return builder.post(gt.getRawClass());
+  return builder.post(javax.ws.rs.client.Entity.json(entity),gt);
 }

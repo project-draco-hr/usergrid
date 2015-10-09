@@ -1,0 +1,30 @@
+{
+  logger.debug("ApplicationFilter.authorize");
+  if (SubjectUtils.isAnonymous()) {
+    ApplicationInfo application=null;
+    try {
+      application=management.getApplicationInfo(getApplicationIdentifier());
+    }
+ catch (    Exception e) {
+      e.printStackTrace();
+    }
+    EntityManager em=getEntityManagerFactory().getEntityManager(application.getId());
+    Map<String,String> roles=null;
+    try {
+      roles=em.getRoles();
+      logger.debug("found roles {}",roles);
+    }
+ catch (    Exception e) {
+      logger.error("Unable retrieve roles",e);
+    }
+    if ((roles != null) && roles.containsKey("guest")) {
+      loginApplicationGuest(application);
+    }
+ else {
+      throw mappableSecurityException("unauthorized","No application guest access authorized");
+    }
+  }
+  if (!isPermittedAccessToApplication(getApplicationIdentifier())) {
+    throw mappableSecurityException("unauthorized","No application access authorized");
+  }
+}

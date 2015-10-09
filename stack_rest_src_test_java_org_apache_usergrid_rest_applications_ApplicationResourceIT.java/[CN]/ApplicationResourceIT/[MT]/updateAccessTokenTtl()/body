@@ -7,12 +7,13 @@
   Entity entity=this.app().collection("users").post(user);
   assertNotNull(entity);
   refreshIndex();
-  Token tokenResponse=this.app().getResource(false).path("token").queryParam("grant_type","password").queryParam("username",username).queryParam("password","password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(Token.class);
+  Token tokenResponse=this.app().getTarget(false).path("token").queryParam("grant_type","password").queryParam("username",username).queryParam("password","password").request().accept(MediaType.APPLICATION_JSON).get(Token.class);
   String token=tokenResponse.getAccessToken();
   assertNotNull(token);
   long expires_in=tokenResponse.getExpirationDate();
   assertEquals(604800,expires_in);
-  this.app().getResource(false).queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).put(Token.class,new MapUtils.HashMapBuilder<String,String>().map("accesstokenttl","31536000000"));
-  tokenResponse=this.app().token().getResource(false).queryParam("grant_type","password").queryParam("username",username).queryParam("password","password").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).get(Token.class);
+  final MapUtils.HashMapBuilder<String,String> map=new MapUtils.HashMapBuilder<String,String>().map("accesstokenttl","31536000000");
+  this.app().getTarget(false).queryParam("access_token",token).request().accept(MediaType.APPLICATION_JSON).put(javax.ws.rs.client.Entity.entity(map,MediaType.APPLICATION_JSON_TYPE),Token.class);
+  tokenResponse=this.app().token().getTarget(false).queryParam("grant_type","password").queryParam("username",username).queryParam("password","password").request().accept(MediaType.APPLICATION_JSON).get(Token.class);
   assertEquals(31536000,tokenResponse.getExpirationDate().intValue());
 }

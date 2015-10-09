@@ -12,8 +12,8 @@
   try {
     entity=this.app().collection(collectionType).post(entityData).getEntities().get(0);
   }
- catch (  UniformInterfaceException e) {
-    JsonNode nodeError=mapper.readTree(e.getResponse().getEntity(String.class));
+ catch (  ClientErrorException e) {
+    JsonNode nodeError=mapper.readTree(e.getResponse().readEntity(String.class));
     fail(nodeError.get("error").textValue());
   }
   assertNotNull(entity);

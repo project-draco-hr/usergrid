@@ -19,8 +19,8 @@
     try {
       userNode=this.app().collection("users").entity(userNode).put(updateProps);
     }
- catch (    UniformInterfaceException uie) {
-      fail("Update failed due to: " + uie.getResponse().getEntity(String.class));
+ catch (    ClientErrorException uie) {
+      fail("Update failed due to: " + uie.getResponse().readEntity(String.class));
     }
     refreshIndex();
     userNode=this.app().collection("users").entity(userNode).get();
@@ -42,8 +42,8 @@
   try {
     userNode=this.app().collection("users").entity(props.get("username").toString()).put(updateProps);
   }
- catch (  UniformInterfaceException uie) {
-    fail("Update failed due to: " + uie.getResponse().getEntity(String.class));
+ catch (  ClientErrorException uie) {
+    fail("Update failed due to: " + uie.getResponse().readEntity(String.class));
   }
   refreshIndex();
   userNode=this.app().collection("users").entity(userNode).get();

@@ -1,12 +1,12 @@
 {
   Form form=new Form();
-  form.add("grant_type","password");
-  form.add("username",clientSetup.getUsername());
-  form.add("password",clientSetup.getPassword());
+  form.param("grant_type","password");
+  form.param("username",clientSetup.getUsername());
+  form.param("password",clientSetup.getPassword());
   JsonNode node=management.me().post(JsonNode.class,form);
   logger.info("node:",node);
   String token=node.get("access_token").textValue();
   assertNotNull(token);
-  node=resource().path("/management/me").queryParam("access_token",token).accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
+  node=target().path("/management/me").queryParam("access_token",token).request().accept(MediaType.APPLICATION_JSON).get(JsonNode.class);
   logger.info("node:",node);
 }

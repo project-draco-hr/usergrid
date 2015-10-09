@@ -3,13 +3,13 @@
   if (this.acceptHeaders.size() > 0) {
     acceptHeader=StringUtils.join(this.acceptHeaders,',');
   }
-  WebResource resource=getResource(useToken);
+  WebTarget resource=getTarget(useToken);
   org.apache.usergrid.rest.test.resource.model.QueryParameters queryParameters=passedParameters;
   if (queryParameters == null) {
     queryParameters=new org.apache.usergrid.rest.test.resource.model.QueryParameters();
   }
   queryParameters.setCursor(collection.getCursor());
   resource=addParametersToResource(resource,queryParameters);
-  org.apache.usergrid.rest.test.resource.model.ApiResponse response=resource.type(MediaType.APPLICATION_JSON_TYPE).accept(acceptHeader).get(org.apache.usergrid.rest.test.resource.model.ApiResponse.class);
+  org.apache.usergrid.rest.test.resource.model.ApiResponse response=resource.request().accept(acceptHeader).get(org.apache.usergrid.rest.test.resource.model.ApiResponse.class);
   return new Collection(response);
 }

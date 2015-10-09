@@ -1,0 +1,15 @@
+{
+  String collectionName="testCollectionBatchDeleting";
+  int numOfEntities=40;
+  createEntities(collectionName,numOfEntities);
+  int deletePageSize=10;
+  int totalNumOfPages=numOfEntities / deletePageSize;
+  QueryParameters queryParameters=new QueryParameters().setLimit(deletePageSize);
+  queryParameters.addParam("ql","select * where city='Denver'");
+  deleteByPage(deletePageSize,totalNumOfPages,collectionName,queryParameters,false);
+  Thread.sleep(2000);
+  Collection getCollection=this.app().collection(collectionName).get(queryParameters);
+  assertFalse("All entities should have been removed",getCollection.hasNext());
+  Collection response=this.app().collection(collectionName).get(queryParameters);
+  assertEquals("No more entities deleted",0,response.getNumOfEntities());
+}
