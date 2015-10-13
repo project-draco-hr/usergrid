@@ -18,15 +18,19 @@
   failureMonitor.success();
   boolean error=false;
   final StringBuilder errorString=new StringBuilder();
+  boolean hasTooManyRequests=false;
   for (  BulkItemResponse response : responses) {
     if (response.isFailed()) {
       log.error("Unable to index id={}, type={}, index={}, failureMessage={} ",response.getId(),response.getType(),response.getIndex(),response.getFailureMessage());
+      if (response.getFailure() != null && response.getFailure().getStatus() == RestStatus.TOO_MANY_REQUESTS) {
+        hasTooManyRequests=true;
+      }
       error=true;
       errorString.append(response.getFailureMessage()).append("\n");
     }
   }
   if (error) {
-    if (errorString.lastIndexOf("rejected execution (queue capacity") >= 0) {
+    if (hasTooManyRequests) {
       try {
         log.warn("Encountered Queue Capacity Exception from ElasticSearch slowing by " + indexFig.getSleepTimeForQueueError());
         Thread.sleep(indexFig.getSleepTimeForQueueError());
