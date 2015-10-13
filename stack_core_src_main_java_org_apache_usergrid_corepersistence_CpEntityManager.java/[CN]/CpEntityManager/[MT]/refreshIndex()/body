@@ -5,6 +5,7 @@
     map.put("some prop","test");
     boolean hasFinished=false;
     Entity refreshEntity=create("refresh",map);
+    IndexRefreshCommand.IndexRefreshCommandInfo indexRefreshCommandInfo=managerCache.getEntityIndex(applicationScope).refreshAsync().toBlocking().first();
     try {
       for (int i=0; i < 10; i++) {
         if (searchCollection(new SimpleEntityRef(org.apache.usergrid.persistence.entities.Application.ENTITY_TYPE,getApplicationId()),InflectionUtils.pluralize("refresh"),Query.fromQL("select * where uuid='" + refreshEntity.getUuid() + "'")).size() > 0) {
@@ -12,13 +13,15 @@
           break;
         }
         Thread.sleep(250);
-        return managerCache.getEntityIndex(applicationScope).refreshAsync().toBlocking().first();
+      }
+      if (!hasFinished) {
+        logger.warn("Did not find entity {} during refresh.",refreshEntity.getUuid());
       }
     }
   finally {
       delete(refreshEntity);
     }
-    return new IndexRefreshCommand.IndexRefreshCommandInfo(hasFinished,System.currentTimeMillis() - start);
+    return indexRefreshCommandInfo;
   }
  catch (  Exception e) {
     throw new RuntimeException("refresh failed",e);
