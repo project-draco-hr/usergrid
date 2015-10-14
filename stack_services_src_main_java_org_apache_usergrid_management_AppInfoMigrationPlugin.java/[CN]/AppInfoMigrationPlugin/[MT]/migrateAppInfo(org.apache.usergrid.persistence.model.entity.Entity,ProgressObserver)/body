@@ -2,12 +2,17 @@
   final EntityManager managementEm=emf.getManagementEntityManager();
   Map oldAppInfoMap=CpEntityMapUtils.toMap(oldAppInfoEntity);
   final String name=(String)oldAppInfoMap.get(PROPERTY_NAME);
+  logger.info("Attempting to migrate app {}",name);
   try {
     final String orgName=name.split("/")[0];
     final String appName=name.split("/")[1];
     UUID applicationId=getUuid(oldAppInfoMap,"applicationUuid");
     applicationId=applicationId == null ? getUuid(oldAppInfoMap,"appUuid") : applicationId;
     EntityRef orgRef=managementEm.getAlias(Group.ENTITY_TYPE,orgName);
+    if (orgRef == null) {
+      logger.error("Unable to retrieve ref for org {}.  Not migrating app {}",orgName,appName);
+      return;
+    }
     managementService.createApplication(orgRef.getUuid(),name,applicationId,null);
     observer.update(getMaxVersion(),"Created application_info for " + appName);
   }
