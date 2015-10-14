@@ -1,11 +1,8 @@
 {
   Preconditions.checkNotNull(message,"Queue Message cannot be null for handleInitializeApplicationIndex");
-  final AsyncEvent event=(AsyncEvent)message.getBody();
-  Preconditions.checkNotNull(message,"QueueMessage Body cannot be null for handleInitializeApplicationIndex");
   Preconditions.checkArgument(event instanceof InitializeApplicationIndexEvent,String.format("Event Type for handleInitializeApplicationIndex must be APPLICATION_INDEX, got %s",event.getClass()));
   final InitializeApplicationIndexEvent initializeApplicationIndexEvent=(InitializeApplicationIndexEvent)event;
   final IndexLocationStrategy indexLocationStrategy=initializeApplicationIndexEvent.getIndexLocationStrategy();
   final EntityIndex index=entityIndexFactory.createEntityIndex(indexLocationStrategy);
   index.initialize();
-  ack(message);
 }

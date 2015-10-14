@@ -8,7 +8,7 @@
     responses=bulkRequest.execute().actionGet();
   }
  catch (  Throwable t) {
-    log.error("Unable to communicate with elasticsearch");
+    log.error("Unable to communicate with elasticsearch",t);
     failureMonitor.fail("Unable to execute batch",t);
     throw t;
   }
@@ -17,13 +17,27 @@
   }
   failureMonitor.success();
   boolean error=false;
+  final StringBuilder errorString=new StringBuilder();
+  boolean hasTooManyRequests=false;
   for (  BulkItemResponse response : responses) {
     if (response.isFailed()) {
       log.error("Unable to index id={}, type={}, index={}, failureMessage={} ",response.getId(),response.getType(),response.getIndex(),response.getFailureMessage());
+      if (response.getFailure() != null && response.getFailure().getStatus() == RestStatus.TOO_MANY_REQUESTS) {
+        hasTooManyRequests=true;
+      }
       error=true;
+      errorString.append(response.getFailureMessage()).append("\n");
     }
   }
   if (error) {
-    throw new RuntimeException("Error during processing of bulk index operations one of the responses failed.  Check previous log " + "entries");
+    if (hasTooManyRequests) {
+      try {
+        log.warn("Encountered Queue Capacity Exception from ElasticSearch slowing by " + indexFig.getSleepTimeForQueueError());
+        Thread.sleep(indexFig.getSleepTimeForQueueError());
+      }
+ catch (      Exception e) {
+      }
+    }
+    throw new RuntimeException("Error during processing of bulk index operations one of the responses failed. \n" + errorString);
   }
 }

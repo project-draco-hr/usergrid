@@ -16,6 +16,7 @@
     List<QueueMessage> queueMessages=new ArrayList<>(messages.size());
     for (    Message message : messages) {
       Object body;
+      final String originalBody=message.getBody();
       try {
         final JsonNode bodyNode=mapper.readTree(message.getBody());
         JsonNode bodyObj=bodyNode.has("Message") ? bodyNode.get("Message") : bodyNode;
@@ -26,6 +27,7 @@
         throw new RuntimeException(e);
       }
       QueueMessage queueMessage=new QueueMessage(message.getMessageId(),message.getReceiptHandle(),body,message.getAttributes().get("type"));
+      queueMessage.setStringBody(originalBody);
       queueMessages.add(queueMessage);
     }
     return rx.Observable.from(queueMessages);
