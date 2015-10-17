@@ -1,0 +1,13 @@
+{
+  final ScopedRowKey<MapEntryKey> entryRowKey=MapEntryKey.fromKey(scope,key);
+  try {
+    final Column<Boolean> result=keyspace.prepareQuery(MAP_ENTRIES).setConsistencyLevel(ConsistencyLevel.CL_QUORUM).getKey(entryRowKey).getColumn(true).execute().getResult();
+    return result;
+  }
+ catch (  NotFoundException nfe) {
+    return null;
+  }
+catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to connect to cassandra",e);
+  }
+}

@@ -1,0 +1,23 @@
+{
+  if (snsAsync == null) {
+    logger.error("SNS client is null, perhaps it failed to initialize successfully");
+    return;
+  }
+  final String stringBody=toString(body);
+  String url=getReadQueue().getUrl();
+  if (logger.isDebugEnabled()) {
+    logger.debug("Publishing Message...{} to url: {}",stringBody,url);
+  }
+  SendMessageRequest request=new SendMessageRequest(url,stringBody);
+  sqsAsync.sendMessageAsync(request,new AsyncHandler<SendMessageRequest,SendMessageResult>(){
+    @Override public void onError(    final Exception e){
+      logger.error("Error sending message... {}",e);
+    }
+    @Override public void onSuccess(    final SendMessageRequest request,    final SendMessageResult sendMessageResult){
+      if (logger.isDebugEnabled()) {
+        logger.debug("Successfully send... messageBody=[{}],  url=[{}]",request.getMessageBody(),request.getQueueUrl());
+      }
+    }
+  }
+);
+}
