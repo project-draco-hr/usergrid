@@ -5,15 +5,15 @@
   final String message=esMapPersistence.getString(messageId.toString());
   String highConsistency=null;
   if (message == null) {
-    logger.error("Receive message with id {} to process, unable to find it, reading with higher consistency level");
+    logger.error("Received message with id {} to process, unable to find it, reading with higher consistency level");
     highConsistency=esMapPersistence.getStringHighConsistency(messageId.toString());
   }
   final IndexOperationMessage indexOperationMessage;
   if (message != null) {
-    indexOperationMessage=OBJECT_JSON_SERIALIZER.fromString(message,IndexOperationMessage.class);
+    indexOperationMessage=ObjectJsonSerializer.INSTANCE.fromString(message,IndexOperationMessage.class);
   }
  else   if (highConsistency != null) {
-    indexOperationMessage=OBJECT_JSON_SERIALIZER.fromString(highConsistency,IndexOperationMessage.class);
+    indexOperationMessage=ObjectJsonSerializer.INSTANCE.fromString(highConsistency,IndexOperationMessage.class);
   }
  else {
     logger.error("Unable to find the ES batch with id {} to process at a higher consistency level");

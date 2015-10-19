@@ -1,12 +1,7 @@
 {
-  final String jsonValue=OBJECT_JSON_SERIALIZER.toByteBuffer(indexOperationMessage);
+  final String jsonValue=ObjectJsonSerializer.INSTANCE.toString(indexOperationMessage);
   final UUID newMessageId=UUIDGenerator.newTimeUUID();
   esMapPersistence.putString(newMessageId.toString(),jsonValue,indexProcessorFig.getIndexMessageTtl());
   final ElasticsearchIndexEvent elasticsearchIndexEvent=new ElasticsearchIndexEvent(newMessageId);
-  try {
-    queue.sendMessageToTopic(elasticsearchIndexEvent);
-  }
- catch (  IOException e) {
-    throw new RuntimeException("Unable to pulish to topic",e);
-  }
+  offerTopic(elasticsearchIndexEvent);
 }
