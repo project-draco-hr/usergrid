@@ -1,7 +1,7 @@
 {
   final ScopedRowKey<MapEntryKey> entryRowKey=MapEntryKey.fromKey(scope,key);
   try {
-    final Column<Boolean> result=keyspace.prepareQuery(MAP_ENTRIES).setConsistencyLevel(ConsistencyLevel.CL_QUORUM).getKey(entryRowKey).getColumn(true).execute().getResult();
+    final Column<Boolean> result=keyspace.prepareQuery(MAP_ENTRIES).setConsistencyLevel(cassandraConfig.getConsistentReadCL()).getKey(entryRowKey).getColumn(true).execute().getResult();
     return result;
   }
  catch (  NotFoundException nfe) {
