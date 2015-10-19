@@ -1,0 +1,23 @@
+{
+  if (snsAsync == null) {
+    logger.error("SNS client is null, perhaps it failed to initialize successfully");
+    return;
+  }
+  final String stringBody=toString(body);
+  String topicArn=getWriteTopicArn();
+  if (logger.isDebugEnabled()) {
+    logger.debug("Publishing Message...{} to arn: {}",stringBody,topicArn);
+  }
+  PublishRequest publishRequest=new PublishRequest(topicArn,stringBody);
+  snsAsync.publishAsync(publishRequest,new AsyncHandler<PublishRequest,PublishResult>(){
+    @Override public void onError(    Exception e){
+      logger.error("Error publishing message... {}",e);
+    }
+    @Override public void onSuccess(    PublishRequest request,    PublishResult result){
+      if (logger.isDebugEnabled()) {
+        logger.debug("Successfully published... messageID=[{}],  arn=[{}]",result.getMessageId(),request.getTopicArn());
+      }
+    }
+  }
+);
+}

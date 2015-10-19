@@ -5,7 +5,7 @@
     rowKeys.add(entryRowKey);
   }
   try {
-    final Rows<ScopedRowKey<MapEntryKey>,Boolean> rows=keyspace.prepareQuery(MAP_ENTRIES).getKeySlice(rowKeys).withColumnSlice(true).execute().getResult();
+    final Rows<ScopedRowKey<MapEntryKey>,Boolean> rows=keyspace.prepareQuery(MAP_ENTRIES).setConsistencyLevel(cassandraConfig.getReadCL()).getKeySlice(rowKeys).withColumnSlice(true).execute().getResult();
     return builder.buildResults(rows);
   }
  catch (  NotFoundException nfe) {
