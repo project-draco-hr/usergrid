@@ -7,7 +7,7 @@
   if (logger.isDebugEnabled())   logger.debug("Getting up to {} messages from {}",limit,url);
   ReceiveMessageRequest receiveMessageRequest=new ReceiveMessageRequest(url);
   receiveMessageRequest.setMaxNumberOfMessages(limit);
-  receiveMessageRequest.setVisibilityTimeout(transactionTimeout / 1000);
+  receiveMessageRequest.setVisibilityTimeout(Math.max(1,transactionTimeout / 1000));
   receiveMessageRequest.setWaitTimeSeconds(waitTime / 1000);
   try {
     ReceiveMessageResult result=sqs.receiveMessage(receiveMessageRequest);
