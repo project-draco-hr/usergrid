@@ -2,6 +2,6 @@
   final String jsonValue=ObjectJsonSerializer.INSTANCE.toString(indexOperationMessage);
   final UUID newMessageId=UUIDGenerator.newTimeUUID();
   esMapPersistence.putString(newMessageId.toString(),jsonValue,indexProcessorFig.getIndexMessageTtl());
-  final ElasticsearchIndexEvent elasticsearchIndexEvent=new ElasticsearchIndexEvent(newMessageId);
+  final ElasticsearchIndexEvent elasticsearchIndexEvent=new ElasticsearchIndexEvent(queueFig.getPrimaryRegion(),newMessageId);
   offerTopic(elasticsearchIndexEvent);
 }
