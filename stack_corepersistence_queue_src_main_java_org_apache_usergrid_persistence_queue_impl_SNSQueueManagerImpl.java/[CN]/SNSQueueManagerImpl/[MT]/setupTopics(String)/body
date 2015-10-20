@@ -1,15 +1,23 @@
 {
   logger.info("Setting up setupTopics SNS/SQS...");
   String primaryTopicArn=AmazonNotificationUtils.getTopicArn(sns,queueName,true);
-  if (logger.isDebugEnabled())   logger.debug("SNS/SQS Setup: primaryTopicArn=" + primaryTopicArn);
+  if (logger.isDebugEnabled()) {
+    logger.debug("SNS/SQS Setup: primaryTopicArn=" + primaryTopicArn);
+  }
   String queueUrl=AmazonNotificationUtils.getQueueUrlByName(sqs,queueName);
   String primaryQueueArn=AmazonNotificationUtils.getQueueArnByName(sqs,queueName);
-  if (logger.isDebugEnabled())   logger.debug("SNS/SQS Setup: primaryQueueArn=" + primaryQueueArn);
+  if (logger.isDebugEnabled()) {
+    logger.debug("SNS/SQS Setup: primaryQueueArn=" + primaryQueueArn);
+  }
   if (primaryQueueArn == null) {
-    if (logger.isDebugEnabled())     logger.debug("SNS/SQS Setup: primaryQueueArn is null, creating queue...");
+    if (logger.isDebugEnabled()) {
+      logger.debug("SNS/SQS Setup: primaryQueueArn is null, creating queue...");
+    }
     queueUrl=AmazonNotificationUtils.createQueue(sqs,queueName,fig);
     primaryQueueArn=AmazonNotificationUtils.getQueueArnByUrl(sqs,queueUrl);
-    if (logger.isDebugEnabled())     logger.debug("SNS/SQS Setup: New Queue URL=[{}] ARN=[{}]",queueUrl,primaryQueueArn);
+    if (logger.isDebugEnabled()) {
+      logger.debug("SNS/SQS Setup: New Queue URL=[{}] ARN=[{}]",queueUrl,primaryQueueArn);
+    }
   }
   try {
     SubscribeRequest primarySubscribeRequest=new SubscribeRequest(primaryTopicArn,"sqs",primaryQueueArn);
@@ -23,12 +31,14 @@
   }
   if (fig.isMultiRegion() && scope.getRegionImplementation() == QueueScope.RegionImplementation.ALL) {
     String multiRegion=fig.getRegionList();
-    if (logger.isDebugEnabled())     logger.debug("MultiRegion Setup specified, regions: [{}]",multiRegion);
+    if (logger.isDebugEnabled()) {
+      logger.debug("MultiRegion Setup specified, regions: [{}]",multiRegion);
+    }
     String[] regionNames=multiRegion.split(",");
     final Map<String,String> arrQueueArns=new HashMap<>(regionNames.length + 1);
     final Map<String,String> topicArns=new HashMap<>(regionNames.length + 1);
-    arrQueueArns.put(primaryQueueArn,fig.getRegion());
-    topicArns.put(primaryTopicArn,fig.getRegion());
+    arrQueueArns.put(primaryQueueArn,fig.getPrimaryRegion());
+    topicArns.put(primaryTopicArn,fig.getPrimaryRegion());
     for (    String regionName : regionNames) {
       regionName=regionName.trim();
       Regions regions=Regions.fromName(regionName);

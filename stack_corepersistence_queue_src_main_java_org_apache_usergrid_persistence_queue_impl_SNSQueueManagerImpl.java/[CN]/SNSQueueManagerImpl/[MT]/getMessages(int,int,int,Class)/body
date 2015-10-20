@@ -4,29 +4,38 @@
     return rx.Observable.empty();
   }
   String url=getReadQueue().getUrl();
-  if (logger.isDebugEnabled())   logger.debug("Getting up to {} messages from {}",limit,url);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Getting up to {} messages from {}",limit,url);
+  }
   ReceiveMessageRequest receiveMessageRequest=new ReceiveMessageRequest(url);
   receiveMessageRequest.setMaxNumberOfMessages(limit);
-  receiveMessageRequest.setVisibilityTimeout(transactionTimeout / 1000);
+  receiveMessageRequest.setVisibilityTimeout(Math.max(1,transactionTimeout / 1000));
   receiveMessageRequest.setWaitTimeSeconds(waitTime / 1000);
   try {
     ReceiveMessageResult result=sqs.receiveMessage(receiveMessageRequest);
     List<Message> messages=result.getMessages();
-    if (logger.isDebugEnabled())     logger.debug("Received {} messages from {}",messages.size(),url);
+    if (logger.isDebugEnabled()) {
+      logger.debug("Received {} messages from {}",messages.size(),url);
+    }
     List<QueueMessage> queueMessages=new ArrayList<>(messages.size());
     for (    Message message : messages) {
-      Object body;
+      Object payload;
       final String originalBody=message.getBody();
       try {
         final JsonNode bodyNode=mapper.readTree(message.getBody());
-        JsonNode bodyObj=bodyNode.has("Message") ? bodyNode.get("Message") : bodyNode;
-        body=fromString(bodyObj.textValue(),klass);
+        if (bodyNode.has("Message")) {
+          final String snsNode=bodyNode.get("Message").asText();
+          payload=deSerializeSQSMessage(snsNode,klass);
+        }
+ else {
+          payload=deSerializeSQSMessage(originalBody,klass);
+        }
       }
  catch (      Exception e) {
         logger.error(String.format("failed to deserialize message: %s",message.getBody()),e);
         throw new RuntimeException(e);
       }
-      QueueMessage queueMessage=new QueueMessage(message.getMessageId(),message.getReceiptHandle(),body,message.getAttributes().get("type"));
+      QueueMessage queueMessage=new QueueMessage(message.getMessageId(),message.getReceiptHandle(),payload,message.getAttributes().get("type"));
       queueMessage.setStringBody(originalBody);
       queueMessages.add(queueMessage);
     }
