@@ -1,0 +1,19 @@
+{
+  final long createTime=10000;
+  final long currentTime=createTime;
+  final Shard shard0=new Shard(0,createTime,true);
+  final Shard shard1=new Shard(1000,createTime,false);
+  final ShardEntryGroup group=new ShardEntryGroup(1);
+  group.addShard(shard1);
+  group.addShard(shard0);
+  assertTrue("this should return true for our test to succeed",group.isCompactionPending());
+  final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
+  final TimeService timeService=mock(TimeService.class);
+  when(timeService.getCurrentTime()).thenReturn(currentTime);
+  initExecutor(1,1);
+  final ShardGroupDeletionImpl shardGroupDeletion=new ShardGroupDeletionImpl(asyncTaskExecutor,edgeShardSerialization,timeService);
+  final DirectedEdgeMeta directedEdgeMeta=getDirectedEdgeMeta();
+  final ListenableFuture<ShardGroupDeletion.DeleteResult> future=shardGroupDeletion.maybeDeleteShard(this.scope,directedEdgeMeta,group,Collections.emptyIterator());
+  final ShardGroupDeletion.DeleteResult result=future.get();
+  assertEquals("should not delete with pending compaction",ShardGroupDeletion.DeleteResult.COMPACTION_PENDING,result);
+}

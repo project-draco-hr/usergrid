@@ -1,11 +1,10 @@
 {
   if (shardEntryGroup.isCompactionPending()) {
-    return DeleteResult.NOT_CHECKED;
+    return DeleteResult.COMPACTION_PENDING;
   }
-  for (  Shard shard : shardEntryGroup.getReadShards()) {
-    if (!shardEntryGroup.canBeDeleted(shard)) {
-      return DeleteResult.TOO_NEW;
-    }
+  final long currentTime=timeService.getCurrentTime();
+  if (shardEntryGroup.isNew(currentTime)) {
+    return DeleteResult.TOO_NEW;
   }
   if (edgeIterator.hasNext()) {
     return DeleteResult.CONTAINS_EDGES;
