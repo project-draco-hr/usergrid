@@ -15,14 +15,18 @@
   count=ids.count().toBlocking().last();
   Assert.assertEquals(count,5);
   this.app.refreshIndex();
-  Thread.sleep(5000);
   Injector injector=SpringResource.getInstance().getBean(Injector.class);
   GraphManagerFactory factory=injector.getInstance(GraphManagerFactory.class);
   GraphManager graphManager=factory.createEdgeManager(appScope);
   SimpleSearchByEdgeType simpleSearchByEdgeType=new SimpleSearchByEdgeType(appScope.getApplication(),CpNamingUtils.getEdgeTypeFromCollectionName("tests"),Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING,Optional.<Edge>absent());
   Iterator<Edge> results=graphManager.loadEdgesFromSource(simpleSearchByEdgeType).toBlocking().getIterator();
   if (results.hasNext()) {
-    Assert.fail("should be empty");
+    int i=0;
+    while (results.hasNext()) {
+      results.next();
+      i++;
+    }
+    Assert.fail("should be empty but has " + i);
   }
  else {
     Results searchCollection=entityManager.searchCollection(entityManager.getApplication(),"tests",Query.all());
