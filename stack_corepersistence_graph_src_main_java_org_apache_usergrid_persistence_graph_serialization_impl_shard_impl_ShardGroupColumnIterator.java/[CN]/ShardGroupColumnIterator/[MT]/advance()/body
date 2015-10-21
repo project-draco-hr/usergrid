@@ -1,10 +1,14 @@
 {
+  logger.trace("Advancing from shard entry group iterator");
   while (entryGroupIterator.hasNext()) {
     final ShardEntryGroup group=entryGroupIterator.next();
+    logger.trace("Shard entry group is {}.  Searching for edges in the shard",group);
     elements=getIterator(group.getReadShards());
     if (elements.hasNext()) {
+      logger.trace("Found edges in shard entry group {}",group);
       return true;
     }
   }
+  logger.trace("Completed iterating shard group iterator");
   return false;
 }
