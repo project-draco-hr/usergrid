@@ -8,7 +8,8 @@
   assertFalse("this should return false for our test to succeed",group.isNew(currentTime));
   final DirectedEdgeMeta directedEdgeMeta=getDirectedEdgeMeta();
   final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
-  when(edgeShardSerialization.removeShardMeta(same(scope),same(shard0),same(directedEdgeMeta))).thenReturn(mock(MutationBatch.class));
+  final MutationBatch batch=mock(MutationBatch.class);
+  when(edgeShardSerialization.removeShardMeta(same(scope),same(shard0),same(directedEdgeMeta))).thenReturn(batch);
   final TimeService timeService=mock(TimeService.class);
   when(timeService.getCurrentTime()).thenReturn(currentTime);
   initExecutor(1,1);
@@ -16,4 +17,5 @@
   final ListenableFuture<ShardGroupDeletion.DeleteResult> future=shardGroupDeletion.maybeDeleteShard(this.scope,directedEdgeMeta,group,Collections.emptyIterator());
   final ShardGroupDeletion.DeleteResult result=future.get();
   assertEquals("should  delete",ShardGroupDeletion.DeleteResult.DELETED,result);
+  verify(batch).execute();
 }
