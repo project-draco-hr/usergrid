@@ -1,0 +1,37 @@
+{
+  if (shardEntryGroup.isCompactionPending()) {
+    return DeleteResult.COMPACTION_PENDING;
+  }
+  final long currentTime=timeService.getCurrentTime();
+  if (shardEntryGroup.isNew(currentTime)) {
+    return DeleteResult.TOO_NEW;
+  }
+  if (edgeIterator.hasNext()) {
+    return DeleteResult.CONTAINS_EDGES;
+  }
+  DeleteResult result=DeleteResult.NO_OP;
+  MutationBatch rollup=null;
+  for (  final Shard shard : shardEntryGroup.getReadShards()) {
+    if (shard.isMinShard()) {
+      continue;
+    }
+    final MutationBatch shardRemovalMutation=edgeShardSerialization.removeShardMeta(applicationScope,shard,directedEdgeMeta);
+    if (rollup == null) {
+      rollup=shardRemovalMutation;
+    }
+ else {
+      rollup.mergeShallow(shardRemovalMutation);
+    }
+    result=DeleteResult.DELETED;
+  }
+  if (rollup != null) {
+    try {
+      rollup.execute();
+    }
+ catch (    ConnectionException e) {
+      logger.error("Unable to execute shard deletion",e);
+      throw new RuntimeException("Unable to execute shard deletion",e);
+    }
+  }
+  return result;
+}

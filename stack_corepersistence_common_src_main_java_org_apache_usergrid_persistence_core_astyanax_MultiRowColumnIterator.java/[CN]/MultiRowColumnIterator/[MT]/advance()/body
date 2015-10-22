@@ -1,4 +1,5 @@
 {
+  logger.trace("Advancing multi row column iterator");
   final boolean skipFirstColumn=startColumn != null;
   final int selectSize=skipFirstColumn ? pageSize + 1 : pageSize;
   final RangeBuilder rangeBuilder=new RangeBuilder();
@@ -9,6 +10,7 @@
     columnSearch.buildRange(rangeBuilder,startColumn);
   }
   rangeBuilder.setLimit(selectSize);
+  logger.trace("Executing cassandra query");
   final RowSliceQuery<R,C> query=keyspace.prepareQuery(cf).setConsistencyLevel(consistencyLevel).getKeySlice(rowKeys).withColumnRange(rangeBuilder.build());
   final Rows<R,C> result;
   try {
@@ -36,5 +38,5 @@
     startColumn=mergedResults.get(mergedResults.size() - 1);
   }
   currentColumnIterator=mergedResults.iterator();
-  LOG.trace("Finished parsing {} rows for results",rowKeys.size());
+  logger.trace("Finished parsing {} rows for results",rowKeys.size());
 }

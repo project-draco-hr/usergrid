@@ -1,0 +1,23 @@
+{
+  final long createTime=10000;
+  final long currentTime=createTime * 2;
+  final Shard shard0=new Shard(0,createTime,true);
+  final ShardEntryGroup group=new ShardEntryGroup(1);
+  group.addShard(shard0);
+  assertFalse("this should return false for our test to succeed",group.isCompactionPending());
+  assertFalse("this should return false for our test to succeed",group.isNew(currentTime));
+  final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
+  final TimeService timeService=mock(TimeService.class);
+  when(timeService.getCurrentTime()).thenReturn(currentTime);
+  initExecutor(1,1);
+  final ShardGroupDeletionImpl shardGroupDeletion=new ShardGroupDeletionImpl(asyncTaskExecutor,edgeShardSerialization,timeService);
+  final DirectedEdgeMeta directedEdgeMeta=getDirectedEdgeMeta();
+  final Iterator<MarkedEdge> notMarkedIterator=Collections.singleton((MarkedEdge)new SimpleMarkedEdge(createId("source"),"type",createId("target"),1000,false)).iterator();
+  final ListenableFuture<ShardGroupDeletion.DeleteResult> future=shardGroupDeletion.maybeDeleteShard(this.scope,directedEdgeMeta,group,notMarkedIterator);
+  final ShardGroupDeletion.DeleteResult result=future.get();
+  assertEquals("should not delete with edges",ShardGroupDeletion.DeleteResult.CONTAINS_EDGES,result);
+  final Iterator<MarkedEdge> markedEdgeIterator=Collections.singleton((MarkedEdge)new SimpleMarkedEdge(createId("source"),"type",createId("target"),1000,true)).iterator();
+  final ListenableFuture<ShardGroupDeletion.DeleteResult> markedFuture=shardGroupDeletion.maybeDeleteShard(this.scope,directedEdgeMeta,group,markedEdgeIterator);
+  final ShardGroupDeletion.DeleteResult markedResult=future.get();
+  assertEquals("should not delete with edges",ShardGroupDeletion.DeleteResult.CONTAINS_EDGES,markedResult);
+}

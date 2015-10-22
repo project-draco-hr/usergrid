@@ -1,6 +1,8 @@
 {
+  logger.trace("Starting shards column iterator");
   final RangeBuilder rangeBuilder=new RangeBuilder().setLimit(pageSize);
   searcher.buildRange(rangeBuilder);
   final List<ScopedRowKey<R>> rowKeys=searcher.getRowKeys();
+  logger.trace("Searching with row keys {}",rowKeys);
   currentColumnIterator=new MultiRowColumnIterator<>(keyspace,cf,consistencyLevel,searcher,searcher,searcher.getComparator(),rowKeys,pageSize);
 }

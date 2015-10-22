@@ -18,9 +18,9 @@
   final int numProcessors=Runtime.getRuntime().availableProcessors() / 2;
   final int numWorkersPerInjector=numProcessors / numInjectors;
   final long numberOfEdges=shardSize * 4;
-  final long workerWriteLimit=numberOfEdges / numWorkersPerInjector;
+  final long workerWriteLimit=numberOfEdges / numWorkersPerInjector / numInjectors;
   final long expectedShardCount=numberOfEdges / shardSize;
-  final ListeningExecutorService executor=MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(numWorkersPerInjector));
+  createExecutor(numWorkersPerInjector);
   final AtomicLong writeCounter=new AtomicLong();
   final long minExecutionTime=graphFig.getShardMinDelta() + graphFig.getShardCacheTimeout();
   log.info("Writing {} edges per worker on {} workers in {} injectors",workerWriteLimit,numWorkersPerInjector,numInjectors);

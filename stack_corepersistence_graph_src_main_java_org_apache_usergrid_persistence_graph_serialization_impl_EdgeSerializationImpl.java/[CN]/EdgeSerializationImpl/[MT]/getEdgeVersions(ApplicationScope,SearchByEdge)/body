@@ -7,7 +7,7 @@
   final long maxTimestamp=search.getMaxTimestamp();
   final DirectedEdgeMeta versionMetaData=DirectedEdgeMeta.fromEdge(sourceId,targetId,type);
   final Iterator<ShardEntryGroup> readShards=edgeShardStrategy.getReadShards(scope,maxTimestamp,versionMetaData);
-  return new ShardGroupColumnIterator<MarkedEdge>(readShards){
+  return new ShardGroupColumnIterator(scope,versionMetaData,shardGroupDeletion,readShards){
     @Override protected Iterator<MarkedEdge> getIterator(    final Collection<Shard> readShards){
       return shardedEdgeSerialization.getEdgeVersions(edgeColumnFamilies,scope,search,readShards);
     }
