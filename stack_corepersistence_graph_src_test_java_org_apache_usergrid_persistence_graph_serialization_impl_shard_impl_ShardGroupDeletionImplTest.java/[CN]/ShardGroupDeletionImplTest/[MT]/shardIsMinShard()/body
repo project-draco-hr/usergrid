@@ -1,19 +1,16 @@
 {
-  final long createTime=10000;
-  final long currentTime=createTime * 2;
-  final Shard shard0=new Shard(1000,createTime,true);
+  final long currentTime=1000;
+  final Shard shard0=Shard.MIN_SHARD;
   final ShardEntryGroup group=new ShardEntryGroup(1);
   group.addShard(shard0);
-  assertFalse("this should return false for our test to succeed",group.isCompactionPending());
-  assertFalse("this should return false for our test to succeed",group.isNew(currentTime));
-  final DirectedEdgeMeta directedEdgeMeta=getDirectedEdgeMeta();
+  assertTrue("this should return false for our test to succeed",shard0.isMinShard());
   final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
-  when(edgeShardSerialization.removeShardMeta(same(scope),same(shard0),same(directedEdgeMeta))).thenReturn(mock(MutationBatch.class));
   final TimeService timeService=mock(TimeService.class);
   when(timeService.getCurrentTime()).thenReturn(currentTime);
   initExecutor(1,1);
   final ShardGroupDeletionImpl shardGroupDeletion=new ShardGroupDeletionImpl(asyncTaskExecutor,edgeShardSerialization,timeService);
+  final DirectedEdgeMeta directedEdgeMeta=getDirectedEdgeMeta();
   final ListenableFuture<ShardGroupDeletion.DeleteResult> future=shardGroupDeletion.maybeDeleteShard(this.scope,directedEdgeMeta,group,Collections.emptyIterator());
   final ShardGroupDeletion.DeleteResult result=future.get();
-  assertEquals("should  delete",ShardGroupDeletion.DeleteResult.DELETED,result);
+  assertEquals("should not delete min shard",ShardGroupDeletion.DeleteResult.NO_OP,result);
 }

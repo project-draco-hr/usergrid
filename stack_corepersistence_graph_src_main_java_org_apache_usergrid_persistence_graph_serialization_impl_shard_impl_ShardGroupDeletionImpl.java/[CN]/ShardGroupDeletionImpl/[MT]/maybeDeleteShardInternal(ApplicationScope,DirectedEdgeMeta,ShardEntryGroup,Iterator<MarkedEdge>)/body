@@ -9,8 +9,12 @@
   if (edgeIterator.hasNext()) {
     return DeleteResult.CONTAINS_EDGES;
   }
+  DeleteResult result=DeleteResult.NO_OP;
   MutationBatch rollup=null;
   for (  final Shard shard : shardEntryGroup.getReadShards()) {
+    if (shard.isMinShard()) {
+      continue;
+    }
     final MutationBatch shardRemovalMutation=edgeShardSerialization.removeShardMeta(applicationScope,shard,directedEdgeMeta);
     if (rollup == null) {
       rollup=shardRemovalMutation;
@@ -18,14 +22,16 @@
  else {
       rollup.mergeShallow(shardRemovalMutation);
     }
+    result=DeleteResult.DELETED;
   }
-  Preconditions.checkNotNull(rollup,"rollup should be assigned");
-  try {
-    rollup.execute();
+  if (rollup != null) {
+    try {
+      rollup.execute();
+    }
+ catch (    ConnectionException e) {
+      logger.error("Unable to execute shard deletion",e);
+      throw new RuntimeException("Unable to execute shard deletion",e);
+    }
   }
- catch (  ConnectionException e) {
-    logger.error("Unable to execute shard deletion",e);
-    throw new RuntimeException("Unable to execute shard deletion",e);
-  }
-  return DeleteResult.DELETED;
+  return result;
 }
