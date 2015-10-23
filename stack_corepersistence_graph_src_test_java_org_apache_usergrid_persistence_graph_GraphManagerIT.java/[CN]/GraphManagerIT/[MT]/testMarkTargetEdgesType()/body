@@ -8,8 +8,8 @@
   Edge edge2=createEdge(sourceId2,"test",targetId,System.currentTimeMillis());
   gm.writeEdge(edge2).toBlocking().last();
   final long maxVersion=System.currentTimeMillis();
-  Observable<Edge> edges=gm.loadEdgesToTargetByType(createSearchByEdgeAndId(targetId,edge1.getType(),maxVersion,sourceId1.getType(),null));
-  Iterator<Edge> results=edges.toBlocking().getIterator();
+  Observable<MarkedEdge> edges=gm.loadEdgesToTargetByType(createSearchByEdgeAndId(targetId,edge1.getType(),maxVersion,sourceId1.getType(),null));
+  Iterator<MarkedEdge> results=edges.toBlocking().getIterator();
   assertEquals("Edges correct",edge1,results.next());
   assertFalse("No more edges",results.hasNext());
   gm.markEdge(edge1).toBlocking().last();
