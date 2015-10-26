@@ -1,0 +1,16 @@
+{
+  ApiResponse response=createApiResponse();
+  List<OrganizationInfo> orgs=management.getOrganizations(null,10000);
+  List<Object> jsonOrgList=new ArrayList<>();
+  for (  OrganizationInfo org : orgs) {
+    Map<String,Object> jsonOrg=new HashMap<>();
+    Map<String,UUID> apps=management.getApplicationsForOrganization(org.getUuid()).inverse();
+    jsonOrg.put("name",org.getName());
+    jsonOrg.put("uuid",org.getUuid());
+    jsonOrg.put("properties",org.getProperties());
+    jsonOrg.put("applications",apps);
+    jsonOrgList.add(jsonOrg);
+  }
+  response.setProperty("organizations",jsonOrgList);
+  return new JSONWithPadding(response);
+}
