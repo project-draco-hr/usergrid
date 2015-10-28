@@ -1,0 +1,18 @@
+{
+  logger.info("UserResource.setUserPassword");
+  final ApiResponse response=createApiResponse();
+  response.setAction("get user password");
+  final UUID applicationId=getApplicationId();
+  final UUID targetUserId=getUserUuid();
+  if (applicationId == null) {
+    response.setError("Application not found");
+    return new JSONWithPadding(response,callback);
+  }
+  if (targetUserId == null) {
+    response.setError("User not found");
+    return new JSONWithPadding(response,callback);
+  }
+  final CredentialsInfo credentialsInfo=management.getAppUserPasswordRaw(applicationId,targetUserId);
+  response.setProperty("credentials",credentialsInfo);
+  return new JSONWithPadding(response,callback);
+}
