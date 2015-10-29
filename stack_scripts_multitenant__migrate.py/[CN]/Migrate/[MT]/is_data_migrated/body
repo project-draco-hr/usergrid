@@ -1,0 +1,12 @@
+def is_data_migrated(self):
+    status = self.check_data_migration_status()
+    if (status is not None):
+        entity_version = status['data'][PLUGIN_ENTITYDATA]
+        appinfo_version = status['data'][PLUGIN_APPINFO]
+        core_data_version = status['data'][PLUGIN_CORE_DATA]
+        if ((entity_version == TARGET_ENTITY_DATA_VERSION) and (appinfo_version == TARGET_APPINFO_VERSION) and (core_data_version == TARGET_CORE_DATA_VERSION)):
+            self.logger.info('Full Data Migration status=[COMPLETE], %s=[%s], %s=[%s], %s=%s', PLUGIN_ENTITYDATA, entity_version, PLUGIN_APPINFO, appinfo_version, PLUGIN_CORE_DATA, core_data_version)
+            return True
+        else:
+            self.logger.info('Full Data Migration status=[NOTSTARTED/INPROGRESS]')
+    return False
