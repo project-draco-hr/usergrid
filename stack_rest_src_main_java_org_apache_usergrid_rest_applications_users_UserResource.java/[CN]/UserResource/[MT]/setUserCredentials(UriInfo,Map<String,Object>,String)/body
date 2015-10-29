@@ -5,16 +5,17 @@
   }
   ApiResponse response=createApiResponse();
   response.setAction("set user credentials");
-  Object credentials=json.get("credentials");
-  if (credentials == null) {
+  Map<String,Object> credentialsJson=(Map<String,Object>)json.get("credentials");
+  if (credentialsJson == null) {
     throw new IllegalArgumentException("credentials sub object is required");
   }
+  final CredentialsInfo credentials=CredentialsInfo.fromJson(credentialsJson);
   UUID applicationId=getApplicationId();
   UUID targetUserId=getUserUuid();
   if (targetUserId == null) {
     response.setError("User not found");
     return new JSONWithPadding(response,callback);
   }
-  management.setAppUserCredentialsInfo(applicationId,targetUserId,(CredentialsInfo)credentials);
+  management.setAppUserCredentialsInfo(applicationId,targetUserId,credentials);
   return new JSONWithPadding(response,callback);
 }
