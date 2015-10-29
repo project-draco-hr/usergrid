@@ -1,0 +1,14 @@
+def get_app_ids(self):
+    try:
+        url = (((self.endpoint + '/management/orgs/') + self.org) + '/apps')
+        r = requests.get(url=url)
+        if (r.status_code != 200):
+            exit_on_error('Database Bootstrap Failed')
+        apps = r.json()['data']
+        app_ids = []
+        for appId in apps.values():
+            app_ids.append(appId)
+        return app_ids
+    except requests.exceptions.RequestException as e:
+        self.logger.error('Unable to get list of application ids, %s', e)
+        exit_on_error(str(e))

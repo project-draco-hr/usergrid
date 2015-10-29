@@ -1,0 +1,75 @@
+def run(self):
+    self.logger.info('Initializing...')
+    if (not self.is_endpoint_available()):
+        exit_on_error('Endpoint is not available, aborting')
+    for orgIndex in range(2):
+        orgName = ((self.slug + '_org') + str(orgIndex))
+        orgUser = (orgName + '_admin')
+        orgEmail = (orgUser + '@example.com')
+        url = (self.endpoint + '/management/orgs')
+        body = json.dumps({'username': orgUser, 'email': orgEmail, 'password': 'test', 'organization': orgName, })
+        r = requests.post(url=url, data=body, auth=(self.admin_user, self.admin_pass))
+        if (r.status_code >= 400):
+            print ((('Error creating organization ' + orgName) + ': ') + r.text)
+            return
+        print ('Created org ' + orgName)
+        url = (self.endpoint + '/management/token')
+        body = json.dumps({'grant_type': 'password', 'username': orgUser, 'password': 'test', })
+        r = requests.post(url=url, data=body)
+        if (r.status_code != 200):
+            print ((('Error logging into organization ' + orgName) + ': ') + r.text)
+            return
+        accessToken = r.json()['access_token']
+        for appIndex in range(2):
+            appName = ((orgName + '_app') + str(appIndex))
+            url = ((((self.endpoint + '/management/orgs/') + orgName) + '/apps?access_token=') + accessToken)
+            body = json.dumps({'name': appName, })
+            r = requests.post(url=url, data=body, auth=(self.admin_user, self.admin_pass))
+            if (r.status_code >= 400):
+                print ((('Error creating application' + appName) + ': ') + r.text)
+                return
+            print ((('   Created app: ' + orgName) + '/') + appName)
+            appUrl = ((((self.endpoint + '/') + orgName) + '/') + appName)
+            time.sleep(2)
+            for userIndex in range(2):
+                userName = ((appName + '_user') + str(userIndex))
+                email = (userName + '@example.com')
+                url = ((appUrl + '/users?access_token=') + accessToken)
+                body = json.dumps({'name': userName, 'username': userName, 'email': email, 'password': 'test', })
+                r = requests.post(url=url, data=body)
+                if (r.status_code >= 400):
+                    print ((('Error creating user ' + userName) + ': ') + r.text)
+                    return
+            for colIndex in range(3):
+                colName = ((appName + '_col') + str(colIndex))
+                print ('      Creating collection: ' + colName)
+                for entityIndex in range(100):
+                    entityName = ((colName + '_entity') + str(entityIndex))
+                    url = ((((appUrl + '/') + colName) + 's?access_token=') + accessToken)
+                    body = json.dumps({'name': entityName, })
+                    r = requests.post(url=url, data=body)
+                    if (r.status_code >= 400):
+                        print ((('Error creating entity' + userName) + ': ') + r.text)
+                        retur
+            for entityIndex in range(100):
+                sourceCollection = (appName + '_col0s')
+                sourceName = ((appName + '_col0_entity') + str(entityIndex))
+                targetName = ((appName + '_col1_entity') + str(entityIndex))
+                targetType = (appName + '_col1')
+                url = ((((((((appUrl + '/') + sourceCollection) + '/') + sourceName) + '/has/') + targetType) + '/') + targetName)
+                r = requests.post(url=((url + '?access_token=') + accessToken))
+                if (r.status_code >= 400):
+                    print ((((('Error connecting entity ' + sourceName) + ' to ') + targetName) + ': ') + r.text)
+                    print ('url is: ' + url)
+                    return
+            for entityIndex in range(100):
+                sourceCollection = (appName + '_col1s')
+                sourceName = ((appName + '_col1_entity') + str(entityIndex))
+                targetName = ((appName + '_col2_entity') + str(entityIndex))
+                targetType = (appName + '_col2')
+                url = ((((((((appUrl + '/') + sourceCollection) + '/') + sourceName) + '/has/') + targetType) + '/') + targetName)
+                r = requests.post(url=((url + '?access_token=') + accessToken))
+                if (r.status_code >= 400):
+                    print ((((('Error connecting entity ' + sourceName) + ' to ') + targetName) + ': ') + r.text)
+                    print ('url is: ' + url)
+                    return

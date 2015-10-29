@@ -1,9 +1,11 @@
 def parse_args():
     parser = argparse.ArgumentParser(description='Usergrid Migration Tool')
-    parser.add_argument('--date', help='A date from which to start the migration', type=str)
     parser.add_argument('--endpoint', help='The endpoint to use for making API requests.', type=str, default='http://localhost:8080')
     parser.add_argument('--user', help='System Admin Credentials used to authenticate with Usergrid  <user:pass>', type=str, required=True)
-    parser.add_argument('--delta', help='Run a delta migration.', action='store_true', default=False)
+    parser.add_argument('--init', help='Init system and start first migration.', action='store_true', default=False)
+    parser.add_argument('--org', help='Name of organization on which to run migration.', type=str, required=False)
+    parser.add_argument('--date', help='A date from which to start the migration', type=str)
+    parser.add_argument('--full', help='Run full data migration (last step in cluster migration).', action='store_true', default=False)
     my_args = parser.parse_args(sys.argv[1:])
     arg_vars = vars(my_args)
     creds = arg_vars['user'].split(':')

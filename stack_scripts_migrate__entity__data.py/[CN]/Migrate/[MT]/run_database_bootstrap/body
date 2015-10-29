@@ -1,0 +1,9 @@
+def run_database_bootstrap(self):
+    try:
+        setupUrl = self.get_database_bootstrap_url()
+        r = requests.put(url=setupUrl, auth=(self.admin_user, self.admin_pass))
+        if (r.status_code != 200):
+            exit_on_error('Database Bootstrap Failed')
+    except requests.exceptions.RequestException as e:
+        self.logger.error('Failed to run database bootstrap, %s', e)
+        exit_on_error(str(e))
