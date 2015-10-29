@@ -1,0 +1,39 @@
+{
+  usersResource.post(new User("test_1","Test1 User","test_1@test.com","test123"));
+  refreshIndex();
+  Token token=this.app().token().post(new Token("test_1","test123"));
+  assertNotNull(token.getAccessToken());
+  final String superUserName=this.clientSetup.getSuperuserName();
+  final String superUserPassword=this.clientSetup.getSuperuserPassword();
+  final CollectionEndpoint collection=userResource.entity("test_1").collection("credentials");
+  final WebResource resource=collection.getResource();
+  resource.addFilter(new HTTPBasicAuthFilter(superUserName,superUserPassword));
+  final ApiResponse response=resource.type(MediaType.APPLICATION_JSON_TYPE).accept(MediaType.APPLICATION_JSON).get(org.apache.usergrid.rest.test.resource.model.ApiResponse.class);
+  final Map<String,Object> credentials=(Map<String,Object>)response.getProperties().get("credentials");
+  final String originalSecret=(String)credentials.get("secret");
+  final String borkedSecret=originalSecret.substring(0,originalSecret.length() - 1);
+  credentials.put("credentials",borkedSecret);
+  credentials.put("secret",borkedSecret);
+  final Map<String,Map<String,Object>> wrapper=new HashMap<>();
+  wrapper.put("credentials",credentials);
+  final WebResource putResource=collection.getResource();
+  putResource.addFilter(new HTTPBasicAuthFilter(superUserName,superUserPassword));
+  putResource.type(MediaType.APPLICATION_JSON_TYPE).accept(MediaType.APPLICATION_JSON).put(org.apache.usergrid.rest.test.resource.model.ApiResponse.class,wrapper);
+  int status=0;
+  try {
+    this.app().token().post(new Token("test_1","test123"));
+    fail("Should have thrown an exception");
+  }
+ catch (  UniformInterfaceException uie) {
+    status=uie.getResponse().getStatus();
+    log.info("Error Response Body: " + uie.getResponse().getEntity(String.class));
+  }
+  assertEquals(Status.BAD_REQUEST.getStatusCode(),status);
+  credentials.put("credentials",originalSecret);
+  credentials.put("secret",originalSecret);
+  final WebResource putResource2=collection.getResource();
+  putResource2.addFilter(new HTTPBasicAuthFilter(superUserName,superUserPassword));
+  putResource2.type(MediaType.APPLICATION_JSON_TYPE).accept(MediaType.APPLICATION_JSON).put(org.apache.usergrid.rest.test.resource.model.ApiResponse.class,wrapper);
+  final Token nextToken=this.app().token().post(new Token("test_1","test123"));
+  assertNotNull(nextToken.getAccessToken());
+}
