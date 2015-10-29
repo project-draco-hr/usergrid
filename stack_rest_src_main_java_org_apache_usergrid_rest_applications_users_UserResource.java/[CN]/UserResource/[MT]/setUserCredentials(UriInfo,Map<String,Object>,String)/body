@@ -1,0 +1,20 @@
+{
+  logger.info("UserResource.setUserPassword");
+  if (json == null) {
+    return null;
+  }
+  ApiResponse response=createApiResponse();
+  response.setAction("set user credentials");
+  Object credentials=json.get("credentials");
+  if (credentials == null) {
+    throw new IllegalArgumentException("credentials sub object is required");
+  }
+  UUID applicationId=getApplicationId();
+  UUID targetUserId=getUserUuid();
+  if (targetUserId == null) {
+    response.setError("User not found");
+    return new JSONWithPadding(response,callback);
+  }
+  management.setAppUserCredentialsInfo(applicationId,targetUserId,(CredentialsInfo)credentials);
+  return new JSONWithPadding(response,callback);
+}
