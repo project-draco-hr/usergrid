@@ -55,7 +55,7 @@ def run(self):
                 self.metrics['appinfo_migration_end'] = get_current_time()
                 break
         self.logger.info('AppInfo Migration Ended.')
-        job = self.start_reindex()
+        job = self.start_app_reindex(MANAGEMENT_APP_ID)
         self.metrics['reindex_start'] = get_current_time()
         self.logger.info('Started Re-index.  Job=[%s]', job)
         is_running = True
@@ -68,17 +68,6 @@ def run(self):
         self.metrics['reindex_end'] = get_current_time()
         app_ids = self.get_app_ids()
         for app_id in app_ids:
-            job = self.start_app_dedup(app_id)
-            self.metrics[('dedup_start_' + app_id)] = get_current_time()
-            self.logger.info('Started dedup.  App=[%s], Job=[%s]', app_id, job)
-            is_running = True
-            while is_running:
-                time.sleep(STATUS_INTERVAL_SECONDS)
-                is_running = self.is_reindex_running(job)
-                if (not is_running):
-                    break
-            self.logger.info('Finished dedup. App=[%s], Job=[%s]', app_id, job)
-            self.metrics[('dedup_end_' + app_id)] = get_current_time()
             job = self.start_app_reindex(app_id)
             self.metrics[('reindex_start_' + app_id)] = get_current_time()
             self.logger.info('Started Re-index.  App=[%s], Job=[%s]', app_id, job)

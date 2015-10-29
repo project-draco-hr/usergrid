@@ -1,9 +1,16 @@
 def get_app_ids(self):
     try:
-        url = (((self.endpoint + '/management/orgs/') + self.org) + '/apps')
+        url = (self.endpoint + '/management/token')
+        body = json.dumps({'grant_type': 'password', 'username': self.admin_user, 'password': self.admin_pass, })
+        r = requests.post(url=url, data=body)
+        if (r.status_code != 200):
+            print ('Error logging in: ' + r.text)
+            return
+        access_token = r.json()['access_token']
+        url = ((((self.endpoint + '/management/orgs/') + self.org) + '/apps?access_token=') + access_token)
         r = requests.get(url=url)
         if (r.status_code != 200):
-            exit_on_error('Database Bootstrap Failed')
+            exit_on_error(('Cannot get app ids: ' + r.text))
         apps = r.json()['data']
         app_ids = []
         for appId in apps.values():

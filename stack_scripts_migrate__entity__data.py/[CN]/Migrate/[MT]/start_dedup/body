@@ -1,10 +1,11 @@
 def start_dedup(self, app_id):
     body = ''
     try:
-        r = requests.post(url=((self.get_dedup_url() + '/') + app_id), data=body, auth=(self.admin_user, self.admin_pass))
+        r = requests.post(url=((self.get_dedup_url() + '/') + app_id), data=body, auth=(self.super_user, self.super_pass))
         if (r.status_code == 200):
             response = r.json()
-            return response['jobId']
+            print r.text
+            return response['status']['jobStatusId']
         else:
             self.logger.error('Failed to start dedup, %s', r)
             exit_on_error(str(r))
