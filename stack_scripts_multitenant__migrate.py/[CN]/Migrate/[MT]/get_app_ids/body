@@ -1,20 +1,21 @@
 def get_app_ids(self):
     try:
-        url = (self.endpoint + '/management/token')
-        body = json.dumps({'grant_type': 'password', 'username': self.admin_user, 'password': self.admin_pass, })
-        r = requests.post(url=url, data=body)
-        if (r.status_code != 200):
-            print ('Error logging in: ' + r.text)
-            return
-        access_token = r.json()['access_token']
-        url = ((((self.endpoint + '/management/orgs/') + self.org) + '/apps?access_token=') + access_token)
-        r = requests.get(url=url)
+        url = (self.endpoint + '/management/organizations')
+        r = requests.get(url=url, auth=(self.super_user, self.super_pass))
         if (r.status_code != 200):
             exit_on_error(('Cannot get app ids: ' + r.text))
-        apps = r.json()['data']
+        response_json = r.json()
         app_ids = []
-        for appId in apps.values():
-            app_ids.append(appId)
+        orgs = response_json['organizations']
+        if (orgs is not None):
+            for org in orgs:
+                if (org['name'] == self.org):
+                    for app in org['applications']:
+                        app_ids.append(org['applications'][app])
+        else:
+            e = 'No Orgs in this system'
+            self.logger.error(e)
+            exit_on_error(e)
         return app_ids
     except requests.exceptions.RequestException as e:
         self.logger.error('Unable to get list of application ids, %s', e)
