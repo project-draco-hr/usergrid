@@ -1,5 +1,5 @@
 {
-  LOG.debug("ServiceResource.executeDelete");
+  logger.debug("ServiceResource.executeDelete");
   ApiResponse response=createApiResponse();
   response.setAction("delete");
   response.setApplication(services.getApplication());
@@ -8,9 +8,15 @@
   if (!sr.getResultsType().equals(ServiceResults.Type.CONNECTION) && !sr.getResultsType().equals(ServiceResults.Type.COLLECTION)) {
     for (    Entity entity : sr.getEntities()) {
       if (entity.getProperty(AssetUtils.FILE_METADATA) != null) {
-        binaryStore.delete(services.getApplicationId(),entity);
+        try {
+          binaryStore.delete(services.getApplicationId(),entity);
+        }
+ catch (        AwsPropertiesNotFoundException apnfe) {
+          logger.error("Amazon Property needed for this operation not found",apnfe);
+          response.setError("500","Amazon Property needed for this operation not found",apnfe);
+        }
       }
     }
   }
-  return new JSONWithPadding(response,callback);
+  return response;
 }

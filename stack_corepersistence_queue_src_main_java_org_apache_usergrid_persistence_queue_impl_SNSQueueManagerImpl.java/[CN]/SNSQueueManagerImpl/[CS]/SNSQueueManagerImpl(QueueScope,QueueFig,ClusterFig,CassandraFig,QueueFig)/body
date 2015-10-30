@@ -1,0 +1,17 @@
+{
+  this.scope=scope;
+  this.fig=fig;
+  this.clusterFig=clusterFig;
+  this.cassandraFig=cassandraFig;
+  final ExecutorService executor=TaskExecutorFactory.createTaskExecutor("amazon-async-io",queueFig.getAsyncMaxThreads(),queueFig.getAsyncQueueSize(),TaskExecutorFactory.RejectionAction.CALLERRUNS);
+  final Region region=getRegion();
+  try {
+    sqs=createSQSClient(region);
+    sns=createSNSClient(region);
+    snsAsync=createAsyncSNSClient(region,executor);
+    sqsAsync=createAsyncSQSClient(region,executor);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Error setting up mapper",e);
+  }
+}

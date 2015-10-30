@@ -1,0 +1,70 @@
+{
+  Map<UUID,String> organizationSet=HashBiMap.create();
+  Map<UUID,String> applicationSet=HashBiMap.create();
+  OrganizationInfo organization=null;
+  ApplicationInfo application=null;
+  role(info,Realm.ROLE_APPLICATION_USER);
+  UUID applicationId=getApplicationId();
+  AccessTokenCredentials tokenCredentials=getAccessTokenCredentials();
+  TokenInfo token=null;
+  if (tokenCredentials != null) {
+    try {
+      token=tokens.getTokenInfo(tokenCredentials.getToken());
+    }
+ catch (    Exception e) {
+      logger.error("Unable to retrieve token info",e);
+    }
+    logger.debug("Token: {}",token);
+  }
+  grant(info,getPermissionFromPath(applicationId,"access"));
+  EntityManager em=emf.getEntityManager(applicationId);
+  try {
+    String appName=(String)em.getProperty(em.getApplicationRef(),"name");
+    applicationSet.put(applicationId,appName);
+    application=new ApplicationInfo(applicationId,appName);
+  }
+ catch (  Exception e) {
+  }
+  try {
+    Set<String> permissions=em.getRolePermissions("default");
+    grant(info,applicationId,permissions);
+  }
+ catch (  Exception e) {
+    logger.error("Unable to get user default role permissions",e);
+  }
+  UserInfo user=getUser();
+  try {
+    Set<String> permissions=em.getUserPermissions(user.getUuid());
+    grant(info,applicationId,permissions);
+  }
+ catch (  Exception e) {
+    logger.error("Unable to get user permissions",e);
+  }
+  try {
+    Set<String> rolenames=em.getUserRoles(user.getUuid());
+    grantAppRoles(info,em,applicationId,token,rolenames);
+  }
+ catch (  Exception e) {
+    logger.error("Unable to get user role permissions",e);
+  }
+  try {
+    Results r=em.getCollection(new SimpleEntityRef(User.ENTITY_TYPE,user.getUuid()),"groups",null,1000,Query.Level.IDS,false);
+    if (r != null) {
+      Set<String> rolenames=new HashSet<String>();
+      for (      UUID groupId : r.getIds()) {
+        Results roleResults=em.getCollection(new SimpleEntityRef(Group.ENTITY_TYPE,groupId),"roles",null,1000,Query.Level.CORE_PROPERTIES,false);
+        for (        Entity entity : roleResults.getEntities()) {
+          rolenames.add(entity.getName());
+        }
+      }
+      grantAppRoles(info,em,applicationId,token,rolenames);
+    }
+  }
+ catch (  Exception e) {
+    logger.error("Unable to get user group role permissions",e);
+  }
+  info.setOrganization(organization);
+  info.addOrganizationSet(organizationSet);
+  info.setApplication(application);
+  info.addApplicationSet(applicationSet);
+}

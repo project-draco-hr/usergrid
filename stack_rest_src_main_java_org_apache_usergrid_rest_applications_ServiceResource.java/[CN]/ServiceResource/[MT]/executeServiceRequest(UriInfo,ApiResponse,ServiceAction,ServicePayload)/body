@@ -1,12 +1,42 @@
 {
-  LOG.debug("ServiceResource.executeServiceRequest");
+  logger.debug("ServiceResource.executeServiceRequest");
   boolean tree="true".equalsIgnoreCase(ui.getQueryParameters().getFirst("tree"));
+  String connectionQueryParm=ui.getQueryParameters().getFirst("connections");
+  boolean returnInboundConnections=true;
+  boolean returnOutboundConnections=true;
+  if (action == ServiceAction.GET) {
+    if ("none".equalsIgnoreCase(connectionQueryParm)) {
+      returnInboundConnections=false;
+      returnOutboundConnections=false;
+    }
+ else     if ("in".equalsIgnoreCase(connectionQueryParm)) {
+      returnInboundConnections=true;
+      returnOutboundConnections=false;
+    }
+ else     if ("out".equalsIgnoreCase(connectionQueryParm)) {
+      returnInboundConnections=false;
+      returnOutboundConnections=true;
+    }
+ else     if ("all".equalsIgnoreCase(connectionQueryParm)) {
+      returnInboundConnections=true;
+      returnOutboundConnections=true;
+    }
+ else {
+      if (connectionQueryParm != null) {
+        logger.error(String.format("Invalid connections query parameter=%s, ignoring.",connectionQueryParm));
+      }
+      OrganizationConfig orgConfig=management.getOrganizationConfigForApplication(services.getApplicationId());
+      String defaultConnectionQueryParm=orgConfig.getDefaultConnectionParam();
+      returnInboundConnections=(defaultConnectionQueryParm.equals("in")) || (defaultConnectionQueryParm.equals("all"));
+      returnOutboundConnections=(defaultConnectionQueryParm.equals("out")) || (defaultConnectionQueryParm.equals("all"));
+    }
+  }
   boolean collectionGet=false;
   if (action == ServiceAction.GET) {
     collectionGet=(getServiceParameters().size() == 1 && InflectionUtils.isPlural(getServiceParameters().get(0)));
   }
   addQueryParams(getServiceParameters(),ui);
-  ServiceRequest r=services.newRequest(action,tree,getServiceParameters(),payload);
+  ServiceRequest r=services.newRequest(action,tree,getServiceParameters(),payload,returnInboundConnections,returnOutboundConnections);
   response.setServiceRequest(r);
   ServiceResults results=r.execute();
   if (results != null) {

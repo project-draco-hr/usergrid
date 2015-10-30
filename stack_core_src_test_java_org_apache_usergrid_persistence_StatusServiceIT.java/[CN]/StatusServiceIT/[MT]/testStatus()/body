@@ -1,0 +1,23 @@
+{
+  Injector injector=SpringResource.getInstance().getBean(Injector.class);
+  StatusService statusService=injector.getInstance(StatusService.class);
+  UUID applicationID=UUID.randomUUID();
+  UUID jobid=UUID.randomUUID();
+  StatusService.JobStatus status=statusService.getStatus(applicationID,jobid).toBlocking().lastOrDefault(null);
+  Assert.assertNull(status);
+  statusService.setStatus(applicationID,jobid,StatusService.Status.COMPLETE,null).subscribe();
+  status=statusService.getStatus(applicationID,jobid).toBlocking().lastOrDefault(null);
+  Assert.assertNotNull(status);
+  Assert.assertEquals(status.getJobStatusId(),jobid);
+  Assert.assertEquals(status.getData(),new HashMap<String,Object>());
+  Assert.assertEquals(status.getStatus(),StatusService.Status.COMPLETE);
+  HashMap<String,Object> map=new HashMap<>();
+  map.put("name","hello");
+  map.put("count",0);
+  statusService.setStatus(applicationID,jobid,StatusService.Status.INPROGRESS,map).subscribe();
+  status=statusService.getStatus(applicationID,jobid).toBlocking().lastOrDefault(null);
+  Assert.assertNotNull(status);
+  Assert.assertEquals(status.getJobStatusId(),jobid);
+  Assert.assertEquals(status.getData(),map);
+  Assert.assertEquals(status.getStatus(),StatusService.Status.INPROGRESS);
+}

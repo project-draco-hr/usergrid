@@ -1,0 +1,17 @@
+{
+  CacheScope scope=new CacheScope(new SimpleId("application"));
+  ScopedCache<String,Map<String,Object>> cache=cf.getScopedCache(scope);
+  assertNotNull("should get a cache",cache);
+  Map<String,Object> item=new HashMap<String,Object>(){
+{
+      put("field1","value1");
+    }
+  }
+;
+  cache.put("item",item,60);
+  Map<String,Object> retrievedItem=cache.get("item",typeRef);
+  assertNotNull("should get back item",retrievedItem);
+  assertEquals("value1",retrievedItem.get("field1"));
+  cache.invalidate();
+  assertNull(cache.get("item",typeRef));
+}

@@ -1,2 +1,12 @@
 {
+  Preconditions.checkNotNull(message,"Queue Message cannot be null for handleEdgeDelete");
+  final AsyncEvent event=(AsyncEvent)message.getBody();
+  Preconditions.checkNotNull(message,"QueueMessage Body cannot be null for handleEdgeDelete");
+  Preconditions.checkArgument(event instanceof EdgeDeleteEvent,String.format("Event Type for handleEdgeDelete must be EDGE_DELETE, got %s",event.getClass()));
+  final EdgeDeleteEvent edgeDeleteEvent=(EdgeDeleteEvent)event;
+  final ApplicationScope applicationScope=edgeDeleteEvent.getApplicationScope();
+  final Edge edge=edgeDeleteEvent.getEdge();
+  if (logger.isDebugEnabled())   logger.debug("Deleting in app scope {} with edge {}",applicationScope,edge);
+  final Observable<IndexOperationMessage> observable=eventBuilder.buildDeleteEdge(applicationScope,edge);
+  return observable;
 }

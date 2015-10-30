@@ -1,0 +1,25 @@
+{
+  if (fromPort < MIN_PORT_NUMBER || toPort > MAX_PORT_NUMBER || fromPort > toPort) {
+    throw new IllegalArgumentException("Invalid port range: " + fromPort + " ~ "+ toPort);
+  }
+  Set<Integer> result=new TreeSet<Integer>();
+  for (int i=fromPort; i <= toPort; i++) {
+    ServerSocket s=null;
+    try {
+      s=new ServerSocket(i);
+      result.add(i);
+    }
+ catch (    IOException e) {
+    }
+ finally {
+      if (s != null) {
+        try {
+          s.close();
+        }
+ catch (        IOException e) {
+        }
+      }
+    }
+  }
+  return result;
+}

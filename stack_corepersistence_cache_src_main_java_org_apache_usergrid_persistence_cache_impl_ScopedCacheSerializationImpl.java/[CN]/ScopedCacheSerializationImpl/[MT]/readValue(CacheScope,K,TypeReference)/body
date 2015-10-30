@@ -1,0 +1,29 @@
+{
+  Preconditions.checkNotNull(scope,"scope is required");
+  Preconditions.checkNotNull(key,"key is required");
+  String rowKeyString=scope.getApplication().getUuid().toString();
+  final int bucket=BUCKET_LOCATOR.getCurrentBucket(rowKeyString);
+  final BucketScopedRowKey<String> keyRowKey=BucketScopedRowKey.fromKey(scope.getApplication(),rowKeyString,bucket);
+  String columnName=key.toString();
+  try {
+    try {
+      Column<String> result=keyspace.prepareQuery(SCOPED_CACHE).getKey(keyRowKey).getColumn(columnName).execute().getResult();
+      result.getByteBufferValue();
+      V value=MAPPER.readValue(result.getByteArrayValue(),typeRef);
+      logger.debug("Read cache item from scope {}\n   key/value types {}/{}\n   key:value: {}:{}",new Object[]{scope.getApplication().getUuid(),key.getClass().getSimpleName(),value.getClass().getSimpleName(),key,value});
+      return value;
+    }
+ catch (    NotFoundException nfe) {
+      logger.info("Value not found");
+    }
+catch (    IOException ioe) {
+      logger.error("Unable to read cached value",ioe);
+      throw new RuntimeException("Unable to read cached value",ioe);
+    }
+  }
+ catch (  ConnectionException e) {
+    throw new RuntimeException("Unable to connect to cassandra",e);
+  }
+  logger.info("Cache value not found for key {}",key);
+  return null;
+}

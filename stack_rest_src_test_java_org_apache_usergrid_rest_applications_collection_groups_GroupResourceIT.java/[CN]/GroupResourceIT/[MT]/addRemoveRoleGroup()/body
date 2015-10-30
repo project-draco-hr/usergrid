@@ -21,12 +21,14 @@
   role=this.app().collection("roles").uniqueID(roleName).get();
   assertEquals(role.get("name"),roleName);
   this.app().collection("role").entity(role).delete();
+  this.refreshIndex();
+  Thread.sleep(5000);
   try {
-    this.app().collection("role").entity(role).get();
+    Entity entity1=this.app().collection("role").entity(role).get();
     fail("Entity still exists");
   }
- catch (  UniformInterfaceException e) {
-    JsonNode node=mapper.readTree(e.getResponse().getEntity(String.class));
-    assertEquals("service_resource_not_found",node.get("error").textValue());
+ catch (  ClientErrorException e) {
+    JsonNode node=mapper.readTree(e.getResponse().readEntity(String.class));
+    assertEquals("entity_not_found",node.get("error").textValue());
   }
 }

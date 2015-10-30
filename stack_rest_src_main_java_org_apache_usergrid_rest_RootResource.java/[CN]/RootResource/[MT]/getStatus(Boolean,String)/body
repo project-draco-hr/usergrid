@@ -1,5 +1,6 @@
 {
   ApiResponse response=createApiResponse();
+  AsyncEventService eventService=injector.getInstance(AsyncEventService.class);
   if (!ignoreError) {
     if (!emf.getEntityStoreHealth().equals(Health.GREEN)) {
       throw new RuntimeException("Error connecting to datastore");
@@ -14,9 +15,9 @@
   node.put("version",usergridSystemMonitor.getBuildNumber());
   node.put("cassandraAvailable",usergridSystemMonitor.getIsCassandraAlive());
   node.put("cassandraStatus",emf.getEntityStoreHealth().toString());
-  EntityManager em=emf.getEntityManager(emf.getManagementAppId());
   node.put("managementAppIndexStatus",emf.getIndexHealth().toString());
+  node.put("queueDepth",eventService.getQueueDepth());
   dumpMetrics(node);
   response.setProperty("status",node);
-  return new JSONWithPadding(response,callback);
+  return response;
 }

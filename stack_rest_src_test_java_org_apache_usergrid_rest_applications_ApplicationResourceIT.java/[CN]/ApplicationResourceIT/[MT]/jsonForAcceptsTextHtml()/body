@@ -3,8 +3,8 @@
   Credentials orgCredentials=new Credentials(orgResource.credentials().get(ApiResponse.class));
   String clientId=orgCredentials.getClientId();
   String clientSecret=orgCredentials.getClientSecret();
-  WebResource.Builder builder=this.app().collection("users").getResource(false).queryParam("grant_type","client_credentials").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).accept(MediaType.TEXT_HTML).type(MediaType.APPLICATION_JSON_TYPE);
-  ApiResponse apiResponse=builder.get(ApiResponse.class);
+  Invocation.Builder builder=this.app().collection("users").getTarget().queryParam("grant_type","client_credentials").queryParam("client_id",clientId).queryParam("client_secret",clientSecret).request();
+  ApiResponse apiResponse=builder.accept(MediaType.TEXT_HTML).get(ApiResponse.class);
   Collection users=new Collection(apiResponse);
   assertNotNull(users);
   assertNull(users.getResponse().getError());

@@ -4,12 +4,12 @@
   List<Map<String,String>> bodies=new ArrayList<>();
   bodies.add(values);
   qm.sendMessages(bodies);
-  List<QueueMessage> messageList=qm.getMessages(1,5000,5000,values.getClass()).toList().toBlocking().last();
+  List<QueueMessage> messageList=qm.getMessages(1,5000,5000,values.getClass());
   assertTrue(messageList.size() >= 1);
   for (  QueueMessage message : messageList) {
     assertTrue(message.getBody().equals(values));
   }
   qm.commitMessages(messageList);
-  messageList=qm.getMessages(1,5000,5000,values.getClass()).toList().toBlocking().last();
+  messageList=qm.getMessages(1,5000,5000,values.getClass());
   assertTrue(messageList.size() <= 0);
 }

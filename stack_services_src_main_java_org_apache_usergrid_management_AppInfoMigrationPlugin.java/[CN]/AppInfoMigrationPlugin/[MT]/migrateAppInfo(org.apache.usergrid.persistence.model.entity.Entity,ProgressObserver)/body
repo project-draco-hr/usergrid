@@ -2,27 +2,25 @@
   final EntityManager managementEm=emf.getManagementEntityManager();
   Map oldAppInfoMap=CpEntityMapUtils.toMap(oldAppInfoEntity);
   final String name=(String)oldAppInfoMap.get(PROPERTY_NAME);
+  logger.info("Attempting to migrate app {}",name);
   try {
     final String orgName=name.split("/")[0];
     final String appName=name.split("/")[1];
     UUID applicationId=getUuid(oldAppInfoMap,"applicationUuid");
     applicationId=applicationId == null ? getUuid(oldAppInfoMap,"appUuid") : applicationId;
-    org.apache.usergrid.persistence.Entity appInfo=getApplicationInfo(applicationId);
-    if (appInfo == null) {
-      observer.update(getMaxVersion(),"Created application_info for " + appName);
-      if (!orgName.equals("usergrid")) {
-        EntityRef orgRef=managementEm.getAlias(Group.ENTITY_TYPE,orgName);
-        managementService.createApplication(orgRef.getUuid(),name,applicationId,null);
-      }
+    EntityRef orgRef=managementEm.getAlias(Group.ENTITY_TYPE,orgName);
+    if (orgRef == null) {
+      logger.error("Unable to retrieve ref for org {}.  Not migrating app {}",orgName,appName);
+      return;
     }
- else {
-      observer.update(getMaxVersion(),"Received existing application_info for " + appName + " don't do anything");
-    }
+    managementService.createApplication(orgRef.getUuid(),name,applicationId,null);
+    observer.update(getMaxVersion(),"Created application_info for " + appName);
   }
- catch (  Exception e) {
-    String msg="Exception writing application_info for " + name;
-    logger.error(msg,e);
-    observer.failed(getMaxVersion(),msg);
+ catch (  ApplicationAlreadyExistsException appExists) {
+    logger.info("Application {} already migrated.  Ignoring.",name);
+    observer.update(getMaxVersion(),"Skipping application " + name + " it already exists");
+  }
+catch (  Exception e) {
     throw new RuntimeException(e);
   }
 }

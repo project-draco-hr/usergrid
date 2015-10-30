@@ -1,0 +1,18 @@
+{
+  if (permissions != null) {
+    for (    String permission : permissions) {
+      if (isNotBlank(permission)) {
+        String operations="*";
+        if (permission.indexOf(':') != -1) {
+          operations=stringOrSubstringBeforeFirst(permission,':');
+        }
+        if (isBlank(operations)) {
+          operations="*";
+        }
+        permission=stringOrSubstringAfterFirst(permission,':');
+        permission="applications:" + operations + ":"+ applicationId+ ":"+ permission;
+        grant(info,permission);
+      }
+    }
+  }
+}

@@ -4,13 +4,15 @@
   IndexEdge indexEdge=new IndexEdgeImpl(appId,"things",SearchEdge.NodeType.SOURCE,1);
   final SearchTypes searchTypes=SearchTypes.fromTypes(entityType);
   EntityIndexBatch batch=entityIndex.createBatch();
+  UUID uuid=UUID.randomUUID();
   Entity entity1=new Entity(entityType);
   EntityUtils.setVersion(entity1,UUIDGenerator.newTimeUUID());
   entity1.setField(new UUIDField(IndexingUtils.ENTITY_ID_FIELDNAME,UUID.randomUUID()));
   entity1.setField(new StringField("testfield","test"));
   entity1.setField(new IntegerField("ordinal",0));
+  entity1.setField(new UUIDField("testuuid",uuid));
   batch.index(indexEdge,entity1);
-  batch.execute().toBlocking().last();
+  indexProducer.put(batch.build()).subscribe();
   Entity entity2=new Entity(entityType);
   EntityUtils.setVersion(entity2,UUIDGenerator.newTimeUUID());
   List<String> list=new ArrayList<>();
@@ -18,7 +20,8 @@
   entity2.setField(new ArrayField<>("testfield",list));
   entity2.setField(new IntegerField("ordinal",1));
   batch.index(indexEdge,entity2);
-  batch.execute().toBlocking().last();
+  indexProducer.put(batch.build()).subscribe();
+  ;
   entityIndex.refreshAsync().toBlocking().first();
   StopWatch timer=new StopWatch();
   timer.start();
@@ -32,4 +35,8 @@
   final CandidateResult candidate2=candidateResults.get(1);
   assertEquals(entity2.getId(),candidate2.getId());
   assertEquals(entity2.getVersion(),candidate2.getVersion());
+  candidateResults=entityIndex.search(indexEdge,searchTypes,"select * where testuuid = '" + uuid + "'",100,0);
+  assertEquals(entity1.getId(),candidateResults.get(0).getId());
+  candidateResults=entityIndex.search(indexEdge,searchTypes,"select * where testuuid = " + uuid,100,0);
+  assertEquals(entity1.getId(),candidateResults.get(0).getId());
 }

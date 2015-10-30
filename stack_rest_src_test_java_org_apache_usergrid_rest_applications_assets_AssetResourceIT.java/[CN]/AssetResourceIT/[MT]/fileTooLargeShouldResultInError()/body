@@ -4,9 +4,9 @@
   props.put("usergrid.binary.max-size-mb","6");
   pathResource("testproperties").post(props);
   try {
-    byte[] data=IOUtils.toByteArray(this.getClass().getResourceAsStream("/ship-larger-than-6mb.gif"));
-    FormDataMultiPart form=new FormDataMultiPart().field("file",data,MediaType.MULTIPART_FORM_DATA_TYPE);
-    ApiResponse postResponse=pathResource(getOrgAppPath("bars")).post(form);
+    final StreamDataBodyPart part=new StreamDataBodyPart("file",getClass().getResourceAsStream("/ship-larger-than-6mb.gif"),"ship");
+    final MultiPart multipart=new FormDataMultiPart().bodyPart(part);
+    ApiResponse postResponse=pathResource(getOrgAppPath("bars")).post(multipart);
     UUID assetId=postResponse.getEntities().get(0).getUuid();
     String errorMessage=null;
     LOG.info("Waiting for upload to finish...");

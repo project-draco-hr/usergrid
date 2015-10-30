@@ -11,8 +11,8 @@
     node=this.app().collection(collectionType).post(misspelledLatitudeEntityData).getEntity();
     fail("System allowed misspelled location property - latitudee, which it should not");
   }
- catch (  UniformInterfaceException e) {
-    JsonNode nodeError=mapper.readTree(e.getResponse().getEntity(String.class));
+ catch (  ClientErrorException e) {
+    JsonNode nodeError=mapper.readTree(e.getResponse().readEntity(String.class));
     assertEquals("illegal_argument",nodeError.get("error").textValue());
   }
   Map<String,Double> misspelledLongitude=hashMap("latitude",lat);
@@ -23,8 +23,8 @@
     node=this.app().collection(collectionType).post(misspelledLongitudeEntityData).getEntity();
     fail("System allowed misspelled location property - longitudee, which it should not");
   }
- catch (  UniformInterfaceException e) {
-    JsonNode nodeError=mapper.readTree(e.getResponse().getEntity(String.class));
+ catch (  ClientErrorException e) {
+    JsonNode nodeError=mapper.readTree(e.getResponse().readEntity(String.class));
     assertEquals("illegal_argument",nodeError.get("error").textValue());
   }
 }

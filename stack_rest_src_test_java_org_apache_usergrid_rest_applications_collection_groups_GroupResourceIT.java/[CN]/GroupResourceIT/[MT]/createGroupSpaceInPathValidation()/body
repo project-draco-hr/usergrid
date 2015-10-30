@@ -5,8 +5,8 @@
     this.createGroup(groupName,groupSpacePath);
     fail("Should not be able to create a group with a space in the path");
   }
- catch (  UniformInterfaceException e) {
-    JsonNode node=mapper.readTree(e.getResponse().getEntity(String.class));
+ catch (  ClientErrorException e) {
+    JsonNode node=mapper.readTree(e.getResponse().readEntity(String.class));
     assertEquals("illegal_argument",node.get("error").textValue());
   }
 }

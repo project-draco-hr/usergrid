@@ -4,11 +4,12 @@
   install(new QueueModule());
   bind(EntityIndexFactory.class).to(EsEntityIndexFactoryImpl.class);
   bind(IndexCache.class).to(EsIndexCacheImpl.class);
-  bind(IndexRefreshCommand.class).to(IndexRefreshCommandImpl.class);
-  bind(IndexBufferConsumer.class).to(EsIndexBufferConsumerImpl.class).asEagerSingleton();
-  Multibinder<DataMigration<ApplicationScope>> dataMigrationMultibinder=Multibinder.newSetBinder(binder(),new TypeLiteral<DataMigration<ApplicationScope>>(){
+  bind(IndexProducer.class).to(EsIndexProducerImpl.class).asEagerSingleton();
+  Multibinder<DataMigration> dataMigrationMultibinder=Multibinder.newSetBinder(binder(),new TypeLiteral<DataMigration>(){
   }
 ,IndexMigration.class);
-  Multibinder.newSetBinder(binder(),MigrationPlugin.class).addBinding().to(EsIndexMigrationPlugin.class);
+  final Multibinder<MigrationPlugin> plugins=Multibinder.newSetBinder(binder(),MigrationPlugin.class);
+  plugins.addBinding().to(EsIndexMigrationPlugin.class);
+  plugins.addBinding().to(EsIndexMappingMigrationPlugin.class);
   configureMigrationProvider();
 }

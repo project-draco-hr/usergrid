@@ -1,0 +1,25 @@
+{
+  this.refreshIndex();
+  byte[] data=IOUtils.toByteArray(this.getClass().getResourceAsStream("/file-bigger-than-5M"));
+  FormDataMultiPart form=new FormDataMultiPart().field("file",data,MediaType.MULTIPART_FORM_DATA_TYPE);
+  ApiResponse putResponse=pathResource(getOrgAppPath("foos")).post(form);
+  this.refreshIndex();
+  UUID assetId=putResponse.getEntities().get(0).getUuid();
+  assertNotNull(assetId);
+  int retries=0;
+  boolean done=false;
+  byte[] foundData=new byte[0];
+  while (!done && retries < 30) {
+    try {
+      InputStream is=pathResource(getOrgAppPath("foos/" + assetId)).getAssetAsStream();
+      foundData=IOUtils.toByteArray(is);
+      done=true;
+    }
+ catch (    Exception intentiallyIgnored) {
+    }
+    Thread.sleep(1000);
+    retries++;
+  }
+  assertEquals(5324800,foundData.length);
+  pathResource(getOrgAppPath("foos/" + assetId)).delete();
+}

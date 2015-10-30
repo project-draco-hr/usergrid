@@ -1,0 +1,24 @@
+{
+  if (!getDataMigrationManager().pluginExists(pluginName)) {
+    throw new IllegalArgumentException("Plugin doesn't exits name:" + pluginName);
+  }
+  ApiResponse response=createApiResponse();
+  response.setAction("Migrate Data: " + pluginName);
+  final Thread migrate=new Thread(){
+    @Override public void run(){
+      logger.info("Migrating Data for plugin: " + pluginName);
+      try {
+        getDataMigrationManager().migrate(pluginName);
+      }
+ catch (      Exception e) {
+        logger.error("Unable to migrate data for plugin: " + pluginName,e);
+      }
+    }
+  }
+;
+  migrate.setName("Index migrate data formats: " + pluginName);
+  migrate.setDaemon(true);
+  migrate.start();
+  response.setSuccess();
+  return response;
+}

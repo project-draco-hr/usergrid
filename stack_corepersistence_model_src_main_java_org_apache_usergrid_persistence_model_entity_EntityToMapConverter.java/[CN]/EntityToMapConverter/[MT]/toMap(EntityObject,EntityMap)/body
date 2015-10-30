@@ -17,13 +17,28 @@
     }
  else     if (field instanceof ByteArrayField) {
       ByteArrayField bf=(ByteArrayField)field;
+      if (corruptedTypes.containsKey(bf.getClassinfo().getName())) {
+        continue;
+      }
       byte[] serilizedObj=bf.getValue();
       Object o;
       try {
         o=objectMapper.readValue(serilizedObj,bf.getClassinfo());
       }
  catch (      IOException e) {
-        throw new RuntimeException("Can't deserialize object ",e);
+        throw new RuntimeException("Can't deserialize object from field:" + field.getName() + " classinfo: "+ bf.getClassinfo()+ " byteArray of length:"+ serilizedObj.length,e);
+      }
+      entityMap.put(bf.getName(),o);
+    }
+ else     if (field instanceof SerializedObjectField) {
+      SerializedObjectField bf=(SerializedObjectField)field;
+      String serilizedObj=bf.getValue();
+      Object o;
+      try {
+        o=objectMapper.readValue(serilizedObj,bf.getClassinfo());
+      }
+ catch (      IOException e) {
+        throw new RuntimeException("Can't deserialize object " + serilizedObj,e);
       }
       entityMap.put(bf.getName(),o);
     }

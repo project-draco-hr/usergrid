@@ -1,3 +1,13 @@
 {
-  return queueFig.overrideQueueForDefault() ? new DefaultQueueManager() : queuemanagerInternalFactory.getQueueManager(scope);
+  if (queueFig.overrideQueueForDefault()) {
+    QueueManager manager=defaultManager.get(scope.getName());
+    if (manager == null) {
+      manager=new LocalQueueManager();
+      defaultManager.put(scope.getName(),manager);
+    }
+    return manager;
+  }
+ else {
+    return queuemanagerInternalFactory.getQueueManager(scope);
+  }
 }

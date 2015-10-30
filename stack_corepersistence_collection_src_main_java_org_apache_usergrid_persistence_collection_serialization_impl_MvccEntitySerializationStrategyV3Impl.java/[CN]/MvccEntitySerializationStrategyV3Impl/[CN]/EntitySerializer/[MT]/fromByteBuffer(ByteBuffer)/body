@@ -1,7 +1,12 @@
 {
   EntityWrapper entityWrapper;
   try {
-    entityWrapper=MAPPER.readValue(byteBuffer.array(),EntityWrapper.class);
+    Timer.Context time=bytesOutTimer.time();
+    byte[] arr=byteBuffer.array();
+    bytesOutHistorgram.update(arr == null ? 0 : arr.length);
+    entityWrapper=MAPPER.readValue(arr,EntityWrapper.class);
+    entityWrapper.size=arr.length;
+    time.stop();
   }
  catch (  Exception e) {
     if (log.isDebugEnabled()) {
@@ -10,7 +15,7 @@
     throw new DataCorruptionException("Unable to read entity data",e);
   }
   if (entityWrapper.getEntityMap() == null) {
-    return new EntityWrapper(entityWrapper.getId(),entityWrapper.getVersion(),MvccEntity.Status.DELETED,null);
+    return new EntityWrapper(entityWrapper.getId(),entityWrapper.getVersion(),MvccEntity.Status.DELETED,null,0);
   }
   entityWrapper.setStatus(MvccEntity.Status.COMPLETE);
   return entityWrapper;

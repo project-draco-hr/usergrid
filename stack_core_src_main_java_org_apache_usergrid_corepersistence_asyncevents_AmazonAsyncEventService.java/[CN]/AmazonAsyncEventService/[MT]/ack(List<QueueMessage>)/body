@@ -1,6 +1,13 @@
 {
-  if (messages.size() == 0) {
-    return;
+  final Timer.Context timer=this.ackTimer.time();
+  try {
+    queue.commitMessages(messages);
+    inFlight.decrementAndGet();
   }
-  queue.commitMessages(messages);
+ catch (  Exception e) {
+    throw new RuntimeException("Unable to ack messages",e);
+  }
+ finally {
+    timer.stop();
+  }
 }

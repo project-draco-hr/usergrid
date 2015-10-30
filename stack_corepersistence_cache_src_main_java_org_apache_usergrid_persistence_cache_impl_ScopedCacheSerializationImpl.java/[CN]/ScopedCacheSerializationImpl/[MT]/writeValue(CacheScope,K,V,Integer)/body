@@ -1,0 +1,22 @@
+{
+  Preconditions.checkNotNull(scope,"scope is required");
+  Preconditions.checkNotNull(key,"key is required");
+  Preconditions.checkNotNull(value,"value is required");
+  Preconditions.checkNotNull(ttl,"ttl is required");
+  String rowKeyString=scope.getApplication().getUuid().toString();
+  final int bucket=BUCKET_LOCATOR.getCurrentBucket(rowKeyString);
+  final BucketScopedRowKey<String> keyRowKey=BucketScopedRowKey.fromKey(scope.getApplication(),rowKeyString,bucket);
+  String columnName=key.toString();
+  byte[] cacheBytes;
+  try {
+    cacheBytes=MAPPER.writeValueAsBytes(value);
+  }
+ catch (  JsonProcessingException jpe) {
+    throw new RuntimeException("Unable to serialize cache value",jpe);
+  }
+  final MutationBatch batch=keyspace.prepareMutationBatch();
+  batch.withRow(SCOPED_CACHE,keyRowKey).putColumn(columnName,cacheBytes,ttl);
+  executeBatch(batch);
+  logger.debug("Wrote cache item to scope {}\n   key/value types {}/{}\n   key:value: {}:{}",new Object[]{scope.getApplication().getUuid(),key.getClass().getSimpleName(),value.getClass().getSimpleName(),key,value});
+  return value;
+}

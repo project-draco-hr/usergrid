@@ -16,8 +16,8 @@
     this.app().collection("groups").uniqueID(groupName).get();
     fail("Entity still exists");
   }
- catch (  UniformInterfaceException e) {
-    JsonNode node=mapper.readTree(e.getResponse().getEntity(String.class));
-    assertEquals("service_resource_not_found",node.get("error").textValue());
+ catch (  ClientErrorException e) {
+    JsonNode node=mapper.readTree(e.getResponse().readEntity(String.class));
+    assertEquals("entity_not_found",node.get("error").textValue());
   }
 }

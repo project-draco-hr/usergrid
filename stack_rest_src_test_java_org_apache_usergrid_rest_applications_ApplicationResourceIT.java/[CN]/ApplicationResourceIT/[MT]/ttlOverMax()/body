@@ -9,10 +9,10 @@
   refreshIndex();
   entity.chainPut("grant_type","password").chainPut("ttl",Long.MAX_VALUE);
   try {
-    resource().path(String.format("/%s/%s/token",orgName,appName)).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(ApiResponse.class,entity);
+    target().path(String.format("/%s/%s/token",orgName,appName)).request().accept(MediaType.APPLICATION_JSON).post(javax.ws.rs.client.Entity.entity(entity,MediaType.APPLICATION_JSON_TYPE),ApiResponse.class);
     fail("This should cause an exception");
   }
- catch (  UniformInterfaceException uie) {
-    assertEquals(String.valueOf(Status.BAD_REQUEST.getStatusCode()),String.valueOf(uie.getResponse().getStatus()));
+ catch (  ClientErrorException uie) {
+    assertEquals(String.valueOf(Response.Status.BAD_REQUEST.getStatusCode()),String.valueOf(uie.getResponse().getStatus()));
   }
 }

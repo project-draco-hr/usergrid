@@ -1,0 +1,11 @@
+{
+  Preconditions.checkNotNull(scope,"scope is required");
+  Preconditions.checkNotNull(key,"key is required");
+  String rowKeyString=scope.getApplication().getUuid().toString();
+  final int bucket=BUCKET_LOCATOR.getCurrentBucket(rowKeyString);
+  final BucketScopedRowKey<String> keyRowKey=BucketScopedRowKey.fromKey(scope.getApplication(),rowKeyString,bucket);
+  String columnName=key.toString();
+  final MutationBatch batch=keyspace.prepareMutationBatch();
+  batch.withRow(SCOPED_CACHE,keyRowKey).deleteColumn(columnName);
+  executeBatch(batch);
+}

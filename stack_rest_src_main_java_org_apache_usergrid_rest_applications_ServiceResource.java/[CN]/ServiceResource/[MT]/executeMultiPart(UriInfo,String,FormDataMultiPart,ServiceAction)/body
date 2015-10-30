@@ -1,4 +1,10 @@
 {
+  if (properties.getProperty(PROPERTIES_USERGRID_BINARY_UPLOADER).equals("local")) {
+    this.binaryStore=localFileBinaryStore;
+  }
+ else {
+    this.binaryStore=awsSdkS3BinaryStore;
+  }
   List<BodyPart> bodyParts=multiPart.getBodyParts();
   HashMap<String,Object> data=new HashMap<String,Object>();
   for (  BodyPart bp : bodyParts) {
@@ -7,7 +13,7 @@
       data.put(bodyPart.getName(),bodyPart.getValue());
     }
  else {
-      LOG.info("skipping bodyPart {} of media type {}",bodyPart.getName(),bodyPart.getMediaType());
+      logger.info("skipping bodyPart {} of media type {}",bodyPart.getName(),bodyPart.getMediaType());
     }
   }
   FormDataBodyPart fileBodyPart=multiPart.getField(FILE_FIELD_NAME);
@@ -25,10 +31,20 @@
     if (fileInput != null) {
       Entity entity=serviceResults.getEntity();
       EntityManager em=emf.getEntityManager(getApplicationId());
-      binaryStore.write(getApplicationId(),entity,fileInput);
+      try {
+        binaryStore.write(getApplicationId(),entity,fileInput);
+      }
+ catch (      AwsPropertiesNotFoundException apnfe) {
+        logger.error("Amazon Property needed for this operation not found",apnfe);
+        response.setError("500","Amazon Property needed for this operation not found",apnfe);
+      }
+catch (      RuntimeException re) {
+        logger.error(re.getMessage());
+        response.setError("500",re);
+      }
       em.update(entity);
       serviceResults.setEntity(entity);
     }
   }
-  return new JSONWithPadding(response,callback);
+  return response;
 }

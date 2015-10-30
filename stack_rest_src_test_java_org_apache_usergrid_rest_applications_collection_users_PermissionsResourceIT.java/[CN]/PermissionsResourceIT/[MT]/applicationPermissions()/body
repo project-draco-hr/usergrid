@@ -35,19 +35,19 @@
     this.app().collection("reviews").entity("noca").delete();
     fail("this should have failed due to having insufficient permissions");
   }
- catch (  UniformInterfaceException uie) {
+ catch (  ClientErrorException uie) {
     status=uie.getResponse().getStatus();
   }
-  assertEquals(Status.UNAUTHORIZED.getStatusCode(),status);
+  assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(),status);
   status=0;
   try {
     this.app().collection("reviews").entity("4peaks").delete();
     fail("this should have failed due to having insufficient permissions");
   }
- catch (  UniformInterfaceException uie) {
+ catch (  ClientErrorException uie) {
     status=uie.getResponse().getStatus();
   }
-  assertEquals(Status.UNAUTHORIZED.getStatusCode(),status);
+  assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(),status);
   refreshIndex();
   this.app().token().post(new Token("reviewer2","password"));
   review=new Entity().chainPut("rating","4").chainPut("name","cowboyciao").chainPut("review","Great atmosphoere");
@@ -67,18 +67,18 @@
     this.app().collection("reviews").entity("cowboyciao").delete();
     fail("this should have failed due to having insufficient permissions");
   }
- catch (  UniformInterfaceException uie) {
+ catch (  ClientErrorException uie) {
     status=uie.getResponse().getStatus();
   }
-  assertEquals(Status.UNAUTHORIZED.getStatusCode(),status);
+  assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(),status);
   refreshIndex();
   status=0;
   try {
     this.app().collection("reviews").entity("currycorner").delete();
     fail("this should have failed due to having insufficient permissions");
   }
- catch (  UniformInterfaceException uie) {
+ catch (  ClientErrorException uie) {
     status=uie.getResponse().getStatus();
   }
-  assertEquals(Status.UNAUTHORIZED.getStatusCode(),status);
+  assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(),status);
 }

@@ -1,0 +1,14 @@
+{
+  Map<String,Role> app_roles=em.getRolesWithTitles(rolenames);
+  for (  String rolename : rolenames) {
+    if ((app_roles != null) && (token != null)) {
+      Role role=app_roles.get(rolename);
+      if ((role != null) && (role.getInactivity() > 0) && (token.getInactive() > role.getInactivity())) {
+        continue;
+      }
+    }
+    Set<String> permissions=em.getRolePermissions(rolename);
+    grant(info,applicationId,permissions);
+    role(info,"application-role:".concat(applicationId.toString()).concat(":").concat(rolename));
+  }
+}

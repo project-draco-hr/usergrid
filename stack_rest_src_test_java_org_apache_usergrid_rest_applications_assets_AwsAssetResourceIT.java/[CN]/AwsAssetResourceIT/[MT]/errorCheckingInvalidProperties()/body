@@ -1,0 +1,24 @@
+{
+  Map<String,Object> errorTestProperties;
+  errorTestProperties=getRemoteTestProperties();
+  setTestProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR,"xxx");
+  setTestProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR,"xxx");
+  setTestProperty("usergrid.binary.bucketname","xxx");
+  try {
+    Map<String,String> payload=hashMap("name","assetname");
+    ApiResponse postResponse=pathResource(getOrgAppPath("foos")).post(payload);
+    UUID assetId=postResponse.getEntities().get(0).getUuid();
+    assertNotNull(assetId);
+    byte[] data=IOUtils.toByteArray(getClass().getResourceAsStream("/cassandra_eye.jpg"));
+    ApiResponse putResponse=pathResource(getOrgAppPath("foos/" + assetId)).put(data,MediaType.APPLICATION_OCTET_STREAM_TYPE);
+  }
+ catch (  AwsPropertiesNotFoundException e) {
+    fail("Shouldn't interrupt runtime if access key isnt found.");
+  }
+catch (  ClientErrorException uie) {
+    assertEquals(500,uie.getResponse().getStatus());
+  }
+ finally {
+    setTestProperties(errorTestProperties);
+  }
+}

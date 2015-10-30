@@ -6,7 +6,7 @@
     management().orgs().org(clientSetup.getOrganizationName()).app().addToPath(clientSetup.getAppUuid()).addToPath("collection").addToPath("users").addToPath("export").post(ApiResponse.class,payload);
     fail("Should not have passed as we were missing an important part of the payload");
   }
- catch (  UniformInterfaceException uie) {
-    assertEquals(ClientResponse.Status.BAD_REQUEST,uie.getResponse().getClientResponseStatus());
+ catch (  ClientErrorException uie) {
+    assertEquals(Response.Status.BAD_REQUEST.getStatusCode(),uie.getResponse().getStatus());
   }
 }

@@ -1,5 +1,6 @@
 {
   install(new CommonModule());
+  install(new CacheModule());
   install(new CollectionModule(){
     /** 
  * configure our migration data provider for all entities in the system
@@ -32,10 +33,10 @@
 );
   bind(ManagerCache.class).to(CpManagerCache.class);
   bind(ApplicationIdCacheFactory.class);
-  Multibinder<DataMigration<EntityIdScope>> dataMigrationMultibinder=Multibinder.newSetBinder(binder(),new TypeLiteral<DataMigration<EntityIdScope>>(){
+  Multibinder<DataMigration> dataMigrationMultibinder=Multibinder.newSetBinder(binder(),new TypeLiteral<DataMigration>(){
   }
 ,CoreMigration.class);
-  dataMigrationMultibinder.addBinding().to(EntityTypeMappingMigration.class);
+  dataMigrationMultibinder.addBinding().to(DeDupConnectionDataMigration.class);
   final Multibinder<MigrationPlugin> plugins=Multibinder.newSetBinder(binder(),MigrationPlugin.class);
   plugins.addBinding().to(CoreMigrationPlugin.class);
   plugins.addBinding().to(MigrationModuleVersionPlugin.class);
@@ -46,6 +47,7 @@
   bind(ApplicationIndexBucketLocator.class);
   bind(AsyncEventService.class).toProvider(AsyncIndexProvider.class);
   bind(ReIndexService.class).to(ReIndexServiceImpl.class);
+  install(new FactoryModuleBuilder().implement(AggregationService.class,AggregationServiceImpl.class).build(AggregationServiceFactory.class));
   bind(IndexLocationStrategyFactory.class).to(IndexLocationStrategyFactoryImpl.class);
   install(new GuicyFigModule(IndexProcessorFig.class));
   install(new GuicyFigModule(CoreIndexFig.class));
@@ -54,4 +56,6 @@
   install(new PipelineModule());
   bind(CollectionService.class).to(CollectionServiceImpl.class);
   bind(ConnectionService.class).to(ConnectionServiceImpl.class);
+  bind(ApplicationService.class).to(ApplicationServiceImpl.class);
+  bind(StatusService.class).to(StatusServiceImpl.class);
 }

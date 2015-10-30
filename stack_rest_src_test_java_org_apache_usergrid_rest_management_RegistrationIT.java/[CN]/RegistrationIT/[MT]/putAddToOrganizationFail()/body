@@ -4,14 +4,14 @@
     setTestProperty(PROPERTIES_SYSADMIN_APPROVES_ADMIN_USERS,"false");
     setTestProperty(PROPERTIES_SYSADMIN_APPROVES_ORGANIZATIONS,"false");
     setTestProperty(PROPERTIES_ADMIN_USERS_REQUIRE_CONFIRMATION,"false");
-    setTestProperty(PROPERTIES_SYSADMIN_EMAIL,"sysadmin-1@mockserver.com");
+    setTestProperty(PROPERTIES_DEFAULT_SYSADMIN_EMAIL,"sysadmin-1@mockserver.com");
     String t=this.getAdminToken().getAccessToken();
     Form form=new Form();
-    form.add("foo","bar");
+    form.param("foo","bar");
     try {
-      this.org().getResource(false).path("/users/test-admin-null@mockserver.com").queryParam("access_token",t).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_FORM_URLENCODED).put(String.class,form);
+      this.org().getTarget(false).path("/users/test-admin-null@mockserver.com").queryParam("access_token",t).request().accept(MediaType.APPLICATION_JSON).put(javax.ws.rs.client.Entity.form(form));
     }
- catch (    UniformInterfaceException e) {
+ catch (    ClientErrorException e) {
       assertEquals("Should receive a 404 Not Found",404,e.getResponse().getStatus());
     }
   }

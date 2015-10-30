@@ -1,0 +1,28 @@
+{
+  this.refreshIndex();
+  Map<String,String> payload=hashMap("name","cassandra_eye.jpg");
+  ApiResponse postReponse=pathResource(getOrgAppPath("foos")).post(payload);
+  final UUID uuid=postReponse.getEntities().get(0).getUuid();
+  byte[] data=IOUtils.toByteArray(this.getClass().getResourceAsStream("/cassandra_eye.jpg"));
+  pathResource(getOrgAppPath("foos/" + uuid)).put(data,MediaType.APPLICATION_OCTET_STREAM_TYPE);
+  Map<String,String> imageGalleryPayload=hashMap("name","my image gallery");
+  ApiResponse postResponse2=pathResource(getOrgAppPath("imagegalleries")).post(imageGalleryPayload);
+  UUID imageGalleryId=postResponse2.getEntities().get(0).getUuid();
+  ApiResponse connectResponse=pathResource(getOrgAppPath("imagegalleries/" + imageGalleryId + "/contains/"+ uuid)).post(ApiResponse.class);
+  this.refreshIndex();
+  ApiResponse containsResponse=pathResource(getOrgAppPath("imagegalleries/" + imageGalleryId + "/contains/")).get(ApiResponse.class);
+  assertEquals(uuid,containsResponse.getEntities().get(0).getUuid());
+  pathResource(getOrgAppPath("imagegalleries/" + imageGalleryId + "/contains/"+ uuid)).delete();
+  this.refreshIndex();
+  ApiResponse listResponse=pathResource(getOrgAppPath("imagegalleries/" + imageGalleryId + "/contains/")).get(ApiResponse.class);
+  assertEquals(0,listResponse.getEntityCount());
+  ApiResponse getResponse2=pathResource(getOrgAppPath("foos/" + uuid)).get(ApiResponse.class);
+  Entity entity=getResponse2.getEntities().get(0);
+  Map<String,Object> fileMetadata=(Map<String,Object>)entity.get("file-metadata");
+  Assert.assertEquals("image/jpeg",fileMetadata.get(AssetUtils.CONTENT_TYPE));
+  Assert.assertEquals(7979,fileMetadata.get(AssetUtils.CONTENT_LENGTH));
+  assertEquals(uuid,entity.getUuid());
+  InputStream assetIs=pathResource(getOrgAppPath("foos/" + uuid)).getAssetAsStream();
+  byte[] foundData=IOUtils.toByteArray(assetIs);
+  assertEquals(7979,foundData.length);
+}
