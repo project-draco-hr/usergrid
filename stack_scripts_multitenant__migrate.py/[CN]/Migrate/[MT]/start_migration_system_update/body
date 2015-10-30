@@ -1,0 +1,9 @@
+def start_migration_system_update(self):
+    try:
+        migrateUrl = ((self.get_migration_url() + '/') + PLUGIN_MIGRATION_SYSTEM)
+        r = requests.put(url=migrateUrl, auth=(self.admin_user, self.super_pass))
+        response = r.json()
+        return response
+    except requests.exceptions.RequestException as e:
+        self.logger.error('Failed to start migration, %s', e)
+        exit_on_error(str(e))
