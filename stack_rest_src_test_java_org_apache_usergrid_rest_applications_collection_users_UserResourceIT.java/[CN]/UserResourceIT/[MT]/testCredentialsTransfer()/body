@@ -12,7 +12,6 @@
   final Map<String,Object> credentials=(Map<String,Object>)response.getProperties().get("credentials");
   final String originalSecret=(String)credentials.get("secret");
   final String borkedSecret=originalSecret.substring(0,originalSecret.length() - 1);
-  credentials.put("credentials",borkedSecret);
   credentials.put("secret",borkedSecret);
   final Map<String,Map<String,Object>> wrapper=new HashMap<>();
   wrapper.put("credentials",credentials);
@@ -29,7 +28,6 @@
     log.info("Error Response Body: " + uie.getResponse().getEntity(String.class));
   }
   assertEquals(Status.BAD_REQUEST.getStatusCode(),status);
-  credentials.put("credentials",originalSecret);
   credentials.put("secret",originalSecret);
   final WebResource putResource2=collection.getResource();
   putResource2.addFilter(new HTTPBasicAuthFilter(superUserName,superUserPassword));
