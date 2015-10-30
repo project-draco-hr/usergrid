@@ -1,9 +1,9 @@
 {
-  final Observable<Edge> edges=Observable.create(new ObservableIterator<MarkedEdge>("getEdgeTypesFromSource"){
+  final Observable<MarkedEdge> edges=Observable.create(new ObservableIterator<MarkedEdge>("loadEdgesFromSourceByType"){
     @Override protected Iterator<MarkedEdge> getIterator(){
       return storageEdgeSerialization.getEdgesFromSourceByTargetType(scope,search);
     }
   }
-).buffer(graphFig.getScanPageSize()).compose(new EdgeBufferFilter(search.getMaxTimestamp(),search.filterMarked()));
+).buffer(graphFig.getScanPageSize()).compose(new EdgeBufferFilter(search.filterMarked()));
   return ObservableTimer.time(edges,loadEdgesFromSourceByTypeTimer);
 }

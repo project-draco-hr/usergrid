@@ -1,0 +1,25 @@
+{
+  final SearchHits searchHits=searchResponse.getHits();
+  final SearchHit[] hits=searchHits.getHits();
+  for (  SearchHit hit : hits) {
+    final CandidateResult candidateResult=parseIndexDocId(hit.getId());
+    if (markedVersion != null) {
+      if (candidateResult.getVersion().timestamp() <= markedVersion.timestamp()) {
+        if (logger.isDebugEnabled()) {
+          logger.debug("Candidate version {} is <= provided entity version {} for entityId {}",candidateResult.getVersion(),markedVersion,candidateResult.getId());
+        }
+        candidates.add(candidateResult);
+      }
+ else {
+        if (logger.isDebugEnabled()) {
+          logger.debug("Candidate version {} is > provided entity version {} for entityId {}. Not" + "adding to candidate results",candidateResult.getVersion(),markedVersion,candidateResult.getId());
+        }
+      }
+    }
+ else {
+      candidates.add(candidateResult);
+    }
+  }
+  logger.debug("Aggregated {} out of {} hits ",candidates.size(),searchHits.getTotalHits());
+  return candidates;
+}

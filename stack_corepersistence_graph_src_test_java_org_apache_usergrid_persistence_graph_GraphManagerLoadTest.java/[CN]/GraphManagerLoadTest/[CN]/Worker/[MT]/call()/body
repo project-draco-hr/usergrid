@@ -15,7 +15,7 @@
   timer.reset();
   timer.start();
   final CountDownLatch latch=new CountDownLatch(1);
-  generator.doSearch(manager).take(readCount).buffer(1000).subscribe(new Subscriber<List<Edge>>(){
+  generator.doSearch(manager).take(readCount).buffer(1000).subscribe(new Subscriber<List<MarkedEdge>>(){
     @Override public void onCompleted(){
       timer.stop();
       latch.countDown();
@@ -23,7 +23,7 @@
     @Override public void onError(    final Throwable throwable){
       fail("Exception occurced " + throwable);
     }
-    @Override public void onNext(    final List<Edge> edges){
+    @Override public void onNext(    final List<MarkedEdge> edges){
       log.info("Read {} edges",edges.size());
     }
   }
