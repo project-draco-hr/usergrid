@@ -20,6 +20,10 @@
       logger.trace("Shard {} in group {} is the minimum, not deleting",shard,shardEntryGroup);
       continue;
     }
+    if (!shard.isCompacted()) {
+      logger.warn("Shard {} in group {} is not compacted yet was checked.  Short circuiting",shard,shardEntryGroup);
+      return DeleteResult.NO_OP;
+    }
     final MutationBatch shardRemovalMutation=edgeShardSerialization.removeShardMeta(applicationScope,shard,directedEdgeMeta);
     if (rollup == null) {
       rollup=shardRemovalMutation;
