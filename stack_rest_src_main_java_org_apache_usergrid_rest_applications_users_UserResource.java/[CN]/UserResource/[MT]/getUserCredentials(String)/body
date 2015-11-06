@@ -1,0 +1,18 @@
+{
+  logger.info("UserResource.getUserCredentials");
+  final ApiResponse response=createApiResponse();
+  response.setAction("get user credentials");
+  final UUID applicationId=getApplicationId();
+  final UUID targetUserId=getUserUuid();
+  if (applicationId == null) {
+    response.setError("Application not found");
+    return response;
+  }
+  if (targetUserId == null) {
+    response.setError("User not found");
+    return response;
+  }
+  final CredentialsInfo credentialsInfo=management.getAppUserCredentialsInfo(applicationId,targetUserId);
+  response.setProperty("credentials",credentialsInfo);
+  return response;
+}

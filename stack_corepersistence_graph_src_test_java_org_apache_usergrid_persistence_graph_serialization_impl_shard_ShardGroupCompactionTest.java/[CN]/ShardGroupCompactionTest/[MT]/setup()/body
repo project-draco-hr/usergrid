@@ -2,5 +2,8 @@
   graphFig=mock(GraphFig.class);
   when(graphFig.getShardAuditWorkerCount()).thenReturn(10);
   when(graphFig.getShardAuditWorkerQueueSize()).thenReturn(1000);
+  listeningExecutorService=MoreExecutors.listeningDecorator(TaskExecutorFactory.createTaskExecutor("GraphTaskExecutor",graphFig.getShardAuditWorkerCount(),graphFig.getShardAuditWorkerQueueSize(),TaskExecutorFactory.RejectionAction.ABORT));
+  asyncTaskExecutor=mock(AsyncTaskExecutor.class);
+  when(asyncTaskExecutor.getExecutorService()).thenReturn(listeningExecutorService);
   this.scope=new ApplicationScopeImpl(IdGenerator.createId("application"));
 }

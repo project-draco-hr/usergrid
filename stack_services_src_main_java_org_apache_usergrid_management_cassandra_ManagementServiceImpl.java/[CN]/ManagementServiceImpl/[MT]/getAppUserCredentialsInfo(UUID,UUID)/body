@@ -1,0 +1,11 @@
+{
+  final User user=emf.getEntityManager(applicationId).get(userId,User.class);
+  if (user == null) {
+    throw new EntityNotFoundException("Could not find user with id " + userId + " in application"+ applicationId);
+  }
+  final CredentialsInfo ci=readUserPasswordCredentials(applicationId,userId,User.ENTITY_TYPE);
+  if (ci == null) {
+    throw new EntityNotFoundException("Could not find credentials for user with id " + userId + " in application"+ applicationId);
+  }
+  return ci;
+}

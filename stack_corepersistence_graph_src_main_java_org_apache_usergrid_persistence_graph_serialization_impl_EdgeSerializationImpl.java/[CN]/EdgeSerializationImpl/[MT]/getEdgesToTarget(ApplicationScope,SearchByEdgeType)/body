@@ -6,7 +6,7 @@
   final long maxTimestamp=edgeType.getMaxTimestamp();
   final DirectedEdgeMeta directedEdgeMeta=DirectedEdgeMeta.fromTargetNode(targetId,type);
   final Iterator<ShardEntryGroup> readShards=edgeShardStrategy.getReadShards(scope,maxTimestamp,directedEdgeMeta);
-  return new ShardGroupColumnIterator<MarkedEdge>(readShards){
+  return new ShardGroupColumnIterator(scope,directedEdgeMeta,shardGroupDeletion,readShards){
     @Override protected Iterator<MarkedEdge> getIterator(    final Collection<Shard> readShards){
       return shardedEdgeSerialization.getEdgesToTarget(edgeColumnFamilies,scope,edgeType,readShards);
     }

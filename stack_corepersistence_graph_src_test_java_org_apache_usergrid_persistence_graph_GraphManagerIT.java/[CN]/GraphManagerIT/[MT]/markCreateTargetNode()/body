@@ -5,7 +5,7 @@
   Edge edge1=createEdge(sourceId1,"test",targetId,System.currentTimeMillis());
   gm.writeEdge(edge1).toBlocking().singleOrDefault(null);
   final long maxVersion=System.currentTimeMillis();
-  Iterator<Edge> results=gm.loadEdgesToTarget(createSearchByEdge(targetId,edge1.getType(),maxVersion,null)).toBlocking().getIterator();
+  Iterator<MarkedEdge> results=gm.loadEdgesToTarget(createSearchByEdge(targetId,edge1.getType(),maxVersion,null)).toBlocking().getIterator();
   assertEquals("Edge found",edge1,results.next());
   assertFalse("No more edges",results.hasNext());
   results=gm.loadEdgesToTargetByType(createSearchByEdgeAndId(targetId,edge1.getType(),maxVersion,sourceId1.getType(),null)).toBlocking().getIterator();

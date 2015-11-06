@@ -1,4 +1,5 @@
 {
+  logger.trace("Multiple rows have columns.  Merging");
   final List<T> mergedResults=new ArrayList<>(maxSize);
   for (  final R key : result.getKeys()) {
     final ColumnList<C> columns=result.getRow(key).getColumns();
@@ -12,12 +13,14 @@
       if (insertIndex >= maxSize) {
         continue;
       }
+      logger.trace("Adding value {} to merged set at index {}",returnedValue,insertIndex);
       mergedResults.add(insertIndex,returnedValue);
       while (mergedResults.size() > maxSize) {
+        logger.trace("Trimming results to size {}",maxSize);
         mergedResults.remove(mergedResults.size() - 1);
       }
     }
-    LOG.trace("Candidate result set size is {}",mergedResults.size());
+    logger.trace("Candidate result set size is {}",mergedResults.size());
   }
   return mergedResults;
 }

@@ -1,0 +1,10 @@
+{
+  Preconditions.checkNotNull(applicationId,"applicationId is required");
+  Preconditions.checkNotNull(userId,"userId is required");
+  Preconditions.checkNotNull(credentialsInfo,"credentialsInfo is required");
+  final User user=emf.getEntityManager(applicationId).get(userId,User.class);
+  if (user == null) {
+    throw new EntityNotFoundException("User with id " + userId + " cannot be found");
+  }
+  writeUserPassword(applicationId,user,credentialsInfo);
+}
