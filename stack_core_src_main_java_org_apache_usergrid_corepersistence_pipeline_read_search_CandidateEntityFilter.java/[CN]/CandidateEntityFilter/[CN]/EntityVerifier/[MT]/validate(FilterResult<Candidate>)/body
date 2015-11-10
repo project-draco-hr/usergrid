@@ -1,6 +1,7 @@
 {
   final Candidate candidate=filterResult.getValue();
   final CandidateResult candidateResult=candidate.getCandidateResult();
+  final boolean isGeo=candidateResult instanceof GeoCandidateResult;
   final SearchEdge searchEdge=candidate.getSearchEdge();
   final Id candidateId=candidateResult.getId();
   final UUID candidateVersion=candidateResult.getVersion();
@@ -21,6 +22,9 @@
     return;
   }
   final Entity returnEntity=entity.getEntity().get();
+  if (isGeo) {
+    returnEntity.setField(new DistanceField(((GeoCandidateResult)candidateResult).getDistance()));
+  }
   final Optional<EdgePath> parent=filterResult.getPath();
   final FilterResult<Entity> toReturn=new FilterResult<>(returnEntity,parent);
   results.add(toReturn);

@@ -23,8 +23,15 @@
   int count=0;
   do {
     Results results=em.searchCollection(em.getApplicationRef(),"stores",query);
+    double previousDistance=0d;
     for (    Entity entity : results.getEntities()) {
       assertEquals(String.valueOf(count),entity.getName());
+      Object distanceObject=entity.getMetadata("distance");
+      assertNotNull(distanceObject);
+      assertTrue(distanceObject instanceof Double);
+      double distance=(Double)distanceObject;
+      assertTrue(distance >= previousDistance);
+      previousDistance=distance;
       count++;
     }
   }
