@@ -14,10 +14,17 @@
   query.setLimit(5);
   int count=0;
   Results results;
+  double previousDistance=0d;
   do {
     results=em.searchCollection(em.getApplicationRef(),"stores",query);
     for (    Entity entity : results.getEntities()) {
       final int expected=numEntities - count - 1;
+      Object distanceObject=entity.getMetadata("distance");
+      assertNotNull(distanceObject);
+      assertTrue(distanceObject instanceof Double);
+      double distance=(Double)distanceObject;
+      assertTrue(distance >= previousDistance);
+      previousDistance=distance;
       assertEquals(String.valueOf(expected),entity.getName());
       count++;
     }
