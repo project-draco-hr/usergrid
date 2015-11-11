@@ -5,9 +5,6 @@
   return new SourceWriteOp(columnFamilies,markedEdge){
     @Override void writeEdge(    final MutationBatch batch,    final MultiTennantColumnFamily<ScopedRowKey<RowKey>,DirectedEdge> columnFamily,    final ApplicationScope scope,    final RowKey rowKey,    final DirectedEdge edge,    final Shard shard,    final boolean isDeleted){
       batch.withRow(columnFamily,ScopedRowKey.fromKey(scope.getApplication(),rowKey)).putColumn(edge,isDeleted);
-      if (!isDeleted) {
-        writeEdgeShardStrategy.increment(scope,shard,1,directedEdgeMeta);
-      }
     }
   }
 .createBatch(scope,shards,timestamp);
