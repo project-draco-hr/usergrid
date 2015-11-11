@@ -1,4 +1,9 @@
 {
   String uuid=UUID.randomUUID().toString();
-  queue.add(new QueueMessage(uuid,"handle_" + uuid,body,"put type here"));
+  try {
+    queue.offer(new QueueMessage(uuid,"handle_" + uuid,body,"put type here"),5000,TimeUnit.MILLISECONDS);
+  }
+ catch (  InterruptedException ie) {
+    throw new RuntimeException(ie);
+  }
 }
