@@ -3,9 +3,8 @@
   final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
   final EdgeColumnFamilies edgeColumnFamilies=mock(EdgeColumnFamilies.class);
   final ShardedEdgeSerialization shardedEdgeSerialization=mock(ShardedEdgeSerialization.class);
-  final NodeShardApproximation nodeShardApproximation=mock(NodeShardApproximation.class);
   final TimeService timeService=mock(TimeService.class);
-  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeColumnFamilies,shardedEdgeSerialization,nodeShardApproximation,timeService,graphFig,shardGroupCompaction);
+  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeColumnFamilies,shardedEdgeSerialization,timeService,graphFig,shardGroupCompaction);
   final Id nodeId=IdGenerator.createId("test");
   final String type="type";
   final String subType="subType";
@@ -23,7 +22,6 @@
     iteratedEdges.add(skippedEdge);
   }
   iteratedEdges.add(returnedEdge);
-  when(nodeShardApproximation.getCount(scope,futureShard,targetEdgeMeta)).thenReturn(shardCount);
   ArgumentCaptor<Shard> shardValue=ArgumentCaptor.forClass(Shard.class);
   when(edgeShardSerialization.writeShardMeta(same(scope),shardValue.capture(),same(targetEdgeMeta))).thenReturn(mock(MutationBatch.class));
   final Iterator<MarkedEdge> edgeIterator=iteratedEdges.iterator();

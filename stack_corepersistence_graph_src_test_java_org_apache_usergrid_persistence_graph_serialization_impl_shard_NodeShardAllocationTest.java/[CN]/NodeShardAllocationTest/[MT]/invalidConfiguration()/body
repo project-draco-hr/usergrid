@@ -4,7 +4,6 @@
   final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
   final EdgeColumnFamilies edgeColumnFamilies=mock(EdgeColumnFamilies.class);
   final ShardedEdgeSerialization shardedEdgeSerialization=mock(ShardedEdgeSerialization.class);
-  final NodeShardApproximation nodeShardApproximation=mock(NodeShardApproximation.class);
   final TimeService timeService=mock(TimeService.class);
   final long time=100000l;
   when(timeService.getCurrentTime()).thenReturn(time);
@@ -12,7 +11,7 @@
   when(graphFig.getShardCacheTimeout()).thenReturn(30000l);
   final long tooSmallDelta=(long)((cacheTimeout * 2) * .99);
   when(graphFig.getShardMinDelta()).thenReturn(tooSmallDelta);
-  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeColumnFamilies,shardedEdgeSerialization,nodeShardApproximation,timeService,graphFig,shardGroupCompaction);
+  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeColumnFamilies,shardedEdgeSerialization,timeService,graphFig,shardGroupCompaction);
   try {
     approximation.getMinTime();
     fail("Should have thrown a GraphRuntimeException");

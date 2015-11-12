@@ -1,27 +1,20 @@
 {
   if (status >= 500) {
-    logger.error(e.getClass().getCanonicalName() + " Server Error (" + status+ ")",e);
+    logger.error(e.getClass().getCanonicalName() + " 5XX Uncaught Exception (" + status+ ")",e);
   }
  else {
     if (logger.isDebugEnabled()) {
-      logger.debug(e.getClass().getCanonicalName() + " Server Error (" + status+ ")",e);
+      logger.debug(e.getClass().getCanonicalName() + " Uncaught Exception (" + status+ ")",e);
     }
-switch (status) {
-case 200:
-      logger.debug("Uncaught Exception",e);
-    break;
-default :
-  logger.error("Uncaught Exception",e);
-}
-}
-ApiResponse response=new ApiResponse();
-AuthErrorInfo authError=AuthErrorInfo.getForException(e);
-if (authError != null) {
-response.setError(authError.getType(),authError.getMessage(),e);
-}
+  }
+  ApiResponse response=new ApiResponse();
+  AuthErrorInfo authError=AuthErrorInfo.getForException(e);
+  if (authError != null) {
+    response.setError(authError.getType(),authError.getMessage(),e);
+  }
  else {
-response.setError(e);
-}
-String jsonResponse=mapToJsonString(response);
-return toResponse(status,jsonResponse);
+    response.setError(e);
+  }
+  String jsonResponse=mapToJsonString(response);
+  return toResponse(status,jsonResponse);
 }
