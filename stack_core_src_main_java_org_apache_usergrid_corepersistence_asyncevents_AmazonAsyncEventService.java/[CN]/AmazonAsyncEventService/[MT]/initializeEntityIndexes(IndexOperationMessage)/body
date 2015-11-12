@@ -1,21 +1,2 @@
 {
-  final Map<UUID,Boolean> apps=new HashMap<>(indexOperationMessage.getIndexRequests().size() + indexOperationMessage.getDeIndexRequests().size());
-  for (  IndexOperation req : indexOperationMessage.getIndexRequests()) {
-    final UUID appId=IndexingUtils.getApplicationIdFromIndexDocId(req.documentId);
-    if (!apps.containsKey(appId)) {
-      ApplicationScope appScope=CpNamingUtils.getApplicationScope(appId);
-      entityIndexFactory.createEntityIndex(indexLocationStrategyFactory.getIndexLocationStrategy(appScope));
-      apps.put(appId,true);
-    }
-  }
-  ;
-  for (  DeIndexOperation req : indexOperationMessage.getDeIndexRequests()) {
-    final UUID appId=IndexingUtils.getApplicationIdFromIndexDocId(req.documentId);
-    if (!apps.containsKey(appId)) {
-      ApplicationScope appScope=CpNamingUtils.getApplicationScope(appId);
-      entityIndexFactory.createEntityIndex(indexLocationStrategyFactory.getIndexLocationStrategy(appScope));
-      apps.put(appId,true);
-    }
-  }
-  ;
 }
