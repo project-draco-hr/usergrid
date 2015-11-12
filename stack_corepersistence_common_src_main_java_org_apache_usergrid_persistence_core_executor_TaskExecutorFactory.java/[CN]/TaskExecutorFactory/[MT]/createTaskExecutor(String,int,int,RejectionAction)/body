@@ -1,5 +1,11 @@
 {
-  final BlockingQueue<Runnable> queue=new ArrayBlockingQueue<Runnable>(maxQueueSize);
+  final BlockingQueue<Runnable> queue;
+  if (maxQueueSize == 0) {
+    queue=new SynchronousQueue();
+  }
+ else {
+    queue=new ArrayBlockingQueue<>(maxQueueSize);
+  }
   if (rejectionAction == RejectionAction.ABORT) {
     return new MaxSizeThreadPool(queue,schedulerName,maxThreadCount);
   }
