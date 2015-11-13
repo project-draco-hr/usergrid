@@ -3,7 +3,9 @@
     List<TranslatedNotification> translatedNotifications=(List<TranslatedNotification>)payload;
     for (    TranslatedNotification translatedNotification : translatedNotifications) {
       WnsNotificationRequestOptional opt=new WnsNotificationRequestOptional();
-      opt.ttl=String.valueOf(notification.getExpireTTLSeconds());
+      if (notification.getExpireTTLSeconds() > 0) {
+        opt.ttl=String.valueOf(notification.getExpireTTLSeconds());
+      }
 switch (translatedNotification.getType()) {
 case "toast":
         WnsToast toast=new WnsToastBuilder().bindingTemplateToastText01(translatedNotification.getMessage().toString()).build();

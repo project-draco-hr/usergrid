@@ -1,0 +1,35 @@
+{
+  ApplicationScope collectionScope1=new ApplicationScopeImpl(new SimpleId("organization"));
+  final Id entityId=new SimpleId("test");
+  Entity firstInstance=new Entity(entityId);
+  Field firstField=new StringField("testField","unique",true);
+  firstInstance.setField(firstField);
+  EntityCollectionManager manager=factory.createCollectionManager(collectionScope1);
+  Observable<Entity> observable=manager.write(firstInstance);
+  Entity createReturned=observable.toBlocking().lastOrDefault(null);
+  assertNotNull("Id was assigned",createReturned.getId());
+  assertNotNull("Version was assigned",createReturned.getVersion());
+  final Id existingId=manager.getIdField(firstInstance.getId().getType(),firstField).toBlocking().lastOrDefault(null);
+  assertNotNull(existingId);
+  assertEquals(firstInstance.getId(),existingId);
+  Field fieldNull=new StringField("testFieldNotThere","uniquely",true);
+  final Id noId=manager.getIdField(firstInstance.getId().getType(),fieldNull).toBlocking().lastOrDefault(null);
+  assertNull(noId);
+  Entity secondInstance=new Entity(entityId);
+  Field secondField=new StringField(firstField.getName(),"unique2",true);
+  secondInstance.setField(secondField);
+  Observable<Entity> observableSecond=manager.write(secondInstance);
+  Entity createReturnedSecond=observableSecond.toBlocking().lastOrDefault(null);
+  assertNotNull("Id was assigned",createReturnedSecond.getId());
+  assertNotNull("Version was assigned",createReturnedSecond.getVersion());
+  assertNotEquals("Versions should not be equal",createReturned.getVersion(),createReturnedSecond.getVersion());
+  final Entity loadedVersion=manager.load(entityId).toBlocking().last();
+  assertEquals(entityId,loadedVersion.getId());
+  assertEquals(createReturnedSecond.getVersion(),loadedVersion.getVersion());
+  Thread.sleep(2000);
+  final Id idFirst=manager.getIdField(firstInstance.getId().getType(),firstField).toBlocking().lastOrDefault(null);
+  assertNull(idFirst);
+  final Id idSecond=manager.getIdField(secondInstance.getId().getType(),secondField).toBlocking().lastOrDefault(null);
+  assertNotNull(idSecond);
+  assertEquals(secondInstance.getId(),idSecond);
+}

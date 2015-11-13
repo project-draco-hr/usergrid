@@ -1,0 +1,25 @@
+{
+  final ArrayField<Object> array=new ArrayField<>("array");
+  final ArrayField<Object> nestedArray1=new ArrayField<>("nestedArray");
+  nestedArray1.add("1");
+  final EntityObject nestedObject1=new EntityObject();
+  final ArrayField<Object> objectArray=new ArrayField<>("nestedArrayInObject");
+  final EntityObject nestedObject2=new EntityObject();
+  nestedObject2.setField(new StringField("nestedKey","nestedValue"));
+  objectArray.add(nestedObject2);
+  nestedObject1.setField(objectArray);
+  array.add(nestedArray1);
+  array.add(nestedObject1);
+  Entity rootEntity=new Entity("test");
+  rootEntity.setField(array);
+  final UUID version=UUIDGenerator.newTimeUUID();
+  EntityUtils.setVersion(rootEntity,version);
+  final ApplicationScope scope=new ApplicationScopeImpl(createId("application"));
+  final IndexEdge indexEdge=new IndexEdgeImpl(createId("source"),"testEdgeType",SearchEdge.NodeType.SOURCE,1000);
+  final Map<String,Object> entityMap=EntityToMapConverter.convert(scope,indexEdge,rootEntity);
+  final List<EntityField> fields=(List<EntityField>)entityMap.get(IndexingUtils.ENTITY_FIELDS);
+  assertEquals(1,fields.size());
+  final EntityField field=fields.get(0);
+  final String path="array.nestedArrayInObject.nestedKey".toLowerCase();
+  assertEquals(path,field.get(IndexingUtils.FIELD_NAME));
+}
