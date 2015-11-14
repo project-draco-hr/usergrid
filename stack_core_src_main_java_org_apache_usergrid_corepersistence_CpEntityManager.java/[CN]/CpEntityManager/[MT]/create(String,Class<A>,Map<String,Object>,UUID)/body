@@ -1,10 +1,7 @@
 {
   UUID timestampUuid=importId != null ? importId : UUIDUtils.newTimeUUID();
-  Keyspace ko=cass.getApplicationKeyspace(applicationId);
-  Mutator<ByteBuffer> m=createMutator(ko,be);
-  A entity=batchCreate(m,entityType,entityClass,properties,importId,timestampUuid);
   Timer.Context timeEntityCassCreation=entCreateBatchTimer.time();
-  m.execute();
+  A entity=batchCreate(entityType,entityClass,properties,importId,timestampUuid);
   timeEntityCassCreation.stop();
   return entity;
 }
