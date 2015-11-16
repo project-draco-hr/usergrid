@@ -1,3 +1,48 @@
 {
-  return DeleteResult.NO_OP;
+  logger.trace("Beginning audit of shard group {}",shardEntryGroup);
+  if (shardEntryGroup.isCompactionPending()) {
+    logger.trace("Shard group {} is compacting, not auditing group",shardEntryGroup);
+    return DeleteResult.COMPACTION_PENDING;
+  }
+  final long currentTime=timeService.getCurrentTime();
+  if (shardEntryGroup.isNew(currentTime)) {
+    logger.trace("Shard group {} contains a shard that is is too new, not auditing group",shardEntryGroup);
+    return DeleteResult.TOO_NEW;
+  }
+  if (edgeIterator.hasNext()) {
+    logger.trace("Shard group {} has edges, not deleting",shardEntryGroup);
+    return DeleteResult.CONTAINS_EDGES;
+  }
+  DeleteResult result=DeleteResult.NO_OP;
+  MutationBatch rollup=null;
+  for (  final Shard shard : shardEntryGroup.getReadShards()) {
+    if (shard.isMinShard()) {
+      logger.trace("Shard {} in group {} is the minimum, not deleting",shard,shardEntryGroup);
+      continue;
+    }
+    if (!shard.isCompacted()) {
+      logger.warn("Shard {} in group {} is not compacted yet was checked.  Short circuiting",shard,shardEntryGroup);
+      return DeleteResult.NO_OP;
+    }
+    final MutationBatch shardRemovalMutation=edgeShardSerialization.removeShardMeta(applicationScope,shard,directedEdgeMeta);
+    if (rollup == null) {
+      rollup=shardRemovalMutation;
+    }
+ else {
+      rollup.mergeShallow(shardRemovalMutation);
+    }
+    result=DeleteResult.DELETED;
+    logger.info("Removing shard {} in group {}",shard,shardEntryGroup);
+  }
+  if (rollup != null) {
+    try {
+      rollup.execute();
+    }
+ catch (    ConnectionException e) {
+      logger.error("Unable to execute shard deletion",e);
+      throw new RuntimeException("Unable to execute shard deletion",e);
+    }
+  }
+  logger.trace("Completed auditing shard group {}",shardEntryGroup);
+  return result;
 }
