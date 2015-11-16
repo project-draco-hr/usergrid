@@ -6,7 +6,7 @@
   Map<String,Object> entityPayload=new HashMap<String,Object>();
   String collectionName="pageThroughConnectedEntities";
   for (created=1; created <= numOfEntities; created++) {
-    entityPayload.put("name","value" + created);
+    entityPayload.put("name",created);
     Entity entity=new Entity(entityPayload);
     entity=this.app().collection(collectionName).post(entity);
     refreshIndex();
@@ -18,8 +18,8 @@
     }
   }
   refreshIndex();
-  Collection colConnection=this.app().collection(collectionName).entity(connectedEntity).connection("likes").get();
-  assertNotNull(colConnection);
-  assertNotNull(colConnection.getCursor());
-  pageAndVerifyEntities(collectionName,null,numOfPages,numOfEntities);
+  QueryParameters qp=new QueryParameters();
+  qp.setQuery("select * order by created asc");
+  qp.setLimit(10);
+  pageAndVerifyEntities(collectionName,qp,numOfPages,numOfEntities);
 }
