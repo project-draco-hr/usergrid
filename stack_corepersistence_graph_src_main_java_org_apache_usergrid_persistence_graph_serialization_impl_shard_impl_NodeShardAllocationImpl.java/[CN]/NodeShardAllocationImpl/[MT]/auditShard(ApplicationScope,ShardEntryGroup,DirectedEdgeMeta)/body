@@ -4,13 +4,17 @@
   GraphValidation.validateDirectedEdgeMeta(directedEdgeMeta);
   Preconditions.checkNotNull(shardEntryGroup,"shardEntryGroup cannot be null");
   if (shardEntryGroup.isCompactionPending()) {
+    LOG.trace("Shard entry group {} is compacting, not auditing",shardEntryGroup);
     return false;
   }
   if (shardEntryGroup.entrySize() != 1) {
+    LOG.trace("Shard entry group {} does not have 1 entry, not allocating",shardEntryGroup);
     return false;
   }
   final Shard shard=shardEntryGroup.getMinShard();
-  if (shard.getCreatedTime() >= getMinTime()) {
+  final long minTime=getMinTime();
+  if (shard.getCreatedTime() >= minTime) {
+    LOG.trace("Shard entry group {}  and shard {} is before the minimum created time of {}.  Not allocating.does not have 1 entry, not allocating",shardEntryGroup,shard,minTime);
     return false;
   }
   final long shardSize=graphFig.getShardSize();
