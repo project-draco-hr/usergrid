@@ -1,0 +1,35 @@
+{
+  usersResource.post(new User("test_1","Test1 User","test_1@test.com","test123"));
+  refreshIndex();
+  Token token=this.app().token().post(new Token("test_1","test123"));
+  assertNotNull(token.getAccessToken());
+  final String superUserName=this.clientSetup.getSuperuserName();
+  final String superUserPassword=this.clientSetup.getSuperuserPassword();
+  final CollectionEndpoint collection=userResource.entity("test_1").collection("credentials");
+  final WebTarget resource=collection.getTarget();
+  final HttpAuthenticationFeature httpBasicAuth=HttpAuthenticationFeature.basicBuilder().credentials(superUserName,superUserPassword).build();
+  final ApiResponse response=resource.register(httpBasicAuth).request().accept(MediaType.APPLICATION_JSON).get(org.apache.usergrid.rest.test.resource.model.ApiResponse.class);
+  final Map<String,Object> credentials=(Map<String,Object>)response.getProperties().get("credentials");
+  final String originalSecret=(String)credentials.get("secret");
+  final String borkedSecret=originalSecret.substring(0,originalSecret.length() - 1);
+  credentials.put("secret",borkedSecret);
+  final Map<String,Map<String,Object>> wrapper=new HashMap<>();
+  wrapper.put("credentials",credentials);
+  final WebTarget putResource=collection.getTarget();
+  putResource.register(httpBasicAuth).request().accept(MediaType.APPLICATION_JSON).put(javax.ws.rs.client.Entity.json(wrapper),org.apache.usergrid.rest.test.resource.model.ApiResponse.class);
+  int status=0;
+  try {
+    this.app().token().post(new Token("test_1","test123"));
+    fail("Should have thrown an exception");
+  }
+ catch (  BadRequestException uie) {
+    status=uie.getResponse().getStatus();
+    log.info("Error Response Body: {}",uie.getResponse().getEntity());
+  }
+  assertEquals(Response.Status.BAD_REQUEST.getStatusCode(),status);
+  credentials.put("secret",originalSecret);
+  final WebTarget putResource2=collection.getTarget();
+  putResource2.register(httpBasicAuth).request().accept(MediaType.APPLICATION_JSON).put(javax.ws.rs.client.Entity.json(wrapper),org.apache.usergrid.rest.test.resource.model.ApiResponse.class);
+  final Token nextToken=this.app().token().post(new Token("test_1","test123"));
+  assertNotNull(nextToken.getAccessToken());
+}

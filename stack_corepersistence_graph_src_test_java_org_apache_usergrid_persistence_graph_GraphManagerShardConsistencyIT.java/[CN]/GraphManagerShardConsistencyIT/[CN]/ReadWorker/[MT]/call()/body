@@ -1,16 +1,2 @@
 {
-  GraphManager gm=factory.createEdgeManager(scope);
-  while (true) {
-    final long returnedEdgeCount=generator.doSearch(gm).doOnNext(new Action1<Edge>(){
-      @Override public void call(      final Edge edge){
-        readMeter.mark();
-      }
-    }
-).countLong().toBlocking().last();
-    log.info("Completed reading {} edges",returnedEdgeCount);
-    if (writeCount != returnedEdgeCount) {
-      log.warn("Unexpected edge count returned!!!  Expected {} but was {}",writeCount,returnedEdgeCount);
-    }
-    assertEquals("Expected to read same edge count",writeCount,returnedEdgeCount);
-  }
 }

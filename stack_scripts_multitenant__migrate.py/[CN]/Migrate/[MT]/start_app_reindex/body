@@ -1,0 +1,15 @@
+def start_app_reindex(self, appId):
+    body = ''
+    if (self.start_date is not None):
+        body = json.dumps({'updated': self.start_date, })
+    try:
+        r = requests.post(url=((self.get_reindex_url() + '/') + appId), data=body, auth=(self.super_user, self.super_pass))
+        if (r.status_code == 200):
+            response = r.json()
+            return response['jobId']
+        else:
+            self.logger.error('Failed to start reindex, %s', r)
+            exit_on_error(str(r))
+    except requests.exceptions.RequestException as e:
+        self.logger.error('Unable to make API request for reindex, %s', e)
+        exit_on_error(str(e))

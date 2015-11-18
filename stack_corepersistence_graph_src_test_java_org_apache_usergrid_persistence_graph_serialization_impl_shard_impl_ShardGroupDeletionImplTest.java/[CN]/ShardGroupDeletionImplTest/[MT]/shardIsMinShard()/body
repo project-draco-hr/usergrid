@@ -1,0 +1,16 @@
+{
+  final long currentTime=1000;
+  final Shard shard0=Shard.MIN_SHARD;
+  final ShardEntryGroup group=new ShardEntryGroup(1);
+  group.addShard(shard0);
+  assertTrue("this should return false for our test to succeed",shard0.isMinShard());
+  final EdgeShardSerialization edgeShardSerialization=mock(EdgeShardSerialization.class);
+  final TimeService timeService=mock(TimeService.class);
+  when(timeService.getCurrentTime()).thenReturn(currentTime);
+  initExecutor(1,1);
+  final ShardGroupDeletionImpl shardGroupDeletion=new ShardGroupDeletionImpl(asyncTaskExecutor,edgeShardSerialization,timeService);
+  final DirectedEdgeMeta directedEdgeMeta=getDirectedEdgeMeta();
+  final ListenableFuture<ShardGroupDeletion.DeleteResult> future=shardGroupDeletion.maybeDeleteShard(this.scope,directedEdgeMeta,group,Collections.emptyIterator());
+  final ShardGroupDeletion.DeleteResult result=future.get();
+  assertEquals("should not delete min shard",ShardGroupDeletion.DeleteResult.NO_OP,result);
+}

@@ -1,0 +1,22 @@
+def get_app_ids(self):
+    try:
+        url = (self.endpoint + '/management/organizations')
+        r = requests.get(url=url, auth=(self.super_user, self.super_pass))
+        if (r.status_code != 200):
+            exit_on_error(('Cannot get app ids: ' + r.text))
+        response_json = r.json()
+        app_ids = []
+        orgs = response_json['organizations']
+        if (orgs is not None):
+            for org in orgs:
+                if (org['name'] == self.org):
+                    for app in org['applications']:
+                        app_ids.append(org['applications'][app])
+        else:
+            e = 'No Orgs in this system'
+            self.logger.error(e)
+            exit_on_error(e)
+        return app_ids
+    except requests.exceptions.RequestException as e:
+        self.logger.error('Unable to get list of application ids, %s', e)
+        exit_on_error(str(e))

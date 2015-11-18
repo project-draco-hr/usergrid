@@ -1,0 +1,18 @@
+def parse_args():
+    parser = argparse.ArgumentParser(description='Usergrid Migration Tool')
+    parser.add_argument('--endpoint', help='The endpoint to use for making API requests.', type=str, default='http://localhost:8080')
+    parser.add_argument('--super', help='Superuser username and creds <user:pass>', type=str, required=True)
+    parser.add_argument('--init', help='Init system and start first migration.', action='store_true', default=False)
+    parser.add_argument('--org', help='Name of organization on which to run migration.', type=str, required=False)
+    parser.add_argument('--date', help='A date from which to start the migration', type=str)
+    parser.add_argument('--full', help='Run full data migration (last step in cluster migration).', action='store_true', default=False)
+    my_args = parser.parse_args(sys.argv[1:])
+    arg_vars = vars(my_args)
+    creds = arg_vars['super'].split(':')
+    if (len(creds) != 2):
+        print 'Superuser credentials not properly specified.  Must be "-u <user:pass>". Exiting...'
+        exit_on_error()
+    else:
+        arg_vars['superuser'] = creds[0]
+        arg_vars['superpass'] = creds[1]
+    return arg_vars

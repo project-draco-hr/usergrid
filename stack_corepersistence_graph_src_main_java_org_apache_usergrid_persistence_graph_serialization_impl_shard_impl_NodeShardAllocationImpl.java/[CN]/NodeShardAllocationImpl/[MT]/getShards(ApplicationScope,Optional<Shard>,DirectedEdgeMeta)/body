@@ -4,20 +4,20 @@
   GraphValidation.validateDirectedEdgeMeta(directedEdgeMeta);
   Iterator<Shard> existingShards;
   if (isNewNode(directedEdgeMeta)) {
-    existingShards=Collections.singleton(MIN_SHARD).iterator();
+    existingShards=Collections.singleton(Shard.MIN_SHARD).iterator();
   }
  else {
     existingShards=edgeShardSerialization.getShardMetaData(scope,maxShardId,directedEdgeMeta);
-  }
-  if (existingShards == null || !existingShards.hasNext()) {
-    final MutationBatch batch=edgeShardSerialization.writeShardMeta(scope,MIN_SHARD,directedEdgeMeta);
-    try {
-      batch.execute();
+    if (existingShards == null || !existingShards.hasNext()) {
+      final MutationBatch batch=edgeShardSerialization.writeShardMeta(scope,Shard.MIN_SHARD,directedEdgeMeta);
+      try {
+        batch.execute();
+      }
+ catch (      ConnectionException e) {
+        throw new RuntimeException("Unable to connect to casandra",e);
+      }
+      existingShards=Collections.singleton(Shard.MIN_SHARD).iterator();
     }
- catch (    ConnectionException e) {
-      throw new RuntimeException("Unable to connect to casandra",e);
-    }
-    existingShards=Collections.singleton(MIN_SHARD).iterator();
   }
   return new ShardEntryGroupIterator(existingShards,graphFig.getShardMinDelta(),shardGroupCompaction,scope,directedEdgeMeta);
 }

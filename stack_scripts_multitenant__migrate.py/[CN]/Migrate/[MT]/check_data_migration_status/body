@@ -1,0 +1,11 @@
+def check_data_migration_status(self):
+    try:
+        r = requests.get(url=self.get_migration_status_url(), auth=(self.super_user, self.super_pass))
+        if (r.status_code == 200):
+            response = r.json()
+            return response
+        else:
+            self.logger.error('Failed to check migration status, %s', r)
+            return
+    except requests.exceptions.RequestException as e:
+        self.logger.error('Failed to check migration status, %s', e)

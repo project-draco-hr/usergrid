@@ -1,0 +1,21 @@
+{
+  final boolean recoverable=(boolean)json.get("recoverable");
+  final boolean encrypted=(boolean)json.get("encrypted");
+  final String hashType=(String)json.get("hashType");
+  final long created=(long)json.get("created");
+  final String secret=(String)json.get("secret");
+  final List<String> cryptoChain=(List<String>)json.get("cryptoChain");
+  Preconditions.checkNotNull(created,"created is required");
+  Preconditions.checkNotNull(secret,"secret is required");
+  Preconditions.checkNotNull(cryptoChain,"cryptoChain is required");
+  Preconditions.checkArgument(cryptoChain.size() >= 1,"cryptoChain must have 1 or more entries");
+  final String[] cryptoString=new String[cryptoChain.size()];
+  cryptoChain.toArray(cryptoString);
+  final CredentialsInfo credentialsInfo=new CredentialsInfo();
+  credentialsInfo.setEncrypted(encrypted);
+  credentialsInfo.setHashType(hashType);
+  credentialsInfo.setCreated(created);
+  credentialsInfo.setSecret(secret);
+  credentialsInfo.setCryptoChain(cryptoString);
+  return credentialsInfo;
+}
