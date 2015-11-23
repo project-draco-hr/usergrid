@@ -20,4 +20,40 @@
   formData.param("password2","sesame");
   String html=management().users().user(clientSetup.getUsername()).resetpw().getTarget().request().post(javax.ws.rs.client.Entity.form(formData),String.class);
   assertTrue(html.contains("password set"));
+  refreshIndex();
+  Map<String,Object> payload=new HashMap<String,Object>(){
+{
+      put("grant_type","password");
+      put("username",clientSetup.getUsername());
+      put("password","sesame");
+    }
+  }
+;
+  ApiResponse response=management().token().post(false,payload,null);
+  Long changeTime=Long.parseLong(response.getProperties().get("passwordChanged").toString());
+  assertTrue(System.currentTimeMillis() - changeTime < 2000);
+  payload=new HashMap<String,Object>(){
+{
+      put("oldpassword","sesame");
+      put("newpassword","test");
+    }
+  }
+;
+  management().users().user(clientSetup.getUsername()).password().post(false,payload,null);
+  refreshIndex();
+  payload=new HashMap<String,Object>(){
+{
+      put("grant_type","password");
+      put("username",clientSetup.getUsername());
+      put("password","test");
+    }
+  }
+;
+  response=management().token().post(false,payload,null);
+  Long changeTime2=Long.parseLong(response.getProperties().get("passwordChanged").toString());
+  assertTrue(changeTime < changeTime2);
+  assertTrue(System.currentTimeMillis() - changeTime2 < 2000);
+  response=management().me().get(ApiResponse.class,new QueryParameters().addParam("grant_type","password").addParam("username",clientSetup.getUsername()).addParam("password","test"));
+  Long changeTime3=Long.parseLong(response.getProperties().get("passwordChanged").toString());
+  assertEquals(changeTime2,changeTime3);
 }
