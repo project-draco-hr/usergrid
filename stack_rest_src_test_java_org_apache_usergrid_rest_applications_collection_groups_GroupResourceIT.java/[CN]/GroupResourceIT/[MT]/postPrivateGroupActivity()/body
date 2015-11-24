@@ -21,6 +21,26 @@
   this.refreshIndex();
   Collection usersInGroup=this.app().collection("groups").uniqueID(groupName).connection("users").get();
   assertEquals(usersInGroup.getResponse().getEntityCount(),2);
+  this.app().collection("role").uniqueID("Default").delete();
+  Entity data=new Entity().chainPut("name","group1role");
+  this.app().collection("roles").post(data);
+  this.refreshIndex();
+  Entity perms=new Entity();
+  String permission="get,post,put,delete:/groups/" + group.getUuid() + "/**";
+  perms.put("permission",permission);
+  this.app().collection("roles").uniqueID("group1role").connection("permissions").post(perms);
+  this.app().collection("roles").uniqueID("group1role").connection("users").uniqueID(user1Username).post();
+  this.app().collection("roles").uniqueID("group1role").connection("users").uniqueID(user2Username).post();
+  this.refreshIndex();
+  perms=new Entity();
+  permission="get:/activities/**";
+  perms.put("permission",permission);
+  this.app().collection("roles").uniqueID("Guest").connection("permissions").post(perms);
+  this.refreshIndex();
+  this.app().collection("roles").uniqueID("Guest").connection("users").uniqueID(user1Username).post();
+  this.app().collection("roles").uniqueID("Guest").connection("users").uniqueID(user2Username).post();
+  this.app().collection("roles").uniqueID("Guest").connection("users").uniqueID(user3Username).post();
+  this.refreshIndex();
   Entity payload=new Entity();
   payload.put("displayName","fred");
   payload.put("uuid",user1.get("uuid"));
@@ -28,12 +48,11 @@
   Entity activity=new Entity();
   activity.put("actor",payload);
   activity.put("verb","post");
-  String content="content";
+  final String content="Wilma cannot see this!";
   activity.put("content",content);
   Entity activityResponse=this.app().collection("groups").uniqueID(groupName).connection("activities").post(activity);
   assertEquals(activityResponse.get("content"),content);
   this.refreshIndex();
-  this.app().collection("role").uniqueID("Default").delete();
   this.getAppUserToken(user1Username,password);
   Collection user1ActivityResponse=this.app().collection("groups").entity(group).connection("activities").get();
   boolean found=false;
@@ -55,7 +74,24 @@
   }
   assertTrue(found);
   this.getAppUserToken(user3Username,password);
-  Collection user3ActivityResponse=this.app().collection("groups").entity(group).connection("activities").get();
+  try {
+    Collection user3ActivityResponse=this.app().collection("groups").entity(group).connection("activities").get();
+    fail("user3 should have been denied access to the group's activities");
+  }
+ catch (  NotAuthorizedException expected) {
+  }
+  this.getAppUserToken(user1Username,password);
+  user1ActivityResponse=this.app().collection("activities").get();
+  found=false;
+  while (user1ActivityResponse.hasNext()) {
+    Entity tempActivity=user1ActivityResponse.next();
+    if (tempActivity.get("type").equals("activity") && tempActivity.get("content").equals(content)) {
+      found=true;
+    }
+  }
+  assertTrue(found);
+  this.getAppUserToken(user3Username,password);
+  Collection user3ActivityResponse=this.app().collection("activities").get();
   found=false;
   while (user3ActivityResponse.hasNext()) {
     Entity tempActivity=user3ActivityResponse.next();
