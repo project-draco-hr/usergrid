@@ -1,5 +1,4 @@
 {
-  logger.info("Starting to read connections for entity {} type {}",exportEntity.getEntity().getName(),exportEntity.getEntity().getType());
   int count=0;
   try {
     Set<String> connectionTypes=em.getConnectionTypes(exportEntity.getEntity());
@@ -21,5 +20,7 @@
     subscriber.onError(e);
   }
   subscriber.onCompleted();
-  logger.info("Completed entity {} type {} connections count {}",new Object[]{exportEntity.getEntity().getName(),exportEntity.getEntity().getType(),count});
+  if (count == 0) {
+    logger.debug("Completed entity {} type {} no connections",new Object[]{exportEntity.getEntity().getUuid(),exportEntity.getEntity().getType()});
+  }
 }
