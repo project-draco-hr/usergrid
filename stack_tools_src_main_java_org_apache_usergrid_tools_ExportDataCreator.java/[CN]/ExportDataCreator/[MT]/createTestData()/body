@@ -53,6 +53,7 @@ catch (    Exception e) {
       logger.error("Error creating user",e);
       continue;
     }
+    em.refreshIndex();
     final Company company=person.getCompany();
     try {
       EntityRef ref=em.getAlias("company",company.name());
@@ -84,6 +85,7 @@ catch (    Exception e) {
       logger.error("Error creating or connecting company",e);
       continue;
     }
+    em.refreshIndex();
     try {
       for (int j=0; j < 5; j++) {
         Activity activity=new Activity();
@@ -108,6 +110,9 @@ catch (    Exception e) {
           }
         }
       }
+      em.refreshIndex();
+      Set<String> connectionTypes=em.getConnectionTypes(userEntity);
+      logger.debug("User {} now has {} connection types: {}",new Object[]{userEntity.getName(),connectionTypes.size(),connectionTypes});
     }
  catch (    Exception e) {
       logger.error("Error creating activities",e);
