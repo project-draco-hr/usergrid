@@ -1,11 +1,8 @@
 {
-  if (organizationName == null) {
-    return null;
+  if (organizationName == null || organizationName.equals("management")) {
+    return getOrganizationConfigDefaultsOnly();
   }
   EntityManager em=emf.getEntityManager(smf.getManagementAppId());
   EntityRef ref=em.getAlias(Group.ENTITY_TYPE,organizationName);
-  if (ref == null) {
-    return null;
-  }
-  return getOrganizationConfigByUuid(ref.getUuid());
+  return ref != null ? getOrganizationConfigByUuid(ref.getUuid()) : getOrganizationConfigDefaultsOnly();
 }

@@ -1,0 +1,21 @@
+{
+  logger.debug("Put configuration for organization: " + organization.getUuid());
+  ApiResponse response=createApiResponse();
+  response.setAction("put organization configuration");
+  OrganizationConfig orgConfig=management.getOrganizationConfigByUuid(organization.getUuid());
+  orgConfig.addProperties(json,true);
+  management.updateOrganizationConfig(orgConfig);
+  orgConfig=management.getOrganizationConfigByUuid(organization.getUuid());
+  String itemsToReturn="";
+  if (onlyChanged) {
+    itemsToReturn=String.join(",",json.keySet());
+  }
+  if (separateDefaults) {
+    response.setProperty("orgConfiguration",getConfigData(orgConfig,itemsToReturn,false,true));
+    response.setProperty("defaults",getConfigData(orgConfig,itemsToReturn,true,false));
+  }
+ else {
+    response.setProperty("configuration",getConfigData(orgConfig,itemsToReturn,true,true));
+  }
+  return response;
+}

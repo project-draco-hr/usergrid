@@ -15,7 +15,7 @@
   assertEquals("User Account Confirmation: " + email,confirmation.getSubject());
   String token=getTokenFromMessage(confirmation);
   LOG.info(token);
-  ActivationState state=setup.getMgmtSvc().handleConfirmationTokenForAdminUser(org_owner.owner.getUuid(),token);
+  ActivationState state=setup.getMgmtSvc().handleConfirmationTokenForAdminUser(org_owner.getOrganization().getUuid(),org_owner.owner.getUuid(),token);
   assertEquals(ActivationState.CONFIRMED_AWAITING_ACTIVATION,state);
   confirmation=user_inbox.get(1);
   String body=((MimeMultipart)confirmation.getContent()).getBodyPart(0).getContent().toString();
@@ -28,7 +28,7 @@
   assertEquals("Request For Admin User Account Activation " + email,activation.getSubject());
   token=getTokenFromMessage(activation);
   LOG.info(token);
-  state=setup.getMgmtSvc().handleActivationTokenForAdminUser(org_owner.owner.getUuid(),token);
+  state=setup.getMgmtSvc().handleActivationTokenForAdminUser(org_owner.getOrganization().getUuid(),org_owner.owner.getUuid(),token);
   assertEquals(ActivationState.ACTIVATED,state);
   Message activated=user_inbox.get(2);
   assertEquals("User Account Activated",activated.getSubject());

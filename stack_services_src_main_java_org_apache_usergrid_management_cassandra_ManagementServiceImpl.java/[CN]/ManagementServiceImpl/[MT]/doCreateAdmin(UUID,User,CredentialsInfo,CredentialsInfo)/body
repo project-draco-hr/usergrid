@@ -1,0 +1,10 @@
+{
+  writeUserToken(smf.getManagementAppId(),user,encryptionService.plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.ADMIN_USER),user.getUuid(),smf.getManagementAppId()));
+  writeUserPassword(smf.getManagementAppId(),user,userPassword);
+  writeUserMongoPassword(smf.getManagementAppId(),user,mongoPassword);
+  UserInfo userInfo=new UserInfo(smf.getManagementAppId(),user.getUuid(),user.getUsername(),user.getName(),user.getEmail(),user.getConfirmed(),user.getActivated(),user.getDisabled(),user.getDynamicProperties(),true);
+  if (!user.getEmail().equals(properties.getProperty(PROPERTIES_SYSADMIN_LOGIN_EMAIL)) && !user.getEmail().equals(properties.getProperty(PROPERTIES_TEST_ACCOUNT_ADMIN_USER_EMAIL))) {
+    this.startAdminUserActivationFlow(organizationId,userInfo);
+  }
+  return userInfo;
+}
