@@ -1,11 +1,15 @@
 {
-  logger.debug("UsersResource.executePost: body = " + body);
+  if (logger.isDebugEnabled()) {
+    logger.debug("UsersResource.executePost: body = " + body);
+  }
   Object json=readJsonToObject(body);
   String password=null;
   String pin=null;
   Boolean confRequred=(Boolean)this.getServices().getEntityManager().getProperty(this.getServices().getApplicationRef(),"registration_requires_email_confirmation");
   boolean activated=!((confRequred != null) && confRequred);
-  logger.debug("Confirmation required: {} Activated: {}",confRequred,activated);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Confirmation required: {} Activated: {}",confRequred,activated);
+  }
   if (json instanceof Map) {
     @SuppressWarnings("unchecked") Map<String,Object> map=(Map<String,Object>)json;
     password=(String)map.get("password");
