@@ -4,7 +4,12 @@
     String collection=pathToken.getCollection();
     Query query=new Query();
     if (pathToken.getIdentifier() != null) {
-      query.addIdentifier(pathToken.getIdentifier());
+      if (collection.equals("users") && pathToken.getIdentifier().getType() == Identifier.Type.NAME) {
+        query.setQl("select * where username ='" + pathToken.getIdentifier().getName() + "'");
+      }
+ else {
+        query.addIdentifier(pathToken.getIdentifier());
+      }
     }
     query.setLimit(100);
     query.setCollection(collection);
