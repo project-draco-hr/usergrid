@@ -1,10 +1,14 @@
 {
-  LOG.debug("renew transaction {}",execution.getTransactionId());
+  if (LOG.isDebugEnabled()) {
+    LOG.debug("renew transaction {}",execution.getTransactionId());
+  }
   try {
 synchronized (execution) {
       UUID newId=getQm().renewTransaction(jobQueueName,execution.getTransactionId(),new QueueQuery().withTimeout(delay));
       execution.setTransactionId(newId);
-      LOG.debug("renewed transaction {}",newId);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("renewed transaction {}",newId);
+      }
     }
   }
  catch (  TransactionNotFoundException e) {

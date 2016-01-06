@@ -14,10 +14,14 @@
       capacitySemaphore.acquire();
       capacitySemaphore.release();
       int capacity=capacitySemaphore.availablePermits();
-      LOG.debug("Capacity is {}",capacity);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Capacity is {}",capacity);
+      }
       activeJobs=jobAccessor.getJobs(capacity);
       if (activeJobs.size() == 0) {
-        LOG.debug("No jobs returned. Exiting run loop");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("No jobs returned. Exiting run loop");
+        }
         return;
       }
       for (      JobDescriptor jd : activeJobs) {
@@ -28,6 +32,8 @@
     }
   }
  catch (  Throwable t) {
-    LOG.debug("Scheduler run failed, error is",t);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Scheduler run failed, error is",t);
+    }
   }
 }

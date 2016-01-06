@@ -19,7 +19,9 @@
   final Timer.Context timer=jobTimer.time();
   ListenableFuture<Void> future=service.submit(new Callable<Void>(){
     @Override public Void call() throws Exception {
-      LOG.debug("Starting the job with job id {}",execution.getJobId());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Starting the job with job id {}",execution.getJobId());
+      }
       runCounter.inc();
       execution.start(maxFailCount);
       if (execution.getStatus() == Status.DEAD) {
@@ -44,7 +46,9 @@
 );
   Futures.addCallback(future,new FutureCallback<Void>(){
     @Override public void onSuccess(    Void param){
-      LOG.debug("Job succeeded with the job id {}",execution.getJobId());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Job succeeded with the job id {}",execution.getJobId());
+      }
       capacitySemaphore.release();
       timer.stop();
       runCounter.dec();

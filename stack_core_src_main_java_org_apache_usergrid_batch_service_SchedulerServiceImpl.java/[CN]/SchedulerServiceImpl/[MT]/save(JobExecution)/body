@@ -6,7 +6,9 @@
     if (jobStatus == Status.COMPLETED) {
       LOG.info("Job {} is complete id: {}",data.getJobName(),bulkJobExecution.getTransactionId());
       getQm().deleteTransaction(jobQueueName,bulkJobExecution.getTransactionId(),null);
-      LOG.debug("delete job data {}",data.getUuid());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("delete job data {}",data.getUuid());
+      }
       getEm().delete(data);
     }
  else     if (jobStatus == Status.DEAD) {
