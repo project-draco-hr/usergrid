@@ -1,3 +1,6 @@
 {
-  return toResponse(INTERNAL_SERVER_ERROR,(E)new UncaughtException(e));
+  if (e instanceof UnsupportedServiceOperationException || e instanceof NotAllowedException || e instanceof UnsupportedOperationException) {
+    return toResponse(METHOD_NOT_ALLOWED,e);
+  }
+  return toResponse(INTERNAL_SERVER_ERROR,e);
 }
