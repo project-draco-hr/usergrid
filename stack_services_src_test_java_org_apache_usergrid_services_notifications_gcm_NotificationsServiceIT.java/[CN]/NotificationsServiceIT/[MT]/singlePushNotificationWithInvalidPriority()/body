@@ -6,11 +6,13 @@
   app.put("payloads",payloads);
   app.put("queued",System.currentTimeMillis());
   app.put("debug",true);
+  app.put("expire",System.currentTimeMillis() + 300000);
+  app.put("priority","not_a_priority");
   Entity e=app.testRequest(ServiceAction.POST,1,"devices",device1.getUuid(),"notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
   Notification notification=app.getEntityManager().get(e.getUuid(),Notification.class);
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
-  ns.addDevice(notification,device1);
-  app.getEntityManager().setProperty(notifier,"apiKey",API_KEY + "x");
-  fail("Should have received a ConnectionException");
+  notification=notificationWaitForComplete(notification);
+  assertEquals("high",notification.getPriority());
+  checkReceipts(notification,1);
 }
