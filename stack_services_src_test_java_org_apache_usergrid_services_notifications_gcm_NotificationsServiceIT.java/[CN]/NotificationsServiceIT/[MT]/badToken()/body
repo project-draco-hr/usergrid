@@ -1,4 +1,7 @@
 {
+  app.put(notifier.getName() + NOTIFIER_ID_POSTFIX,PUSH_TOKEN + "x");
+  Entity badDeviceEntity=app.testRequest(ServiceAction.POST,1,"devices").getEntity();
+  Device badDevice=app.getEntityManager().get(badDeviceEntity.getUuid(),Device.class);
   app.clear();
   String payload="Hello, World!";
   Map<String,String> payloads=new HashMap<String,String>(1);
@@ -6,16 +9,11 @@
   app.put("payloads",payloads);
   app.put("queued",System.currentTimeMillis());
   app.put("debug",true);
-  Entity e=app.testRequest(ServiceAction.POST,1,"devices",device1.getUuid(),"notifications").getEntity();
+  Entity e=app.testRequest(ServiceAction.POST,1,"devices",badDevice.getUuid(),"notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
   Notification notification=app.getEntityManager().get(e.getUuid(),Notification.class);
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
-  app.clear();
-  app.put(notifier.getName() + NOTIFIER_ID_POSTFIX,PUSH_TOKEN + "x");
-  e=app.testRequest(ServiceAction.POST,1,"devices").getEntity();
-  device1=app.getEntityManager().get(e.getUuid(),Device.class);
-  ns.addDevice(notification,device1);
-  notification=scheduleNotificationAndWait(notification);
+  notification=notificationWaitForComplete(notification);
   List<EntityRef> receipts=getNotificationReceipts(notification);
   assertEquals(1,receipts.size());
   Receipt receipt=app.getEntityManager().get(receipts.get(0),Receipt.class);
