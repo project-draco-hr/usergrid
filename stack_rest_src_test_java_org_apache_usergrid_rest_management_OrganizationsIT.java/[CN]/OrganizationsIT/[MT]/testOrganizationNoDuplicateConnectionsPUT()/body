@@ -1,0 +1,13 @@
+{
+  RestClient restClient=clientSetup.getRestClient();
+  Map<String,Object> properties=new HashMap<String,Object>();
+  Entity entity=new Entity(properties);
+  Organization orgPayload=clientSetup.getOrganization();
+  orgPayload.put("properties",properties);
+  Organization orgResponse=management().orgs().org(clientSetup.getOrganizationName()).get();
+  this.refreshIndex();
+  Entity userPostResponse=management().orgs().org(clientSetup.getOrganizationName()).users().user(clientSetup.getEmail()).put(entity);
+  Entity duplicateConnectionAdmins=management().orgs().org(clientSetup.getOrganizationName()).users().get(Entity.class);
+  ArrayList organizationAdminUsers=(ArrayList)duplicateConnectionAdmins.get("data");
+  assertEquals(1,organizationAdminUsers.size());
+}
