@@ -12,13 +12,19 @@
     pool=Executors.newFixedThreadPool(maxThreads);
     while (threadCount++ < maxThreads) {
       logger.info("QueueListener: Starting thread {}.",threadCount);
+      final int threadNumber=threadCount;
       Runnable task=new Runnable(){
         @Override public void run(){
           try {
-            execute();
+            execute(threadNumber);
           }
  catch (          Exception e) {
-            logger.error("failed to start push",e);
+            if (pool.isShutdown()) {
+              logger.warn("QueueListener: push listener pool already shut down.");
+            }
+ else {
+              logger.error("QueueListener: threads interrupted",e);
+            }
           }
         }
       }

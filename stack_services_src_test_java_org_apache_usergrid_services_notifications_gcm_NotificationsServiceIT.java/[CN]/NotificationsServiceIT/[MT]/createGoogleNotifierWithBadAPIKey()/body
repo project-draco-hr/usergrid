@@ -1,0 +1,14 @@
+{
+  final String badKey=API_KEY + "bad";
+  app.clear();
+  app.put("name","gcm_bad_key");
+  app.put("provider",PROVIDER);
+  app.put("environment","development");
+  app.put("apiKey",badKey);
+  try {
+    notifier=(Notifier)app.testRequest(ServiceAction.POST,1,"notifiers").getEntity().toTypedEntity();
+  }
+ catch (  InvalidRequestException e) {
+    assertEquals(Constants.ERROR_INVALID_REGISTRATION,e.getDescription());
+  }
+}
