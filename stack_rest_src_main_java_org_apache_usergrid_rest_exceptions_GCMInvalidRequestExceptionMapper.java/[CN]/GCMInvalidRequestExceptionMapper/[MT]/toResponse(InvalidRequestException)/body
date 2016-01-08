@@ -1,0 +1,18 @@
+{
+  Response.Status status;
+  String message;
+  if (e.getHttpStatusCode() == 401) {
+    status=UNAUTHORIZED;
+    message="Invalid GCM API Key or Registration ID(s)";
+  }
+ else {
+    if (e.getHttpStatusCode() >= 400 && e.getHttpStatusCode() <= 499) {
+      status=BAD_REQUEST;
+    }
+ else {
+      status=INTERNAL_SERVER_ERROR;
+    }
+    message="GCM Status Code: " + e.getHttpStatusCode() + ", Detail: "+ e.getMessage();
+  }
+  return toResponse(status,message);
+}
