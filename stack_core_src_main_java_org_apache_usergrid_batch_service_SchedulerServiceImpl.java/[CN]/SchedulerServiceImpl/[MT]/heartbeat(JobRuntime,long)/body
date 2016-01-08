@@ -1,18 +1,18 @@
 {
-  if (LOG.isDebugEnabled()) {
-    LOG.debug("renew transaction {}",execution.getTransactionId());
+  if (logger.isDebugEnabled()) {
+    logger.debug("renew transaction {}",execution.getTransactionId());
   }
   try {
 synchronized (execution) {
       UUID newId=getQm().renewTransaction(jobQueueName,execution.getTransactionId(),new QueueQuery().withTimeout(delay));
       execution.setTransactionId(newId);
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("renewed transaction {}",newId);
+      if (logger.isDebugEnabled()) {
+        logger.debug("renewed transaction {}",newId);
       }
     }
   }
  catch (  TransactionNotFoundException e) {
-    LOG.error("Could not renew transaction",e);
+    logger.error("Could not renew transaction",e);
     throw new JobRuntimeException("Could not renew transaction during heartbeat",e);
   }
 }

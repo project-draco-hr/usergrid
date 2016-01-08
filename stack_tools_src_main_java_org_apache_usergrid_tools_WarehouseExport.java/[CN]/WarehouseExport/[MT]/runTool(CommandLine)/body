@@ -5,12 +5,12 @@
   applyOrgId(line);
   prepareBaseOutputFileName(line);
   outputDir=createOutputParentDir();
-  LOG.info("Export directory: {}",outputDir.getAbsolutePath());
+  logger.info("Export directory: {}",outputDir.getAbsolutePath());
   applyStartTime(line);
   applyEndTime(line);
-  LOG.error("startTime: {}, endTime: {}",startTime,endTime);
+  logger.error("startTime: {}, endTime: {}",startTime,endTime);
   if (startTime.getTime() >= endTime.getTime()) {
-    LOG.error("startTime must be before endTime. exiting.");
+    logger.error("startTime must be before endTime. exiting.");
     System.exit(1);
   }
   StringBuilder builder=new StringBuilder();
@@ -33,7 +33,7 @@
     writer.close();
   }
   if (line.hasOption("upload")) {
-    LOG.info("Copy to S3");
+    logger.info("Copy to S3");
     copyToS3(fileName);
   }
 }
