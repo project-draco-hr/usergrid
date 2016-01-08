@@ -28,10 +28,10 @@
   Message confirmation=inbox.get(0);
   assertEquals(subject,confirmation.getSubject());
   String mailContent=(String)((MimeMultipart)confirmation.getContent()).getBodyPart(1).getContent();
-  LOG.info(mailContent);
+  logger.info(mailContent);
   assertTrue(StringUtils.contains(mailContent.toLowerCase(),confirmation_url.toLowerCase()));
   String token=getTokenFromMessage(confirmation);
-  LOG.info(token);
+  logger.info(token);
   ActivationState activeState=setup.getMgmtSvc().handleConfirmationTokenForAppUser(app.getId(),user.getUuid(),token);
   assertEquals(ActivationState.CONFIRMED_AWAITING_ACTIVATION,activeState);
 }

@@ -4,7 +4,7 @@
     job=jobFactory.jobsFrom(jobDescriptor);
   }
  catch (  JobNotFoundException e) {
-    LOG.error("Could not create jobs",e);
+    logger.error("Could not create jobs",e);
     return;
   }
   final JobExecution execution=new JobExecutionImpl(jobDescriptor);
@@ -13,14 +13,14 @@
     capacitySemaphore.acquire();
   }
  catch (  InterruptedException e) {
-    LOG.error("Unable to acquire semaphore capacity before submitting job",e);
+    logger.error("Unable to acquire semaphore capacity before submitting job",e);
     return;
   }
   final Timer.Context timer=jobTimer.time();
   ListenableFuture<Void> future=service.submit(new Callable<Void>(){
     @Override public Void call() throws Exception {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Starting the job with job id {}",execution.getJobId());
+      if (logger.isDebugEnabled()) {
+        logger.debug("Starting the job with job id {}",execution.getJobId());
       }
       runCounter.inc();
       execution.start(maxFailCount);
@@ -30,12 +30,12 @@
           jobAccessor.save(execution);
         }
  catch (        Exception t) {
-          LOG.error("Unable to invoke dead event on job",t);
+          logger.error("Unable to invoke dead event on job",t);
         }
         return null;
       }
       jobAccessor.save(execution);
-      LOG.info("Starting job {} with execution data {}",job,execution);
+      logger.info("Starting job {} with execution data {}",job,execution);
       job.execute(execution);
       if (currentListener != null) {
         currentListener.onSubmit(execution);
@@ -46,15 +46,15 @@
 );
   Futures.addCallback(future,new FutureCallback<Void>(){
     @Override public void onSuccess(    Void param){
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Job succeeded with the job id {}",execution.getJobId());
+      if (logger.isDebugEnabled()) {
+        logger.debug("Job succeeded with the job id {}",execution.getJobId());
       }
       capacitySemaphore.release();
       timer.stop();
       runCounter.dec();
       successCounter.inc();
       if (execution.getStatus() == Status.IN_PROGRESS) {
-        LOG.info("Successful completion of bulkJob {}",execution);
+        logger.info("Successful completion of bulkJob {}",execution);
         execution.completed();
       }
       jobAccessor.save(execution);
@@ -63,12 +63,12 @@
       }
     }
     @Override public void onFailure(    Throwable throwable){
-      LOG.error("Job failed with the job id {}",execution.getJobId());
+      logger.error("Job failed with the job id {}",execution.getJobId());
       capacitySemaphore.release();
       timer.stop();
       runCounter.dec();
       failCounter.inc();
-      LOG.error("Failed execution for bulkJob",throwable);
+      logger.error("Failed execution for bulkJob",throwable);
       if (execution.getStatus() == Status.IN_PROGRESS) {
         execution.failed();
       }

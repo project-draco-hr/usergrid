@@ -4,23 +4,23 @@
     return Futures.immediateFuture(AuditResult.NOT_CHECKED);
   }
   countAudits.getAndIncrement();
-  if (LOG.isDebugEnabled()) {
-    LOG.debug("Auditing shard group {}. count is {} ",group,countAudits.get());
+  if (logger.isDebugEnabled()) {
+    logger.debug("Auditing shard group {}. count is {} ",group,countAudits.get());
   }
   final ListenableFuture<AuditResult> future;
   try {
     future=taskExecutor.submit(new ShardAuditTask(scope,edgeMeta,group));
   }
  catch (  RejectedExecutionException ree) {
-    LOG.error("Rejected audit for shard of scope {} edge, meta {} and group {}",scope,edgeMeta,group);
+    logger.error("Rejected audit for shard of scope {} edge, meta {} and group {}",scope,edgeMeta,group);
     return Futures.immediateFuture(AuditResult.NOT_CHECKED);
   }
   Futures.addCallback(future,new FutureCallback<AuditResult>(){
     @Override public void onSuccess(    @Nullable final AuditResult result){
-      LOG.debug("Successfully completed audit of task {}",result);
+      logger.debug("Successfully completed audit of task {}",result);
     }
     @Override public void onFailure(    final Throwable t){
-      LOG.error("Unable to perform audit.  Exception is ",t);
+      logger.error("Unable to perform audit.  Exception is ",t);
     }
   }
 );
