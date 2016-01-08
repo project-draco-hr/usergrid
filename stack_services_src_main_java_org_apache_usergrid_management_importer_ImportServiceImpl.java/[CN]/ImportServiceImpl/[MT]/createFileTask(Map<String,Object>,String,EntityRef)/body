@@ -1,5 +1,7 @@
 {
-  logger.debug("scheduleFile() for import {}:{} file {}",new Object[]{importRef.getType(),importRef.getType(),file});
+  if (logger.isDebugEnabled()) {
+    logger.debug("scheduleFile() for import {}:{} file {}",new Object[]{importRef.getType(),importRef.getType(),file});
+  }
   EntityManager rootEM;
   try {
     rootEM=emf.getEntityManager(emf.getManagementAppId());
@@ -14,7 +16,9 @@
   Import importEntity=rootEM.get(importRef,Import.class);
   try {
     rootEM.createConnection(importEntity,IMPORT_FILE_INCLUDES_CONNECTION,fileImport);
-    logger.debug("Created connection from {}:{} to {}:{}",new Object[]{importEntity.getType(),importEntity.getUuid(),fileImport.getType(),fileImport.getUuid()});
+    if (logger.isDebugEnabled()) {
+      logger.debug("Created connection from {}:{} to {}:{}",new Object[]{importEntity.getType(),importEntity.getUuid(),fileImport.getType(),fileImport.getUuid()});
+    }
   }
  catch (  Exception e) {
     logger.error(e.getMessage());

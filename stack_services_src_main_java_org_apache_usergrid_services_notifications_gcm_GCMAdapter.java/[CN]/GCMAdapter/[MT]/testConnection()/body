@@ -1,11 +1,21 @@
 {
   Sender sender=new Sender(notifier.getApiKey());
-  Message message=new Message.Builder().build();
+  Message message=new Message.Builder().addData("registration_id","").build();
+  List<String> ids=new ArrayList<String>();
+  ids.add("device_token");
   try {
-    Result result=sender.send(message,"device_token",1);
+    MulticastResult result=sender.send(message,ids,1);
     LOG.debug("testConnection result: {}",result);
   }
- catch (  IOException e) {
-    throw new ConnectionException(e.getMessage(),e);
+ catch (  InvalidRequestException e) {
+    LOG.debug("here for testing only");
+  }
+catch (  IOException e) {
+    if (isInvalidRequestException(e)) {
+      throw new InvalidRequestException(401,Constants.ERROR_INVALID_REGISTRATION);
+    }
+ else {
+      throw new ConnectionException(e.getMessage(),e);
+    }
   }
 }

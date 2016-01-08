@@ -2,8 +2,12 @@
   Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=load(entityId);
   cpEntity.removeField(propertyName);
-  logger.debug("About to Write {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
+  if (logger.isDebugEnabled()) {
+    logger.debug("About to Write {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
+  }
   cpEntity=ecm.write(cpEntity).toBlocking().last();
-  logger.debug("Wrote {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
+  if (logger.isDebugEnabled()) {
+    logger.debug("Wrote {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
+  }
   indexService.queueEntityIndexUpdate(applicationScope,cpEntity);
 }

@@ -1,12 +1,12 @@
 {
-  LOG.info("NotificationService: start request.");
+  logger.info("NotificationService: start request.");
   Timer.Context timer=postTimer.time();
   postMeter.mark();
   try {
     validate(null,context.getPayload());
     Notification.PathTokens pathTokens=getPathTokens(context.getRequest().getOriginalParameters());
     context.getProperties().put("state",Notification.State.CREATED);
-    context.getProperties().put("pathTokens",pathTokens);
+    context.getProperties().put("pathQuery",pathTokens);
     context.setOwner(sm.getApplication());
     ServiceResults results=super.postCollection(context);
     Notification notification=(Notification)results.getEntity();
@@ -17,15 +17,15 @@
       properties.put("started",notification.getStarted());
       properties.put("state",notification.getState());
       notification.addProperties(properties);
-      LOG.info("ApplicationQueueMessage: notification {} properties updated in duration {} ms",notification.getUuid(),System.currentTimeMillis() - now);
+      logger.info("ApplicationQueueMessage: notification {} properties updated in duration {} ms",notification.getUuid(),System.currentTimeMillis() - now);
     }
     long now=System.currentTimeMillis();
     notificationQueueManager.queueNotification(notification,null);
-    LOG.info("NotificationService: notification {} post queue duration {} ms ",notification.getUuid(),System.currentTimeMillis() - now);
+    logger.info("NotificationService: notification {} post queue duration {} ms ",notification.getUuid(),System.currentTimeMillis() - now);
     return results;
   }
  catch (  Exception e) {
-    LOG.error("serialization failed",e);
+    logger.error("serialization failed",e);
     throw e;
   }
  finally {

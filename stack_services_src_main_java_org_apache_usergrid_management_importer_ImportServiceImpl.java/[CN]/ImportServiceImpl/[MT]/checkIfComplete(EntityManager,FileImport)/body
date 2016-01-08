@@ -18,7 +18,9 @@
       logger.warn("Found no FileImport entities for import {}, " + "unable to check if complete",importEntity.getUuid());
       return;
     }
-    logger.debug("Checking {} file import jobs to see if we are done for file {}",new Object[]{entities.size(),fileImport.getFileName()});
+    if (logger.isDebugEnabled()) {
+      logger.debug("Checking {} file import jobs to see if we are done for file {}",new Object[]{entities.size(),fileImport.getFileName()});
+    }
     while (itr.hasNext()) {
       FileImport fi=(FileImport)itr.next();
 switch (fi.getState()) {
@@ -29,7 +31,9 @@ case FINISHED:
     successCount++;
   continue;
 default :
-logger.debug("not done yet, bail out...");
+if (logger.isDebugEnabled()) {
+  logger.debug("not done yet, bail out...");
+}
 return;
 }
 }
@@ -39,11 +43,17 @@ failCount++;
 if (importEntity != null) {
 importEntity.setErrorMessage("Error determining status of file import jobs");
 }
+if (logger.isDebugEnabled()) {
 logger.debug("Error determining status of file import jobs",e);
 }
+}
+if (logger.isDebugEnabled()) {
 logger.debug("successCount = {} failCount = {}",new Object[]{successCount,failCount});
+}
 if (importEntity != null) {
+if (logger.isDebugEnabled()) {
 logger.debug("FINISHED");
+}
 if (failCount == 0) {
 importEntity.setState(Import.State.FINISHED);
 }
@@ -52,7 +62,9 @@ importEntity.setState(Import.State.FAILED);
 }
 try {
 rootEM.update(importEntity);
+if (logger.isDebugEnabled()) {
 logger.debug("Updated import entity {}:{} with state {}",new Object[]{importEntity.getType(),importEntity.getUuid(),importEntity.getState()});
+}
 }
  catch (Exception e) {
 logger.error("Error updating import entity",e);

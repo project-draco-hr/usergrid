@@ -40,13 +40,13 @@
   event.setGroup(organizationEntity.getUuid());
   em.create(event);
   counts=em.getApplicationCounters();
-  LOG.info(JsonUtils.mapToJsonString(counts));
+  logger.info(JsonUtils.mapToJsonString(counts));
   assertNotNull(counts.get("admin.logins"));
   assertEquals(1,counts.get("admin.logins").longValue() - originalAdminLoginsCount);
   Results r=em.getAggregateCounters(null,null,null,"admin.logins",CounterResolution.ALL,ts,System.currentTimeMillis(),false);
-  LOG.info(JsonUtils.mapToJsonString(r.getCounters()));
+  logger.info(JsonUtils.mapToJsonString(r.getCounters()));
   assertEquals(1,r.getCounters().get(0).getValues().get(0).getValue() - originalAdminLoginsCount);
   r=em.getAggregateCounters(query);
-  LOG.info(JsonUtils.mapToJsonString(r.getCounters()));
+  logger.info(JsonUtils.mapToJsonString(r.getCounters()));
   assertEquals(1,r.getCounters().get(0).getValues().get(0).getValue() - originalCount);
 }

@@ -1,26 +1,34 @@
 {
-  logger.trace("Beginning audit of shard group {}",shardEntryGroup);
+  if (logger.isTraceEnabled())   logger.trace("Beginning audit of shard group {}",shardEntryGroup);
   if (shardEntryGroup.isCompactionPending()) {
-    logger.trace("Shard group {} is compacting, not auditing group",shardEntryGroup);
+    if (logger.isTraceEnabled())     logger.trace("Shard group {} is compacting, not auditing group",shardEntryGroup);
     return DeleteResult.COMPACTION_PENDING;
   }
-  logger.trace("Shard group {} has no compaction pending",shardEntryGroup);
+  if (logger.isTraceEnabled())   logger.trace("Shard group {} has no compaction pending",shardEntryGroup);
   final long currentTime=timeService.getCurrentTime();
   if (shardEntryGroup.isNew(currentTime)) {
-    logger.trace("Shard group {} contains a shard that is is too new, not auditing group",shardEntryGroup);
+    if (logger.isTraceEnabled())     logger.trace("Shard group {} contains a shard that is is too new, not auditing group",shardEntryGroup);
     return DeleteResult.TOO_NEW;
   }
-  logger.trace("Shard group {} has passed the delta timeout at {}",shardEntryGroup,currentTime);
+  if (logger.isTraceEnabled()) {
+    logger.trace("Shard group {} has passed the delta timeout at {}",shardEntryGroup,currentTime);
+  }
   if (edgeIterator.hasNext()) {
-    logger.trace("Shard group {} has edges, not deleting",shardEntryGroup);
+    if (logger.isTraceEnabled()) {
+      logger.trace("Shard group {} has edges, not deleting",shardEntryGroup);
+    }
     return DeleteResult.CONTAINS_EDGES;
   }
-  logger.trace("Shard group {} has no edges continuing to delete",shardEntryGroup,currentTime);
+  if (logger.isTraceEnabled()) {
+    logger.trace("Shard group {} has no edges continuing to delete",shardEntryGroup,currentTime);
+  }
   DeleteResult result=DeleteResult.NO_OP;
   MutationBatch rollup=null;
   for (  final Shard shard : shardEntryGroup.getReadShards()) {
     if (shard.isMinShard()) {
-      logger.trace("Shard {} in group {} is the minimum, not deleting",shard,shardEntryGroup);
+      if (logger.isTraceEnabled()) {
+        logger.trace("Shard {} in group {} is the minimum, not deleting",shard,shardEntryGroup);
+      }
       continue;
     }
     if (!shard.isCompacted()) {
@@ -46,6 +54,8 @@
       throw new RuntimeException("Unable to execute shard deletion",e);
     }
   }
-  logger.trace("Completed auditing shard group {}",shardEntryGroup);
+  if (logger.isTraceEnabled()) {
+    logger.trace("Completed auditing shard group {}",shardEntryGroup);
+  }
   return result;
 }

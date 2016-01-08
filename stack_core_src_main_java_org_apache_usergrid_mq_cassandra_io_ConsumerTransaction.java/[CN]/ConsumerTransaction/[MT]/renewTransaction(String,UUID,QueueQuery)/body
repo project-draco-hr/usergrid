@@ -17,7 +17,9 @@
   UUID origTrans=col.getName();
   UUID messageId=col.getValue();
   UUID expirationId=UUIDUtils.newTimeUUID(now + query.getTimeout());
-  logger.debug("Writing new timeout at '{}' for message '{}'",expirationId,messageId);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Writing new timeout at '{}' for message '{}'",expirationId,messageId);
+  }
   Mutator<ByteBuffer> mutator=CountingMutator.createFlushingMutator(ko,be);
   mutator.addInsertion(key,CONSUMER_QUEUE_TIMEOUTS.getColumnFamily(),createColumn(expirationId,messageId,cass.createTimestamp(),ue,ue));
   mutator.execute();

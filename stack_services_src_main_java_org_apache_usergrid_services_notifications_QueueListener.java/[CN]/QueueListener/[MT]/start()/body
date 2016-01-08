@@ -1,5 +1,5 @@
 {
-  LOG.info("QueueListener: starting.");
+  logger.info("QueueListener: starting.");
   int threadCount=0;
   try {
     sleepBetweenRuns=new Long(properties.getProperty("usergrid.notifications.listener.sleep.between","" + sleepBetweenRuns)).longValue();
@@ -11,14 +11,20 @@
     futures=new ArrayList<Future>(maxThreads);
     pool=Executors.newFixedThreadPool(maxThreads);
     while (threadCount++ < maxThreads) {
-      LOG.info("QueueListener: Starting thread {}.",threadCount);
+      logger.info("QueueListener: Starting thread {}.",threadCount);
+      final int threadNumber=threadCount;
       Runnable task=new Runnable(){
         @Override public void run(){
           try {
-            execute();
+            execute(threadNumber);
           }
  catch (          Exception e) {
-            LOG.error("failed to start push",e);
+            if (pool.isShutdown()) {
+              logger.warn("QueueListener: push listener pool already shut down.");
+            }
+ else {
+              logger.error("QueueListener: threads interrupted",e);
+            }
           }
         }
       }
@@ -27,7 +33,7 @@
     }
   }
  catch (  Exception e) {
-    LOG.error("QueueListener: failed to start:",e);
+    logger.error("QueueListener: failed to start:",e);
   }
-  LOG.info("QueueListener: done starting.");
+  logger.info("QueueListener: done starting.");
 }

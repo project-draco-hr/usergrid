@@ -1,18 +1,22 @@
 {
-  logger.debug("ApplicationFilter.authorize");
+  if (logger.isDebugEnabled()) {
+    logger.debug("ApplicationFilter.authorize");
+  }
   if (SubjectUtils.isAnonymous()) {
     ApplicationInfo application=null;
     try {
       application=management.getApplicationInfo(getApplicationIdentifier());
     }
  catch (    Exception e) {
-      e.printStackTrace();
+      logger.error("Error getting applicationInfo in authorize()",e);
     }
     EntityManager em=getEntityManagerFactory().getEntityManager(application.getId());
     Map<String,String> roles=null;
     try {
       roles=em.getRoles();
-      logger.debug("found roles {}",roles);
+      if (logger.isDebugEnabled()) {
+        logger.debug("found roles {}",roles);
+      }
     }
  catch (    Exception e) {
       logger.error("Unable retrieve roles",e);

@@ -90,7 +90,9 @@
         Thread.sleep(1000);
         timesIterated--;
         listResult=getS3Client().listMultipartUploads(listRequest);
-        logger.debug("Files that haven't been aborted are: ",listResult.getMultipartUploads().listIterator().toString());
+        if (logger.isDebugEnabled()) {
+          logger.debug("Files that haven't been aborted are: ",listResult.getMultipartUploads().listIterator().toString());
+        }
       }
       if (timesIterated == 0) {
         logger.error("Files parts that couldn't be aborted in 20 seconds are:");

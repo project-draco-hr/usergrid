@@ -1,13 +1,19 @@
 {
-  logger.debug("SystemFilter.authorize");
+  if (logger.isDebugEnabled()) {
+    logger.debug("SystemFilter.authorize");
+  }
   try {
     if (!request.getSecurityContext().isUserInRole(ROLE_SERVICE_ADMIN)) {
-      logger.debug("You are not the system admin.");
+      if (logger.isDebugEnabled()) {
+        logger.debug("You are not the system admin.");
+      }
       throw mappableSecurityException("unauthorized","No system access authorized",SecurityException.REALM);
     }
   }
  catch (  IllegalStateException e) {
-    logger.debug("This is an invalid state",e);
+    if (logger.isDebugEnabled()) {
+      logger.debug("This is an invalid state",e);
+    }
     if ((request.getSecurityContext().getUserPrincipal() == null) || !ROLE_SERVICE_ADMIN.equals(request.getSecurityContext().getUserPrincipal().getName())) {
       throw mappableSecurityException("unauthorized","No system access authorized",SecurityException.REALM);
     }

@@ -4,23 +4,23 @@
   GraphValidation.validateDirectedEdgeMeta(directedEdgeMeta);
   Preconditions.checkNotNull(shardEntryGroup,"shardEntryGroup cannot be null");
   if (shardEntryGroup.isCompactionPending()) {
-    LOG.trace("Shard entry group {} is compacting, not auditing",shardEntryGroup);
+    if (logger.isTraceEnabled())     logger.trace("Shard entry group {} is compacting, not auditing",shardEntryGroup);
     return false;
   }
   if (shardEntryGroup.entrySize() != 1) {
-    LOG.trace("Shard entry group {} does not have 1 entry, not allocating",shardEntryGroup);
+    if (logger.isTraceEnabled())     logger.trace("Shard entry group {} does not have 1 entry, not allocating",shardEntryGroup);
     return false;
   }
   final Shard shard=shardEntryGroup.getMinShard();
   final long minTime=getMinTime();
   if (shard.getCreatedTime() >= minTime) {
-    LOG.trace("Shard entry group {}  and shard {} is before the minimum created time of {}.  Not allocating.does not have 1 entry, not allocating",shardEntryGroup,shard,minTime);
+    if (logger.isTraceEnabled())     logger.trace("Shard entry group {}  and shard {} is before the minimum created time of {}.  Not allocating.does not have 1 entry, not allocating",shardEntryGroup,shard,minTime);
     return false;
   }
   final long shardSize=graphFig.getShardSize();
   final Iterator<MarkedEdge> edges=directedEdgeMeta.loadEdges(shardedEdgeSerialization,edgeColumnFamilies,scope,shardEntryGroup.getReadShards(),0,SearchByEdgeType.Order.ASCENDING);
   if (!edges.hasNext()) {
-    LOG.trace("Tried to allocate a new shard for edge meta data {}, " + "but no max value could be found in that row",directedEdgeMeta);
+    if (logger.isTraceEnabled())     logger.trace("Tried to allocate a new shard for edge meta data {}, " + "but no max value could be found in that row",directedEdgeMeta);
     return false;
   }
   MarkedEdge marked=null;
@@ -33,12 +33,12 @@
     }
   }
   if (marked == null) {
-    LOG.trace("Shard {} in shard group {} not full, not splitting",shard,shardEntryGroup);
+    if (logger.isTraceEnabled())     logger.trace("Shard {} in shard group {} not full, not splitting",shard,shardEntryGroup);
     return false;
   }
   final long createTimestamp=timeService.getCurrentTime();
   final Shard newShard=new Shard(marked.getTimestamp(),createTimestamp,false);
-  LOG.info("Allocating new shard {} for edge meta {}",newShard,directedEdgeMeta);
+  logger.info("Allocating new shard {} for edge meta {}",newShard,directedEdgeMeta);
   final MutationBatch batch=this.edgeShardSerialization.writeShardMeta(scope,newShard,directedEdgeMeta);
   try {
     batch.execute();

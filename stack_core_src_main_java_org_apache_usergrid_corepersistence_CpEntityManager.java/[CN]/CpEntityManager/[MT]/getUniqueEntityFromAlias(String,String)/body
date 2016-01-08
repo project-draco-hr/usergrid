@@ -5,7 +5,9 @@
   StringField uniqueLookupRepairField=new StringField(propertyName,aliasType.toString());
   Observable<FieldSet> fieldSetObservable=ecm.getEntitiesFromFields(Inflector.getInstance().singularize(collectionType),Arrays.<Field>asList(uniqueLookupRepairField));
   if (fieldSetObservable == null) {
-    logger.debug("Couldn't return the observable based on unique entities.");
+    if (logger.isDebugEnabled()) {
+      logger.debug("Couldn't return the observable based on unique entities.");
+    }
     return null;
   }
   FieldSet fieldSet=fieldSetObservable.toBlocking().last();

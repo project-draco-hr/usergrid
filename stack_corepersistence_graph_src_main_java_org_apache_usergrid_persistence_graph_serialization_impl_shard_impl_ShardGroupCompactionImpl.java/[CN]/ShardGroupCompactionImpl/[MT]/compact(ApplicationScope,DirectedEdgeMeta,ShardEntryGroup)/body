@@ -3,8 +3,8 @@
   Preconditions.checkNotNull(group,"group cannot be null");
   Preconditions.checkArgument(group.isCompactionPending(),"Compaction is pending");
   Preconditions.checkArgument(group.shouldCompact(startTime),"Compaction cannot be run yet.  Ignoring compaction.");
-  if (LOG.isDebugEnabled()) {
-    LOG.debug("Compacting shard group. Audit count is {} ",countAudits.get());
+  if (logger.isDebugEnabled()) {
+    logger.debug("Compacting shard group. Audit count is {} ",countAudits.get());
   }
   final CompactionResult.CompactionBuilder resultBuilder=CompactionResult.builder();
   final Shard targetShard=group.getCompactionTarget();
@@ -33,7 +33,7 @@
           deleteRowBatch.execute();
         }
  catch (        Throwable t) {
-          LOG.error("Unable to move edges from shard {} to shard {}",sourceShard,targetShard);
+          logger.error("Unable to move edges from shard {} to shard {}",sourceShard,targetShard);
         }
       }
     }
@@ -43,9 +43,9 @@
     deleteRowBatch.execute();
   }
  catch (  Throwable t) {
-    LOG.error("Unable to move edges to target shard {}",targetShard);
+    logger.error("Unable to move edges to target shard {}",targetShard);
   }
-  LOG.info("Finished compacting {} shards and moved {} edges",sourceShards,edgeCount);
+  logger.info("Finished compacting {} shards and moved {} edges",sourceShards,edgeCount);
   resultBuilder.withCopiedEdges(edgeCount).withSourceShards(sourceShards).withTargetShard(targetShard);
   if (edgeCount == 0) {
     final MutationBatch shardRemovalRollup=keyspace.prepareMutationBatch();
@@ -53,7 +53,7 @@
       if (!group.canBeDeleted(source)) {
         continue;
       }
-      LOG.info("Source shards have been fully drained.  Removing shard {}",source);
+      logger.info("Source shards have been fully drained.  Removing shard {}",source);
       final MutationBatch shardRemoval=edgeShardSerialization.removeShardMeta(scope,source,edgeMeta);
       shardRemovalRollup.mergeShallow(shardRemoval);
       resultBuilder.withRemovedShard(source);
@@ -64,7 +64,7 @@
  catch (    ConnectionException e) {
       throw new RuntimeException("Unable to connect to casandra",e);
     }
-    LOG.info("Shard has been fully compacted.  Marking shard {} as compacted in Cassandra",targetShard);
+    logger.info("Shard has been fully compacted.  Marking shard {} as compacted in Cassandra",targetShard);
     Shard compactedShard=new Shard(targetShard.getShardIndex(),timeService.getCurrentTime(),true);
     final MutationBatch updateMark=edgeShardSerialization.writeShardMeta(scope,compactedShard,edgeMeta);
     try {

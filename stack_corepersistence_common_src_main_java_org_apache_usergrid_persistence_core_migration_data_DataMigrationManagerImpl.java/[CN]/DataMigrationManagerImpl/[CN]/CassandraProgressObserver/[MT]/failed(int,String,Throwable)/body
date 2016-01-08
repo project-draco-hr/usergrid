@@ -1,9 +1,10 @@
 {
   StringWriter stackTrace=new StringWriter();
   throwable.printStackTrace(new PrintWriter(stackTrace));
+  logger.error("Data Migration Manager processing failed",throwable);
   final String storedMessage=String.format("Failed to migrate, reason is appended.  Error '%s' %s",reason,stackTrace.toString());
   update(migrationVersion,storedMessage);
-  LOG.error("Unable to migrate version {} due to reason {}.",migrationVersion,reason,throwable);
+  logger.error("Unable to migrate version {} due to reason {}.",migrationVersion,reason,throwable);
   failed=true;
   migrationInfoSerialization.setStatusCode(pluginName,StatusCode.ERROR.status);
 }

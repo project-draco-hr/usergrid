@@ -22,7 +22,7 @@
   exportService.doExport(jobExecution);
   while (!exportService.getState(exportUUID).equals("FINISHED")) {
   }
-  logger.debug("\n\nImport the application\n\n");
+  logger.debug("Import the application\n\n");
   S3Import s3Import=new S3ImportImpl();
   ImportService importService=setup.getImportService();
   final Import importEntity=importService.schedule(null,payload);
@@ -33,14 +33,20 @@
   importService.doImport(jobExecution);
   while (!importService.getState(importUUID).equals("FINISHED")) {
   }
-  logger.debug("\n\nVerify Import\n\n");
+  if (logger.isDebugEnabled()) {
+    logger.debug("Verify Import");
+  }
   try {
     Set<String> collections=em.getApplicationCollections();
     for (    String collectionName : collections) {
-      logger.debug("Checking collection {}",collectionName);
+      if (logger.isDebugEnabled()) {
+        logger.debug("Checking collection {}",collectionName);
+      }
       Results collection=em.getCollection(applicationId,collectionName,null,Level.ALL_PROPERTIES);
       for (      Entity eachEntity : collection.getEntities()) {
-        logger.debug("Checking entity {} {}:{}",new Object[]{eachEntity.getName(),eachEntity.getType(),eachEntity.getUuid()});
+        if (logger.isDebugEnabled()) {
+          logger.debug("Checking entity {} {}:{}",new Object[]{eachEntity.getName(),eachEntity.getType(),eachEntity.getUuid()});
+        }
         EntityRef er;
         Map<Object,Object> dictionaries;
         if (collectionName.equals("roles")) {
