@@ -1,21 +1,3 @@
 {
-  long maxTokenTtl=getMaxTtl(tokenCategory,principal);
-  if (duration > maxTokenTtl) {
-    throw new IllegalArgumentException(String.format("Your token age cannot be more than the maximum age of %d milliseconds",maxTokenTtl));
-  }
-  if (duration == 0) {
-    duration=maxTokenTtl;
-  }
-  if (principal != null) {
-    Assert.notNull(principal.getType());
-    Assert.notNull(principal.getApplicationId());
-    Assert.notNull(principal.getUuid());
-  }
-  UUID uuid=getUUIDForToken(token);
-  long timestamp=getTimestampInMillis(uuid);
-  if (type == null) {
-    type=TOKEN_TYPE_ACCESS;
-  }
-  TokenInfo tokenInfo=new TokenInfo(uuid,type,timestamp,timestamp,0,duration,principal,state);
-  putTokenInfo(tokenInfo);
+  importToken(token,tokenCategory,type,principal,state,duration,null);
 }

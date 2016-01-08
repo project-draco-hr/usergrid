@@ -27,5 +27,9 @@
     principal=new AuthPrincipalInfo(principalType,entityId,appId);
   }
   @SuppressWarnings("unchecked") Map<String,Object> state=(Map<String,Object>)JsonUtils.fromByteBuffer(columns.get(TOKEN_STATE));
-  return new TokenInfo(uuid,type,created,accessed,inactive,duration,principal,state);
+  UUID workflowOrgId=null;
+  if (columns.containsKey(TOKEN_WORKFLOW_ORG_ID)) {
+    workflowOrgId=ConversionUtils.uuid(columns.get(TOKEN_WORKFLOW_ORG_ID));
+  }
+  return new TokenInfo(uuid,type,created,accessed,inactive,duration,principal,state,workflowOrgId);
 }

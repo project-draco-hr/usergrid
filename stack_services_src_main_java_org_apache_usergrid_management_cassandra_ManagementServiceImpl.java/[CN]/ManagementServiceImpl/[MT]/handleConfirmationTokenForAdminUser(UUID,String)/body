@@ -1,0 +1,23 @@
+{
+  TokenInfo tokenInfo=getTokenInfoFromAccessToken(token,TOKEN_TYPE_CONFIRM,ADMIN_USER);
+  if (tokenInfo != null) {
+    AuthPrincipalInfo principal=tokenInfo.getPrincipal();
+    if ((principal != null) && userId.equals(principal.getUuid())) {
+      UUID workflowOrgId=tokenInfo.getWorkflowOrgId();
+      UserInfo user=getAdminUserByUuid(principal.getUuid());
+      confirmAdminUser(user.getUuid());
+      if (newAdminUsersNeedSysAdminApproval()) {
+        sendAdminUserConfirmedAwaitingActivationEmail(user);
+        sendSysAdminRequestAdminActivationEmail(workflowOrgId,user);
+        return ActivationState.CONFIRMED_AWAITING_ACTIVATION;
+      }
+ else {
+        activateAdminUser(principal.getUuid());
+        sendAdminUserActivatedEmail(user);
+        sendSysAdminNewAdminActivatedNotificationEmail(workflowOrgId,user);
+        return ActivationState.ACTIVATED;
+      }
+    }
+  }
+  return ActivationState.UNKNOWN;
+}
