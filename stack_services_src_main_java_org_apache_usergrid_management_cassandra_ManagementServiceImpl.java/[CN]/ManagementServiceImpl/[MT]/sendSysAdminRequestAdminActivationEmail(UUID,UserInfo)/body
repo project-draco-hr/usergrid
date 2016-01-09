@@ -1,0 +1,7 @@
+{
+  String token=getActivationTokenForAdminUser(user.getUuid(),0,organizationId);
+  String activationUrlTemplate=organizationId != null ? getOrganizationConfigPropertyByUuid(organizationId,PROPERTIES_ADMIN_ACTIVATION_URL) : getOrganizationConfigPropertyForUserInfo(user,PROPERTIES_ADMIN_ACTIVATION_URL);
+  String activation_url=String.format(activationUrlTemplate,user.getUuid().toString()) + "?token=" + token;
+  String adminSystemEmail=organizationId != null ? getAdminSystemEmailForOrganization(organizationId) : getAdminSystemEmailForApplication(user.getApplicationId());
+  sendHtmlMail(properties,adminSystemEmail,properties.getProperty(PROPERTIES_MAILER_EMAIL),"Request For Admin User Account Activation " + user.getEmail(),appendEmailFooter(emailMsg(hashMap("user_email",user.getEmail()).map("activation_url",activation_url),PROPERTIES_EMAIL_SYSADMIN_ADMIN_ACTIVATION)));
+}

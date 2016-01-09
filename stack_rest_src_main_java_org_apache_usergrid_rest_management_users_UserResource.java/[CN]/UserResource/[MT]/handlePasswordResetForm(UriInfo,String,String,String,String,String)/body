@@ -26,14 +26,14 @@
       }
     }
     if (!useReCaptcha()) {
-      management.startAdminUserPasswordResetFlow(user);
+      management.startAdminUserPasswordResetFlow(null,user);
       return handleViewable("resetpw_email_success",this);
     }
     ReCaptchaImpl reCaptcha=new ReCaptchaImpl();
     reCaptcha.setPrivateKey(properties.getRecaptchaPrivate());
     ReCaptchaResponse reCaptchaResponse=reCaptcha.checkAnswer(httpServletRequest.getRemoteAddr(),challenge,uresponse);
     if (reCaptchaResponse.isValid()) {
-      management.startAdminUserPasswordResetFlow(user);
+      management.startAdminUserPasswordResetFlow(null,user);
       return handleViewable("resetpw_email_success",this);
     }
  else {

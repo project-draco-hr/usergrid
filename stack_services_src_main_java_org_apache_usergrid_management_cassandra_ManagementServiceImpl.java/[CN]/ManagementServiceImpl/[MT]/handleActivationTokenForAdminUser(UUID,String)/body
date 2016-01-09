@@ -1,11 +1,15 @@
 {
-  AuthPrincipalInfo principal=getPrincipalFromAccessToken(token,TOKEN_TYPE_ACTIVATION,ADMIN_USER);
-  if ((principal != null) && userId.equals(principal.getUuid())) {
-    activateAdminUser(principal.getUuid());
-    UserInfo user=getAdminUserByUuid(principal.getUuid());
-    sendAdminUserActivatedEmail(user);
-    sendSysAdminNewAdminActivatedNotificationEmail(user);
-    return ActivationState.ACTIVATED;
+  TokenInfo tokenInfo=getTokenInfoFromAccessToken(token,TOKEN_TYPE_ACTIVATION,ADMIN_USER);
+  if (tokenInfo == null) {
+    AuthPrincipalInfo principal=tokenInfo.getPrincipal();
+    if ((principal != null) && userId.equals(principal.getUuid())) {
+      UUID workflowOrgId=tokenInfo.getWorkflowOrgId();
+      activateAdminUser(principal.getUuid());
+      UserInfo user=getAdminUserByUuid(principal.getUuid());
+      sendAdminUserActivatedEmail(user);
+      sendSysAdminNewAdminActivatedNotificationEmail(workflowOrgId,user);
+      return ActivationState.ACTIVATED;
+    }
   }
   return ActivationState.UNKNOWN;
 }

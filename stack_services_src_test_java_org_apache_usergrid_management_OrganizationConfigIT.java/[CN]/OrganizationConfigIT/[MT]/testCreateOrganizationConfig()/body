@@ -1,0 +1,32 @@
+{
+  final String orgName=uniqueOrg();
+  UserInfo user=setup.getMgmtSvc().createAdminUser(null,uniqueUsername(),"Org Config Admin",uniqueEmail(),"test",true,false);
+  assertNotNull(user);
+  OrganizationInfo org=setup.getMgmtSvc().createOrganization(orgName,user,true);
+  assertNotNull(org);
+  setup.getEmf().getEntityManager(setup.getSmf().getManagementAppId());
+  OrganizationConfig orgConfig=setup.getMgmtSvc().getOrganizationConfigByUuid(org.getUuid());
+  assertNotNull(orgConfig);
+  OrganizationConfigProps configProps=new OrganizationConfigPropsImpl(setup.getMgmtSvc().getProperties());
+  Map<Object,Object> emptyConfigProps=new HashMap<>();
+  OrganizationConfig orgConfigDefault=new OrganizationConfig(configProps,org.getUuid(),org.getName(),emptyConfigProps,false);
+  assertTrue(orgConfig.equals(orgConfigDefault));
+  Map<String,Object> propMap=new HashMap<>();
+  String testKey=OrganizationConfigProps.PROPERTIES_ADMIN_RESETPW_URL;
+  String testValue="***TEST VALUE***";
+  propMap.put(testKey,testValue);
+  orgConfig.addProperties(propMap,false);
+  setup.getMgmtSvc().updateOrganizationConfig(orgConfig);
+  setup.getEmf().getEntityManager(setup.getSmf().getManagementAppId());
+  OrganizationConfig orgConfigUpdated=setup.getMgmtSvc().getOrganizationConfigByUuid(org.getUuid());
+  assertNotNull(orgConfigUpdated);
+  String updatedValue=orgConfigUpdated.getProperty(testKey);
+  assertTrue(updatedValue.equals(testValue));
+  propMap.put(testKey,"");
+  orgConfigUpdated.addProperties(propMap,false);
+  setup.getMgmtSvc().updateOrganizationConfig(orgConfigUpdated);
+  setup.getEmf().getEntityManager(setup.getSmf().getManagementAppId());
+  OrganizationConfig orgConfigReset=setup.getMgmtSvc().getOrganizationConfigByUuid(org.getUuid());
+  assertNotNull(orgConfigReset);
+  assertTrue(orgConfigReset.equals(orgConfigDefault));
+}
