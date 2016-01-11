@@ -2,10 +2,10 @@
   if (applicationInfoId != null && applicationInfoId != CpNamingUtils.MANAGEMENT_APPLICATION_ID) {
     final EntityManager em=emf.getEntityManager(smf.getManagementAppId());
     Results r=em.getSourceEntities(new SimpleEntityRef(CpNamingUtils.APPLICATION_INFO,applicationInfoId),ORG_APP_RELATIONSHIP,Group.ENTITY_TYPE,Level.ALL_PROPERTIES);
-    Entity entity=r.getEntity();
-    if (entity != null) {
-      Map<Object,Object> entityProperties=em.getDictionaryAsMap(entity,ORGANIZATION_CONFIG_DICTIONARY);
-      return new OrganizationConfig(orgConfigProperties,entity.getUuid(),entity.getName(),entityProperties,false);
+    Group org=(Group)r.getEntity();
+    if (org != null) {
+      Map<Object,Object> entityProperties=em.getDictionaryAsMap(org,ORGANIZATION_CONFIG_DICTIONARY);
+      return new OrganizationConfig(orgConfigProperties,org.getUuid(),org.getPath(),entityProperties,false);
     }
   }
   return new OrganizationConfig(orgConfigProperties);
