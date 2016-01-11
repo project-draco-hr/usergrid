@@ -14,7 +14,10 @@
   Entity hotel=createEntitywithLocation(em,"hotel",37.334370,-121.895081);
   assertNotNull(hotel);
   app.refreshIndex();
-  Query query=Query.fromQL("select * where location within 609.8 of 37.334110260009766, -121.89434051513672");
+  Query query=Query.fromQL("select * where location within 609.7 of 37.334110260009766, -121.89434051513672");
   Results listResults=em.searchCollection(em.getApplicationRef(),"collars",query);
-  assertEquals("Nothing should get returned",0,listResults.size());
+  assertEquals(5,listResults.size());
+  query=Query.fromQL("select * where location within 609.8 of 37.334110260009766, -121.89434051513672");
+  listResults=em.searchCollection(em.getApplicationRef(),"collars",query);
+  assertEquals(6,listResults.size());
 }
