@@ -2,6 +2,9 @@
   if (certPassword == null) {
     certPassword="";
   }
+  SimpleDateFormat dateFormat=new SimpleDateFormat();
+  dateFormat.setTimeZone(new SimpleTimeZone(0,"GMT"));
+  dateFormat.applyPattern("EEE dd MMM yyyy HH:mm:ss z");
   Map<String,Object> attributes=new HashMap<>(1);
   try {
     KeyStore p12=KeyStore.getInstance("pkcs12");
@@ -11,9 +14,9 @@
       String alias=(String)aliases.nextElement();
       X509Certificate cert=(X509Certificate)p12.getCertificate(alias);
       attributes.put("subject",cert.getSubjectDN().toString());
-      attributes.put("validFrom",cert.getNotBefore());
+      attributes.put("validFrom",dateFormat.format(cert.getNotBefore()));
       attributes.put("validFromTimestamp",cert.getNotBefore().getTime());
-      attributes.put("validTo",cert.getNotAfter());
+      attributes.put("validTo",dateFormat.format(cert.getNotAfter()));
       attributes.put("validToTimestamp",cert.getNotAfter().getTime());
       attributes.put("issuer",cert.getIssuerDN().toString());
       attributes.put("subjectAlternativeNames",cert.getSubjectAlternativeNames());
