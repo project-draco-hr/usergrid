@@ -1,14 +1,22 @@
 {
   if (logger.isDebugEnabled()) {
-    logger.debug("ServiceResource.uploadData");
+    logger.debug("Notifiers.executeMultiPartPost");
   }
   String name=getValueOrNull(multiPart,"name");
   String provider=getValueOrNull(multiPart,"provider");
   String environment=getValueOrNull(multiPart,"environment");
   String certPassword=getValueOrNull(multiPart,"certificatePassword");
   InputStream is=null;
+  Map<String,Object> certAttributes=null;
   if (multiPart.getField("p12Certificate") != null) {
     is=multiPart.getField("p12Certificate").getEntityAs(InputStream.class);
+    certAttributes=CertificateUtils.getCertAtrributes(is,certPassword);
+  }
+ else {
+    throw new IllegalArgumentException("p12Certificate password cannot be empty or null.");
+  }
+  if (!CertificateUtils.isValid(certAttributes)) {
+    throw new IllegalArgumentException("p12Certificate is expired.");
   }
   HashMap<String,Object> certProps=new LinkedHashMap<String,Object>();
   certProps.put("name",name);
@@ -18,6 +26,9 @@
   if (is != null) {
     byte[] certBytes=IOUtils.toByteArray(is);
     certProps.put("p12Certificate",certBytes);
+  }
+  if (certAttributes != null) {
+    certProps.put("certInfo",certAttributes);
   }
   ApiResponse response=createApiResponse();
   response.setAction("post");

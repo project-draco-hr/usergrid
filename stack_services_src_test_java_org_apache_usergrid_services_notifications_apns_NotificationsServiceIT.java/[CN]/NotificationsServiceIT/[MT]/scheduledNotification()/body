@@ -5,24 +5,12 @@
   payloads.put(notifier.getUuid().toString(),payload);
   app.put("payloads",payloads);
   app.put("deliver",System.currentTimeMillis() + 240000);
-  app.put("queued",System.currentTimeMillis());
   app.put("debug",true);
   Entity e=app.testRequest(ServiceAction.POST,1,"devices",device1.getUuid(),"notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
-  setup.getEntityIndex().refresh(app.getId());
   Notification notification=app.getEntityManager().get(e.getUuid(),Notification.class);
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
   Thread.sleep(500);
-  Query query=Query.fromEquals("state",Notification.State.SCHEDULED.toString());
-  Results results=app.getEntityManager().searchCollection(app.getEntityManager().getApplicationRef(),"notifications",query);
-  Entity entity=results.getEntitiesMap().get(notification.getUuid());
-  assertNotNull(entity);
-  setup.getEntityIndex().refresh(app.getId());
-  try {
-    e=app.testRequest(ServiceAction.DELETE,1,"notifications",e.getUuid()).getEntity();
-  }
- catch (  Exception deleteException) {
-    LOG.error("Couldn't delete",deleteException);
-  }
-  app.getEntityManager().get(e.getUuid(),Notification.class);
+  notification=app.getEntityManager().get(e.getUuid(),Notification.class);
+  assertEquals(Notification.State.SCHEDULED,notification.getState());
 }
