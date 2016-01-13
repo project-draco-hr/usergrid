@@ -1,2 +1,11 @@
 {
+  task.orgNamesByUuid=managementService.getOrganizationsForAdminUser(task.adminUser.getUuid());
+  List<Org> orgs=userToOrgsMap.get(task.adminUser.getUuid());
+  if (orgs != null && task.orgNamesByUuid.size() < orgs.size()) {
+    BiMap<UUID,String> bimap=HashBiMap.create();
+    for (    Org org : orgs) {
+      bimap.put(org.orgId,org.orgName);
+    }
+    task.orgNamesByUuid=bimap;
+  }
 }
