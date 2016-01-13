@@ -17,13 +17,14 @@
     }
   }
   FormDataBodyPart fileBodyPart=multiPart.getField(FILE_FIELD_NAME);
-  if (data.isEmpty() && fileBodyPart != null) {
-    data.put(AssetUtils.FILE_METADATA,new HashMap());
-  }
+  data.put(AssetUtils.FILE_METADATA,new HashMap());
   ApiResponse response=createApiResponse();
   response.setAction(serviceAction.name().toLowerCase());
   response.setApplication(services.getApplication());
   response.setParams(ui.getQueryParameters());
+  if (data.get(FILE_FIELD_NAME) == null) {
+    data.put(FILE_FIELD_NAME,null);
+  }
   ServicePayload payload=getPayload(data);
   ServiceResults serviceResults=executeServiceRequest(ui,response,serviceAction,payload);
   if (fileBodyPart != null) {
@@ -42,7 +43,7 @@ catch (      RuntimeException re) {
         logger.error(re.getMessage());
         response.setError("500",re);
       }
-      em.update(entity);
+      entity=serviceResults.getEntity();
       serviceResults.setEntity(entity);
     }
   }
