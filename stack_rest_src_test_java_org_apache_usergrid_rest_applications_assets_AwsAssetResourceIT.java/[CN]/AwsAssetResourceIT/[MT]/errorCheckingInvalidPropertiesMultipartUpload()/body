@@ -21,7 +21,10 @@
  catch (  AwsPropertiesNotFoundException e) {
     fail("Shouldn't interrupt runtime if access key isnt found.");
   }
-catch (  ClientErrorException uie) {
+catch (  ForbiddenException fe) {
+    assertEquals(403,fe.getResponse().getStatus());
+  }
+catch (  InternalServerErrorException uie) {
     assertEquals(500,uie.getResponse().getStatus());
   }
  finally {

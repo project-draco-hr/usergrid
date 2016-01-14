@@ -8,6 +8,7 @@
   fileMetadata.put(AssetUtils.LAST_MODIFIED,System.currentTimeMillis());
   String mimeType=AssetMimeHandler.get().getMimeType(entity,data);
   Boolean overSizeLimit=false;
+  EntityManager em=emf.getEntityManager(appId);
   if (written < FIVE_MB) {
     ObjectMetadata om=new ObjectMetadata();
     om.setContentLength(written);
@@ -19,6 +20,7 @@
     fileMetadata.put(AssetUtils.CONTENT_LENGTH,written);
     if (md5sum != null)     fileMetadata.put(AssetUtils.CHECKSUM,md5sum);
     fileMetadata.put(AssetUtils.E_TAG,eTag);
+    em.update(entity);
   }
  else {
     written=0;
@@ -72,7 +74,6 @@
       partNumber++;
     }
     if (overSizeLimit) {
-      EntityManager em=emf.getEntityManager(appId);
       AbortMultipartUploadRequest abortRequest=new AbortMultipartUploadRequest(bucketName,uploadFileName,initResponse.getUploadId());
       ListMultipartUploadsRequest listRequest=new ListMultipartUploadsRequest(bucketName);
       MultipartUploadListing listResult=getS3Client().listMultipartUploads(listRequest);
@@ -107,6 +108,7 @@
       CompleteMultipartUploadResult amazonResult=getS3Client().completeMultipartUpload(request);
       fileMetadata.put(AssetUtils.CONTENT_LENGTH,written);
       fileMetadata.put(AssetUtils.E_TAG,amazonResult.getETag());
+      em.update(entity);
     }
   }
 }
