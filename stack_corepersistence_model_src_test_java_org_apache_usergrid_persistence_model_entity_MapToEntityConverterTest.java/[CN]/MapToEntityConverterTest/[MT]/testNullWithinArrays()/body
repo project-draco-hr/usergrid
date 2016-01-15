@@ -1,0 +1,12 @@
+{
+  final Map<String,Object> data=new HashMap<>(1);
+  final List<Object> arrayNullValues=new ArrayList<>(1);
+  arrayNullValues.add(null);
+  arrayNullValues.add(null);
+  data.put("arrayNullValues",arrayNullValues);
+  MapToEntityConverter converter=new MapToEntityConverter();
+  Entity entity=converter.fromMap(data,true);
+  assertTrue(entity.getField("arrayNullValues").getTypeName() == FieldTypeName.LIST);
+  List arrayReturned=(List)entity.getField("arrayNullValues").getValue();
+  assertTrue(arrayReturned.get(0) == null);
+}
