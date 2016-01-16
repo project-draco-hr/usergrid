@@ -1,0 +1,14 @@
+{
+  ImmutableMap.Builder<String,Object> keyspaceProps=ImmutableMap.<String,Object>builder();
+  String optionString=cassandraFig.getLocksKeyspaceReplication();
+  if (optionString == null) {
+    return keyspaceProps;
+  }
+  for (  String key : optionString.split(",")) {
+    final String[] options=key.split(":");
+    if (options.length > 0) {
+      keyspaceProps.put(options[0],options[1]);
+    }
+  }
+  return keyspaceProps;
+}
