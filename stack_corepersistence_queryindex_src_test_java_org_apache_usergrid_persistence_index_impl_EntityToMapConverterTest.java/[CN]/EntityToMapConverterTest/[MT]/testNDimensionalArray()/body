@@ -14,7 +14,9 @@
   final ApplicationScope scope=new ApplicationScopeImpl(createId("application"));
   final IndexEdge indexEdge=new IndexEdgeImpl(createId("source"),"testEdgeType",SearchEdge.NodeType.SOURCE,1000);
   final Map<String,Object> entityMap=EntityToMapConverter.convert(scope,indexEdge,rootEntity);
-  final List<EntityField> fields=(List<EntityField>)entityMap.get(IndexingUtils.ENTITY_FIELDS);
+  final Set<EntityField> fieldSet=(Set<EntityField>)entityMap.get(IndexingUtils.ENTITY_FIELDS);
+  final List<EntityField> fields=new ArrayList<>();
+  fields.addAll(fieldSet);
   assertEquals(1,fields.size());
   final EntityField field=fields.get(0);
   final String path="array.string";
