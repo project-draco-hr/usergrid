@@ -1,16 +1,17 @@
 {
+  if (!USE_REAL_CONNECTIONS) {
+    return;
+  }
   app.clear();
   app.put("name","prod_apns");
   app.put("provider",PROVIDER);
   app.put("environment","development");
-  InputStream fis=getClass().getClassLoader().getResourceAsStream("empty.p12");
+  InputStream fis=getClass().getClassLoader().getResourceAsStream("pushtest_dev_recent.p12");
   byte[] certBytes=IOUtils.toByteArray(fis);
   app.put("p12Certificate",certBytes);
   fis.close();
   Entity e=app.testRequest(ServiceAction.POST,1,"notifiers").getEntity();
   notifier=app.getEntityManager().get(e.getUuid(),Notifier.class);
-  if (!USE_REAL_CONNECTIONS) {
-  }
   app.clear();
   String payload=getPayload();
   Map<String,String> payloads=new HashMap<String,String>(1);
