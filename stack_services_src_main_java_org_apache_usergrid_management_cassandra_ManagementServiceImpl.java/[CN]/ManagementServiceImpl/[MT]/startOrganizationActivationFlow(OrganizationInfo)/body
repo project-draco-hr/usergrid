@@ -1,9 +1,12 @@
 {
   logger.info("startOrganizationActivationFlow: {}",organization.getName());
   try {
-    String token=getActivationTokenForOrganization(organization.getUuid(),0);
-    String activation_url=String.format(properties.getProperty(PROPERTIES_ORGANIZATION_ACTIVATION_URL),organization.getUuid().toString()) + "?token=" + token;
-    List<UserInfo> users=getAdminUsersForOrganization(organization.getUuid());
+    UUID organizationId=organization.getUuid();
+    String token=getActivationTokenForOrganization(organizationId,0);
+    OrganizationConfig orgConfig=getOrganizationConfigByUuid(organizationId);
+    String activationPropertyUrl=orgConfig.getFullUrlTemplate(WorkflowUrl.ORGANIZATION_ACTIVATION_URL);
+    String activation_url=String.format(activationPropertyUrl,organizationId.toString()) + "?token=" + token;
+    List<UserInfo> users=getAdminUsersForOrganization(organizationId);
     String organization_owners=null;
     for (    UserInfo user : users) {
       organization_owners=(organization_owners == null) ? user.getHTMLDisplayEmailAddress() : organization_owners + ", " + user.getHTMLDisplayEmailAddress();

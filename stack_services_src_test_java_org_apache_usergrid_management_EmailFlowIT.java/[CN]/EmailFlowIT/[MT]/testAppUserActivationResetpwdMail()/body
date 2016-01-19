@@ -11,9 +11,10 @@
   enableAdminApproval(app.getId());
   final String appUserUsername=uniqueUsername();
   final String appUserEmail=uniqueEmail();
+  OrganizationConfig orgConfig=setup.getMgmtSvc().getOrganizationConfigByUuid(orgOwner.getOrganization().getUuid());
   User appUser=setupAppUser(app.getId(),appUserUsername,appUserEmail,false);
   String subject="Request For User Account Activation " + appUserEmail;
-  String activation_url=String.format(setup.get(PROPERTIES_USER_ACTIVATION_URL),orgName,appName,appUser.getUuid().toString());
+  String activation_url=orgConfig.getFullUrl(WorkflowUrl.USER_ACTIVATION_URL,orgName,appName,appUser.getUuid().toString());
   setup.refreshIndex(app.getId());
   setup.getMgmtSvc().startAppUserActivationFlow(app.getId(),appUser);
   List<Message> inbox=Mailbox.get(adminEmail);
@@ -30,7 +31,7 @@
   ActivationState activeState=setup.getMgmtSvc().handleActivationTokenForAppUser(app.getId(),appUser.getUuid(),token);
   assertEquals(ActivationState.ACTIVATED,activeState);
   subject="Password Reset";
-  String reset_url=String.format(setup.get(PROPERTIES_USER_RESETPW_URL),orgName,appName,appUser.getUuid().toString());
+  String reset_url=orgConfig.getFullUrl(WorkflowUrl.USER_RESETPW_URL,orgName,appName,appUser.getUuid().toString());
   setup.getMgmtSvc().startAppUserPasswordResetFlow(app.getId(),appUser);
   inbox=Mailbox.get(appUserEmail);
   assertFalse(inbox.isEmpty());
