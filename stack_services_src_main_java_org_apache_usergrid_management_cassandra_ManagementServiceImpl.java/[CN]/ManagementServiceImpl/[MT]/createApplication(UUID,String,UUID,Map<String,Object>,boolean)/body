@@ -6,8 +6,8 @@
     properties=new HashMap<>();
   }
   OrganizationInfo organizationInfo=getOrganizationByUuid(organizationId);
-  Entity appInfo=emf.createApplicationV2(organizationInfo.getName(),applicationName,applicationId,properties);
-  if (applicationId == null) {
+  Entity appInfo=emf.createApplicationV2(organizationInfo.getName(),applicationName,applicationId,properties,forMigration);
+  if (!forMigration) {
     writeUserToken(smf.getManagementAppId(),appInfo,encryptionService.plainTextCredentials(generateOAuthSecretKey(AuthPrincipalType.APPLICATION),null,smf.getManagementAppId()));
   }
   applicationId=addApplicationToOrganization(organizationId,appInfo);
