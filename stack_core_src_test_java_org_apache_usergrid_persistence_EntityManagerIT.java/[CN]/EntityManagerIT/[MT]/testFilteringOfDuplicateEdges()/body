@@ -1,0 +1,14 @@
+{
+  LOG.info("EntityManagerIT.testFilteringOfDuplicateEdges");
+  EntityManager em=app.getEntityManager();
+  Map<String,Object> properties=new LinkedHashMap<String,Object>();
+  properties.put("name","fluffy1");
+  Entity entity=em.create("fluffy",properties);
+  EntityRef appRef=new SimpleEntityRef("application",app.getId());
+  EntityRef entityRef=new SimpleEntityRef(entity.getType(),entity.getUuid());
+  assertNotNull(entity);
+  em.addToCollection(appRef,"fluffies",entityRef);
+  em.addToCollection(appRef,"fluffies",entityRef);
+  Results results=em.getCollection(appRef,"fluffies",null,10,Level.ALL_PROPERTIES,true);
+  assertEquals(1,results.getEntities().size());
+}
