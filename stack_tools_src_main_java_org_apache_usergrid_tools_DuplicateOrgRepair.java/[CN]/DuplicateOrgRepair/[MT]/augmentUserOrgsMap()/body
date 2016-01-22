@@ -1,0 +1,26 @@
+{
+  ExecutorService writeThreadPoolExecutor=Executors.newFixedThreadPool(threadCount);
+  Scheduler scheduler=Schedulers.from(writeThreadPoolExecutor);
+  manager.getUsers().doOnNext(new Action1<OrgUser>(){
+    @Override public void call(    OrgUser user){
+      try {
+        Set<Org> connectedToOrgs=manager.getUsersOrgs(user);
+        Set<Org> usersOrgs=orgsByUser.get(user);
+        if (usersOrgs == null) {
+          usersOrgs=new HashSet<Org>();
+        }
+        for (        Org org : connectedToOrgs) {
+          if (!usersOrgs.contains(org)) {
+            usersOrgs.add(org);
+          }
+        }
+      }
+ catch (      Exception e) {
+        logger.error("Error getting orgs for user {}:{}",user.getUsername(),user.getId());
+        logger.error("Stack trace is: ",e);
+      }
+    }
+  }
+).subscribeOn(scheduler).toBlocking().lastOrDefault(null);
+  logger.info("DuplicateOrgRepair augmented user orgs map");
+}

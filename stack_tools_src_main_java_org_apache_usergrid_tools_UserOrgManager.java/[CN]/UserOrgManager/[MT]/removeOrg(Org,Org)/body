@@ -1,0 +1,14 @@
+{
+  EntityManager em=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+  em.delete(new SimpleEntityRef("group",duplicate.getId()));
+  logger.info("Deleted org {}:{}",new Object[]{duplicate.getName(),duplicate.getId()});
+  OrganizationInfo orgInfoKeeper=managementService.getOrganizationByUuid(keeper.getId());
+  try {
+    Entity orgKeeper=em.get(keeper.getId());
+    em.update(orgKeeper);
+    logger.info("Updated index for keeper {}:{} not dup {}",new Object[]{orgInfoKeeper.getName(),orgInfoKeeper.getUuid(),duplicate.getId()});
+  }
+ catch (  Exception e) {
+    logger.warn("Error repairing unique value keeper {} duplicate {}",keeper.getId(),duplicate.getId());
+  }
+}

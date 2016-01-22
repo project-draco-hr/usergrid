@@ -1,0 +1,71 @@
+{
+  startSpring();
+  setVerbose(line);
+  UUID org1uuid=null;
+  UUID org2uuid=null;
+  String org1string=line.getOptionValue(ORG1_ID);
+  String org2string=line.getOptionValue(ORG2_ID);
+  if (org1string != null && org2string == null) {
+    logger.error("- if {} is specified you must also specify {} and vice-versa",ORG1_ID,ORG2_ID);
+    return;
+  }
+ else   if (org2string != null && org1string == null) {
+    logger.error("- if {} is specified you must also specify {} and vice-versa",ORG2_ID,ORG1_ID);
+    return;
+  }
+ else   if (org1string != null && org2string != null) {
+    try {
+      org1uuid=UUID.fromString(org1string);
+      org2uuid=UUID.fromString(org2string);
+    }
+ catch (    Exception e) {
+      logger.error("{} and {} must be specified as UUIDs",ORG1_ID,ORG2_ID);
+      return;
+    }
+  }
+  if (StringUtils.isNotEmpty(line.getOptionValue(THREADS_ARG_NAME))) {
+    try {
+      threadCount=Integer.parseInt(line.getOptionValue(THREADS_ARG_NAME));
+    }
+ catch (    NumberFormatException nfe) {
+      logger.error("-" + THREADS_ARG_NAME + " must be specified as an integer. Aborting...");
+      return;
+    }
+  }
+  if (StringUtils.isNotEmpty(line.getOptionValue(DRYRUN_ARG_NAME))) {
+    dryRun=Boolean.parseBoolean(line.getOptionValue(DRYRUN_ARG_NAME));
+  }
+  if (StringUtils.isNotEmpty(line.getOptionValue(NO_AUGMENT_ARG_NAME))) {
+    noAugment=Boolean.parseBoolean(line.getOptionValue(NO_AUGMENT_ARG_NAME));
+  }
+  if (manager == null) {
+    if (dryRun) {
+      manager=new DryRunUserOrgManager(emf,managementService);
+    }
+ else {
+      manager=new UserOrgManager(emf,managementService);
+    }
+  }
+  logger.info("DuplicateOrgRepair tool starting up... manager: " + manager.getClass().getSimpleName());
+  if (org1uuid != null && org2uuid != null) {
+    Org org1=manager.getOrg(org1uuid);
+    Org org2=manager.getOrg(org2uuid);
+    if (org1.getName().equalsIgnoreCase(org2.getName())) {
+      buildOrgMaps(org1,org2);
+    }
+ else {
+      logger.error("org1 and org2 do not have same duplicate name");
+      return;
+    }
+  }
+ else {
+    buildOrgMaps();
+  }
+  if (noAugment == false) {
+    augmentUserOrgsMap();
+  }
+  manager.logDuplicates(duplicatesByName);
+  mergeDuplicateOrgs();
+  removeDuplicateOrgs();
+  logger.info("DuplicateOrgRepair work is done!");
+}

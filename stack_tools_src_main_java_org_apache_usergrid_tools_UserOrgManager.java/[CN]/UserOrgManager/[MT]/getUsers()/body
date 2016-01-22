@@ -1,0 +1,35 @@
+{
+  return Observable.create(new Observable.OnSubscribe<OrgUser>(){
+    @Override public void call(    Subscriber<? super OrgUser> subscriber){
+      subscriber.onStart();
+      try {
+        int count=0;
+        Query query=new Query();
+        query.setLimit(ToolBase.MAX_ENTITY_FETCH);
+        query.setResultsLevel(Query.Level.ALL_PROPERTIES);
+        EntityManager em=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+        Results results=em.searchCollection(em.getApplicationRef(),"users",query);
+        while (results.size() > 0) {
+          for (          Entity entity : results.getList()) {
+            OrgUser orgUser=new OrgUser(entity.getUuid(),entity.getProperty("username") + "",entity.getProperty("email") + "",entity.getCreated());
+            orgUser.sourceValue=entity;
+            subscriber.onNext(orgUser);
+            if (count++ % 1000 == 0) {
+              logger.info("Emitted {} users",count);
+            }
+          }
+          if (results.getCursor() == null) {
+            break;
+          }
+          query.setCursor(results.getCursor());
+          results=em.searchCollection(em.getApplicationRef(),"users",query);
+        }
+      }
+ catch (      Exception e) {
+        subscriber.onError(e);
+      }
+      subscriber.onCompleted();
+    }
+  }
+);
+}

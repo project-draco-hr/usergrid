@@ -1,0 +1,20 @@
+{
+  logger.info("---> Merging user {}:{} into {}:{}",new Object[]{sourceUser.getEmail(),sourceUser.getId(),targetUser.getEmail(),targetUser.getId()});
+  Set<Org> sourceOrgs=manager.getUsersOrgs(sourceUser);
+  for (  Org org : sourceOrgs) {
+    if (dryRun) {
+      logger.info("Would add organization {}:{} to admin with email {} and id {}",new Object[]{org.getName(),org.getId(),targetUser.getEmail(),targetUser.getId()});
+    }
+ else {
+      logger.info("Adding organization {}:{} to admin with email {} and id {}",new Object[]{org.getName(),org.getId(),targetUser.getEmail(),targetUser.getId()});
+      manager.addUserToOrg(targetUser,org);
+    }
+  }
+  if (dryRun) {
+    logger.info("Would remove admin with email {} and id {} from system",sourceUser.getEmail(),sourceUser.getId());
+  }
+ else {
+    logger.info("Removing admin with email {} and id {} from system",sourceUser.getEmail(),sourceUser.getId());
+    manager.removeOrgUser(sourceUser);
+  }
+}

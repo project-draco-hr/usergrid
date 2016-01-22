@@ -1,0 +1,15 @@
+{
+  if ((userId == null) || (organizationId == null)) {
+    return;
+  }
+  EntityManager em=emf.getEntityManager(smf.getManagementAppId());
+  try {
+    if (!force && em.getCollection(new SimpleEntityRef(Group.ENTITY_TYPE,organizationId),"users",null,2,Level.IDS,false).size() <= 1) {
+      throw new Exception();
+    }
+  }
+ catch (  Exception e) {
+    throw new UnableToLeaveOrganizationException("Organizations must have at least one member.");
+  }
+  em.removeFromCollection(new SimpleEntityRef(Group.ENTITY_TYPE,organizationId),"users",new SimpleEntityRef(User.ENTITY_TYPE,userId));
+}

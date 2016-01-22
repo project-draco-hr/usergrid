@@ -1,0 +1,35 @@
+{
+  return Observable.create(new Observable.OnSubscribe<Org>(){
+    @Override public void call(    Subscriber<? super Org> subscriber){
+      subscriber.onStart();
+      try {
+        int count=0;
+        Query query=new Query();
+        query.setLimit(ToolBase.MAX_ENTITY_FETCH);
+        query.setResultsLevel(Query.Level.ALL_PROPERTIES);
+        EntityManager em=emf.getEntityManager(CpNamingUtils.MANAGEMENT_APPLICATION_ID);
+        Results results=em.searchCollection(em.getApplicationRef(),"groups",query);
+        while (results.size() > 0) {
+          for (          Entity orgEntity : results.getList()) {
+            Org org=new Org(orgEntity.getUuid(),orgEntity.getProperty("path") + "",orgEntity.getCreated());
+            org.sourceValue=orgEntity;
+            subscriber.onNext(org);
+            if (count++ % 1000 == 0) {
+              logger.info("Emitted {} orgs",count);
+            }
+          }
+          if (results.getCursor() == null) {
+            break;
+          }
+          query.setCursor(results.getCursor());
+          results=em.searchCollection(em.getApplicationRef(),"groups",query);
+        }
+      }
+ catch (      Exception e) {
+        subscriber.onError(e);
+      }
+      subscriber.onCompleted();
+    }
+  }
+);
+}

@@ -1,0 +1,23 @@
+{
+  for (  String orgName : duplicatesByName.keySet()) {
+    Set<Org> orgs=duplicatesByName.get(orgName);
+    for (    Org org : orgs) {
+      Entity orgEntity=(Entity)org.sourceValue;
+      StringBuilder sb=new StringBuilder();
+      sb.append(orgEntity.toString()).append(", ");
+      try {
+        BiMap<UUID,String> apps=managementService.getApplicationsForOrganization(orgEntity.getUuid());
+        String sep="";
+        for (        UUID uuid : apps.keySet()) {
+          String appName=apps.get(uuid);
+          sb.append(appName).append(":").append(uuid).append(sep);
+          sep=", ";
+        }
+      }
+ catch (      Exception e) {
+        logger.error("Error getting applications for org {}:{}",org.getName(),org.getId());
+      }
+      logger.info(sb.toString());
+    }
+  }
+}

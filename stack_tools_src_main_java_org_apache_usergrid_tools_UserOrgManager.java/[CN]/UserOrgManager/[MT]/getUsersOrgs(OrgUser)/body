@@ -1,0 +1,12 @@
+{
+  Set<Org> ret=new HashSet<Org>();
+  Map<String,Object> orgData=managementService.getAdminUserOrganizationData(user.getId());
+  Map<String,Object> orgs=(Map<String,Object>)orgData.get("organizations");
+  for (  String orgName : orgs.keySet()) {
+    Map<String,Object> orgMap=(Map<String,Object>)orgs.get(orgName);
+    Group group=managementService.getOrganizationProps(UUID.fromString(orgMap.get("uuid").toString()));
+    Org org=new Org(group.getUuid(),group.getPath(),group.getCreated());
+    ret.add(org);
+  }
+  return ret;
+}

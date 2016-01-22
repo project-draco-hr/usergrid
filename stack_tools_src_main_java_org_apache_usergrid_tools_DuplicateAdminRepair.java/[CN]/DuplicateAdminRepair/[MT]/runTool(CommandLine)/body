@@ -1,0 +1,74 @@
+{
+  startSpring();
+  setVerbose(line);
+  if (StringUtils.isNotEmpty(line.getOptionValue(THREADS_ARG_NAME))) {
+    try {
+      threadCount=Integer.parseInt(line.getOptionValue(THREADS_ARG_NAME));
+    }
+ catch (    NumberFormatException nfe) {
+      logger.error("-" + THREADS_ARG_NAME + " must be specified as an integer. Aborting...");
+      return;
+    }
+  }
+  if (StringUtils.isNotEmpty(line.getOptionValue(DRYRUN_ARG_NAME))) {
+    dryRun=Boolean.parseBoolean(line.getOptionValue(DRYRUN_ARG_NAME));
+  }
+  if (manager == null) {
+    if (dryRun) {
+      manager=new DryRunUserOrgManager(emf,managementService);
+    }
+ else {
+      manager=new UserOrgManager(emf,managementService);
+    }
+  }
+  logger.info("DuplicateAdminUserRepair tool starting up... manager: " + manager.getClass().getSimpleName());
+  manager.getUsers().doOnNext(new Action1<OrgUser>(){
+    @Override public void call(    OrgUser user){
+      if (user.getUsername() == null) {
+        logger.warn("User {} has no username",user.getId());
+        return;
+      }
+      if (user.getEmail() == null) {
+        logger.warn("User {} has no email",user.getId());
+        return;
+      }
+      emails.put(user.getEmail().toLowerCase(),user);
+      usernames.put(user.getUsername().toLowerCase(),user);
+    }
+  }
+).toBlocking().lastOrDefault(null);
+  for (  String username : usernames.keySet()) {
+    Collection<OrgUser> users=usernames.get(username);
+    if (users.size() > 1) {
+      logger.info("Found multiple users with the username {}",username);
+      resolveUsernameConflicts(username,users);
+    }
+  }
+  for (  String email : emails.keySet()) {
+    Collection<OrgUser> usersWithDupEmails=emails.get(email);
+    if (usersWithDupEmails.size() > 1) {
+      OrgUser indexedUser=manager.lookupOrgUserByEmail(email);
+      if (indexedUser == null) {
+        List<OrgUser> tempUsers=new ArrayList<OrgUser>(usersWithDupEmails);
+        Collections.sort(tempUsers);
+        OrgUser oldestOfLot=tempUsers.get(0);
+        logger.warn("Could not load target user by email {}, loading by UUID {} instead",email,oldestOfLot);
+        indexedUser=oldestOfLot;
+      }
+      logger.warn("Found multiple admins with the email {}.  Retaining uuid {}",email,indexedUser.getId());
+      for (      OrgUser orgUser : usersWithDupEmails) {
+        if (!orgUser.getId().equals(indexedUser.getId())) {
+          mergeAdmins(orgUser,indexedUser);
+        }
+      }
+      if (dryRun) {
+        logger.info("Would force re-index of 'keeper' user {}:{}",indexedUser.getUsername(),indexedUser.getId());
+      }
+ else {
+        logger.info("Forcing re-index of admin with email {} and id {}",email,indexedUser.getId());
+        manager.updateOrgUser(indexedUser);
+      }
+    }
+  }
+  logger.info("Repair complete");
+}

@@ -1,0 +1,26 @@
+{
+  Set<Org> orgs=new HashSet<Org>();
+  orgs.add(org1);
+  orgs.add(org2);
+  orgsByName.put(org1.getName().toLowerCase(),orgs);
+  duplicatesByName.put(org1.getName().toLowerCase(),orgs);
+  orgsById.put(org1.getId(),org1);
+  orgsById.put(org2.getId(),org2);
+  for (  Org org : orgs) {
+    try {
+      Set<OrgUser> orgUsers=manager.getOrgUsers(org);
+      for (      OrgUser user : orgUsers) {
+        Set<Org> usersOrgs=orgsByUser.get(user);
+        if (usersOrgs == null) {
+          usersOrgs=new HashSet<Org>();
+          orgsByUser.put(user,usersOrgs);
+        }
+        usersOrgs.add(org);
+      }
+    }
+ catch (    Exception e) {
+      logger.error("Error getting users for org {}:{}",org.getName(),org.getId());
+      logger.error("Stack trace is: ",e);
+    }
+  }
+}
