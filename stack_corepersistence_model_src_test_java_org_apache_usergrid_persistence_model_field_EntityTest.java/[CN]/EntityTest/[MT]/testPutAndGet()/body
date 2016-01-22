@@ -14,12 +14,14 @@
   LongField longField=new LongField("int",1l);
   StringField stringField=new StringField("name","test");
   UUIDField uuidField=new UUIDField("uuid",UUIDGenerator.newTimeUUID());
+  NullField nullField=new NullField("null");
   entity.setField(boolField);
   entity.setField(doubleField);
   entity.setField(intField);
   entity.setField(longField);
   entity.setField(stringField);
   entity.setField(uuidField);
+  entity.setField(nullField);
   Field<Boolean> boolFieldReturned=entity.getField(boolField.getName());
   assertSame(boolField,boolFieldReturned);
   Field<Double> doubleFieldReturned=entity.getField(doubleField.getName());
@@ -32,6 +34,8 @@
   assertSame(stringField,stringFieldReturned);
   Field<UUID> uuidFieldReturned=entity.getField(uuidField.getName());
   assertSame(uuidField,uuidFieldReturned);
+  Field<Object> nullFieldReturned=entity.getField(nullField.getName());
+  assertSame(nullField,nullFieldReturned);
   Set<Field> results=new HashSet<Field>();
   results.addAll(entity.getFields());
   assertTrue(results.contains(boolField));
@@ -40,7 +44,8 @@
   assertTrue(results.contains(longField));
   assertTrue(results.contains(stringField));
   assertTrue(results.contains(uuidField));
-  assertEquals(6,results.size());
+  assertTrue(results.contains(nullField));
+  assertEquals(7,results.size());
   assertEquals(simpleId,entity.getId());
   assertEquals(version,entity.getVersion());
 }
