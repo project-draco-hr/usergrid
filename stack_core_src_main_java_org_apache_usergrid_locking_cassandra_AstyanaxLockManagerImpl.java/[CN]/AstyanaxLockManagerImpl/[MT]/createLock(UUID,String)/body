@@ -1,0 +1,22 @@
+{
+  String lockPath=LockPathBuilder.buildPath(applicationId,path);
+  ConsistencyLevel consistencyLevel;
+  try {
+    consistencyLevel=ConsistencyLevel.valueOf(cassandraFig.getLocksCl());
+  }
+ catch (  IllegalArgumentException e) {
+    logger.warn("Property {} value provided: {} is not valid",CassandraFig.LOCKS_CL,cassandraFig.getLocksCl());
+    consistencyLevel=ConsistencyLevel.CL_LOCAL_QUORUM;
+  }
+  int lockExpiration;
+  int lockConfigExpiration=cassandraFig.getLocksExpiration();
+  if (lockConfigExpiration >= MINIMUM_LOCK_EXPIRATION) {
+    lockExpiration=Math.min(cassandraFig.getLocksExpiration(),Integer.MAX_VALUE);
+  }
+ else {
+    logger.warn("Property {} is not valid.  Choose a value greater than or equal to {}",CassandraFig.LOCKS_EXPIRATION,MINIMUM_LOCK_EXPIRATION);
+    lockExpiration=Integer.valueOf(CassandraFig.DEFAULT_LOCKS_EXPIRATION);
+  }
+  ColumnPrefixDistributedRowLock<String> lock=new ColumnPrefixDistributedRowLock<>(keyspace,columnFamily,lockPath).expireLockAfter(lockExpiration,TimeUnit.MILLISECONDS).withConsistencyLevel(consistencyLevel);
+  return new AstyanaxLockImpl(lock);
+}
