@@ -1,0 +1,20 @@
+{
+  final ArrayField<Object> array=new ArrayField<>("array");
+  array.add(null);
+  array.add("test");
+  Entity rootEntity=new Entity("test");
+  rootEntity.setField(array);
+  final UUID version=UUIDGenerator.newTimeUUID();
+  EntityUtils.setVersion(rootEntity,version);
+  final ApplicationScope scope=new ApplicationScopeImpl(createId("application"));
+  final IndexEdge indexEdge=new IndexEdgeImpl(createId("source"),"testEdgeType",SearchEdge.NodeType.SOURCE,1000);
+  final Map<String,Object> entityMap=EntityToMapConverter.convert(scope,indexEdge,rootEntity);
+  final Set<EntityField> fields=(Set<EntityField>)entityMap.get(IndexingUtils.ENTITY_FIELDS);
+  List<EntityField> fieldsArray=new ArrayList<>();
+  fieldsArray.addAll(fields);
+  assertEquals(2,fields.size());
+  final EntityField field=fieldsArray.get(0);
+  final EntityField field1=fieldsArray.get(1);
+  assertEquals("test",field.get(IndexingUtils.FIELD_STRING));
+  assertEquals(null,field1.get(IndexingUtils.FIELD_NULL));
+}
