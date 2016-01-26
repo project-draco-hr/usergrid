@@ -1,8 +1,18 @@
 {
-  String propertyValue=map.get(name);
-  if (isBlank(propertyValue)) {
-    logger.warn("Missing value for " + name);
-    propertyValue=null;
+  String propertyValue;
+  if (orgPropertyNameValid(name)) {
+    if (orgProperties.containsKey(name)) {
+      propertyValue=orgProperties.get(name);
+    }
+ else     if (properties.containsKey(name)) {
+      propertyValue=(String)properties.get(name);
+    }
+ else {
+      propertyValue=defaultProperties.get(name);
+    }
   }
-  return propertyValue;
+ else {
+    propertyValue=properties.getProperty(name);
+  }
+  return !isBlank(propertyValue) ? propertyValue : null;
 }
