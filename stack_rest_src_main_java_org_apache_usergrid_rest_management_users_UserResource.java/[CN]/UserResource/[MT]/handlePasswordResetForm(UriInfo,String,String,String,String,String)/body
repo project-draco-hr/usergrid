@@ -6,45 +6,48 @@
   if (externalTokensEnabled) {
     throw new IllegalArgumentException("Admin Users must reset passwords via " + properties.getProperty(ManagementResource.USERGRID_CENTRAL_URL));
   }
+  UUID organizationId=null;
   try {
     this.token=token;
+    TokenInfo tokenInfo=management.getPasswordResetTokenInfoForAdminUser(token);
+    organizationId=tokenInfo.getWorkflowOrgId();
     if ((password1 != null) || (password2 != null)) {
-      if (management.checkPasswordResetTokenForAdminUser(user.getUuid(),token)) {
+      if (management.checkPasswordResetTokenForAdminUser(user.getUuid(),tokenInfo)) {
         if ((password1 != null) && password1.equals(password2)) {
           management.setAdminUserPassword(user.getUuid(),password1);
           management.revokeAccessTokenForAdminUser(user.getUuid(),token);
-          return handleViewable("resetpw_set_success",this);
+          return handleViewable("resetpw_set_success",this,organizationId);
         }
  else {
           errorMsg="Passwords didn't match, let's try again...";
-          return handleViewable("resetpw_set_form",this);
+          return handleViewable("resetpw_set_form",this,organizationId);
         }
       }
  else {
         errorMsg="Sorry, you have an invalid token. Let's try again...";
-        return handleViewable("resetpw_email_form",this);
+        return handleViewable("resetpw_email_form",this,organizationId);
       }
     }
     if (!useReCaptcha()) {
       management.startAdminUserPasswordResetFlow(null,user);
-      return handleViewable("resetpw_email_success",this);
+      return handleViewable("resetpw_email_success",this,organizationId);
     }
     ReCaptchaImpl reCaptcha=new ReCaptchaImpl();
     reCaptcha.setPrivateKey(properties.getRecaptchaPrivate());
     ReCaptchaResponse reCaptchaResponse=reCaptcha.checkAnswer(httpServletRequest.getRemoteAddr(),challenge,uresponse);
     if (reCaptchaResponse.isValid()) {
       management.startAdminUserPasswordResetFlow(null,user);
-      return handleViewable("resetpw_email_success",this);
+      return handleViewable("resetpw_email_success",this,organizationId);
     }
  else {
       errorMsg="Incorrect Captcha";
-      return handleViewable("resetpw_email_form",this);
+      return handleViewable("resetpw_email_form",this,organizationId);
     }
   }
  catch (  RedirectionException e) {
     throw e;
   }
 catch (  Exception e) {
-    return handleViewable("error",e);
+    return handleViewable("error",e,organizationId);
   }
 }

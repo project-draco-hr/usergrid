@@ -3,17 +3,20 @@
   if (externalTokensEnabled) {
     throw new IllegalArgumentException("Admin Users must activate via " + properties.getProperty(ManagementResource.USERGRID_CENTRAL_URL));
   }
+  UUID organizationId=null;
   try {
-    management.handleActivationTokenForAdminUser(user.getUuid(),token);
-    return handleViewable("activate",this);
+    TokenInfo tokenInfo=management.getActivationTokenInfoForAdminUser(token);
+    organizationId=tokenInfo.getWorkflowOrgId();
+    management.handleActivationTokenForAdminUser(user.getUuid(),tokenInfo);
+    return handleViewable("activate",this,organizationId);
   }
  catch (  TokenException e) {
-    return handleViewable("bad_activation_token",this);
+    return handleViewable("bad_activation_token",this,organizationId);
   }
 catch (  RedirectionException e) {
     throw e;
   }
 catch (  Exception e) {
-    return handleViewable("error",e);
+    return handleViewable("error",e,organizationId);
   }
 }
