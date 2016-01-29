@@ -7,8 +7,10 @@
   try {
     this.token=token;
     TokenInfo tokenInfo=management.getPasswordResetTokenInfoForAdminUser(token);
-    organizationId=tokenInfo.getWorkflowOrgId();
-    if (management.checkPasswordResetTokenForAdminUser(user.getUuid(),tokenInfo)) {
+    if (tokenInfo != null) {
+      organizationId=tokenInfo.getWorkflowOrgId();
+    }
+    if (management.checkPasswordResetTokenForAdminUser(user.getUuid(),token)) {
       return handleViewable("resetpw_set_form",this,organizationId);
     }
  else {
