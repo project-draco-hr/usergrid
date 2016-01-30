@@ -1,6 +1,6 @@
 {
-  if (logger.isDebugEnabled()) {
-    logger.debug("ApplicationResource.getAccessToken");
+  if (logger.isTraceEnabled()) {
+    logger.trace("ApplicationResource.getAccessToken");
   }
   User user=null;
   try {
@@ -51,7 +51,7 @@ catch (      Exception e1) {
     }
     if (user == null) {
       if (logger.isDebugEnabled()) {
-        logger.debug("Returning 400 bad request due to: " + errorDescription);
+        logger.debug("Returning 400 bad request due to: {}",errorDescription);
       }
       OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription(errorDescription).buildJSONMessage();
       return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();

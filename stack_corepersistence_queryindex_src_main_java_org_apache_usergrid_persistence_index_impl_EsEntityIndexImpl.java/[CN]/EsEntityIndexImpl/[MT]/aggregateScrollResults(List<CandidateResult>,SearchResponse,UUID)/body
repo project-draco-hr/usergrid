@@ -5,14 +5,14 @@
     final CandidateResult candidateResult=parseIndexDocId(hit);
     if (markedVersion != null) {
       if (candidateResult.getVersion().timestamp() <= markedVersion.timestamp()) {
-        if (logger.isDebugEnabled()) {
-          logger.debug("Candidate version {} is <= provided entity version {} for entityId {}",candidateResult.getVersion(),markedVersion,candidateResult.getId());
+        if (logger.isTraceEnabled()) {
+          logger.trace("Candidate version {} is <= provided entity version {} for entityId {}",candidateResult.getVersion(),markedVersion,candidateResult.getId());
         }
         candidates.add(candidateResult);
       }
  else {
-        if (logger.isDebugEnabled()) {
-          logger.debug("Candidate version {} is > provided entity version {} for entityId {}. Not" + "adding to candidate results",candidateResult.getVersion(),markedVersion,candidateResult.getId());
+        if (logger.isTraceEnabled()) {
+          logger.trace("Candidate version {} is > provided entity version {} for entityId {}. Not" + "adding to candidate results",candidateResult.getVersion(),markedVersion,candidateResult.getId());
         }
       }
     }
@@ -20,6 +20,8 @@
       candidates.add(candidateResult);
     }
   }
-  logger.debug("Aggregated {} out of {} hits ",candidates.size(),searchHits.getTotalHits());
+  if (logger.isTraceEnabled()) {
+    logger.trace("Aggregated {} out of {} hits ",candidates.size(),searchHits.getTotalHits());
+  }
   return candidates;
 }

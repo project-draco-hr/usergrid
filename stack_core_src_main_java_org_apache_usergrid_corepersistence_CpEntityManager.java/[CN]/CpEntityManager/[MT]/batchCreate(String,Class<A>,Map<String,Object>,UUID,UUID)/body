@@ -91,17 +91,17 @@
     return entity;
   }
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=entityToCpEntity(entity,importId);
-  if (logger.isDebugEnabled()) {
-    logger.debug("Writing entity {}:{} into app {}\n",new Object[]{entity.getType(),entity.getUuid(),applicationId,CpEntityMapUtils.toMap(cpEntity)});
+  if (logger.isTraceEnabled()) {
+    logger.trace("Writing entity {}:{} into app {}\n",entity.getType(),entity.getUuid(),applicationId,CpEntityMapUtils.toMap(cpEntity));
   }
   try {
-    if (logger.isDebugEnabled()) {
-      logger.debug("About to Write {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
+    if (logger.isTraceEnabled()) {
+      logger.trace("About to Write {}:{} version {}",cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion());
     }
     cpEntity=ecm.write(cpEntity).toBlocking().last();
     entity.setSize(cpEntity.getSize());
-    if (logger.isDebugEnabled()) {
-      logger.debug("Wrote {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
+    if (logger.isTraceEnabled()) {
+      logger.trace("Wrote {}:{} version {}",cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion());
     }
   }
  catch (  WriteUniqueVerifyException wuve) {

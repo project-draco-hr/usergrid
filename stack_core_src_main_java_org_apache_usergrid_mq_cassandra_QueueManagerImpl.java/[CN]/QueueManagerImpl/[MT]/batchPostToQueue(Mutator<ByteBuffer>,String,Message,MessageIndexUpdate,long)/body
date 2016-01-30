@@ -14,7 +14,7 @@
   long newest_ts=getTimestampInMicros(messageUuid);
   batch.addInsertion(bytebuffer(queueId),QUEUE_PROPERTIES.getColumnFamily(),createColumn(QUEUE_NEWEST,messageUuid,newest_ts,se,ue));
   if (logger.isDebugEnabled()) {
-    logger.debug("Writing UUID {} with oldest timestamp {} and newest with timestamp {}",new Object[]{messageUuid,oldest_ts,newest_ts});
+    logger.debug("Writing UUID {} with oldest timestamp {} and newest with timestamp {}",messageUuid,oldest_ts,newest_ts);
   }
   batch.addInsertion(bytebuffer(getQueueId("/")),QUEUE_SUBSCRIBERS.getColumnFamily(),createColumn(queuePath,queueId,timestamp,se,ue));
   counterUtils.batchIncrementQueueCounter(batch,getQueueId("/"),queuePath,1L,timestamp,applicationId);

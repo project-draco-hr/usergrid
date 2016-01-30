@@ -6,12 +6,12 @@
   final UUID entityVersion=logEntry.getVersion();
   final Id entityId=logEntry.getEntityId();
   if (UUIDComparator.staticCompare(entityVersion,candidateVersion) > 0) {
-    logger.warn("Deindexing stale entity on edge {} for entityId {} and version {}",new Object[]{searchEdge,entityId,entityVersion});
+    logger.warn("Deindexing stale entity on edge {} for entityId {} and version {}",searchEdge,entityId,entityVersion);
     batch.deindex(searchEdge,entityId,entityVersion);
     return;
   }
   if (UUIDComparator.staticCompare(candidateVersion,entityVersion) > 0) {
-    logger.warn("Found a newer version in ES over cassandra for edge {} for entityId {} and version {}.  Repair " + "should be run",new Object[]{searchEdge,entityId,entityVersion});
+    logger.warn("Found a newer version in ES over cassandra for edge {} for entityId {} and version {}.  Repair should be run",searchEdge,entityId,entityVersion);
   }
   final FilterResult<Id> result=new FilterResult<>(entityId,filterCandidate.getPath());
   results.add(result);

@@ -7,14 +7,14 @@
   updateEntityMeter.mark();
   Id entityId=new SimpleId(entity.getUuid(),entity.getType());
   if (logger.isDebugEnabled()) {
-    logger.debug("Updating entity {}:{}  app {}\n",new Object[]{entityId.getType(),entityId.getUuid(),appId});
+    logger.debug("Updating entity {}:{}  app {}\n",entityId.getType(),entityId.getUuid(),appId);
   }
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=new org.apache.usergrid.persistence.model.entity.Entity(entityId);
   cpEntity=CpEntityMapUtils.fromMap(cpEntity,entity.getProperties(),entity.getType(),true);
   try {
     cpEntity=ecm.write(cpEntity).toBlocking().last();
     if (logger.isDebugEnabled()) {
-      logger.debug("Wrote {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
+      logger.debug("Wrote {}:{} version {}",cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion());
     }
   }
  catch (  WriteUniqueVerifyException wuve) {

@@ -3,8 +3,8 @@
   Preconditions.checkNotNull(group,"group cannot be null");
   Preconditions.checkArgument(group.isCompactionPending(),"Compaction is pending");
   Preconditions.checkArgument(group.shouldCompact(startTime),"Compaction cannot be run yet.  Ignoring compaction.");
-  if (logger.isDebugEnabled()) {
-    logger.debug("Compacting shard group. Audit count is {} ",countAudits.get());
+  if (logger.isTraceEnabled()) {
+    logger.trace("Compacting shard group. Audit count is {} ",countAudits.get());
   }
   final CompactionResult.CompactionBuilder resultBuilder=CompactionResult.builder();
   final Shard targetShard=group.getCompactionTarget();
@@ -45,7 +45,9 @@
  catch (  Throwable t) {
     logger.error("Unable to move edges to target shard {}",targetShard);
   }
-  logger.info("Finished compacting {} shards and moved {} edges",sourceShards,edgeCount);
+  if (logger.isTraceEnabled()) {
+    logger.trace("Finished compacting {} shards and moved {} edges",sourceShards,edgeCount);
+  }
   resultBuilder.withCopiedEdges(edgeCount).withSourceShards(sourceShards).withTargetShard(targetShard);
   if (edgeCount == 0) {
     final MutationBatch shardRemovalRollup=keyspace.prepareMutationBatch();

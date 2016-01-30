@@ -15,14 +15,14 @@
   for (  Field field : EntityUtils.getUniqueFields(mvccEntity.getEntity().get())) {
     UniqueValue written=new UniqueValueImpl(field,entityId,version);
     MutationBatch mb=uniqueValueStrat.write(applicationScope,written);
-    LOG.debug("Finalizing {} unqiue value {}",field.getName(),field.getValue().toString());
+    logger.debug("Finalizing {} unique value {}",field.getName(),field.getValue().toString());
     logMutation.mergeShallow(mb);
   }
   try {
     logMutation.execute();
   }
  catch (  ConnectionException e) {
-    LOG.error("Failed to execute write asynchronously ",e);
+    logger.error("Failed to execute write asynchronously ",e);
     throw new WriteCommitException(mvccEntity,applicationScope,"Failed to execute write asynchronously ",e);
   }
   return ioEvent;
