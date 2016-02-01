@@ -9,38 +9,38 @@
         if ((password1 != null) && password1.equals(password2)) {
           management.setAppUserPassword(getApplicationId(),getUser().getUuid(),password1);
           management.revokeAccessTokenForAppUser(token);
-          return handleViewable("resetpw_set_success",this);
+          return handleViewable("resetpw_set_success",this,getOrganizationName());
         }
  else {
           errorMsg="Passwords didn't match, let's try again...";
-          return handleViewable("resetpw_set_form",this);
+          return handleViewable("resetpw_set_form",this,getOrganizationName());
         }
       }
  else {
         errorMsg="Sorry, you have an invalid token. Let's try again...";
-        return handleViewable("resetpw_email_form",this);
+        return handleViewable("resetpw_email_form",this,getOrganizationName());
       }
     }
     if (!useReCaptcha()) {
       management.startAppUserPasswordResetFlow(getApplicationId(),getUser());
-      return handleViewable("resetpw_email_success",this);
+      return handleViewable("resetpw_email_success",this,getOrganizationName());
     }
     ReCaptchaImpl reCaptcha=new ReCaptchaImpl();
     reCaptcha.setPrivateKey(properties.getRecaptchaPrivate());
     ReCaptchaResponse reCaptchaResponse=reCaptcha.checkAnswer(httpServletRequest.getRemoteAddr(),challenge,uresponse);
     if (reCaptchaResponse.isValid()) {
       management.startAppUserPasswordResetFlow(getApplicationId(),getUser());
-      return handleViewable("resetpw_email_success",this);
+      return handleViewable("resetpw_email_success",this,getOrganizationName());
     }
  else {
       errorMsg="Incorrect Captcha";
-      return handleViewable("resetpw_email_form",this);
+      return handleViewable("resetpw_email_form",this,getOrganizationName());
     }
   }
  catch (  RedirectionException e) {
     throw e;
   }
 catch (  Exception e) {
-    return handleViewable("error",e);
+    return handleViewable("error",e,getOrganizationName());
   }
 }
