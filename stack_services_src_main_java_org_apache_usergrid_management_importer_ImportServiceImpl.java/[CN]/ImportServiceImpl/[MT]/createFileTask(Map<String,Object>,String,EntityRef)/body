@@ -1,6 +1,6 @@
 {
-  if (logger.isDebugEnabled()) {
-    logger.debug("scheduleFile() for import {}:{} file {}",new Object[]{importRef.getType(),importRef.getType(),file});
+  if (logger.isTraceEnabled()) {
+    logger.trace("scheduleFile() for import {}:{} file {}",importRef.getType(),importRef.getType(),file);
   }
   EntityManager rootEM;
   try {
@@ -16,12 +16,12 @@
   Import importEntity=rootEM.get(importRef,Import.class);
   try {
     rootEM.createConnection(importEntity,IMPORT_FILE_INCLUDES_CONNECTION,fileImport);
-    if (logger.isDebugEnabled()) {
-      logger.debug("Created connection from {}:{} to {}:{}",new Object[]{importEntity.getType(),importEntity.getUuid(),fileImport.getType(),fileImport.getUuid()});
+    if (logger.isTraceEnabled()) {
+      logger.trace("Created connection from {}:{} to {}:{}",importEntity.getType(),importEntity.getUuid(),fileImport.getType(),fileImport.getUuid());
     }
   }
  catch (  Exception e) {
-    logger.error(e.getMessage());
+    logger.error("Exception creating file task connection",e.getMessage());
     return null;
   }
   fileImport.setState(FileImport.State.CREATED);

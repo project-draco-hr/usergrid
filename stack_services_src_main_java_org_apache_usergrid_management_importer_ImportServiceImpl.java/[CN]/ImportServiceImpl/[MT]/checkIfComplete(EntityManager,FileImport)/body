@@ -15,11 +15,11 @@
     Results entities=rootEM.searchTargetEntities(importEntity,query);
     PagingResultsIterator itr=new PagingResultsIterator(entities);
     if (!itr.hasNext()) {
-      logger.warn("Found no FileImport entities for import {}, " + "unable to check if complete",importEntity.getUuid());
+      logger.warn("Found no FileImport entities for import {}, unable to check if complete",importEntity.getUuid());
       return;
     }
-    if (logger.isDebugEnabled()) {
-      logger.debug("Checking {} file import jobs to see if we are done for file {}",new Object[]{entities.size(),fileImport.getFileName()});
+    if (logger.isTraceEnabled()) {
+      logger.trace("Checking {} file import jobs to see if we are done for file {}",new Object[]{entities.size(),fileImport.getFileName()});
     }
     while (itr.hasNext()) {
       FileImport fi=(FileImport)itr.next();
@@ -32,7 +32,7 @@ case FINISHED:
   continue;
 default :
 if (logger.isDebugEnabled()) {
-  logger.debug("not done yet, bail out...");
+  logger.debug("not done yet, bail out... {}",fi.getState().toString());
 }
 return;
 }
@@ -47,12 +47,12 @@ if (logger.isDebugEnabled()) {
 logger.debug("Error determining status of file import jobs",e);
 }
 }
-if (logger.isDebugEnabled()) {
-logger.debug("successCount = {} failCount = {}",new Object[]{successCount,failCount});
+if (logger.isTraceEnabled()) {
+logger.trace("successCount = {} failCount = {}",successCount,failCount);
 }
 if (importEntity != null) {
-if (logger.isDebugEnabled()) {
-logger.debug("FINISHED");
+if (logger.isTraceEnabled()) {
+logger.trace("FINISHED");
 }
 if (failCount == 0) {
 importEntity.setState(Import.State.FINISHED);
@@ -62,8 +62,8 @@ importEntity.setState(Import.State.FAILED);
 }
 try {
 rootEM.update(importEntity);
-if (logger.isDebugEnabled()) {
-logger.debug("Updated import entity {}:{} with state {}",new Object[]{importEntity.getType(),importEntity.getUuid(),importEntity.getState()});
+if (logger.isTraceEnabled()) {
+logger.trace("Updated import entity {}:{} with state {}",importEntity.getType(),importEntity.getUuid(),importEntity.getState());
 }
 }
  catch (Exception e) {

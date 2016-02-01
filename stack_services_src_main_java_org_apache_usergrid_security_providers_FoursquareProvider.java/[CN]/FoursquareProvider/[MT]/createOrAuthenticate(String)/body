@@ -14,7 +14,7 @@
   location.put("latitude",(Double)fq_location.get("lat"));
   location.put("longitude",(Double)fq_location.get("lng"));
   if (logger.isDebugEnabled()) {
-    logger.debug(JsonUtils.mapToFormattedJsonString(location));
+    logger.debug("FoursquareProvider.createOrAuthenticate: {}",JsonUtils.mapToFormattedJsonString(location));
   }
   try {
     fq_user_name=(String)fq_user.get("firstName") + " " + (String)fq_user.get("lastName");
@@ -28,7 +28,7 @@
       final Query query=Query.fromEquals("foursquare.id",fq_user_id);
       Results r=entityManager.searchCollection(entityManager.getApplicationRef(),"users",query);
       if (r.size() > 1) {
-        logger.error("Multiple users for FQ ID: " + fq_user_id);
+        logger.error("Multiple users for FQ ID: {}",fq_user_id);
         throw new BadTokenException("multiple users with same Foursquare ID");
       }
       if (r.size() < 1) {

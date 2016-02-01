@@ -1,7 +1,9 @@
 {
   boolean shouldRun=new Boolean(properties.getProperty("usergrid.queues.listener.run","true"));
   if (shouldRun) {
-    logger.info("QueueListener: starting.");
+    if (logger.isTraceEnabled()) {
+      logger.trace("QueueListener: starting.");
+    }
     int threadCount=0;
     try {
       sleepBetweenRuns=new Long(properties.getProperty("usergrid.queues.listener.sleep.between","" + sleepBetweenRuns)).longValue();
@@ -13,14 +15,16 @@
       futures=new ArrayList<Future>(maxThreads);
       pool=Executors.newFixedThreadPool(maxThreads);
       while (threadCount++ < maxThreads) {
-        logger.info("QueueListener: Starting thread {}.",threadCount);
+        if (logger.isTraceEnabled()) {
+          logger.trace("QueueListener: Starting thread {}.",threadCount);
+        }
         Runnable task=new Runnable(){
           @Override public void run(){
             try {
               execute();
             }
  catch (            Exception e) {
-              logger.error("failed to start push",e);
+              logger.warn("failed to start push",e);
             }
           }
         }
@@ -31,7 +35,9 @@
  catch (    Exception e) {
       logger.error("QueueListener: failed to start:",e);
     }
-    logger.info("QueueListener: done starting.");
+    if (logger.isTraceEnabled()) {
+      logger.trace("QueueListener: done starting.");
+    }
   }
  else {
     logger.info("QueueListener: never started due to config value usergrid.queues.listener.run.");

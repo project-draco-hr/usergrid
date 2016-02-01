@@ -1,19 +1,19 @@
 {
-  if (logger.isDebugEnabled()) {
-    logger.debug("calculatePasswordHistorySizeForUser " + userId.toString());
+  if (logger.isTraceEnabled()) {
+    logger.trace("calculatePasswordHistorySizeForUser {}",userId.toString());
   }
   int size=0;
   EntityManager em=emf.getEntityManager(smf.getManagementAppId());
   Results orgResults=em.getCollection(new SimpleEntityRef(User.ENTITY_TYPE,userId),Schema.COLLECTION_GROUPS,null,10000,Level.REFS,false);
-  if (logger.isDebugEnabled()) {
-    logger.debug("    orgResults.size() = " + orgResults.size());
+  if (logger.isTraceEnabled()) {
+    logger.trace("    orgResults.size() = {}",orgResults.size());
   }
   for (  EntityRef orgRef : orgResults.getRefs()) {
     Map<Object,Object> properties=em.getDictionaryAsMap(orgRef,ORGANIZATION_PROPERTIES_DICTIONARY);
     if (properties != null) {
       OrganizationInfo orgInfo=new OrganizationInfo(null,null,properties);
-      if (logger.isDebugEnabled()) {
-        logger.debug("    orgInfo.getPasswordHistorySize() = " + orgInfo.getPasswordHistorySize());
+      if (logger.isTraceEnabled()) {
+        logger.trace("    orgInfo.getPasswordHistorySize() = {}",orgInfo.getPasswordHistorySize());
       }
       size=Math.max(orgInfo.getPasswordHistorySize(),size);
     }

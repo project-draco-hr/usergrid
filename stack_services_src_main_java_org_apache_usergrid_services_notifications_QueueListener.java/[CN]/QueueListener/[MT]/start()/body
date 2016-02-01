@@ -1,5 +1,7 @@
 {
-  logger.info("QueueListener: starting.");
+  if (logger.isDebugEnabled()) {
+    logger.debug("QueueListener: starting.");
+  }
   int threadCount=0;
   try {
     sleepBetweenRuns=new Long(properties.getProperty("usergrid.notifications.listener.sleep.between","" + sleepBetweenRuns)).longValue();
@@ -11,7 +13,9 @@
     futures=new ArrayList<Future>(maxThreads);
     pool=Executors.newFixedThreadPool(maxThreads);
     while (threadCount++ < maxThreads) {
-      logger.info("QueueListener: Starting thread {}.",threadCount);
+      if (logger.isTraceEnabled()) {
+        logger.trace("QueueListener: Starting thread {}.",threadCount);
+      }
       final int threadNumber=threadCount;
       Runnable task=new Runnable(){
         @Override public void run(){
@@ -35,5 +39,7 @@
  catch (  Exception e) {
     logger.error("QueueListener: failed to start:",e);
   }
-  logger.info("QueueListener: done starting.");
+  if (logger.isTraceEnabled()) {
+    logger.trace("QueueListener: done starting.");
+  }
 }

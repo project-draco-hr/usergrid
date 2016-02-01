@@ -59,7 +59,7 @@
         written+=partSize;
         if (written > maxSizeBytes) {
           overSizeLimit=true;
-          logger.error("OVERSIZED FILE. STARTING ABORT");
+          logger.error("OVERSIZED FILE ({}). STARTING ABORT",written);
           break;
         }
       }
@@ -92,7 +92,7 @@
         timesIterated--;
         listResult=getS3Client().listMultipartUploads(listRequest);
         if (logger.isDebugEnabled()) {
-          logger.debug("Files that haven't been aborted are: ",listResult.getMultipartUploads().listIterator().toString());
+          logger.debug("Files that haven't been aborted are: {}",listResult.getMultipartUploads().listIterator().toString());
         }
       }
       if (timesIterated == 0) {
