@@ -3,20 +3,23 @@
   if (externalTokensEnabled) {
     throw new IllegalArgumentException("Admin Users must confirm via " + properties.getProperty(ManagementResource.USERGRID_CENTRAL_URL));
   }
+  UUID organizationId=null;
   try {
-    ActivationState state=management.handleConfirmationTokenForAdminUser(user.getUuid(),token);
+    TokenInfo tokenInfo=management.getConfirmationTokenInfoForAdminUser(token);
+    organizationId=tokenInfo.getWorkflowOrgId();
+    ActivationState state=management.handleConfirmationTokenForAdminUser(user.getUuid(),tokenInfo);
     if (state == ActivationState.CONFIRMED_AWAITING_ACTIVATION) {
-      return handleViewable("confirm",this);
+      return handleViewable("confirm",this,organizationId);
     }
-    return handleViewable("activate",this);
+    return handleViewable("activate",this,organizationId);
   }
  catch (  TokenException e) {
-    return handleViewable("bad_confirmation_token",this);
+    return handleViewable("bad_confirmation_token",this,organizationId);
   }
 catch (  RedirectionException e) {
     throw e;
   }
 catch (  Exception e) {
-    return new Viewable("error",e);
+    return handleViewable("error",e,organizationId);
   }
 }
