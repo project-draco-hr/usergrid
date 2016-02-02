@@ -5,7 +5,19 @@
   if (((applicationId == null) || applicationId.equals(UUIDUtils.ZERO_UUID)) && !is_application) {
     return null;
   }
-  long timestamp=UUIDUtils.getUUIDLong(timestampUuid);
+  long timestamp=UUIDUtils.getTimestampInMicros(UUIDUtils.newTimeUUID());
+  if (importId != null) {
+    long timestampFromImport=-1L;
+    if (UUIDUtils.isTimeBased(importId)) {
+      timestampFromImport=UUIDUtils.getTimestampInMicros(importId);
+    }
+ else     if (properties.get(PROPERTY_CREATED) != null) {
+      timestampFromImport=getLong(properties.get(PROPERTY_CREATED)) * 1000;
+    }
+    if (timestampFromImport >= 0) {
+      timestamp=timestampFromImport;
+    }
+  }
   UUID itemId=UUIDGenerator.newTimeUUID();
   if (is_application) {
     itemId=applicationId;
@@ -14,15 +26,7 @@
     itemId=importId;
   }
   if (properties == null) {
-    properties=new TreeMap<String,Object>(CASE_INSENSITIVE_ORDER);
-  }
-  if (importId != null) {
-    if (UUIDUtils.isTimeBased(importId)) {
-      timestamp=UUIDUtils.getTimestampInMicros(importId);
-    }
- else     if (properties.get(PROPERTY_CREATED) != null) {
-      timestamp=getLong(properties.get(PROPERTY_CREATED)) * 1000;
-    }
+    properties=new TreeMap<>(CASE_INSENSITIVE_ORDER);
   }
   if (entityClass == null) {
     entityClass=(Class<A>)Schema.getDefaultSchema().getEntityClass(entityType);
