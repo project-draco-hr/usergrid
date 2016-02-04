@@ -5,12 +5,14 @@
   }
   Entity entity=em.getUniqueEntityFromAlias(getEntityType(),name);
   if (entity == null) {
-    logger.info("miss on entityType: {} with name: {}",getEntityType(),name);
+    if (logger.isTraceEnabled()) {
+      logger.trace("miss on entityType: {} with name: {}",getEntityType(),name);
+    }
     String msg="Cannot find entity with name: " + name;
     throw new EntityNotFoundException(msg);
   }
   if (!em.isCollectionMember(context.getOwner(),context.getCollectionName(),entity)) {
-    logger.info("Someone tried to GET entity {} they don't own. Entity name {} with owner {}",new Object[]{getEntityType(),name,context.getOwner()});
+    logger.info("Someone tried to GET entity {} they don't own. Entity name {} with owner {}",getEntityType(),name,context.getOwner());
     throw new ServiceResourceNotFoundException(context);
   }
   if (!context.moreParameters()) {

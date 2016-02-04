@@ -23,7 +23,7 @@
   createExecutor(numWorkersPerInjector);
   final AtomicLong writeCounter=new AtomicLong();
   final long minExecutionTime=graphFig.getShardMinDelta() + graphFig.getShardCacheTimeout();
-  log.info("Writing {} edges per worker on {} workers in {} injectors",workerWriteLimit,numWorkersPerInjector,numInjectors);
+  logger.info("Writing {} edges per worker on {} workers in {} injectors",workerWriteLimit,numWorkersPerInjector,numInjectors);
   final List<Future<Boolean>> futures=new ArrayList<>();
   for (  Injector injector : injectors) {
     final GraphManagerFactory gmf=injector.getInstance(GraphManagerFactory.class);
@@ -40,19 +40,21 @@
   final GraphManagerFactory gmf=getInstance(injectors,GraphManagerFactory.class);
   final long writeCount=writeCounter.get();
   final Meter readMeter=registry.meter("readThroughput");
-  final ListenableFuture<Long> future=executor.submit(new ReadWorker(gmf,generator,writeCount,readMeter));
   final List<Throwable> failures=new ArrayList<>();
-  Futures.addCallback(future,new FutureCallback<Long>(){
-    @Override public void onSuccess(    @Nullable final Long result){
-      log.info("Successfully ran the read, re-running");
-      executor.submit(new ReadWorker(gmf,generator,writeCount,readMeter));
+  for (int i=0; i < 2; i++) {
+    final ListenableFuture<Long> future=executor.submit(new ReadWorker(gmf,generator,writeCount,readMeter));
+    Futures.addCallback(future,new FutureCallback<Long>(){
+      @Override public void onSuccess(      @Nullable final Long result){
+        logger.info("Successfully ran the read, re-running");
+        executor.submit(new ReadWorker(gmf,generator,writeCount,readMeter));
+      }
+      @Override public void onFailure(      final Throwable t){
+        failures.add(t);
+        logger.error("Failed test!",t);
+      }
     }
-    @Override public void onFailure(    final Throwable t){
-      failures.add(t);
-      log.error("Failed test!",t);
-    }
-  }
 );
+  }
   int compactedCount;
   while (true) {
     if (!failures.isEmpty()) {
@@ -73,16 +75,17 @@
     while (groups.hasNext()) {
       final ShardEntryGroup group=groups.next();
       shardEntryGroups.add(group);
-      log.info("Compaction pending status for group {} is {}",group,group.isCompactionPending());
+      logger.info("Compaction pending status for group {} is {}",group,group.isCompactionPending());
       if (!group.isCompactionPending()) {
         compactedCount++;
       }
     }
     if (compactedCount >= expectedShardCount) {
-      log.info("All compactions complete, sleeping");
+      logger.info("All compactions complete, sleeping");
       break;
     }
     Thread.sleep(2000);
   }
+  Thread.sleep(30000);
   executor.shutdownNow();
 }

@@ -31,7 +31,7 @@
   UUID lastValue=start;
   boolean firstPage=true;
   while ((current_ts_shard >= start_ts_shard) && (current_ts_shard <= finish_ts_shard) && comparator.compare(start,finish_uuid) < 1) {
-    logger.info("Starting search with start UUID {}, finish UUID {}, and reversed {}",new Object[]{lastValue,finish_uuid,params.reversed});
+    logger.info("Starting search with start UUID {}, finish UUID {}, and reversed {}",lastValue,finish_uuid,params.reversed);
     SliceQuery<ByteBuffer,UUID,ByteBuffer> q=createSliceQuery(ko,be,ue,be);
     q.setColumnFamily(QUEUE_INBOX.getColumnFamily());
     q.setKey(getQueueShardRowKey(queueId,current_ts_shard));
@@ -45,7 +45,9 @@
       }
       lastValue=columnName;
       results.add(columnName);
-      logger.debug("Added id '{}' to result set for queue id '{}'",start,queueId);
+      if (logger.isDebugEnabled()) {
+        logger.debug("Added id '{}' to result set for queue id '{}'",start,queueId);
+      }
       if (results.size() >= params.limit) {
         return results;
       }

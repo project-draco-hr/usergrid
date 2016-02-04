@@ -3,7 +3,9 @@
   final long start=System.currentTimeMillis();
   String[] indexes=getIndexes();
   if (indexes.length == 0) {
-    logger.debug("Not refreshing indexes. none found");
+    if (logger.isTraceEnabled()) {
+      logger.trace("Not refreshing indexes. none found");
+    }
   }
   RefreshResponse response=esProvider.getClient().admin().indices().prepareRefresh(indexes).execute().actionGet();
   int failedShards=response.getFailedShards();
@@ -14,7 +16,9 @@
       logger.error("Failed to refresh index:{} reason:{}",sfe.index(),sfe.reason());
     }
   }
-  logger.debug("Refreshed indexes: {},success:{} failed:{} ",StringUtils.join(indexes,", "),successfulShards,failedShards);
+  if (logger.isTraceEnabled()) {
+    logger.trace("Refreshed indexes: {},success:{} failed:{} ",StringUtils.join(indexes,", "),successfulShards,failedShards);
+  }
   IndexRefreshCommandInfo refreshResults=new IndexRefreshCommandInfo(failedShards == 0,System.currentTimeMillis() - start);
   return ObservableTimer.time(Observable.just(refreshResults),refreshTimer);
 }

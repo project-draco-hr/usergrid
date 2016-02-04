@@ -1,5 +1,5 @@
 {
-  logger.debug("createOwnerAndOrganization3");
+  logger.info("createOwnerAndOrganization: {} {}",organizationName,email);
   Lock groupLock=getUniqueUpdateLock(lockManager,smf.getManagementAppId(),organizationName,Schema.COLLECTION_GROUPS,PROPERTY_PATH);
   Lock userLock=getUniqueUpdateLock(lockManager,smf.getManagementAppId(),username,"users","username");
   Lock emailLock=getUniqueUpdateLock(lockManager,smf.getManagementAppId(),email,"users","email");
@@ -17,12 +17,14 @@
       return null;
     }
     if (areActivationChecksDisabled()) {
-      user=createAdminUserInternal(username,name,email,password,true,false,userProperties);
+      user=createAdminUserInternal(null,username,name,email,password,true,false,userProperties);
     }
  else {
-      user=createAdminUserInternal(username,name,email,password,activated,disabled,userProperties);
+      user=createAdminUserInternal(null,username,name,email,password,activated,disabled,userProperties);
     }
-    logger.debug("User created");
+    if (logger.isTraceEnabled()) {
+      logger.debug("createOwnerAndOrganization: User created");
+    }
     organization=createOrganizationInternal(null,organizationName,user,true,organizationProperties);
   }
   finally {

@@ -11,8 +11,10 @@
     UUID userId=node.getUuid();
     refreshIndex();
     String subject="Password Reset";
-    Map<String,Object> testProperties=this.getRemoteTestProperties();
-    String reset_url=String.format((String)testProperties.get(PROPERTIES_ADMIN_RESETPW_URL),userId.toString());
+    SpringResource springResource=ConcurrentProcessSingleton.getInstance().getSpringResource();
+    ManagementService mgmt=springResource.getBean(ManagementService.class);
+    OrganizationConfig orgConfig=mgmt.getOrganizationConfigByName(this.clientSetup.getOrganizationName());
+    String reset_url=orgConfig.getFullUrl(OrganizationConfigProps.WorkflowUrl.ADMIN_RESETPW_URL,userId);
     String invited="User Invited To Organization";
     Message[] msgs=getMessages("servertest.com",this.clientSetup.getUsername(),"password");
     assertTrue(msgs.length == 2);

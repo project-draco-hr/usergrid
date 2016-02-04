@@ -1,5 +1,5 @@
 {
-  LOG.info("CounterIT.testIncrementAndDecrement");
+  logger.info("CounterIT.testIncrementAndDecrement");
   EntityManager em=app.getEntityManager();
   assertNotNull(em);
   final UUID applicationId=em.getApplicationId();
@@ -11,10 +11,12 @@
   userProperties.put("username","test-username");
   userProperties.put("email","test-email");
   User user=(User)em.create(uuid,"user",userProperties).toTypedEntity();
-  LOG.debug("user={}",user);
+  logger.debug("user={}",user);
+  em.refreshIndex();
   counters=em.getEntityCounters(applicationId);
   assertEquals(new Long(1),counters.get("application.collection.users"));
   em.delete(user);
+  em.refreshIndex();
   counters=em.getEntityCounters(applicationId);
   assertEquals(new Long(0),counters.get("application.collection.users"));
 }

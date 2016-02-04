@@ -1,0 +1,35 @@
+{
+  if (logger.isTraceEnabled()) {
+    logger.debug("PathPermissionsFilter.authorize");
+  }
+  final String PATH_MSG="---- Checked permissions for path --------------------------------------------\n" + "Requested path: {} \n" + "Requested action: {} \n"+ "Requested permission: {} \n"+ "Permitted: {} \n";
+  ApplicationInfo application;
+  try {
+    application=management.getApplicationInfo(getApplicationIdentifier());
+    EntityManager em=emf.getEntityManager(application.getId());
+    Subject currentUser=SubjectUtils.getSubject();
+    if (currentUser == null) {
+      return;
+    }
+    String applicationName=application.getName().toLowerCase();
+    String operation=request.getMethod().toLowerCase();
+    String path=request.getUriInfo().getPath().toLowerCase().replace(applicationName,"");
+    String perm=getPermissionFromPath(em.getApplicationRef().getUuid(),operation,path);
+    boolean permitted=currentUser.isPermitted(perm);
+    if (logger.isDebugEnabled()) {
+      logger.debug(PATH_MSG,path,operation,perm,permitted);
+    }
+    if (!permitted) {
+      throw new Exception("Subject not permitted");
+    }
+    SubjectUtils.checkPermission(perm);
+    Subject subject=SubjectUtils.getSubject();
+    if (logger.isDebugEnabled()) {
+      logger.debug("Checked subject {} for perm {}",subject != null ? subject.toString() : "",perm);
+      logger.debug("------------------------------------------------------------------------------");
+    }
+  }
+ catch (  Exception e) {
+    throw mappableSecurityException("unauthorized","Subject does not have permission to access this resource");
+  }
+}

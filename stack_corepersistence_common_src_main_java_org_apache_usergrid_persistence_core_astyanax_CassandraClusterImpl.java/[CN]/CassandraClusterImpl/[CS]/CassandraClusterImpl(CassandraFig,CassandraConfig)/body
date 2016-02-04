@@ -1,0 +1,35 @@
+{
+  this.cassandraFig=cassandraFig;
+  this.cassandraConfig=cassandraConfig;
+  AstyanaxConfiguration config=new AstyanaxConfigurationImpl().setDiscoveryType(NodeDiscoveryType.valueOf(cassandraFig.getDiscoveryType())).setTargetCassandraVersion(cassandraFig.getVersion()).setDefaultReadConsistencyLevel(cassandraConfig.getReadCL()).setDefaultWriteConsistencyLevel(cassandraConfig.getWriteCL()).setMaxThriftSize(cassandraFig.getThriftBufferSize());
+  if (cassandraFig.useSharedPoolForLocks()) {
+    ConnectionPoolConfiguration sharedPoolConfig=getConnectionPoolConfig("ConnectionPool-Shared",cassandraFig.getConnections());
+    AstyanaxContext<Cluster> sharedClusterContext=getCluster(cassandraFig.getClusterName(),config,sharedPoolConfig);
+    sharedClusterContext.start();
+    Cluster sharedCluster=sharedClusterContext.getClient();
+    try {
+      addKeyspace(sharedCluster,cassandraFig.getApplicationKeyspace());
+      addKeyspace(sharedCluster,cassandraFig.getLocksKeyspace());
+    }
+ catch (    Exception e) {
+      throw new RuntimeException("Unable to create keyspace clients");
+    }
+  }
+ else {
+    ConnectionPoolConfiguration applicationPoolConfig=getConnectionPoolConfig("ConnectionPool-Application",cassandraFig.getConnections());
+    ConnectionPoolConfiguration locksPoolConfig=getConnectionPoolConfig("ConnectionPool-Locks",cassandraFig.getConnectionsLocks());
+    AstyanaxContext<Cluster> applicationClusterContext=getCluster(cassandraFig.getClusterName(),config,applicationPoolConfig);
+    AstyanaxContext<Cluster> locksClusterContext=getCluster(cassandraFig.getClusterName() + "-Locks",config,locksPoolConfig);
+    applicationClusterContext.start();
+    locksClusterContext.start();
+    Cluster applicationCluster=applicationClusterContext.getClient();
+    Cluster locksCluster=locksClusterContext.getClient();
+    try {
+      addKeyspace(applicationCluster,cassandraFig.getApplicationKeyspace());
+      addKeyspace(locksCluster,cassandraFig.getLocksKeyspace());
+    }
+ catch (    Exception e) {
+      throw new RuntimeException("Unable to create keyspace clients");
+    }
+  }
+}

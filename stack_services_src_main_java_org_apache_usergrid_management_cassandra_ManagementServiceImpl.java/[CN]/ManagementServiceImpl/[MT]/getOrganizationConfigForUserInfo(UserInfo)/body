@@ -1,0 +1,16 @@
+{
+  UUID userApp=user.getApplicationId();
+  if (userApp == CpNamingUtils.MANAGEMENT_APPLICATION_ID) {
+    Map<UUID,String> organizations=getOrganizationsForAdminUser(user.getUuid());
+    if (organizations != null) {
+      Iterator<UUID> iter=organizations.keySet().iterator();
+      if (iter.hasNext()) {
+        return getOrganizationConfigByUuid(iter.next());
+      }
+    }
+  }
+ else {
+    return getOrganizationConfigForApplication(userApp);
+  }
+  return getOrganizationConfigDefaultsOnly();
+}

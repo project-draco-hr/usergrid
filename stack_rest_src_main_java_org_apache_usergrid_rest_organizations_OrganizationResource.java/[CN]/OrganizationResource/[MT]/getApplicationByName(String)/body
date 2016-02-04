@@ -1,5 +1,7 @@
 {
-  logger.debug("getApplicationByName: " + applicationName);
+  if (logger.isTraceEnabled()) {
+    logger.trace("getApplicationByName: {}",applicationName);
+  }
   if ("options".equalsIgnoreCase(request.getMethod())) {
     throw new NoOpException();
   }
@@ -8,7 +10,7 @@
   if (!optionalAppId.isPresent()) {
     UUID applicationId=UUIDUtils.tryExtractUUID(applicationName);
     if (applicationId == null) {
-      throw new OrganizationApplicationNotFoundException(orgAppName,uriInfo,properties);
+      throw new OrganizationApplicationNotFoundException(orgAppName,uriInfo,properties,management);
     }
  else {
       optionalAppId=Optional.fromNullable(applicationId);

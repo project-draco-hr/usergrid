@@ -1,18 +1,20 @@
 {
-  HashMap<String,Object> properties=new LinkedHashMap<String,Object>();
+  if (!USE_REAL_CONNECTIONS) {
+    return;
+  }
+  app.clear();
   String payload=getPayload();
   Map<String,String> payloads=new HashMap<String,String>(1);
   payloads.put(notifier.getUuid().toString(),payload);
-  properties.put("payloads",payloads);
-  properties.put("queued",System.currentTimeMillis());
-  properties.put("debug",true);
+  app.put("payloads",payloads);
+  app.put("queued",System.currentTimeMillis());
+  app.put("debug",true);
   Entity e=app.testRequest(ServiceAction.POST,1,"devices",device1.getUuid(),"notifications").getEntity();
   app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
   Notification notification=app.getEntityManager().get(e.getUuid(),Notification.class);
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
   ns.addDevice(notification,device1);
-  notification=scheduleNotificationAndWait(notification);
-  checkStatistics(notification,0,1);
+  notification=notificationWaitForComplete(notification);
   notification=(Notification)app.getEntityManager().get(notification).toTypedEntity();
   checkReceipts(notification,1);
   List<EntityRef> receipts=getNotificationReceipts(notification);

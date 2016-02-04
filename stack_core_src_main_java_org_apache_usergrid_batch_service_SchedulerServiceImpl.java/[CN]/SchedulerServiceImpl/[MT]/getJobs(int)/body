@@ -13,7 +13,7 @@
       JobData data=getEm().get(jobUuid,JobData.class);
       JobStat stats=getEm().get(statsUuid,JobStat.class);
       if (data == null || stats == null) {
-        LOG.info("Received job with data id '{}' from the queue, but no data was found.  Dropping job",jobUuid);
+        logger.info("Received job with data id '{}' from the queue, but no data was found.  Dropping job",jobUuid);
         getQm().deleteTransaction(jobQueueName,job.getTransaction(),null);
         if (data != null) {
           getEm().delete(data);
@@ -26,7 +26,7 @@
       results.add(new JobDescriptor(jobName,job.getUuid(),job.getTransaction(),data,stats,this));
     }
  catch (    Exception e) {
-      LOG.error("Unable to retrieve job data for jobname {}, job id {}, stats id {}.  Skipping to avoid job " + "loss",new Object[]{jobName,jobUuid,statsUuid,e});
+      logger.error("Unable to retrieve job data for jobname {}, job id {}, stats id {}.  Skipping to avoid job loss",jobName,jobUuid,statsUuid,e);
     }
   }
   return results;

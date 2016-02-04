@@ -1,0 +1,12 @@
+{
+  String appName=buildAppName(orgName,name);
+  final Optional<UUID> appId=applicationIdCache.getApplicationId(appName);
+  if (appId.isPresent()) {
+    throw new ApplicationAlreadyExistsException(name);
+  }
+  applicationId=applicationId == null ? UUIDGenerator.newTimeUUID() : applicationId;
+  if (logger.isDebugEnabled()) {
+    logger.debug("New application orgName {} orgAppName {} id {} ",orgName,name,applicationId.toString());
+  }
+  return initializeApplicationV2(orgName,applicationId,appName,properties,forMigration);
+}

@@ -1,0 +1,20 @@
+{
+  ColumnFamily<String,String> CF_LOCKS=ColumnFamily.newColumnFamily(CF_NAME,StringSerializer.get(),StringSerializer.get());
+  final KeyspaceDefinition keyspaceDefinition=keyspace.describeKeyspace();
+  final ColumnFamilyDefinition existing=keyspaceDefinition.getColumnFamily(CF_LOCKS.getName());
+  if (existing != null) {
+    Map<String,Object> existingOptions=new HashMap<>(1);
+    existingOptions.put("gc_grace_seconds",existing.getGcGraceSeconds());
+    existingOptions.put("caching",existing.getCaching());
+    existingOptions.put("compaction_strategy",existing.getCompactionStrategy());
+    existingOptions.put("compaction_strategy_options",existing.getCompactionStrategyOptions());
+    logger.info("Locks column family {} exists with options: {}",existing.getName(),existingOptions.toString());
+    return CF_LOCKS;
+  }
+  MultiTenantColumnFamilyDefinition columnFamilyDefinition=new MultiTenantColumnFamilyDefinition(CF_LOCKS,BytesType.class.getSimpleName(),UTF8Type.class.getSimpleName(),BytesType.class.getSimpleName(),MultiTenantColumnFamilyDefinition.CacheOption.ALL);
+  Map<String,Object> cfOptions=columnFamilyDefinition.getOptions();
+  cfOptions.put("gc_grace_seconds",60);
+  keyspace.createColumnFamily(columnFamilyDefinition.getColumnFamily(),cfOptions);
+  logger.info("Created column family {}",columnFamilyDefinition.getOptions());
+  return columnFamilyDefinition.getColumnFamily();
+}

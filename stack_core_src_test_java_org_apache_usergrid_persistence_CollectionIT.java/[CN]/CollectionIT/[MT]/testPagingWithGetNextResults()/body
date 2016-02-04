@@ -1,5 +1,5 @@
 {
-  LOG.debug("testPagingWithGetNextResults");
+  logger.debug("testPagingWithGetNextResults");
   EntityManager em=app.getEntityManager();
   assertNotNull(em);
   int size=60;
@@ -16,7 +16,7 @@
   query.setLimit(pageSize);
   Results r=em.searchCollection(em.getApplicationRef(),"pages",query);
   for (int i=1; i < 10; i++) {
-    LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+    logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
     assertEquals(pageSize,r.size());
     for (int j=0; j < pageSize; j++) {
       final int expectedIndex=i * pageSize + j;
@@ -24,7 +24,7 @@
       final UUID returnedId=r.getEntities().get(j).getUuid();
       assertEquals(entityId,returnedId);
     }
-    LOG.info("collection loop " + i);
+    logger.info("collection loop " + i);
     r=r.getNextPageResults();
   }
   assertEquals(0,r.size());

@@ -1,12 +1,19 @@
 {
   management().users().user(clientSetup.getUsername()).resetpw().post(new Form());
+  refreshIndex();
   List<Message> inbox=Mailbox.get(clientSetup.getEmail());
   assertFalse(inbox.isEmpty());
   MockImapClient client=new MockImapClient("mockserver.com","test-user-46","somepassword");
   client.processMail();
-  Message confirmation=inbox.get(0);
-  assertEquals("User Account Confirmation: " + clientSetup.getEmail(),confirmation.getSubject());
-  String token=getTokenFromMessage(confirmation);
+  String token=null;
+  Iterator<Message> msgIterator=inbox.iterator();
+  while (token == null && msgIterator.hasNext()) {
+    Message msg=msgIterator.next();
+    if (msg.getSubject().equals("Password Reset")) {
+      token=getTokenFromMessage(msg);
+    }
+  }
+  assertNotNull(token);
   Form formData=new Form();
   formData.param("token",token);
   formData.param("password1","sesame");

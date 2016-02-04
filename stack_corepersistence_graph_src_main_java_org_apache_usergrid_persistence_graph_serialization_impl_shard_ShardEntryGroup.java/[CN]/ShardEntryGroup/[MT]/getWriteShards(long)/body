@@ -1,10 +1,14 @@
 {
   if (!isTooSmallToCompact() && shouldCompact(currentTime)) {
     final Shard compactionTarget=getCompactionTarget();
-    LOG.debug("Returning shard {} as write shard",compactionTarget);
+    if (logger.isTraceEnabled()) {
+      logger.trace("Returning shard {} as write shard",compactionTarget);
+    }
     return Collections.singleton(compactionTarget);
   }
   final Shard staticShard=getRootShard();
-  LOG.debug("Returning shard {} as write shard",staticShard);
+  if (logger.isTraceEnabled()) {
+    logger.trace("Returning shard {} as write shard",staticShard);
+  }
   return Collections.singleton(staticShard);
 }

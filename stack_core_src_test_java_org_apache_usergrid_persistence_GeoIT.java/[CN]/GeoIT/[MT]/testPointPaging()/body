@@ -22,10 +22,17 @@
   query.setLimit(10);
   int count=0;
   Results results;
+  double previousDistance=0d;
   do {
     results=em.searchCollection(em.getApplicationRef(),"stores",query);
     for (    Entity entity : results.getEntities()) {
       assertEquals(String.valueOf(count),entity.getName());
+      Object distanceObject=entity.getMetadata("distance");
+      assertNotNull(distanceObject);
+      assertTrue(distanceObject instanceof Double);
+      double distance=(Double)distanceObject;
+      assertTrue(distance >= previousDistance);
+      previousDistance=distance;
       count++;
     }
     query.setCursor(results.getCursor());

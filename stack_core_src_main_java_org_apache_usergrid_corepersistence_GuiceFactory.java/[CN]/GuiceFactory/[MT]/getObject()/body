@@ -16,14 +16,16 @@
       hostsString+=host.getHost() + ",";
     }
     hostsString=hostsString.substring(0,hostsString.length() - 1);
-    logger.info("hostsString: " + hostsString);
+    logger.info("hostsString: {}",hostsString);
     Properties cpProps=new Properties();
     cpProps.put("cassandra.hosts",hostsString);
     cpProps.put("cassandra.port",hosts[0].getPort());
     cpProps.put("cassandra.cluster_name",getAndValidateProperty("cassandra.cluster"));
     cpProps.put("collections.keyspace.strategy.class",getAndValidateProperty("cassandra.keyspace.strategy"));
     cpProps.put("collections.keyspace.strategy.options",getAndValidateProperty("cassandra.keyspace.replication"));
-    logger.debug("Set Cassandra properties for Core Persistence: " + cpProps.toString());
+    if (logger.isDebugEnabled()) {
+      logger.debug("Set Cassandra properties for Core Persistence: {}",cpProps.toString());
+    }
     cpProps.putAll(systemProperties);
     ConfigurationManager.loadProperties(cpProps);
   }

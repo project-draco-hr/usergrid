@@ -10,7 +10,7 @@
           Count count=new Count("Counter","k1","counter1",1);
           batcher.add(count);
         }
-        LOG.info("Task iteration # {} : ",c);
+        logger.info("Task iteration # {} : ",c);
         cdl.countDown();
         return true;
       }
@@ -18,11 +18,11 @@
 ));
   }
   batcher.add(new Count("Counter","k1","counter1",1));
-  LOG.info("size: " + calls.size());
+  logger.info("size: " + calls.size());
   cdl.await();
   exec.shutdown();
   while (!exec.awaitTermination(3,TimeUnit.SECONDS)) {
-    LOG.warn("jobs not yet finished, wait again");
+    logger.warn("jobs not yet finished, wait again");
   }
   final long currentCount=batcher.invocationCounter.count();
   final long delta=currentCount - startCount;

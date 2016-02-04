@@ -1,6 +1,8 @@
 {
   Method am=resourceInfo.getResourceMethod();
-  logger.debug("configure {} method {}",resourceInfo.getResourceClass().getSimpleName(),resourceInfo.getResourceMethod().getName());
+  if (logger.isTraceEnabled()) {
+    logger.trace("configure {} method {}",resourceInfo.getResourceClass().getSimpleName(),resourceInfo.getResourceMethod().getName());
+  }
   if (am.isAnnotationPresent(RequireApplicationAccess.class)) {
     featureContext.register(ApplicationFilter.class);
   }
@@ -12,5 +14,8 @@
   }
  else   if (am.isAnnotationPresent(RequireAdminUserAccess.class)) {
     featureContext.register(SystemFilter.AdminUserFilter.class);
+  }
+ else   if (am.isAnnotationPresent(CheckPermissionsForPath.class)) {
+    featureContext.register(PathPermissionsFilter.class);
   }
 }

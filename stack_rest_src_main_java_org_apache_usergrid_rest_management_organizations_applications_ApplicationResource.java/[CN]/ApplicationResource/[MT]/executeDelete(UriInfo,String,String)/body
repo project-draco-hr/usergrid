@@ -5,17 +5,21 @@
   Properties props=management.getProperties();
   String testProp=(String)props.get("usergrid.test");
   if (testProp == null || !Boolean.parseBoolean(testProp)) {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedRestOperationException("Test props not not functioning correctly.");
   }
   if (applicationId == null) {
     throw new IllegalArgumentException("Application ID not specified in request");
   }
   management.deleteApplication(applicationId);
-  logger.debug("ApplicationResource.delete() deleted appId = {}",applicationId);
+  if (logger.isTraceEnabled()) {
+    logger.trace("ApplicationResource.delete() deleted appId = {}",applicationId);
+  }
   ApiResponse response=createApiResponse();
   response.setAction("delete");
   response.setApplication(emf.getEntityManager(applicationId).getApplication());
   response.setParams(ui.getQueryParameters());
-  logger.debug("ApplicationResource.delete() sending response ");
+  if (logger.isTraceEnabled()) {
+    logger.trace("ApplicationResource.delete() sending response ");
+  }
   return response;
 }

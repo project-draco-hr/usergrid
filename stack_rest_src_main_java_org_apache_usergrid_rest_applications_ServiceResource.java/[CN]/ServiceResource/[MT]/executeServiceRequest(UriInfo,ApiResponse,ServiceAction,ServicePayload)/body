@@ -1,5 +1,7 @@
 {
-  logger.debug("ServiceResource.executeServiceRequest");
+  if (logger.isTraceEnabled()) {
+    logger.trace("ServiceResource.executeServiceRequest");
+  }
   boolean tree="true".equalsIgnoreCase(ui.getQueryParameters().getFirst("tree"));
   String connectionQueryParm=ui.getQueryParameters().getFirst("connections");
   boolean returnInboundConnections=true;
@@ -26,7 +28,7 @@
         logger.error(String.format("Invalid connections query parameter=%s, ignoring.",connectionQueryParm));
       }
       OrganizationConfig orgConfig=management.getOrganizationConfigForApplication(services.getApplicationId());
-      String defaultConnectionQueryParm=orgConfig.getDefaultConnectionParam();
+      String defaultConnectionQueryParm=orgConfig.getProperty(OrganizationConfigProps.ORGPROPERTIES_DEFAULT_CONNECTION_PARAM);
       returnInboundConnections=(defaultConnectionQueryParm.equals("in")) || (defaultConnectionQueryParm.equals("all"));
       returnOutboundConnections=(defaultConnectionQueryParm.equals("out")) || (defaultConnectionQueryParm.equals("all"));
     }

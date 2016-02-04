@@ -1,0 +1,15 @@
+{
+  final Id now=IdGenerator.createId("test");
+  final long timestamp=2000L;
+  final Shard shard1=new Shard(1000L,timestamp,false);
+  final Shard shard2=new Shard(shard1.getShardIndex(),timestamp * 2,true);
+  final DirectedEdgeMeta sourceEdgeMeta=DirectedEdgeMeta.fromSourceNodeTargetType(now,"edgeType","subType");
+  MutationBatch batch=edgeShardSerialization.writeShardMeta(scope,shard1,sourceEdgeMeta);
+  batch.mergeShallow(edgeShardSerialization.writeShardMeta(scope,shard2,sourceEdgeMeta));
+  batch.execute();
+  Iterator<Shard> results=edgeShardSerialization.getShardMetaData(scope,Optional.<Shard>absent(),sourceEdgeMeta);
+  assertEquals(shard2,results.next());
+  edgeShardSerialization.removeShardMeta(scope,shard1,sourceEdgeMeta).execute();
+  results=edgeShardSerialization.getShardMetaData(scope,Optional.<Shard>absent(),sourceEdgeMeta);
+  assertEquals(shard2,results.next());
+}

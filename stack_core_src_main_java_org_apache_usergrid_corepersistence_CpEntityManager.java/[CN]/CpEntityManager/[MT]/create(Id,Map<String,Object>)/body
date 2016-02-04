@@ -1,9 +1,6 @@
 {
-  Keyspace ko=cass.getApplicationKeyspace(applicationId);
-  Mutator<ByteBuffer> m=createMutator(ko,be);
-  Entity entity=batchCreate(m,id.getType(),null,properties,id.getUuid(),UUIDUtils.newTimeUUID());
   Timer.Context timeCassCreation=entCreateTimer.time();
-  m.execute();
+  Entity entity=batchCreate(id.getType(),null,properties,id.getUuid());
   timeCassCreation.stop();
   return entity;
 }

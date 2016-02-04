@@ -14,25 +14,25 @@
     return;
   }
  else   if (is_ws_request) {
-    LOG.info("Starting new websocket connection...");
+    logger.info("Starting new websocket connection...");
     websocket=true;
     HttpResponse res=new DefaultHttpResponse(HTTP_1_1,new HttpResponseStatus(101,"Web Socket Protocol Handshake"));
     res.addHeader(Names.UPGRADE,WEBSOCKET);
     res.addHeader(CONNECTION,Values.UPGRADE);
     QueryStringDecoder qs=new QueryStringDecoder(req.getUri());
     String path=qs.getPath();
-    LOG.info(path);
+    logger.info(path);
     if (req.containsHeader(SEC_WEBSOCKET_KEY1) && req.containsHeader(SEC_WEBSOCKET_KEY2)) {
       String[] segments=split(path,'/');
       if (segments.length != 3) {
-        LOG.info("Wrong number of path segments, expected 3, found " + segments.length);
+        logger.info("Wrong number of path segments, expected 3, found " + segments.length);
         sendHttpResponse(ctx,req,FORBIDDEN);
         return;
       }
       String nsStr=segments[0];
       String collStr=segments[1];
       String idStr=segments[2];
-      LOG.info(nsStr + "/" + collStr+ "/"+ idStr);
+      logger.info(nsStr + "/" + collStr+ "/"+ idStr);
       if (isEmpty(nsStr) || isEmpty(collStr) || isEmpty(idStr)) {
         sendHttpResponse(ctx,req,FORBIDDEN);
         return;

@@ -1,0 +1,8 @@
+{
+  String token=getPasswordResetTokenForAdminUser(user.getUuid(),0,organizationId);
+  OrganizationConfig orgConfig=organizationId != null ? getOrganizationConfigByUuid(organizationId) : getOrganizationConfigForUserInfo(user);
+  String resetPropertyUrl=orgConfig.getFullUrlTemplate(WorkflowUrl.ADMIN_RESETPW_URL);
+  String reset_url=String.format(resetPropertyUrl,user.getUuid().toString()) + "?token=" + token;
+  Map<String,String> pageContext=hashMap("reset_url",reset_url).map("reset_url_base",resetPropertyUrl).map("user_uuid",user.getUuid().toString()).map("raw_token",token);
+  sendHtmlMail(properties,user.getDisplayEmailAddress(),properties.getProperty(PROPERTIES_MAILER_EMAIL),"Password Reset",appendEmailFooter(emailMsg(pageContext,PROPERTIES_EMAIL_ADMIN_PASSWORD_RESET)));
+}

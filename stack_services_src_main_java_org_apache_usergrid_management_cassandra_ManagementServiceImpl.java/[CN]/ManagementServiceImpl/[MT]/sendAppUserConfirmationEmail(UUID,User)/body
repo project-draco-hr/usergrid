@@ -1,5 +1,7 @@
 {
   String token=getConfirmationTokenForAppUser(applicationId,user.getUuid());
-  String confirmation_url=buildUserAppUrl(applicationId,properties.getProperty(PROPERTIES_USER_CONFIRMATION_URL),user,token);
+  OrganizationConfig orgConfig=getOrganizationConfigForApplication(applicationId);
+  String confirmationPropertyUrl=orgConfig.getFullUrlTemplate(WorkflowUrl.USER_CONFIRMATION_URL);
+  String confirmation_url=buildUserAppUrl(applicationId,confirmationPropertyUrl,user,token);
   sendAppUserEmail(user,"User Account Confirmation: " + user.getEmail(),emailMsg(hashMap("confirmation_url",confirmation_url),PROPERTIES_EMAIL_USER_CONFIRMATION));
 }

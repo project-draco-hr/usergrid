@@ -2,9 +2,13 @@
   final Shard staticShard=getRootShard();
   final Shard compactionTarget=getCompactionTarget();
   if (compactionTarget != null) {
-    LOG.debug("Returning shards {} and {} as read shards",compactionTarget,staticShard);
+    if (logger.isTraceEnabled()) {
+      logger.trace("Returning shards {} and {} as read shards",compactionTarget,staticShard);
+    }
     return Arrays.asList(compactionTarget,staticShard);
   }
-  LOG.debug("Returning shards {} read shard",staticShard);
+  if (logger.isTraceEnabled()) {
+    logger.trace("Returning shards {} read shard",staticShard);
+  }
   return Collections.singleton(staticShard);
 }

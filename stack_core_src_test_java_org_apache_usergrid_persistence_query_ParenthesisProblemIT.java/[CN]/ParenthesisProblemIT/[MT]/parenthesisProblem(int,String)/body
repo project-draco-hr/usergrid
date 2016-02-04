@@ -1,0 +1,33 @@
+{
+  EntityManager em=app.getEntityManager();
+  em.create("cat",new HashMap<String,Object>(){
+{
+      put("name","enzo");
+      put("color","orange");
+      put("large",true);
+      put("age",6);
+    }
+  }
+);
+  em.create("cat",new HashMap<String,Object>(){
+{
+      put("name","marquee");
+      put("color","grey");
+      put("large",false);
+      put("age",8);
+    }
+  }
+);
+  em.create("cat",new HashMap<String,Object>(){
+{
+      put("name","bertha");
+      put("color","tabby");
+      put("large",true);
+      put("age",1);
+    }
+  }
+);
+  app.refreshIndex();
+  final Results entities=em.searchCollection(em.getApplicationRef(),"cats",Query.fromQL(query));
+  assertEquals(expect,entities.size());
+}

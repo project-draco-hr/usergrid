@@ -6,24 +6,27 @@
     this.binaryStore=awsSdkS3BinaryStore;
   }
   List<BodyPart> bodyParts=multiPart.getBodyParts();
-  HashMap<String,Object> data=new HashMap<String,Object>();
+  HashMap<String,Object> data=new HashMap<>();
   for (  BodyPart bp : bodyParts) {
     FormDataBodyPart bodyPart=(FormDataBodyPart)bp;
     if (bodyPart.getMediaType().equals(MediaType.TEXT_PLAIN_TYPE)) {
       data.put(bodyPart.getName(),bodyPart.getValue());
     }
  else {
-      logger.info("skipping bodyPart {} of media type {}",bodyPart.getName(),bodyPart.getMediaType());
+      if (logger.isTraceEnabled()) {
+        logger.trace("skipping bodyPart {} of media type {}",bodyPart.getName(),bodyPart.getMediaType());
+      }
     }
   }
   FormDataBodyPart fileBodyPart=multiPart.getField(FILE_FIELD_NAME);
-  if (data.isEmpty() && fileBodyPart != null) {
-    data.put(AssetUtils.FILE_METADATA,new HashMap());
-  }
+  data.put(AssetUtils.FILE_METADATA,new HashMap());
   ApiResponse response=createApiResponse();
   response.setAction(serviceAction.name().toLowerCase());
   response.setApplication(services.getApplication());
   response.setParams(ui.getQueryParameters());
+  if (data.get(FILE_FIELD_NAME) == null) {
+    data.put(FILE_FIELD_NAME,null);
+  }
   ServicePayload payload=getPayload(data);
   ServiceResults serviceResults=executeServiceRequest(ui,response,serviceAction,payload);
   if (fileBodyPart != null) {
@@ -42,7 +45,7 @@ catch (      RuntimeException re) {
         logger.error(re.getMessage());
         response.setError("500",re);
       }
-      em.update(entity);
+      entity=serviceResults.getEntity();
       serviceResults.setEntity(entity);
     }
   }

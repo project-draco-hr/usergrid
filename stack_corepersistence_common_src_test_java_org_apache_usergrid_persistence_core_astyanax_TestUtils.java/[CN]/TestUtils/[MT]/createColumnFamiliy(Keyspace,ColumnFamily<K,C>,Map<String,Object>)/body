@@ -1,8 +1,10 @@
 {
   try {
-    keyspace.createColumnFamily(columnFamily,new HashMap<String,Object>());
+    if (keyspace.describeKeyspace().getColumnFamily(columnFamily.getName()) == null) {
+      keyspace.createColumnFamily(columnFamily,new HashMap<String,Object>());
+    }
   }
  catch (  Exception e) {
-    log.error("Error on creating column family, ignoring",e);
+    logger.error("Error on creating column family, ignoring",e);
   }
 }

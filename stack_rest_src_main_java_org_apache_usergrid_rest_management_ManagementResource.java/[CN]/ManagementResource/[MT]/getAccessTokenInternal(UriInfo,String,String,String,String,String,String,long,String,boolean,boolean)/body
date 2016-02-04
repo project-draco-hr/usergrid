@@ -4,7 +4,9 @@
     if (SubjectUtils.getUser() != null) {
       user=SubjectUtils.getUser();
     }
-    logger.info("ManagementResource.getAccessToken with username: {}",username);
+    if (logger.isTraceEnabled()) {
+      logger.trace("ManagementResource.getAccessToken with username: {}",username);
+    }
     String errorDescription="invalid username or password";
     if (user == null) {
       if (!me) {
@@ -25,7 +27,9 @@
         try {
           user=management.verifyAdminUserPasswordCredentials(username,password);
           if (user != null) {
-            logger.info("found user from verify: {}",user.getUuid());
+            if (logger.isTraceEnabled()) {
+              logger.trace("found user from verify: {}",user.getUuid());
+            }
           }
         }
  catch (        UnactivatedAdminUserException uaue) {
@@ -38,7 +42,7 @@ catch (        DisabledAdminUserException daue) {
         }
 catch (        UnconfirmedAdminUserException uaue) {
           errorDescription="User must be confirmed to authenticate";
-          logger.warn("Responding with HTTP 403 forbidden response for unconfirmed user {}",user);
+          logger.warn("Responding with HTTP 403 forbidden response for unconfirmed user");
           OAuthResponse response=OAuthResponse.errorResponse(SC_FORBIDDEN).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription(errorDescription).buildJSONMessage();
           return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
         }

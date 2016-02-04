@@ -1,0 +1,31 @@
+{
+  logger.info("GeoIT.validateDistanceQueryExists");
+  EntityManager em=app.getEntityManager();
+  assertNotNull(em);
+  Map<String,Object> properties=new LinkedHashMap<String,Object>(){
+{
+      put("username","edanuff");
+      put("email","ed@anuff.com");
+      put("location",new LinkedHashMap<String,Object>(){
+{
+          put("latitude",37.776753);
+          put("longitude",-122.407846);
+        }
+      }
+);
+    }
+  }
+;
+  Entity user=em.create("user",properties);
+  assertNotNull(user);
+  app.refreshIndex();
+  final double lat=37.776753;
+  final double lon=-122.407846;
+  Query query=Query.fromQL("select * where location within 100 of " + lat + ","+ lon);
+  Results listResults=em.searchCollection(em.getApplicationRef(),"users",query);
+  assertEquals(1,listResults.size());
+  Entity entity=listResults.getEntity();
+  assertTrue(entity.getMetadata("distance") != null);
+  assertTrue(Double.parseDouble(entity.getMetadata("distance").toString()) > 0);
+  em.delete(user);
+}

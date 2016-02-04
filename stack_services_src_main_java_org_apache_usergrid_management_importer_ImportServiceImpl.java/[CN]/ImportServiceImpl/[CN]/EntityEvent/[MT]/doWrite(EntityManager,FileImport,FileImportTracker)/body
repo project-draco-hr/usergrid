@@ -1,11 +1,13 @@
 {
   try {
-    logger.debug("Writing imported entity {}:{} into app {}",new Object[]{entityType,entityUuid,em.getApplication().getUuid()});
+    if (logger.isTraceEnabled()) {
+      logger.trace("Writing imported entity {}:{} into app {}",entityType,entityUuid,em.getApplication().getUuid());
+    }
     em.create(entityUuid,entityType,properties);
     tracker.entityWritten();
   }
  catch (  Exception e) {
-    logger.error("Error writing entity. From file:" + fileImport.getFileName(),e);
+    logger.error("Error writing entity. From file:{}",fileImport.getFileName(),e);
     tracker.entityFailed(e.getMessage() + " From file: " + fileImport.getFileName());
   }
 }

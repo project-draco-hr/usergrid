@@ -1,17 +1,17 @@
 {
-  LOG.info("EntityDaoTest.testCreateAndDelete");
+  logger.info("EntityDaoTest.testCreateAndDelete");
   EntityManager em=app.getEntityManager();
   String name="test.thing" + UUIDUtils.newTimeUUID();
   Map<String,Object> properties=new LinkedHashMap<String,Object>();
   properties.put("name",name);
   properties.put("foo","bar");
-  LOG.info("Starting entity create");
+  logger.info("Starting entity create");
   Entity thing=em.create("thing",properties);
-  LOG.info("Entity created");
+  logger.info("Entity created");
   app.refreshIndex();
-  LOG.info("Starting entity delete");
+  logger.info("Starting entity delete");
   em.delete(thing);
-  LOG.info("Entity deleted");
+  logger.info("Entity deleted");
   app.refreshIndex();
   final Query emailQuery=Query.fromQL("name = '" + name + "'");
   Results r=em.searchCollection(em.getApplicationRef(),"thing",emailQuery);

@@ -1,5 +1,7 @@
 {
-  logger.debug("ApplicationResource /authorize: {}/{}",username,password);
+  if (logger.isTraceEnabled()) {
+    logger.trace("ApplicationResource /authorize: {}/{}",username,password);
+  }
   try {
     responseType=response_type;
     clientId=client_id;
@@ -30,13 +32,13 @@ catch (    Exception e1) {
     }
     ApplicationInfo app=management.getApplicationInfo(applicationId);
     applicationName=app.getName();
-    return Response.ok(handleViewable("authorize_form",this)).build();
+    return Response.ok(handleViewable("authorize_form",this,getOrganizationName())).build();
   }
  catch (  RedirectionException e) {
     throw e;
   }
 catch (  Exception e) {
-    logger.debug("handleAuthorizeForm failed",e);
-    return Response.ok(handleViewable("error",this)).build();
+    logger.error("handleAuthorizeForm failed",e);
+    return Response.ok(handleViewable("error",this,getOrganizationName())).build();
   }
 }

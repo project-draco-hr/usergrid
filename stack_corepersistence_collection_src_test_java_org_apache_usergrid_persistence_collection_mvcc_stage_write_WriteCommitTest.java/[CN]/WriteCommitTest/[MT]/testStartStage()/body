@@ -12,7 +12,7 @@
   final MvccEntity mvccEntityInput=TestEntityGenerator.fromEntity(entity);
   final UniqueValueSerializationStrategy uniqueValueStrategy=mock(UniqueValueSerializationStrategy.class);
   WriteCommit newStage=new WriteCommit(logStrategy,mvccEntityStrategy,uniqueValueStrategy);
-  Entity result=newStage.call(new CollectionIoEvent<MvccEntity>(context,mvccEntityInput));
+  Entity result=newStage.call(new CollectionIoEvent<MvccEntity>(context,mvccEntityInput)).getEvent().getEntity().get();
   MvccLogEntry entry=logEntry.getValue();
   assertEquals("id correct",entity.getId(),entry.getEntityId());
   assertEquals("version was not correct",entity.getVersion(),entry.getVersion());

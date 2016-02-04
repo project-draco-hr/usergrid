@@ -1,2 +1,16 @@
 {
+  headEntity=em.validate(headEntity);
+  connectedEntityRef=em.validate(connectedEntityRef);
+  ConnectionRefImpl connection=new ConnectionRefImpl(headEntity,connectionType,connectedEntityRef);
+  if (logger.isTraceEnabled()) {
+    logger.trace("createConnection(): Indexing connection type '{}'\n   from source {}:{}]\n   to target {}:{}\n   app {}",connectionType,headEntity.getType(),headEntity.getUuid(),connectedEntityRef.getType(),connectedEntityRef.getUuid(),applicationScope);
+  }
+  final Id entityId=new SimpleId(connectedEntityRef.getUuid(),connectedEntityRef.getType());
+  final org.apache.usergrid.persistence.model.entity.Entity targetEntity=((CpEntityManager)em).load(entityId);
+  final Edge edge=createConnectionEdge(cpHeadEntity.getId(),connectionType,targetEntity.getId());
+  final GraphManager gm=managerCache.getGraphManager(applicationScope);
+  gm.writeEdge(edge).toBlocking().lastOrDefault(null);
+  indexService.queueNewEdge(applicationScope,targetEntity,edge);
+  removeDuplicateEdgesAsync(gm,edge);
+  return connection;
 }

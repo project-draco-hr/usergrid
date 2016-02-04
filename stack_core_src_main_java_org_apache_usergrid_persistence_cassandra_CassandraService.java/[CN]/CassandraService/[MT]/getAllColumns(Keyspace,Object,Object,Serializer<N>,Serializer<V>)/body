@@ -1,6 +1,6 @@
 {
-  if (db_logger.isInfoEnabled()) {
-    db_logger.info("getColumns cf={} key={}",columnFamily,key);
+  if (db_logger.isTraceEnabled()) {
+    db_logger.trace("getColumns cf={} key={}",columnFamily,key);
   }
   SliceQuery<ByteBuffer,N,V> q=createSliceQuery(ko,be,nameSerializer,valueSerializer);
   q.setColumnFamily(columnFamily.toString());
@@ -9,12 +9,12 @@
   QueryResult<ColumnSlice<N,V>> r=q.execute();
   ColumnSlice<N,V> slice=r.get();
   List<HColumn<N,V>> results=slice.getColumns();
-  if (db_logger.isInfoEnabled()) {
+  if (db_logger.isTraceEnabled()) {
     if (results == null) {
-      db_logger.info("getColumns returned null");
+      db_logger.trace("getColumns returned null");
     }
  else {
-      db_logger.info("getColumns returned {} columns",results.size());
+      db_logger.trace("getColumns returned {} columns",results.size());
     }
   }
   return results;

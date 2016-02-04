@@ -1,11 +1,15 @@
 {
-  logger.debug("UsersResource.executePost: body = " + body);
+  if (logger.isTraceEnabled()) {
+    logger.trace("UsersResource.executePost: body = {}",body);
+  }
   Object json=readJsonToObject(body);
   String password=null;
   String pin=null;
   Boolean confRequred=(Boolean)this.getServices().getEntityManager().getProperty(this.getServices().getApplicationRef(),"registration_requires_email_confirmation");
   boolean activated=!((confRequred != null) && confRequred);
-  logger.debug("Confirmation required: {} Activated: {}",confRequred,activated);
+  if (logger.isTraceEnabled()) {
+    logger.trace("Confirmation required: {} Activated: {}",confRequred,activated);
+  }
   if (json instanceof Map) {
     @SuppressWarnings("unchecked") Map<String,Object> map=(Map<String,Object>)json;
     password=(String)map.get("password");
@@ -24,7 +28,7 @@
       }
     }
   }
-  ApiResponse response=(ApiResponse)super.executePostWithObject(ui,json,callback);
+  ApiResponse response=super.executePostWithObject(ui,json,callback);
   if ((response.getEntities() != null) && (response.getEntities().size() == 1)) {
     Entity entity=response.getEntities().get(0);
     User user=(User)entity.toTypedEntity();

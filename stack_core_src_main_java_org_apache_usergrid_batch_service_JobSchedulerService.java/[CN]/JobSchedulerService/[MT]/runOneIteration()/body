@@ -5,29 +5,35 @@
   successCounter=metricsFactory.getCounter(JobSchedulerService.class,"scheduler.successful_jobs");
   failCounter=metricsFactory.getCounter(JobSchedulerService.class,"scheduler.failed_jobs");
   try {
-    LOG.info("Running one check iteration ...");
+    logger.info("Running one check iteration ...");
     List<JobDescriptor> activeJobs;
     while (true) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("About to acquire semaphore.  Capacity is {}",capacitySemaphore.availablePermits());
+      if (logger.isDebugEnabled()) {
+        logger.debug("About to acquire semaphore.  Capacity is {}",capacitySemaphore.availablePermits());
       }
       capacitySemaphore.acquire();
       capacitySemaphore.release();
       int capacity=capacitySemaphore.availablePermits();
-      LOG.debug("Capacity is {}",capacity);
+      if (logger.isDebugEnabled()) {
+        logger.debug("Capacity is {}",capacity);
+      }
       activeJobs=jobAccessor.getJobs(capacity);
       if (activeJobs.size() == 0) {
-        LOG.debug("No jobs returned. Exiting run loop");
+        if (logger.isDebugEnabled()) {
+          logger.debug("No jobs returned. Exiting run loop");
+        }
         return;
       }
       for (      JobDescriptor jd : activeJobs) {
-        LOG.info("Submitting work for {}",jd);
+        logger.info("Submitting work for {}",jd);
         submitWork(jd);
-        LOG.info("Work submitted for {}",jd);
+        logger.info("Work submitted for {}",jd);
       }
     }
   }
  catch (  Throwable t) {
-    LOG.debug("Scheduler run failed, error is",t);
+    if (logger.isDebugEnabled()) {
+      logger.debug("Scheduler run failed, error is",t);
+    }
   }
 }

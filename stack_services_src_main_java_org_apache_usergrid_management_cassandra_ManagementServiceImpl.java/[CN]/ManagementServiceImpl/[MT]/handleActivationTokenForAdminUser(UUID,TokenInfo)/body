@@ -1,0 +1,14 @@
+{
+  if (tokenInfo != null) {
+    AuthPrincipalInfo principal=tokenInfo.getPrincipal();
+    if ((principal != null) && userId.equals(principal.getUuid())) {
+      UUID workflowOrgId=tokenInfo.getWorkflowOrgId();
+      activateAdminUser(principal.getUuid());
+      UserInfo user=getAdminUserByUuid(principal.getUuid());
+      sendAdminUserActivatedEmail(user);
+      sendSysAdminNewAdminActivatedNotificationEmail(workflowOrgId,user);
+      return ActivationState.ACTIVATED;
+    }
+  }
+  return ActivationState.UNKNOWN;
+}

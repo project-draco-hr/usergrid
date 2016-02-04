@@ -4,12 +4,12 @@
     future=asyncTaskExecutor.submit(new ShardDeleteTask(applicationScope,directedEdgeMeta,shardEntryGroup,edgeIterator));
   }
  catch (  RejectedExecutionException ree) {
-    logger.error("Rejected shard delete check for group {}",edgeIterator);
+    logger.info("Rejected shard delete check for group {}",edgeIterator);
     return Futures.immediateFuture(DeleteResult.NOT_CHECKED);
   }
   Futures.addCallback(future,new FutureCallback<DeleteResult>(){
     @Override public void onSuccess(    @Nullable final ShardGroupDeletion.DeleteResult result){
-      logger.trace("Successfully completed delete of task {}",result);
+      if (logger.isTraceEnabled())       logger.trace("Successfully completed delete of task {}",result);
     }
     @Override public void onFailure(    final Throwable t){
       logger.error("Unable to perform shard delete audit.  Exception is ",t);

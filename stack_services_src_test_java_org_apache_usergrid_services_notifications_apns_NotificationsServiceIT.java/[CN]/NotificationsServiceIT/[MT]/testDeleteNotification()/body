@@ -1,0 +1,32 @@
+{
+  app.clear();
+  String payload=getPayload();
+  Map<String,String> payloads=new HashMap<String,String>(1);
+  payloads.put(notifier.getName(),payload);
+  app.put("payloads",payloads);
+  app.put("debug",true);
+  listener.stop();
+  Entity sentNotification=app.testRequest(ServiceAction.POST,1,"devices",device1.getUuid(),"notifications").getEntity();
+  try {
+    app.testRequest(ServiceAction.DELETE,1,"notifications",sentNotification.getUuid());
+  }
+ catch (  Exception e) {
+    assertEquals(e.getClass(),ForbiddenServiceOperationException.class);
+  }
+  listener.start();
+  app.clear();
+  app.put("payloads",payloads);
+  app.put("debug",true);
+  Entity sentNotification1=app.testRequest(ServiceAction.POST,1,"devices",device1.getUuid(),"notifications").getEntity();
+  Entity fetchedNotification=app.testRequest(ServiceAction.GET,1,"notifications",sentNotification1.getUuid()).getEntity();
+  Notification notification=app.getEntityManager().get(fetchedNotification.getUuid(),Notification.class);
+  notification=notificationWaitForComplete(notification);
+  try {
+    notification=app.getEntityManager().get(notification.getUuid(),Notification.class);
+    assertEquals(Notification.State.FINISHED,notification.getState());
+    app.testRequest(ServiceAction.DELETE,1,"notifications",notification.getUuid());
+  }
+ catch (  Exception e) {
+    fail("Delete should be successful after notification has finished.");
+  }
+}

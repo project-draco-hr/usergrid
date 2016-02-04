@@ -3,12 +3,14 @@
     if (entityRef.getType() == null) {
       entityRef=em.get(ownerEntityRef.getUuid());
     }
-    logger.debug("Creating connection from {}:{} to {}:{}",new Object[]{ownerEntityRef.getType(),ownerEntityRef.getUuid(),entityRef.getType(),entityRef.getUuid()});
+    if (logger.isTraceEnabled()) {
+      logger.trace("Creating connection from {}:{} to {}:{}",ownerEntityRef.getType(),ownerEntityRef.getUuid(),entityRef.getType(),entityRef.getUuid());
+    }
     em.createConnection(ownerEntityRef,connectionType,entityRef);
     tracker.connectionWritten();
   }
  catch (  Exception e) {
-    logger.error("Error writing connection. From file: " + fileImport.getFileName(),e);
+    logger.error("Error writing connection. From file: {}",fileImport.getFileName(),e);
     tracker.connectionFailed(e.getMessage() + " From file: " + fileImport.getFileName());
   }
 }
