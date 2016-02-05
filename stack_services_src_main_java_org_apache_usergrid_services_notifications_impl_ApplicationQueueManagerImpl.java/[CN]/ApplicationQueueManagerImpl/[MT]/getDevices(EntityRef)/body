@@ -1,16 +1,27 @@
 {
   List<EntityRef> devices=Collections.EMPTY_LIST;
-  if ("device".equals(ref.getType())) {
-    devices=Collections.singletonList(ref);
-  }
- else   if ("user".equals(ref.getType())) {
-    devices=em.getCollection(ref,"devices",null,Query.MAX_LIMIT,Query.Level.REFS,false).getRefs();
-  }
- else   if ("group".equals(ref.getType())) {
-    devices=new ArrayList<EntityRef>();
-    for (    EntityRef r : em.getCollection(ref,"users",null,Query.MAX_LIMIT,Query.Level.REFS,false).getRefs()) {
-      devices.addAll(getDevices(r));
+  try {
+    if ("device".equals(ref.getType())) {
+      devices=Collections.singletonList(ref);
     }
+ else     if ("user".equals(ref.getType())) {
+      devices=em.getCollection(ref,"devices",null,Query.MAX_LIMIT,Query.Level.REFS,false).getRefs();
+    }
+ else     if ("group".equals(ref.getType())) {
+      devices=new ArrayList<>();
+      for (      EntityRef r : em.getCollection(ref,"users",null,Query.MAX_LIMIT,Query.Level.REFS,false).getRefs()) {
+        devices.addAll(getDevices(r));
+      }
+    }
+  }
+ catch (  Exception e) {
+    if (ref != null) {
+      logger.error("Error while retrieving devices for entity type {} and uuid {}. Error: {}",ref.getType(),ref.getUuid(),e);
+    }
+ else {
+      logger.error("Error while retrieving devices. Entity ref was null.");
+    }
+    throw new RuntimeException("Unable to retrieve devices for EntityRef",e);
   }
   return devices;
 }
