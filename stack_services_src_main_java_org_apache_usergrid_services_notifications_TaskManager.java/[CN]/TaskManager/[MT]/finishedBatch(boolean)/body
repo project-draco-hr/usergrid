@@ -1,0 +1,18 @@
+{
+  long successes=this.successes.get();
+  long failures=this.failures.get();
+  for (int i=0; i < successes; i++) {
+    this.successes.decrementAndGet();
+  }
+  for (int i=0; i < failures; i++) {
+    this.failures.decrementAndGet();
+  }
+  this.hasFinished=true;
+  if (refreshNotification) {
+    notification=em.get(this.notification.getUuid(),Notification.class);
+  }
+  notification.updateStatistics(successes,failures);
+  notification.setModified(System.currentTimeMillis());
+  notification.setFinished(notification.getModified());
+  em.update(notification);
+}
