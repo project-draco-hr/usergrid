@@ -1,0 +1,11 @@
+{
+  Session clusterSession=dataStaxCluster.getClusterSession();
+  final String createApplicationKeyspace=String.format("CREATE KEYSPACE IF NOT EXISTS \"%s\" WITH replication = %s",cassandraFig.getApplicationKeyspace(),CQLUtils.getFormattedReplication(cassandraFig.getStrategy(),cassandraFig.getStrategyOptions()));
+  final String updateApplicationKeyspace=String.format("ALTER KEYSPACE \"%s\" WITH replication = %s",cassandraFig.getApplicationKeyspace(),CQLUtils.getFormattedReplication(cassandraFig.getStrategy(),cassandraFig.getStrategyOptions()));
+  logger.info("Creating application keyspace with the following CQL: {}",createApplicationKeyspace);
+  clusterSession.execute(createApplicationKeyspace);
+  logger.info("Updating application keyspace with the following CQL: {}",updateApplicationKeyspace);
+  clusterSession.execute(updateApplicationKeyspace);
+  clusterSession.close();
+  waitForSchemaAgreement();
+}
