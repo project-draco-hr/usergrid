@@ -1,0 +1,27 @@
+{
+  List<Object> keys=new ArrayList<>(4);
+  keys.add(0,ownerUUID);
+  keys.add(1,ownerType);
+  keys.add(2,mapName);
+  keys.add(3,mapKey);
+  if (bucketNumber > 0) {
+    keys.add(4,bucketNumber);
+  }
+  int size=16 + ownerType.length() + mapName.length()+ mapKey.length();
+  if (bucketNumber > 0) {
+    size+=4;
+  }
+  size+=keys.size() * 3;
+  ByteBuffer stuff=ByteBuffer.allocate(size);
+  for (  Object key : keys) {
+    ByteBuffer kb=DataType.serializeValue(key,ProtocolVersion.NEWEST_SUPPORTED);
+    if (kb == null) {
+      kb=ByteBuffer.allocate(0);
+    }
+    stuff.putShort((short)kb.remaining());
+    stuff.put(kb.slice());
+    stuff.put((byte)0);
+  }
+  stuff.flip();
+  return stuff.duplicate();
+}

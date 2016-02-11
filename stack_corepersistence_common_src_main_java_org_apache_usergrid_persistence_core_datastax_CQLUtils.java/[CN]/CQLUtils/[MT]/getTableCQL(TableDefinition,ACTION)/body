@@ -1,2 +1,25 @@
 {
+  StringJoiner cql=new StringJoiner(" ");
+  if (tableAction.equals(ACTION.CREATE)) {
+    cql.add(CREATE_TABLE);
+  }
+ else   if (tableAction.equals(ACTION.UPDATE)) {
+    cql.add(ALTER_TABLE);
+  }
+ else {
+    throw new Exception("Invalid Action specified.  Must of of type CQLUtils.Action");
+  }
+  cql.add(quote(tableDefinition.getTableName()));
+  if (tableAction.equals(ACTION.CREATE)) {
+    cql.add(PAREN_LEFT).add(spaceSeparatedKeyValue(tableDefinition.getColumns())).add(COMMA).add(PRIMARY_KEY).add(PAREN_LEFT).add(PAREN_LEFT).add(StringUtils.join(tableDefinition.getPartitionKeys(),COMMA)).add(PAREN_RIGHT);
+    if (tableDefinition.getColumnKeys() != null && !tableDefinition.getColumnKeys().isEmpty()) {
+      cql.add(COMMA).add(StringUtils.join(tableDefinition.getColumnKeys(),COMMA));
+    }
+    cql.add(PAREN_RIGHT).add(PAREN_RIGHT).add(WITH).add(CLUSTERING_ORDER_BY).add(PAREN_LEFT).add(spaceSeparatedKeyValue(tableDefinition.getClusteringOrder())).add(PAREN_RIGHT).add(AND).add(COMPACT_STORAGE).add(AND);
+  }
+ else   if (tableAction.equals(ACTION.UPDATE)) {
+    cql.add(WITH);
+  }
+  cql.add(COMPACTION).add(EQUAL).add(getMapAsCQLString(tableDefinition.getCompaction())).add(AND).add(COMPRESSION).add(EQUAL).add(getMapAsCQLString(tableDefinition.getCompression())).add(AND).add(GC_GRACE_SECONDS).add(EQUAL).add(tableDefinition.getGcGraceSeconds());
+  return cql.toString();
 }

@@ -1,0 +1,20 @@
+{
+  Preconditions.checkNotNull(scope,"mapscope is required");
+  Preconditions.checkNotNull(key,"key is required");
+  Preconditions.checkNotNull(value,"value is required");
+  Statement mapEntry;
+  Statement mapKey;
+  if (ttl > 0) {
+    Using timeToLive=QueryBuilder.ttl(ttl);
+    mapEntry=QueryBuilder.insertInto(MAP_ENTRIES_TABLE).using(timeToLive).value("key",getMapEntryPartitionKey(scope,key)).value("column1",DataType.cboolean().serialize(true,ProtocolVersion.NEWEST_SUPPORTED)).value("value",DataType.text().serialize(value,ProtocolVersion.NEWEST_SUPPORTED));
+    final int bucket=BUCKET_LOCATOR.getCurrentBucket(key);
+    mapKey=QueryBuilder.insertInto(MAP_KEYS_TABLE).using(timeToLive).value("key",getMapKeyPartitionKey(scope,key,bucket)).value("column1",DataType.cboolean().serialize(true,ProtocolVersion.NEWEST_SUPPORTED)).value("value",DataType.text().serialize(value,ProtocolVersion.NEWEST_SUPPORTED));
+  }
+ else {
+    mapEntry=QueryBuilder.insertInto(MAP_ENTRIES_TABLE).value("key",getMapEntryPartitionKey(scope,key)).value("column1",DataType.cboolean().serialize(true,ProtocolVersion.NEWEST_SUPPORTED)).value("value",DataType.text().serialize(value,ProtocolVersion.NEWEST_SUPPORTED));
+    final int bucket=BUCKET_LOCATOR.getCurrentBucket(key);
+    mapKey=QueryBuilder.insertInto(MAP_KEYS_TABLE).value("key",getMapKeyPartitionKey(scope,key,bucket)).value("column1",DataType.cboolean().serialize(true,ProtocolVersion.NEWEST_SUPPORTED)).value("value",DataType.text().serialize(value,ProtocolVersion.NEWEST_SUPPORTED));
+  }
+  session.execute(mapEntry);
+  session.execute(mapKey);
+}
