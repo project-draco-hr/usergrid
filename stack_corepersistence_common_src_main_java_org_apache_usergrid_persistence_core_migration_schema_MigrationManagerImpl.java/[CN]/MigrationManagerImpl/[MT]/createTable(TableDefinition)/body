@@ -1,0 +1,10 @@
+{
+  logger.info("Creating, if not exists, table: {}",tableDefinition.getTableName());
+  String CQL=CQLUtils.getTableCQL(tableDefinition,CQLUtils.ACTION.CREATE);
+  logger.info(CQL);
+  if (logger.isDebugEnabled()) {
+    logger.debug(CQL);
+  }
+  dataStaxCluster.getApplicationSession().execute(CQL);
+  waitForSchemaAgreement();
+}
