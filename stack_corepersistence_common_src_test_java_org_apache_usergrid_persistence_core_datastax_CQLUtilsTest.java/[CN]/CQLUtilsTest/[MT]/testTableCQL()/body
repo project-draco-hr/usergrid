@@ -1,19 +1,19 @@
 {
-  Map<String,String> columns=new HashMap<>();
-  columns.put("key","blob");
-  columns.put("column1","text");
-  columns.put("value","blob");
+  Map<String,DataType.Name> columns=new HashMap<>();
+  columns.put("key",DataType.Name.BLOB);
+  columns.put("column1",DataType.Name.TEXT);
+  columns.put("value",DataType.Name.BLOB);
   List<String> partitionKeys=new ArrayList<>();
   partitionKeys.add("key");
   List<String> columnKeys=new ArrayList<>();
   columnKeys.add("column1");
   Map<String,String> clusteringOrder=new HashMap<>();
   clusteringOrder.put("column1","DESC");
-  TableDefinition table1=new TableDefinition("table1",partitionKeys,columnKeys,columns,TableDefinition.CacheOption.KEYS,clusteringOrder);
+  TableDefinition table1=new TableDefinition(CQLUtils.quote("table1"),partitionKeys,columnKeys,columns,TableDefinition.CacheOption.KEYS,clusteringOrder);
   String createCQL=CQLUtils.getTableCQL(table1,CQLUtils.ACTION.CREATE);
   String updateCQL=CQLUtils.getTableCQL(table1,CQLUtils.ACTION.UPDATE);
-  assertTrue(createCQL.contains(CQLUtils.CREATE_TABLE) && !createCQL.contains(CQLUtils.ALTER_TABLE));
-  assertTrue(updateCQL.contains(CQLUtils.ALTER_TABLE) && !updateCQL.contains(CQLUtils.CREATE_TABLE));
-  logger.info("CREATE: {}",createCQL);
-  logger.info("UPDATE: {}",updateCQL);
+  assertTrue(createCQL.contains(CQLUtils.CREATE_TABLE) && !createCQL.contains(CQLUtils.ALTER_TABLE) && createCQL.contains(DataType.Name.BLOB.toString())&& createCQL.contains(DataType.Name.TEXT.toString()));
+  assertTrue(updateCQL.contains(CQLUtils.ALTER_TABLE) && !updateCQL.contains(CQLUtils.CREATE_TABLE) && !updateCQL.contains(DataType.Name.BLOB.toString())&& !updateCQL.contains(DataType.Name.TEXT.toString()));
+  logger.info(createCQL);
+  logger.info(updateCQL);
 }

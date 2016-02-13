@@ -1,0 +1,24 @@
+{
+  ConsistencyLevel defaultConsistencyLevel;
+  try {
+    defaultConsistencyLevel=ConsistencyLevel.valueOf(cassandraFig.getReadCl());
+  }
+ catch (  IllegalArgumentException e) {
+    logger.error("Unable to parse provided consistency level in property: {}, defaulting to: {}",CassandraFig.READ_CL,ConsistencyLevel.LOCAL_QUORUM);
+    defaultConsistencyLevel=ConsistencyLevel.LOCAL_QUORUM;
+  }
+  LoadBalancingPolicy loadBalancingPolicy;
+  if (!cassandraFig.getLocalDataCenter().isEmpty()) {
+    loadBalancingPolicy=new DCAwareRoundRobinPolicy.Builder().withLocalDc(cassandraFig.getLocalDataCenter()).build();
+  }
+ else {
+    loadBalancingPolicy=new DCAwareRoundRobinPolicy.Builder().build();
+  }
+  final PoolingOptions poolingOptions=new PoolingOptions().setCoreConnectionsPerHost(HostDistance.LOCAL,cassandraFig.getConnections() / 2).setMaxConnectionsPerHost(HostDistance.LOCAL,cassandraFig.getConnections()).setIdleTimeoutSeconds(cassandraFig.getTimeout() / 1000).setPoolTimeoutMillis(cassandraFig.getPoolTimeout());
+  final QueryOptions queryOptions=new QueryOptions().setConsistencyLevel(defaultConsistencyLevel);
+  Cluster.Builder datastaxCluster=Cluster.builder().withClusterName(cassandraFig.getClusterName()).addContactPoints(cassandraFig.getHosts().split(",")).withCompression(ProtocolOptions.Compression.LZ4).withLoadBalancingPolicy(loadBalancingPolicy).withPoolingOptions(poolingOptions).withQueryOptions(queryOptions).withProtocolVersion(ProtocolVersion.NEWEST_SUPPORTED);
+  if (!cassandraFig.getUsername().isEmpty() && !cassandraFig.getPassword().isEmpty()) {
+    datastaxCluster.withCredentials(cassandraFig.getUsername(),cassandraFig.getPassword());
+  }
+  return datastaxCluster.build();
+}
