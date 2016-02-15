@@ -1,4 +1,6 @@
 {
+  final CassandraFig cassandraFig=mock(CassandraFig.class);
+  when(cassandraFig.getVersion()).thenReturn("2.0");
   Map<String,DataType.Name> columns=new HashMap<>();
   columns.put("key",DataType.Name.BLOB);
   columns.put("column1",DataType.Name.TEXT);
@@ -11,9 +13,6 @@
   clusteringOrder.put("column1","DESC");
   TableDefinition table1=new TableDefinition(CQLUtils.quote("table1"),partitionKeys,columnKeys,columns,TableDefinition.CacheOption.KEYS,clusteringOrder);
   String createCQL=CQLUtils.getTableCQL(cassandraFig,table1,CQLUtils.ACTION.CREATE);
-  String updateCQL=CQLUtils.getTableCQL(cassandraFig,table1,CQLUtils.ACTION.UPDATE);
-  assertTrue(createCQL.contains(CQLUtils.CREATE_TABLE) && !createCQL.contains(CQLUtils.ALTER_TABLE) && createCQL.contains(DataType.Name.BLOB.toString())&& createCQL.contains(DataType.Name.TEXT.toString()));
-  assertTrue(updateCQL.contains(CQLUtils.ALTER_TABLE) && !updateCQL.contains(CQLUtils.CREATE_TABLE) && !updateCQL.contains(DataType.Name.BLOB.toString())&& !updateCQL.contains(DataType.Name.TEXT.toString()));
   logger.info(createCQL);
-  logger.info(updateCQL);
+  assertTrue(createCQL.contains("\"keys_only\"") && !createCQL.contains("'keys':'ALL'"));
 }
