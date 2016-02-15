@@ -16,7 +16,7 @@
   }
   final PoolingOptions poolingOptions=new PoolingOptions().setCoreConnectionsPerHost(HostDistance.LOCAL,cassandraFig.getConnections() / 2).setMaxConnectionsPerHost(HostDistance.LOCAL,cassandraFig.getConnections()).setIdleTimeoutSeconds(cassandraFig.getTimeout() / 1000).setPoolTimeoutMillis(cassandraFig.getPoolTimeout());
   final QueryOptions queryOptions=new QueryOptions().setConsistencyLevel(defaultConsistencyLevel);
-  Cluster.Builder datastaxCluster=Cluster.builder().withClusterName(cassandraFig.getClusterName()).addContactPoints(cassandraFig.getHosts().split(",")).withCompression(ProtocolOptions.Compression.LZ4).withLoadBalancingPolicy(loadBalancingPolicy).withPoolingOptions(poolingOptions).withQueryOptions(queryOptions).withProtocolVersion(ProtocolVersion.NEWEST_SUPPORTED);
+  Cluster.Builder datastaxCluster=Cluster.builder().withClusterName(cassandraFig.getClusterName()).addContactPoints(cassandraFig.getHosts().split(",")).withCompression(ProtocolOptions.Compression.LZ4).withLoadBalancingPolicy(loadBalancingPolicy).withPoolingOptions(poolingOptions).withQueryOptions(queryOptions).withProtocolVersion(getProtocolVersion(cassandraFig.getVersion()));
   if (!cassandraFig.getUsername().isEmpty() && !cassandraFig.getPassword().isEmpty()) {
     datastaxCluster.withCredentials(cassandraFig.getUsername(),cassandraFig.getPassword());
   }
