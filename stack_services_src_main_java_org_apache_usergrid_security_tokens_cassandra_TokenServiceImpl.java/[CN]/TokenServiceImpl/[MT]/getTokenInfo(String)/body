@@ -1,11 +1,12 @@
 {
   UUID uuid=getUUIDForToken(token);
+  long ssoTtl=1000000L;
   if (uuid == null) {
-    return null;
+    return isSSOEnabled() ? validateExternalToken(token,ssoTtl) : null;
   }
   TokenInfo tokenInfo=getTokenInfo(uuid);
   if (tokenInfo == null) {
-    return null;
+    return isSSOEnabled() ? validateExternalToken(token,ssoTtl) : null;
   }
   long now=currentTimeMillis();
   long maxTokenTtl=getMaxTtl(TokenCategory.getFromBase64String(token),tokenInfo.getPrincipal());
