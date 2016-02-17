@@ -3,9 +3,17 @@
   if (uuid == null) {
     return null;
   }
-  TokenInfo tokenInfo=getTokenInfo(uuid);
-  if (tokenInfo == null) {
-    return isSSOEnabled() ? validateExternalToken(token,maxPersistenceTokenAge) : null;
+  TokenInfo tokenInfo;
+  try {
+    tokenInfo=getTokenInfo(uuid);
+  }
+ catch (  InvalidTokenException e) {
+    if (isSSOEnabled()) {
+      return validateExternalToken(token,maxPersistenceTokenAge);
+    }
+ else {
+      throw e;
+    }
   }
   long now=currentTimeMillis();
   long maxTokenTtl=getMaxTtl(TokenCategory.getFromBase64String(token),tokenInfo.getPrincipal());
