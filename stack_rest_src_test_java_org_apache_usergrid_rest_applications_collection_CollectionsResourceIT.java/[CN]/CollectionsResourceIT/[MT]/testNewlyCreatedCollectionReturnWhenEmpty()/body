@@ -1,0 +1,14 @@
+{
+  String collectionName="testDefaultCollectionReturnings";
+  Map<String,Object> payload=new HashMap();
+  payload.put("hello","test");
+  ApiResponse testEntity=this.app().collection(collectionName).post(payload);
+  ApiResponse usersDefaultCollection=this.app().get();
+  LinkedHashMap collectionHashMap=(LinkedHashMap)usersDefaultCollection.getEntity().get("metadata");
+  assertNotSame(null,((LinkedHashMap)(collectionHashMap.get("collections"))).get(collectionName.toLowerCase()));
+  this.refreshIndex();
+  this.app().collection(collectionName).entity(testEntity.getEntity().getUuid()).delete();
+  usersDefaultCollection=this.app().get();
+  collectionHashMap=(LinkedHashMap)usersDefaultCollection.getEntity().get("metadata");
+  assertNotSame(null,((LinkedHashMap)(collectionHashMap.get("collections"))).get(collectionName));
+}
