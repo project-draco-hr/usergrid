@@ -1,24 +1,11 @@
 {
-  String nameProperty=Schema.getDefaultSchema().aliasProperty(getEntityType());
-  if (nameProperty == null) {
-    nameProperty="name";
-  }
-  Entity entity=em.getUniqueEntityFromAlias(getEntityType(),name);
-  if (entity == null) {
+  UUID entityId=em.getUniqueIdFromAlias(getEntityType(),name);
+  if (entityId == null) {
     if (logger.isTraceEnabled()) {
       logger.trace("miss on entityType: {} with name: {}",getEntityType(),name);
     }
     String msg="Cannot find entity with name: " + name;
     throw new EntityNotFoundException(msg);
   }
-  if (!em.isCollectionMember(context.getOwner(),context.getCollectionName(),entity)) {
-    logger.info("Someone tried to GET entity {} they don't own. Entity name {} with owner {}",getEntityType(),name,context.getOwner());
-    throw new ServiceResourceNotFoundException(context);
-  }
-  if (!context.moreParameters()) {
-    entity=importEntity(context,entity);
-  }
-  checkPermissionsForEntity(context,entity);
-  List<ServiceRequest> nextRequests=context.getNextServiceRequests(entity);
-  return new ServiceResults(this,context,Type.COLLECTION,Results.fromRef(entity),null,nextRequests);
+  return getItemById(context,entityId,false);
 }
