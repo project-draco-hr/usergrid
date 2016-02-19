@@ -8,7 +8,10 @@
   assertNotSame(null,((LinkedHashMap)(collectionHashMap.get("collections"))).get(collectionName.toLowerCase()));
   this.refreshIndex();
   this.app().collection(collectionName).entity(testEntity.getEntity().getUuid()).delete();
+  this.refreshIndex();
   usersDefaultCollection=this.app().get();
   collectionHashMap=(LinkedHashMap)usersDefaultCollection.getEntity().get("metadata");
-  assertNotSame(null,((LinkedHashMap)(collectionHashMap.get("collections"))).get(collectionName));
+  assertNotSame(null,((LinkedHashMap)(collectionHashMap.get("collections"))).get(collectionName.toLowerCase()));
+  Collection createdCollectionResponse=this.app().collection(collectionName).get();
+  assertEquals(0,createdCollectionResponse.getNumOfEntities());
 }
