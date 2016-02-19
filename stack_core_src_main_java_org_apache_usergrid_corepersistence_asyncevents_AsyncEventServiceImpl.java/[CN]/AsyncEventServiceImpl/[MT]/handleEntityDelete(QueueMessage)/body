@@ -1,0 +1,15 @@
+{
+  Preconditions.checkNotNull(message,"Queue Message cannot be null for handleEntityDelete");
+  final AsyncEvent event=(AsyncEvent)message.getBody();
+  Preconditions.checkNotNull(message,"QueueMessage Body cannot be null for handleEntityDelete");
+  Preconditions.checkArgument(event instanceof EntityDeleteEvent,String.format("Event Type for handleEntityDelete must be ENTITY_DELETE, got %s",event.getClass()));
+  final EntityDeleteEvent entityDeleteEvent=(EntityDeleteEvent)event;
+  final ApplicationScope applicationScope=entityDeleteEvent.getEntityIdScope().getApplicationScope();
+  final Id entityId=entityDeleteEvent.getEntityIdScope().getId();
+  if (logger.isDebugEnabled())   logger.debug("Deleting entity id from index in app scope {} with entityId {}",applicationScope,entityId);
+  final EventBuilderImpl.EntityDeleteResults entityDeleteResults=eventBuilder.buildEntityDelete(applicationScope,entityId);
+  entityDeleteResults.getEntitiesDeleted().toBlocking().lastOrDefault(null);
+  entityDeleteResults.getCompactedNode().toBlocking().lastOrDefault(null);
+  IndexOperationMessage indexMessage=entityDeleteResults.getIndexObservable().toBlocking().lastOrDefault(null);
+  queueIndexOperationMessage(indexMessage);
+}
