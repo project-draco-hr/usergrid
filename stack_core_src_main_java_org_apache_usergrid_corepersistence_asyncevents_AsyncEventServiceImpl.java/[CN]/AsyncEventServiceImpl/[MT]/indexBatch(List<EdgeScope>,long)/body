@@ -1,7 +1,11 @@
 {
-  List batch=new ArrayList<EdgeScope>();
+  IndexOperationMessage batch=new IndexOperationMessage();
   for (  EdgeScope e : edges) {
-    batch.add(new EntityIndexEvent(queueFig.getPrimaryRegion(),new EntityIdScope(e.getApplicationScope(),e.getEdge().getTargetNode()),updatedSince));
+    EntityIndexOperation entityIndexOperation=new EntityIndexOperation(e.getApplicationScope(),e.getEdge().getTargetNode(),updatedSince);
+    IndexOperationMessage indexOperationMessage=eventBuilder.buildEntityIndex(entityIndexOperation).toBlocking().lastOrDefault(null);
+    if (indexOperationMessage != null) {
+      batch.ingest(indexOperationMessage);
+    }
   }
-  offerBatch(batch);
+  queueIndexOperationMessage(batch);
 }
