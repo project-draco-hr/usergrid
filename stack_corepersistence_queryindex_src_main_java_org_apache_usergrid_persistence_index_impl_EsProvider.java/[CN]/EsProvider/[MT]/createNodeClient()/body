@@ -3,7 +3,12 @@
   final String nodeName=indexFig.getNodeName();
   final int port=indexFig.getPort();
   final StringBuffer hosts=new StringBuffer();
-  for (  String host : indexFig.getHosts().split(",")) {
+  String finalHosts=indexFig.getPfcHosts();
+  if (finalHosts == null || finalHosts.isEmpty() || finalHosts.equalsIgnoreCase(IndexFig.VALIDATION_DEFAULT_VALUE)) {
+    finalHosts=indexFig.getHosts();
+  }
+  logger.info("Elasticsearch hosts used: {}",finalHosts);
+  for (  String host : finalHosts.split(",")) {
     hosts.append(host).append(":").append(port).append(",");
   }
   hosts.deleteCharAt(hosts.length() - 1);

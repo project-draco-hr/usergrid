@@ -14,7 +14,12 @@
   }
   settings.put("node.name",nodeName);
   TransportClient transportClient=new TransportClient(settings.build());
-  for (  String host : indexFig.getHosts().split(",")) {
+  String finalHosts=indexFig.getPfcHosts();
+  if (finalHosts == null || finalHosts.isEmpty() || finalHosts.equalsIgnoreCase(IndexFig.VALIDATION_DEFAULT_VALUE)) {
+    finalHosts=indexFig.getHosts();
+  }
+  logger.info("Elasticsearch hosts used: {}",finalHosts);
+  for (  String host : finalHosts.split(",")) {
     transportClient.addTransportAddress(new InetSocketTransportAddress(host,port));
   }
   return transportClient;
