@@ -1,0 +1,26 @@
+{
+  this.indexProducer=indexProducer;
+  this.entityCollectionManagerFactory=entityCollectionManagerFactory;
+  this.indexLocationStrategyFactory=indexLocationStrategyFactory;
+  this.entityIndexFactory=entityIndexFactory;
+  this.eventBuilder=eventBuilder;
+  final MapScope mapScope=new MapScopeImpl(CpNamingUtils.getManagementApplicationId(),"indexEvents");
+  this.esMapPersistence=mapManagerFactory.createMapManager(mapScope);
+  this.rxTaskScheduler=rxTaskScheduler;
+  QueueScope queueScope=new QueueScopeImpl(QUEUE_NAME,QueueScope.RegionImplementation.ALL);
+  this.queue=queueManagerFactory.getQueueManager(queueScope);
+  this.indexProcessorFig=indexProcessorFig;
+  this.queueFig=queueFig;
+  this.writeTimer=metricsFactory.getTimer(AsyncEventServiceImpl.class,"async_event.write");
+  this.readTimer=metricsFactory.getTimer(AsyncEventServiceImpl.class,"async_event.read");
+  this.ackTimer=metricsFactory.getTimer(AsyncEventServiceImpl.class,"async_event.ack");
+  this.indexErrorCounter=metricsFactory.getCounter(AsyncEventServiceImpl.class,"async_event.error");
+  this.messageCycle=metricsFactory.getHistogram(AsyncEventServiceImpl.class,"async_event.message_cycle");
+  metricsFactory.addGauge(AsyncEventServiceImpl.class,"async-event.inflight",new Gauge<Long>(){
+    @Override public Long getValue(){
+      return inFlight.longValue();
+    }
+  }
+);
+  start();
+}

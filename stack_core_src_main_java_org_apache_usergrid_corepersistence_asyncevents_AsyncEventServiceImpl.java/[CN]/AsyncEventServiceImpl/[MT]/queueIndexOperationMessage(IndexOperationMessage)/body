@@ -1,0 +1,11 @@
+{
+  if (indexOperationMessage == null || indexOperationMessage.isEmpty()) {
+    return;
+  }
+  final String jsonValue=ObjectJsonSerializer.INSTANCE.toString(indexOperationMessage);
+  final UUID newMessageId=UUIDGenerator.newTimeUUID();
+  final int expirationTimeInSeconds=(int)TimeUnit.MILLISECONDS.toSeconds(indexProcessorFig.getIndexMessageTtl());
+  esMapPersistence.putString(newMessageId.toString(),jsonValue,expirationTimeInSeconds);
+  final ElasticsearchIndexEvent elasticsearchIndexEvent=new ElasticsearchIndexEvent(queueFig.getPrimaryRegion(),newMessageId);
+  offerTopic(elasticsearchIndexEvent);
+}
