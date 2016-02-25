@@ -6,7 +6,7 @@
   UUID appToDeleteId=createAppWithCollection(orgName,appToDeleteName,orgAdminToken,entities);
   final Response response=clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).request().delete();
   Assert.assertEquals("Error must be 400",400,response.getStatus());
-  clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("app_delete_confirm","confirm_delete_of_application_and_data").request().delete();
+  clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("application_identifier",appToDeleteId).request().delete();
   try {
     clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteName).getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).request().get(ApiResponse.class);
     fail("Must not be able to get deleted app");
@@ -51,7 +51,7 @@
       fail("Deleted app must not be included in list of org apps");
     }
   }
-  final Response response1=clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("app_delete_confirm","confirm_delete_of_application_and_data").request().delete();
+  final Response response1=clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam("application_identifier",appToDeleteId).request().delete();
   Assert.assertEquals("Error must be 404",404,response1.getStatus());
   ApiResponse appCreateAgainResponse=clientSetup.getRestClient().management().orgs().org(orgName).app().getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).request().post(javax.ws.rs.client.Entity.json(new Application(appToDeleteName)),ApiResponse.class);
   Assert.assertEquals("Must be able to create app with same name as deleted app",(orgName + "/" + appToDeleteName).toLowerCase(),appCreateAgainResponse.getEntities().get(0).get("name"));

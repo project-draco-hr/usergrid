@@ -1,0 +1,13 @@
+{
+  Organization newOrg=createOrgPayload("updateManagementUserNoToken",null);
+  Organization orgReturned=clientSetup.getRestClient().management().orgs().post(newOrg);
+  assertNotNull(orgReturned.getOwner());
+  Entity userProperty=new Entity().chainPut("company","usergrid");
+  try {
+    management().users().user(newOrg.getUsername()).put(userProperty);
+  }
+ catch (  UniformInterfaceException e) {
+    int status=e.getResponse().getStatus();
+    assertEquals(401,status);
+  }
+}
