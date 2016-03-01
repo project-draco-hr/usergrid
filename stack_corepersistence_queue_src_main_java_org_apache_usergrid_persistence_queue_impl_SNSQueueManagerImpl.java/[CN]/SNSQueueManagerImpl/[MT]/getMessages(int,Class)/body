@@ -9,8 +9,8 @@
   }
   ReceiveMessageRequest receiveMessageRequest=new ReceiveMessageRequest(url);
   receiveMessageRequest.setMaxNumberOfMessages(limit);
-  receiveMessageRequest.setVisibilityTimeout(Math.max(1,fig.getVisibilityTimeout() / 1000));
-  receiveMessageRequest.setWaitTimeSeconds(Math.max(0,(fig.getQueueClientSocketTimeout() - 3000) / 1000));
+  receiveMessageRequest.setVisibilityTimeout(Math.max(MIN_VISIBILITY_TIMEOUT,fig.getVisibilityTimeout() / 1000));
+  receiveMessageRequest.setWaitTimeSeconds(Math.max(0,(fig.getQueueClientSocketTimeout() - fig.getQueuePollTimeshift()) / 1000));
   try {
     ReceiveMessageResult result=sqs.receiveMessage(receiveMessageRequest);
     List<Message> messages=result.getMessages();
