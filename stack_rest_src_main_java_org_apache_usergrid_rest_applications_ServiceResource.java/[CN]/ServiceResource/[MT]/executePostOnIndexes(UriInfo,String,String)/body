@@ -1,0 +1,19 @@
+{
+  if (logger.isTraceEnabled()) {
+    logger.trace("ServiceResource.executePostOnIndexes");
+  }
+  Object json;
+  if (StringUtils.isEmpty(body)) {
+    json=null;
+  }
+ else {
+    json=readJsonToObject(body);
+  }
+  ApiResponse response=createApiResponse();
+  response.setAction("post");
+  response.setApplication(services.getApplication());
+  response.setParams(ui.getQueryParameters());
+  ServicePayload payload=getPayload(json);
+  executeServiceRequestForSchema(ui,response,ServiceAction.SCHEMA,payload);
+  return response;
+}
