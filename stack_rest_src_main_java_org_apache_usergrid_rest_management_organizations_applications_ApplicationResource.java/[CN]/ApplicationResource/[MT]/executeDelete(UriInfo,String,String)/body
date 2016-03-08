@@ -1,14 +1,14 @@
 {
+  if (application == null && applicationId == null) {
+    throw new IllegalArgumentException("Application ID not specified in request");
+  }
   if (application == null) {
-    if (!applicationId.toString().equals(applicationConfirmedDelete)) {
+    if (!applicationId.toString().equals(confirmApplicationIdentifier)) {
       throw new IllegalArgumentException("Cannot delete application without supplying correct application id.");
     }
   }
- else   if (!application.getName().equals(applicationConfirmedDelete)) {
+ else   if (!application.getName().split("/")[1].equals(confirmApplicationIdentifier)) {
     throw new IllegalArgumentException("Cannot delete application without supplying correct application name");
-  }
-  if (applicationId == null) {
-    throw new IllegalArgumentException("Application ID not specified in request");
   }
   management.deleteApplication(applicationId);
   if (logger.isTraceEnabled()) {
