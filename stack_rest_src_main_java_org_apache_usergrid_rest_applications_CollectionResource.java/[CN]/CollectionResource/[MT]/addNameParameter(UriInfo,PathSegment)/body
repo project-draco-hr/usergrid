@@ -1,0 +1,17 @@
+{
+  if (logger.isTraceEnabled()) {
+    logger.trace("ServiceResource.addNameParameter");
+    logger.trace("Current segment is {}",itemName.getPath());
+  }
+  if (itemName.getPath().startsWith("{")) {
+    Query query=Query.fromJsonString(itemName.getPath());
+    if (query != null) {
+      ServiceParameter.addParameter(getServiceParameters(),query);
+    }
+  }
+ else {
+    ServiceParameter.addParameter(getServiceParameters(),itemName.getPath());
+  }
+  addMatrixParams(getServiceParameters(),ui,itemName);
+  return getSubResource(CollectionResource.class);
+}

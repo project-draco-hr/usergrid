@@ -1,0 +1,10 @@
+{
+  setServiceManager(serviceRequest.getServices());
+  ServiceContext context=serviceRequest.getAppContext();
+  context.setAction(ServiceAction.POST);
+  checkPermissionsForCollection(context);
+  Subject currentUser=SubjectUtils.getSubject();
+  Object currentUser2=currentUser.getPrincipal();
+  Map collectionSchema=em.createCollectionSchema(context.getCollectionName(),((AdminUserPrincipal)currentUser2).getUser().getEmail(),context.getProperties());
+  return new ServiceResults(this,context,Type.COLLECTION,Results.fromData(collectionSchema),null,null);
+}
