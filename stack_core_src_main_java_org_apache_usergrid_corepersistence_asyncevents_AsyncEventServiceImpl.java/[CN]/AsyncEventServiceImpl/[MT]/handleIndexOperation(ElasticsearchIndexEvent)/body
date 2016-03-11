@@ -6,11 +6,12 @@
   final IndexOperationMessage indexOperationMessage;
   if (message == null) {
     if (System.currentTimeMillis() > elasticsearchIndexEvent.getCreationTime() + queueFig.getLocalQuorumTimeout()) {
-      logger.warn("Received message with id {} to process, unable to find it, reading with higher consistency level",messageId);
+      if (logger.isDebugEnabled()) {
+        logger.debug("ES batch with id {} not found, reading with strong consistency",messageId);
+      }
       final String highConsistency=esMapPersistence.getStringHighConsistency(messageId.toString());
       if (highConsistency == null) {
-        logger.error("Unable to find the ES batch with id {} to process at a higher consistency level",messageId);
-        throw new RuntimeException("Unable to find the ES batch to process with message id " + messageId);
+        throw new RuntimeException("ES batch with id " + messageId + " not found when reading with strong consistency");
       }
       indexOperationMessage=ObjectJsonSerializer.INSTANCE.fromString(highConsistency,IndexOperationMessage.class);
     }
@@ -22,7 +23,5 @@
     indexOperationMessage=ObjectJsonSerializer.INSTANCE.fromString(message,IndexOperationMessage.class);
   }
   initializeEntityIndexes(indexOperationMessage);
-  Preconditions.checkNotNull(indexOperationMessage,"indexOperationMessage cannot be null");
-  Preconditions.checkArgument(!indexOperationMessage.isEmpty(),"queued indexOperationMessage messages should not be empty");
   return indexOperationMessage;
 }
