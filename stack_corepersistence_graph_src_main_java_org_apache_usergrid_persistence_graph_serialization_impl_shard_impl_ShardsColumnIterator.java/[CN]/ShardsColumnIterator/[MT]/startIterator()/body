@@ -5,8 +5,9 @@
   final RangeBuilder rangeBuilder=new RangeBuilder().setLimit(pageSize);
   searcher.buildRange(rangeBuilder);
   final List<ScopedRowKey<R>> rowKeys=searcher.getRowKeys();
+  final List<SmartShard> rowKeysWithShardEnd=searcher.getRowKeysWithShardEnd();
   if (logger.isTraceEnabled()) {
     logger.trace("Searching with row keys {}",rowKeys);
   }
-  currentColumnIterator=new MultiRowColumnIterator<>(keyspace,cf,consistencyLevel,searcher,searcher,searcher.getComparator(),rowKeys,pageSize);
+  currentColumnIterator=new MultiRowColumnIterator<>(keyspace,cf,consistencyLevel,searcher,searcher,searcher.getComparator(),rowKeys,pageSize,rowKeysWithShardEnd);
 }

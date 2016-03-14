@@ -1,14 +1,14 @@
 {
   GraphManager manager=factory.createEdgeManager(scope);
   final long startTime=System.currentTimeMillis();
-  for (long i=0; i < writeLimit || System.currentTimeMillis() - startTime < minExecutionTime; i++) {
+  for (long i=1; i < writeLimit + 1 && System.currentTimeMillis() - startTime < minExecutionTime; i++) {
     Edge edge=generator.newEdge();
     Edge returned=manager.writeEdge(edge).toBlocking().last();
     assertNotNull("Returned has a version",returned.getTimestamp());
     writeMeter.mark();
     writeCounter.incrementAndGet();
-    if (i % 1000 == 0) {
-      logger.info("   Wrote: " + i);
+    if (i % 100 == 0) {
+      logger.info(Thread.currentThread().getName() + " wrote: " + i);
     }
   }
   return true;

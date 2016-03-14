@@ -1,8 +1,20 @@
 {
+  logger.info("Advancing multi row column iterator");
   if (logger.isTraceEnabled())   logger.trace("Advancing multi row column iterator");
   final boolean skipFirstColumn=startColumn != null;
   final int selectSize=skipFirstColumn ? pageSize + 1 : pageSize;
   final RangeBuilder rangeBuilder=new RangeBuilder();
+  if (currentShardIterator == null) {
+    currentShardIterator=rowKeysWithShardEnd.iterator();
+  }
+  if (currentShard == null) {
+    Collections.reverse(rowKeysWithShardEnd);
+    logger.info(Thread.currentThread().getName() + " - currentShard: {}",currentShard);
+    currentShard=currentShardIterator.next();
+    logger.info(Thread.currentThread().getName() + " - all shards when starting: {}",rowKeysWithShardEnd);
+    logger.info(Thread.currentThread().getName() + " - initializing iterator with shard: {}",currentShard);
+  }
+  logger.info(Thread.currentThread().getName() + " - startColumn={}",startColumn);
   if (startColumn == null) {
     columnSearch.buildRange(rangeBuilder);
   }
@@ -11,7 +23,7 @@
   }
   rangeBuilder.setLimit(selectSize);
   if (logger.isTraceEnabled())   logger.trace("Executing cassandra query");
-  final RowSliceQuery<R,C> query=keyspace.prepareQuery(cf).setConsistencyLevel(consistencyLevel).getKeySlice(rowKeys).withColumnRange(rangeBuilder.build());
+  final RowSliceQuery<R,C> query=keyspace.prepareQuery(cf).setConsistencyLevel(consistencyLevel).getKeySlice((R)currentShard.getRowKey()).withColumnRange(rangeBuilder.build());
   final Rows<R,C> result;
   try {
     result=query.execute().getResult();
@@ -20,23 +32,26 @@
     throw new RuntimeException("Unable to connect to casandra",e);
   }
   final List<T> mergedResults;
-  if (containsSingleRowOnly(result)) {
-    mergedResults=singleRowResult(result);
-  }
- else {
-    mergedResults=mergeResults(result,selectSize);
-  }
+  mergedResults=mergeResults(result,selectSize);
   final int size=mergedResults.size();
+  if (logger.isTraceEnabled()) {
+    logger.trace(Thread.currentThread().getName() + " - current shard: {}, retrieved size: {}",currentShard,size);
+  }
+  logger.info(Thread.currentThread().getName() + " - selectSize={}, size={}, ",selectSize,size);
   moreToReturn=size == selectSize;
   if (size > 0) {
     final T firstResult=mergedResults.get(0);
     if (columnSearch.skipFirst(firstResult) || (skipFirstColumn && comparator.compare(startColumn,firstResult) == 0)) {
+      logger.info("removing an entry");
       mergedResults.remove(0);
     }
   }
   if (moreToReturn && mergedResults.size() > 0) {
     startColumn=mergedResults.get(mergedResults.size() - 1);
   }
+  logger.info(Thread.currentThread().getName() + " - current shard: {}",currentShard);
+  logger.info(Thread.currentThread().getName() + " - selectSize={}, size={}, ",selectSize,size);
   currentColumnIterator=mergedResults.iterator();
+  logger.info(Thread.currentThread().getName() + " - currentColumnIterator.hasNext()={}, " + "moreToReturn={}, currentShardIterator.hasNext()={}",currentColumnIterator.hasNext(),moreToReturn,currentShardIterator.hasNext());
   if (logger.isTraceEnabled())   logger.trace("Finished parsing {} rows for results",rowKeys.size());
 }
