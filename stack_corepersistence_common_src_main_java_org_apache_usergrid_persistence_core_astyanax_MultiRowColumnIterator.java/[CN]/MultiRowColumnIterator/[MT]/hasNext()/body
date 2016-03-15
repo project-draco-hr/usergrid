@@ -1,22 +1,29 @@
 {
   if (currentColumnIterator != null && !currentColumnIterator.hasNext() && !moreToReturn) {
     if (currentShardIterator.hasNext()) {
-      logger.info(Thread.currentThread().getName() + " - advancing shard iterator");
-      logger.info(Thread.currentThread().getName() + " - shards: {}",rowKeysWithShardEnd);
-      logger.info(Thread.currentThread().getName() + " - shards: {}",rowKeysWithShardEnd);
-      logger.info(Thread.currentThread().getName() + " - current shard: {}",currentShard);
+      if (logger.isTraceEnabled()) {
+        logger.trace(Thread.currentThread().getName() + " - advancing shard iterator");
+        logger.trace(Thread.currentThread().getName() + " - shards: {}",rowKeysWithShardEnd);
+        logger.trace(Thread.currentThread().getName() + " - shards: {}",rowKeysWithShardEnd);
+        logger.trace(Thread.currentThread().getName() + " - current shard: {}",currentShard);
+      }
       currentShard=currentShardIterator.next();
-      logger.info(Thread.currentThread().getName() + " - current shard: {}",currentShard);
+      if (logger.isTraceEnabled()) {
+        logger.trace(Thread.currentThread().getName() + " - current shard: {}",currentShard);
+      }
       startColumn=null;
       advance();
     }
   }
   if (currentColumnIterator == null || (!currentColumnIterator.hasNext() && moreToReturn)) {
     if (currentColumnIterator != null) {
-      logger.info(Thread.currentThread().getName() + " - currentColumnIterator.hasNext()={}",currentColumnIterator.hasNext());
+      if (logger.isTraceEnabled()) {
+        logger.trace(Thread.currentThread().getName() + " - currentColumnIterator.hasNext()={}",currentColumnIterator.hasNext());
+      }
     }
-    logger.info(Thread.currentThread().getName() + " - moreToReturn={}",moreToReturn);
-    logger.info(Thread.currentThread().getName() + " - going into advance()");
+    if (logger.isTraceEnabled()) {
+      logger.trace(Thread.currentThread().getName() + " - going into advance()");
+    }
     advance();
   }
   return currentColumnIterator.hasNext();
