@@ -13,7 +13,7 @@
   long expires_in=tokenResponse.getExpirationDate();
   assertEquals(604800,expires_in);
   final MapUtils.HashMapBuilder<String,String> map=new MapUtils.HashMapBuilder<String,String>().map("accesstokenttl","31536000000");
-  this.app().getTarget(false).queryParam("access_token",token).request().accept(MediaType.APPLICATION_JSON).put(javax.ws.rs.client.Entity.entity(map,MediaType.APPLICATION_JSON_TYPE),Token.class);
+  this.app().getTarget(true,clientSetup.getSuperuserToken()).queryParam("access_token",token).request().accept(MediaType.APPLICATION_JSON).put(javax.ws.rs.client.Entity.entity(map,MediaType.APPLICATION_JSON_TYPE),Token.class);
   tokenResponse=this.app().token().getTarget(false).queryParam("grant_type","password").queryParam("username",username).queryParam("password","password").request().accept(MediaType.APPLICATION_JSON).get(Token.class);
   assertEquals(31536000,tokenResponse.getExpirationDate().intValue());
 }
