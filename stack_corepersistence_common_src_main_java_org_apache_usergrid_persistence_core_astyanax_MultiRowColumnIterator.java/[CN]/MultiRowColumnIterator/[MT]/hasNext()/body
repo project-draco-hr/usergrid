@@ -1,29 +1,17 @@
 {
-  if (currentColumnIterator != null && !currentColumnIterator.hasNext() && !moreToReturn) {
-    if (currentShardIterator.hasNext()) {
-      if (logger.isTraceEnabled()) {
-        logger.trace(Thread.currentThread().getName() + " - advancing shard iterator");
-        logger.trace(Thread.currentThread().getName() + " - shards: {}",rowKeysWithShardEnd);
-        logger.trace(Thread.currentThread().getName() + " - shards: {}",rowKeysWithShardEnd);
-        logger.trace(Thread.currentThread().getName() + " - current shard: {}",currentShard);
-      }
-      currentShard=currentShardIterator.next();
-      if (logger.isTraceEnabled()) {
-        logger.trace(Thread.currentThread().getName() + " - current shard: {}",currentShard);
-      }
-      startColumn=null;
-      advance();
-    }
-  }
   if (currentColumnIterator == null || (!currentColumnIterator.hasNext() && moreToReturn)) {
-    if (currentColumnIterator != null) {
-      if (logger.isTraceEnabled()) {
-        logger.trace(Thread.currentThread().getName() + " - currentColumnIterator.hasNext()={}",currentColumnIterator.hasNext());
-      }
-    }
+    advance();
+  }
+  if (currentColumnIterator != null && !currentColumnIterator.hasNext() && !moreToReturn && currentShardIterator.hasNext()) {
     if (logger.isTraceEnabled()) {
-      logger.trace(Thread.currentThread().getName() + " - going into advance()");
+      logger.trace("Advancing shard iterator");
+      logger.trace("Shard before advance: {}",currentShard);
     }
+    currentShard=currentShardIterator.next();
+    if (logger.isTraceEnabled()) {
+      logger.trace("Shard after advance: {}",currentShard);
+    }
+    startColumn=null;
     advance();
   }
   return currentColumnIterator.hasNext();

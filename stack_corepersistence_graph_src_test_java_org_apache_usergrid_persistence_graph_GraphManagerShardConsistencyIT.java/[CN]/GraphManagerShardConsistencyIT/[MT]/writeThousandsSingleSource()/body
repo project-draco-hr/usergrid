@@ -19,10 +19,9 @@
   final int numWorkersPerInjector=numProcessors / numInjectors;
   final long numberOfEdges=shardSize * 4;
   final long workerWriteLimit=numberOfEdges / numWorkersPerInjector / numInjectors;
-  final long expectedShardCount=numberOfEdges / shardSize;
   createExecutor(numWorkersPerInjector);
   final AtomicLong writeCounter=new AtomicLong();
-  final long minExecutionTime=graphFig.getShardMinDelta() + graphFig.getShardCacheTimeout();
+  final long minExecutionTime=graphFig.getShardMinDelta() + graphFig.getShardCacheTimeout() + 60000;
   logger.info("Writing {} edges per worker on {} workers in {} injectors",workerWriteLimit,numWorkersPerInjector,numInjectors);
   final List<Future<Boolean>> futures=new ArrayList<>();
   for (  Injector injector : injectors) {
@@ -39,10 +38,10 @@
   final DirectedEdgeMeta directedEdgeMeta=DirectedEdgeMeta.fromSourceNode(sourceId,edgeType);
   final GraphManagerFactory gmf=getInstance(injectors,GraphManagerFactory.class);
   final long writeCount=writeCounter.get();
+  final long expectedShardCount=writeCount / shardSize;
   final Meter readMeter=registry.meter("readThroughput");
   final List<Throwable> failures=new ArrayList<>();
-  Thread.sleep(5000);
-  for (int i=0; i < 1; i++) {
+  for (int i=0; i < 2; i++) {
     final ListenableFuture<Long> future=executor.submit(new ReadWorker(gmf,generator,writeCount,readMeter));
     Futures.addCallback(future,new FutureCallback<Long>(){
       @Override public void onSuccess(      @Nullable final Long result){
@@ -82,7 +81,7 @@
       }
     }
     if (compactedCount >= expectedShardCount) {
-      logger.info("All compactions complete, sleeping");
+      logger.info("All compactions complete, sleeping. Compacted shard count={}, expected shard count={}",compactedCount,expectedShardCount);
       break;
     }
     Thread.sleep(2000);

@@ -5,9 +5,15 @@
     }
     final Shard shard=sourceIterator.next();
     if (next.addShard(shard)) {
+      if (logger.isTraceEnabled()) {
+        logger.trace("adding shard: {}",shard);
+      }
       continue;
     }
     sourceIterator.pushback(shard);
+    if (logger.isTraceEnabled()) {
+      logger.trace("unable to add shard: {}, pushing back and stopping",shard);
+    }
     break;
   }
   if (next != null) {
