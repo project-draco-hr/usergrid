@@ -1,0 +1,31 @@
+{
+  IndexOperation indexOperation=new IndexOperation();
+  indexEdge.getNodeId().getUuid();
+  Id mapOwner=new SimpleId(indexEdge.getNodeId().getUuid(),TYPE_APPLICATION);
+  final MapScope ms=CpNamingUtils.getEntityTypeMapScope(mapOwner);
+  MapManager mm=mapManagerFactory.createMapManager(ms);
+  String jsonMap=mm.getString(indexEdge.getEdgeName().split("\\|")[1]);
+  Set<String> defaultProperties=null;
+  if (jsonMap != null) {
+    Map jsonMapData=(Map)JsonUtils.parse(jsonMap);
+    Schema schema=Schema.getDefaultSchema();
+    defaultProperties=schema.getRequiredProperties(indexEdge.getEdgeName().split("\\|")[1]);
+    ArrayList fieldsToKeep=(ArrayList)jsonMapData.get("fields");
+    defaultProperties.addAll(fieldsToKeep);
+  }
+ else   return null;
+  Map<String,Object> map=indexOperation.convertedEntityToBeIndexed(applicationScope,indexEdge,entity);
+  HashSet mapFields=(HashSet)map.get("fields");
+  if (defaultProperties != null) {
+    final Set<String> finalDefaultProperties=defaultProperties;
+    Iterator collectionIterator=mapFields.iterator();
+    while (collectionIterator.hasNext()) {
+      EntityField testedField=(EntityField)collectionIterator.next();
+      String fieldName=(String)(testedField).get("name");
+      if (!finalDefaultProperties.contains(fieldName)) {
+        mapFields.remove(testedField);
+      }
+    }
+  }
+  return map;
+}
