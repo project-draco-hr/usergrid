@@ -6,11 +6,12 @@
   MapManager mm=mapManagerFactory.createMapManager(ms);
   String jsonMap=mm.getString(indexEdge.getEdgeName().split("\\|")[1]);
   Set<String> defaultProperties=null;
+  ArrayList fieldsToKeep=null;
   if (jsonMap != null) {
     Map jsonMapData=(Map)JsonUtils.parse(jsonMap);
     Schema schema=Schema.getDefaultSchema();
     defaultProperties=schema.getRequiredProperties(indexEdge.getEdgeName().split("\\|")[1]);
-    ArrayList fieldsToKeep=(ArrayList)jsonMapData.get("fields");
+    fieldsToKeep=(ArrayList)jsonMapData.get("fields");
     defaultProperties.addAll(fieldsToKeep);
   }
  else   return null;
@@ -23,7 +24,37 @@
       EntityField testedField=(EntityField)collectionIterator.next();
       String fieldName=(String)(testedField).get("name");
       if (!finalDefaultProperties.contains(fieldName)) {
-        mapFields.remove(testedField);
+        boolean toRemoveFlag=true;
+        String[] flattedStringArray=fieldName.split("\\.");
+        Iterator fieldIterator=fieldsToKeep.iterator();
+        while (fieldIterator.hasNext()) {
+          String requiredInclusionString=(String)fieldIterator.next();
+          String[] flattedRequirementString=new String[0];
+          if (!requiredInclusionString.contains(".")) {
+            flattedRequirementString=new String[]{requiredInclusionString};
+          }
+ else {
+            flattedRequirementString=requiredInclusionString.split("\\.");
+          }
+          for (int index=0; index < flattedRequirementString.length; index++) {
+            if (flattedStringArray.length <= index) {
+              toRemoveFlag=true;
+              break;
+            }
+            if (flattedRequirementString[index].equals(flattedStringArray[index])) {
+              toRemoveFlag=false;
+            }
+ else {
+              toRemoveFlag=true;
+            }
+          }
+          if (toRemoveFlag == false) {
+            break;
+          }
+        }
+        if (toRemoveFlag) {
+          mapFields.remove(testedField);
+        }
       }
     }
   }
