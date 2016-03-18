@@ -11,22 +11,56 @@
   }
   if (currentShard == null) {
     if (logger.isTraceEnabled()) {
-      logger.trace(Thread.currentThread().getName() + " - currentShard: {}",currentShard);
+      logger.trace("currentShard: {}",currentShard);
     }
     currentShard=currentShardIterator.next();
     if (logger.isTraceEnabled()) {
-      logger.trace(Thread.currentThread().getName() + " - all shards when starting: {}",rowKeysWithShardEnd);
-      logger.trace(Thread.currentThread().getName() + " - initializing iterator with shard: {}",currentShard);
+      logger.trace("all shards when starting: {}",rowKeysWithShardEnd);
+      logger.trace("initializing iterator with shard: {}",currentShard);
     }
   }
-  if (logger.isTraceEnabled()) {
-    logger.trace(Thread.currentThread().getName() + " - startColumn={}",startColumn);
-  }
-  if (startColumn == null) {
+  if (startColumn == null && currentShard.getShardEnd() == null) {
     columnSearch.buildRange(rangeBuilder);
+    if (logger.isTraceEnabled()) {
+      logger.trace("initial search (no start or shard end)");
+    }
   }
+ else   if (startColumn != null && currentShard.getShardEnd() == null) {
+    columnSearch.buildRange(rangeBuilder,startColumn,null);
+    if (logger.isTraceEnabled()) {
+      logger.trace("search (no shard end) with start: {}",startColumn);
+    }
+  }
+ else   if (startColumn == null && currentShard.getShardEnd() != null) {
+    T shardEnd=(T)currentShard.getShardEnd();
+    if (!ascending) {
+      columnSearch.buildRange(rangeBuilder,shardEnd,null);
+      if (logger.isTraceEnabled()) {
+        logger.trace("search descending with start: {}",shardEnd);
+      }
+    }
  else {
-    columnSearch.buildRange(rangeBuilder,startColumn);
+      columnSearch.buildRange(rangeBuilder,null,shardEnd);
+      if (logger.isTraceEnabled()) {
+        logger.trace("search ascending with end: {}",shardEnd);
+      }
+    }
+  }
+ else   if (startColumn != null && currentShard.getShardEnd() != null) {
+    T shardEnd=(T)currentShard.getShardEnd();
+    if (!ascending) {
+      T searchStart=comparator.compare(shardEnd,startColumn) > 0 ? shardEnd : startColumn;
+      columnSearch.buildRange(rangeBuilder,searchStart,null);
+      if (logger.isTraceEnabled()) {
+        logger.trace("search descending with start: {} in shard",searchStart,currentShard);
+      }
+    }
+ else {
+      columnSearch.buildRange(rangeBuilder,startColumn,shardEnd);
+      if (logger.isTraceEnabled()) {
+        logger.trace("search with start: {}, end: {}",startColumn,shardEnd);
+      }
+    }
   }
   rangeBuilder.setLimit(selectSize);
   if (logger.isTraceEnabled())   logger.trace("Executing cassandra query with shard {}",currentShard);
@@ -46,8 +80,8 @@
   }
   final int size=mergedResults.size();
   if (logger.isTraceEnabled()) {
-    logger.trace(Thread.currentThread().getName() + " - current shard: {}, retrieved size: {}",currentShard,size);
-    logger.trace(Thread.currentThread().getName() + " - selectSize={}, size={}, ",selectSize,size);
+    logger.trace("current shard: {}, retrieved size: {}",currentShard,size);
+    logger.trace("selectSize={}, size={}, ",selectSize,size);
   }
   moreToReturn=size == selectSize;
   if (selectSize == 1001 && mergedResults.size() == 1000) {
@@ -73,6 +107,6 @@
     hasNext();
   }
   if (logger.isTraceEnabled()) {
-    logger.trace(Thread.currentThread().getName() + " - currentColumnIterator.hasNext()={}, " + "moreToReturn={}, currentShardIterator.hasNext()={}",currentColumnIterator.hasNext(),moreToReturn,currentShardIterator.hasNext());
+    logger.trace("currentColumnIterator.hasNext()={}, " + "moreToReturn={}, currentShardIterator.hasNext()={}",currentColumnIterator.hasNext(),moreToReturn,currentShardIterator.hasNext());
   }
 }

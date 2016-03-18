@@ -1,3 +1,9 @@
 {
-  return new Shard(column.getName(),column.getTimestamp(),column.getBooleanValue());
+  Shard shard=column.getValue(SHARD_SERIALIZER);
+  if (shard.getShardIndex() == Long.MIN_VALUE && shard.getCreatedTime() == Long.MIN_VALUE) {
+    return new Shard(column.getName(),column.getTimestamp(),shard.isCompacted());
+  }
+ else {
+    return shard;
+  }
 }

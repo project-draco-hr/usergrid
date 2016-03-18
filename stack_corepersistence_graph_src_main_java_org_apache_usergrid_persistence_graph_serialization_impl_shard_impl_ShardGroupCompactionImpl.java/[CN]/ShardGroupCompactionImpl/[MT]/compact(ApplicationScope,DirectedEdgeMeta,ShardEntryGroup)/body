@@ -1,2 +1,93 @@
 {
+  final long startTime=timeService.getCurrentTime();
+  Preconditions.checkNotNull(group,"group cannot be null");
+  Preconditions.checkArgument(group.isCompactionPending(),"Compaction is pending");
+  Preconditions.checkArgument(group.shouldCompact(startTime),"Compaction cannot be run yet.  Ignoring compaction.");
+  if (logger.isTraceEnabled()) {
+    logger.trace("Compacting shard group. Audit count is {} ",countAudits.get());
+  }
+  final CompactionResult.CompactionBuilder resultBuilder=CompactionResult.builder();
+  final Shard targetShard=group.getCompactionTarget();
+  final Set<Shard> sourceShards=new HashSet<>(group.getReadShards());
+  sourceShards.remove(targetShard);
+  final UUID timestamp=UUIDGenerator.newTimeUUID();
+  final long newShardPivot=targetShard.getShardIndex();
+  final int maxWorkSize=graphFig.getScanPageSize();
+  final MutationBatch newRowBatch=keyspace.prepareMutationBatch();
+  final MutationBatch deleteRowBatch=keyspace.prepareMutationBatch();
+  final MutationBatch updateShardMetaBatch=keyspace.prepareMutationBatch();
+  long edgeCount=0;
+  for (  Shard sourceShard : sourceShards) {
+    Iterator<MarkedEdge> edges=edgeMeta.loadEdges(shardedEdgeSerialization,edgeColumnFamilies,scope,Collections.singleton(sourceShard),Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING);
+    MarkedEdge shardEnd=null;
+    while (edges.hasNext()) {
+      final MarkedEdge edge=edges.next();
+      final long edgeTimestamp=edge.getTimestamp();
+      if (edgeTimestamp < newShardPivot) {
+        break;
+      }
+      newRowBatch.mergeShallow(edgeMeta.writeEdge(shardedEdgeSerialization,edgeColumnFamilies,scope,targetShard,edge,timestamp));
+      deleteRowBatch.mergeShallow(edgeMeta.deleteEdge(shardedEdgeSerialization,edgeColumnFamilies,scope,sourceShard,edge,timestamp));
+      edgeCount++;
+      shardEnd=edge;
+      if (edgeCount % maxWorkSize == 0) {
+        try {
+          newRowBatch.withAtomicBatch(true).execute();
+          Thread.sleep(1000);
+          deleteRowBatch.execute();
+        }
+ catch (        Throwable t) {
+          logger.error("Unable to move edges from shard {} to shard {}",sourceShard,targetShard);
+        }
+      }
+    }
+    if (shardEnd != null) {
+      sourceShard.setShardEnd(Optional.of(new DirectedEdge(shardEnd.getTargetNode(),shardEnd.getTimestamp())));
+      logger.info("Updating shard {} with shardEnd: {}",sourceShard,shardEnd);
+      updateShardMetaBatch.mergeShallow(edgeShardSerialization.writeShardMeta(scope,sourceShard,edgeMeta));
+    }
+  }
+  try {
+    newRowBatch.withAtomicBatch(true).execute();
+    Thread.sleep(1000);
+    deleteRowBatch.execute();
+    updateShardMetaBatch.execute();
+  }
+ catch (  Throwable t) {
+    logger.error("Unable to move edges to target shard {}",targetShard);
+  }
+  if (logger.isTraceEnabled()) {
+    logger.trace("Finished compacting {} shards and moved {} edges",sourceShards,edgeCount);
+  }
+  logger.info("Finished compacting {} shards and moved {} edges",sourceShards,edgeCount);
+  resultBuilder.withCopiedEdges(edgeCount).withSourceShards(sourceShards).withTargetShard(targetShard);
+  if (edgeCount == 0) {
+    final MutationBatch shardRemovalRollup=keyspace.prepareMutationBatch();
+    for (    Shard source : sourceShards) {
+      if (!group.canBeDeleted(source)) {
+        continue;
+      }
+      logger.info("Source shards have been fully drained.  Removing shard {}",source);
+      final MutationBatch shardRemoval=edgeShardSerialization.removeShardMeta(scope,source,edgeMeta);
+      shardRemovalRollup.mergeShallow(shardRemoval);
+      resultBuilder.withRemovedShard(source);
+    }
+    try {
+      shardRemovalRollup.execute();
+    }
+ catch (    ConnectionException e) {
+      throw new RuntimeException("Unable to connect to cassandra",e);
+    }
+    logger.info("Shard has been fully compacted.  Marking shard {} as compacted in Cassandra",targetShard);
+    Shard compactedShard=new Shard(targetShard.getShardIndex(),timeService.getCurrentTime(),true);
+    final MutationBatch updateMark=edgeShardSerialization.writeShardMeta(scope,compactedShard,edgeMeta);
+    try {
+      updateMark.execute();
+    }
+ catch (    ConnectionException e) {
+      throw new RuntimeException("Unable to connect to cassandra",e);
+    }
+    resultBuilder.withCompactedShard(compactedShard);
+  }
+  return resultBuilder.build();
 }

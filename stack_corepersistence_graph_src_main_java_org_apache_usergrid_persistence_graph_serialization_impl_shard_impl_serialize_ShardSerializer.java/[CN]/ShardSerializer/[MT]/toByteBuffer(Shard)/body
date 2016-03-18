@@ -1,0 +1,14 @@
+{
+  DynamicComposite composite=new DynamicComposite();
+  composite.addComponent((byte)2,BYTE_SERIALIZER);
+  composite.addComponent(shard.getShardIndex(),LONG_SERIALIZER);
+  composite.addComponent(shard.getCreatedTime(),LONG_SERIALIZER);
+  if (shard.getShardEnd().isPresent()) {
+    composite.addComponent(shard.getShardEnd().get(),EDGE_SERIALIZER);
+  }
+ else {
+    composite.addComponent(null,EDGE_SERIALIZER);
+  }
+  composite.addComponent(shard.isCompacted(),BOOLEAN_SERIALIZER);
+  return composite.serialize();
+}
