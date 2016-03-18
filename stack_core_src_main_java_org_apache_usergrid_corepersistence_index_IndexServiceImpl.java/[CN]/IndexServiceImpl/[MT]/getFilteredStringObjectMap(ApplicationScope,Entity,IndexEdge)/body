@@ -4,9 +4,9 @@
   Id mapOwner=new SimpleId(indexEdge.getNodeId().getUuid(),TYPE_APPLICATION);
   final MapScope ms=CpNamingUtils.getEntityTypeMapScope(mapOwner);
   MapManager mm=mapManagerFactory.createMapManager(ms);
+  Set<String> defaultProperties;
+  ArrayList fieldsToKeep;
   String jsonSchemaMap=mm.getString(indexEdge.getEdgeName().split("\\|")[1]);
-  Set<String> defaultProperties=null;
-  ArrayList fieldsToKeep=null;
   if (jsonSchemaMap != null) {
     Map jsonMapData=(Map)JsonUtils.parse(jsonSchemaMap);
     Schema schema=Schema.getDefaultSchema();
@@ -14,42 +14,17 @@
     fieldsToKeep=(ArrayList)jsonMapData.get("fields");
     defaultProperties.addAll(fieldsToKeep);
   }
- else   return null;
-  Map<String,Object> map=indexOperation.convertedEntityToBeIndexed(applicationScope,indexEdge,entity);
-  HashSet mapFields=(HashSet)map.get("fields");
-  if (defaultProperties != null) {
-    final Set<String> finalDefaultProperties=defaultProperties;
-    Iterator collectionIterator=mapFields.iterator();
-    while (collectionIterator.hasNext()) {
-      EntityField testedField=(EntityField)collectionIterator.next();
-      String fieldName=(String)(testedField).get("name");
-      if (!finalDefaultProperties.contains(fieldName)) {
-        boolean toRemoveFlag=true;
-        String[] flattedStringArray=getStrings(fieldName);
-        Iterator fieldIterator=fieldsToKeep.iterator();
-        while (fieldIterator.hasNext()) {
-          String requiredInclusionString=(String)fieldIterator.next();
-          String[] flattedRequirementString=getStrings(requiredInclusionString);
-          for (int index=0; index < flattedRequirementString.length; index++) {
-            if (flattedStringArray.length <= index) {
-              toRemoveFlag=true;
-              break;
-            }
-            if (flattedRequirementString[index].equals(flattedStringArray[index])) {
-              toRemoveFlag=false;
-            }
  else {
-              toRemoveFlag=true;
-            }
-          }
-          if (toRemoveFlag == false) {
-            break;
-          }
-        }
-        if (toRemoveFlag) {
-          collectionIterator.remove();
-        }
-      }
+    return null;
+  }
+  Map map=indexOperation.convertedEntityToBeIndexed(applicationScope,indexEdge,entity);
+  HashSet mapFields=(HashSet)map.get("fields");
+  Iterator collectionIterator=mapFields.iterator();
+  while (collectionIterator.hasNext()) {
+    EntityField testedField=(EntityField)collectionIterator.next();
+    String fieldName=(String)(testedField).get("name");
+    if (!defaultProperties.contains(fieldName)) {
+      iterateThroughMapForFieldsToBeIndexed(fieldsToKeep,collectionIterator,fieldName);
     }
   }
   return map;
