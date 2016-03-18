@@ -1,0 +1,39 @@
+{
+  boolean toRemoveFlag=true;
+  String[] flattedStringArray=null;
+  if (!fieldName.contains(".")) {
+    flattedStringArray=new String[]{fieldName};
+  }
+ else {
+    flattedStringArray=fieldName.split("\\.");
+  }
+  Iterator fieldIterator=fieldsToKeep.iterator();
+  while (fieldIterator.hasNext()) {
+    String requiredInclusionString=(String)fieldIterator.next();
+    String[] flattedRequirementString;
+    if (!requiredInclusionString.contains(".")) {
+      flattedRequirementString=new String[]{requiredInclusionString};
+    }
+ else {
+      flattedRequirementString=requiredInclusionString.split("\\.");
+    }
+    for (int index=0; index < flattedRequirementString.length; index++) {
+      if (flattedStringArray.length <= index) {
+        toRemoveFlag=true;
+        break;
+      }
+      if (flattedRequirementString[index].equals(flattedStringArray[index])) {
+        toRemoveFlag=false;
+      }
+ else {
+        toRemoveFlag=true;
+      }
+    }
+    if (toRemoveFlag == false) {
+      break;
+    }
+  }
+  if (toRemoveFlag) {
+    mapFields.remove(testedField);
+  }
+}
