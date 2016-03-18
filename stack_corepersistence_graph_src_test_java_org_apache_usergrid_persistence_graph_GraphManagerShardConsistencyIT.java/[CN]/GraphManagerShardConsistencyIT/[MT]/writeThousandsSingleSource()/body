@@ -1,9 +1,9 @@
 {
-  final Id sourceId=IdGenerator.createId("sourceWrite");
-  final String edgeType="testWrite_" + UUIDGenerator.newTimeUUID().toString();
+  final Id sourceId=IdGenerator.createId("sourceWrite_" + UUIDGenerator.newTimeUUID().toString());
+  final String edgeType="testWrite";
   final EdgeGenerator generator=new EdgeGenerator(){
     @Override public Edge newEdge(){
-      Edge edge=createEdge(sourceId,edgeType,IdGenerator.createId("targetWrite"));
+      Edge edge=createEdge(sourceId,edgeType,IdGenerator.createId("targetWrite_" + UUIDGenerator.newTimeUUID().toString()));
       return edge;
     }
     @Override public Observable<MarkedEdge> doSearch(    final GraphManager manager){
@@ -11,17 +11,17 @@
     }
   }
 ;
-  final int numInjectors=2;
+  final int numInjectors=1;
   final List<Injector> injectors=createInjectors(numInjectors);
   final GraphFig graphFig=getInstance(injectors,GraphFig.class);
   final long shardSize=graphFig.getShardSize();
   final int numProcessors=Runtime.getRuntime().availableProcessors() / 2;
   final int numWorkersPerInjector=numProcessors / numInjectors;
-  final long numberOfEdges=shardSize * 4;
+  final long numberOfEdges=shardSize * TARGET_NUM_SHARDS;
   final long workerWriteLimit=numberOfEdges / numWorkersPerInjector / numInjectors;
   createWriteExecutor(numWorkersPerInjector);
   final AtomicLong writeCounter=new AtomicLong();
-  final long minExecutionTime=graphFig.getShardMinDelta() + graphFig.getShardCacheTimeout() + 60000;
+  final long minExecutionTime=graphFig.getShardMinDelta() + graphFig.getShardCacheTimeout() + 120000;
   logger.info("Writing {} edges per worker on {} workers in {} injectors",workerWriteLimit,numWorkersPerInjector,numInjectors);
   final List<Future<Boolean>> futures=new ArrayList<>();
   for (  Injector injector : injectors) {
@@ -42,7 +42,7 @@
   final Meter readMeter=registry.meter("readThroughput-writeTest");
   final List<Throwable> failures=new ArrayList<>();
   Thread.sleep(3000);
-  for (int i=0; i < 2; i++) {
+  for (int i=0; i < 1; i++) {
     final ListenableFuture<Long> future=writeExecutor.submit(new ReadWorker(gmf,generator,writeCount,readMeter));
     Futures.addCallback(future,new FutureCallback<Long>(){
       @Override public void onSuccess(      @Nullable final Long result){

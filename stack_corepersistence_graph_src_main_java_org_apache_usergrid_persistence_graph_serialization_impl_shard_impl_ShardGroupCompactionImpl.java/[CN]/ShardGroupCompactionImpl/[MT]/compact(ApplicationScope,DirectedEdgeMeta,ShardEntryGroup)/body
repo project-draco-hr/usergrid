@@ -29,27 +29,35 @@
       newRowBatch.mergeShallow(edgeMeta.writeEdge(shardedEdgeSerialization,edgeColumnFamilies,scope,targetShard,edge,timestamp));
       deleteRowBatch.mergeShallow(edgeMeta.deleteEdge(shardedEdgeSerialization,edgeColumnFamilies,scope,sourceShard,edge,timestamp));
       edgeCount++;
-      shardEnd=edge;
       if (edgeCount % maxWorkSize == 0) {
         try {
           newRowBatch.withAtomicBatch(true).execute();
+          shardEnd=edge;
+          sourceShard.setShardEnd(Optional.of(new DirectedEdge(shardEnd.getTargetNode(),shardEnd.getTimestamp())));
+          logger.info("Updating shard {} for nodes {} with shardEnd {}",sourceShard,edgeMeta.getNodes(),shardEnd);
+          updateShardMetaBatch.mergeShallow(edgeShardSerialization.writeShardMeta(scope,sourceShard,edgeMeta));
           Thread.sleep(1000);
+          logger.info("Deleting batch of {} from old shard",maxWorkSize);
           deleteRowBatch.execute();
         }
  catch (        Throwable t) {
           logger.error("Unable to move edges from shard {} to shard {}",sourceShard,targetShard);
         }
       }
+ else {
+        shardEnd=edge;
+      }
     }
-    if (shardEnd != null) {
+    if (shardEnd != null && edgeCount > 0) {
       sourceShard.setShardEnd(Optional.of(new DirectedEdge(shardEnd.getTargetNode(),shardEnd.getTimestamp())));
-      logger.info("Updating shard {} with shardEnd: {}",sourceShard,shardEnd);
+      logger.info("Updating shard {} for nodes {} with shardEnd {}",sourceShard,shardEnd);
       updateShardMetaBatch.mergeShallow(edgeShardSerialization.writeShardMeta(scope,sourceShard,edgeMeta));
     }
   }
   try {
     newRowBatch.withAtomicBatch(true).execute();
     Thread.sleep(1000);
+    logger.info("Deleting remaining edges from old shard");
     deleteRowBatch.execute();
     updateShardMetaBatch.execute();
   }
