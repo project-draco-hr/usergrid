@@ -24,7 +24,31 @@
       EntityField testedField=(EntityField)collectionIterator.next();
       String fieldName=(String)(testedField).get("name");
       if (!finalDefaultProperties.contains(fieldName)) {
-        innerLoop(fieldsToKeep,mapFields,testedField,fieldName);
+        boolean toRemoveFlag=true;
+        String[] flattedStringArray=getStrings(fieldName);
+        Iterator fieldIterator=fieldsToKeep.iterator();
+        while (fieldIterator.hasNext()) {
+          String requiredInclusionString=(String)fieldIterator.next();
+          String[] flattedRequirementString=getStrings(requiredInclusionString);
+          for (int index=0; index < flattedRequirementString.length; index++) {
+            if (flattedStringArray.length <= index) {
+              toRemoveFlag=true;
+              break;
+            }
+            if (flattedRequirementString[index].equals(flattedStringArray[index])) {
+              toRemoveFlag=false;
+            }
+ else {
+              toRemoveFlag=true;
+            }
+          }
+          if (toRemoveFlag == false) {
+            break;
+          }
+        }
+        if (toRemoveFlag) {
+          collectionIterator.remove();
+        }
       }
     }
   }
