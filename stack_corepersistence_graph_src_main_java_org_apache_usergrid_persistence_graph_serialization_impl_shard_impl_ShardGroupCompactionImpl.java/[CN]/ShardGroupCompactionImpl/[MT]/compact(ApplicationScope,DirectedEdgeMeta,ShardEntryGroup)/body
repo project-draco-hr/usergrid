@@ -13,16 +13,18 @@
   final UUID timestamp=UUIDGenerator.newTimeUUID();
   final long newShardPivot=targetShard.getShardIndex();
   final int maxWorkSize=graphFig.getScanPageSize();
-  final MutationBatch newRowBatch=keyspace.prepareMutationBatch();
-  final MutationBatch deleteRowBatch=keyspace.prepareMutationBatch();
-  final MutationBatch updateShardMetaBatch=keyspace.prepareMutationBatch();
-  long edgeCount=0;
+  long totalEdgeCount=0;
   for (  Shard sourceShard : sourceShards) {
+    final MutationBatch newRowBatch=keyspace.prepareMutationBatch();
+    final MutationBatch deleteRowBatch=keyspace.prepareMutationBatch();
+    final MutationBatch updateShardMetaBatch=keyspace.prepareMutationBatch();
+    long edgeCount=0;
     Iterator<MarkedEdge> edges=edgeMeta.loadEdges(shardedEdgeSerialization,edgeColumnFamilies,scope,Collections.singleton(sourceShard),Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING);
     MarkedEdge shardEnd=null;
     while (edges.hasNext()) {
       final MarkedEdge edge=edges.next();
       final long edgeTimestamp=edge.getTimestamp();
+      shardEnd=edge;
       if (edgeTimestamp < newShardPivot) {
         break;
       }
@@ -32,44 +34,52 @@
       if (edgeCount % maxWorkSize == 0) {
         try {
           newRowBatch.withAtomicBatch(true).execute();
-          shardEnd=edge;
           sourceShard.setShardEnd(Optional.of(new DirectedEdge(shardEnd.getTargetNode(),shardEnd.getTimestamp())));
-          logger.info("Updating shard {} for nodes {} with shardEnd {}",sourceShard,edgeMeta.getNodes(),shardEnd);
+          if (logger.isTraceEnabled()) {
+            logger.trace("Updating shard {} during batch removal with shardEnd {}",sourceShard,shardEnd);
+          }
           updateShardMetaBatch.mergeShallow(edgeShardSerialization.writeShardMeta(scope,sourceShard,edgeMeta));
           Thread.sleep(1000);
-          logger.info("Deleting batch of {} from old shard",maxWorkSize);
-          deleteRowBatch.execute();
+          if (logger.isTraceEnabled()) {
+            logger.trace("Deleting batch of {} from old shard",maxWorkSize);
+          }
+          deleteRowBatch.withAtomicBatch(true).execute();
+          updateShardMetaBatch.execute();
         }
  catch (        Throwable t) {
           logger.error("Unable to move edges from shard {} to shard {}",sourceShard,targetShard);
         }
-      }
- else {
-        shardEnd=edge;
+        totalEdgeCount+=edgeCount;
+        edgeCount=0;
       }
     }
-    if (shardEnd != null && edgeCount > 0) {
-      sourceShard.setShardEnd(Optional.of(new DirectedEdge(shardEnd.getTargetNode(),shardEnd.getTimestamp())));
-      logger.info("Updating shard {} for nodes {} with shardEnd {}",sourceShard,shardEnd);
-      updateShardMetaBatch.mergeShallow(edgeShardSerialization.writeShardMeta(scope,sourceShard,edgeMeta));
+    totalEdgeCount+=edgeCount;
+    try {
+      newRowBatch.withAtomicBatch(true).execute();
+      Thread.sleep(1000);
+      if (logger.isTraceEnabled()) {
+        logger.trace("Deleting remaining {} edges from old shard",edgeCount);
+      }
+      deleteRowBatch.withAtomicBatch(true).execute();
+      if (shardEnd != null) {
+        sourceShard.setShardEnd(Optional.of(new DirectedEdge(shardEnd.getTargetNode(),shardEnd.getTimestamp())));
+        if (logger.isTraceEnabled()) {
+          logger.trace("Updating for last time shard {} with shardEnd {}",sourceShard,shardEnd);
+        }
+        updateShardMetaBatch.mergeShallow(edgeShardSerialization.writeShardMeta(scope,sourceShard,edgeMeta));
+        updateShardMetaBatch.execute();
+      }
     }
-  }
-  try {
-    newRowBatch.withAtomicBatch(true).execute();
-    Thread.sleep(1000);
-    logger.info("Deleting remaining edges from old shard");
-    deleteRowBatch.execute();
-    updateShardMetaBatch.execute();
-  }
- catch (  Throwable t) {
-    logger.error("Unable to move edges to target shard {}",targetShard);
+ catch (    Throwable t) {
+      logger.error("Unable to move edges to target shard {}",targetShard);
+    }
   }
   if (logger.isTraceEnabled()) {
-    logger.trace("Finished compacting {} shards and moved {} edges",sourceShards,edgeCount);
+    logger.trace("Finished compacting {} shards and moved {} edges",sourceShards,totalEdgeCount);
   }
-  logger.info("Finished compacting {} shards and moved {} edges",sourceShards,edgeCount);
-  resultBuilder.withCopiedEdges(edgeCount).withSourceShards(sourceShards).withTargetShard(targetShard);
-  if (edgeCount == 0) {
+  logger.info("Finished compacting {} shards and moved {} edges",sourceShards,totalEdgeCount);
+  resultBuilder.withCopiedEdges(totalEdgeCount).withSourceShards(sourceShards).withTargetShard(targetShard);
+  if (totalEdgeCount == 0) {
     final MutationBatch shardRemovalRollup=keyspace.prepareMutationBatch();
     for (    Shard source : sourceShards) {
       if (!group.canBeDeleted(source)) {
@@ -86,8 +96,9 @@
  catch (    ConnectionException e) {
       throw new RuntimeException("Unable to connect to cassandra",e);
     }
-    logger.info("Shard has been fully compacted.  Marking shard {} as compacted in Cassandra",targetShard);
     Shard compactedShard=new Shard(targetShard.getShardIndex(),timeService.getCurrentTime(),true);
+    compactedShard.setShardEnd(targetShard.getShardEnd());
+    logger.info("Shard has been fully compacted.  Marking shard {} as compacted in Cassandra",compactedShard);
     final MutationBatch updateMark=edgeShardSerialization.writeShardMeta(scope,compactedShard,edgeMeta);
     try {
       updateMark.execute();

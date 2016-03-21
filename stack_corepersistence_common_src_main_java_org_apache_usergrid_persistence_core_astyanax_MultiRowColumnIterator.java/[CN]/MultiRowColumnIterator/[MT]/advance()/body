@@ -3,68 +3,15 @@
   final boolean skipFirstColumn=startColumn != null;
   final int selectSize=skipFirstColumn ? pageSize + 1 : pageSize;
   final RangeBuilder rangeBuilder=new RangeBuilder();
-  if (currentShardIterator == null) {
-    if (ascending) {
-      Collections.reverse(rowKeysWithShardEnd);
-    }
-    currentShardIterator=rowKeysWithShardEnd.iterator();
-  }
-  if (currentShard == null) {
-    if (logger.isTraceEnabled()) {
-      logger.trace("currentShard: {}",currentShard);
-    }
-    currentShard=currentShardIterator.next();
-    if (logger.isTraceEnabled()) {
-      logger.trace("all shards when starting: {}",rowKeysWithShardEnd);
-      logger.trace("initializing iterator with shard: {}",currentShard);
-    }
-  }
-  if (startColumn == null && currentShard.getShardEnd() == null) {
+  if (startColumn == null) {
     columnSearch.buildRange(rangeBuilder);
-    if (logger.isTraceEnabled()) {
-      logger.trace("initial search (no start or shard end)");
-    }
   }
- else   if (startColumn != null && currentShard.getShardEnd() == null) {
+ else {
     columnSearch.buildRange(rangeBuilder,startColumn,null);
-    if (logger.isTraceEnabled()) {
-      logger.trace("search (no shard end) with start: {}",startColumn);
-    }
-  }
- else   if (startColumn == null && currentShard.getShardEnd() != null) {
-    T shardEnd=(T)currentShard.getShardEnd();
-    if (!ascending) {
-      columnSearch.buildRange(rangeBuilder,shardEnd,null);
-      if (logger.isTraceEnabled()) {
-        logger.trace("search descending with start: {}",shardEnd);
-      }
-    }
- else {
-      columnSearch.buildRange(rangeBuilder,null,shardEnd);
-      if (logger.isTraceEnabled()) {
-        logger.trace("search ascending with end: {}",shardEnd);
-      }
-    }
-  }
- else   if (startColumn != null && currentShard.getShardEnd() != null) {
-    T shardEnd=(T)currentShard.getShardEnd();
-    if (!ascending) {
-      T searchStart=comparator.compare(shardEnd,startColumn) > 0 ? shardEnd : startColumn;
-      columnSearch.buildRange(rangeBuilder,searchStart,null);
-      if (logger.isTraceEnabled()) {
-        logger.trace("search descending with start: {} in shard",searchStart,currentShard);
-      }
-    }
- else {
-      columnSearch.buildRange(rangeBuilder,startColumn,shardEnd);
-      if (logger.isTraceEnabled()) {
-        logger.trace("search with start: {}, end: {}",startColumn,shardEnd);
-      }
-    }
   }
   rangeBuilder.setLimit(selectSize);
-  if (logger.isTraceEnabled())   logger.trace("Executing cassandra query with shard {}",currentShard);
-  final RowSliceQuery<R,C> query=keyspace.prepareQuery(cf).setConsistencyLevel(consistencyLevel).getKeySlice((R)currentShard.getRowKey()).withColumnRange(rangeBuilder.build());
+  if (logger.isTraceEnabled())   logger.trace("Executing cassandra query");
+  final RowSliceQuery<R,C> query=keyspace.prepareQuery(cf).setConsistencyLevel(consistencyLevel).getKeySlice(rowKeys).withColumnRange(rangeBuilder.build());
   final Rows<R,C> result;
   try {
     result=query.execute().getResult();
@@ -73,29 +20,17 @@
     throw new RuntimeException("Unable to connect to casandra",e);
   }
   final List<T> mergedResults;
-  skipSize=0;
-  mergedResults=processResults(result,selectSize);
-  if (logger.isTraceEnabled()) {
-    logger.trace("skipped amount: {}",skipSize);
+  if (containsSingleRowOnly(result)) {
+    mergedResults=singleRowResult(result);
+  }
+ else {
+    mergedResults=mergeResults(result,selectSize);
   }
   final int size=mergedResults.size();
-  if (logger.isTraceEnabled()) {
-    logger.trace("current shard: {}, retrieved size: {}",currentShard,size);
-    logger.trace("selectSize={}, size={}, ",selectSize,size);
-  }
   moreToReturn=size == selectSize;
-  if (selectSize == 1001 && mergedResults.size() == 1000) {
-    moreToReturn=true;
-  }
-  if (skipSize == selectSize || skipSize == selectSize - 1 || size == selectSize - skipSize || size == (selectSize - 1) - skipSize) {
-    moreToReturn=true;
-  }
   if (size > 0) {
     final T firstResult=mergedResults.get(0);
     if (columnSearch.skipFirst(firstResult) || (skipFirstColumn && comparator.compare(startColumn,firstResult) == 0)) {
-      if (logger.isTraceEnabled()) {
-        logger.trace("removing an entry");
-      }
       mergedResults.remove(0);
     }
   }
@@ -103,10 +38,5 @@
     startColumn=mergedResults.get(mergedResults.size() - 1);
   }
   currentColumnIterator=mergedResults.iterator();
-  if (size == 0 && currentShardIterator.hasNext()) {
-    hasNext();
-  }
-  if (logger.isTraceEnabled()) {
-    logger.trace("currentColumnIterator.hasNext()={}, " + "moreToReturn={}, currentShardIterator.hasNext()={}",currentColumnIterator.hasNext(),moreToReturn,currentShardIterator.hasNext());
-  }
+  if (logger.isTraceEnabled())   logger.trace("Finished parsing {} rows for results",rowKeys.size());
 }
