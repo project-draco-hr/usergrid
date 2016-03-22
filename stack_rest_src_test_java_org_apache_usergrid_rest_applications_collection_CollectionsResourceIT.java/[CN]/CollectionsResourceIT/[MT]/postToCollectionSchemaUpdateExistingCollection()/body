@@ -1,8 +1,11 @@
 {
   Entity testEntity=new Entity();
-  testEntity.put("one","value");
-  testEntity.put("two","valuetwo");
-  Entity returnedEntity=this.app().collection("testCollection").post(testEntity);
+  testEntity.put("one","value1");
+  testEntity.put("two","valuetwo1");
+  this.app().collection("testCollection").post(testEntity);
+  testEntity.put("one","value2");
+  testEntity.put("two","valuetwo2");
+  this.app().collection("testCollection").post(testEntity);
   ArrayList<String> indexingArray=new ArrayList<>();
   indexingArray.add("one");
   Entity payload=new Entity();
@@ -10,12 +13,15 @@
   Entity thing=this.app().collection("testCollection").collection("_indexes").post(payload);
   refreshIndex();
   this.app().collection("testCollection").collection("_reindex").post();
-  String query="one ='value'";
+  Thread.sleep(1000);
+  refreshIndex();
+  String query="one ='value1'";
   QueryParameters queryParameters=new QueryParameters().setQuery(query);
   Collection tempEntity=this.app().collection("testCollection").get(queryParameters,true);
   Entity reindexedEntity=tempEntity.getResponse().getEntity();
-  assertEquals("value",reindexedEntity.get("one"));
-  query="two = 'valuetwo'";
+  assertEquals("value1",reindexedEntity.get("one"));
+  tempEntity=null;
+  query="two = 'valuetwo1'";
   queryParameters=new QueryParameters().setQuery(query);
   tempEntity=this.app().collection("testCollection").get(queryParameters,true);
   assertEquals(0,tempEntity.getResponse().getEntities().size());
