@@ -11,7 +11,8 @@
   when(graphFig.getShardCacheTimeout()).thenReturn(30000l);
   final long tooSmallDelta=(long)((cacheTimeout * 2) * .99);
   when(graphFig.getShardMinDelta()).thenReturn(tooSmallDelta);
-  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeColumnFamilies,shardedEdgeSerialization,timeService,graphFig,shardGroupCompaction);
+  final NodeShardCache nodeShardCache=mock(NodeShardCache.class);
+  NodeShardAllocation approximation=new NodeShardAllocationImpl(edgeShardSerialization,edgeColumnFamilies,shardedEdgeSerialization,timeService,graphFig,shardGroupCompaction,nodeShardCache);
   try {
     approximation.getMinTime();
     fail("Should have thrown a GraphRuntimeException");

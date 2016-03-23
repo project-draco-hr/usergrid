@@ -92,6 +92,7 @@
     }
     try {
       shardRemovalRollup.execute();
+      nodeShardCache.invalidate();
     }
  catch (    ConnectionException e) {
       throw new RuntimeException("Unable to connect to cassandra",e);
@@ -102,6 +103,7 @@
     final MutationBatch updateMark=edgeShardSerialization.writeShardMeta(scope,compactedShard,edgeMeta);
     try {
       updateMark.execute();
+      nodeShardCache.invalidate();
     }
  catch (    ConnectionException e) {
       throw new RuntimeException("Unable to connect to cassandra",e);

@@ -46,6 +46,10 @@
   final MutationBatch batch=this.edgeShardSerialization.writeShardMeta(scope,newShard,directedEdgeMeta);
   try {
     batch.execute();
+    if (logger.isTraceEnabled()) {
+      logger.trace("Clearing shard cache");
+    }
+    nodeShardCache.invalidate();
   }
  catch (  ConnectionException e) {
     throw new RuntimeException("Unable to connect to casandra",e);
