@@ -1,0 +1,21 @@
+{
+  final List<T> mergedResults=new ArrayList<>(maxSize);
+  for (  final R key : result.getKeys()) {
+    final ColumnList<C> columns=result.getRow(key).getColumns();
+    for (    final Column<C> column : columns) {
+      final T returnedValue=columnParser.parseColumn(column);
+      int searchIndex=Collections.binarySearch(resultsTracking,returnedValue,comparator);
+      if (searchIndex > -1) {
+        if (logger.isTraceEnabled()) {
+          logger.trace("skipping column as it was already retrieved before");
+        }
+        skipSize++;
+        continue;
+      }
+      resultsTracking.add(returnedValue);
+      mergedResults.add(returnedValue);
+    }
+    if (logger.isTraceEnabled())     logger.trace("Candidate result set size is {}",mergedResults.size());
+  }
+  return mergedResults;
+}

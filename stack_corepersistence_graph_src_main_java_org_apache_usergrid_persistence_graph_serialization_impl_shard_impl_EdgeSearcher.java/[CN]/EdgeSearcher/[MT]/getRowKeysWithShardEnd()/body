@@ -1,0 +1,15 @@
+{
+  final List<SmartShard> rowKeysWithShardEnd=new ArrayList<>(shards.size());
+  for (  Shard shard : shards) {
+    final ScopedRowKey<R> rowKey=ScopedRowKey.fromKey(scope.getApplication(),generateRowKey(shard.getShardIndex()));
+    final T shardEnd;
+    if (shard.getShardEnd().isPresent()) {
+      shardEnd=createEdge((C)shard.getShardEnd().get(),false);
+    }
+ else {
+      shardEnd=null;
+    }
+    rowKeysWithShardEnd.add(new SmartShard(rowKey,shardEnd));
+  }
+  return rowKeysWithShardEnd;
+}
