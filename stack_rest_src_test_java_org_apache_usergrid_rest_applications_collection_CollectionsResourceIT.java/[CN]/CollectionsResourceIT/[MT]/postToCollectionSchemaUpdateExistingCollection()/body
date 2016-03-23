@@ -1,11 +1,10 @@
 {
   Entity testEntity=new Entity();
-  testEntity.put("one","value1");
-  testEntity.put("two","valuetwo1");
-  this.app().collection("testCollection").post(testEntity);
-  testEntity.put("one","value2");
-  testEntity.put("two","valuetwo2");
-  this.app().collection("testCollection").post(testEntity);
+  for (int i=0; i < 10; i++) {
+    testEntity.put("one","value" + i);
+    testEntity.put("two","valuetwo" + i);
+    this.app().collection("testCollection").post(testEntity);
+  }
   ArrayList<String> indexingArray=new ArrayList<>();
   indexingArray.add("one");
   Entity payload=new Entity();
@@ -13,16 +12,17 @@
   Entity thing=this.app().collection("testCollection").collection("_indexes").post(payload);
   refreshIndex();
   this.app().collection("testCollection").collection("_reindex").post();
-  Thread.sleep(1000);
+  Thread.sleep(10000);
   refreshIndex();
-  String query="one ='value1'";
-  QueryParameters queryParameters=new QueryParameters().setQuery(query);
-  Collection tempEntity=this.app().collection("testCollection").get(queryParameters,true);
-  Entity reindexedEntity=tempEntity.getResponse().getEntity();
-  assertEquals("value1",reindexedEntity.get("one"));
-  tempEntity=null;
-  query="two = 'valuetwo1'";
-  queryParameters=new QueryParameters().setQuery(query);
-  tempEntity=this.app().collection("testCollection").get(queryParameters,true);
-  assertEquals(0,tempEntity.getResponse().getEntities().size());
+  for (int i=0; i < 10; i++) {
+    String query="one ='value" + i + "'";
+    QueryParameters queryParameters=new QueryParameters().setQuery(query);
+    Collection tempEntity=this.app().collection("testCollection").get(queryParameters,true);
+    Entity reindexedEntity=tempEntity.getResponse().getEntity();
+    assertEquals("value" + i,reindexedEntity.get("one"));
+    query="two = 'valuetwo1" + i + "'";
+    queryParameters=new QueryParameters().setQuery(query);
+    tempEntity=this.app().collection("testCollection").get(queryParameters,true);
+    assertEquals(0,tempEntity.getResponse().getEntities().size());
+  }
 }
