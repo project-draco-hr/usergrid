@@ -3,9 +3,19 @@
   final boolean skipFirstColumn=startColumn != null;
   final int selectSize=skipFirstColumn ? pageSize + 1 : pageSize;
   final RangeBuilder rangeBuilder=new RangeBuilder();
+  SmartShard startShard=null;
   if (currentShardIterator == null) {
+    final List<SmartShard> shards=new ArrayList<>(rowKeysWithShardEnd);
     if (ascending) {
       Collections.reverse(rowKeysWithShardEnd);
+    }
+    if (lastTimestamp.isPresent()) {
+      Collections.reverse(shards);
+      for (      SmartShard shard : shards) {
+        if (lastTimestamp.get().compareTo(shard.getShardIndex()) > 0) {
+          startShard=shard;
+        }
+      }
     }
     currentShardIterator=rowKeysWithShardEnd.iterator();
   }
@@ -14,6 +24,11 @@
       logger.trace("currentShard: {}",currentShard);
     }
     currentShard=currentShardIterator.next();
+    if (startShard != null) {
+      while (!currentShard.equals(startShard)) {
+        currentShard=currentShardIterator.next();
+      }
+    }
     if (logger.isTraceEnabled()) {
       logger.trace("all shards when starting: {}",rowKeysWithShardEnd);
       logger.trace("initializing iterator with shard: {}",currentShard);

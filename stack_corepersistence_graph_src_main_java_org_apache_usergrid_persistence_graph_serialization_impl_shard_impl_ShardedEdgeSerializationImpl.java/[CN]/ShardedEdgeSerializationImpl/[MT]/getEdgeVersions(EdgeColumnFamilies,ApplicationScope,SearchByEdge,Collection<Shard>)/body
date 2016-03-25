@@ -8,7 +8,11 @@
   final MultiTenantColumnFamily<ScopedRowKey<EdgeRowKey>,Long> columnFamily=columnFamilies.getGraphEdgeVersions();
   final Serializer<Long> serializer=columnFamily.getColumnSerializer();
   final OrderedComparator<MarkedEdge> comparator=new OrderedComparator<>(DescendingTimestampComparator.INSTANCE,search.getOrder());
-  final EdgeSearcher<EdgeRowKey,Long,MarkedEdge> searcher=new EdgeSearcher<EdgeRowKey,Long,MarkedEdge>(scope,shards,search.getOrder(),comparator,maxTimestamp,search.last().transform(TRANSFORM)){
+  Optional<Long> lastTimestamp=Optional.absent();
+  if (search.last().isPresent()) {
+    lastTimestamp=Optional.of(search.last().get().getTimestamp());
+  }
+  final EdgeSearcher<EdgeRowKey,Long,MarkedEdge> searcher=new EdgeSearcher<EdgeRowKey,Long,MarkedEdge>(scope,shards,search.getOrder(),comparator,maxTimestamp,search.last().transform(TRANSFORM),lastTimestamp){
     @Override protected Serializer<Long> getSerializer(){
       return serializer;
     }
