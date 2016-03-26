@@ -1,7 +1,14 @@
 {
+  final boolean ascending=order == SearchByEdgeType.Order.ASCENDING;
   if (start != null) {
-    C startEdge=createColumn(start);
-    rangeBuilder.setStart(startEdge,getSerializer());
+    C sourceEdge=createColumn(start);
+    if (ascending && last.isPresent() && comparator.compare(last.get(),start) < 0) {
+      sourceEdge=createColumn(last.get());
+    }
+ else     if (!ascending && last.isPresent() && comparator.compare(last.get(),start) > 0) {
+      sourceEdge=createColumn(last.get());
+    }
+    rangeBuilder.setStart(sourceEdge,getSerializer());
   }
  else {
     setTimeScan(rangeBuilder);
