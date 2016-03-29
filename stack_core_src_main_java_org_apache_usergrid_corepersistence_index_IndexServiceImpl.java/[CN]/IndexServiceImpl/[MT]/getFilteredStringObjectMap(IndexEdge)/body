@@ -1,15 +1,15 @@
 {
-  IndexOperation indexOperation=new IndexOperation();
   Id mapOwner=new SimpleId(indexEdge.getNodeId().getUuid(),TYPE_APPLICATION);
   final MapScope ms=CpNamingUtils.getEntityTypeMapScope(mapOwner);
   MapManager mm=mapManagerFactory.createMapManager(ms);
   Set<String> defaultProperties;
   ArrayList fieldsToKeep;
-  String jsonSchemaMap=mm.getString(indexEdge.getEdgeName().split("\\|")[1]);
+  String collectionName=CpNamingUtils.getCollectionNameFromEdgeName(indexEdge.getEdgeName());
+  String jsonSchemaMap=mm.getString(collectionName);
   if (jsonSchemaMap != null) {
     Map jsonMapData=(Map)JsonUtils.parse(jsonSchemaMap);
     Schema schema=Schema.getDefaultSchema();
-    defaultProperties=schema.getRequiredProperties(indexEdge.getEdgeName().split("\\|")[1]);
+    defaultProperties=schema.getRequiredProperties(collectionName);
     fieldsToKeep=(ArrayList)jsonMapData.get("fields");
     defaultProperties.addAll(fieldsToKeep);
   }
