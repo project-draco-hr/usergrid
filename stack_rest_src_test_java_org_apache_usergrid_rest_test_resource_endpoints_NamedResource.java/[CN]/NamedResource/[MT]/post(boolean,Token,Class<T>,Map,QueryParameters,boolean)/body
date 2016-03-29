@@ -1,0 +1,10 @@
+{
+  WebTarget resource=getTarget(useToken,tokenToUse);
+  resource=addParametersToResource(resource,queryParameters);
+  GenericType<T> gt=new GenericType<>((Class)type);
+  if (useBasicAuthentication) {
+    HttpAuthenticationFeature feature=HttpAuthenticationFeature.basicBuilder().credentials("superuser","superpassword").build();
+    return resource.register(feature).request().accept(MediaType.APPLICATION_JSON).post(javax.ws.rs.client.Entity.json(entity),gt);
+  }
+  return resource.request().accept(MediaType.APPLICATION_JSON).post(javax.ws.rs.client.Entity.json(entity),gt);
+}

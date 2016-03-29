@@ -14,17 +14,7 @@
     defaultProperties.addAll(fieldsToKeep);
   }
  else {
-    return null;
+    return Optional.empty();
   }
-  Map map=indexOperation.convertedEntityToBeIndexed(applicationScope,indexEdge,entity);
-  HashSet mapFields=(HashSet)map.get("fields");
-  Iterator collectionIterator=mapFields.iterator();
-  while (collectionIterator.hasNext()) {
-    EntityField testedField=(EntityField)collectionIterator.next();
-    String fieldName=(String)(testedField).get("name");
-    if (!defaultProperties.contains(fieldName)) {
-      iterateThroughMapForFieldsToBeIndexed(fieldsToKeep,collectionIterator,fieldName);
-    }
-  }
-  return map;
+  return Optional.of(defaultProperties);
 }

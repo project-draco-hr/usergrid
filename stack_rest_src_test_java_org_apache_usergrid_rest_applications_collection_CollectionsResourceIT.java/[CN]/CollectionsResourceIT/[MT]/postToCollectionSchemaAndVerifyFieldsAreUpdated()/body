@@ -15,15 +15,20 @@
   LinkedHashMap testCollectionSchema=(LinkedHashMap)collection.getResponse().getData();
   assertEquals((thing).get("lastUpdated"),testCollectionSchema.get("lastUpdated"));
   assertEquals((thing).get("lastUpdateBy"),testCollectionSchema.get("lastUpdateBy"));
-  assertEquals((thing).get("lastReindexed"),testCollectionSchema.get("lastReindexed"));
+  assertEquals(0,testCollectionSchema.get("lastReindexed"));
   ArrayList<String> schema=(ArrayList<String>)testCollectionSchema.get("fields");
   assertEquals("one",schema.get(0));
-  this.app().collection("testCollection").collection("_reindex").post();
+  this.app().collection("testCollection").collection("_reindex").post(true,clientSetup.getSuperuserToken(),ApiResponse.class,null,null,false);
+  indexingArray.add("one");
+  indexingArray.add("two");
+  payload=new Entity();
+  payload.put("fields",indexingArray);
+  this.app().collection("testCollection").collection("_indexes").post(payload);
   collection=this.app().collection("testCollection").collection("_index").get();
   testCollectionSchema=(LinkedHashMap)collection.getResponse().getData();
-  assertEquals((thing).get("lastUpdated"),testCollectionSchema.get("lastUpdated"));
+  assertNotEquals((thing).get("lastUpdated"),testCollectionSchema.get("lastUpdated"));
   assertEquals((thing).get("lastUpdateBy"),testCollectionSchema.get("lastUpdateBy"));
-  assertNotEquals((thing).get("lastReindexed"),testCollectionSchema.get("lastReindexed"));
+  assertNotEquals(0,testCollectionSchema.get("lastReindexed"));
   schema=(ArrayList<String>)testCollectionSchema.get("fields");
   assertEquals("one",schema.get(0));
   for (int i=0; i < 10; i++) {
