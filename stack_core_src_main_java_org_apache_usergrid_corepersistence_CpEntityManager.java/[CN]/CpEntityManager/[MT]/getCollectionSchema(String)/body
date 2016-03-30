@@ -1,6 +1,10 @@
 {
   MapManager mm=getMapManagerForTypes();
-  String jsonMap=mm.getString(collectionName);
-  Object obj=JsonUtils.parse(jsonMap);
-  return obj;
+  java.util.Optional<String> collectionIndexingSchema=managerCache.getIndexSchema(mm,collectionName);
+  if (collectionIndexingSchema.isPresent()) {
+    return JsonUtils.parse(collectionIndexingSchema.get());
+  }
+ else {
+    return null;
+  }
 }

@@ -1,0 +1,16 @@
+{
+  try {
+    Optional<String> optionalCollectionSchema=indexSchemaCache.get(collectionName);
+    if (!optionalCollectionSchema.isPresent()) {
+      indexSchemaCache.invalidate(collectionName);
+      return Optional.empty();
+    }
+    return optionalCollectionSchema;
+  }
+ catch (  Exception e) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Returning for collection name: {} " + "resulted in the following failure: {}",collectionName,e);
+    }
+  }
+  return null;
+}
