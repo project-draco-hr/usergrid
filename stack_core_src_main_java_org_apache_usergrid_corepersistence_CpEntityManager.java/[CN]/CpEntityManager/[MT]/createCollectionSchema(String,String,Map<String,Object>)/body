@@ -5,7 +5,12 @@
   schemaMap.put("lastUpdated",epoch);
   schemaMap.put("lastUpdateBy",owner);
   MapManager mm=getMapManagerForTypes();
-  String jsonSchemaMap=mm.getString(collectionName);
+  IndexSchemaCache indexSchemaCache=managerCache.getIndexSchema(mm);
+  java.util.Optional<String> collectionIndexingSchema=indexSchemaCache.getCollectionSchema(collectionName);
+  String jsonSchemaMap=null;
+  if (collectionIndexingSchema.isPresent()) {
+    jsonSchemaMap=collectionIndexingSchema.get();
+  }
   if (jsonSchemaMap != null) {
     Map jsonMapData=(Map)JsonUtils.parse(jsonSchemaMap);
     schemaMap.put("lastReindexed",jsonMapData.get("lastReindexed"));
@@ -15,5 +20,6 @@
   }
   schemaMap.putAll(properties);
   mm.putString(collectionName,JsonUtils.mapToJsonString(schemaMap));
+  indexSchemaCache.evictCollectionSchema(collectionName);
   return schemaMap;
 }

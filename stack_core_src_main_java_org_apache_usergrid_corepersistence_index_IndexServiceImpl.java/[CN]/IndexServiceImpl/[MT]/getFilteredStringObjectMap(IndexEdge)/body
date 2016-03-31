@@ -5,7 +5,12 @@
   Set<String> defaultProperties;
   ArrayList fieldsToKeep;
   String collectionName=CpNamingUtils.getCollectionNameFromEdgeName(indexEdge.getEdgeName());
-  String jsonSchemaMap=mm.getString(collectionName);
+  IndexSchemaCache indexSchemaCache=indexSchemaCacheFactory.getInstance(mm);
+  Optional<String> collectionIndexingSchema=indexSchemaCache.getCollectionSchema(collectionName);
+  String jsonSchemaMap=null;
+  if (collectionIndexingSchema.isPresent()) {
+    jsonSchemaMap=collectionIndexingSchema.get();
+  }
   if (jsonSchemaMap != null) {
     Map jsonMapData=(Map)JsonUtils.parse(jsonSchemaMap);
     Schema schema=Schema.getDefaultSchema();
