@@ -18,7 +18,15 @@
  else {
     schemaMap.put("lastReindexed",0);
   }
-  schemaMap.putAll(properties);
+  ArrayList<String> fieldProperties=(ArrayList<String>)properties.get("fields");
+  if (fieldProperties.contains("*")) {
+    ArrayList<String> wildCardArrayList=new ArrayList<>();
+    wildCardArrayList.add("*");
+    schemaMap.put("fields",wildCardArrayList);
+  }
+ else {
+    schemaMap.putAll(properties);
+  }
   indexSchemaCache.putCollectionSchema(collectionName,JsonUtils.mapToJsonString(schemaMap));
   return schemaMap;
 }
