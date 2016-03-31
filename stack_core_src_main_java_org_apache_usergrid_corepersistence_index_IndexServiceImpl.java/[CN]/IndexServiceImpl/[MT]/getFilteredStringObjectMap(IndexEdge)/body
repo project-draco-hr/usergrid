@@ -6,13 +6,9 @@
   ArrayList fieldsToKeep;
   String collectionName=CpNamingUtils.getCollectionNameFromEdgeName(indexEdge.getEdgeName());
   IndexSchemaCache indexSchemaCache=indexSchemaCacheFactory.getInstance(mm);
-  Optional<String> collectionIndexingSchema=indexSchemaCache.getCollectionSchema(collectionName);
-  String jsonSchemaMap=null;
+  Optional<Map> collectionIndexingSchema=indexSchemaCache.getCollectionSchema(collectionName);
   if (collectionIndexingSchema.isPresent()) {
-    jsonSchemaMap=collectionIndexingSchema.get();
-  }
-  if (jsonSchemaMap != null) {
-    Map jsonMapData=(Map)JsonUtils.parse(jsonSchemaMap);
+    Map jsonMapData=collectionIndexingSchema.get();
     Schema schema=Schema.getDefaultSchema();
     defaultProperties=schema.getRequiredProperties(collectionName);
     fieldsToKeep=(ArrayList)jsonMapData.get("fields");

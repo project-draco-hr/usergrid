@@ -6,13 +6,9 @@
   schemaMap.put("lastUpdateBy",owner);
   MapManager mm=getMapManagerForTypes();
   IndexSchemaCache indexSchemaCache=indexSchemaCacheFactory.getInstance(mm);
-  java.util.Optional<String> collectionIndexingSchema=indexSchemaCache.getCollectionSchema(collectionName);
-  String jsonSchemaMap=null;
+  java.util.Optional<Map> collectionIndexingSchema=indexSchemaCache.getCollectionSchema(collectionName);
   if (collectionIndexingSchema.isPresent()) {
-    jsonSchemaMap=collectionIndexingSchema.get();
-  }
-  if (jsonSchemaMap != null) {
-    Map jsonMapData=(Map)JsonUtils.parse(jsonSchemaMap);
+    Map jsonMapData=collectionIndexingSchema.get();
     schemaMap.put("lastReindexed",jsonMapData.get("lastReindexed"));
   }
  else {
