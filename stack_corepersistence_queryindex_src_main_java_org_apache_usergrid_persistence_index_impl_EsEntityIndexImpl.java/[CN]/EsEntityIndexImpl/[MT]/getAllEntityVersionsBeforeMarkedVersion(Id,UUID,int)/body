@@ -8,14 +8,14 @@
   final int searchLimit=Math.max(2,limitToDelete);
   final QueryBuilder entityQuery=QueryBuilders.termQuery(IndexingUtils.ENTITY_ID_FIELDNAME,IndexingUtils.entityId(entityId));
   final QueryBuilder nodeQuery=QueryBuilders.termQuery(IndexingUtils.EDGE_NODE_ID_FIELDNAME,IndexingUtils.nodeId(entityId));
-  final SearchRequestBuilder srb=searchRequestBuilderStrategyV2.getBuilder();
+  final SearchRequestBuilder srb=searchRequestBuilderStrategyV2.getBuilder().addSort(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME,SortOrder.ASC);
   try {
     long queryTimestamp=0L;
     while (true) {
       QueryBuilder timestampQuery=QueryBuilders.rangeQuery(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME).gte(queryTimestamp).lte(markedTimestamp);
       QueryBuilder entityQueryWithTimestamp=QueryBuilders.boolQuery().must(entityQuery).must(timestampQuery);
       QueryBuilder finalQuery=QueryBuilders.boolQuery().should(entityQueryWithTimestamp).should(nodeQuery).minimumNumberShouldMatch(1);
-      searchResponse=srb.setQuery(finalQuery).setSize(searchLimit).addSort(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME,SortOrder.ASC).execute().actionGet();
+      searchResponse=srb.setQuery(finalQuery).setSize(searchLimit).execute().actionGet();
       int responseSize=searchResponse.getHits().getHits().length;
       if (responseSize == 0) {
         break;
