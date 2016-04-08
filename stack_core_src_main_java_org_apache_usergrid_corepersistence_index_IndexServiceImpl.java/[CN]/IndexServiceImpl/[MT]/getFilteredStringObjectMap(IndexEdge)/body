@@ -1,0 +1,24 @@
+{
+  Id mapOwner=new SimpleId(indexEdge.getNodeId().getUuid(),TYPE_APPLICATION);
+  final MapScope ms=CpNamingUtils.getEntityTypeMapScope(mapOwner);
+  MapManager mm=mapManagerFactory.createMapManager(ms);
+  Set<String> defaultProperties;
+  ArrayList fieldsToKeep;
+  String collectionName=CpNamingUtils.getCollectionNameFromEdgeName(indexEdge.getEdgeName());
+  IndexSchemaCache indexSchemaCache=indexSchemaCacheFactory.getInstance(mm);
+  Optional<Map> collectionIndexingSchema=indexSchemaCache.getCollectionSchema(collectionName);
+  if (collectionIndexingSchema.isPresent()) {
+    Map jsonMapData=collectionIndexingSchema.get();
+    Schema schema=Schema.getDefaultSchema();
+    defaultProperties=schema.getRequiredProperties(collectionName);
+    fieldsToKeep=(ArrayList)jsonMapData.get("fields");
+    if (fieldsToKeep.contains("*")) {
+      return Optional.absent();
+    }
+    defaultProperties.addAll(fieldsToKeep);
+  }
+ else {
+    return Optional.absent();
+  }
+  return Optional.of(defaultProperties);
+}
