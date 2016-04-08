@@ -1,2 +1,15 @@
 {
+  logger.info("Executing one-time job, LockManager is {}",lockManager == null ? "null" : "not null");
+  String lockId=execution.getJobId().toString();
+  Lock lock=lockManager.createLock(emf.getManagementAppId(),String.format("/jobs/%s",lockId));
+  if (!lock.tryLock(0,TimeUnit.MILLISECONDS)) {
+    execution.delay(getDelay(execution));
+    return;
+  }
+  try {
+    doJob(execution);
+  }
+  finally {
+    lock.unlock();
+  }
 }
