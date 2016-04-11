@@ -1,5 +1,6 @@
 {
   List<EntityRef> devices=new ArrayList<>();
+  final int LIMIT=Query.MID_LIMIT;
   try {
     if ("device".equals(ref.getType())) {
       devices=Collections.singletonList(ref);
@@ -10,7 +11,7 @@
       int resultSize=0;
       while (initial || resultSize >= Query.DEFAULT_LIMIT) {
         initial=false;
-        final List<EntityRef> mydevices=em.getCollection(ref,"devices",start,Query.DEFAULT_LIMIT,Query.Level.REFS,true).getRefs();
+        final List<EntityRef> mydevices=em.getCollection(ref,"devices",start,LIMIT,Query.Level.REFS,true).getRefs();
         resultSize=mydevices.size();
         if (mydevices.size() > 0) {
           start=mydevices.get(mydevices.size() - 1).getUuid();
@@ -22,9 +23,9 @@
       UUID start=null;
       boolean initial=true;
       int resultSize=0;
-      while (initial || resultSize >= Query.DEFAULT_LIMIT) {
+      while (initial || resultSize >= LIMIT) {
         initial=false;
-        final List<EntityRef> myusers=em.getCollection(ref,"users",start,Query.DEFAULT_LIMIT,Query.Level.REFS,true).getRefs();
+        final List<EntityRef> myusers=em.getCollection(ref,"users",start,LIMIT,Query.Level.REFS,true).getRefs();
         resultSize=myusers.size();
         if (myusers.size() > 0) {
           start=myusers.get(myusers.size() - 1).getUuid();
