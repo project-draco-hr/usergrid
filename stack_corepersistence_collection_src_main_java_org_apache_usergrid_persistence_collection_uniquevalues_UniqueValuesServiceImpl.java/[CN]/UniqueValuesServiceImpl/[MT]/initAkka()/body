@@ -1,0 +1,29 @@
+{
+  logger.info("Initializing Akka");
+  if (StringUtils.isEmpty(hostname)) {
+    throw new RuntimeException("No value specified for akka.hostname");
+  }
+  if (StringUtils.isEmpty(currentRegion)) {
+    throw new RuntimeException("No value specified for akka.region");
+  }
+  String regionsValue=akkaFig.getRegions();
+  if (StringUtils.isEmpty(regionsValue)) {
+    throw new RuntimeException("No value specified for akka.regions");
+  }
+  String[] regions=regionsValue.split(",");
+  for (  String region : regions) {
+    akkaFig.getKeyByMethod("");
+    String typesValue=akkaFig.getRegionTypes();
+    String[] regionTypes=StringUtils.isEmpty(typesValue) ? new String[0] : typesValue.split(",");
+    for (    String regionType : regionTypes) {
+      String[] parts=regionType.split(":");
+      String typeRegion=parts[0];
+      String type=parts[1];
+      this.regionsByType.put(type,typeRegion);
+    }
+  }
+  final Map<String,ActorSystem> systemMap=new HashMap<>();
+  ActorSystem localSystem=createClusterSingletonProxies(readClusterSingletonConfigs(),systemMap);
+  createRequestActors(systemMap);
+  subscribeToReservations(localSystem,systemMap);
+}

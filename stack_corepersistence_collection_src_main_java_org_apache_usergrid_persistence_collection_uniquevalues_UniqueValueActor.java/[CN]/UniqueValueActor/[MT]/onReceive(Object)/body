@@ -1,0 +1,79 @@
+{
+  if (message instanceof Request) {
+    Request req=(Request)message;
+    count++;
+    if (count % 10 == 0) {
+      logger.debug("UniqueValueActor {} processed {} requests",name,count);
+    }
+  }
+  if (message instanceof Reservation) {
+    Reservation res=(Reservation)message;
+    try {
+      UUID owner=table.lookupOwner(res.getType(),res.getPropertyName(),res.getPropertyValue());
+      if (owner != null && owner.equals(res.getUuid())) {
+        getSender().tell(new Response(Response.Status.IS_UNIQUE),getSender());
+        return;
+      }
+ else       if (owner != null && !owner.equals(res.getUuid())) {
+        getSender().tell(new Response(Response.Status.NOT_UNIQUE),getSender());
+        return;
+      }
+      table.reserve(res.getUuid(),res.getType(),res.getPropertyName(),res.getPropertyValue());
+      getSender().tell(new Response(Response.Status.IS_UNIQUE),getSender());
+      mediator.tell(new DistributedPubSubMediator.Publish("content",new Reservation(res)),getSelf());
+    }
+ catch (    Throwable t) {
+      getSender().tell(new Response(Response.Status.ERROR),getSender());
+      logger.error("Error processing request",t);
+    }
+ finally {
+    }
+  }
+ else   if (message instanceof Confirmation) {
+    Confirmation commit=(Confirmation)message;
+    try {
+      UUID owner=table.lookupOwner(commit.getType(),commit.getPropertyName(),commit.getPropertyValue());
+      if (owner != null && !owner.equals(commit.getUuid())) {
+        getSender().tell(new Response(Response.Status.NOT_UNIQUE),getSender());
+        return;
+      }
+ else       if (owner == null) {
+        getSender().tell(new Response(Response.Status.BAD_REQUEST),getSender());
+        return;
+      }
+      table.commit(commit.getUuid(),commit.getType(),commit.getPropertyName(),commit.getPropertyValue());
+      getSender().tell(new Response(Response.Status.IS_UNIQUE),getSender());
+      mediator.tell(new DistributedPubSubMediator.Publish("content",new Reservation(commit)),getSelf());
+    }
+ catch (    Throwable t) {
+      getSender().tell(new Response(Response.Status.ERROR),getSender());
+      logger.error("Error processing request",t);
+    }
+ finally {
+    }
+  }
+ else   if (message instanceof Cancellation) {
+    Cancellation can=(Cancellation)message;
+    try {
+      UUID owner=table.lookupOwner(can.getType(),can.getPropertyName(),can.getPropertyValue());
+      if (owner != null && !owner.equals(can.getUuid())) {
+        getSender().tell(new Response(Response.Status.NOT_UNIQUE),getSender());
+        return;
+      }
+ else       if (owner == null) {
+        getSender().tell(new Response(Response.Status.BAD_REQUEST),getSender());
+        return;
+      }
+      table.cancel(can.getType(),can.getPropertyName(),can.getPropertyValue());
+      getSender().tell(new Response(Response.Status.SUCCESS),getSender());
+      mediator.tell(new DistributedPubSubMediator.Publish("content",new Reservation(can)),getSelf());
+    }
+ catch (    Throwable t) {
+      getSender().tell(new Response(Response.Status.ERROR),getSender());
+      logger.error("Error processing request",t);
+    }
+  }
+ else {
+    unhandled(message);
+  }
+}

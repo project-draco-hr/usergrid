@@ -1,0 +1,34 @@
+{
+  int maxRetries=5;
+  int retries=0;
+  UniqueValueActor.Response response=null;
+  while (retries++ < maxRetries) {
+    try {
+      Timeout t=new Timeout(1,TimeUnit.SECONDS);
+      Future<Object> fut=Patterns.ask(requestActor,request,t);
+      response=(UniqueValueActor.Response)Await.result(fut,t.duration());
+      if (response != null && (response.getStatus().equals(UniqueValueActor.Response.Status.IS_UNIQUE) || response.getStatus().equals(UniqueValueActor.Response.Status.NOT_UNIQUE))) {
+        if (retries > 1) {
+          logger.debug("IS_UNIQUE after retrying {} for entity {} rowkey {}",retries,entity.getId().getUuid(),request.getRowKey());
+        }
+        break;
+      }
+ else       if (response != null) {
+        logger.debug("ERROR status retrying {} entity {} rowkey {}",retries,entity.getId().getUuid(),request.getRowKey());
+      }
+ else {
+        logger.debug("Timed-out retrying {} entity {} rowkey",retries,entity.getId().getUuid(),request.getRowKey());
+      }
+    }
+ catch (    Exception e) {
+      logger.debug("{} caused retry {} for entity {} rowkey {}",e.getClass().getSimpleName(),retries,entity.getId().getUuid(),request.getRowKey());
+    }
+  }
+  if (response == null || response.getStatus().equals(UniqueValueActor.Response.Status.ERROR)) {
+    logger.debug("ERROR after retrying {} for entity {} rowkey {}",retries,entity.getId().getUuid(),request.getRowKey());
+    throw new RuntimeException("Error verifying unique value after " + retries + " retries");
+  }
+  if (response.getStatus().equals(UniqueValueActor.Response.Status.NOT_UNIQUE)) {
+    throw new UniqueValueException("Error property not unique");
+  }
+}

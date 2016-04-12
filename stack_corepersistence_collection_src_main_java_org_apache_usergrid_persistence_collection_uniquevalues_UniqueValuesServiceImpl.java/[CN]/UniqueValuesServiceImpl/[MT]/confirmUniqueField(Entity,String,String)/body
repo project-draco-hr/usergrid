@@ -1,0 +1,9 @@
+{
+  String region=getRegionsByType().get("user");
+  ActorRef requestActor=getRequestActorsByRegion().get(region);
+  if (requestActor == null) {
+    throw new RuntimeException("No request actor for type, cannot verify unique fields!");
+  }
+  UniqueValueActor.Confirmation request=new UniqueValueActor.Confirmation(entity.getId().getUuid(),"user",propertyName,propertyValue);
+  sendUniqueValueRequest(entity,requestActor,request);
+}

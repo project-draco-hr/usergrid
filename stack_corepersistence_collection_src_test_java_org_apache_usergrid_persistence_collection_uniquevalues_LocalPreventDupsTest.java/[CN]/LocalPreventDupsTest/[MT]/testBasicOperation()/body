@@ -1,0 +1,24 @@
+{
+  UniqueValuesService appEast1=TestCollectionModule.getInjector("us-east").getInstance(UniqueValuesService.class);
+  appEast1.start("127.0.0.1",2551,"us-east");
+  UniqueValuesService appEast2=TestCollectionModule.getInjector("us-east").getInstance(UniqueValuesService.class);
+  appEast2.start("127.0.0.1",2552,"us-east");
+  appEast1.waitForRequestActors();
+  appEast2.waitForRequestActors();
+  int numUsers=100;
+  Multimap<String,Entity> usersCreated=generateDuplicateUsers(numUsers);
+  int userCount=0;
+  int usernamesWithDuplicates=0;
+  for (  String username : usersCreated.keySet()) {
+    Collection<Entity> users=usersCreated.get(username);
+    if (users.size() > 1) {
+      usernamesWithDuplicates++;
+    }
+    userCount++;
+  }
+  Assert.assertEquals(0,usernamesWithDuplicates);
+  Assert.assertEquals(numUsers,successCounter.get());
+  Assert.assertEquals(0,errorCounter.get());
+  Assert.assertEquals(numUsers,usersCreated.size());
+  Assert.assertEquals(numUsers,userCount);
+}

@@ -1,0 +1,9 @@
+{
+  for (  String region : systemMap.keySet()) {
+    ActorSystem actorSystem=systemMap.get(region);
+    if (!actorSystem.equals(localSystem)) {
+      logger.info("Starting ReservationCacheUpdater for {}",region);
+      actorSystem.actorOf(Props.create(ReservationCacheActor.class,region),"subscriber");
+    }
+  }
+}

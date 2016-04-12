@@ -1,0 +1,22 @@
+{
+  if (msg instanceof UniqueValueActor.Reservation) {
+    UniqueValueActor.Reservation res=(UniqueValueActor.Reservation)msg;
+    ReservationCache.getInstance().cacheReservation(res);
+    if (++reservationCount % 10 == 0) {
+      logger.debug("Received {} reservations cache size {}",reservationCount,ReservationCache.getInstance().getSize());
+    }
+  }
+ else   if (msg instanceof UniqueValueActor.Cancellation) {
+    UniqueValueActor.Cancellation can=(UniqueValueActor.Cancellation)msg;
+    ReservationCache.getInstance().cancelReservation(can);
+    if (++cancellationCount % 10 == 0) {
+      logger.debug("Received {} cancellations",cancellationCount);
+    }
+  }
+ else   if (msg instanceof DistributedPubSubMediator.SubscribeAck) {
+    logger.debug("subscribing");
+  }
+ else {
+    unhandled(msg);
+  }
+}

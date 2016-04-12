@@ -1,0 +1,16 @@
+{
+  ActorSystem localSystem=null;
+  for (  String region : configMap.keySet()) {
+    Config config=configMap.get(region);
+    ActorSystem system=ActorSystem.create("ClusterSystem",config);
+    systemMap.put(region,system);
+    if (currentRegion.equals(region)) {
+      localSystem=system;
+      ClusterSingletonManagerSettings settings=ClusterSingletonManagerSettings.create(system).withRole("io");
+      system.actorOf(ClusterSingletonManager.props(Props.create(ClusterSingletonRouter.class,region),PoisonPill.getInstance(),settings),"uvRouter");
+    }
+    ClusterSingletonProxySettings proxySettings=ClusterSingletonProxySettings.create(system).withRole("io");
+    system.actorOf(ClusterSingletonProxy.props("/user/uvRouter",proxySettings),"uvProxy");
+  }
+  return localSystem;
+}
