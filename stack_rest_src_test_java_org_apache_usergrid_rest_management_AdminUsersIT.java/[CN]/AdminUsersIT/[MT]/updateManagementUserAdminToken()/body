@@ -1,0 +1,12 @@
+{
+  Organization newOrg=createOrgPayload("updateManagementUserAdminToken",null);
+  Organization orgReturned=clientSetup.getRestClient().management().orgs().post(newOrg);
+  assertNotNull(orgReturned.getOwner());
+  String orgName=orgReturned.getName();
+  Entity userProperty=new Entity().chainPut("company","usergrid");
+  User adminUser=orgReturned.getOwner();
+  Token adminToken=management.token().get(adminUser.getUsername(),orgName);
+  assertNotNull(adminToken);
+  management.token().setToken(adminToken);
+  management().users().user(newOrg.getUsername()).put(userProperty);
+}
