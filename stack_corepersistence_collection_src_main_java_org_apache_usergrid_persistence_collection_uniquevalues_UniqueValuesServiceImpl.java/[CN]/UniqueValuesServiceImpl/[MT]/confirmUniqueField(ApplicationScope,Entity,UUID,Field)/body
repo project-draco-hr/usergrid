@@ -1,9 +1,8 @@
 {
-  String region=getRegionsByType().get(entity.getId().getType());
-  ActorRef requestActor=getRequestActorsByRegion().get(region);
+  ActorRef requestActor=lookupRequestActorForType(entity.getId().getType());
   if (requestActor == null) {
     throw new RuntimeException("No request actor for type, cannot verify unique fields!");
   }
   UniqueValueActor.Confirmation request=new UniqueValueActor.Confirmation(scope,entity.getId(),version,field);
-  sendUniqueValueRequest(scope,entity,field,requestActor,request);
+  sendUniqueValueRequest(entity,requestActor,request);
 }

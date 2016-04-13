@@ -1,6 +1,5 @@
 {
-  String region=getRegionsByType().get(entity.getId().getType());
-  ActorRef requestActor=getRequestActorsByRegion().get(region);
+  ActorRef requestActor=lookupRequestActorForType(entity.getId().getType());
   if (requestActor == null) {
     throw new RuntimeException("No request actor for type, cannot verify unique fields!");
   }
@@ -9,5 +8,5 @@
   if (res != null && !res.getOwner().equals(request.getOwner())) {
     throw new UniqueValueException("Error property not unique (cache)",field);
   }
-  sendUniqueValueRequest(scope,entity,field,requestActor,request);
+  sendUniqueValueRequest(entity,requestActor,request);
 }
