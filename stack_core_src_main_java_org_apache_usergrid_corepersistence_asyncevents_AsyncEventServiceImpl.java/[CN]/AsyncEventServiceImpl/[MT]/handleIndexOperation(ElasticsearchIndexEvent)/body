@@ -5,7 +5,7 @@
   final String message=esMapPersistence.getString(messageId.toString());
   final IndexOperationMessage indexOperationMessage;
   if (message == null) {
-    if (System.currentTimeMillis() > elasticsearchIndexEvent.getCreationTime() + queueFig.getLocalQuorumTimeout()) {
+    if (queueFig.getQuorumFallback() && System.currentTimeMillis() > elasticsearchIndexEvent.getCreationTime() + queueFig.getLocalQuorumTimeout()) {
       if (logger.isDebugEnabled()) {
         logger.debug("ES batch with id {} not found, reading with strong consistency",messageId);
       }
