@@ -9,16 +9,16 @@
   if (message instanceof Reservation) {
     Reservation res=(Reservation)message;
     try {
-      UUID owner=table.lookupOwner(res.getType(),res.getPropertyName(),res.getPropertyValue());
-      if (owner != null && owner.equals(res.getUuid())) {
+      Id owner=table.lookupOwner(res.getApplicationScope(),res.getOwner().getType(),res.getField());
+      if (owner != null && owner.equals(res.getOwner())) {
         getSender().tell(new Response(Response.Status.IS_UNIQUE),getSender());
         return;
       }
- else       if (owner != null && !owner.equals(res.getUuid())) {
+ else       if (owner != null && !owner.equals(res.getOwner())) {
         getSender().tell(new Response(Response.Status.NOT_UNIQUE),getSender());
         return;
       }
-      table.reserve(res.getUuid(),res.getType(),res.getPropertyName(),res.getPropertyValue());
+      table.reserve(res.getApplicationScope(),res.getOwner(),res.getOwnerVersion(),res.getField());
       getSender().tell(new Response(Response.Status.IS_UNIQUE),getSender());
       mediator.tell(new DistributedPubSubMediator.Publish("content",new Reservation(res)),getSelf());
     }
@@ -30,10 +30,10 @@
     }
   }
  else   if (message instanceof Confirmation) {
-    Confirmation commit=(Confirmation)message;
+    Confirmation con=(Confirmation)message;
     try {
-      UUID owner=table.lookupOwner(commit.getType(),commit.getPropertyName(),commit.getPropertyValue());
-      if (owner != null && !owner.equals(commit.getUuid())) {
+      Id owner=table.lookupOwner(con.getApplicationScope(),con.getOwner().getType(),con.getField());
+      if (owner != null && !owner.equals(con.getOwner())) {
         getSender().tell(new Response(Response.Status.NOT_UNIQUE),getSender());
         return;
       }
@@ -41,9 +41,9 @@
         getSender().tell(new Response(Response.Status.BAD_REQUEST),getSender());
         return;
       }
-      table.commit(commit.getUuid(),commit.getType(),commit.getPropertyName(),commit.getPropertyValue());
+      table.confirm(con.getApplicationScope(),con.getOwner(),con.getOwnerVersion(),con.getField());
       getSender().tell(new Response(Response.Status.IS_UNIQUE),getSender());
-      mediator.tell(new DistributedPubSubMediator.Publish("content",new Reservation(commit)),getSelf());
+      mediator.tell(new DistributedPubSubMediator.Publish("content",new Reservation(con)),getSelf());
     }
  catch (    Throwable t) {
       getSender().tell(new Response(Response.Status.ERROR),getSender());
@@ -55,8 +55,8 @@
  else   if (message instanceof Cancellation) {
     Cancellation can=(Cancellation)message;
     try {
-      UUID owner=table.lookupOwner(can.getType(),can.getPropertyName(),can.getPropertyValue());
-      if (owner != null && !owner.equals(can.getUuid())) {
+      Id owner=table.lookupOwner(can.getApplicationScope(),can.getOwner().getType(),can.getField());
+      if (owner != null && !owner.equals(can.getOwner())) {
         getSender().tell(new Response(Response.Status.NOT_UNIQUE),getSender());
         return;
       }
@@ -64,7 +64,7 @@
         getSender().tell(new Response(Response.Status.BAD_REQUEST),getSender());
         return;
       }
-      table.cancel(can.getType(),can.getPropertyName(),can.getPropertyValue());
+      table.confirm(can.getApplicationScope(),can.getOwner(),can.getOwnerVersion(),can.getField());
       getSender().tell(new Response(Response.Status.SUCCESS),getSender());
       mediator.tell(new DistributedPubSubMediator.Publish("content",new Reservation(can)),getSelf());
     }
