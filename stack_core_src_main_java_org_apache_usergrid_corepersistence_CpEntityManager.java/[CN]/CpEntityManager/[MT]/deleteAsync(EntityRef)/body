@@ -1,6 +1,8 @@
 {
   Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
-  indexService.queueEntityDelete(applicationScope,entityId);
+  if (!skipIndexingForType(entityId.getType())) {
+    indexService.queueEntityDelete(applicationScope,entityId);
+  }
   MapManager mm=getMapManagerForTypes();
   mm.delete(entityRef.getUuid().toString());
 }
