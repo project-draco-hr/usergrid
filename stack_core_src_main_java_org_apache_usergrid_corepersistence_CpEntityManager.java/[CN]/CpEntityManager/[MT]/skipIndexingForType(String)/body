@@ -1,0 +1,15 @@
+{
+  boolean skipIndexing=false;
+  MapManager mm=getMapManagerForTypes();
+  IndexSchemaCache indexSchemaCache=indexSchemaCacheFactory.getInstance(mm);
+  String collectionName=Schema.defaultCollectionName(type);
+  Optional<Map> collectionIndexingSchema=indexSchemaCache.getCollectionSchema(collectionName);
+  if (collectionIndexingSchema.isPresent()) {
+    Map jsonMapData=collectionIndexingSchema.get();
+    final ArrayList fields=(ArrayList)jsonMapData.get("fields");
+    if (fields.size() == 1 && fields.get(0).equals("!")) {
+      skipIndexing=true;
+    }
+  }
+  return skipIndexing;
+}
