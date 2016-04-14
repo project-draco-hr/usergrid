@@ -1,8 +1,14 @@
 {
+  if (!akkaFig.getAkkaEnabled()) {
+    logger.warn("Skipping test because Akka is not enabled");
+    return;
+  }
   uniqueValuesService.start("127.0.0.1",2551,"us-east");
   uniqueValuesService.waitForRequestActors();
+  final AtomicInteger successCounter=new AtomicInteger(0);
+  final AtomicInteger errorCounter=new AtomicInteger(0);
   int numUsers=100;
-  Multimap<String,Entity> usersCreated=generateDuplicateUsers(numUsers);
+  Multimap<String,Entity> usersCreated=generateDuplicateUsers(numUsers,successCounter,errorCounter);
   int userCount=0;
   int usernamesWithDuplicates=0;
   for (  String username : usersCreated.keySet()) {
