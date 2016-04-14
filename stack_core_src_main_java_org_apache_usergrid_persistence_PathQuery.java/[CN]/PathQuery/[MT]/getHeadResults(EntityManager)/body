@@ -1,4 +1,10 @@
 {
   EntityRef ref=new SimpleEntityRef(type,uuid);
+  if (!query.getQl().isPresent() && query.getSingleNameOrEmailIdentifier() != null) {
+    String name=query.getSingleNameOrEmailIdentifier();
+    String entityType=InflectionUtils.singularize(query.getCollection());
+    UUID entityId=em.getUniqueIdFromAlias(entityType,name);
+    return em.getEntities(Collections.singletonList(entityId),entityType);
+  }
   return (query.getCollection() != null) ? em.searchCollection(ref,query.getCollection(),query) : em.searchTargetEntities(ref,query);
 }
