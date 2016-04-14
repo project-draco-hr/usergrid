@@ -1,0 +1,15 @@
+{
+  String collectionName="ect" + System.currentTimeMillis();
+  Map<String,String> fields=new HashMap<>(3);
+  fields.put("color","red");
+  fields.put("shape","square");
+  SDKTestUtils.createEntity(collectionName,"testEntity1",fields);
+  UsergridResponse response=Usergrid.GET(collectionName,"testEntity1");
+  Object instanceObj=response.getStatusCode();
+  assertTrue("The returned statusCode is and object of integer",instanceObj instanceof Integer);
+  instanceObj=response.ok();
+  assertTrue("The returned statusCode is and object of boolean",instanceObj instanceof Boolean);
+  UsergridResponse resp=Usergrid.logoutUser(SDKTestConfiguration.APP_UserName,null);
+  response=Usergrid.GET(collectionName,"testEntity1");
+  assertNotNull("The response should throw an error",response.getResponseError());
+}

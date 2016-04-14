@@ -1,0 +1,10 @@
+{
+  Map<String,String> credentials=auth.credentialsMap();
+  UsergridRequest request=new UsergridRequest(UsergridHttpMethod.POST,UsergridRequest.APPLICATION_JSON_MEDIA_TYPE,this.usergridClient.clientAppUrl(),null,credentials,this.usergridClient.authForRequests(),"token");
+  UsergridResponse response=performRequest(request);
+  if (!isEmpty(response.getAccessToken()) && !isEmpty(response.getExpires())) {
+    auth.setAccessToken(response.getAccessToken());
+    auth.setExpiry(System.currentTimeMillis() + response.getExpires() - 5000);
+  }
+  return response;
+}

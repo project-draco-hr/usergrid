@@ -1,0 +1,18 @@
+{
+  String url=this.baseUrl;
+  if (this.query != null) {
+    url+=this.query.build();
+  }
+  HttpUrl.Builder urlBuilder=HttpUrl.parse(url).newBuilder();
+  if (this.pathSegments != null) {
+    for (    String path : this.pathSegments) {
+      urlBuilder.addPathSegment(path);
+    }
+  }
+  if (this.parameters != null) {
+    for (    Map.Entry<String,Object> param : this.parameters.entrySet()) {
+      urlBuilder.addQueryParameter(param.getKey(),param.getValue().toString());
+    }
+  }
+  return urlBuilder.build();
+}
