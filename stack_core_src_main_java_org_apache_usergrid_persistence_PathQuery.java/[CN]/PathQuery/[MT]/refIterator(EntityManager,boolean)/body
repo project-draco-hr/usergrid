@@ -11,6 +11,11 @@
       q=new Query(q);
       q.setResultsLevel(Level.REFS);
     }
-    return new MultiQueryIterator(em,source.refIterator(em),q);
+    if (useGraph) {
+      return new NotificationGraphIterator(em,source.refIterator(em,true),q);
+    }
+ else {
+      return new MultiQueryIterator(em,source.refIterator(em,false),q);
+    }
   }
 }

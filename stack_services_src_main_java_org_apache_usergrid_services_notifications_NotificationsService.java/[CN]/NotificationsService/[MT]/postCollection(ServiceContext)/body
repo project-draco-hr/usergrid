@@ -7,8 +7,11 @@
   try {
     validate(null,context.getPayload());
     Notification.PathTokens pathTokens=getPathTokens(context.getRequest().getOriginalParameters());
+    context.getProperties().put("filters",context.getProperties().getOrDefault("filters",new HashMap<>()));
+    context.getProperties().put("useGraph",context.getProperties().getOrDefault("useGraph",false));
     context.getProperties().put("saveReceipts",context.getProperties().getOrDefault("saveReceipts",true));
     context.getProperties().put("processingFinished",0L);
+    context.getProperties().put("deviceProcessedCount",0);
     context.getProperties().put("state",Notification.State.CREATED);
     context.getProperties().put("pathQuery",pathTokens);
     context.setOwner(sm.getApplication());

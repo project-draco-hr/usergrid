@@ -1,6 +1,7 @@
 {
   PathQuery pathQuery=null;
-  for (  PathToken pathToken : getPathTokens()) {
+  List<PathToken> pathTokens=getPathTokens();
+  for (  PathToken pathToken : pathTokens) {
     String collection=pathToken.getCollection();
     Query query=new Query();
     if (pathToken.getQl() != null) {
@@ -18,6 +19,17 @@
     query.setCollection(collection);
     if (pathQuery == null) {
       pathQuery=new PathQuery(getApplicationRef(),query);
+      if (pathTokens.size() == 1 && collection.equals(InflectionUtils.pluralize(Group.ENTITY_TYPE))) {
+        Query usersQuery=new Query();
+        usersQuery.setQl("select *");
+        usersQuery.setCollection("users");
+        usersQuery.setLimit(100);
+        Query devicesQuery=new Query();
+        devicesQuery.setQl("select *");
+        devicesQuery.setCollection("devices");
+        usersQuery.setLimit(100);
+        pathQuery=pathQuery.chain(usersQuery).chain(devicesQuery);
+      }
     }
  else {
       pathQuery=pathQuery.chain(query);

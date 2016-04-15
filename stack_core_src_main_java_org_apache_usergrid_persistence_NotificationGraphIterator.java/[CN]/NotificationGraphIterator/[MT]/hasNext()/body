@@ -1,0 +1,19 @@
+{
+  if (source == null) {
+    return false;
+  }
+  if (currentIterator != null && currentIterator.hasNext()) {
+    return true;
+  }
+  while (source.hasNext()) {
+    EntityRef ref=source.next();
+    Results r=getResultsFor(ref);
+    if (r.size() > 0) {
+      currentIterator=new PagingResultsIterator(r,query.getResultsLevel());
+      return currentIterator.hasNext();
+    }
+  }
+  currentIterator=null;
+  source=null;
+  return false;
+}

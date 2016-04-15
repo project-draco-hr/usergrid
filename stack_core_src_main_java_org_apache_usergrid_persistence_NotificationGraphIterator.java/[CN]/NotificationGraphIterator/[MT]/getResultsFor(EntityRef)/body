@@ -1,0 +1,20 @@
+{
+  try {
+    if (query.getCollection() != null) {
+      if (logger.isTraceEnabled()) {
+        logger.trace("Fetching with refType: {}, collection: {} with no query",ref.getType(),query.getCollection());
+      }
+      return entityManager.searchCollection(ref,query.getCollection(),null);
+    }
+ else {
+      if (logger.isTraceEnabled()) {
+        logger.trace("Searching target entities with refType: {} for collection: {}  with no query",ref.getType(),query.getCollection());
+      }
+      query.setQl("select *");
+      return entityManager.searchTargetEntities(ref,query);
+    }
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(e);
+  }
+}
