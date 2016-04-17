@@ -4,6 +4,9 @@
     String name=query.getSingleNameOrEmailIdentifier();
     String entityType=InflectionUtils.singularize(query.getCollection());
     UUID entityId=em.getUniqueIdFromAlias(entityType,name);
+    if (entityId == null) {
+      throw new IllegalArgumentException("Entity with name " + name + " not found. Unable to send push notification");
+    }
     return em.getEntities(Collections.singletonList(entityId),entityType);
   }
   return (query.getCollection() != null) ? em.searchCollection(ref,query.getCollection(),query) : em.searchTargetEntities(ref,query);
