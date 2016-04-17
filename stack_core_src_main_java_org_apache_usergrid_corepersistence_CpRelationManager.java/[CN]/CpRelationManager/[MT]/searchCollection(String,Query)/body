@@ -12,6 +12,15 @@
   final Query toExecute=adjustQuery(query);
   final Optional<String> queryString=query.isGraphSearch() ? Optional.<String>absent() : query.getQl();
   final Id ownerId=headEntity.asId();
+  if (query.getLevel() == Level.IDS) {
+    return new IdQueryExecutor(toExecute.getCursor()){
+      @Override protected Observable<ResultsPage<Id>> buildNewResultsPage(      final Optional<String> cursor){
+        final CollectionSearch search=new CollectionSearch(applicationScope,ownerId,collectionName,collection.getType(),toExecute.getLimit(),queryString,cursor);
+        return collectionService.searchCollectionIds(search);
+      }
+    }
+.next();
+  }
   return new EntityQueryExecutor(toExecute.getCursor()){
     @Override protected Observable<ResultsPage<org.apache.usergrid.persistence.model.entity.Entity>> buildNewResultsPage(    final Optional<String> cursor){
       final CollectionSearch search=new CollectionSearch(applicationScope,ownerId,collectionName,collection.getType(),toExecute.getLimit(),queryString,cursor);

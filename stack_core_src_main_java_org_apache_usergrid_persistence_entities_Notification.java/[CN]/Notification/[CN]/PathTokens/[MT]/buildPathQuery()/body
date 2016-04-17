@@ -20,15 +20,22 @@
     if (pathQuery == null) {
       pathQuery=new PathQuery(getApplicationRef(),query);
       if (pathTokens.size() == 1 && collection.equals(InflectionUtils.pluralize(Group.ENTITY_TYPE))) {
-        Query usersQuery=new Query();
+        final Query usersQuery=new Query();
         usersQuery.setQl("select *");
         usersQuery.setCollection("users");
         usersQuery.setLimit(100);
-        Query devicesQuery=new Query();
+        final Query devicesQuery=new Query();
         devicesQuery.setQl("select *");
         devicesQuery.setCollection("devices");
-        usersQuery.setLimit(100);
-        pathQuery=pathQuery.chain(usersQuery).chain(devicesQuery);
+        devicesQuery.setLimit(100);
+        pathQuery=pathQuery.chain(usersQuery);
+      }
+ else       if (pathTokens.size() == 1 && collection.equals(InflectionUtils.pluralize(User.ENTITY_TYPE))) {
+        final Query devicesQuery=new Query();
+        devicesQuery.setQl("select *");
+        devicesQuery.setCollection("devices");
+        devicesQuery.setLimit(100);
+        pathQuery=pathQuery.chain(devicesQuery);
       }
     }
  else {

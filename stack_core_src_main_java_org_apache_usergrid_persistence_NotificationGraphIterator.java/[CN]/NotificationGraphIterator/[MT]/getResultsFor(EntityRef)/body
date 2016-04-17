@@ -1,10 +1,26 @@
 {
   try {
+    query.setLimit(Query.MAX_LIMIT);
     if (query.getCollection() != null) {
+      query.setQl("select *");
       if (logger.isTraceEnabled()) {
         logger.trace("Fetching with refType: {}, collection: {} with no query",ref.getType(),query.getCollection());
       }
-      return entityManager.searchCollection(ref,query.getCollection(),null);
+      if (ref.getType().equals(Group.ENTITY_TYPE)) {
+        Query usersQuery=new Query();
+        usersQuery.setCollection("users");
+        usersQuery.setResultsLevel(Query.Level.IDS);
+        usersQuery.setLimit(1000);
+        query.setResultsLevel(Query.Level.IDS);
+        return entityManager.searchCollection(ref,usersQuery.getCollection(),usersQuery);
+      }
+      if (ref.getType().equals(User.ENTITY_TYPE)) {
+        Query devicesQuery=new Query();
+        devicesQuery.setCollection("devices");
+        devicesQuery.setResultsLevel(Query.Level.CORE_PROPERTIES);
+        return entityManager.searchCollection(ref,devicesQuery.getCollection(),devicesQuery);
+      }
+      return entityManager.searchCollection(ref,query.getCollection(),query);
     }
  else {
       if (logger.isTraceEnabled()) {
