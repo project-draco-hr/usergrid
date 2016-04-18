@@ -10,7 +10,9 @@
   final Edge edge=createConnectionEdge(cpHeadEntity.getId(),connectionType,targetEntity.getId());
   final GraphManager gm=managerCache.getGraphManager(applicationScope);
   gm.writeEdge(edge).toBlocking().lastOrDefault(null);
-  indexService.queueNewEdge(applicationScope,targetEntity,edge);
+  if (!skipIndexingForType(targetEntity.getId().getType())) {
+    indexService.queueNewEdge(applicationScope,targetEntity,edge);
+  }
   removeDuplicateEdgesAsync(gm,edge);
   return connection;
 }
