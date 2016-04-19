@@ -3,11 +3,16 @@
   GraphValidation.validateDirectedEdgeMeta(directedEdgeMeta);
   final CacheKey key=new CacheKey(scope,directedEdgeMeta);
   CacheEntry entry;
-  try {
-    entry=this.graphs.get(key);
+  if (graphFig.getShardReadCacheEnabled()) {
+    try {
+      entry=this.graphs.get(key);
+    }
+ catch (    ExecutionException e) {
+      throw new GraphRuntimeException("Unable to load shard key for graph",e);
+    }
   }
- catch (  ExecutionException e) {
-    throw new GraphRuntimeException("Unable to load shard key for graph",e);
+ else {
+    entry=new CacheEntry(nodeShardAllocation.getShards(key.scope,Optional.<Shard>absent(),key.directedEdgeMeta));
   }
   Iterator<ShardEntryGroup> iterator=entry.getShards(maxTimestamp);
   if (iterator == null) {

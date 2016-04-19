@@ -1,0 +1,17 @@
+{
+  if (currentColumnIterator == null || (!currentColumnIterator.hasNext() && moreToReturn)) {
+    advance();
+  }
+  if (currentColumnIterator != null && !currentColumnIterator.hasNext() && !moreToReturn && currentShardIterator.hasNext()) {
+    if (logger.isTraceEnabled()) {
+      logger.trace("Advancing shard iterator");
+      logger.trace("Shard before advance: {}",currentShard);
+    }
+    currentShard=currentShardIterator.next();
+    if (logger.isTraceEnabled()) {
+      logger.trace("Shard after advance: {}",currentShard);
+    }
+    advance();
+  }
+  return currentColumnIterator.hasNext();
+}

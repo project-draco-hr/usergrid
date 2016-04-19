@@ -1,0 +1,21 @@
+{
+  if (query.getQl() == null && query.getSingleNameOrEmailIdentifier() != null) {
+    return new PagingResultsIterator(getHeadResults(em),Level.REFS,null);
+  }
+  if (type != null && uuid != null) {
+    return new PagingResultsIterator(getHeadResults(em),Level.REFS,null);
+  }
+ else {
+    Query q=query;
+    if (query.getResultsLevel() != Level.REFS) {
+      q=new Query(q);
+      q.setResultsLevel(Level.REFS);
+    }
+    if (useGraph) {
+      return new NotificationGraphIterator(em,source.refIterator(em,true),q);
+    }
+ else {
+      return new MultiQueryIterator(em,source.refIterator(em,false),q);
+    }
+  }
+}

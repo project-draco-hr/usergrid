@@ -1,0 +1,25 @@
+{
+  ArrayList<String> indexingArray=new ArrayList<>();
+  indexingArray.add("one");
+  Entity payload=new Entity();
+  payload.put("fields",indexingArray);
+  this.app().collection("testCollection").collection("_indexes").post(payload);
+  refreshIndex();
+  Entity testEntity=new Entity();
+  testEntity.put("one","two");
+  testEntity.put("test","anotherTest");
+  Entity postedEntity=this.app().collection("testCollection").post(testEntity);
+  refreshIndex();
+  testEntity.put("one","three");
+  this.app().collection("testCollection").entity(postedEntity.getUuid()).put(testEntity);
+  refreshIndex();
+  String query="one = 'three'";
+  QueryParameters queryParameters=new QueryParameters().setQuery(query);
+  Collection tempEntity=this.app().collection("testCollection").get(queryParameters,true);
+  Entity reindexedEntity=tempEntity.getResponse().getEntity();
+  assertEquals("three",(reindexedEntity.get("one")));
+  query="one = 'two'";
+  queryParameters=new QueryParameters().setQuery(query);
+  tempEntity=this.app().collection("testCollection").get(queryParameters,true);
+  assertEquals(0,tempEntity.getResponse().getEntities().size());
+}
