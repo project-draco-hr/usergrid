@@ -2,7 +2,7 @@
   ArrayList<String> indexingArray=new ArrayList<>();
   Entity payload=new Entity();
   payload.put("fields",indexingArray);
-  Entity thing=this.app().collection("testCollections").collection("_indexes").post(payload);
+  Entity thing=this.app().collection("testCollections").collection("_settings").post(payload);
   refreshIndex();
   Entity testEntity=new Entity();
   testEntity.put("one","helper");
@@ -21,7 +21,7 @@
   queryParameters=new QueryParameters().setQuery(query);
   tempEntity=this.app().collection("testCollections").get(queryParameters,true);
   assertEquals(1,tempEntity.getResponse().getEntities().size());
-  this.app().collection("testCollections").collection("_indexes").delete();
+  this.app().collection("testCollections").collection("_settings").delete();
   refreshIndex();
   this.app().collection("testCollections").collection("_reindex").post(true,clientSetup.getSuperuserToken(),ApiResponse.class,null,null,false);
   refreshIndex();
