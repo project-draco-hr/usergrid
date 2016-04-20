@@ -11,10 +11,12 @@
   try {
     maxAsyncThreads=Integer.valueOf(System.getProperty(PUSH_PROCESSING_MAXTHREADS_PROP,"200"));
     workerQueueSize=Integer.valueOf(System.getProperty(PUSH_PROCESSING_QUEUESIZE_PROP,"2000"));
+    this.concurrencyFactor=Integer.valueOf(System.getProperty(PUSH_PROCESSING_CONCURRENCY_PROP,"50"));
   }
  catch (  Exception e) {
     maxAsyncThreads=200;
     workerQueueSize=2000;
+    this.concurrencyFactor=50;
   }
   this.asyncExecutor=TaskExecutorFactory.createTaskExecutor("push-device-io",maxAsyncThreads,workerQueueSize,TaskExecutorFactory.RejectionAction.CALLERRUNS);
 }
