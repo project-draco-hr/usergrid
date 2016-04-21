@@ -1,9 +1,6 @@
 {
-  String region=getRegionsByType().get(type);
-  if (region == null) {
-    region=currentRegion;
-  }
-  ActorRef requestActor=getRequestActorsByRegion().get(region);
+  final String region=getRegionsByType().get(type);
+  ActorRef requestActor=getRequestActorsByRegion().get(region == null ? currentRegion : region);
   if (requestActor == null) {
     throw new RuntimeException("No request actor available for region: " + region);
   }

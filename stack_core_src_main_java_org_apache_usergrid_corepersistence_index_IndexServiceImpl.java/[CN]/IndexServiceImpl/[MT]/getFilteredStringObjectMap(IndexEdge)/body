@@ -3,20 +3,20 @@
   final MapScope ms=CpNamingUtils.getEntityTypeMapScope(mapOwner);
   MapManager mm=mapManagerFactory.createMapManager(ms);
   Set<String> defaultProperties;
-  ArrayList fieldsToKeep;
   String collectionName=CpNamingUtils.getCollectionNameFromEdgeName(indexEdge.getEdgeName());
-  CollectionSettingsCache collectionSettingsCache=indexSchemaCacheFactory.getInstance(mm);
+  CollectionSettingsCache collectionSettingsCache=collectionSettingsCacheFactory.getInstance(mm);
   Optional<Map<String,Object>> collectionIndexingSchema=collectionSettingsCache.getCollectionSettings(collectionName);
   if (collectionIndexingSchema.isPresent()) {
     Map jsonMapData=collectionIndexingSchema.get();
     Schema schema=Schema.getDefaultSchema();
     defaultProperties=schema.getRequiredProperties(collectionName);
-    fieldsToKeep=(ArrayList)jsonMapData.get("fields");
-    if (fieldsToKeep.contains("*")) {
+    Object fields=jsonMapData.get("fields");
+    if (fields != null && fields instanceof String && "all".equalsIgnoreCase(fields.toString())) {
       return Optional.absent();
     }
-    fieldsToKeep.remove("none");
-    defaultProperties.addAll(fieldsToKeep);
+    if (fields != null && fields instanceof List) {
+      defaultProperties.addAll((List)fields);
+    }
   }
  else {
     return Optional.absent();

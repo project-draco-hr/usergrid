@@ -6,12 +6,16 @@
   if (StringUtils.isEmpty(currentRegion)) {
     throw new RuntimeException("No value specified for akka.region");
   }
+  List regionList=Arrays.asList(akkaFig.getRegionList().toLowerCase().split(","));
   String typesValue=akkaFig.getRegionTypes();
   String[] regionTypes=StringUtils.isEmpty(typesValue) ? new String[0] : typesValue.split(",");
   for (  String regionType : regionTypes) {
-    String[] parts=regionType.split(":");
+    String[] parts=regionType.toLowerCase().split(":");
     String typeRegion=parts[0];
     String type=parts[1];
+    if (!regionList.contains(typeRegion)) {
+      throw new RuntimeException("'collection.akka.region.seeds' references unknown region: " + typeRegion);
+    }
     this.regionsByType.put(type,typeRegion);
   }
   final Map<String,ActorSystem> systemMap=new HashMap<>();

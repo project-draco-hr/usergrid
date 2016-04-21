@@ -5,7 +5,7 @@
   addItemToServiceContext(ui,itemName);
   Object json;
   if (StringUtils.isEmpty(body)) {
-    json=null;
+    throw new NullArgumentException("No body posted");
   }
  else {
     json=readJsonToObject(body);
@@ -15,12 +15,6 @@
   response.setApplication(services.getApplication());
   response.setParams(ui.getQueryParameters());
   ServicePayload payload=getPayload(json);
-  if (payload.getProperty("fields") == null) {
-    throw new NullArgumentException("fields");
-  }
-  if (!(payload.getProperty("fields") instanceof ArrayList)) {
-    throw new NullArgumentException("fields must be of json array type");
-  }
   executeServicePostRequestForSettings(ui,response,ServiceAction.POST,payload);
   return response;
 }

@@ -12,11 +12,11 @@
   MutationBatch logMutation=logEntryStrat.write(applicationScope,startEntry);
   MutationBatch entityMutation=entityStrat.write(applicationScope,mvccEntity);
   logMutation.mergeShallow(entityMutation);
-  for (  Field field : EntityUtils.getUniqueFields(mvccEntity.getEntity().get())) {
-    UniqueValue written=new UniqueValueImpl(field,entityId,version);
-    MutationBatch mb=uniqueValueStrat.write(applicationScope,written);
-    logger.debug("Finalizing {} unique value {}",field.getName(),field.getValue().toString());
-    logMutation.mergeShallow(mb);
+  if (akkaFig != null && akkaFig.getAkkaEnabled()) {
+    confirmUniqueFieldsAkka(mvccEntity,version,applicationScope,ioEvent.getRegion());
+  }
+ else {
+    confirmUniqueFields(mvccEntity,version,applicationScope,logMutation);
   }
   try {
     logMutation.execute();

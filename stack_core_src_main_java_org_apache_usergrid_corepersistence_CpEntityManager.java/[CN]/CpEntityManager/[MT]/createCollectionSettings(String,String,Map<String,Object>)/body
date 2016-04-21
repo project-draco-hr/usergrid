@@ -1,33 +1,35 @@
 {
   Instant timeInstance=Instant.now();
   Long epoch=timeInstance.toEpochMilli();
-  Map<String,Object> schemaMap=new HashMap<>();
-  schemaMap.put("lastUpdated",epoch);
-  schemaMap.put("lastUpdateBy",owner);
+  Map<String,Object> updatedSettings=new HashMap<>();
+  updatedSettings.put("lastUpdated",epoch);
+  updatedSettings.put("lastUpdateBy",owner);
   MapManager mm=getMapManagerForTypes();
-  CollectionSettingsCache collectionSettingsCache=indexSchemaCacheFactory.getInstance(mm);
-  Optional<Map<String,Object>> collectionIndexingSchema=collectionSettingsCache.getCollectionSettings(collectionName);
-  if (collectionIndexingSchema.isPresent()) {
-    Map jsonMapData=collectionIndexingSchema.get();
-    schemaMap.put("lastReindexed",jsonMapData.get("lastReindexed"));
+  CollectionSettingsCache collectionSettingsCache=collectionSettingsCacheFactory.getInstance(mm);
+  Optional<Map<String,Object>> existingSettings=collectionSettingsCache.getCollectionSettings(collectionName);
+  if (existingSettings.isPresent()) {
+    Map<String,Object> jsonMapData=existingSettings.get();
+    updatedSettings.put("lastReindexed",jsonMapData.get("lastReindexed"));
   }
  else {
-    schemaMap.put("lastReindexed",0);
+    updatedSettings.put("lastReindexed",0);
   }
-  ArrayList<String> fieldProperties=(ArrayList<String>)properties.get("fields");
-  if (fieldProperties.contains("*")) {
-    ArrayList<String> wildCardArrayList=new ArrayList<>();
-    wildCardArrayList.add("*");
-    schemaMap.put("fields",wildCardArrayList);
+  if (newSettings.get("fields") != null) {
+    updatedSettings.put("fields",newSettings.get("fields"));
   }
- else   if (fieldProperties.contains("none")) {
-    ArrayList<String> wildCardArrayList=new ArrayList<>();
-    wildCardArrayList.add("none");
-    schemaMap.put("fields",wildCardArrayList);
-  }
+  Object region=newSettings.get("region");
+  if (region != null) {
+    if (region.toString().trim().isEmpty()) {
+      updatedSettings.remove("region");
+    }
  else {
-    schemaMap.putAll(properties);
+      List regionList=Arrays.asList(entityManagerFig.getRegionList().toLowerCase().split(","));
+      if (!regionList.contains(region)) {
+        throw new NullArgumentException("Region " + region + " not in region list");
+      }
+      updatedSettings.put("region",region);
+    }
   }
-  collectionSettingsCache.putCollectionSettings(collectionName,JsonUtils.mapToJsonString(schemaMap));
-  return schemaMap;
+  collectionSettingsCache.putCollectionSettings(collectionName,JsonUtils.mapToJsonString(updatedSettings));
+  return updatedSettings;
 }

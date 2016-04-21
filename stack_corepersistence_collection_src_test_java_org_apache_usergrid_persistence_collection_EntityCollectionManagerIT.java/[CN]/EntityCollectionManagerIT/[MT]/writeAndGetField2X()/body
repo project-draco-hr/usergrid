@@ -5,7 +5,7 @@
   Field firstField=new StringField("testField","unique",true);
   firstInstance.setField(firstField);
   EntityCollectionManager manager=factory.createCollectionManager(collectionScope1);
-  Observable<Entity> observable=manager.write(firstInstance);
+  Observable<Entity> observable=manager.write(firstInstance,null);
   Entity createReturned=observable.toBlocking().lastOrDefault(null);
   assertNotNull("Id was assigned",createReturned.getId());
   assertNotNull("Version was assigned",createReturned.getVersion());
@@ -18,7 +18,7 @@
   Entity secondInstance=new Entity(entityId);
   Field secondField=new StringField(firstField.getName(),"unique2",true);
   secondInstance.setField(secondField);
-  Observable<Entity> observableSecond=manager.write(secondInstance);
+  Observable<Entity> observableSecond=manager.write(secondInstance,null);
   Entity createReturnedSecond=observableSecond.toBlocking().lastOrDefault(null);
   assertNotNull("Id was assigned",createReturnedSecond.getId());
   assertNotNull("Version was assigned",createReturnedSecond.getVersion());
