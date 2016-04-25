@@ -12,9 +12,14 @@
   this.connectionService=injector.getInstance(ConnectionService.class);
   this.collectionSettingsCacheFactory=injector.getInstance(CollectionSettingsCacheFactory.class);
   AkkaFig akkaFig=injector.getInstance(AkkaFig.class);
-  if (akkaFig.getAkkaEnabled()) {
-    this.uniqueValuesService=injector.getInstance(UniqueValuesService.class);
-    this.uniqueValuesService.start();
-  }
   this.applicationIdCache=injector.getInstance(ApplicationIdCacheFactory.class).getInstance(getManagementEntityManager());
+  if (akkaFig.getAkkaEnabled()) {
+    try {
+      this.uniqueValuesService=injector.getInstance(UniqueValuesService.class);
+      this.uniqueValuesService.start();
+    }
+ catch (    Throwable t) {
+      logger.error("Error starting Akka",t);
+    }
+  }
 }
