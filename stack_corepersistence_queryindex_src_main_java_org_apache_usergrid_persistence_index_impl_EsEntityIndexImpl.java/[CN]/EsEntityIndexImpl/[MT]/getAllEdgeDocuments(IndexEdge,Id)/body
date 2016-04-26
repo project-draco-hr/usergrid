@@ -5,7 +5,7 @@
   List<CandidateResult> candidates=new ArrayList<>();
   final int searchLimit=Math.max(2,indexFig.getVersionQueryLimit());
   final QueryBuilder entityQuery=QueryBuilders.termQuery(IndexingUtils.EDGE_NODE_ID_FIELDNAME,IndexingUtils.nodeId(edge.getNodeId()));
-  final SearchRequestBuilder srb=searchRequestBuilderStrategyV2.getBuilder();
+  final SearchRequestBuilder srb=searchRequestBuilderStrategyV2.getBuilder().addSort(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME,SortOrder.ASC);
   if (logger.isDebugEnabled()) {
     logger.debug("Searching for edges in (read alias): {}\n  nodeId: {},\n   query: {} ",this.alias.getReadAlias(),entityId,srb);
   }
@@ -14,7 +14,7 @@
     while (true) {
       QueryBuilder timestampQuery=QueryBuilders.rangeQuery(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME).gte(queryTimestamp);
       QueryBuilder finalQuery=QueryBuilders.boolQuery().must(entityQuery).must(timestampQuery);
-      searchResponse=srb.setQuery(finalQuery).setSize(searchLimit).addSort(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME,SortOrder.ASC).execute().actionGet();
+      searchResponse=srb.setQuery(finalQuery).setSize(searchLimit).execute().actionGet();
       int responseSize=searchResponse.getHits().getHits().length;
       if (responseSize == 0) {
         break;
@@ -27,7 +27,7 @@
     }
   }
  catch (  Throwable t) {
-    logger.error("Unable to communicate with Elasticsearch",t);
+    logger.error("Unable to communicate with Elasticsearch",t.getMessage());
     failureMonitor.fail("Unable to execute batch",t);
     throw t;
   }

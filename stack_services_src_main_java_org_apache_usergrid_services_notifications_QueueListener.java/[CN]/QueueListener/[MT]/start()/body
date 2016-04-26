@@ -4,13 +4,12 @@
   }
   int threadCount=0;
   try {
-    sleepBetweenRuns=new Long(properties.getProperty("usergrid.notifications.listener.sleep.between","" + sleepBetweenRuns)).longValue();
-    sleepWhenNoneFound=new Long(properties.getProperty("usergrid.notifications.listener.sleep.after","" + DEFAULT_SLEEP)).longValue();
-    batchSize=new Integer(properties.getProperty("usergrid.notifications.listener.batchSize",("" + batchSize)));
+    sleepBetweenRuns=new Long(properties.getProperty("usergrid.push.sleep","" + DEFAULT_SLEEP));
+    sleepWhenNoneFound=new Long(properties.getProperty("usergrid.push.sleep","" + DEFAULT_SLEEP));
     consecutiveCallsToRemoveDevices=new Integer(properties.getProperty("usergrid.notifications.inactive.interval","" + 200));
     queueName=ApplicationQueueManagerImpl.getQueueNames(properties);
-    int maxThreads=new Integer(properties.getProperty("usergrid.notifications.listener.maxThreads","" + MAX_THREADS));
-    futures=new ArrayList<Future>(maxThreads);
+    int maxThreads=new Integer(properties.getProperty("usergrid.push.worker_count","" + PUSH_CONSUMER_MAX_THREADS));
+    futures=new ArrayList<>(maxThreads);
     pool=Executors.newFixedThreadPool(maxThreads);
     while (threadCount++ < maxThreads) {
       if (logger.isTraceEnabled()) {

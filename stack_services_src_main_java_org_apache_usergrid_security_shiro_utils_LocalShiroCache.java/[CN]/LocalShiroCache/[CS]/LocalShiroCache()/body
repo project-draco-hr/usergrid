@@ -1,0 +1,16 @@
+{
+  long ttl=1;
+  int configuredMaxSize;
+  try {
+    ttl=Integer.parseInt(System.getProperty(CACHE_TTL_PROP));
+  }
+ catch (  NumberFormatException e) {
+  }
+  try {
+    configuredMaxSize=Integer.parseInt(System.getProperty(CACHE_MAX_SIZE_PROP));
+  }
+ catch (  NumberFormatException e) {
+    configuredMaxSize=1000;
+  }
+  this.cache=CacheBuilder.newBuilder().maximumSize(Math.max(1000,configuredMaxSize)).expireAfterWrite(ttl,TimeUnit.SECONDS).build();
+}

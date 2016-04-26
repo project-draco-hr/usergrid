@@ -9,5 +9,7 @@
   if (logger.isTraceEnabled()) {
     logger.trace("Wrote {}:{} version {}",cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion());
   }
-  indexService.queueEntityIndexUpdate(applicationScope,cpEntity);
+  if (!skipIndexingForType(cpEntity.getId().getType())) {
+    indexService.queueEntityIndexUpdate(applicationScope,cpEntity,0);
+  }
 }

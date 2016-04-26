@@ -1,12 +1,25 @@
 {
   final String ql;
   if (startResult != null) {
-    ql="select * where created > " + startResult.timestamp();
+    Calendar uuidEpoch=Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+    uuidEpoch.clear();
+    uuidEpoch.set(1582,9,15,0,0,0);
+    long epochMillis=uuidEpoch.getTime().getTime();
+    long time=(startResult.timestamp() / 10000L) + epochMillis;
+    if (!reversed) {
+      ql="select * where created > " + time;
+    }
+ else {
+      ql="select * where created < " + time;
+    }
   }
  else {
     ql="select *";
   }
   Query query=Query.fromQL(ql);
+  if (query == null) {
+    throw new RuntimeException("Unable to get data for collection: " + collectionName);
+  }
   query.setLimit(count);
   query.setReversed(reversed);
   return searchCollection(collectionName,query);

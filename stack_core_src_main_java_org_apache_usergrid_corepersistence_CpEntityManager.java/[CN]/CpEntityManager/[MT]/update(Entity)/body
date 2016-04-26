@@ -20,5 +20,10 @@
  catch (  WriteUniqueVerifyException wuve) {
     handleWriteUniqueVerifyException(entity,wuve);
   }
-  indexService.queueEntityIndexUpdate(applicationScope,cpEntity);
+  if (!skipIndexingForType(cpEntity.getId().getType())) {
+    indexService.queueEntityIndexUpdate(applicationScope,cpEntity,0);
+    if (entityManagerFig.getDeindexOnUpdate()) {
+      indexService.queueDeIndexOldVersion(applicationScope,entityId);
+    }
+  }
 }

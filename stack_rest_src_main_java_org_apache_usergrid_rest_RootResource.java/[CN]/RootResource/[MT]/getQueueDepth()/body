@@ -1,0 +1,14 @@
+{
+  ApiResponse response=createApiResponse();
+  AsyncEventService eventService=injector.getInstance(AsyncEventService.class);
+  ObjectNode node=JsonNodeFactory.instance.objectNode();
+  String provider="LOCAL";
+  String queueManagerClass=eventService.getQueueManagerClass();
+  if (queueManagerClass.contains("SNS") || queueManagerClass.contains("SQS")) {
+    provider="AWS";
+  }
+  node.put("provider",provider);
+  node.put("depth",eventService.getQueueDepth());
+  response.setProperty("status",node);
+  return response;
+}
