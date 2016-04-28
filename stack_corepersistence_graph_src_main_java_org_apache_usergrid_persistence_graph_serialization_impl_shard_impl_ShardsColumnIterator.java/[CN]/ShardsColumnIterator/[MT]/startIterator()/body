@@ -4,9 +4,13 @@
   }
   final RangeBuilder rangeBuilder=new RangeBuilder().setLimit(pageSize);
   searcher.buildRange(rangeBuilder);
-  final List<ScopedRowKey<R>> rowKeys=searcher.getRowKeys();
-  if (logger.isTraceEnabled()) {
-    logger.trace("Searching with row keys {}",rowKeys);
+  if (smartShardSeekEnabled) {
+    final List<SmartShard> rowKeysWithShardEnd=searcher.getRowKeysWithShardEnd();
+    final boolean ascending=searcher.getOrder() == SearchByEdgeType.Order.ASCENDING;
+    currentColumnIterator=new MultiRowShardColumnIterator<>(keyspace,cf,consistencyLevel,searcher,searcher,searcher.getComparator(),pageSize,rowKeysWithShardEnd,ascending,searcher.getLastTimestamp());
   }
-  currentColumnIterator=new MultiRowColumnIterator<>(keyspace,cf,consistencyLevel,searcher,searcher,searcher.getComparator(),rowKeys,pageSize);
+ else {
+    final List<ScopedRowKey<R>> rowKeys=searcher.getRowKeys();
+    currentColumnIterator=new MultiRowColumnIterator<>(keyspace,cf,consistencyLevel,searcher,searcher,searcher.getComparator(),rowKeys,pageSize);
+  }
 }

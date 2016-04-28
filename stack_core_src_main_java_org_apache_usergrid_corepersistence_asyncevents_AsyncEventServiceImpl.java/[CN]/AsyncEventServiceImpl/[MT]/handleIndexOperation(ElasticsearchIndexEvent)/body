@@ -5,7 +5,7 @@
   final String message=esMapPersistence.getString(messageId.toString());
   final IndexOperationMessage indexOperationMessage;
   if (message == null) {
-    if (System.currentTimeMillis() > elasticsearchIndexEvent.getCreationTime() + queueFig.getLocalQuorumTimeout()) {
+    if (queueFig.getQuorumFallback() && System.currentTimeMillis() > elasticsearchIndexEvent.getCreationTime() + queueFig.getLocalQuorumTimeout()) {
       if (logger.isDebugEnabled()) {
         logger.debug("ES batch with id {} not found, reading with strong consistency",messageId);
       }
@@ -22,6 +22,9 @@
  else {
     indexOperationMessage=ObjectJsonSerializer.INSTANCE.fromString(message,IndexOperationMessage.class);
   }
+  if (indexOperationMessage == null || indexOperationMessage.isEmpty()) {
+    throw new RuntimeException("IndexOperationMessage cannot be null or empty after retrieving from map persistence");
+  }
   initializeEntityIndexes(indexOperationMessage);
-  return indexOperationMessage;
+  indexProducer.put(indexOperationMessage).toBlocking().last();
 }

@@ -14,16 +14,17 @@
   final Shard shard=shardEntryGroup.getMinShard();
   final long minTime=getMinTime();
   if (shard.getCreatedTime() >= minTime) {
-    if (logger.isTraceEnabled())     logger.trace("Shard entry group {}  and shard {} is before the minimum created time of {}.  Not allocating.does not have 1 entry, not allocating",shardEntryGroup,shard,minTime);
+    if (logger.isTraceEnabled())     logger.trace("Shard entry group {}  and shard {} is before the minimum created time of {}.  Not allocating",shardEntryGroup,shard,minTime);
     return false;
   }
   final long shardSize=graphFig.getShardSize();
-  final Iterator<MarkedEdge> edges=directedEdgeMeta.loadEdges(shardedEdgeSerialization,edgeColumnFamilies,scope,shardEntryGroup.getReadShards(),0,SearchByEdgeType.Order.ASCENDING);
+  final Iterator<MarkedEdge> edges=directedEdgeMeta.loadEdges(shardedEdgeSerialization,edgeColumnFamilies,scope,Collections.singletonList(shard),0,SearchByEdgeType.Order.ASCENDING);
   if (!edges.hasNext()) {
     if (logger.isTraceEnabled())     logger.trace("Tried to allocate a new shard for edge meta data {}, but no max value could be found in that row",directedEdgeMeta);
     return false;
   }
   MarkedEdge marked=null;
+  long edgeCount=0;
   for (long i=1; edges.hasNext(); i++) {
     if (i % shardSize == 0) {
       marked=edges.next();
@@ -31,9 +32,12 @@
  else {
       edges.next();
     }
+    edgeCount++;
   }
   if (marked == null) {
-    if (logger.isTraceEnabled())     logger.trace("Shard {} in shard group {} not full, not splitting",shard,shardEntryGroup);
+    if (logger.isTraceEnabled()) {
+      logger.trace("Shard {} in shard group {} not full, " + "not splitting. Edge count: {}",shard,shardEntryGroup,edgeCount);
+    }
     return false;
   }
   final long createTimestamp=timeService.getCurrentTime();
@@ -42,6 +46,10 @@
   final MutationBatch batch=this.edgeShardSerialization.writeShardMeta(scope,newShard,directedEdgeMeta);
   try {
     batch.execute();
+    if (logger.isTraceEnabled()) {
+      logger.trace("Clearing shard cache");
+    }
+    nodeShardCache.invalidate(scope,directedEdgeMeta);
   }
  catch (  ConnectionException e) {
     throw new RuntimeException("Unable to connect to casandra",e);

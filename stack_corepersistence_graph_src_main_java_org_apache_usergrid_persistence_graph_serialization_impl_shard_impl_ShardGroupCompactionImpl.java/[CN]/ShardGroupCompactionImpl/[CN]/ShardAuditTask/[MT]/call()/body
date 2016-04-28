@@ -16,6 +16,9 @@
   }
   if (group.shouldCompact(timeService.getCurrentTime())) {
     if (!shardCompactionTaskTracker.canStartTask(scope,edgeMeta,group)) {
+      if (logger.isTraceEnabled()) {
+        logger.trace("Already compacting, won't compact group: {}",group);
+      }
       return AuditResult.COMPACTING;
     }
     try {

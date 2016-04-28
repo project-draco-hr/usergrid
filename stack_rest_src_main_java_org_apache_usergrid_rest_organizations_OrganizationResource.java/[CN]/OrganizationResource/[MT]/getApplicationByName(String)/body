@@ -6,15 +6,15 @@
     throw new NoOpException();
   }
   String orgAppName=PathingUtils.assembleAppName(organizationName,applicationName);
-  Optional<UUID> optionalAppId=emf.lookupApplication(orgAppName);
-  if (!optionalAppId.isPresent()) {
+  UUID optionalAppId=emf.lookupApplication(orgAppName);
+  if (optionalAppId == null) {
     UUID applicationId=UUIDUtils.tryExtractUUID(applicationName);
     if (applicationId == null) {
       throw new OrganizationApplicationNotFoundException(orgAppName,uriInfo,properties,management);
     }
  else {
-      optionalAppId=Optional.fromNullable(applicationId);
+      optionalAppId=applicationId;
     }
   }
-  return appResourceFor(optionalAppId.get());
+  return appResourceFor(optionalAppId);
 }
