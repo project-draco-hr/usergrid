@@ -42,7 +42,9 @@
   }
   final long createTimestamp=timeService.getCurrentTime();
   final Shard newShard=new Shard(marked.getTimestamp(),createTimestamp,false);
-  logger.info("Allocating new shard {} for edge meta {}",newShard,directedEdgeMeta);
+  if (logger.isTraceEnabled()) {
+    logger.trace("Allocating new shard {} for edge meta {}",newShard,directedEdgeMeta);
+  }
   final MutationBatch batch=this.edgeShardSerialization.writeShardMeta(scope,newShard,directedEdgeMeta);
   try {
     batch.execute();

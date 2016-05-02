@@ -77,7 +77,6 @@
   if (logger.isTraceEnabled()) {
     logger.trace("Finished compacting {} shards and moved {} edges",sourceShards,totalEdgeCount);
   }
-  logger.info("Finished compacting {} shards and moved {} edges",sourceShards,totalEdgeCount);
   resultBuilder.withCopiedEdges(totalEdgeCount).withSourceShards(sourceShards).withTargetShard(targetShard);
   if (totalEdgeCount == 0) {
     final MutationBatch shardRemovalRollup=keyspace.prepareMutationBatch();
@@ -99,7 +98,9 @@
     }
     Shard compactedShard=new Shard(targetShard.getShardIndex(),timeService.getCurrentTime(),true);
     compactedShard.setShardEnd(targetShard.getShardEnd());
-    logger.info("Shard has been fully compacted.  Marking shard {} as compacted in Cassandra",compactedShard);
+    if (logger.isTraceEnabled()) {
+      logger.trace("Shard has been fully compacted.  Marking shard {} as compacted in Cassandra",compactedShard);
+    }
     final MutationBatch updateMark=edgeShardSerialization.writeShardMeta(scope,compactedShard,edgeMeta);
     try {
       updateMark.execute();
