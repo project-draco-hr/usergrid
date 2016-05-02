@@ -2,10 +2,12 @@
   Map<String,Config> configs=new HashMap<>();
   ListMultimap<String,String> seedsByRegion=ArrayListMultimap.create();
   String[] regionSeeds=akkaFig.getRegionSeeds().split(",");
+  logger.info("Found region {} seeds {}",regionSeeds.length,regionSeeds);
   try {
     if (port != null) {
       String seed="akka.tcp://ClusterSystem@" + hostname + ":"+ port;
       seedsByRegion.put(currentRegion,seed);
+      logger.info("Akka testing, only starting one seed");
     }
  else {
       for (      String regionSeed : regionSeeds) {
@@ -21,6 +23,7 @@
           regionPort=port;
         }
         String seed="akka.tcp://ClusterSystem@" + hostname + ":"+ regionPort;
+        logger.info("Adding seed {} for region {}",seed,region);
         seedsByRegion.put(region,seed);
       }
       if (seedsByRegion.keySet().isEmpty()) {
@@ -30,16 +33,10 @@
     int numInstancesPerNode=akkaFig.getUniqueValueActors();
     for (    String region : seedsByRegion.keySet()) {
       List<String> seeds=seedsByRegion.get(region);
-      final Integer regionPort;
-      if (port == null) {
-        int lastColon=seeds.get(0).lastIndexOf(":") + 1;
-        regionPort=Integer.parseInt(seeds.get(0).substring(lastColon));
-      }
- else {
-        regionPort=port;
-      }
+      int lastColon=seeds.get(0).lastIndexOf(":") + 1;
+      final Integer regionPort=Integer.parseInt(seeds.get(0).substring(lastColon));
       String clusterRole=currentRegion.equals(region) ? "io" : "client";
-      logger.info("Config for region {} is:\npoc Akka Hostname {}\npoc Akka Seeds {}\n" + "poc Akka Port {}\npoc UniqueValueActors per node {}",region,hostname,seeds,port,numInstancesPerNode);
+      logger.info("Config for region {} is:\n" + "poc Akka Hostname {}\n" + "poc Akka Seeds {}\n"+ "poc Akka Port {}\n"+ "poc UniqueValueActors per node {}",region,hostname,seeds,port,numInstancesPerNode);
       Map<String,Object> configMap=new HashMap<String,Object>(){
 {
           put("akka",new HashMap<String,Object>(){
