@@ -1,7 +1,7 @@
 {
   String applicationName=getApplicationFromColllection(collectionFileName);
-  Optional<UUID> appId=emf.lookupApplication(applicationName);
-  if (!appId.isPresent() && !applicationName.contains("/")) {
+  UUID appId=emf.lookupApplication(applicationName);
+  if (appId != null && !applicationName.contains("/")) {
     String fileName=collectionFileName.replace("collections","application");
     File applicationFile=new File(importDir,fileName);
     if (!applicationFile.exists()) {
@@ -24,7 +24,7 @@
     applicationName=orgName + "/" + applicationName;
     appId=emf.lookupApplication(applicationName);
   }
-  if (!appId.isPresent()) {
+  if (appId == null) {
     logger.error("Unable to find application with name {}.  Skipping collections",applicationName);
     return;
   }
@@ -32,7 +32,7 @@
   logger.info("Loading collections file: " + collectionFile.getAbsolutePath());
   JsonParser jp=getJsonParserForFile(collectionFile);
   jp.nextToken();
-  EntityManager em=emf.getEntityManager(appId.get());
+  EntityManager em=emf.getEntityManager(appId);
   while (jp.nextToken() != JsonToken.END_OBJECT) {
     importEntitysStuff(jp,em);
   }
