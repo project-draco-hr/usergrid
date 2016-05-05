@@ -1,0 +1,22 @@
+{
+  Entity notifier=new Entity().chainPut("name","mynotifier").chainPut("provider","noop");
+  ApiResponse notifierNode=this.pathResource(getOrgAppPath("notifier")).post(ApiResponse.class,notifier);
+  UUID uuid=UUIDUtils.newTimeUUID();
+  Map payloads=new HashMap<>();
+  payloads.put("mynotifier","hello world");
+  Map statistics=new HashMap<>();
+  statistics.put("sent",1);
+  statistics.put("errors",0);
+  Entity payload=new Entity();
+  payload.put("debug",false);
+  payload.put("expectedCount",0);
+  payload.put("finished",1438279671229L);
+  payload.put("payloads",payloads);
+  payload.put("priority","normal");
+  payload.put("state","FINISHED");
+  payload.put("statistics",statistics);
+  ApiResponse user=this.app().collection("notifications/" + UUIDUtils.newTimeUUID()).put(null,payload);
+  this.refreshIndex();
+  Collection user2=this.app().collection("notifications").get();
+  assertEquals(1,user2.getNumOfEntities());
+}
