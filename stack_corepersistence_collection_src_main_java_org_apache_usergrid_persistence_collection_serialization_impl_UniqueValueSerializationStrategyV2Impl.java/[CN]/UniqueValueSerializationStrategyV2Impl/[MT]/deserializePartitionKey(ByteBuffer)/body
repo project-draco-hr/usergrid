@@ -1,0 +1,14 @@
+{
+  List<Object> stuff=new ArrayList<>();
+  while (bb.hasRemaining()) {
+    ByteBuffer data=CQLUtils.getWithShortLength(bb);
+    if (stuff.size() == 0) {
+      stuff.add(DataType.uuid().deserialize(data.slice(),ProtocolVersion.NEWEST_SUPPORTED));
+    }
+ else {
+      stuff.add(DataType.text().deserialize(data.slice(),ProtocolVersion.NEWEST_SUPPORTED));
+    }
+    byte equality=bb.get();
+  }
+  return stuff;
+}

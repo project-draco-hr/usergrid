@@ -4,7 +4,8 @@
   Id entityId=new SimpleId(UUIDGenerator.newTimeUUID(),"entity");
   UUID version=UUIDGenerator.newTimeUUID();
   UniqueValue stored=new UniqueValueImpl(field,entityId,version);
-  strategy.write(scope,stored,5).execute();
+  BatchStatement batch=strategy.writeCQL(scope,stored,5);
+  session.execute(batch);
   Thread.sleep(1000);
   UniqueValueSet fields=strategy.load(scope,entityId.getType(),Collections.<Field>singleton(field));
   UniqueValue retrieved=fields.getValue(field.getName());

@@ -3,23 +3,17 @@
   final MvccEntity mvccEntity=ioevent.getEvent();
   final Entity entity=mvccEntity.getEntity().get();
   final ApplicationScope scope=ioevent.getEntityCollection();
-  final MutationBatch batch=keyspace.prepareMutationBatch();
+  final BatchStatement batch=new BatchStatement();
   final List<Field> uniqueFields=new ArrayList<>(entity.getFields().size());
   for (  final Field field : EntityUtils.getUniqueFields(entity)) {
     final UniqueValue written=new UniqueValueImpl(field,mvccEntity.getId(),mvccEntity.getVersion());
-    final MutationBatch mb=uniqueValueStrat.write(scope,written,serializationFig.getTimeout());
-    batch.mergeShallow(mb);
+    batch.add(uniqueValueStrat.writeCQL(scope,written,serializationFig.getTimeout()));
     uniqueFields.add(field);
   }
   if (uniqueFields.size() == 0) {
     return;
   }
-  try {
-    batch.execute();
-  }
- catch (  ConnectionException ex) {
-    throw new RuntimeException("Unable to write to cassandra",ex);
-  }
+  session.execute(batch);
   ConsistentReplayCommand cmd=new ConsistentReplayCommand(uniqueValueStrat,cassandraFig,scope,entity.getId().getType(),uniqueFields,entity);
   Map<String,Field> uniquenessViolations=cmd.execute();
   if (!uniquenessViolations.isEmpty()) {

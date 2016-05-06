@@ -1,5 +1,6 @@
 {
   final ApplicationScope context=mock(ApplicationScope.class);
+  final Session session=mock(Session.class);
   final MvccLogEntrySerializationStrategy logStrategy=mock(MvccLogEntrySerializationStrategy.class);
   final ArgumentCaptor<MvccLogEntry> logEntry=ArgumentCaptor.forClass(MvccLogEntry.class);
   final MutationBatch logMutation=mock(MutationBatch.class);
@@ -11,7 +12,7 @@
   final Entity entity=TestEntityGenerator.generateEntity();
   final MvccEntity mvccEntityInput=TestEntityGenerator.fromEntity(entity);
   final UniqueValueSerializationStrategy uniqueValueStrategy=mock(UniqueValueSerializationStrategy.class);
-  WriteCommit newStage=new WriteCommit(logStrategy,mvccEntityStrategy,uniqueValueStrategy);
+  WriteCommit newStage=new WriteCommit(logStrategy,mvccEntityStrategy,uniqueValueStrategy,session);
   Entity result=newStage.call(new CollectionIoEvent<MvccEntity>(context,mvccEntityInput)).getEvent().getEntity().get();
   MvccLogEntry entry=logEntry.getValue();
   assertEquals("id correct",entity.getId(),entry.getEntityId());

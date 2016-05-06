@@ -1,0 +1,27 @@
+{
+  final String collectionName=LegacyScopeUtils.getCollectionScopeNameFromEntityType(entityType);
+  String fieldValueString=fieldValue.toString().toLowerCase();
+  List<Object> keys=new ArrayList<>(8);
+  keys.add(0,appUUID);
+  keys.add(1,applicationType);
+  keys.add(2,appUUID);
+  keys.add(3,applicationType);
+  keys.add(4,collectionName);
+  keys.add(5,fieldType);
+  keys.add(6,fieldName);
+  keys.add(7,fieldValueString);
+  int size=16 + applicationType.length() + 16+ applicationType.length()+ collectionName.length()+ fieldType.length()+ fieldName.length()+ fieldValueString.length();
+  size+=keys.size() * 3;
+  ByteBuffer stuff=ByteBuffer.allocate(size);
+  for (  Object key : keys) {
+    ByteBuffer kb=DataType.serializeValue(key,ProtocolVersion.NEWEST_SUPPORTED);
+    if (kb == null) {
+      kb=ByteBuffer.allocate(0);
+    }
+    stuff.putShort((short)kb.remaining());
+    stuff.put(kb.slice());
+    stuff.put((byte)0);
+  }
+  stuff.flip();
+  return stuff.duplicate();
+}

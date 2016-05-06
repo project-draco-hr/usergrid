@@ -1,0 +1,28 @@
+{
+  Preconditions.checkNotNull(value,"value is required");
+  BatchStatement batch=new BatchStatement();
+  Using ttl=null;
+  if (timeToLive > 0) {
+    ttl=QueryBuilder.ttl(timeToLive);
+  }
+  final Id entityId=value.getEntityId();
+  final UUID entityVersion=value.getEntityVersion();
+  final Field<?> field=value.getField();
+  ValidationUtils.verifyIdentity(entityId);
+  ValidationUtils.verifyVersion(entityVersion);
+  final EntityVersion ev=new EntityVersion(entityId,entityVersion);
+  final UniqueFieldEntry uniqueFieldEntry=new UniqueFieldEntry(entityVersion,field);
+  ByteBuffer partitionKey=getPartitionKey(collectionScope.getApplication(),value.getEntityId().getType(),field.getTypeName().toString(),field.getName(),field.getValue());
+  ByteBuffer logPartitionKey=getLogPartitionKey(collectionScope.getApplication(),value.getEntityId());
+  if (ttl != null) {
+    Statement uniqueValueStatement=QueryBuilder.insertInto(TABLE_UNIQUE_VALUES).value("key",partitionKey).value("column1",serializeUniqueValueColumn(ev)).value("value",DataType.serializeValue(COL_VALUE,ProtocolVersion.NEWEST_SUPPORTED)).using(ttl);
+    batch.add(uniqueValueStatement);
+  }
+ else {
+    Statement uniqueValueStatement=QueryBuilder.insertInto(TABLE_UNIQUE_VALUES).value("key",partitionKey).value("column1",serializeUniqueValueColumn(ev)).value("value",DataType.serializeValue(COL_VALUE,ProtocolVersion.NEWEST_SUPPORTED));
+    batch.add(uniqueValueStatement);
+  }
+  Statement uniqueValueLogStatement=QueryBuilder.insertInto(TABLE_UNIQUE_VALUES_LOG).value("key",logPartitionKey).value("column1",serializeUniqueValueLogColumn(uniqueFieldEntry)).value("value",DataType.serializeValue(COL_VALUE,ProtocolVersion.NEWEST_SUPPORTED));
+  batch.add(uniqueValueLogStatement);
+  return batch;
+}

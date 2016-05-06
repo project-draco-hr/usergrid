@@ -1,0 +1,62 @@
+{
+  Preconditions.checkNotNull(fields,"fields are required");
+  Preconditions.checkArgument(fields.size() > 0,"More than 1 field must be specified");
+  final Id applicationId=appScope.getApplication();
+  List<ByteBuffer> partitionKeys=new ArrayList<>(fields.size());
+  for (  Field field : fields) {
+    partitionKeys.add(getPartitionKey(applicationId,type,field.getTypeName().toString(),field.getName(),field.getValue()));
+  }
+  final UniqueValueSetImpl uniqueValueSet=new UniqueValueSetImpl(fields.size());
+  final Clause inKey=QueryBuilder.in("key",partitionKeys);
+  final Statement statement=QueryBuilder.select().all().from(TABLE_UNIQUE_VALUES).where(inKey).setConsistencyLevel(com.datastax.driver.core.ConsistencyLevel.LOCAL_QUORUM);
+  final ResultSet resultSet=session.execute(statement);
+  Iterator<com.datastax.driver.core.Row> results=resultSet.iterator();
+  while (results.hasNext()) {
+    final com.datastax.driver.core.Row unique=results.next();
+    ByteBuffer partitionKey=unique.getBytes("key");
+    ByteBuffer column=unique.getBytesUnsafe("column1");
+    List<Object> keyContents=deserializePartitionKey(partitionKey);
+    List<Object> columnContents=deserializeUniqueValueColumn(column);
+    Field field=null;
+    FieldTypeName fieldType;
+    String name;
+    String value;
+    if (this instanceof UniqueValueSerializationStrategyV2Impl) {
+      fieldType=FieldTypeName.valueOf((String)keyContents.get(3));
+      name=(String)keyContents.get(4);
+      value=(String)keyContents.get(5);
+    }
+ else {
+      fieldType=FieldTypeName.valueOf((String)keyContents.get(5));
+      name=(String)keyContents.get(6);
+      value=(String)keyContents.get(7);
+    }
+switch (fieldType) {
+case BOOLEAN:
+      field=new BooleanField(name,Boolean.parseBoolean(value));
+    break;
+case DOUBLE:
+  field=new DoubleField(name,Double.parseDouble(value));
+break;
+case FLOAT:
+field=new FloatField(name,Float.parseFloat(value));
+break;
+case INTEGER:
+field=new IntegerField(name,Integer.parseInt(value));
+break;
+case LONG:
+field=new LongField(name,Long.parseLong(value));
+break;
+case STRING:
+field=new StringField(name,value);
+break;
+case UUID:
+field=new UUIDField(name,UUID.fromString(value));
+break;
+}
+final EntityVersion entityVersion=new EntityVersion(new SimpleId((UUID)columnContents.get(1),(String)columnContents.get(2)),(UUID)columnContents.get(0));
+final UniqueValueImpl uniqueValue=new UniqueValueImpl(field,entityVersion.getEntityId(),entityVersion.getEntityVersion());
+uniqueValueSet.addValue(uniqueValue);
+}
+return uniqueValueSet;
+}

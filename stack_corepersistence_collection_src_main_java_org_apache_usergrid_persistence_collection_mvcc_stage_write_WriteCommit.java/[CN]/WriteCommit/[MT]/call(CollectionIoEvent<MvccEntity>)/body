@@ -12,14 +12,15 @@
   MutationBatch logMutation=logEntryStrat.write(applicationScope,startEntry);
   MutationBatch entityMutation=entityStrat.write(applicationScope,mvccEntity);
   logMutation.mergeShallow(entityMutation);
+  final BatchStatement uniqueBatch=new BatchStatement();
   for (  Field field : EntityUtils.getUniqueFields(mvccEntity.getEntity().get())) {
     UniqueValue written=new UniqueValueImpl(field,entityId,version);
-    MutationBatch mb=uniqueValueStrat.write(applicationScope,written);
+    uniqueBatch.add(uniqueValueStrat.writeCQL(applicationScope,written,-1));
     logger.debug("Finalizing {} unique value {}",field.getName(),field.getValue().toString());
-    logMutation.mergeShallow(mb);
   }
   try {
     logMutation.execute();
+    session.execute(uniqueBatch);
   }
  catch (  ConnectionException e) {
     logger.error("Failed to execute write asynchronously ",e);
