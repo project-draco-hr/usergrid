@@ -1,13 +1,13 @@
 {
-  Map<String,Long> statistics=null;
+  Map<String,Object> statistics=null;
   long timeout=System.currentTimeMillis() + 10000;
   while (System.currentTimeMillis() < timeout) {
     Thread.sleep(200);
     statistics=app.getEntityManager().get(notification.getUuid(),Notification.class).getStatistics();
-    if (statistics.get("sent") == sent && statistics.get("errors") == errors) {
+    if ((Long)statistics.get("sent") == sent && (Long)statistics.get("errors") == errors) {
       break;
     }
   }
-  assertEquals(sent,statistics.get("sent").longValue());
-  assertEquals(errors,statistics.get("errors").longValue());
+  assertEquals(sent,((Long)statistics.get("sent")).longValue());
+  assertEquals(errors,((Long)statistics.get("errors")).longValue());
 }
