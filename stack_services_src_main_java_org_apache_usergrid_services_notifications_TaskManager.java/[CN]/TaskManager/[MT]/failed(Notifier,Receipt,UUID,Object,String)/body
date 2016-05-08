@@ -1,23 +1,18 @@
 {
+  failures.incrementAndGet();
   try {
     if (logger.isDebugEnabled()) {
-      logger.debug("notification {} for device {} got error {}",notification.getUuid(),deviceUUID,code);
+      logger.debug("Notification {} for device {} got error {}",notification.getUuid(),deviceUUID,code);
     }
-    failures.incrementAndGet();
     if (receipt != null) {
-      if (receipt.getUuid() != null) {
-        successes.decrementAndGet();
-      }
       receipt.setErrorCode(code);
       receipt.setErrorMessage(message);
       this.saveReceipt(notification,new SimpleEntityRef(Device.ENTITY_TYPE,deviceUUID),receipt,true);
-      if (logger.isDebugEnabled()) {
-        logger.debug("notification {} receipt saved for device {}",notification.getUuid(),deviceUUID);
-      }
     }
-  }
-  finally {
     completed(notifier,deviceUUID);
     finishedBatch();
+  }
+ catch (  Exception e) {
+    logger.error("Unable to finish marking notification {} as failed due to error: ",notification.getUuid(),e);
   }
 }
