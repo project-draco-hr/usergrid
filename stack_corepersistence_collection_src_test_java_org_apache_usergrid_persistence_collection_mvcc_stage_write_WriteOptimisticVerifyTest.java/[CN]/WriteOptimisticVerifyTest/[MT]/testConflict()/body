@@ -1,6 +1,7 @@
 {
   final ApplicationScope scope=mock(ApplicationScope.class);
   when(scope.getApplication()).thenReturn(new SimpleId(UUIDGenerator.newTimeUUID(),"organization"));
+  final Session session=mock(Session.class);
   final Entity entity=generateEntity();
   entity.setField(new StringField("name","FOO",true));
   entity.setField(new StringField("identifier","BAR",true));
@@ -12,13 +13,10 @@
   UniqueValueSerializationStrategy uvstrat=mock(UniqueValueSerializationStrategy.class);
   UniqueValue uv1=new UniqueValueImpl(entity.getField("name"),entity.getId(),entity.getVersion());
   UniqueValue uv2=new UniqueValueImpl(entity.getField("identifier"),entity.getId(),entity.getVersion());
-  MutationBatch mb=mock(MutationBatch.class);
-  when(uvstrat.delete(scope,uv1)).thenReturn(mb);
-  when(uvstrat.delete(scope,uv2)).thenReturn(mb);
   final MvccEntity mvccEntity=fromEntity(entity);
   boolean conflictDetected=false;
   WriteOptimisticVerify newStage=new WriteOptimisticVerify(mvccLog);
-  RollbackAction rollbackAction=new RollbackAction(mvccLog,uvstrat);
+  RollbackAction rollbackAction=new RollbackAction(mvccLog,uvstrat,session);
   try {
     newStage.call(new CollectionIoEvent<>(scope,mvccEntity));
   }
@@ -28,6 +26,6 @@
     rollbackAction.call(e);
   }
   assertTrue(conflictDetected);
-  verify(uvstrat,times(1)).delete(scope,uv1);
-  verify(uvstrat,times(1)).delete(scope,uv2);
+  verify(uvstrat,times(1)).deleteCQL(scope,uv1);
+  verify(uvstrat,times(1)).deleteCQL(scope,uv2);
 }

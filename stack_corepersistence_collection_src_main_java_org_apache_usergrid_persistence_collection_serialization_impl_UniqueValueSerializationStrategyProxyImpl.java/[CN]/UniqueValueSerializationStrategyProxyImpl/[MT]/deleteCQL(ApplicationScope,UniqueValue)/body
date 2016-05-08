@@ -1,0 +1,10 @@
+{
+  final MigrationRelationship<UniqueValueSerializationStrategy> migration=getMigrationRelationShip();
+  if (migration.needsMigration()) {
+    final BatchStatement batch=new BatchStatement();
+    batch.add(migration.from.deleteCQL(applicationScope,uniqueValue));
+    batch.add(migration.to.deleteCQL(applicationScope,uniqueValue));
+    return batch;
+  }
+  return migration.to.deleteCQL(applicationScope,uniqueValue);
+}

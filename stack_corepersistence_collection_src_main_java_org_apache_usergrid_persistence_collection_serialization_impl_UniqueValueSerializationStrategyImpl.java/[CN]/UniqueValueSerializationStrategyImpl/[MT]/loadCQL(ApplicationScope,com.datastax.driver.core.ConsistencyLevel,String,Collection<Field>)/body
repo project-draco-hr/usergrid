@@ -17,7 +17,6 @@
     ByteBuffer column=unique.getBytesUnsafe("column1");
     List<Object> keyContents=deserializePartitionKey(partitionKey);
     List<Object> columnContents=deserializeUniqueValueColumn(column);
-    Field field=null;
     FieldTypeName fieldType;
     String name;
     String value;
@@ -31,32 +30,10 @@
       name=(String)keyContents.get(6);
       value=(String)keyContents.get(7);
     }
-switch (fieldType) {
-case BOOLEAN:
-      field=new BooleanField(name,Boolean.parseBoolean(value));
-    break;
-case DOUBLE:
-  field=new DoubleField(name,Double.parseDouble(value));
-break;
-case FLOAT:
-field=new FloatField(name,Float.parseFloat(value));
-break;
-case INTEGER:
-field=new IntegerField(name,Integer.parseInt(value));
-break;
-case LONG:
-field=new LongField(name,Long.parseLong(value));
-break;
-case STRING:
-field=new StringField(name,value);
-break;
-case UUID:
-field=new UUIDField(name,UUID.fromString(value));
-break;
-}
-final EntityVersion entityVersion=new EntityVersion(new SimpleId((UUID)columnContents.get(1),(String)columnContents.get(2)),(UUID)columnContents.get(0));
-final UniqueValueImpl uniqueValue=new UniqueValueImpl(field,entityVersion.getEntityId(),entityVersion.getEntityVersion());
-uniqueValueSet.addValue(uniqueValue);
-}
-return uniqueValueSet;
+    Field field=getField(name,value,fieldType);
+    final EntityVersion entityVersion=new EntityVersion(new SimpleId((UUID)columnContents.get(1),(String)columnContents.get(2)),(UUID)columnContents.get(0));
+    final UniqueValueImpl uniqueValue=new UniqueValueImpl(field,entityVersion.getEntityId(),entityVersion.getEntityVersion());
+    uniqueValueSet.addValue(uniqueValue);
+  }
+  return uniqueValueSet;
 }
