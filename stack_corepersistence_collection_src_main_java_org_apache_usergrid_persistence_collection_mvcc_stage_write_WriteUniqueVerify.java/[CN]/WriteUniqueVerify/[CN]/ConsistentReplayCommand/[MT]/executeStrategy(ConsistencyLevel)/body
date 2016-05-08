@@ -1,11 +1,6 @@
 {
   final UniqueValueSet uniqueValues;
-  try {
-    uniqueValues=uniqueValueSerializationStrategy.load(scope,consistencyLevel,type,uniqueFields);
-  }
- catch (  ConnectionException e) {
-    throw new RuntimeException("Unable to read from cassandra",e);
-  }
+  uniqueValues=uniqueValueSerializationStrategy.load(scope,consistencyLevel,type,uniqueFields);
   final Map<String,Field> uniquenessViolations=new HashMap<>(uniqueFields.size());
   for (  final Field field : uniqueFields) {
     final UniqueValue uniqueValue=uniqueValues.getValue(field.getName());
