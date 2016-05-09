@@ -1,0 +1,29 @@
+{
+  try {
+    Form form=new Form();
+    form.param("username","me");
+    form.param("email","me@example.com");
+    form.param("name","me Me ME!");
+    form.param("password","me me 123");
+    management().users().post(ApiResponse.class,form);
+    fail("Must not be able to create admin user named me");
+  }
+ catch (  BadRequestException expected) {
+  }
+  String randomString=RandomStringUtils.randomAlphanumeric(10);
+  String username="user_" + randomString;
+  String password="me me 123";
+  Form form=new Form();
+  form.param("username",username);
+  form.param("email",username + "@example.com");
+  form.param("name","Despicable me");
+  form.param("password",password);
+  management().users().post(ApiResponse.class,form);
+  management().token().get(username,password);
+  try {
+    management().users().user(username).put(true,new Entity().chainPut("username","me"));
+    fail("Must not be able to create admin user named me");
+  }
+ catch (  BadRequestException e) {
+  }
+}
