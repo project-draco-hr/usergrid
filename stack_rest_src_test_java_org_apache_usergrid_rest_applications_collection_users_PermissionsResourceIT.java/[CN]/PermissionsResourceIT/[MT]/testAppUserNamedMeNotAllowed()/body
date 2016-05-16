@@ -1,0 +1,15 @@
+{
+  try {
+    app().collection("users").post(new User("me","it's me","me@example.com","me!"));
+    fail("Must not be able to create app user named me");
+  }
+ catch (  BadRequestException expected) {
+  }
+  Entity user=app().collection("users").post(new User("dave","Sneaky Me","me@example.com","me!"));
+  try {
+    app().collection("users").entity(user).put(new Entity().chainPut("username","me"));
+    fail("Must not be able to update app user to name me");
+  }
+ catch (  BadRequestException expected) {
+  }
+}

@@ -1,10 +1,13 @@
 {
-  final boolean externalTokensEnabled=!StringUtils.isEmpty(properties.getProperty(ManagementResource.USERGRID_CENTRAL_URL));
+  final boolean externalTokensEnabled=!StringUtils.isEmpty(properties.getProperty(USERGRID_CENTRAL_URL));
   if (externalTokensEnabled) {
-    throw new IllegalArgumentException("Admin Users must signup via " + properties.getProperty(ManagementResource.USERGRID_CENTRAL_URL));
+    throw new IllegalArgumentException("Admin Users must signup via " + properties.getProperty(USERGRID_CENTRAL_URL));
   }
   if (StringUtils.isBlank(email)) {
     throw new IllegalArgumentException("email form parameter is required");
+  }
+  if ("me".equals(username)) {
+    throw new IllegalArgumentException("Username 'me' is reserved");
   }
   logger.info("Create user: {}",(StringUtils.isNotBlank(username) ? username : email));
   ApiResponse response=createApiResponse();
