@@ -12,4 +12,42 @@
   this.connectionService=injector.getInstance(ConnectionService.class);
   this.indexSchemaCacheFactory=injector.getInstance(IndexSchemaCacheFactory.class);
   this.applicationIdCache=injector.getInstance(ApplicationIdCacheFactory.class).getInstance(getManagementEntityManager());
+  int entityManagerCacheSize=100;
+  try {
+    entityManagerCacheSize=Integer.parseInt(cassandraService.getProperties().getProperty(ENTITY_MANAGER_CACHE_SIZE,"100"));
+  }
+ catch (  Exception e) {
+    logger.error("Error parsing " + ENTITY_MANAGER_CACHE_SIZE + " using "+ entityManagerCacheSize,e);
+  }
+  entityManagers=CacheBuilder.newBuilder().maximumSize(entityManagerCacheSize).build(new CacheLoader<UUID,EntityManager>(){
+    public EntityManager load(    UUID appId){
+      EntityManager entityManager=_getEntityManager(appId);
+      Application app=null;
+      Exception exception=null;
+      try {
+        app=entityManager.getApplication();
+      }
+ catch (      Exception e) {
+        exception=e;
+      }
+      if (CpNamingUtils.MANAGEMENT_APPLICATION_ID.equals(appId)) {
+        if (app != null) {
+          managementAppEntityManager=entityManager;
+        }
+ else         if (managementAppEntityManager != null) {
+          entityManager=managementAppEntityManager;
+        }
+ else {
+          logger.info("managementAppEntityManager is null, bootstrapping in progress");
+        }
+      }
+ else {
+        if (app == null) {
+          throw new RuntimeException("Error getting application " + appId,exception);
+        }
+      }
+      return entityManager;
+    }
+  }
+);
 }
