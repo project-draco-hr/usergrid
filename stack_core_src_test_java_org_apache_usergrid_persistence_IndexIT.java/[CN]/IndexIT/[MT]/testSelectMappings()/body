@@ -10,6 +10,13 @@
           put("xfactor",5.1);
           put("rando","bar");
           put("mondo","2000");
+          put("frosting","chocolate");
+          put("misc",new HashMap(){
+{
+              put("range","open");
+            }
+          }
+);
         }
       }
 );
@@ -26,6 +33,13 @@
           put("xfactor",5.1);
           put("rando","bar");
           put("mondo","2001");
+          put("frosting","orange");
+          put("misc",new HashMap(){
+{
+              put("range","open");
+            }
+          }
+);
         }
       }
 );
@@ -53,13 +67,17 @@
     assertTrue(first.getDynamicProperties().size() == 3);
   }
 {
-    Query query=Query.fromQL("select data.rando,data.mondo where status = 'pickled'");
+    Query query=Query.fromQL("select data.rando, data.mondo, data.misc.range where status = 'pickled'");
     Results r=em.searchCollection(em.getApplicationRef(),"names",query);
     assertTrue(r.getEntities() != null && r.getEntities().size() == 2);
     Entity first=r.getEntities().get(0);
-    assertNotNull(first.getProperty("data"));
-    assertEquals(((Map<String,Object>)first.getProperty("data")).get("rando"),"bar");
-    assertEquals(((Map<String,Object>)first.getProperty("data")).get("mondo"),"2001");
+    Map<String,Object> data=((Map<String,Object>)first.getProperty("data"));
+    assertNotNull(data);
+    assertEquals(data.get("rando"),"bar");
+    assertEquals(data.get("mondo"),"2001");
+    assertNull(data.get("frosting"));
+    Map<String,Object> misc=(Map<String,Object>)data.get("misc");
+    assertEquals(misc.get("range"),"open");
     assertTrue(first.getDynamicProperties().size() == 2);
   }
 {
