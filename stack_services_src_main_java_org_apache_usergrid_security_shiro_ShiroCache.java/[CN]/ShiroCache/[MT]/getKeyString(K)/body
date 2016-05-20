@@ -1,10 +1,18 @@
 {
+  String keyClass=key.getClass().getSimpleName();
+  String ret=keyClass + "_guest";
   if (key instanceof SimplePrincipalCollection) {
     SimplePrincipalCollection spc=(SimplePrincipalCollection)key;
     if (spc.getPrimaryPrincipal() instanceof UserPrincipal) {
       UserPrincipal p=(UserPrincipal)spc.getPrimaryPrincipal();
-      return p.getUser().getUuid().toString();
+      ret=p.getUser().getUuid().toString() + "_" + keyClass;
+    }
+ else     if (spc.getPrimaryPrincipal() instanceof PrincipalIdentifier) {
+      PrincipalIdentifier p=(PrincipalIdentifier)spc.getPrimaryPrincipal();
+      if (p.getAccessTokenCredentials() != null) {
+        ret=p.getAccessTokenCredentials().getToken() + "_" + keyClass;
+      }
     }
   }
-  return key.toString() + "_" + key.getClass().getSimpleName();
+  return ret;
 }
