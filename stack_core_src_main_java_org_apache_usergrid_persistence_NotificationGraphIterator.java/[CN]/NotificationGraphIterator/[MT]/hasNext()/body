@@ -1,0 +1,26 @@
+{
+  if (source == null) {
+    return false;
+  }
+  if (currentIterator != null && currentIterator.hasNext()) {
+    return true;
+  }
+  while (source.hasNext()) {
+    Object next=source.next();
+    Results r;
+    EntityRef ref=(EntityRef)next;
+    r=getResultsFor(ref);
+    if (r.size() > 0) {
+      if (ref.getType().equals(Group.ENTITY_TYPE)) {
+        currentIterator=new PagingResultsIterator(r,query.getResultsLevel(),Query.Level.REFS);
+      }
+ else {
+        currentIterator=new PagingResultsIterator(r,query.getResultsLevel(),null);
+      }
+      return currentIterator.hasNext();
+    }
+  }
+  currentIterator=null;
+  source=null;
+  return false;
+}

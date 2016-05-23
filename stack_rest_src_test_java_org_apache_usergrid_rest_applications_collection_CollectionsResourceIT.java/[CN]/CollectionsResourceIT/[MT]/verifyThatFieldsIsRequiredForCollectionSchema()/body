@@ -1,0 +1,29 @@
+{
+  ArrayList<String> indexingArray=new ArrayList<>();
+  Entity payload=new Entity();
+  payload.put("fieldWeirdnessNotFields",indexingArray);
+  try {
+    this.app().collection("testCollections").collection("_index").post(payload);
+    fail();
+  }
+ catch (  BadRequestException bre) {
+  }
+  Map indexingMap=new HashMap<>();
+  indexingMap.put("exludeStuff","randomtext");
+  payload=new Entity();
+  payload.put("fields",indexingMap);
+  try {
+    this.app().collection("testCollections").collection("_index").post(payload);
+    fail();
+  }
+ catch (  BadRequestException bre) {
+  }
+  payload=new Entity();
+  payload.put("fields",indexingArray);
+  try {
+    this.app().collection("testCollections").collection("_index").post(payload);
+  }
+ catch (  BadRequestException bre) {
+    fail("This shouldn't fail");
+  }
+}

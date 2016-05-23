@@ -1,0 +1,28 @@
+{
+  long ttl=10;
+  int configuredMaxSize;
+  try {
+    ttl=Integer.parseInt(System.getProperty(CACHE_TTL_PROP));
+  }
+ catch (  NumberFormatException e) {
+  }
+  try {
+    configuredMaxSize=Integer.parseInt(System.getProperty(CACHE_MAX_SIZE_PROP));
+  }
+ catch (  NumberFormatException e) {
+    configuredMaxSize=200;
+  }
+  this.cache=CacheBuilder.newBuilder().maximumSize(Math.max(1000,configuredMaxSize)).expireAfterWrite(ttl,TimeUnit.MINUTES).removalListener(new RemovalListener<UUID,ApplicationQueueManager>(){
+    @Override public void onRemoval(    RemovalNotification<UUID,ApplicationQueueManager> queueManagerNotifiication){
+      try {
+        if (queueManagerNotifiication.getValue() != null) {
+          queueManagerNotifiication.getValue().stop();
+        }
+      }
+ catch (      Exception ie) {
+        logger.error("Failed to shutdown push queue manager from cache",ie.getMessage());
+      }
+    }
+  }
+).build();
+}

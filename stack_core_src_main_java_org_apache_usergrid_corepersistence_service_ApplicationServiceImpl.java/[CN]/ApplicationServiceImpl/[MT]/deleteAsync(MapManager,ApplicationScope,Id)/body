@@ -1,6 +1,8 @@
 {
   try {
-    asyncEventService.queueEntityDelete(applicationScope,entityId);
+    if (!skipIndexingForType(entityId.getType(),applicationScope)) {
+      asyncEventService.queueEntityDelete(applicationScope,entityId);
+    }
     mapManager.delete(entityId.getUuid().toString());
     return entityId;
   }

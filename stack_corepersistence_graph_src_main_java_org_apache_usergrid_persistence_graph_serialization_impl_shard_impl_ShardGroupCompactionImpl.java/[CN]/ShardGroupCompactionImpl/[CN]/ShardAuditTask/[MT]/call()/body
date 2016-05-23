@@ -16,11 +16,16 @@
   }
   if (group.shouldCompact(timeService.getCurrentTime())) {
     if (!shardCompactionTaskTracker.canStartTask(scope,edgeMeta,group)) {
+      if (logger.isTraceEnabled()) {
+        logger.trace("Already compacting, won't compact group: {}",group);
+      }
       return AuditResult.COMPACTING;
     }
     try {
       CompactionResult result=compact(scope,edgeMeta,group);
-      logger.info("Compaction result for compaction of scope {} with edge meta data of {} and shard group {} is {}",scope,edgeMeta,group,result);
+      if (logger.isTraceEnabled()) {
+        logger.trace("Compaction result for compaction of scope {} with edge meta data of {} and shard group {} is {}",scope,edgeMeta,group,result);
+      }
     }
   finally {
       shardCompactionTaskTracker.complete(scope,edgeMeta,group);

@@ -1,0 +1,45 @@
+{
+  Entity testEntity=new Entity();
+  for (int i=0; i < 10; i++) {
+    testEntity.put("one","value" + i);
+    testEntity.put("two","valuetwo" + i);
+    this.app().collection("testCollection").post(testEntity);
+  }
+  ArrayList<String> indexingArray=new ArrayList<>();
+  indexingArray.add("one");
+  Entity payload=new Entity();
+  payload.put("fields",indexingArray);
+  Entity thing=this.app().collection("testCollection").collection("_index").post(payload);
+  refreshIndex();
+  Collection collection=this.app().collection("testCollection").collection("_index").get();
+  LinkedHashMap testCollectionSchema=(LinkedHashMap)collection.getResponse().getData();
+  assertEquals((thing).get("lastUpdated"),testCollectionSchema.get("lastUpdated"));
+  assertEquals((thing).get("lastUpdateBy"),testCollectionSchema.get("lastUpdateBy"));
+  assertEquals(0,testCollectionSchema.get("lastReindexed"));
+  ArrayList<String> schema=(ArrayList<String>)testCollectionSchema.get("fields");
+  assertEquals("one",schema.get(0));
+  this.app().collection("testCollection").collection("_reindex").post(true,clientSetup.getSuperuserToken(),ApiResponse.class,null,null,false);
+  indexingArray.add("one");
+  indexingArray.add("two");
+  payload=new Entity();
+  payload.put("fields",indexingArray);
+  this.app().collection("testCollection").collection("_index").post(payload);
+  collection=this.app().collection("testCollection").collection("_index").get();
+  testCollectionSchema=(LinkedHashMap)collection.getResponse().getData();
+  assertNotEquals((thing).get("lastUpdated"),testCollectionSchema.get("lastUpdated"));
+  assertEquals((thing).get("lastUpdateBy"),testCollectionSchema.get("lastUpdateBy"));
+  assertNotEquals(0,testCollectionSchema.get("lastReindexed"));
+  schema=(ArrayList<String>)testCollectionSchema.get("fields");
+  assertEquals("one",schema.get(0));
+  for (int i=0; i < 10; i++) {
+    String query="one ='value" + i + "'";
+    QueryParameters queryParameters=new QueryParameters().setQuery(query);
+    Collection tempEntity=this.app().collection("testCollection").get(queryParameters,true);
+    Entity reindexedEntity=tempEntity.getResponse().getEntity();
+    assertEquals("value" + i,reindexedEntity.get("one"));
+    query="two = 'valuetwo1" + i + "'";
+    queryParameters=new QueryParameters().setQuery(query);
+    tempEntity=this.app().collection("testCollection").get(queryParameters,true);
+    assertEquals(0,tempEntity.getResponse().getEntities().size());
+  }
+}

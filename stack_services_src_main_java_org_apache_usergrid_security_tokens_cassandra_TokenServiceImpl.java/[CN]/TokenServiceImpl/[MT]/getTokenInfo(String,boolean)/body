@@ -1,0 +1,34 @@
+{
+  UUID uuid=getUUIDForToken(token);
+  long ssoTtl=1000000L;
+  if (uuid == null) {
+    return isSSOEnabled() ? validateExternalToken(token,ssoTtl) : null;
+  }
+  TokenInfo tokenInfo;
+  try {
+    tokenInfo=getTokenInfo(uuid);
+  }
+ catch (  InvalidTokenException e) {
+    if (isSSOEnabled()) {
+      return validateExternalToken(token,maxPersistenceTokenAge);
+    }
+ else {
+      throw e;
+    }
+  }
+  if (updateAccessTime) {
+    long now=currentTimeMillis();
+    long maxTokenTtl=getMaxTtl(TokenCategory.getFromBase64String(token),tokenInfo.getPrincipal());
+    Mutator<UUID> batch=createMutator(cassandra.getUsergridApplicationKeyspace(),ue);
+    HColumn<String,Long> col=createColumn(TOKEN_ACCESSED,now,calcTokenTime(tokenInfo.getExpiration(maxTokenTtl)),se,le);
+    batch.addInsertion(uuid,TOKENS_CF,col);
+    long inactive=now - tokenInfo.getAccessed();
+    if (inactive > tokenInfo.getInactive()) {
+      col=createColumn(TOKEN_INACTIVE,inactive,calcTokenTime(tokenInfo.getExpiration(maxTokenTtl)),se,le);
+      batch.addInsertion(uuid,TOKENS_CF,col);
+      tokenInfo.setInactive(inactive);
+    }
+    batch.execute();
+  }
+  return tokenInfo;
+}

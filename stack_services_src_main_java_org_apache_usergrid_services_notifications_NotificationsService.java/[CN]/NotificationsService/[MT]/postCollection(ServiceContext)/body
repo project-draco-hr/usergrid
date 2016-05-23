@@ -6,7 +6,18 @@
   postMeter.mark();
   try {
     validate(null,context.getPayload());
-    Notification.PathTokens pathTokens=getPathTokens(context.getRequest().getOriginalParameters());
+    final List<ServiceParameter> parameters=context.getRequest().getOriginalParameters();
+    for (    ServiceParameter parameter : parameters) {
+      if (parameter instanceof ServiceParameter.QueryParameter && context.getProperties().get("useGraph") != null && context.getProperties().get("useGraph").equals(true)) {
+        throw new IllegalArgumentException("Query ql parameter cannot be used with useGraph:true property value");
+      }
+    }
+    Notification.PathTokens pathTokens=getPathTokens(parameters);
+    context.getProperties().put("filters",context.getProperties().getOrDefault("filters",new HashMap<>()));
+    context.getProperties().put("useGraph",context.getProperties().getOrDefault("useGraph",false));
+    context.getProperties().put("saveReceipts",context.getProperties().getOrDefault("saveReceipts",true));
+    context.getProperties().put("processingFinished",0L);
+    context.getProperties().put("deviceProcessedCount",0);
     context.getProperties().put("state",Notification.State.CREATED);
     context.getProperties().put("pathQuery",pathTokens);
     context.setOwner(sm.getApplication());
@@ -31,7 +42,7 @@
     return results;
   }
  catch (  Exception e) {
-    logger.error("serialization failed",e);
+    logger.error(e.getMessage());
     throw e;
   }
  finally {
