@@ -1,0 +1,28 @@
+{
+  int numberOfEntitiesToCreate=10;
+  Entity[] entities=new Entity[numberOfEntitiesToCreate];
+  Entity testEntity=new Entity();
+  for (int i=0; i < numberOfEntitiesToCreate; i++) {
+    testEntity.put("one","value" + i);
+    testEntity.put("two","valuetwo" + i);
+    entities[i]=this.app().collection("testCollection").post(testEntity);
+  }
+  QueryParameters queryParameters=new QueryParameters();
+  queryParameters.addParam("resolution","all").addParam("counter","application.collection.testcollections");
+  Collection countersResponse=org().app(clientSetup.getAppName()).collection("counters").get(queryParameters,true);
+  assertNotNull(countersResponse);
+  ArrayList counterValues=(ArrayList)countersResponse.getResponse().getProperties().get("counters");
+  LinkedHashMap counters=(LinkedHashMap)counterValues.get(0);
+  assertEquals("application.collection.testcollections",counters.get("name"));
+  assertEquals(10,((LinkedHashMap)((ArrayList)counters.get("values")).get(0)).get("value"));
+  for (int i=0; i < numberOfEntitiesToCreate; i++) {
+    this.app().collection("testCollection").entity(entities[i]).delete();
+  }
+  queryParameters.addParam("resolution","all").addParam("counter","application.collection.testcollections");
+  countersResponse=org().app(clientSetup.getAppName()).collection("counters").get(queryParameters,true);
+  assertNotNull(countersResponse);
+  counterValues=(ArrayList)countersResponse.getResponse().getProperties().get("counters");
+  counters=(LinkedHashMap)counterValues.get(0);
+  assertEquals("application.collection.testcollections",counters.get("name"));
+  assertEquals(0,((LinkedHashMap)((ArrayList)counters.get("values")).get(0)).get("value"));
+}

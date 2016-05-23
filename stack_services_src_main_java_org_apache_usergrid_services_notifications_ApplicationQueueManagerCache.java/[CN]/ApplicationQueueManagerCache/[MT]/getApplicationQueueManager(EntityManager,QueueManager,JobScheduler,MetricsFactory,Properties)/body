@@ -1,0 +1,17 @@
+{
+  ApplicationQueueManager manager=cache.getIfPresent(entityManager.getApplicationId());
+  if (manager != null) {
+    if (logger.isTraceEnabled()) {
+      logger.trace("Returning push queue manager from cache for application: {}",entityManager.getApplicationId());
+    }
+    return manager;
+  }
+ else {
+    if (logger.isTraceEnabled()) {
+      logger.trace("Push queue manager not found in cache, loading for application: {}",entityManager.getApplicationId());
+    }
+    manager=new ApplicationQueueManagerImpl(jobScheduler,entityManager,queueManager,metricsService,properties);
+    cache.put(entityManager.getApplicationId(),manager);
+    return manager;
+  }
+}

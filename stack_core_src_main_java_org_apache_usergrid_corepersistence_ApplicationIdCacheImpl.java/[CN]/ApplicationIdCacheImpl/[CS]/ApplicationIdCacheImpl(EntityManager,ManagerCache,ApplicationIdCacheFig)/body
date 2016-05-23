@@ -3,7 +3,11 @@
   this.managerCache=managerCache;
   appCache=CacheBuilder.newBuilder().maximumSize(fig.getCacheSize()).expireAfterWrite(fig.getCacheTimeout(),TimeUnit.MILLISECONDS).build(new CacheLoader<String,UUID>(){
     @Override public UUID load(    final String key) throws Exception {
-      return fetchApplicationId(key);
+      UUID appId=fetchApplicationId(key);
+      if (appId == null) {
+        throw new PersistenceException("Error getting applicationId");
+      }
+      return appId;
     }
   }
 );

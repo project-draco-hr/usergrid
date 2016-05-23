@@ -1,0 +1,28 @@
+{
+  UsergridAuth authForRequests=null;
+  if (tempAuth != null) {
+    if (tempAuth.isValidToken()) {
+      authForRequests=tempAuth;
+    }
+    tempAuth=null;
+  }
+ else {
+switch (config.authMode) {
+case USER:
+{
+        if (this.currentUser != null && this.currentUser.getUserAuth() != null && this.currentUser.getUserAuth().isValidToken()) {
+          authForRequests=this.currentUser.getUserAuth();
+        }
+        break;
+      }
+case APP:
+{
+      if (this.config.appAuth != null && this.config.appAuth.isValidToken()) {
+        authForRequests=this.config.appAuth;
+      }
+      break;
+    }
+}
+}
+return authForRequests;
+}
