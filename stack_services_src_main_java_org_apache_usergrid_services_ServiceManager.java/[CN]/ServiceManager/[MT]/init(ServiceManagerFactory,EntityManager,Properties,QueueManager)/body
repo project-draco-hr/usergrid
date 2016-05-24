@@ -30,21 +30,17 @@
           applicationId=application.getUuid();
         }
  else {
-          logger.error("STARTUP PROBLEM: Cannot get application by UUID. Will retry in {} seconds #{}",retryInterval / 1000,retryCount);
           Thread.sleep(retryInterval);
           retryCount++;
         }
       }
       if (application == null) {
-        Exception e=new RuntimeException("STARTUP FAILURE: application id {" + em.getApplicationId() + "} is returning null after "+ retryCount+ " retries");
+        Exception e=new RuntimeException("application id {" + em.getApplicationId() + "} is returning null");
+        logger.error("Failed to get application",e);
         throw e;
       }
     }
- catch (    RuntimeException re) {
-      logger.error("ServiceManager init failure",re);
-      throw re;
-    }
-catch (    Exception e) {
+ catch (    Exception e) {
       logger.error("ServiceManager init failure",e);
       throw new RuntimeException(e);
     }
