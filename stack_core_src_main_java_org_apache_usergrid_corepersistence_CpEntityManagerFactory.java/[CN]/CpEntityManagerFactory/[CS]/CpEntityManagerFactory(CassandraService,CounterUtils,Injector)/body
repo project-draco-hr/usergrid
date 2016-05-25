@@ -47,18 +47,18 @@
   int maxRetries=1000;
   int retries=0;
   boolean managementAppFound=false;
-  Set<Class> seenBefore=new HashSet<>(100);
   while (!managementAppFound && retries++ < maxRetries) {
     try {
       getEntityManager(getManagementAppId()).getApplication();
       managementAppFound=true;
     }
  catch (    Throwable t) {
-      if (seenBefore.contains(t.getClass())) {
-        logger.error("Error {} getting management app on try {}",t.getClass().getSimpleName(),retries);
+      String msg="Error " + t.getClass() + " getting management app on try "+ retries;
+      if (logger.isDebugEnabled()) {
+        logger.error(msg,t);
       }
  else {
-        logger.error("Error getting management app on try {}",t.getClass().getSimpleName(),t);
+        logger.error(msg);
       }
     }
   }

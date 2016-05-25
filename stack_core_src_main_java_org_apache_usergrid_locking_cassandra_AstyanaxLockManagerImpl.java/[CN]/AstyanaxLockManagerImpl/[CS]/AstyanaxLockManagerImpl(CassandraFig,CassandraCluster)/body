@@ -1,6 +1,28 @@
 {
   this.cassandraFig=cassandraFig;
-  this.keyspace=cassandraCluster.getLocksKeyspace();
-  createLocksKeyspace();
-  this.columnFamily=createLocksColumnFamily();
+  int maxRetries=1000;
+  int retries=0;
+  boolean famReady=false;
+  while (!famReady && retries++ < maxRetries) {
+    try {
+      keyspace=cassandraCluster.getLocksKeyspace();
+      createLocksKeyspace();
+      columnFamily=createLocksColumnFamily();
+      famReady=true;
+    }
+ catch (    Throwable t) {
+      String msg="Error " + t.getClass().getSimpleName() + " creating locks keyspace try "+ retries;
+      if (logger.isDebugEnabled()) {
+        logger.error(msg,t);
+      }
+ else {
+        logger.error(msg);
+      }
+      try {
+        Thread.sleep(1000);
+      }
+ catch (      InterruptedException ignored) {
+      }
+    }
+  }
 }
