@@ -11,7 +11,6 @@
   this.collectionService=injector.getInstance(CollectionService.class);
   this.connectionService=injector.getInstance(ConnectionService.class);
   this.indexSchemaCacheFactory=injector.getInstance(IndexSchemaCacheFactory.class);
-  this.applicationIdCache=injector.getInstance(ApplicationIdCacheFactory.class).getInstance(getManagementEntityManager());
   int entityManagerCacheSize=100;
   try {
     entityManagerCacheSize=Integer.parseInt(cassandraService.getProperties().getProperty(ENTITY_MANAGER_CACHE_SIZE,"100"));
@@ -31,23 +30,40 @@
         exception=e;
       }
       if (CpNamingUtils.MANAGEMENT_APPLICATION_ID.equals(appId)) {
-        if (app != null && entityManager != null) {
+        if (app != null) {
           managementAppEntityManager=entityManager;
         }
- else         if (entityManager == null && managementAppEntityManager != null) {
+ else         if (managementAppEntityManager != null) {
           entityManager=managementAppEntityManager;
         }
- else {
-          logger.info("managementAppEntityManager is null, bootstrapping in progress");
-        }
       }
- else {
-        if (app == null) {
-          throw new RuntimeException("Error getting application " + appId,exception);
-        }
+      if (app == null) {
+        throw new RuntimeException("Error getting application " + appId,exception);
       }
       return entityManager;
     }
   }
 );
+  int maxRetries=1000;
+  int retries=0;
+  boolean managementAppFound=false;
+  Set<Class> seenBefore=new HashSet<>(100);
+  while (!managementAppFound && retries++ < maxRetries) {
+    try {
+      getEntityManager(getManagementAppId()).getApplication();
+      managementAppFound=true;
+    }
+ catch (    Throwable t) {
+      if (seenBefore.contains(t.getClass())) {
+        logger.error("Error {} getting management app on try {}",t.getClass().getSimpleName(),retries);
+      }
+ else {
+        logger.error("Error getting management app on try {}",t.getClass().getSimpleName(),t);
+      }
+    }
+  }
+  if (!managementAppFound) {
+    throw new RuntimeException("Unable to get management app after " + retries + " retries");
+  }
+  applicationIdCache=injector.getInstance(ApplicationIdCacheFactory.class).getInstance(getManagementEntityManager());
 }
