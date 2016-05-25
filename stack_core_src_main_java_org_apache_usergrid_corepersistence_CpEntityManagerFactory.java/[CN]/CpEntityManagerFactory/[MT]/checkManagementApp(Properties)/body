@@ -1,0 +1,34 @@
+{
+  int maxRetries=100;
+  try {
+    maxRetries=Integer.parseInt(properties.getProperty(MANAGEMENT_APP_MAX_RETRIES,"100"));
+  }
+ catch (  Exception e) {
+    logger.error("Error parsing " + MANAGEMENT_APP_MAX_RETRIES + ". Will use "+ maxRetries,e);
+  }
+  int retries=0;
+  boolean managementAppFound=false;
+  while (!managementAppFound && retries++ < maxRetries) {
+    try {
+      getEntityManager(getManagementAppId()).getApplication();
+      managementAppFound=true;
+    }
+ catch (    Throwable t) {
+      String msg="Error " + t.getClass() + " getting management app on try "+ retries;
+      if (logger.isDebugEnabled()) {
+        logger.error(msg,t);
+      }
+ else {
+        logger.error(msg);
+      }
+      try {
+        Thread.sleep(1000);
+      }
+ catch (      InterruptedException ignored) {
+      }
+    }
+  }
+  if (!managementAppFound) {
+    throw new RuntimeException("Unable to get management app after " + retries + " retries");
+  }
+}

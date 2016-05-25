@@ -11,59 +11,8 @@
   this.collectionService=injector.getInstance(CollectionService.class);
   this.connectionService=injector.getInstance(ConnectionService.class);
   this.indexSchemaCacheFactory=injector.getInstance(IndexSchemaCacheFactory.class);
-  int entityManagerCacheSize=100;
-  try {
-    entityManagerCacheSize=Integer.parseInt(cassandraService.getProperties().getProperty(ENTITY_MANAGER_CACHE_SIZE,"100"));
-  }
- catch (  Exception e) {
-    logger.error("Error parsing " + ENTITY_MANAGER_CACHE_SIZE + " using "+ entityManagerCacheSize,e);
-  }
-  entityManagers=CacheBuilder.newBuilder().maximumSize(entityManagerCacheSize).build(new CacheLoader<UUID,EntityManager>(){
-    public EntityManager load(    UUID appId){
-      EntityManager entityManager=_getEntityManager(appId);
-      Application app=null;
-      Exception exception=null;
-      try {
-        app=entityManager.getApplication();
-      }
- catch (      Exception e) {
-        exception=e;
-      }
-      if (CpNamingUtils.MANAGEMENT_APPLICATION_ID.equals(appId)) {
-        if (app != null) {
-          managementAppEntityManager=entityManager;
-        }
- else         if (managementAppEntityManager != null) {
-          entityManager=managementAppEntityManager;
-        }
-      }
-      if (app == null) {
-        throw new RuntimeException("Error getting application " + appId,exception);
-      }
-      return entityManager;
-    }
-  }
-);
-  int maxRetries=1000;
-  int retries=0;
-  boolean managementAppFound=false;
-  while (!managementAppFound && retries++ < maxRetries) {
-    try {
-      getEntityManager(getManagementAppId()).getApplication();
-      managementAppFound=true;
-    }
- catch (    Throwable t) {
-      String msg="Error " + t.getClass() + " getting management app on try "+ retries;
-      if (logger.isDebugEnabled()) {
-        logger.error(msg,t);
-      }
- else {
-        logger.error(msg);
-      }
-    }
-  }
-  if (!managementAppFound) {
-    throw new RuntimeException("Unable to get management app after " + retries + " retries");
-  }
+  Properties properties=cassandraService.getProperties();
+  entityManagers=createEntityManagerCache(properties);
+  checkManagementApp(properties);
   applicationIdCache=injector.getInstance(ApplicationIdCacheFactory.class).getInstance(getManagementEntityManager());
 }
