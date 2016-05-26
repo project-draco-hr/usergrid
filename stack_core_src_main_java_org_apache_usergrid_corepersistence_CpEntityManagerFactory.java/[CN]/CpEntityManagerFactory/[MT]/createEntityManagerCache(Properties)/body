@@ -25,9 +25,15 @@
           entityManager=managementAppEntityManager;
         }
       }
-      if (app == null && throwable != null && throwable.getCause() instanceof BadRequestException) {
+      final boolean missingKeyspace;
+      if (throwable instanceof CollectionRuntimeException) {
+        CollectionRuntimeException cre=(CollectionRuntimeException)throwable;
+        missingKeyspace=cre.isMissingKeyspace();
       }
  else {
+        missingKeyspace=false;
+      }
+      if (app == null && !missingKeyspace) {
         throw new RuntimeException("Error getting application " + appId,throwable);
       }
       return entityManager;
