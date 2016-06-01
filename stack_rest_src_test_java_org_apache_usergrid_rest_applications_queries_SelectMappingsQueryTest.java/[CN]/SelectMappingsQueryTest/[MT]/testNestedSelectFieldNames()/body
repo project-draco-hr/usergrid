@@ -1,0 +1,18 @@
+{
+  generateTestEntities(20,"things");
+  QueryParameters params=new QueryParameters().setQuery("select actor.displayName,sometestprop where sometestprop = 'testprop'");
+  Collection things=this.app().collection("things").get(params);
+  assertEquals(10,things.getNumOfEntities());
+  Iterator<Entity> iter=things.iterator();
+  while (iter.hasNext()) {
+    Entity entity=iter.next();
+    assertEquals(5,entity.getDynamicProperties().size());
+    assertNotNull(entity.getDynamicProperties().get("uuid"));
+    assertNotNull(entity.getDynamicProperties().get("type"));
+    assertNotNull(entity.getDynamicProperties().get("metadata"));
+    assertNotNull(entity.getDynamicProperties().get("sometestprop"));
+    Map<String,Object> actor=(Map<String,Object>)entity.getDynamicProperties().get("actor");
+    assertNotNull(actor);
+    assertNotNull(actor.get("displayName"));
+  }
+}

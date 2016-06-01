@@ -1,0 +1,22 @@
+{
+  int numberOfEntities=10;
+  String collectionName="things";
+  Entity[] entities=new Entity[numberOfEntities];
+  Entity props=new Entity();
+  for (int i=0; i < numberOfEntities; i++) {
+    props.put("testProp","a");
+    props.put("testprop","b");
+    entities[i]=app().collection(collectionName).post(props);
+  }
+  refreshIndex();
+{
+    QueryParameters params=new QueryParameters().setQuery("select * where testProp = 'b'");
+    Collection things=this.app().collection("things").get(params);
+    assertEquals(numberOfEntities,things.getNumOfEntities());
+  }
+{
+    QueryParameters params=new QueryParameters().setQuery("select * where testprop='b'");
+    Collection things=this.app().collection("things").get(params);
+    assertEquals(numberOfEntities,things.getNumOfEntities());
+  }
+}
