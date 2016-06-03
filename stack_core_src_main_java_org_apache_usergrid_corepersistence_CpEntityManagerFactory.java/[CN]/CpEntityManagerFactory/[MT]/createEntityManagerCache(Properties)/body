@@ -23,20 +23,21 @@
         }
  else         if (managementAppEntityManager != null) {
           entityManager=managementAppEntityManager;
+          logger.error("Failed to fetch management app");
         }
       }
-      final boolean missingKeyspace;
+      final boolean isBootstrapping;
       if (throwable instanceof CollectionRuntimeException) {
         CollectionRuntimeException cre=(CollectionRuntimeException)throwable;
-        missingKeyspace=cre.isMissingKeyspace();
+        isBootstrapping=cre.isBootstrapping();
       }
  else {
-        missingKeyspace=false;
+        isBootstrapping=false;
       }
       if (app != null && app.getName() == null) {
         throw new RuntimeException("Name is null for application " + appId,throwable);
       }
-      if (app == null && !missingKeyspace) {
+      if (app == null && !isBootstrapping) {
         throw new RuntimeException("Error getting application " + appId,throwable);
       }
       return entityManager;
