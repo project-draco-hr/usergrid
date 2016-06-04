@@ -1,0 +1,25 @@
+{
+  Preconditions.checkNotNull(entityId,"entityId cannot be null");
+  Preconditions.checkNotNull(markedVersion,"markedVersion cannot be null");
+  ValidationUtils.verifyVersion(markedVersion);
+  SearchResponse searchResponse;
+  List<CandidateResult> candidates=new ArrayList<>();
+  final long markedTimestamp=markedVersion.timestamp();
+  final int searchLimit=Math.min(100,indexFig.getVersionQueryLimit());
+  final QueryBuilder nodeQuery=QueryBuilders.termQuery(IndexingUtils.EDGE_NODE_ID_FIELDNAME,IndexingUtils.nodeId(entityId));
+  final SearchRequestBuilder srb=searchRequestBuilderStrategyV2.getBuilder().addSort(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME,SortOrder.ASC);
+  try {
+    long queryTimestamp=0L;
+    QueryBuilder timestampQuery=QueryBuilders.rangeQuery(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME).gte(queryTimestamp).lt(markedTimestamp);
+    QueryBuilder finalQuery=QueryBuilders.boolQuery().must(timestampQuery).must(nodeQuery);
+    searchResponse=srb.setQuery(finalQuery).setSize(searchLimit).execute().actionGet();
+    candidates=aggregateScrollResults(candidates,searchResponse,markedVersion);
+  }
+ catch (  Throwable t) {
+    logger.error("Unable to communicate with Elasticsearch",t.getMessage());
+    failureMonitor.fail("Unable to execute batch",t);
+    throw t;
+  }
+  failureMonitor.success();
+  return new CandidateResults(candidates,Collections.EMPTY_SET);
+}
