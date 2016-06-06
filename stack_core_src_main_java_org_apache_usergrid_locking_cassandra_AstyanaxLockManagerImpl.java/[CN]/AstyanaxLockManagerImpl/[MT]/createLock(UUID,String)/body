@@ -17,6 +17,6 @@
     logger.warn("Property {} is not valid.  Choose a value greater than or equal to {}",CassandraFig.LOCKS_EXPIRATION,MINIMUM_LOCK_EXPIRATION);
     lockExpiration=Integer.valueOf(CassandraFig.DEFAULT_LOCKS_EXPIRATION);
   }
-  ColumnPrefixDistributedRowLock<String> lock=new ColumnPrefixDistributedRowLock<>(keyspace,columnFamily,lockPath).expireLockAfter(lockExpiration,TimeUnit.MILLISECONDS).withConsistencyLevel(consistencyLevel);
+  ColumnPrefixDistributedRowLock<String> lock=new ColumnPrefixDistributedRowLock<>(keyspace,getLocksColumnFamily(),lockPath).expireLockAfter(lockExpiration,TimeUnit.MILLISECONDS).withConsistencyLevel(consistencyLevel);
   return new AstyanaxLockImpl(lock);
 }
