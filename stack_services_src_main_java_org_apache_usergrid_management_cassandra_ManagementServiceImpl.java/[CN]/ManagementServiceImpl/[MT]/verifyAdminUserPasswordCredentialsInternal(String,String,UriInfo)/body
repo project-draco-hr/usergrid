@@ -1,6 +1,6 @@
 {
   if (logger.isTraceEnabled()) {
-    logger.trace("verifyAdminUserPasswordCredentials for {}",name);
+    logger.trace("verifyAdminUserPasswordCredentialsInternal for {}",name);
   }
   User user=findUserEntity(smf.getManagementAppId(),name);
   if (user == null) {
@@ -8,7 +8,7 @@
   }
   if (verify(smf.getManagementAppId(),user.getUuid(),password)) {
     UserInfo userInfo=getUserInfo(smf.getManagementAppId(),user);
-    boolean userIsSuperAdmin=properties.getSuperUser().isEnabled() && properties.getSuperUser().getEmail().equals(userInfo.getEmail());
+    boolean userIsSuperAdmin=properties.getSuperUser().isEnabled(uriInfo != null ? uriInfo.getBaseUri().getHost() : null) && properties.getSuperUser().getEmail().equals(userInfo.getEmail());
     boolean testUserEnabled=parseBoolean(properties.getProperty(PROPERTIES_SETUP_TEST_ACCOUNT));
     boolean userIsTestUser=testUserEnabled && properties.getProperty(PROPERTIES_SYSADMIN_LOGIN_EMAIL).equals(userInfo.getEmail());
     if (!userIsSuperAdmin && !userIsTestUser) {
