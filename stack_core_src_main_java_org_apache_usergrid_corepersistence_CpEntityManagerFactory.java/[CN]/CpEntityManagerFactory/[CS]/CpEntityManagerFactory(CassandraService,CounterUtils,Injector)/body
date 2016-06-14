@@ -11,10 +11,13 @@
   this.collectionService=injector.getInstance(CollectionService.class);
   this.connectionService=injector.getInstance(ConnectionService.class);
   this.collectionSettingsCacheFactory=injector.getInstance(CollectionSettingsCacheFactory.class);
+  Properties properties=cassandraService.getProperties();
+  this.entityManagers=createEntityManagerCache(properties);
   AkkaFig akkaFig=injector.getInstance(AkkaFig.class);
-  this.applicationIdCache=injector.getInstance(ApplicationIdCacheFactory.class).getInstance(getManagementEntityManager());
+  logger.info("EntityManagerFactoring starting...");
   if (akkaFig.getAkkaEnabled()) {
     try {
+      logger.info("Akka cluster starting...");
       this.uniqueValuesService=injector.getInstance(UniqueValuesService.class);
       this.uniqueValuesService.start();
     }
@@ -24,7 +27,6 @@
     }
   }
   this.lockManager=injector.getInstance(LockManager.class);
-  Properties properties=cassandraService.getProperties();
-  entityManagers=createEntityManagerCache(properties);
+  this.applicationIdCache=injector.getInstance(ApplicationIdCacheFactory.class).getInstance(getManagementEntityManager());
   checkManagementApp(properties);
 }
