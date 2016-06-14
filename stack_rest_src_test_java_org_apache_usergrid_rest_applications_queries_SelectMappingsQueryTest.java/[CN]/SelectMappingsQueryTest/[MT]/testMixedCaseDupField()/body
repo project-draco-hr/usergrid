@@ -1,0 +1,14 @@
+{
+  String collectionName="things";
+  String value=RandomStringUtils.randomAlphabetic(20);
+  String otherValue=RandomStringUtils.randomAlphabetic(20);
+  Entity entity=new Entity().withProp("testProp",value).withProp("TESTPROP",otherValue);
+  app().collection(collectionName).post(entity);
+  refreshIndex();
+  QueryParameters params=new QueryParameters().setQuery("select * where testProp='" + otherValue + "'");
+  Collection things=this.app().collection("things").get(params);
+  assertEquals(1,things.getNumOfEntities());
+  params=new QueryParameters().setQuery("select * where TESTPROP='" + otherValue + "'");
+  things=app().collection("things").get(params);
+  assertEquals(1,things.getNumOfEntities());
+}

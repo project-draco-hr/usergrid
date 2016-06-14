@@ -1,0 +1,47 @@
+{
+  int entityManagerCacheSize=100;
+  try {
+    entityManagerCacheSize=Integer.parseInt(properties.getProperty(ENTITY_MANAGER_CACHE_SIZE,"100"));
+  }
+ catch (  Exception e) {
+    logger.error("Error parsing " + ENTITY_MANAGER_CACHE_SIZE + ". Will use "+ entityManagerCacheSize,e);
+  }
+  return CacheBuilder.newBuilder().maximumSize(entityManagerCacheSize).build(new CacheLoader<UUID,EntityManager>(){
+    public EntityManager load(    UUID appId){
+      EntityManager entityManager=_getEntityManager(appId);
+      Application app=null;
+      Throwable throwable=null;
+      try {
+        app=entityManager.getApplication();
+      }
+ catch (      Throwable t) {
+        throwable=t;
+      }
+      if (CpNamingUtils.MANAGEMENT_APPLICATION_ID.equals(appId)) {
+        if (app != null) {
+          managementAppEntityManager=entityManager;
+        }
+ else         if (managementAppEntityManager != null) {
+          entityManager=managementAppEntityManager;
+          logger.error("Failed to fetch management app");
+        }
+      }
+      final boolean isBootstrapping;
+      if (throwable instanceof CollectionRuntimeException) {
+        CollectionRuntimeException cre=(CollectionRuntimeException)throwable;
+        isBootstrapping=cre.isBootstrapping();
+      }
+ else {
+        isBootstrapping=false;
+      }
+      if (app != null && app.getName() == null) {
+        throw new RuntimeException("Name is null for application " + appId,throwable);
+      }
+      if (app == null && !isBootstrapping) {
+        throw new RuntimeException("Error getting application " + appId,throwable);
+      }
+      return entityManager;
+    }
+  }
+);
+}

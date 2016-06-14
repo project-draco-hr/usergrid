@@ -1,11 +1,15 @@
 {
   if (this.statistics == null) {
-    this.statistics=new HashMap<String,Long>(2);
+    this.statistics=new HashMap<String,Object>(2);
     this.statistics.put("sent",sent);
     this.statistics.put("errors",errors);
   }
  else {
-    this.statistics.put("sent",sent + this.statistics.get("sent"));
-    this.statistics.put("errors",errors + this.statistics.get("errors"));
+    if (this.statistics.get("sent") instanceof Long) {
+      this.statistics.put("sent",sent + (Long)this.statistics.get("sent"));
+    }
+    if (this.statistics.get("errors") instanceof Long) {
+      this.statistics.put("errors",errors + (Long)this.statistics.get("errors"));
+    }
   }
 }
