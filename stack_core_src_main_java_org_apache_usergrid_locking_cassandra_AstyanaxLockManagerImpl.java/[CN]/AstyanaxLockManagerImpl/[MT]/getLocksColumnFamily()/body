@@ -1,0 +1,21 @@
+{
+  if (columnFamily == null) {
+    columnFamily=ColumnFamily.newColumnFamily(CF_NAME,StringSerializer.get(),StringSerializer.get());
+    if (logger.isDebugEnabled()) {
+      try {
+        final KeyspaceDefinition kd=keyspace.describeKeyspace();
+        final ColumnFamilyDefinition cfd=kd.getColumnFamily(columnFamily.getName());
+        Map<String,Object> options=new HashMap<>(1);
+        options.put("gc_grace_seconds",cfd.getGcGraceSeconds());
+        options.put("caching",cfd.getCaching());
+        options.put("compaction_strategy",cfd.getCompactionStrategy());
+        options.put("compaction_strategy_options",cfd.getCompactionStrategyOptions());
+        logger.debug("Locks column family {} exists with options: {}",cfd.getName(),options);
+      }
+ catch (      ConnectionException ce) {
+        logger.warn("Error connecting to Cassandra for debug column family info",ce);
+      }
+    }
+  }
+  return columnFamily;
+}

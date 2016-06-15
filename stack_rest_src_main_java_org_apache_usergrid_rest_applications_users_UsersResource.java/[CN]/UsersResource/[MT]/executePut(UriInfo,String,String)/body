@@ -1,6 +1,9 @@
 {
   ObjectMapper mapper=new ObjectMapper();
   Map<String,Object> json=mapper.readValue(body,mapTypeReference);
+  if ("me".equals(json.get("username"))) {
+    throw new IllegalArgumentException("Username 'me' is reserved");
+  }
   User user=getUser();
   if (user == null) {
     return executePost(ui,body,callback);

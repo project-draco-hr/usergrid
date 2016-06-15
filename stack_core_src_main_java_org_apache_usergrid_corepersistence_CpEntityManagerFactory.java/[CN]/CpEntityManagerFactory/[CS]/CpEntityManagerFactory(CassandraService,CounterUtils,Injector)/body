@@ -11,5 +11,9 @@
   this.collectionService=injector.getInstance(CollectionService.class);
   this.connectionService=injector.getInstance(ConnectionService.class);
   this.indexSchemaCacheFactory=injector.getInstance(IndexSchemaCacheFactory.class);
-  this.applicationIdCache=injector.getInstance(ApplicationIdCacheFactory.class).getInstance(getManagementEntityManager());
+  this.lockManager=injector.getInstance(LockManager.class);
+  Properties properties=cassandraService.getProperties();
+  entityManagers=createEntityManagerCache(properties);
+  checkManagementApp(properties);
+  applicationIdCache=injector.getInstance(ApplicationIdCacheFactory.class).getInstance(getManagementEntityManager());
 }

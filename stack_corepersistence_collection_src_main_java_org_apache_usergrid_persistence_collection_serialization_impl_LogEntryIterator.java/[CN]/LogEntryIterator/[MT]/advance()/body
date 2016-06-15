@@ -1,0 +1,23 @@
+{
+  final int requestedSize;
+  UUID start;
+  if (nextStart != null) {
+    requestedSize=pageSize + 1;
+    start=nextStart;
+  }
+ else {
+    requestedSize=pageSize;
+    start=startVersion;
+  }
+  List<MvccLogEntry> results=logEntrySerializationStrategy.load(scope,entityId,start,requestedSize);
+  if (nextStart != null && results.size() > 0 && results.get(0).getVersion().equals(nextStart)) {
+    results.remove(0);
+  }
+  if (results.size() >= pageSize) {
+    nextStart=results.get(results.size() - 1).getVersion();
+  }
+ else {
+    nextStart=null;
+  }
+  elementItr=results.iterator();
+}
