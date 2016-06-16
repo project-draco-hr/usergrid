@@ -1,13 +1,19 @@
 {
   logger.info("Initializing Akka");
   if (StringUtils.isEmpty(hostname)) {
-    throw new RuntimeException("No value specified for akka.hostname");
+    throw new RuntimeException("No value specified for " + AkkaFig.AKKA_HOSTNAME);
   }
   if (StringUtils.isEmpty(currentRegion)) {
-    throw new RuntimeException("No value specified for akka.region");
+    throw new RuntimeException("No value specified for " + AkkaFig.AKKA_REGION);
+  }
+  if (StringUtils.isEmpty(akkaFig.getRegionList())) {
+    throw new RuntimeException("No value specified for " + AkkaFig.AKKA_REGION_LIST);
+  }
+  if (StringUtils.isEmpty(akkaFig.getRegionSeeds())) {
+    throw new RuntimeException("No value specified for " + AkkaFig.AKKA_REGION_SEEDS);
   }
   List regionList=Arrays.asList(akkaFig.getRegionList().toLowerCase().split(","));
-  logger.info("Initializing Akka for hostname {} region {} regionList {}",hostname,currentRegion,regionList);
+  logger.info("Initializing Akka for hostname {} region {} regionList {} seeds {}",hostname,currentRegion,regionList,akkaFig.getRegionSeeds());
   String typesValue=akkaFig.getRegionTypes();
   String[] regionTypes=StringUtils.isEmpty(typesValue) ? new String[0] : typesValue.split(",");
   for (  String regionType : regionTypes) {
