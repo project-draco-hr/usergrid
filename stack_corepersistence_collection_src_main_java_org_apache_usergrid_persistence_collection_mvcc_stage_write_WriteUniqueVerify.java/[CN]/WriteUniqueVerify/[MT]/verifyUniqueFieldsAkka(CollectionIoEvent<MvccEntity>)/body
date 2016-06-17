@@ -3,8 +3,12 @@
   final MvccEntity mvccEntity=ioevent.getEvent();
   final Entity entity=mvccEntity.getEntity().get();
   final ApplicationScope applicationScope=ioevent.getEntityCollection();
+  String region=ioevent.getRegion();
+  if (region == null) {
+    region=akkaFig.getAkkaAuthoritativeRegion();
+  }
   try {
-    akkaUvService.reserveUniqueValues(applicationScope,entity,mvccEntity.getVersion(),ioevent.getRegion());
+    akkaUvService.reserveUniqueValues(applicationScope,entity,mvccEntity.getVersion(),region);
   }
  catch (  UniqueValueException e) {
     Map<String,Field> violations=new HashMap<>();

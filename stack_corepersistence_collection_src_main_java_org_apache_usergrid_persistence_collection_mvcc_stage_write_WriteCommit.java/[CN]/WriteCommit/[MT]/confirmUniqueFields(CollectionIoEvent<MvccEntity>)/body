@@ -13,7 +13,11 @@
   MutationBatch entityMutation=entityStrat.write(applicationScope,mvccEntity);
   logMutation.mergeShallow(entityMutation);
   if (akkaFig != null && akkaFig.getAkkaEnabled()) {
-    confirmUniqueFieldsAkka(mvccEntity,version,applicationScope,ioEvent.getRegion());
+    String region=ioEvent.getRegion();
+    if (region == null) {
+      region=akkaFig.getAkkaAuthoritativeRegion();
+    }
+    confirmUniqueFieldsAkka(mvccEntity,version,applicationScope,region);
   }
  else {
     confirmUniqueFields(mvccEntity,version,applicationScope,logMutation);
