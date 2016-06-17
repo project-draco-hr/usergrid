@@ -1,13 +1,7 @@
 {
-  final ActorRef requestActor;
-  if (region != null) {
-    requestActor=getRequestActorsByRegion().get(region);
-  }
- else {
-    requestActor=lookupRequestActorForType(entity.getId().getType());
-  }
+  final ActorRef requestActor=getRequestActorsByRegion().get(region);
   if (requestActor == null) {
-    throw new RuntimeException("No request actor for region or type, cannot verify unique fields!");
+    throw new RuntimeException("No request actor for region " + region);
   }
   UniqueValueActor.Request request=new UniqueValueActor.Reservation(scope,entity.getId(),version,field);
   UniqueValueActor.Reservation res=reservationCache.get(request.getConsistentHashKey());
