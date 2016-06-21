@@ -1,0 +1,36 @@
+{
+  int startSize=nodes.size();
+  String routerPath=routersByMessageType.get(message.getClass());
+  if (routerPath != null && ready) {
+    List<Address> nodesList=new ArrayList<>(nodes);
+    Address address=nodesList.get(ThreadLocalRandom.current().nextInt(nodesList.size()));
+    ActorSelection service=getContext().actorSelection(address + routerPath);
+    service.tell(message,getSender());
+  }
+ else   if (routerPath != null && !ready) {
+    logger.debug("{} responding with status unknown",name);
+    getSender().tell(new ErrorResponse("ClientActor not ready"),getSender());
+  }
+  if (message instanceof StatusRequest) {
+    if (ready) {
+      getSender().tell(new StatusMessage(name,StatusMessage.Status.READY),getSender());
+    }
+ else {
+      getSender().tell(new StatusMessage(name,StatusMessage.Status.INITIALIZING),getSender());
+    }
+    return;
+  }
+ else {
+    processAsClusterEvent(message);
+  }
+  if (logger.isDebugEnabled() && startSize != nodes.size()) {
+    logger.debug("{} now knows {} nodes",name,nodes.size());
+  }
+  if (!nodes.isEmpty() && !ready) {
+    logger.debug(name + " is ready");
+    ready=true;
+  }
+ else   if (nodes.isEmpty() && ready) {
+    ready=false;
+  }
+}

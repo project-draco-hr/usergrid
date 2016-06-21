@@ -4,7 +4,7 @@
   this.injector=injector;
   this.reIndexService=injector.getInstance(ReIndexService.class);
   this.entityManagerFig=injector.getInstance(EntityManagerFig.class);
-  this.akkaFig=injector.getInstance(AkkaFig.class);
+  this.actorSystemFig=injector.getInstance(ActorSystemFig.class);
   this.managerCache=injector.getInstance(ManagerCache.class);
   this.metricsFactory=injector.getInstance(MetricsFactory.class);
   this.indexService=injector.getInstance(AsyncEventService.class);
@@ -15,11 +15,10 @@
   Properties properties=cassandraService.getProperties();
   this.entityManagers=createEntityManagerCache(properties);
   logger.info("EntityManagerFactoring starting...");
-  if (akkaFig.getAkkaEnabled()) {
+  if (actorSystemFig.getAkkaEnabled()) {
     try {
       logger.info("Akka cluster starting...");
       this.uniqueValuesService=injector.getInstance(UniqueValuesService.class);
-      this.uniqueValuesService.start();
     }
  catch (    Throwable t) {
       logger.error("Error starting Akka",t);

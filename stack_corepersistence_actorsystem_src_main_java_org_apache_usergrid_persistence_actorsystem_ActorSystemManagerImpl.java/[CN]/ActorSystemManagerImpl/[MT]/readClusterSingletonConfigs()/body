@@ -1,0 +1,107 @@
+{
+  Map<String,Config> configs=new HashMap<>();
+  ListMultimap<String,String> seedsByRegion=ArrayListMultimap.create();
+  String[] regionSeeds=actorSystemFig.getRegionSeeds().split(",");
+  logger.info("Found region {} seeds {}",regionSeeds.length,regionSeeds);
+  try {
+    if (port != null) {
+      String seed="akka.tcp://ClusterSystem@" + hostname + ":"+ port;
+      seedsByRegion.put(currentRegion,seed);
+      logger.info("Akka testing, only starting one seed");
+    }
+ else {
+      for (      String regionSeed : regionSeeds) {
+        String[] parts=regionSeed.split(":");
+        String region=parts[0];
+        String hostname=parts[1];
+        String regionPortString=parts[2];
+        final Integer regionPort;
+        if (port == null) {
+          regionPort=Integer.parseInt(regionPortString);
+        }
+ else {
+          regionPort=port;
+        }
+        String seed="akka.tcp://ClusterSystem@" + hostname + ":"+ regionPort;
+        logger.info("Adding seed {} for region {}",seed,region);
+        seedsByRegion.put(region,seed);
+      }
+      if (seedsByRegion.keySet().isEmpty()) {
+        throw new RuntimeException("No seeds listed in 'parsing collection.akka.region.seeds' property.");
+      }
+    }
+    int numInstancesPerNode=actorSystemFig.getUniqueValueActors();
+    for (    String region : seedsByRegion.keySet()) {
+      List<String> seeds=seedsByRegion.get(region);
+      int lastColon=seeds.get(0).lastIndexOf(":") + 1;
+      final Integer regionPort=Integer.parseInt(seeds.get(0).substring(lastColon));
+      String clusterRole=currentRegion.equals(region) ? "io" : "client";
+      logger.info("Config for region {} is:\n" + "   Akka Hostname {}\n" + "   Akka Seeds {}\n"+ "   Akka Port {}\n"+ "   Akka UniqueValueActors per node {}\n"+ "   Akka Authoritative Region {}",region,hostname,seeds,port,numInstancesPerNode,actorSystemFig.getAkkaAuthoritativeRegion());
+      Map<String,Object> configMap=new HashMap<String,Object>(){
+{
+          put("akka",new HashMap<String,Object>(){
+{
+              put("remote",new HashMap<String,Object>(){
+{
+                  put("netty.tcp",new HashMap<String,Object>(){
+{
+                      put("hostname",hostname);
+                      put("bind-hostname",hostname);
+                      put("port",regionPort);
+                    }
+                  }
+);
+                }
+              }
+);
+              put("cluster",new HashMap<String,Object>(){
+{
+                  put("max-nr-of-instances-per-node",numInstancesPerNode);
+                  put("roles",Collections.singletonList(clusterRole));
+                  put("seed-nodes",new ArrayList<String>(){
+{
+                      for (                      String seed : seeds) {
+                        add(seed);
+                      }
+                    }
+                  }
+);
+                }
+              }
+);
+              put("actor",new HashMap<String,Object>(){
+{
+                  put("deployment",new HashMap<String,Object>(){
+{
+                      put("/uvRouter/singleton/router",new HashMap<String,Object>(){
+{
+                          put("cluster",new HashMap<String,Object>(){
+{
+                              put("max-nr-of-instances-per-node",numInstancesPerNode);
+                            }
+                          }
+);
+                        }
+                      }
+);
+                    }
+                  }
+);
+                }
+              }
+);
+            }
+          }
+);
+        }
+      }
+;
+      Config config=ConfigFactory.parseMap(configMap).withFallback(ConfigFactory.parseString("akka.cluster.roles = [io]")).withFallback(ConfigFactory.load("cluster-singleton"));
+      configs.put(region,config);
+    }
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Error 'parsing collection.akka.region.seeds' property",e);
+  }
+  return configs;
+}
