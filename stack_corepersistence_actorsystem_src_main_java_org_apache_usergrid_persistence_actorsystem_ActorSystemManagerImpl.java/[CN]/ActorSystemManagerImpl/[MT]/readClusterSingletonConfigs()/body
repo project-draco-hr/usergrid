@@ -30,13 +30,13 @@
         throw new RuntimeException("No seeds listed in 'parsing collection.akka.region.seeds' property.");
       }
     }
-    int numInstancesPerNode=actorSystemFig.getUniqueValueActors();
+    int numInstancesPerNode=actorSystemFig.getInstancesPerNode();
     for (    String region : seedsByRegion.keySet()) {
       List<String> seeds=seedsByRegion.get(region);
       int lastColon=seeds.get(0).lastIndexOf(":") + 1;
       final Integer regionPort=Integer.parseInt(seeds.get(0).substring(lastColon));
       String clusterRole=currentRegion.equals(region) ? "io" : "client";
-      logger.info("Config for region {} is:\n" + "   Akka Hostname {}\n" + "   Akka Seeds {}\n"+ "   Akka UniqueValueActors per node {}\n"+ "   Akka Authoritative Region {}",region,hostname,seeds,port,numInstancesPerNode,actorSystemFig.getAkkaAuthoritativeRegion());
+      logger.info("Akka Config for region {} is:\n" + "   Hostname {}\n" + "   Seeds {}\n"+ "   Authoritative Region {}\n",region,hostname,seeds,actorSystemFig.getAkkaAuthoritativeRegion());
       Map<String,Object> configMap=new HashMap<String,Object>(){
 {
           put("akka",new HashMap<String,Object>(){
@@ -56,7 +56,7 @@
 );
               put("cluster",new HashMap<String,Object>(){
 {
-                  put("max-nr-of-instances-per-node",numInstancesPerNode);
+                  put("max-nr-of-instances-per-node",300);
                   put("roles",Collections.singletonList(clusterRole));
                   put("seed-nodes",new ArrayList<String>(){
 {
@@ -69,34 +69,16 @@
                 }
               }
 );
-              put("actor",new HashMap<String,Object>(){
-{
-                  put("deployment",new HashMap<String,Object>(){
-{
-                      put("/uvRouter/singleton/router",new HashMap<String,Object>(){
-{
-                          put("cluster",new HashMap<String,Object>(){
-{
-                              put("max-nr-of-instances-per-node",numInstancesPerNode);
-                            }
-                          }
-);
-                        }
-                      }
-);
-                    }
-                  }
-);
-                }
-              }
-);
             }
           }
 );
         }
       }
 ;
-      Config config=ConfigFactory.parseMap(configMap).withFallback(ConfigFactory.parseString("akka.cluster.roles = [io]")).withFallback(ConfigFactory.load("cluster-singleton"));
+      for (      RouterProducer routerProducer : routerProducers) {
+        routerProducer.addConfiguration(configMap);
+      }
+      Config config=ConfigFactory.parseMap(configMap).withFallback(ConfigFactory.parseString("akka.cluster.roles = [io]")).withFallback(ConfigFactory.load("application.conf"));
       configs.put(region,config);
     }
   }
