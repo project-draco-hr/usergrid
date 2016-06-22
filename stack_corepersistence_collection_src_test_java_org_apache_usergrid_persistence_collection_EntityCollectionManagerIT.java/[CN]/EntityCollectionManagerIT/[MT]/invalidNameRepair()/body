@@ -9,11 +9,11 @@
   assertNotNull("Need entity to be created before proceeding",createReturned);
   assertNotNull("Id was assigned",createReturned.getId());
   assertNotNull("Version was assigned",createReturned.getVersion());
-  FieldSet fieldResults=manager.getEntitiesFromFields(newEntity.getId().getType(),Arrays.<Field>asList(expectedInteger),false).toBlocking().last();
+  FieldSet fieldResults=manager.getEntitiesFromFields(newEntity.getId().getType(),Arrays.<Field>asList(expectedInteger),true).toBlocking().last();
   assertEquals(1,fieldResults.size());
   assertEquals("Same value",createReturned,fieldResults.getEntity(expectedInteger).getEntity().get());
   entitySerializationStrategy.delete(context,createReturned.getId(),createReturned.getVersion()).execute();
-  final FieldSet results=manager.getEntitiesFromFields(newEntity.getId().getType(),Arrays.<Field>asList(expectedInteger),false).toBlocking().last();
+  final FieldSet results=manager.getEntitiesFromFields(newEntity.getId().getType(),Arrays.<Field>asList(expectedInteger),true).toBlocking().last();
   assertTrue(results.isEmpty());
   UniqueValueSet uniqueValues=uniqueValueSerializationStrategy.load(context,newEntity.getId().getType(),createReturned.getFields());
   assertFalse(uniqueValues.iterator().hasNext());

@@ -9,7 +9,7 @@
     keys.add(rowKey);
   }
   final UniqueValueSetImpl uniqueValueSet=new UniqueValueSetImpl(fields.size());
-  Iterator<Row<ScopedRowKey<FieldKey>,EntityVersion>> results=keyspace.prepareQuery(CF_UNIQUE_VALUES).setConsistencyLevel(consistencyLevel).getKeySlice(keys).withColumnRange(new RangeBuilder().setLimit(1).build()).execute().getResult().iterator();
+  Iterator<Row<ScopedRowKey<FieldKey>,EntityVersion>> results=keyspace.prepareQuery(CF_UNIQUE_VALUES).setConsistencyLevel(consistencyLevel).getKeySlice(keys).withColumnRange(new RangeBuilder().setLimit(serializationFig.getBufferSize()).build()).execute().getResult().iterator();
   while (results.hasNext()) {
     final Row<ScopedRowKey<FieldKey>,EntityVersion> unique=results.next();
     final Field field=parseRowKey(unique.getKey());
@@ -17,12 +17,32 @@
     if (!columnList.hasNext()) {
       continue;
     }
-    final EntityVersion entityVersion=columnList.next().getName();
-    final UniqueValueImpl uniqueValue=new UniqueValueImpl(field,entityVersion.getEntityId(),entityVersion.getEntityVersion());
-    if (logger.isTraceEnabled()) {
-      logger.trace("Putting unique value [{}={}] into result set with entity id [{}] and entity version [{}]",field.getName(),field.getValue().toString(),entityVersion.getEntityId(),entityVersion.getEntityVersion());
+    UUID oldestEntityUUID=null;
+    UniqueValueImpl firstUniqueValue=null;
+    while (columnList.hasNext()) {
+      final EntityVersion entityVersion=columnList.next().getName();
+      final UUID currentEntityUUID=entityVersion.getEntityId().getUuid();
+      final UniqueValueImpl uniqueValue=new UniqueValueImpl(field,entityVersion.getEntityId(),entityVersion.getEntityVersion());
+      if (oldestEntityUUID == null) {
+        oldestEntityUUID=currentEntityUUID;
+        firstUniqueValue=uniqueValue;
+      }
+ else       if (currentEntityUUID.timestamp() < oldestEntityUUID.timestamp()) {
+        oldestEntityUUID=currentEntityUUID;
+      }
+      if (currentEntityUUID.timestamp() <= oldestEntityUUID.timestamp()) {
+        if (logger.isTraceEnabled()) {
+          logger.trace("Putting unique value [{}={}] into result set with entity id [{}] and entity version [{}]",field.getName(),field.getValue().toString(),entityVersion.getEntityId(),entityVersion.getEntityVersion());
+        }
+        uniqueValueSet.addValue(uniqueValue);
+      }
+ else {
+        delete(appScope,uniqueValue).execute();
+      }
     }
-    uniqueValueSet.addValue(uniqueValue);
+    if (!uniqueValueSet.getValue(firstUniqueValue.getField().getName()).getEntityId().getUuid().equals(firstUniqueValue.getEntityId().getUuid())) {
+      delete(appScope,firstUniqueValue).execute();
+    }
   }
   return uniqueValueSet;
 }
