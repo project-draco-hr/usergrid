@@ -1,0 +1,27 @@
+{
+  logger.info("Initializing Akka");
+  if (StringUtils.isEmpty(hostname)) {
+    throw new RuntimeException("No value specified for " + ActorSystemFig.AKKA_HOSTNAME);
+  }
+  if (StringUtils.isEmpty(currentRegion)) {
+    throw new RuntimeException("No value specified for " + ActorSystemFig.AKKA_REGION);
+  }
+  if (StringUtils.isEmpty(actorSystemFig.getRegionList())) {
+    throw new RuntimeException("No value specified for " + ActorSystemFig.AKKA_REGION_LIST);
+  }
+  if (StringUtils.isEmpty(actorSystemFig.getRegionSeeds())) {
+    throw new RuntimeException("No value specified for " + ActorSystemFig.AKKA_REGION_SEEDS);
+  }
+  if (StringUtils.isEmpty(actorSystemFig.getAkkaAuthoritativeRegion())) {
+    throw new RuntimeException("No value specified for " + ActorSystemFig.AKKA_AUTHORITATIVE_REGION);
+  }
+  List regionList=Arrays.asList(actorSystemFig.getRegionList().toLowerCase().split(","));
+  logger.info("Initializing Akka for hostname {} region {} regionList {} seeds {}",hostname,currentRegion,regionList,actorSystemFig.getRegionSeeds());
+  final Map<String,ActorSystem> systemMap=new HashMap<>();
+  Map<String,Config> configMap=readClusterSingletonConfigs();
+  ActorSystem localSystem=createClusterSingletonProxies(configMap,systemMap);
+  createRequestActors(systemMap);
+  for (  RouterProducer routerProducer : routerProducers) {
+    routerProducer.createLocalSystemActors(localSystem,systemMap);
+  }
+}

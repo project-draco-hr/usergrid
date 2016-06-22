@@ -1,0 +1,43 @@
+{
+  int numInstancesPerNode=uniqueValuesFig.getUniqueValueInstancesPerNode();
+  Map<String,Object> akka=(Map<String,Object>)configMap.get("akka");
+  akka.put("actor",new HashMap<String,Object>(){
+{
+      put("deployment",new HashMap<String,Object>(){
+{
+          put("/uvRouter/singleton/router",new HashMap<String,Object>(){
+{
+              put("router","consistent-hashing-pool");
+              put("cluster",new HashMap<String,Object>(){
+{
+                  put("enabled","on");
+                  put("allow-local-routees","on");
+                  put("user-role","io");
+                  put("max-nr-of-instances-per-node",numInstancesPerNode);
+                  put("failure-detector",new HashMap<String,Object>(){
+{
+                      put("threshold","");
+                      put("acceptable-heartbeat-pause","3 s");
+                      put("heartbeat-interval","1 s");
+                      put("heartbeat-request",new HashMap<String,Object>(){
+{
+                          put("expected-response-after","3 s");
+                        }
+                      }
+);
+                    }
+                  }
+);
+                }
+              }
+);
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+}

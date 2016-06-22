@@ -4,7 +4,7 @@
   this.injector=injector;
   this.reIndexService=injector.getInstance(ReIndexService.class);
   this.entityManagerFig=injector.getInstance(EntityManagerFig.class);
-  this.akkaFig=injector.getInstance(AkkaFig.class);
+  this.actorSystemFig=injector.getInstance(ActorSystemFig.class);
   this.managerCache=injector.getInstance(ManagerCache.class);
   this.metricsFactory=injector.getInstance(MetricsFactory.class);
   this.indexService=injector.getInstance(AsyncEventService.class);
@@ -15,11 +15,18 @@
   Properties properties=cassandraService.getProperties();
   this.entityManagers=createEntityManagerCache(properties);
   logger.info("EntityManagerFactoring starting...");
-  if (akkaFig.getAkkaEnabled()) {
+  if (actorSystemFig.getAkkaEnabled()) {
     try {
       logger.info("Akka cluster starting...");
       this.uniqueValuesService=injector.getInstance(UniqueValuesService.class);
-      this.uniqueValuesService.start();
+      this.actorSystemManager=injector.getInstance(ActorSystemManager.class);
+      actorSystemManager.registerRouterProducer(uniqueValuesService);
+      actorSystemManager.registerMessageType(UniqueValueActor.Request.class,"/user/uvProxy");
+      actorSystemManager.registerMessageType(UniqueValueActor.Reservation.class,"/user/uvProxy");
+      actorSystemManager.registerMessageType(UniqueValueActor.Cancellation.class,"/user/uvProxy");
+      actorSystemManager.registerMessageType(UniqueValueActor.Confirmation.class,"/user/uvProxy");
+      actorSystemManager.start();
+      actorSystemManager.waitForRequestActors();
     }
  catch (    Throwable t) {
       logger.error("Error starting Akka",t);
