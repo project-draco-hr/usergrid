@@ -17,11 +17,10 @@
   }
   List regionList=Arrays.asList(actorSystemFig.getRegionList().toLowerCase().split(","));
   logger.info("Initializing Akka for hostname {} region {} regionList {} seeds {}",hostname,currentRegion,regionList,actorSystemFig.getRegionSeeds());
-  final Map<String,ActorSystem> systemMap=new HashMap<>();
-  Map<String,Config> configMap=readClusterSingletonConfigs();
-  ActorSystem localSystem=createClusterSingletonProxies(configMap,systemMap);
-  createRequestActors(systemMap);
+  Config config=readClusterSystemConfig();
+  ActorSystem localSystem=createClusterSystemsFromConfigs(config);
+  createClientActors(localSystem);
   for (  RouterProducer routerProducer : routerProducers) {
-    routerProducer.createLocalSystemActors(localSystem,systemMap);
+    routerProducer.createLocalSystemActors(localSystem);
   }
 }

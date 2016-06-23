@@ -1,0 +1,12 @@
+{
+  ActorSystem system=ActorSystem.create("ClusterSystem",config);
+  for (  RouterProducer routerProducer : routerProducers) {
+    logger.info("Creating {} for region {}",routerProducer.getName(),currentRegion);
+    routerProducer.createClusterSingletonManager(system);
+  }
+  for (  RouterProducer routerProducer : routerProducers) {
+    logger.info("Creating {} proxy for region {} role 'io'",routerProducer.getName(),currentRegion);
+    routerProducer.createClusterSingletonProxy(system,"io");
+  }
+  return system;
+}
