@@ -1,8 +1,11 @@
 {
+  if (isApigeeSSO2Enabled()) {
+    return validateExternalToken(token,maxPersistenceTokenAge,properties.getProperty(USERGRID_EXTERNAL_PROVIDER));
+  }
   UUID uuid=getUUIDForToken(token);
   long ssoTtl=1000000L;
   if (uuid == null) {
-    return isSSOEnabled() ? validateExternalToken(token,ssoTtl) : null;
+    return isSSOEnabled() ? validateExternalToken(token,ssoTtl,"") : null;
   }
   TokenInfo tokenInfo;
   try {
@@ -10,7 +13,7 @@
   }
  catch (  InvalidTokenException e) {
     if (isSSOEnabled()) {
-      return validateExternalToken(token,maxPersistenceTokenAge);
+      return validateExternalToken(token,maxPersistenceTokenAge,"");
     }
  else {
       throw e;
