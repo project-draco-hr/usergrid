@@ -20,7 +20,7 @@
       }
       table.reserve(res.getApplicationScope(),res.getOwner(),res.getOwnerVersion(),res.getField());
       getSender().tell(new Response(Response.Status.IS_UNIQUE),getSender());
-      mediator.tell(new DistributedPubSubMediator.Publish("content",new Reservation(res)),getSelf());
+      actorSystemManager.publishToAllRegions("content",new Reservation(res),getSelf());
     }
  catch (    Throwable t) {
       getSender().tell(new Response(Response.Status.ERROR),getSender());
@@ -43,7 +43,7 @@
       }
       table.confirm(con.getApplicationScope(),con.getOwner(),con.getOwnerVersion(),con.getField());
       getSender().tell(new Response(Response.Status.IS_UNIQUE),getSender());
-      mediator.tell(new DistributedPubSubMediator.Publish("content",new Reservation(con)),getSelf());
+      actorSystemManager.publishToAllRegions("content",new Reservation(con),getSelf());
     }
  catch (    Throwable t) {
       getSender().tell(new Response(Response.Status.ERROR),getSender());
@@ -66,7 +66,7 @@
       }
       table.confirm(can.getApplicationScope(),can.getOwner(),can.getOwnerVersion(),can.getField());
       getSender().tell(new Response(Response.Status.SUCCESS),getSender());
-      mediator.tell(new DistributedPubSubMediator.Publish("content",new Reservation(can)),getSelf());
+      actorSystemManager.publishToAllRegions("content",new Reservation(can),getSelf());
     }
  catch (    Throwable t) {
       getSender().tell(new Response(Response.Status.ERROR),getSender());
