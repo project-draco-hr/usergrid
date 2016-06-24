@@ -1,0 +1,30 @@
+{
+  if (logger.isTraceEnabled()) {
+    logger.trace("SysadminLocalhostFilter.authorize");
+  }
+  if (!request.getSecurityContext().isUserInRole(ROLE_SERVICE_ADMIN)) {
+    return;
+  }
+  boolean isLocalhost=false;
+  try {
+    byte[] address=InetAddress.getByName(request.getUriInfo().getBaseUri().getHost()).getAddress();
+    if (address[0] == 127) {
+      isLocalhost=true;
+    }
+ else     if (address[0] == 0 && address[1] == 0 && address[2] == 0 && address[3] == 0) {
+      isLocalhost=true;
+    }
+ else {
+      isLocalhost=false;
+    }
+  }
+ catch (  Exception e) {
+    logger.error("Unable to parse host for sysadmin request, request rejected: path = {}",request.getUriInfo().getPath());
+  }
+  if (!isLocalhost) {
+    throw mappableSecurityException("unauthorized","No remote sysadmin access authorized");
+  }
+  if (logger.isTraceEnabled()) {
+    logger.trace("SysadminLocalhostFilter.authorize - leaving");
+  }
+}
