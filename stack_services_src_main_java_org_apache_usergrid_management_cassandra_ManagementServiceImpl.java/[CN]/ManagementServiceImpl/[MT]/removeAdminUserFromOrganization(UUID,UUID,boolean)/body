@@ -4,8 +4,9 @@
   }
   EntityManager em=emf.getEntityManager(smf.getManagementAppId());
   try {
-    int size=em.getCollection(new SimpleEntityRef(Group.ENTITY_TYPE,organizationId),"users",null,2,Level.IDS,false).size();
-    if (!force && size <= 1) {
+    Results collection=em.getCollection(new SimpleEntityRef(Group.ENTITY_TYPE,organizationId),"users",null,2,Level.IDS,false);
+    int size=collection.size();
+    if (!force && (size == 0 || (size == 1 && collection.getId() == userId))) {
       throw new Exception();
     }
   }
