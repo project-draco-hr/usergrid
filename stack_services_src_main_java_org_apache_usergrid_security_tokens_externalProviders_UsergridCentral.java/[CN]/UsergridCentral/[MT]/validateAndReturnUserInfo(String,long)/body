@@ -1,18 +1,14 @@
 {
-  TokenInfo tokenInfo=null;
-  if (!isSSOEnabled()) {
-    throw new NotImplementedException("External Token Validation Service not enabled");
-  }
-  if (extAccessToken == null) {
+  if (token == null) {
     throw new IllegalArgumentException("ext_access_token must be specified");
   }
   if (ttl == -1) {
     throw new IllegalArgumentException("ttl must be specified");
   }
-  com.codahale.metrics.Timer processingTimer=getMetricsFactory().getTimer(TokenServiceImpl.class,SSO_PROCESSING_TIME);
+  com.codahale.metrics.Timer processingTimer=getMetricsFactory().getTimer(UsergridCentral.class,SSO_PROCESSING_TIME);
   com.codahale.metrics.Timer.Context timerContext=processingTimer.time();
   try {
-    JsonNode accessInfoNode=getMeFromUgCentral(extAccessToken);
+    JsonNode accessInfoNode=getMeFromUgCentral(token);
     JsonNode userNode=accessInfoNode.get("user");
     String username=userNode.get("username").asText();
     UserInfo userInfo=management.getAdminUserByUsername(username);
@@ -34,7 +30,7 @@
           applicationCreator.createSampleFor(ownerOrgInfo.getOrganization());
           userId=ownerOrgInfo.getOwner().getUuid();
           userInfo=ownerOrgInfo.getOwner();
-          Counter createdAdminsCounter=getMetricsFactory().getCounter(TokenServiceImpl.class,SSO_CREATED_LOCAL_ADMINS);
+          Counter createdAdminsCounter=getMetricsFactory().getCounter(UsergridCentral.class,SSO_CREATED_LOCAL_ADMINS);
           createdAdminsCounter.inc();
           logger.info("Created user {} and org {}",username,orgName);
         }
@@ -45,13 +41,11 @@
         }
       }
     }
-    importToken(extAccessToken,TokenCategory.ACCESS,null,new AuthPrincipalInfo(ADMIN_USER,userId,CpNamingUtils.MANAGEMENT_APPLICATION_ID),null,ttl);
-    tokenInfo=getTokenInfo(extAccessToken);
+    return userInfo;
   }
  catch (  Exception e) {
     timerContext.stop();
     logger.debug("Error validating external token",e);
     throw e;
   }
-  return tokenInfo;
 }

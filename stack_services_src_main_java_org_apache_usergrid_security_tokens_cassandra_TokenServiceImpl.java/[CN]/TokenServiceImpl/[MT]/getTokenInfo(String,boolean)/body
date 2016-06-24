@@ -1,16 +1,25 @@
 {
-  UUID uuid=getUUIDForToken(token);
-  long ssoTtl=1000000L;
-  if (uuid == null) {
-    return isSSOEnabled() ? validateExternalToken(token,ssoTtl) : null;
+  UUID uuid=null;
+  try {
+    uuid=getUUIDForToken(token);
   }
+ catch (  Exception e) {
+    try {
+      return validateExternalToken(token,1,properties.getProperty(USERGRID_EXTERNAL_PROVIDER));
+    }
+ catch (    Exception exception) {
+      logger.debug("invalid request");
+      throw new IllegalArgumentException("Invalid token in the request.");
+    }
+  }
+  long ssoTtl=1000000L;
   TokenInfo tokenInfo;
   try {
     tokenInfo=getTokenInfo(uuid);
   }
  catch (  InvalidTokenException e) {
-    if (isSSOEnabled()) {
-      return validateExternalToken(token,maxPersistenceTokenAge);
+    if (isExternalSSOProviderEnabled()) {
+      return validateExternalToken(token,maxPersistenceTokenAge,"");
     }
  else {
       throw e;
