@@ -4,18 +4,25 @@
   }
   BiMap<UUID,String> organizations=HashBiMap.create();
   EntityManager em=emf.getEntityManager(smf.getManagementAppId());
-  Results results=em.getCollection(new SimpleEntityRef(User.ENTITY_TYPE,userId),Schema.COLLECTION_GROUPS,null,1000,Level.ALL_PROPERTIES,false);
+  EntityRef userRef=new SimpleEntityRef(User.ENTITY_TYPE,userId);
+  Results results=em.getCollection(userRef,Schema.COLLECTION_GROUPS,null,1000,Level.ALL_PROPERTIES,false);
   do {
     for (    Entity entity : results.getEntities()) {
       String path=(String)entity.getProperty(PROPERTY_PATH);
       if (path != null) {
         path=path.toLowerCase();
       }
-      try {
-        organizations.put(entity.getUuid(),path);
+      EntityRef groupRef=new SimpleEntityRef(Group.ENTITY_TYPE,entity.getUuid());
+      if (em.isCollectionMember(groupRef,Schema.COLLECTION_USERS,userRef)) {
+        try {
+          organizations.put(entity.getUuid(),path);
+        }
+ catch (        IllegalArgumentException e) {
+          logger.warn("Error adding {}:{} to BiMap: {}",entity.getUuid(),path,e.getMessage());
+        }
       }
- catch (      IllegalArgumentException e) {
-        logger.warn("Error adding {}:{} to BiMap: {}",entity.getUuid(),path,e.getMessage());
+ else {
+        em.removeFromCollection(userRef,Schema.COLLECTION_GROUPS,groupRef);
       }
     }
     results=results.hasMoreResults() ? results.getNextPageResults() : null;
