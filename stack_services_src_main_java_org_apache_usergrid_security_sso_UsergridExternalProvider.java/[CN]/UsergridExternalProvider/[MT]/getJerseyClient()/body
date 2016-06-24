@@ -1,0 +1,31 @@
+{
+  if (jerseyClient == null) {
+synchronized (this) {
+      int poolSize=100;
+      final String poolSizeStr=properties.getProperty(CENTRAL_CONNECTION_POOL_SIZE);
+      if (poolSizeStr != null) {
+        poolSize=Integer.parseInt(poolSizeStr);
+      }
+      PoolingClientConnectionManager connectionManager=new PoolingClientConnectionManager();
+      connectionManager.setMaxTotal(poolSize);
+      int timeout=20000;
+      final String timeoutStr=properties.getProperty(CENTRAL_CONNECTION_TIMEOUT);
+      if (timeoutStr != null) {
+        timeout=Integer.parseInt(timeoutStr);
+      }
+      int readTimeout=20000;
+      final String readTimeoutStr=properties.getProperty(CENTRAL_READ_TIMEOUT);
+      if (readTimeoutStr != null) {
+        readTimeout=Integer.parseInt(readTimeoutStr);
+      }
+      ClientConfig clientConfig=new ClientConfig();
+      clientConfig.register(new JacksonFeature());
+      clientConfig.property(ApacheClientProperties.CONNECTION_MANAGER,connectionManager);
+      clientConfig.connectorProvider(new ApacheConnectorProvider());
+      jerseyClient=ClientBuilder.newClient(clientConfig);
+      jerseyClient.property(ClientProperties.CONNECT_TIMEOUT,timeout);
+      jerseyClient.property(ClientProperties.READ_TIMEOUT,readTimeout);
+    }
+  }
+  return jerseyClient;
+}

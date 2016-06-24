@@ -1,14 +1,11 @@
 {
-  TokenInfo tokenInfo=null;
-  if (provider.equalsIgnoreCase("apigee")) {
-    ApigeeSSO2Provider apigeeProvider=((CpEntityManagerFactory)emf).getApplicationContext().getBean(ApigeeSSO2Provider.class);
-    return apigeeProvider.validateAndReturnTokenInfo(extAccessToken,ttl);
-  }
- else   if (provider.equalsIgnoreCase("usergridCentral")) {
-    UsergridCentral ugCentralProvider=((CpEntityManagerFactory)emf).getApplicationContext().getBean(UsergridCentral.class);
-    UserInfo userinfo=ugCentralProvider.validateAndReturnUserInfo(extAccessToken,ttl);
+  ExternalSSOProvider ssoProvider=ssoProviderFactory.getProvider();
+  if (provider.equalsIgnoreCase("usergrid")) {
+    UserInfo userinfo=ssoProvider.validateAndReturnUserInfo(extAccessToken,ttl);
     importToken(extAccessToken,TokenCategory.ACCESS,null,new AuthPrincipalInfo(ADMIN_USER,userinfo.getUuid(),CpNamingUtils.MANAGEMENT_APPLICATION_ID),null,ttl);
     return getTokenInfo(extAccessToken);
   }
-  return tokenInfo;
+ else {
+    return ssoProvider.validateAndReturnTokenInfo(extAccessToken,ttl);
+  }
 }

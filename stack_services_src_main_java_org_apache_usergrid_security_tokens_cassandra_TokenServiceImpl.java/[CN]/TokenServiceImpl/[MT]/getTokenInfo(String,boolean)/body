@@ -1,25 +1,23 @@
 {
-  UUID uuid=null;
+  UUID uuid;
   try {
     uuid=getUUIDForToken(token);
   }
  catch (  Exception e) {
-    try {
-      return validateExternalToken(token,1,properties.getProperty(USERGRID_EXTERNAL_PROVIDER));
+    if (isExternalSSOProviderEnabled() && !getExternalSSOProvider().equalsIgnoreCase("usergrid")) {
+      return validateExternalToken(token,1,getExternalSSOProvider());
     }
- catch (    Exception exception) {
-      logger.debug("invalid request");
-      throw new IllegalArgumentException("Invalid token in the request.");
+ else {
+      throw e;
     }
   }
-  long ssoTtl=1000000L;
-  TokenInfo tokenInfo;
+  final TokenInfo tokenInfo;
   try {
     tokenInfo=getTokenInfo(uuid);
   }
  catch (  InvalidTokenException e) {
-    if (isExternalSSOProviderEnabled()) {
-      return validateExternalToken(token,maxPersistenceTokenAge,"");
+    if (isExternalSSOProviderEnabled() && getExternalSSOProvider().equalsIgnoreCase("usergrid")) {
+      return validateExternalToken(token,maxPersistenceTokenAge,getExternalSSOProvider());
     }
  else {
       throw e;
