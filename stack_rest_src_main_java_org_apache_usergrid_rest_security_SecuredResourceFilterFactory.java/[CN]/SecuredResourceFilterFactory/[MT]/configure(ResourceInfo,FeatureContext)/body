@@ -3,19 +3,23 @@
   if (logger.isTraceEnabled()) {
     logger.trace("configure {} method {}",resourceInfo.getResourceClass().getSimpleName(),resourceInfo.getResourceMethod().getName());
   }
+  boolean sysadminLocalhostOnly=Boolean.parseBoolean(properties.getProperty("usergrid.sysadmin.localhost.only","false"));
+  if (sysadminLocalhostOnly) {
+    featureContext.register(SysadminLocalhostFilter.class,PRIORITY_SUPERUSER);
+  }
   if (am.isAnnotationPresent(RequireApplicationAccess.class)) {
-    featureContext.register(ApplicationFilter.class);
+    featureContext.register(ApplicationFilter.class,PRIORITY_DEFAULT);
   }
  else   if (am.isAnnotationPresent(RequireOrganizationAccess.class)) {
-    featureContext.register(OrganizationFilter.class);
+    featureContext.register(OrganizationFilter.class,PRIORITY_DEFAULT);
   }
  else   if (am.isAnnotationPresent(RequireSystemAccess.class)) {
-    featureContext.register(SystemFilter.class);
+    featureContext.register(SystemFilter.class,PRIORITY_DEFAULT);
   }
  else   if (am.isAnnotationPresent(RequireAdminUserAccess.class)) {
-    featureContext.register(SystemFilter.AdminUserFilter.class);
+    featureContext.register(SystemFilter.AdminUserFilter.class,PRIORITY_DEFAULT);
   }
  else   if (am.isAnnotationPresent(CheckPermissionsForPath.class)) {
-    featureContext.register(PathPermissionsFilter.class);
+    featureContext.register(PathPermissionsFilter.class,PRIORITY_DEFAULT);
   }
 }
