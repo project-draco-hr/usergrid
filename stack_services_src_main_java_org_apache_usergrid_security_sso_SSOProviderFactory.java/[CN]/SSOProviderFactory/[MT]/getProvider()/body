@@ -1,0 +1,17 @@
+{
+  final Provider configuredProvider;
+  try {
+    configuredProvider=Provider.valueOf(properties.getProperty(TokenServiceImpl.USERGRID_EXTERNAL_PROVIDER).toUpperCase());
+  }
+ catch (  IllegalArgumentException e) {
+    throw new RuntimeException("Property usergrid.external.sso.provider must " + "be configured when external SSO is enabled");
+  }
+switch (configuredProvider) {
+case APIGEE:
+    return ((CpEntityManagerFactory)emf).getApplicationContext().getBean(ApigeeSSO2Provider.class);
+case USERGRID:
+  return ((CpEntityManagerFactory)emf).getApplicationContext().getBean(UsergridExternalProvider.class);
+default :
+throw new RuntimeException("Unknown SSO provider");
+}
+}
