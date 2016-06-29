@@ -1,0 +1,9 @@
+{
+  EntityManager em=setup.getEmf().getEntityManager(app.getId());
+  Entity contributor=app.doCreate("contributor","Malaka");
+  EntityRef appRef=new SimpleEntityRef("application",app.getId());
+  em.removeItemFromCollection(appRef,InflectionUtils.pluralize(contributor.getType()),contributor);
+  assertFalse("Entity should not have an edge from app to entity",em.isCollectionMember(appRef,InflectionUtils.pluralize(contributor.getType()),contributor));
+  app.testRequest(ServiceAction.GET,1,"contributor",contributor.getName());
+  assertTrue("Entity should now be member of the collection",em.isCollectionMember(appRef,InflectionUtils.pluralize(contributor.getType()),contributor));
+}

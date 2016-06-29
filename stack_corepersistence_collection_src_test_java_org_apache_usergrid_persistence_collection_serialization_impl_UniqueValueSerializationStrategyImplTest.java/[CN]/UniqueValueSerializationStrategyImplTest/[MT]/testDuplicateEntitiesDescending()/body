@@ -13,7 +13,8 @@
   strategy.write(scope,stored1).execute();
   strategy.write(scope,stored2).execute();
   strategy.write(scope,stored3).execute();
-  UniqueValueSet fields=strategy.load(scope,entityId1.getType(),Collections.<Field>singleton(field));
+  UniqueValueSet fields=strategy.load(scope,ConsistencyLevel.CL_LOCAL_QUORUM,entityId1.getType(),Collections.<Field>singleton(field),true);
+  fields=strategy.load(scope,ConsistencyLevel.CL_LOCAL_QUORUM,entityId1.getType(),Collections.<Field>singleton(field),false);
   UniqueValue retrieved=fields.getValue(field.getName());
   assertEquals(stored3,retrieved);
 }
