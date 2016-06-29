@@ -3,7 +3,7 @@
   Preconditions.checkNotNull(entityId,"entityId cannot be null");
   SearchResponse searchResponse;
   List<CandidateResult> candidates=new ArrayList<>();
-  final int searchLimit=Math.max(2,indexFig.getVersionQueryLimit());
+  final int searchLimit=Math.min(100,indexFig.getVersionQueryLimit());
   final QueryBuilder entityQuery=QueryBuilders.termQuery(IndexingUtils.EDGE_NODE_ID_FIELDNAME,IndexingUtils.nodeId(edge.getNodeId()));
   final SearchRequestBuilder srb=searchRequestBuilderStrategyV2.getBuilder().addSort(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME,SortOrder.ASC);
   if (logger.isDebugEnabled()) {
@@ -11,20 +11,10 @@
   }
   try {
     long queryTimestamp=0L;
-    while (true) {
-      QueryBuilder timestampQuery=QueryBuilders.rangeQuery(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME).gte(queryTimestamp);
-      QueryBuilder finalQuery=QueryBuilders.boolQuery().must(entityQuery).must(timestampQuery);
-      searchResponse=srb.setQuery(finalQuery).setSize(searchLimit).execute().actionGet();
-      int responseSize=searchResponse.getHits().getHits().length;
-      if (responseSize == 0) {
-        break;
-      }
-      queryTimestamp=(long)searchResponse.getHits().getAt(responseSize - 1).getSource().get(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME);
-      candidates=aggregateScrollResults(candidates,searchResponse,null);
-      if (responseSize < searchLimit) {
-        break;
-      }
-    }
+    QueryBuilder timestampQuery=QueryBuilders.rangeQuery(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME).gte(queryTimestamp);
+    QueryBuilder finalQuery=QueryBuilders.boolQuery().must(entityQuery).must(timestampQuery);
+    searchResponse=srb.setQuery(finalQuery).setSize(searchLimit).execute().actionGet();
+    candidates=aggregateScrollResults(candidates,searchResponse,null);
   }
  catch (  Throwable t) {
     logger.error("Unable to communicate with Elasticsearch",t.getMessage());
