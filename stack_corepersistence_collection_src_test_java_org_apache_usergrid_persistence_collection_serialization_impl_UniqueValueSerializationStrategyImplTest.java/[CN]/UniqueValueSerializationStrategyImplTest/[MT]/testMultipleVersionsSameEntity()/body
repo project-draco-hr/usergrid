@@ -8,7 +8,7 @@
   UniqueValue stored2=new UniqueValueImpl(field,entityId1,version2);
   strategy.write(scope,stored1).execute();
   strategy.write(scope,stored2).execute();
-  UniqueValueSet fields=strategy.load(scope,entityId1.getType(),Collections.<Field>singleton(field));
+  UniqueValueSet fields=strategy.load(scope,ConsistencyLevel.CL_LOCAL_QUORUM,entityId1.getType(),Collections.<Field>singleton(field),true);
   UniqueValue retrieved=fields.getValue(field.getName());
   Assert.assertNotNull(retrieved);
   assertEquals(stored2,retrieved);
