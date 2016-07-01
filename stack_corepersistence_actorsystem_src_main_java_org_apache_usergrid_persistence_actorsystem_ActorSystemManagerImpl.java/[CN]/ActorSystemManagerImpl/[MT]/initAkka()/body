@@ -1,22 +1,16 @@
 {
   logger.info("Initializing Akka");
-  if (StringUtils.isEmpty(hostname)) {
-    throw new RuntimeException("No value specified for " + ActorSystemFig.AKKA_HOSTNAME);
-  }
   if (StringUtils.isEmpty(currentRegion)) {
-    throw new RuntimeException("No value specified for " + ActorSystemFig.AKKA_REGION);
+    throw new RuntimeException("No value specified for " + ActorSystemFig.CLUSTER_REGIONS_LOCAL);
   }
-  if (StringUtils.isEmpty(actorSystemFig.getRegionList())) {
-    throw new RuntimeException("No value specified for " + ActorSystemFig.AKKA_REGION_LIST);
+  if (StringUtils.isEmpty(actorSystemFig.getRegionsList())) {
+    throw new RuntimeException("No value specified for " + ActorSystemFig.CLUSTER_REGIONS_LIST);
   }
-  if (StringUtils.isEmpty(actorSystemFig.getRegionSeeds())) {
-    throw new RuntimeException("No value specified for " + ActorSystemFig.AKKA_REGION_SEEDS);
+  if (StringUtils.isEmpty(actorSystemFig.getSeeds())) {
+    throw new RuntimeException("No value specified for " + ActorSystemFig.CLUSTER_SEEDS);
   }
-  if (StringUtils.isEmpty(actorSystemFig.getAkkaAuthoritativeRegion())) {
-    logger.warn("No value for {} specified, will use current region as authoriative region",ActorSystemFig.AKKA_AUTHORITATIVE_REGION);
-  }
-  List regionList=Arrays.asList(actorSystemFig.getRegionList().toLowerCase().split(","));
-  logger.info("Initializing Akka for hostname {} region {} regionList {} seeds {}",hostname,currentRegion,regionList,actorSystemFig.getRegionSeeds());
+  List regionList=Arrays.asList(actorSystemFig.getRegionsList().toLowerCase().split(","));
+  logger.info("Initializing Akka for hostname {} region {} regionList {} seeds {}",hostname,currentRegion,regionList,actorSystemFig.getSeeds());
   Config config=readClusterSystemConfig();
   ActorSystem localSystem=createClusterSystemsFromConfigs(config);
   createClientActors(localSystem);

@@ -1,6 +1,16 @@
 {
-  this.hostname=actorSystemFig.getHostname();
-  this.currentRegion=actorSystemFig.getRegion();
+  if (!StringUtils.isEmpty(actorSystemFig.getHostname())) {
+    this.hostname=actorSystemFig.getHostname();
+  }
+ else {
+    try {
+      this.hostname=InetAddress.getLocalHost().getHostName();
+    }
+ catch (    UnknownHostException e) {
+      logger.error("Cannot get hostname, defaulting to 'localhost': " + e.getMessage());
+    }
+  }
+  this.currentRegion=actorSystemFig.getRegionLocal();
   this.port=null;
   initAkka();
   waitForClientActor();

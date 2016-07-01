@@ -12,13 +12,13 @@
   MutationBatch logMutation=logEntryStrat.write(applicationScope,startEntry);
   MutationBatch entityMutation=entityStrat.write(applicationScope,mvccEntity);
   logMutation.mergeShallow(entityMutation);
-  if (actorSystemFig != null && actorSystemFig.getAkkaEnabled()) {
+  if (actorSystemFig != null && actorSystemFig.getEnabled()) {
     String region=ioEvent.getRegion();
     if (region == null) {
-      region=actorSystemFig.getAkkaAuthoritativeRegion();
+      region=uniqueValuesFig.getAuthoritativeRegion();
     }
     if (region == null) {
-      region=actorSystemFig.getRegion();
+      region=actorSystemFig.getRegionLocal();
     }
     confirmUniqueFieldsAkka(mvccEntity,version,applicationScope,region);
   }
