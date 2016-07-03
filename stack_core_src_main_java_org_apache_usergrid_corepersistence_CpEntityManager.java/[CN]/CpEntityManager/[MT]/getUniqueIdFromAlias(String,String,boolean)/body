@@ -1,2 +1,23 @@
 {
+  String collName=Schema.defaultCollectionName(collectionType);
+  String propertyName=Schema.getDefaultSchema().aliasProperty(collName);
+  StringField uniqueLookupRepairField=new StringField(propertyName,aliasType);
+  Observable<FieldSet> fieldSetObservable=ecm.getEntitiesFromFields(Inflector.getInstance().singularize(collectionType),Collections.singletonList(uniqueLookupRepairField),uniqueIndexRepair);
+  if (fieldSetObservable == null) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Couldn't return the observable based on unique entities.");
+    }
+    return null;
+  }
+  FieldSet fieldSet=fieldSetObservable.toBlocking().last();
+  if (fieldSet.getEntityRepairExecuted()) {
+    if (logger.isTraceEnabled()) {
+      logger.trace("One or more entities were repaired ( removed ) during loading of unique field [{}={}], " + "executing the unique value lookup once more for consistency",uniqueLookupRepairField.getName(),uniqueLookupRepairField.getValue());
+    }
+    fieldSet=ecm.getEntitiesFromFields(Inflector.getInstance().singularize(collectionType),Collections.singletonList(uniqueLookupRepairField),uniqueIndexRepair).toBlocking().last();
+  }
+  if (fieldSet == null || fieldSet.isEmpty()) {
+    return null;
+  }
+  return fieldSet.getEntity(uniqueLookupRepairField).getEntity().get().getId().getUuid();
 }
