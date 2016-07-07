@@ -26,8 +26,16 @@
   final Entity loadedVersion=manager.load(entityId).toBlocking().last();
   assertEquals(entityId,loadedVersion.getId());
   assertEquals(createReturnedSecond.getVersion(),loadedVersion.getVersion());
-  Thread.sleep(2000);
-  final Id idFirst=manager.getIdField(firstInstance.getId().getType(),firstField).toBlocking().lastOrDefault(null);
+  Id idFirst=null;
+  int retries=0;
+  while (retries++ < 20) {
+    idFirst=manager.getIdField(firstInstance.getId().getType(),firstField).toBlocking().lastOrDefault(null);
+    if (idFirst == null) {
+      break;
+    }
+    logger.error("Clean no run yet, waiting ({})",retries);
+    Thread.sleep(2000);
+  }
   assertNull(idFirst);
   final Id idSecond=manager.getIdField(secondInstance.getId().getType(),secondField).toBlocking().lastOrDefault(null);
   assertNotNull(idSecond);

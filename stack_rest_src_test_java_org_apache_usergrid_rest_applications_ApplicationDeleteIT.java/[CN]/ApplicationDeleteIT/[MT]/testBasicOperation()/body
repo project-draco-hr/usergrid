@@ -7,7 +7,7 @@
   clientSetup.getRestClient().management().orgs().org(orgName).apps().app(appToDeleteId.toString()).getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).queryParam(CONFIRM_APPLICATION_IDENTIFIER,appToDeleteId).request().delete();
   ApiResponse appCreateAgainResponse=null;
   int retries=0;
-  while (retries++ < 100) {
+  while (retries++ < 30) {
     try {
       appCreateAgainResponse=clientSetup.getRestClient().management().orgs().org(orgName).app().getTarget().queryParam("access_token",orgAdminToken.getAccessToken()).request().post(javax.ws.rs.client.Entity.json(new Application(appToDeleteName)),ApiResponse.class);
       break;
