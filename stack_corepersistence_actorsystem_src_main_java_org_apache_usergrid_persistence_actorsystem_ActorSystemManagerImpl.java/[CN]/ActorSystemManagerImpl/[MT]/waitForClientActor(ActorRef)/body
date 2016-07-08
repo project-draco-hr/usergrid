@@ -1,5 +1,5 @@
 {
-  logger.info("Waiting on request actor {}...",ra.path());
+  logger.info("Waiting on RequestActor [{}]...",ra.path());
   started=false;
   int retries=0;
   int maxRetries=60;
@@ -12,18 +12,18 @@
         started=true;
         break;
       }
-      logger.info("Waiting for request actor {} region {} ({}s)",ra.path(),currentRegion,retries);
+      logger.info("Waiting for RequestActor [{}] region [{}] for [{}s]",ra.path(),currentRegion,retries);
       Thread.sleep(1000);
     }
  catch (    Exception e) {
-      logger.error("Error: Timeout waiting for requestActor");
+      logger.error("Error: Timeout waiting for RequestActor [{}]",ra.path());
     }
     retries++;
   }
   if (started) {
-    logger.info("RequestActor has started");
+    logger.info("RequestActor [{}] has started",ra.path());
   }
  else {
-    throw new RuntimeException("RequestActor did not start in time");
+    throw new RuntimeException("RequestActor [" + ra.path() + "] did not start in time");
   }
 }
