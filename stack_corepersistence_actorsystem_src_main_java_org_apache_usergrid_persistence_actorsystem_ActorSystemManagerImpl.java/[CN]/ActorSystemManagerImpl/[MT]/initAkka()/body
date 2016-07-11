@@ -1,0 +1,21 @@
+{
+  logger.info("Initializing Akka");
+  if (StringUtils.isEmpty(currentRegion)) {
+    throw new RuntimeException("No value specified for: " + ActorSystemFig.CLUSTER_REGIONS_LOCAL);
+  }
+  if (StringUtils.isEmpty(actorSystemFig.getRegionsList())) {
+    throw new RuntimeException("No value specified for: " + ActorSystemFig.CLUSTER_REGIONS_LIST);
+  }
+  if (StringUtils.isEmpty(actorSystemFig.getSeeds())) {
+    throw new RuntimeException("No value specified for: " + ActorSystemFig.CLUSTER_SEEDS);
+  }
+  List regionList=Arrays.asList(actorSystemFig.getRegionsList().toLowerCase().split(","));
+  logger.info("Initializing Akka for hostname {} region {} regionList {} seeds {}",hostname,currentRegion,regionList,actorSystemFig.getSeeds());
+  Config config=readClusterSystemConfig();
+  clusterSystem=createClusterSystemsFromConfigs(config);
+  createClientActors(clusterSystem);
+  for (  RouterProducer routerProducer : routerProducers) {
+    routerProducer.createLocalSystemActors(clusterSystem);
+  }
+  mediator=DistributedPubSub.get(clusterSystem).mediator();
+}

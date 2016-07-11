@@ -1,0 +1,16 @@
+{
+  final Entity entity=mvccEntity.getEntity().get();
+  for (  Field field : EntityUtils.getUniqueFields(mvccEntity.getEntity().get())) {
+    UniqueValue written=new UniqueValueImpl(field,entity.getId(),version);
+    MutationBatch mb=uniqueValueStrat.write(scope,written);
+    logger.debug("Finalizing {} unique value {}",field.getName(),field.getValue().toString());
+    logMutation.mergeShallow(mb);
+  }
+  try {
+    logMutation.execute();
+  }
+ catch (  ConnectionException e) {
+    logger.error("Failed to execute write asynchronously ",e);
+    throw new WriteCommitException(mvccEntity,scope,"Failed to execute write asynchronously ",e);
+  }
+}

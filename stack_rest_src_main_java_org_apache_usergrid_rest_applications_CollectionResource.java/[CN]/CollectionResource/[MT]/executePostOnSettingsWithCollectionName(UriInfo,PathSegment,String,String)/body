@@ -1,0 +1,20 @@
+{
+  if (logger.isTraceEnabled()) {
+    logger.trace("CollectionResource.executePostOnSettingsWithCollectionName");
+  }
+  addItemToServiceContext(ui,itemName);
+  Object json;
+  if (StringUtils.isEmpty(body)) {
+    throw new NullArgumentException("No body posted");
+  }
+ else {
+    json=readJsonToObject(body);
+  }
+  ApiResponse response=createApiResponse();
+  response.setAction("post");
+  response.setApplication(services.getApplication());
+  response.setParams(ui.getQueryParameters());
+  ServicePayload payload=getPayload(json);
+  executeServicePostRequestForSettings(ui,response,ServiceAction.POST,payload);
+  return response;
+}
