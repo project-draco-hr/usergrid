@@ -1,4 +1,9 @@
 {
+  if (json == null) {
+    String errorDescription="invalid request, expected data in the request.";
+    OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_REQUEST).setErrorDescription(errorDescription).buildJSONMessage();
+    return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
+  }
   String grant_type=(String)json.get("grant_type");
   String username=(String)json.get("username");
   String password=(String)json.get("password");

@@ -6,6 +6,10 @@
   final long passwordChanged=management.getLastAdminPasswordChange(user.getUuid());
   final boolean ssoEnabled=Boolean.parseBoolean(properties.getProperty(USERGRID_EXTERNAL_SSO_ENABLED));
   long tokenTtl;
+  PrincipalIdentifier userPrincipal=(PrincipalIdentifier)SecurityUtils.getSubject().getPrincipal();
+  if (userPrincipal != null && userPrincipal.getAccessTokenCredentials() != null) {
+    this.access_token=userPrincipal.getAccessTokenCredentials().getToken();
+  }
   if (ssoEnabled) {
     ExternalSSOProvider provider=ssoProviderFactory.getProvider();
     tokenTtl=Long.valueOf(provider.getDecodedTokenDetails(access_token).get("expiry")) - System.currentTimeMillis() / 1000;
