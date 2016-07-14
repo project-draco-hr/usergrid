@@ -9,19 +9,19 @@
   UniqueValue stored2=new UniqueValueImpl(field,entityId2,version1);
   strategy.write(scope,stored1).execute();
   strategy.write(scope,stored2).execute();
-  UniqueValueSet fields=strategy.load(scope,entityId1.getType(),Collections.<Field>singleton(field));
+  UniqueValueSet fields=strategy.load(scope,ConsistencyLevel.CL_LOCAL_QUORUM,entityId1.getType(),Collections.<Field>singleton(field),true);
   UniqueValue retrieved=fields.getValue(field.getName());
   assertEquals(stored1,retrieved);
   UUID version3=UUIDGenerator.newTimeUUID();
   UniqueValue stored3=new UniqueValueImpl(field,entityId2,version3);
   strategy.write(scope,stored3).execute();
-  fields=strategy.load(scope,entityId1.getType(),Collections.<Field>singleton(field));
+  fields=strategy.load(scope,ConsistencyLevel.CL_LOCAL_QUORUM,entityId1.getType(),Collections.<Field>singleton(field),true);
   retrieved=fields.getValue(field.getName());
   assertEquals(stored1,retrieved);
   UUID version4=UUIDGenerator.newTimeUUID();
   UniqueValue stored4=new UniqueValueImpl(field,entityId1,version4);
   strategy.write(scope,stored4).execute();
-  fields=strategy.load(scope,entityId1.getType(),Collections.<Field>singleton(field));
+  fields=strategy.load(scope,ConsistencyLevel.CL_LOCAL_QUORUM,entityId1.getType(),Collections.<Field>singleton(field),true);
   retrieved=fields.getValue(field.getName());
   assertEquals(stored4,retrieved);
 }

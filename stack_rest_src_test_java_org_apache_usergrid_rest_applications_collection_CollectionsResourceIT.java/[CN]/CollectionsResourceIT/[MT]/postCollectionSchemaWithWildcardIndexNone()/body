@@ -1,20 +1,14 @@
 {
-  ArrayList<String> indexingArray=new ArrayList<>();
-  indexingArray.add("none");
-  indexingArray.add("one");
-  indexingArray.add("two");
   Entity payload=new Entity();
-  payload.put("fields",indexingArray);
+  payload.put("fields","none");
   String randomizer=RandomStringUtils.randomAlphanumeric(10);
   String collectionName="col_" + randomizer;
-  app().collection(collectionName).collection("_index").post(payload);
+  app().collection(collectionName).collection("_settings").post(payload);
   refreshIndex();
-  Collection collection=app().collection(collectionName).collection("_index").get();
+  Collection collection=app().collection(collectionName).collection("_settings").get();
   LinkedHashMap testCollectionSchema=(LinkedHashMap)collection.getResponse().getData();
-  ArrayList<String> schema=(ArrayList<String>)testCollectionSchema.get("fields");
-  assertTrue(schema.contains("none"));
-  assertFalse(schema.contains("one"));
-  assertFalse(schema.contains("two"));
+  String schema=(String)testCollectionSchema.get("fields");
+  assertEquals("none",schema);
   String entityName="name_" + randomizer;
   Entity postedEntity=this.app().collection(collectionName).post(new Entity().withProp("name",entityName).withProp("color","magenta"));
   Entity getByIdEntity=app().collection(collectionName).entity(postedEntity.getUuid()).get();

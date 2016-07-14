@@ -5,5 +5,6 @@
   GraphManager gm=graphManagerFactory.createEdgeManager(applicationScope);
   EntityCollectionManager ecm=managerCache.getEntityCollectionManager(applicationScope);
   Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
-  return ecm.mark(entityId).mergeWith(gm.markNode(entityId,createGraphOperationTimestamp()));
+  String region=this.lookupRegionForType(entityRef.getType());
+  return ecm.mark(entityId,region).mergeWith(gm.markNode(entityId,createGraphOperationTimestamp()));
 }

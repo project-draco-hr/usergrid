@@ -1,0 +1,86 @@
+{
+  if (message instanceof Request) {
+    Request req=(Request)message;
+    count++;
+    if (count % 10 == 0 && logger.isDebugEnabled()) {
+      logger.debug("UniqueValueActor {} processed {} requests",name,count);
+    }
+  }
+  if (message instanceof Reservation) {
+    Reservation res=(Reservation)message;
+    try {
+      Id owner=table.lookupOwner(res.getApplicationScope(),res.getOwner().getType(),res.getField());
+      if (owner != null && owner.equals(res.getOwner())) {
+        getSender().tell(new Response(Response.Status.IS_UNIQUE,res.getConsistentHashKey()),getSender());
+        return;
+      }
+ else       if (owner != null && !owner.equals(res.getOwner())) {
+        getSender().tell(new Response(Response.Status.NOT_UNIQUE,res.getConsistentHashKey()),getSender());
+        return;
+      }
+      table.reserve(res.getApplicationScope(),res.getOwner(),res.getOwnerVersion(),res.getField());
+      getSender().tell(new Response(Response.Status.IS_UNIQUE,res.getConsistentHashKey()),getSender());
+      actorSystemManager.publishToAllRegions("content",new Reservation(res),getSelf());
+    }
+ catch (    Throwable t) {
+      getSender().tell(new Response(Response.Status.ERROR,res.getConsistentHashKey()),getSender());
+      logger.error("Error processing request",t);
+    }
+ finally {
+    }
+  }
+ else   if (message instanceof Confirmation) {
+    Confirmation con=(Confirmation)message;
+    try {
+      Id owner=table.lookupOwner(con.getApplicationScope(),con.getOwner().getType(),con.getField());
+      if (owner != null && !owner.equals(con.getOwner())) {
+        Response response=new Response(Response.Status.NOT_UNIQUE,con.getConsistentHashKey());
+        getSender().tell(response,getSender());
+        actorSystemManager.publishToAllRegions("content",response,getSelf());
+        return;
+      }
+ else       if (owner == null) {
+        Response response=new Response(Response.Status.BAD_REQUEST,con.getConsistentHashKey());
+        getSender().tell(response,getSender());
+        actorSystemManager.publishToAllRegions("content",response,getSelf());
+        return;
+      }
+      table.confirm(con.getApplicationScope(),con.getOwner(),con.getOwnerVersion(),con.getField());
+      Response response=new Response(Response.Status.IS_UNIQUE,con.getConsistentHashKey());
+      getSender().tell(response,getSender());
+      actorSystemManager.publishToAllRegions("content",response,getSelf());
+    }
+ catch (    Throwable t) {
+      getSender().tell(new Response(Response.Status.ERROR,con.getConsistentHashKey()),getSender());
+      logger.error("Error processing request",t);
+    }
+ finally {
+    }
+  }
+ else   if (message instanceof Cancellation) {
+    Cancellation can=(Cancellation)message;
+    try {
+      Id owner=table.lookupOwner(can.getApplicationScope(),can.getOwner().getType(),can.getField());
+      if (owner != null && !owner.equals(can.getOwner())) {
+        getSender().tell(new Response(Response.Status.NOT_UNIQUE,can.getConsistentHashKey()),getSender());
+        return;
+      }
+ else       if (owner == null) {
+        getSender().tell(new Response(Response.Status.BAD_REQUEST,can.getConsistentHashKey()),getSender());
+        actorSystemManager.publishToAllRegions("content",new Cancellation(can),getSelf());
+        return;
+      }
+      table.cancel(can.getApplicationScope(),can.getOwner(),can.getOwnerVersion(),can.getField());
+      logger.debug("Removing {} from unique values table",can.getConsistentHashKey());
+      getSender().tell(new Response(Response.Status.SUCCESS,can.getConsistentHashKey()),getSender());
+      actorSystemManager.publishToAllRegions("content",new Cancellation(can),getSelf());
+    }
+ catch (    Throwable t) {
+      getSender().tell(new Response(Response.Status.ERROR,can.getConsistentHashKey()),getSender());
+      logger.error("Error processing request",t);
+    }
+  }
+ else {
+    unhandled(message);
+  }
+}
