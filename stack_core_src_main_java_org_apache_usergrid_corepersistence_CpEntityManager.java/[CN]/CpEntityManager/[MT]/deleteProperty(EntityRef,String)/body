@@ -6,9 +6,8 @@
     logger.trace("About to Write {}:{} version {}",cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion());
   }
   String region=null;
-  MapManager mm=getMapManagerForTypes();
-  CollectionSettingsCache collectionSettingsCache=collectionSettingsCacheFactory.getInstance(mm);
   String collectionName=Schema.defaultCollectionName(entityRef.getType());
+  CollectionSettings collectionSettingsCache=collectionSettingsFactory.getInstance(new CollectionSettingsScopeImpl(getAppIdObject(),collectionName));
   Optional<Map<String,Object>> collectionSettings=collectionSettingsCache.getCollectionSettings(collectionName);
   if (collectionSettings.isPresent()) {
     region=collectionSettings.get().get("region").toString();

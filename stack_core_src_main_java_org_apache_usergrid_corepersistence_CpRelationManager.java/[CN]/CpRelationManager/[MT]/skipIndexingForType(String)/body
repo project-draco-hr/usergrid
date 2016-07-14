@@ -1,9 +1,8 @@
 {
   boolean skipIndexing=false;
-  MapManager mm=getMapManagerForTypes();
-  CollectionSettingsCache collectionSettingsCache=collectionSettingsCacheFactory.getInstance(mm);
   String collectionName=Schema.defaultCollectionName(type);
-  Optional<Map<String,Object>> collectionIndexingSchema=collectionSettingsCache.getCollectionSettings(collectionName);
+  CollectionSettings collectionSettings=collectionSettingsFactory.getInstance(new CollectionSettingsScopeImpl(new SimpleId(applicationId,TYPE_APPLICATION),collectionName));
+  Optional<Map<String,Object>> collectionIndexingSchema=collectionSettings.getCollectionSettings(collectionName);
   if (collectionIndexingSchema.isPresent()) {
     Map jsonMapData=collectionIndexingSchema.get();
     final Object fields=jsonMapData.get("fields");
