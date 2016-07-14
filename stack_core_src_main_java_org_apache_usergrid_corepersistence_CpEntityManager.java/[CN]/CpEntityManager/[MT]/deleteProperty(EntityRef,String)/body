@@ -7,10 +7,10 @@
   }
   String region=null;
   String collectionName=Schema.defaultCollectionName(entityRef.getType());
-  CollectionSettings collectionSettingsCache=collectionSettingsFactory.getInstance(new CollectionSettingsScopeImpl(getAppIdObject(),collectionName));
-  Optional<Map<String,Object>> collectionSettings=collectionSettingsCache.getCollectionSettings(collectionName);
-  if (collectionSettings.isPresent()) {
-    region=collectionSettings.get().get("region").toString();
+  CollectionSettings collectionSettings=collectionSettingsFactory.getInstance(new CollectionSettingsScopeImpl(getAppIdObject(),collectionName));
+  Optional<Map<String,Object>> existingSettings=collectionSettings.getCollectionSettings(collectionName);
+  if (existingSettings.isPresent()) {
+    region=existingSettings.get().get("region").toString();
   }
   cpEntity=ecm.write(cpEntity,region).toBlocking().last();
   if (logger.isTraceEnabled()) {

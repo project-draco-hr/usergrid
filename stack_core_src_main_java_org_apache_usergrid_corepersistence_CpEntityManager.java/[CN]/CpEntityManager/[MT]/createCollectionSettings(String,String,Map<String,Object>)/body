@@ -4,8 +4,8 @@
   Map<String,Object> updatedSettings=new HashMap<>();
   updatedSettings.put("lastUpdated",epoch);
   updatedSettings.put("lastUpdateBy",owner);
-  CollectionSettings collectionSettingsCache=collectionSettingsFactory.getInstance(new CollectionSettingsScopeImpl(getAppIdObject(),collectionName));
-  Optional<Map<String,Object>> existingSettings=collectionSettingsCache.getCollectionSettings(collectionName);
+  CollectionSettings collectionSettings=collectionSettingsFactory.getInstance(new CollectionSettingsScopeImpl(getAppIdObject(),collectionName));
+  Optional<Map<String,Object>> existingSettings=collectionSettings.getCollectionSettings(collectionName);
   if (existingSettings.isPresent()) {
     Map<String,Object> jsonMapData=existingSettings.get();
     updatedSettings.put("lastReindexed",jsonMapData.get("lastReindexed"));
@@ -29,6 +29,6 @@
       updatedSettings.put("region",region);
     }
   }
-  collectionSettingsCache.putCollectionSettings(collectionName,JsonUtils.mapToJsonString(updatedSettings));
+  collectionSettings.putCollectionSettings(collectionName,JsonUtils.mapToJsonString(updatedSettings));
   return updatedSettings;
 }
