@@ -10,7 +10,7 @@
   if (userPrincipal != null && userPrincipal.getAccessTokenCredentials() != null) {
     this.access_token=userPrincipal.getAccessTokenCredentials().getToken();
   }
-  if (ssoEnabled) {
+  if (ssoEnabled && !user.getUsername().equals(properties.getProperty(USERGRID_SYSADMIN_LOGIN_NAME))) {
     ExternalSSOProvider provider=ssoProviderFactory.getProvider();
     tokenTtl=Long.valueOf(provider.getDecodedTokenDetails(access_token).get("expiry")) - System.currentTimeMillis() / 1000;
   }

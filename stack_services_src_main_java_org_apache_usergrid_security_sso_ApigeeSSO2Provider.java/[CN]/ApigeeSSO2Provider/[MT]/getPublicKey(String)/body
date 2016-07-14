@@ -1,0 +1,12 @@
+{
+  if (keyUrl != null && !keyUrl.isEmpty()) {
+    try {
+      Map<String,Object> publicKey=client.target(keyUrl).request().get(Map.class);
+      return publicKey.get(RESPONSE_PUBLICKEY_VALUE).toString().split("----\n")[1].split("\n---")[0];
+    }
+ catch (    Exception e) {
+      throw new IllegalArgumentException("error getting public key");
+    }
+  }
+  return null;
+}

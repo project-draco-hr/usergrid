@@ -1,32 +1,3 @@
 {
-  Jws<Claims> claims=null;
-  if (publicKey == null) {
-    throw new IllegalArgumentException("Public key must be provided with Apigee " + "token in order to verify signature.");
-  }
-  byte[] publicBytes=decodeBase64(publicKey);
-  X509EncodedKeySpec keySpec=new X509EncodedKeySpec(publicBytes);
-  KeyFactory keyFactory=KeyFactory.getInstance("RSA");
-  PublicKey pubKey=keyFactory.generatePublic(keySpec);
-  try {
-    claims=Jwts.parser().setSigningKey(pubKey).parseClaimsJws(token);
-  }
- catch (  SignatureException se) {
-    if (logger.isDebugEnabled()) {
-      logger.debug("Signature was invalid for Apigee JWT: {} and key: {}",token,publicKey);
-    }
-    throw new BadTokenException("Invalid Apigee SSO token signature");
-  }
-catch (  MalformedJwtException me) {
-    if (logger.isDebugEnabled()) {
-      logger.debug("Beginning JSON object section of Apigee JWT invalid for token: {}",token);
-    }
-    throw new BadTokenException("Malformed Apigee JWT");
-  }
-catch (  ArrayIndexOutOfBoundsException aio) {
-    if (logger.isDebugEnabled()) {
-      logger.debug("Signature section of Apigee JWT invalid for token: {}",token);
-    }
-    throw new BadTokenException("Malformed Apigee JWT");
-  }
-  return claims;
+  return getClaimsForKeyUrl(token,publicKey);
 }

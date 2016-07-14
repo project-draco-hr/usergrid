@@ -1,6 +1,9 @@
 {
+  String tokenUserName=SubjectUtils.getUser().getUsername();
   if (tokens.isExternalSSOProviderEnabled()) {
-    throw new IllegalArgumentException("Organization / Admin Users must be created via " + properties.getProperty(USERGRID_EXTERNAL_PROVIDER_URL));
+    if (!tokenUserName.equals(properties.getProperty(USERGRID_SYSADMIN_LOGIN_NAME))) {
+      throw new IllegalArgumentException("Organization / Admin Users must be created via " + properties.getProperty(USERGRID_EXTERNAL_PROVIDER_URL));
+    }
   }
   Preconditions.checkArgument(StringUtils.isNotBlank(organizationName),"The organization parameter was missing");
   Preconditions.checkArgument(StringUtils.isNotBlank(organizationName),"The organization parameter was missing");
