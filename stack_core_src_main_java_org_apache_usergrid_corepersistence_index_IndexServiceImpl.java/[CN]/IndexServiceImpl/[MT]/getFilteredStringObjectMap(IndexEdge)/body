@@ -1,11 +1,9 @@
 {
-  Id mapOwner=new SimpleId(indexEdge.getNodeId().getUuid(),TYPE_APPLICATION);
-  final MapScope ms=CpNamingUtils.getEntityTypeMapScope(mapOwner);
-  MapManager mm=mapManagerFactory.createMapManager(ms);
+  Id owner=new SimpleId(indexEdge.getNodeId().getUuid(),TYPE_APPLICATION);
   Set<String> defaultProperties;
   String collectionName=CpNamingUtils.getCollectionNameFromEdgeName(indexEdge.getEdgeName());
-  CollectionSettingsCache collectionSettingsCache=collectionSettingsCacheFactory.getInstance(mm);
-  Optional<Map<String,Object>> collectionIndexingSchema=collectionSettingsCache.getCollectionSettings(collectionName);
+  CollectionSettings collectionSettings=collectionSettingsFactory.getInstance(new CollectionSettingsScopeImpl(owner,collectionName));
+  Optional<Map<String,Object>> collectionIndexingSchema=collectionSettings.getCollectionSettings(collectionName);
   if (collectionIndexingSchema.isPresent()) {
     Map jsonMapData=collectionIndexingSchema.get();
     Schema schema=Schema.getDefaultSchema();

@@ -6,12 +6,11 @@
     logger.trace("About to Write {}:{} version {}",cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion());
   }
   String region=null;
-  MapManager mm=getMapManagerForTypes();
-  CollectionSettingsCache collectionSettingsCache=collectionSettingsCacheFactory.getInstance(mm);
   String collectionName=Schema.defaultCollectionName(entityRef.getType());
-  Optional<Map<String,Object>> collectionSettings=collectionSettingsCache.getCollectionSettings(collectionName);
-  if (collectionSettings.isPresent()) {
-    region=collectionSettings.get().get("region").toString();
+  CollectionSettings collectionSettings=collectionSettingsFactory.getInstance(new CollectionSettingsScopeImpl(getAppIdObject(),collectionName));
+  Optional<Map<String,Object>> existingSettings=collectionSettings.getCollectionSettings(collectionName);
+  if (existingSettings.isPresent()) {
+    region=existingSettings.get().get("region").toString();
   }
   cpEntity=ecm.write(cpEntity,region).toBlocking().last();
   if (logger.isTraceEnabled()) {

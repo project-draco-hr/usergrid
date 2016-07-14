@@ -1,11 +1,10 @@
 {
   String region=null;
-  MapManager mm=getMapManagerForTypes();
-  CollectionSettingsCache collectionSettingsCache=collectionSettingsCacheFactory.getInstance(mm);
   String collectionName=Schema.defaultCollectionName(type);
-  Optional<Map<String,Object>> collectionSettings=collectionSettingsCache.getCollectionSettings(collectionName);
-  if (collectionSettings.isPresent() && collectionSettings.get().get("region") != null) {
-    region=collectionSettings.get().get("region").toString();
+  CollectionSettings collectionSettings=collectionSettingsFactory.getInstance(new CollectionSettingsScopeImpl(getAppIdObject(),collectionName));
+  Optional<Map<String,Object>> existingSettings=collectionSettings.getCollectionSettings(collectionName);
+  if (existingSettings.isPresent() && existingSettings.get().get("region") != null) {
+    region=existingSettings.get().get("region").toString();
   }
   return region;
 }
