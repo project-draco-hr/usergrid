@@ -102,13 +102,17 @@
     if (logger.isTraceEnabled()) {
       logger.trace("About to Write {}:{} version {}",cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion());
     }
-    cpEntity=ecm.write(cpEntity).toBlocking().last();
+    String region=lookupRegionForType(entity.getType());
+    cpEntity=ecm.write(cpEntity,region).toBlocking().last();
     entity.setSize(cpEntity.getSize());
     if (logger.isTraceEnabled()) {
       logger.trace("Wrote {}:{} version {}",cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion());
     }
   }
  catch (  WriteUniqueVerifyException wuve) {
+    if (logger.isTraceEnabled()) {
+      logger.trace("WriteUniqueVerifyException encountered during batchCreate of entity with id {}",cpEntity.getId().getUuid());
+    }
     handleWriteUniqueVerifyException(entity,wuve);
   }
   entity.setUuid(cpEntity.getId().getUuid());

@@ -1,0 +1,23 @@
+{
+  String collectionName="testEntityProperties" + System.currentTimeMillis();
+  String entityName="testEntity1";
+  UsergridEntity entity=new UsergridEntity(collectionName,entityName);
+  entity.save();
+  ArrayList<Object> lenArr=new ArrayList<>();
+  lenArr.add(1);
+  lenArr.add(2);
+  lenArr.add(3);
+  lenArr.add(4);
+  entity.putProperty("lenArray",lenArr);
+  entity.save();
+  lenArr=new ArrayList<>();
+  lenArr.add(6);
+  lenArr.add(7);
+  entity.insert("lenArray",lenArr,0);
+  entity.save();
+  UsergridEntity eLookUp=Usergrid.GET(collectionName,entityName).first();
+  assertNotNull("The entity returned is not null.",eLookUp);
+  ArrayNode toCompare=new ArrayNode(JsonNodeFactory.instance);
+  toCompare.add(6).add(7).add(1).add(2).add(3).add(4);
+  assertEquals("The two arrays should be equal.",eLookUp.getJsonNodeProperty("lenArray"),toCompare);
+}

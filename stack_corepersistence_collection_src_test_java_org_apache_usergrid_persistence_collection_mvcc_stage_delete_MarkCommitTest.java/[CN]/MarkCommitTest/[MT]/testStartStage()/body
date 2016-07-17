@@ -12,7 +12,7 @@
   when(mvccEntityStrategy.write(same(context),mvccEntityCapture.capture())).thenReturn(mvccEntityMutation);
   final Entity entity=TestEntityGenerator.generateEntity();
   final MvccEntity mvccEntityInput=TestEntityGenerator.fromEntity(entity);
-  WriteCommit newStage=new WriteCommit(logStrategy,mvccEntityStrategy,uniqueValueStrategy,session);
+  WriteCommit newStage=new WriteCommit(logStrategy,mvccEntityStrategy,uniqueValueStrategy,null,null,null,session);
   Entity result=newStage.call(new CollectionIoEvent<MvccEntity>(context,mvccEntityInput)).getEvent().getEntity().get();
   MvccLogEntry entry=logEntry.getValue();
   assertEquals("id correct",entity.getId(),entry.getEntityId());

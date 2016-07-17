@@ -1,22 +1,8 @@
 {
-  MvccValidationUtils.verifyMvccEntityWithEntity(ioevent.getEvent());
-  final MvccEntity mvccEntity=ioevent.getEvent();
-  final Entity entity=mvccEntity.getEntity().get();
-  final ApplicationScope scope=ioevent.getEntityCollection();
-  final BatchStatement batch=new BatchStatement();
-  final List<Field> uniqueFields=new ArrayList<>(entity.getFields().size());
-  for (  final Field field : EntityUtils.getUniqueFields(entity)) {
-    final UniqueValue written=new UniqueValueImpl(field,mvccEntity.getId(),mvccEntity.getVersion());
-    batch.add(uniqueValueStrat.writeCQL(scope,written,serializationFig.getTimeout()));
-    uniqueFields.add(field);
+  if (actorSystemFig != null && actorSystemFig.getEnabled()) {
+    verifyUniqueFieldsAkka(ioevent);
   }
-  if (uniqueFields.size() == 0) {
-    return;
-  }
-  session.execute(batch);
-  ConsistentReplayCommand cmd=new ConsistentReplayCommand(uniqueValueStrat,cassandraFig,scope,entity.getId().getType(),uniqueFields,entity);
-  Map<String,Field> uniquenessViolations=cmd.execute();
-  if (!uniquenessViolations.isEmpty()) {
-    throw new WriteUniqueVerifyException(mvccEntity,ioevent.getEntityCollection(),uniquenessViolations);
+ else {
+    verifyUniqueFields(ioevent);
   }
 }

@@ -6,6 +6,9 @@
   Entity item=em.get(id);
   if (item != null) {
     validateEntityType(item,id);
+    if (context.getOwner().getType().equals(TYPE_APPLICATION)) {
+      em.addToCollection(context.getOwner(),context.getCollectionName(),item);
+    }
     updateEntity(context,item,context.getPayload());
     item=importEntity(context,item);
   }

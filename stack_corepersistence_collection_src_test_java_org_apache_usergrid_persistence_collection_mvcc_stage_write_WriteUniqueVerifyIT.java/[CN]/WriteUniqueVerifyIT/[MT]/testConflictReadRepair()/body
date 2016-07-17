@@ -1,0 +1,22 @@
+{
+  final Id appId=new SimpleId("testNoConflict");
+  final ApplicationScope scope=new ApplicationScopeImpl(appId);
+  final EntityCollectionManager entityManager=cmf.createCollectionManager(scope);
+  final Entity entity=TestEntityGenerator.generateEntity();
+  entity.setField(new StringField("name","Porsche 911 GT3",true));
+  entity.setField(new StringField("identifier","911gt3",true));
+  entity.setField(new IntegerField("top_speed_mph",194));
+  entityManager.write(entity,null).toBlocking().last();
+  FieldSet fieldSet=entityManager.getEntitiesFromFields("test",Collections.singletonList(entity.getField("name")),true).toBlocking().last();
+  MvccEntity entityFetched=fieldSet.getEntity(entity.getField("name"));
+  final Entity entityDuplicate=TestEntityGenerator.generateEntity();
+  UniqueValue uniqueValue=new UniqueValueImpl(new StringField("name","Porsche 911 GT3",true),entityDuplicate.getId(),UUIDGenerator.newTimeUUID());
+  session.execute(uniqueValueSerializationStrategy.writeCQL(scope,uniqueValue,-1));
+  FieldSet fieldSetAgain=entityManager.getEntitiesFromFields("test",Collections.singletonList(entity.getField("name")),true).toBlocking().last();
+  MvccEntity entityFetchedAgain=fieldSetAgain.getEntity(entity.getField("name"));
+  assertEquals(entityFetched,entityFetchedAgain);
+  entityManager.write(entity,null).toBlocking().last();
+  FieldSet fieldSetAgainAgain=entityManager.getEntitiesFromFields("test",Collections.singletonList(entity.getField("name")),true).toBlocking().last();
+  MvccEntity entityFetchedAgainAgain=fieldSetAgainAgain.getEntity(entity.getField("name"));
+  assertEquals(entityFetched,entityFetchedAgainAgain);
+}

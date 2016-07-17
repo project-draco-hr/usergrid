@@ -1,30 +1,3 @@
 {
-  final MvccEntity mvccEntity=ioEvent.getEvent();
-  MvccValidationUtils.verifyMvccEntityWithEntity(mvccEntity);
-  final Id entityId=mvccEntity.getId();
-  final UUID version=mvccEntity.getVersion();
-  final ApplicationScope applicationScope=ioEvent.getEntityCollection();
-  final Entity entity=mvccEntity.getEntity().get();
-  EntityUtils.setVersion(entity,version);
-  MvccValidationUtils.verifyMvccEntityWithEntity(ioEvent.getEvent());
-  ValidationUtils.verifyTimeUuid(version,"version");
-  final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,version,Stage.COMMITTED,MvccLogEntry.State.COMPLETE);
-  MutationBatch logMutation=logEntryStrat.write(applicationScope,startEntry);
-  MutationBatch entityMutation=entityStrat.write(applicationScope,mvccEntity);
-  logMutation.mergeShallow(entityMutation);
-  final BatchStatement uniqueBatch=new BatchStatement();
-  for (  Field field : EntityUtils.getUniqueFields(mvccEntity.getEntity().get())) {
-    UniqueValue written=new UniqueValueImpl(field,entityId,version);
-    uniqueBatch.add(uniqueValueStrat.writeCQL(applicationScope,written,-1));
-    logger.debug("Finalizing {} unique value {}",field.getName(),field.getValue().toString());
-  }
-  try {
-    logMutation.execute();
-    session.execute(uniqueBatch);
-  }
- catch (  ConnectionException e) {
-    logger.error("Failed to execute write asynchronously ",e);
-    throw new WriteCommitException(mvccEntity,applicationScope,"Failed to execute write asynchronously ",e);
-  }
-  return ioEvent;
+  return confirmUniqueFields(ioEvent);
 }

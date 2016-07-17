@@ -1,0 +1,56 @@
+{
+  Organization newOrg=createOrgPayload("testAdminRemovalFromOrg",null);
+  Organization orgReturned=clientSetup.getRestClient().management().orgs().post(newOrg);
+  User owner=orgReturned.getOwner();
+  assertNotNull(owner);
+  String orgName=orgReturned.getName();
+  Token ownerToken=management.token().get(owner.getUsername(),orgName);
+  Entity adminUserPayload=new Entity();
+  String newAdminUserName="newAdminUser" + UUIDUtils.newTimeUUID();
+  adminUserPayload.put("username",newAdminUserName);
+  adminUserPayload.put("name",newAdminUserName);
+  adminUserPayload.put("email",newAdminUserName + "@usergrid.com");
+  adminUserPayload.put("password",newAdminUserName);
+  management.token().setToken(ownerToken);
+  management.orgs().org(orgName).users().post(User.class,adminUserPayload);
+  Token adminToken=management.token().get(newAdminUserName,newAdminUserName);
+  assertNotNull(adminToken);
+  try {
+    management.token().setToken(adminToken);
+    management.orgs().org(orgName).get();
+  }
+ catch (  Exception e) {
+    fail("Should have worked: " + e.getMessage());
+  }
+  try {
+    management.token().setToken(ownerToken);
+    management.orgs().org(orgName).users().user(newAdminUserName).delete();
+  }
+ catch (  Exception e) {
+    fail("Should have worked: " + e.getMessage());
+  }
+  try {
+    management.token().setToken(adminToken);
+    management.orgs().org(orgName).get();
+    fail("Should not have allowed org access");
+  }
+ catch (  NotAuthorizedException nae) {
+  }
+catch (  Exception e) {
+    fail("Should have been unauthorized: " + e.getMessage());
+  }
+  try {
+    management.token().setToken(ownerToken);
+    management.orgs().org(orgName).users().user(newAdminUserName).put(new Entity());
+  }
+ catch (  Exception e) {
+    fail("Should have worked: " + e.getMessage());
+  }
+  try {
+    management.token().setToken(adminToken);
+    management.orgs().org(orgName).get();
+  }
+ catch (  Exception e) {
+    fail("Should have worked: " + e.getMessage());
+  }
+}

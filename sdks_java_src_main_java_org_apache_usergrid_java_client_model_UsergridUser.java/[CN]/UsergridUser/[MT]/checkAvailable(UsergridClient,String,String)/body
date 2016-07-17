@@ -1,0 +1,13 @@
+{
+  if (email == null && username == null) {
+    throw new IllegalArgumentException("email and username both are null ");
+  }
+  UsergridQuery query=new UsergridQuery(USER_ENTITY_TYPE);
+  if (username != null) {
+    query.eq(UsergridUserProperties.USERNAME.toString(),username);
+  }
+  if (email != null) {
+    query.or().eq(UsergridUserProperties.EMAIL.toString(),email);
+  }
+  return client.GET(query).first() != null;
+}

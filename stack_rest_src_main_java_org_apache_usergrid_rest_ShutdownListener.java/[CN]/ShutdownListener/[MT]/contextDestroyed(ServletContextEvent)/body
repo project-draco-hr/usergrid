@@ -1,5 +1,9 @@
 {
   logger.info("ShutdownListener invoked");
+  ApplicationContext ctx=WebApplicationContextUtils.getWebApplicationContext(sce.getServletContext());
+  Injector injector=ctx.getBean(Injector.class);
+  ActorSystemManager actorSystemManager=injector.getInstance(ActorSystemManager.class);
+  actorSystemManager.shutdownAll();
   boolean started=Boolean.parseBoolean(properties.getProperty(JobServiceBoostrap.START_SCHEDULER_PROP,"true"));
   if (started) {
     schedulerService.stopAsync();

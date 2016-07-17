@@ -1,0 +1,11 @@
+{
+  final Entity entity=mvccEntity.getEntity().get();
+  try {
+    akkaUvService.confirmUniqueValues(scope,entity,version,region);
+  }
+ catch (  UniqueValueException e) {
+    Map<String,Field> violations=new HashMap<>();
+    violations.put(e.getField().getName(),e.getField());
+    throw new WriteUniqueVerifyException(mvccEntity,scope,violations);
+  }
+}

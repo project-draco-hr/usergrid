@@ -2,7 +2,7 @@
   if (context.moreParameters()) {
     return getItemByName(context,name);
   }
-  Entity entity=em.getUniqueEntityFromAlias(getEntityType(),name);
+  Entity entity=em.getUniqueEntityFromAlias(getEntityType(),name,true);
   if (entity == null) {
     checkPermissionsForCollection(context);
     Map<String,Object> properties=context.getPayload().getProperties();
@@ -14,6 +14,9 @@
  else {
     entity=importEntity(context,entity);
     checkPermissionsForEntity(context,entity);
+    if (context.getOwner().getType().equals(TYPE_APPLICATION)) {
+      em.addToCollection(context.getOwner(),context.getCollectionName(),entity);
+    }
     updateEntity(context,entity);
   }
   return new ServiceResults(this,context,Type.COLLECTION,Results.fromEntity(entity),null,null);

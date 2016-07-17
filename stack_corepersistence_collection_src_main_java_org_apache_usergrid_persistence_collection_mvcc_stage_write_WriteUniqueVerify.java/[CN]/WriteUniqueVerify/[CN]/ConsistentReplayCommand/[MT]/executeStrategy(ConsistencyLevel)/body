@@ -1,6 +1,6 @@
 {
   final UniqueValueSet uniqueValues;
-  uniqueValues=uniqueValueSerializationStrategy.load(scope,consistencyLevel,type,uniqueFields);
+  uniqueValues=uniqueValueSerializationStrategy.load(scope,consistencyLevel,type,uniqueFields,false);
   final Map<String,Field> uniquenessViolations=new HashMap<>(uniqueFields.size());
   for (  final Field field : uniqueFields) {
     final UniqueValue uniqueValue=uniqueValues.getValue(field.getName());
@@ -9,6 +9,9 @@
     }
     final Id returnedEntityId=uniqueValue.getEntityId();
     if (!entity.getId().equals(returnedEntityId)) {
+      if (logger.isTraceEnabled()) {
+        logger.trace("Violation occurred when verifying unique value [{}={}]. " + "Returned entity id [{}] does not match expected entity id [{}]",field.getName(),field.getValue().toString(),returnedEntityId,entity.getId());
+      }
       uniquenessViolations.put(field.getName(),field);
     }
   }

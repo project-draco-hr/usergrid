@@ -1,0 +1,15 @@
+{
+  ApplicationScope scope=new ApplicationScopeImpl(new SimpleId("organization"));
+  IntegerField field=new IntegerField("count",5);
+  Id entityId1=new SimpleId(UUIDGenerator.newTimeUUID(),"entity");
+  UUID version1=UUIDGenerator.newTimeUUID();
+  UUID version2=UUIDGenerator.newTimeUUID();
+  UniqueValue stored1=new UniqueValueImpl(field,entityId1,version1);
+  UniqueValue stored2=new UniqueValueImpl(field,entityId1,version2);
+  session.execute(strategy.writeCQL(scope,stored1,-1));
+  session.execute(strategy.writeCQL(scope,stored2,-1));
+  UniqueValueSet fields=strategy.load(scope,ConsistencyLevel.LOCAL_QUORUM,entityId1.getType(),Collections.<Field>singleton(field),true);
+  UniqueValue retrieved=fields.getValue(field.getName());
+  Assert.assertNotNull(retrieved);
+  assertEquals(stored2,retrieved);
+}

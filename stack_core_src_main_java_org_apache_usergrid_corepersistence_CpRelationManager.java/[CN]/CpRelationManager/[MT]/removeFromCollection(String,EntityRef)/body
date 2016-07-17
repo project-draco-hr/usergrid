@@ -1,2 +1,29 @@
 {
+  if (headEntity.getUuid().equals(applicationId)) {
+    if (collectionName.equals(COLLECTION_ROLES)) {
+      Entity itemEntity=em.get(itemRef);
+      if (itemEntity != null) {
+        RoleRef roleRef=SimpleRoleRef.forRoleEntity(itemEntity);
+        em.deleteRole(roleRef.getApplicationRoleName(),Optional.fromNullable(itemEntity));
+        return;
+      }
+    }
+    em.delete(itemRef);
+    return;
+  }
+  if (logger.isDebugEnabled()) {
+    logger.debug("Loading entity to remove from collection {}:{} from app {}\n",itemRef.getType(),itemRef.getUuid(),applicationScope);
+  }
+  Id entityId=new SimpleId(itemRef.getUuid(),itemRef.getType());
+  removeItemFromCollection(collectionName,itemRef);
+  if (headEntity.getType().equals(Group.ENTITY_TYPE)) {
+    if (collectionName.equals(COLLECTION_ROLES)) {
+      String path=(String)((Entity)itemRef).getMetadata("path");
+      if (path.startsWith("/roles/")) {
+        Entity itemEntity=em.get(new SimpleEntityRef(entityId.getType(),entityId.getUuid()));
+        RoleRef roleRef=SimpleRoleRef.forRoleEntity(itemEntity);
+        em.deleteRole(roleRef.getApplicationRoleName(),Optional.fromNullable(itemEntity));
+      }
+    }
+  }
 }

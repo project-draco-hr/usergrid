@@ -20,5 +20,8 @@
   final Clause uniqueLogEqColumn=QueryBuilder.eq("column1",logColumnValue);
   Statement uniqueLogDelete=QueryBuilder.delete().from(TABLE_UNIQUE_VALUES_LOG).where(uniqueLogEqKey).and(uniqueLogEqColumn);
   batch.add(uniqueLogDelete);
+  if (logger.isTraceEnabled()) {
+    logger.trace("Building batch statement for unique value entity={} version={} name={} value={} ",value.getEntityId().getUuid(),value.getEntityVersion(),value.getField().getName(),value.getField().getValue());
+  }
   return batch;
 }
