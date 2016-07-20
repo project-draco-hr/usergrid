@@ -4,16 +4,16 @@
   SearchResponse searchResponse;
   List<CandidateResult> candidates=new ArrayList<>();
   final int searchLimit=Math.min(100,indexFig.getVersionQueryLimit());
-  final QueryBuilder nodeIdQuery=QueryBuilders.termQuery(IndexingUtils.EDGE_NODE_ID_FIELDNAME,IndexingUtils.nodeId(edge.getNodeId()));
-  final QueryBuilder entityIdQuery=QueryBuilders.termQuery(IndexingUtils.ENTITY_ID_FIELDNAME,IndexingUtils.entityId(entityId));
+  final FilterBuilder nodeIdQuery=FilterBuilders.termFilter(IndexingUtils.EDGE_NODE_ID_FIELDNAME,IndexingUtils.nodeId(edge.getNodeId()));
+  final FilterBuilder entityIdQuery=FilterBuilders.termFilter(IndexingUtils.ENTITY_ID_FIELDNAME,IndexingUtils.entityId(entityId));
   final SearchRequestBuilder srb=searchRequestBuilderStrategyV2.getBuilder().addSort(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME,SortOrder.ASC);
   if (logger.isDebugEnabled()) {
     logger.debug("Searching for edges in (read alias): {}\n  nodeId: {},\n   query: {} ",this.alias.getReadAlias(),entityId,srb);
   }
   try {
     long queryTimestamp=0L;
-    QueryBuilder timestampQuery=QueryBuilders.rangeQuery(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME).gte(queryTimestamp);
-    QueryBuilder finalQuery=QueryBuilders.constantScoreQuery(QueryBuilders.boolQuery().must(entityIdQuery).must(nodeIdQuery).must(timestampQuery));
+    FilterBuilder timestampQuery=FilterBuilders.rangeFilter(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME).gte(queryTimestamp);
+    QueryBuilder finalQuery=QueryBuilders.constantScoreQuery(FilterBuilders.boolFilter().must(entityIdQuery).must(nodeIdQuery).must(timestampQuery));
     searchResponse=srb.setQuery(finalQuery).setSize(searchLimit).execute().actionGet();
     candidates=aggregateScrollResults(candidates,searchResponse,null);
   }
