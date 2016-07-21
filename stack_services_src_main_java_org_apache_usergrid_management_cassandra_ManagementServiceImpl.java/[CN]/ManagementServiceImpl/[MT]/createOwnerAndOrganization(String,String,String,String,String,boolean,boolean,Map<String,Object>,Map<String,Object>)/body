@@ -16,11 +16,22 @@
     if (!validateAdminInfo(username,name,email,password)) {
       return null;
     }
-    if (areActivationChecksDisabled()) {
-      user=createAdminUserInternal(null,username,name,email,password,true,false,userProperties);
+    if (password == null && SubjectUtils.isServiceAdmin()) {
+      user=getAdminUserByEmail(email);
+      if (user == null) {
+        throw new IllegalArgumentException("Password should be sent in the request or should be a valid admin user email.");
+      }
     }
+ else     if (password == null) {
+      throw new IllegalArgumentException("Password should be sent in the request.");
+    }
+    if (user == null) {
+      if ((tokens.isExternalSSOProviderEnabled() && SubjectUtils.isServiceAdmin()) || areActivationChecksDisabled()) {
+        user=createAdminUserInternal(null,username,name,email,password,true,false,userProperties);
+      }
  else {
-      user=createAdminUserInternal(null,username,name,email,password,activated,disabled,userProperties);
+        user=createAdminUserInternal(null,username,name,email,password,activated,disabled,userProperties);
+      }
     }
     if (logger.isTraceEnabled()) {
       logger.debug("createOwnerAndOrganization: User created");
