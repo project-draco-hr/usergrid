@@ -5,8 +5,17 @@
     checkPermissionsForEntity(context,entity);
   }
   if (!em.isCollectionMember(context.getOwner(),context.getCollectionName(),entity)) {
-    logger.info("Someone tried to GET entity {} they don't own. Entity id {} with owner {}",getEntityType(),id,context.getOwner());
-    throw new ServiceResourceNotFoundException(context);
+    if (context.getOwner().getType().equals(TYPE_APPLICATION)) {
+      logger.warn("Edge missing for entity id {} with owner {}. Executing edge read repair to create new edge in " + "collection {}",id,context.getOwner(),context.getCollectionName());
+      em.addToCollection(context.getOwner(),context.getCollectionName(),entity);
+      if (!em.isCollectionMember(context.getOwner(),context.getCollectionName(),entity)) {
+        logger.error("Edge read repair failed for entity id {} with owner {} in collection {}",id,context.getOwner(),context.getCollectionName());
+        throw new ServiceResourceNotFoundException(context);
+      }
+    }
+ else {
+      throw new ServiceResourceNotFoundException(context);
+    }
   }
   List<ServiceRequest> nextRequests=context.getNextServiceRequests(entity);
   return new ServiceResults(this,context,Type.COLLECTION,Results.fromRef(entity),null,nextRequests);

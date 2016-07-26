@@ -3,12 +3,12 @@
   origEntity.setField(new StringField("testField","value"));
   ApplicationScope context=new ApplicationScopeImpl(new SimpleId("organization"));
   EntityCollectionManager manager=factory.createCollectionManager(context);
-  Entity returned=manager.write(origEntity).toBlocking().lastOrDefault(null);
+  Entity returned=manager.write(origEntity,null).toBlocking().lastOrDefault(null);
   UUID oldVersion=returned.getVersion();
   assertNotNull("A version must be assigned",oldVersion);
   Entity updateEntity=new Entity(origEntity.getId());
   updateEntity.setField(new StringField("addedField","other value"));
-  manager.write(updateEntity).toBlocking().lastOrDefault(null);
+  manager.write(updateEntity,null).toBlocking().lastOrDefault(null);
   returned=manager.load(origEntity.getId()).toBlocking().lastOrDefault(null);
   UUID newVersion=returned.getVersion();
   assertNotNull("A new version must be assigned",newVersion);

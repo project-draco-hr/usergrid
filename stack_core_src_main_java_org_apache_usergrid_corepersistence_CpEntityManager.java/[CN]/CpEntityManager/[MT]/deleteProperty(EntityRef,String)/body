@@ -5,7 +5,14 @@
   if (logger.isTraceEnabled()) {
     logger.trace("About to Write {}:{} version {}",cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion());
   }
-  cpEntity=ecm.write(cpEntity).toBlocking().last();
+  String region=null;
+  String collectionName=Schema.defaultCollectionName(entityRef.getType());
+  CollectionSettings collectionSettings=collectionSettingsFactory.getInstance(new CollectionSettingsScopeImpl(getAppIdObject(),collectionName));
+  Optional<Map<String,Object>> existingSettings=collectionSettings.getCollectionSettings(collectionName);
+  if (existingSettings.isPresent()) {
+    region=existingSettings.get().get("region").toString();
+  }
+  cpEntity=ecm.write(cpEntity,region).toBlocking().last();
   if (logger.isTraceEnabled()) {
     logger.trace("Wrote {}:{} version {}",cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion());
   }

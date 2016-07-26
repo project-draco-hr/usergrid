@@ -1,0 +1,18 @@
+{
+  for (  String region : getSeedsByRegion().keySet()) {
+    if (currentRegion.equals(region)) {
+      logger.info("Creating clientActor for region [{}]",region);
+      clientActor=system.actorOf(Props.create(ClientActor.class,routersByMessageType),"clientActor");
+      ClusterClientReceptionist.get(system).registerService(clientActor);
+    }
+ else {
+      List<String> regionSeeds=getSeedsByRegion().get(region);
+      Set<ActorPath> seedPaths=new HashSet<>(20);
+      for (      String seed : getSeedsByRegion().get(region)) {
+        seedPaths.add(ActorPaths.fromString(seed + "/system/receptionist"));
+      }
+      ActorRef clusterClient=system.actorOf(ClusterClient.props(ClusterClientSettings.create(system).withInitialContacts(seedPaths)),"client");
+      clusterClientsByRegion.put(region,clusterClient);
+    }
+  }
+}
