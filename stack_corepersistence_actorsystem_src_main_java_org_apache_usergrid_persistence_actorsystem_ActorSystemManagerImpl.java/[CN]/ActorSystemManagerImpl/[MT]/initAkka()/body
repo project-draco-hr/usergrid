@@ -11,16 +11,8 @@
   }
   List regionList=Arrays.asList(actorSystemFig.getRegionsList().toLowerCase().split(","));
   logger.info("Initializing Akka for hostname {} region {} regionList {} seeds {}",hostname,currentRegion,regionList,actorSystemFig.getSeeds());
-  Config config=readClusterSystemConfig();
-  clusterSystem=createClusterSystemsFromConfigs(config);
+  Config config=createConfiguration();
+  clusterSystem=createClusterSystem(config);
   createClientActors(clusterSystem);
-  for (  RouterProducer routerProducer : routerProducers) {
-    routerProducer.createLocalSystemActors(clusterSystem);
-    Iterator<Class> messageTypes=routerProducer.getMessageTypes().iterator();
-    while (messageTypes.hasNext()) {
-      Class messageType=messageTypes.next();
-      routersByMessageType.put(messageType,routerProducer.getRouterPath());
-    }
-  }
   mediator=DistributedPubSub.get(clusterSystem).mediator();
 }

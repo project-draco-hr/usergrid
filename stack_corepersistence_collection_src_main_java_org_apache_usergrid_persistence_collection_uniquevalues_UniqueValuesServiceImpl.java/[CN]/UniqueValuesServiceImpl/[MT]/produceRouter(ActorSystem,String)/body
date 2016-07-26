@@ -1,4 +1,7 @@
 {
   ClusterSingletonManagerSettings settings=ClusterSingletonManagerSettings.create(system).withRole("io");
   system.actorOf(ClusterSingletonManager.props(Props.create(GuiceActorProducer.class,injector,UniqueValuesRouter.class),PoisonPill.getInstance(),settings),"uvRouter");
+  ClusterSingletonProxySettings proxySettings=ClusterSingletonProxySettings.create(system).withRole(role);
+  system.actorOf(ClusterSingletonProxy.props("/user/uvRouter",proxySettings),"uvProxy");
+  subscribeToReservations(system);
 }
