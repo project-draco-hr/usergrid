@@ -1,3 +1,4 @@
+from multiprocessing import Pool
 import requests
 import logging
 __author__ = 'Jeff West @ ApigeeCorporation'
@@ -11,6 +12,7 @@ excludes = []
 counter = 0
 process = False
 delete_counter = 0
+indexes_to_delete = []
 for index in indices:
     process = False
     counter += 1
@@ -26,7 +28,9 @@ for index in indices:
             if (exclude in index):
                 process = False
     if process:
-        delete_counter += 1
-        url_template = ('%s/%s' % (url_base, index))
-        print ('DELETING Index [%s] %s at URL %s' % (delete_counter, index, url_template))
-        response = requests.delete(('%s/%s' % (url_base, index)))
+        indexes_to_delete.append(index)
+print ('Found [%s] indexes to delete: %s' % (len(indexes_to_delete), indexes_to_delete))
+if (len(indexes_to_delete) > 0):
+    pool = Pool(4)
+    pool.map(delete_index, indexes_to_delete)
+print 'Done!'
