@@ -1,0 +1,25 @@
+def generate_document(self, fields):
+    doc = {}
+    my_bool = True
+    for i in xrange(fields):
+        sentence_index = random.randint(0, max(((fields / 2) - 1), 1))
+        sentence = self.sentence_list[sentence_index]
+        if (random.random() >= 0.5):
+            key = self.re_first_word.findall(sentence)[1]
+        else:
+            key = (self.re_first_word.findall(sentence)[1] + str(i))
+        field_type = random.random()
+        if (field_type <= 0.3):
+            doc[key] = sentence
+        elif (field_type <= 0.5):
+            doc[key] = random.randint(1, 1000000)
+        elif (field_type <= 0.6):
+            doc[key] = (random.random() * 1000000000)
+        elif (field_type == 0.7):
+            doc[key] = my_bool
+            my_bool = (not my_bool)
+        elif (field_type == 0.8):
+            doc[key] = self.generate_document(max((fields / 5), 1))
+        elif (field_type <= 1.0):
+            doc['mylocation'] = self.generate_location()
+    return doc

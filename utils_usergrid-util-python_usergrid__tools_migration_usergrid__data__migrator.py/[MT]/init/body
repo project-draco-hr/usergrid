@@ -1,0 +1,41 @@
+def init():
+    global config
+    if (config.get('migrate') == 'credentials'):
+        if ((config.get('su_password') is None) or (config.get('su_username') is None)):
+            message = 'ABORT: In order to migrate credentials, Superuser parameters (su_password, su_username) are required'
+            print message
+            logger.critical(message)
+            exit()
+    config['collection_mapping'] = {}
+    config['app_mapping'] = {}
+    config['org_mapping'] = {}
+    for mapping in config.get('map_collection', []):
+        parts = mapping.split(':')
+        if (len(parts) == 2):
+            config['collection_mapping'][parts[0]] = parts[1]
+        else:
+            logger.warning(('Skipping Collection mapping: [%s]' % mapping))
+    for mapping in config.get('map_app', []):
+        parts = mapping.split(':')
+        if (len(parts) == 2):
+            config['app_mapping'][parts[0]] = parts[1]
+        else:
+            logger.warning(('Skipping App mapping: [%s]' % mapping))
+    for mapping in config.get('map_org', []):
+        parts = mapping.split(':')
+        if (len(parts) == 2):
+            config['org_mapping'][parts[0]] = parts[1]
+            logger.info(('Mapping Org [%s] to [%s] from mapping [%s]' % (parts[0], parts[1], mapping)))
+        else:
+            logger.warning(('Skipping Org mapping: [%s]' % mapping))
+    with open(config.get('source_config'), 'r') as f:
+        config['source_config'] = json.load(f)
+    with open(config.get('target_config'), 'r') as f:
+        config['target_config'] = json.load(f)
+    if (config['exclude_collection'] is None):
+        config['exclude_collection'] = []
+    config['source_endpoint'] = config['source_config'].get('endpoint').copy()
+    config['source_endpoint'].update(config['source_config']['credentials'][config['org']])
+    target_org = config.get('org_mapping', {}).get(config.get('org'), config.get('org'))
+    config['target_endpoint'] = config['target_config'].get('endpoint').copy()
+    config['target_endpoint'].update(config['target_config']['credentials'][target_org])

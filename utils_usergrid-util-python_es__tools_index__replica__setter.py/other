@@ -1,0 +1,17 @@
+from multiprocessing import Pool
+import requests
+import time
+__author__ = 'Jeff West @ ApigeeCorporation'
+url_base = 'http://localhost:9200'
+r = requests.get((url_base + '/_stats'))
+indices = r.json()['indices']
+print ('retrieved %s indices' % len(indices))
+NUMBER_VALUE = 1
+payload = {'index.number_of_replicas': NUMBER_VALUE, }
+includes = []
+excludes = []
+counter = 0
+update = False
+index_names = sorted([index for index in indices])
+pool = Pool(8)
+pool.map(update_shards, index_names)

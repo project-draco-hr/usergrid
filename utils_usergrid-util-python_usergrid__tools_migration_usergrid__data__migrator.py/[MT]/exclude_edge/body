@@ -1,0 +1,10 @@
+def exclude_edge(collection_name, edge_name):
+    exclude_edges = config.get('exclude_edge', [])
+    if (exclude_edges is None):
+        exclude_edges = []
+    if (edge_name in exclude_edges):
+        logger.debug(('Skipping edge [%s] since it is in EXCLUDED list: %s' % (edge_name, exclude_edges)))
+        return True
+    if (((collection_name in ['users', 'user']) and (edge_name in ['followers', 'feed', 'activities'])) or ((collection_name in ['receipts', 'receipt']) and (edge_name in ['device', 'devices']))):
+        return True
+    return False

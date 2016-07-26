@@ -1,0 +1,22 @@
+def update_shards(index_name):
+    update = False
+    if (len(includes) == 0):
+        update = True
+    else:
+        for include in includes:
+            if (include in index_name):
+                update = True
+    if (len(excludes) > 0):
+        for exclude in excludes:
+            if (exclude in index_name):
+                update = False
+    if update:
+        print index_name
+        success = False
+        while (not success):
+            response = requests.put(('%s/%s/_settings' % (url_base, index_name)), data=payload)
+            if (response.status_code == 200):
+                success = True
+                print ('200: %s: %s' % (index_name, response.text))
+            else:
+                print ('%s: %s: %s' % (response.status_code, index_name, response.text))

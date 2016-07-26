@@ -1,0 +1,32 @@
+def migrate_out_graph_edge_type(app, collection_name, source_entity, edge_name, depth=0):
+    if (not include_edge(collection_name, edge_name)):
+        return True
+    source_uuid = source_entity.get('uuid')
+    key = ('%s:edge:out:%s:%s' % (key_version, source_uuid, edge_name))
+    if (not config.get('skip_cache_read', False)):
+        date_visited = cache.get(key)
+        if (date_visited not in [None, 'None']):
+            logger.info(('Skipping EDGE [%s / %s --%s-->] - visited at %s' % (collection_name, source_uuid, edge_name, date_visited)))
+            return True
+        else:
+            cache.delete(key)
+    if (not config.get('skip_cache_write', False)):
+        cache.set(name=key, value=str(int(time.time())), ex=config.get('visit_cache_ttl', (3600 * 2)))
+    logger.debug(('Visiting EDGE [%s / %s (%s) --%s-->] at %s' % (collection_name, source_uuid, get_uuid_time(source_uuid), edge_name, str(datetime.datetime.utcnow()))))
+    response = True
+    source_identifier = get_source_identifier(source_entity)
+    count_edges = 0
+    logger.debug(('Processing edge type=[%s] of entity [%s / %s / %s]' % (edge_name, app, collection_name, source_identifier)))
+    (target_app, target_collection, target_org) = get_target_mapping(app, collection_name)
+    connection_query_url = connection_query_url_template.format(org=config.get('org'), app=app, verb=edge_name, collection=collection_name, uuid=source_identifier, limit=config.get('limit'), **config.get('source_endpoint'))
+    connection_query = UsergridQueryIterator(connection_query_url, sleep_time=config.get('error_retry_sleep'))
+    connection_stack = []
+    for target_entity in connection_query:
+        target_connection_collection = config.get('collection_mapping', {}).get(target_entity.get('type'), target_entity.get('type'))
+        target_ok = migrate_graph(app, target_entity.get('type'), source_entity=target_entity, depth=depth)
+        if (not target_ok):
+            logger.critical(('Error migrating TARGET entity data for connection [%s / %s / %s] --[%s]--> [%s / %s / %s]' % (app, collection_name, source_identifier, edge_name, app, target_connection_collection, target_entity.get('name', target_entity.get('uuid')))))
+        count_edges += 1
+        connection_stack.append(target_entity)
+    process_edges(app, collection_name, source_entity, edge_name, connection_stack)
+    return response

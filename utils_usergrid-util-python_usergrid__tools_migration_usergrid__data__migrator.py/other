@@ -1,0 +1,66 @@
+import os
+import uuid
+from Queue import Empty
+import argparse
+import json
+import logging
+import sys
+from multiprocessing import Queue, Process
+from sets import Set
+import time_uuid
+import datetime
+from cloghandler import ConcurrentRotatingFileHandler
+import requests
+import traceback
+import redis
+import time
+from sys import platform as _platform
+import signal
+from requests.auth import HTTPBasicAuth
+from usergrid import UsergridQueryIterator
+import urllib3
+__author__ = 'Jeff West @ ApigeeCorporation'
+ECID = str(uuid.uuid1())
+key_version = 'v4'
+logger = logging.getLogger('GraphMigrator')
+worker_logger = logging.getLogger('Worker')
+collection_worker_logger = logging.getLogger('CollectionWorker')
+error_logger = logging.getLogger('ErrorLogger')
+audit_logger = logging.getLogger('AuditLogger')
+status_logger = logging.getLogger('StatusLogger')
+urllib3.disable_warnings()
+DEFAULT_CREATE_APPS = False
+DEFAULT_RETRY_SLEEP = 10
+DEFAULT_PROCESSING_SLEEP = 1
+queue = Queue()
+QSIZE_OK = False
+try:
+    queue.qsize()
+    QSIZE_OK = True
+except:
+    pass
+session_source = requests.Session()
+session_target = requests.Session()
+cache = None
+entity_name_map = {'users': 'username', }
+config = {}
+org_management_app_url_template = '{api_url}/management/organizations/{org}/applications?client_id={client_id}&client_secret={client_secret}'
+org_management_url_template = '{api_url}/management/organizations/{org}/applications?client_id={client_id}&client_secret={client_secret}'
+org_url_template = '{api_url}/{org}?client_id={client_id}&client_secret={client_secret}'
+app_url_template = '{api_url}/{org}/{app}?client_id={client_id}&client_secret={client_secret}'
+collection_url_template = '{api_url}/{org}/{app}/{collection}?client_id={client_id}&client_secret={client_secret}'
+collection_query_url_template = '{api_url}/{org}/{app}/{collection}?ql={ql}&client_id={client_id}&client_secret={client_secret}&limit={limit}'
+collection_graph_url_template = '{api_url}/{org}/{app}/{collection}?client_id={client_id}&client_secret={client_secret}&limit={limit}'
+connection_query_url_template = '{api_url}/{org}/{app}/{collection}/{uuid}/{verb}?client_id={client_id}&client_secret={client_secret}'
+connecting_query_url_template = '{api_url}/{org}/{app}/{collection}/{uuid}/connecting/{verb}?client_id={client_id}&client_secret={client_secret}'
+connection_create_by_uuid_url_template = '{api_url}/{org}/{app}/{collection}/{uuid}/{verb}/{target_uuid}?client_id={client_id}&client_secret={client_secret}'
+connection_create_by_name_url_template = '{api_url}/{org}/{app}/{collection}/{uuid}/{verb}/{target_type}/{target_name}?client_id={client_id}&client_secret={client_secret}'
+connection_create_by_pairs_url_template = '{api_url}/{org}/{app}/{source_type_id}/{verb}/{target_type_id}?client_id={client_id}&client_secret={client_secret}'
+get_entity_url_template = '{api_url}/{org}/{app}/{collection}/{uuid}?client_id={client_id}&client_secret={client_secret}&connections=none'
+get_entity_url_with_connections_template = '{api_url}/{org}/{app}/{collection}/{uuid}?client_id={client_id}&client_secret={client_secret}'
+put_entity_url_template = '{api_url}/{org}/{app}/{collection}/{uuid}?client_id={client_id}&client_secret={client_secret}'
+permissions_url_template = '{api_url}/{org}/{app}/{collection}/{uuid}/permissions?client_id={client_id}&client_secret={client_secret}'
+user_credentials_url_template = '{api_url}/{org}/{app}/users/{uuid}/credentials'
+ignore_collections = ['activities', 'queues', 'events', 'notifications']
+if (__name__ == '__main__'):
+    main()

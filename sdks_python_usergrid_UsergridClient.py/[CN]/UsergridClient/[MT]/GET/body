@@ -1,0 +1,7 @@
+def GET(self, collection, uuid_name, connections='none', auth=None, **kwargs):
+    url = get_entity_url_template.format(collection=collection, uuid_name=uuid_name, connections=connections, **self.url_data)
+    if auth:
+        r = requests.get(url, headers={'Authorization': ('Bearer %s' % auth.access_token), })
+    else:
+        r = self.session.get(url)
+    return UsergridResponse(r, self)

@@ -1,0 +1,28 @@
+import json
+from multiprocessing import Pool
+import requests
+import time
+org_management_app_url_template = '{api_url}/management/organizations/{org}/applications?client_id={client_id}&client_secret={client_secret}'
+org_management_url_template = '{api_url}/management/organizations/{org}/applications?client_id={client_id}&client_secret={client_secret}'
+org_url_template = '{api_url}/{org}?client_id={client_id}&client_secret={client_secret}'
+app_url_template = '{api_url}/{org}/{app}?client_id={client_id}&client_secret={client_secret}'
+collection_url_template = '{api_url}/{org}/{app}/{collection}?client_id={client_id}&client_secret={client_secret}'
+collection_query_url_template = '{api_url}/{org}/{app}/{collection}?ql={ql}&client_id={client_id}&client_secret={client_secret}&limit={limit}'
+collection_graph_url_template = '{api_url}/{org}/{app}/{collection}?client_id={client_id}&client_secret={client_secret}&limit={limit}'
+connection_query_url_template = '{api_url}/{org}/{app}/{collection}/{uuid}/{verb}?client_id={client_id}&client_secret={client_secret}'
+connecting_query_url_template = '{api_url}/{org}/{app}/{collection}/{uuid}/connecting/{verb}?client_id={client_id}&client_secret={client_secret}'
+connection_create_by_uuid_url_template = '{api_url}/{org}/{app}/{collection}/{uuid}/{verb}/{target_uuid}?client_id={client_id}&client_secret={client_secret}'
+connection_create_by_name_url_template = '{api_url}/{org}/{app}/{collection}/{uuid}/{verb}/{target_type}/{target_name}?client_id={client_id}&client_secret={client_secret}'
+get_entity_url_template = '{api_url}/{org}/{app}/{collection}/{uuid}?client_id={client_id}&client_secret={client_secret}&connections=none'
+get_entity_url_with_connections_template = '{api_url}/{org}/{app}/{collection}/{uuid}?client_id={client_id}&client_secret={client_secret}'
+put_entity_url_template = '{api_url}/{org}/{app}/{collection}/{uuid}?client_id={client_id}&client_secret={client_secret}'
+permissions_url_template = '{api_url}/{org}/{app}/{collection}/{uuid}/permissions?client_id={client_id}&client_secret={client_secret}'
+user_credentials_url_template = '{api_url}/{org}/{app}/users/{uuid}/credentials'
+org = 'myOrg'
+config = {'endpoint': {'api_url': 'https://host', }, 'credentials': {'myOrg': {'client_id': 'foo-zw', 'client_secret': 'bar', }, }, }
+api_url = config.get('endpoint').get('api_url')
+all_creds = config.get('credentials')
+creds = config.get('credentials').get(org)
+apps = list_apps()
+pool = Pool(12)
+pool.map(set_default_role, apps)

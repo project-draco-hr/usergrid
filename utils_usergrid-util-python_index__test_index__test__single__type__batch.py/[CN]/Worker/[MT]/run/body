@@ -1,0 +1,20 @@
+def run(self):
+    print ('Starting %s ' % self.name)
+    counter = 0
+    docs = {}
+    while True:
+        index_batch_size = args.get('batch_size')
+        task = self.work_queue.get(timeout=600)
+        counter += 1
+        document = self.generate_document(task['field_count'])
+        flattened_doc = self.process_document(document, task['type'], task['uuid'], task['uuid'])
+        index_type_tuple = (task['index'], task['type'])
+        doc_array = docs.get(index_type_tuple)
+        if (doc_array is None):
+            doc_array = []
+            docs[index_type_tuple] = doc_array
+        doc_array.append(flattened_doc)
+        if (len(doc_array) >= index_batch_size):
+            self.handle_batch(task['index'], task['type'], doc_array)
+            doc_array = []
+        self.work_queue.task_done()

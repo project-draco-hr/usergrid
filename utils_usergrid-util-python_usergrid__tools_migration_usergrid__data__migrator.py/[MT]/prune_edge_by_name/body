@@ -1,0 +1,29 @@
+def prune_edge_by_name(edge_name, app, collection_name, source_entity):
+    if (not include_edge(collection_name, edge_name)):
+        return True
+    source_identifier = get_source_identifier(source_entity)
+    source_uuid = source_entity.get('uuid')
+    entity_tag = ('[%s / %s / %s (%s)]' % (app, collection_name, source_uuid, get_uuid_time(source_uuid)))
+    (target_app, target_collection, target_org) = get_target_mapping(app, collection_name)
+    target_connection_query_url = connection_query_url_template.format(org=target_org, app=target_app, verb=edge_name, collection=target_collection, uuid=source_identifier, limit=config.get('limit'), **config.get('target_endpoint'))
+    source_connection_query_url = connection_query_url_template.format(org=config.get('org'), app=app, verb=edge_name, collection=collection_name, uuid=source_identifier, limit=config.get('limit'), **config.get('source_endpoint'))
+    source_connections = collect_entities(UsergridQueryIterator(source_connection_query_url, sleep_time=config.get('error_retry_sleep')))
+    target_connections = collect_entities(UsergridQueryIterator(target_connection_query_url, sleep_time=config.get('error_retry_sleep')))
+    delete_uuids = (Set(target_connections.keys()) - Set(source_connections.keys()))
+    if (len(delete_uuids) > 0):
+        logger.info(('Found [%s] edges to delete for entity %s' % (len(delete_uuids), entity_tag)))
+        for delete_uuid in delete_uuids:
+            delete_connection_url = connection_create_by_uuid_url_template.format(org=target_org, app=target_app, verb=edge_name, collection=target_collection, uuid=source_identifier, target_uuid=delete_uuid, **config.get('target_endpoint'))
+            attempts = 0
+            while (attempts < 5):
+                attempts += 1
+                r = session_target.delete(delete_connection_url)
+                if (not config.get('skip_cache_write')):
+                    cache.delete(delete_connection_url)
+                if (r.status_code == 200):
+                    logger.info(('Pruned edge on attempt [%s] URL=[%s]' % (attempts, delete_connection_url)))
+                    break
+                else:
+                    logger.error(('Error [%s] on attempt [%s] deleting connection at URL=[%s]: %s' % (r.status_code, attempts, delete_connection_url, r.text)))
+                    time.sleep(DEFAULT_RETRY_SLEEP)
+    return True

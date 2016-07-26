@@ -1,0 +1,19 @@
+def wait_for_index(entity_id, tag, wait_time=0.25):
+    start = datetime.datetime.now()
+    url = query_url_template.format(tag=tag, **config.get('url_data'))
+    logger.info(('GET %s' % url))
+    entities = []
+    elapsed = 0
+    while (len(entities) <= 0):
+        r = session.get(url)
+        if (r.status_code != 200):
+            logger.critical(('Unable to query, url=[%s]: %s' % (url, r.text)))
+            return False
+        else:
+            res = r.json()
+            entities = res.get('entities')
+            last_time = datetime.datetime.now()
+            elapsed = (last_time - start)
+            logger.info(('Tag [%s] not applied to [%s] after [%s].  Waiting [%s]...' % (tag, entity_id, elapsed, wait_time)))
+            time.sleep(wait_time)
+    logger.info(('++Tag applied after [%s]!' % elapsed))

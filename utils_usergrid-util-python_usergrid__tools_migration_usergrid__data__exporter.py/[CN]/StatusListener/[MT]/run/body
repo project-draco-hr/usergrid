@@ -1,0 +1,59 @@
+def run(self):
+    keep_going = True
+    org_results = {'name': config.get('org'), 'apps': {}, }
+    empty_count = 0
+    while keep_going:
+        try:
+            (app, collection, status_map) = self.status_queue.get(timeout=60)
+            status_logger.info(('Received status update for app/collection: [%s / %s]' % (app, collection)))
+            empty_count = 0
+            org_results['summary'] = {'max_created': (-1), 'max_modified': (-1), 'min_created': 1584946416000, 'min_modified': 1584946416000, 'count': 0, 'bytes': 0, }
+            if (app not in org_results['apps']):
+                org_results['apps'][app] = {'collections': {}, }
+            org_results['apps'][app]['collections'].update(status_map)
+            try:
+                for (app, app_data) in org_results['apps'].iteritems():
+                    app_data['summary'] = {'max_created': (-1), 'max_modified': (-1), 'min_created': 1584946416000, 'min_modified': 1584946416000, 'count': 0, 'bytes': 0, }
+                    if ('collections' in app_data):
+                        for (collection, collection_data) in app_data['collections'].iteritems():
+                            app_data['summary']['count'] += collection_data['count']
+                            app_data['summary']['bytes'] += collection_data['bytes']
+                            org_results['summary']['count'] += collection_data['count']
+                            org_results['summary']['bytes'] += collection_data['bytes']
+                            if (collection_data.get('max_modified') > app_data['summary']['max_modified']):
+                                app_data['summary']['max_modified'] = collection_data.get('max_modified')
+                            if (collection_data.get('min_modified') < app_data['summary']['min_modified']):
+                                app_data['summary']['min_modified'] = collection_data.get('min_modified')
+                            if (collection_data.get('max_created') > app_data['summary']['max_created']):
+                                app_data['summary']['max_created'] = collection_data.get('max_created')
+                            if (collection_data.get('min_created') < app_data['summary']['min_created']):
+                                app_data['summary']['min_created'] = collection_data.get('min_created')
+                            if (collection_data.get('max_modified') > org_results['summary']['max_modified']):
+                                org_results['summary']['max_modified'] = collection_data.get('max_modified')
+                            if (collection_data.get('min_modified') < org_results['summary']['min_modified']):
+                                org_results['summary']['min_modified'] = collection_data.get('min_modified')
+                            if (collection_data.get('max_created') > org_results['summary']['max_created']):
+                                org_results['summary']['max_created'] = collection_data.get('max_created')
+                            if (collection_data.get('min_created') < org_results['summary']['min_created']):
+                                org_results['summary']['min_created'] = collection_data.get('min_created')
+                    if QSIZE_OK:
+                        status_logger.warn(('CURRENT Queue Depth: %s' % self.worker_queue.qsize()))
+                    status_logger.warn(('UPDATED status of org processed: %s' % json.dumps(org_results)))
+            except KeyboardInterrupt as e:
+                raise e
+            except:
+                print traceback.format_exc()
+        except KeyboardInterrupt as e:
+            status_logger.warn(('FINAL status of org processed: %s' % json.dumps(org_results)))
+            raise e
+        except Empty:
+            if QSIZE_OK:
+                status_logger.warn(('CURRENT Queue Depth: %s' % self.worker_queue.qsize()))
+            status_logger.warn(('CURRENT status of org processed: %s' % json.dumps(org_results)))
+            status_logger.warning(('EMPTY! Count=%s' % empty_count))
+            empty_count += 1
+            if (empty_count >= 120):
+                keep_going = False
+        except:
+            print traceback.format_exc()
+    logger.warn(('FINAL status of org processed: %s' % json.dumps(org_results)))

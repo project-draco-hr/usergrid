@@ -1,0 +1,24 @@
+def main():
+    global sqs_conn, sqs_queue
+    args = parse_args()
+    start_time = datetime.datetime.utcnow()
+    first_start_time = start_time
+    print ('first start: %s' % first_start_time)
+    with open(args.get('config'), 'r') as f:
+        config = json.load(f)
+    sqs_config = config.get('sqs')
+    sqs_conn = boto.sqs.connect_to_region(**sqs_config)
+    queue_name = 'baas20sr_usea_baas20sr_usea_index_all_dead'
+    sqs_queue = sqs_conn.get_queue(queue_name)
+    last_size = sqs_queue.count()
+    print ('Last Size: ' + str(last_size))
+    pool = Pool(10)
+    keep_going = True
+    while keep_going:
+        sqs_messages = sqs_queue.get_messages(num_messages=10, visibility_timeout=10, wait_time_seconds=10)
+        if (len(sqs_messages) > 0):
+            pool.map(check_exists, sqs_messages)
+        else:
+            print 'DONE!'
+            pool.terminate()
+            keep_going = False

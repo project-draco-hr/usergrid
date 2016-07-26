@@ -1,0 +1,20 @@
+def main():
+    global config
+    processes = Pool(32)
+    config = parse_args()
+    init()
+    init_logging()
+    if ((config.get('client_id') is not None) and (config.get('client_secret') is not None)):
+        token_request = {'grant_type': 'client_credentials', 'client_id': config.get('client_id'), 'client_secret': config.get('client_secret'), }
+        r = session.post(config.get('token_url'), json.dumps(token_request))
+        if (r.status_code == 200):
+            access_token = r.json().get('access_token')
+            session.headers.update({'Authorization': ('Bearer %s' % access_token), })
+        else:
+            logger.critical(('unable to get token: %s' % r.text))
+            exit(1)
+    try:
+        test_entity_update()
+    except KeyboardInterrupt:
+        pass
+        processes.terminate()

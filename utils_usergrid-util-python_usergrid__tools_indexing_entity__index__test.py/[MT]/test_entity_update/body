@@ -1,0 +1,20 @@
+def test_entity_update():
+    start_tag = datetime.datetime.now().strftime('tag-%yx%mx%dx%Hx%Mx%S')
+    name = datetime.datetime.now().strftime('name-%yx%mx%dx%Hx%Mx%S')
+    entity = create_entity(name, start_tag)
+    if (entity is None):
+        logger.critical('Entity not created, cannot continue')
+        return
+    uuid = entity.get('uuid')
+    for x in xrange(0, 10):
+        tag = datetime.datetime.now().strftime('tag-%yx%mx%dx%Hx%Mx%S')
+        logger.info(('Testing tag [%s] on entity [%s]' % (tag, name)))
+        updated = update_entity(name, tag)
+        if updated:
+            wait_for_index(name, tag)
+    for x in xrange(0, 10):
+        tag = datetime.datetime.now().strftime('tag-%yx%mx%dx%Hx%Mx%S')
+        logger.info(('Testing tag [%s] on entity [%s]' % (tag, uuid)))
+        updated = update_entity(uuid, tag)
+        if updated:
+            wait_for_index(uuid, tag)

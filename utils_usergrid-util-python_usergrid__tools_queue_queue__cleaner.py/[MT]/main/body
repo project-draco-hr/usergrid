@@ -1,0 +1,17 @@
+def main():
+    args = parse_args()
+    queue_name = args.get('queue_name')
+    print ('queue_name=%s' % queue_name)
+    start_time = datetime.datetime.utcnow()
+    first_start_time = start_time
+    print ('first start: %s' % first_start_time)
+    with open(args.get('config'), 'r') as f:
+        config = json.load(f)
+    sqs_config = config.get('sqs')
+    last_time = datetime.datetime.utcnow()
+    work_queue = Queue()
+    deleters = [Deleter(queue_name, sqs_config, work_queue) for x in xrange(100)]
+    [w.start() for w in deleters]
+    workers = [Worker(queue_name, sqs_config, work_queue) for x in xrange(100)]
+    [w.start() for w in workers]
+    time.sleep(60)

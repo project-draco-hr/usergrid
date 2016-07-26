@@ -1,0 +1,8 @@
+def create_connections():
+    for (from_collection, entity_map) in global_connections.iteritems():
+        for (from_entity_uuid, entity_connections) in entity_map.iteritems():
+            from_entity = build_usergrid_entity(from_collection, from_entity_uuid)
+            for (to_entity_id, to_entity_collection) in entity_connections.iteritems():
+                to_entity = build_usergrid_entity(to_entity_collection, parse_id_to_uuid_map.get(to_entity_id))
+                connect_entities(from_entity, to_entity, 'pointers')
+                connect_entities(to_entity, from_entity, 'pointers')

@@ -1,0 +1,28 @@
+def migrate_in_graph_edge_type(app, collection_name, source_entity, edge_name, depth=0):
+    source_uuid = source_entity.get('uuid')
+    key = ('%s:edges:in:%s:%s' % (key_version, source_uuid, edge_name))
+    if (not config.get('skip_cache_read', False)):
+        date_visited = cache.get(key)
+        if (date_visited not in [None, 'None']):
+            logger.info(('Skipping EDGE [--%s--> %s / %s] - visited at %s' % (collection_name, source_uuid, edge_name, date_visited)))
+            return True
+        else:
+            cache.delete(key)
+    if (not config.get('skip_cache_write', False)):
+        cache.set(name=key, value=str(int(time.time())), ex=config.get('visit_cache_ttl', (3600 * 2)))
+    logger.debug(('Visiting EDGE [--%s--> %s / %s (%s)] at %s' % (edge_name, collection_name, source_uuid, get_uuid_time(source_uuid), str(datetime.datetime.utcnow()))))
+    source_identifier = get_source_identifier(source_entity)
+    if exclude_collection(collection_name):
+        logger.debug(('Excluding (Collection) entity [%s / %s / %s]' % (app, collection_name, source_uuid)))
+        return True
+    if (not include_edge(collection_name, edge_name)):
+        return True
+    logger.debug(('Processing edge type=[%s] of entity [%s / %s / %s]' % (edge_name, app, collection_name, source_identifier)))
+    logger.debug(('Processing IN edges type=[%s] of entity [ %s / %s / %s]' % (edge_name, app, collection_name, source_uuid)))
+    connecting_query_url = connecting_query_url_template.format(org=config.get('org'), app=app, collection=collection_name, uuid=source_uuid, verb=edge_name, limit=config.get('limit'), **config.get('source_endpoint'))
+    connection_query = UsergridQueryIterator(connecting_query_url, sleep_time=config.get('error_retry_sleep'))
+    response = True
+    for e_connection in connection_query:
+        logger.debug(('Triggering IN->OUT edge migration on entity [%s / %s / %s] ' % (app, e_connection.get('type'), e_connection.get('uuid'))))
+        response = (migrate_graph(app, e_connection.get('type'), e_connection, depth) and response)
+    return response

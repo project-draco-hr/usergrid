@@ -1,0 +1,9 @@
+def authenticate(self, client):
+    token_request = self.get_token_request()
+    url = self.url_template.format(**client.url_data)
+    r = requests.post(url, data=json.dumps(token_request))
+    if (r.status_code == 200):
+        response = r.json()
+        self.access_token = response.get('access_token')
+    else:
+        raise ValueError(('Unable to authenticate: %s' % r.text))

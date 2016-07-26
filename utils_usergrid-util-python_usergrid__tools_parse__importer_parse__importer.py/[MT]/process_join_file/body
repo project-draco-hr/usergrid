@@ -1,0 +1,25 @@
+def process_join_file(working_directory, join_file):
+    file_path = os.path.join(working_directory, join_file)
+    logger.warn(('Processing Join file: %s' % file_path))
+    parts = join_file.split(':')
+    if (len(parts) != 3):
+        logger.warn(('Did not find expected 3 parts in JOIN filename: %s' % join_file))
+        return
+    related_type = parts[1]
+    owning_type = parts[2].split('.')[0]
+    owning_type = (owning_type[1:] if (owning_type[0] == '_') else owning_type)
+    with open(file_path, 'r') as f:
+        try:
+            json_data = json.load(f)
+        except ValueError as e:
+            print traceback.format_exc(e)
+            logger.error(('Unable to process file: %s' % file_path))
+            return
+        entities = json_data.get('results')
+        for join in entities:
+            owning_id = join.get('owningId')
+            related_id = join.get('relatedId')
+            owning_entity = build_usergrid_entity(owning_type, parse_id_to_uuid_map.get(owning_id))
+            related_entity = build_usergrid_entity(related_type, parse_id_to_uuid_map.get(related_id))
+            connect_entities(owning_entity, related_entity, 'joins')
+            connect_entities(related_entity, owning_entity, 'joins')

@@ -1,0 +1,34 @@
+def delete_collections(org, app, collections, token):
+    print ('Deleting [%s] collections: %s' % (len(collections), collections))
+    for collection in collections:
+        print ('Deleting collection [%s]...' % collection)
+        keep_going = True
+        count_with_zero = 0
+        while keep_going:
+            url = url_template.format(api_url=api_url, org=org, app=app, collection=collection)
+            try:
+                response = session.get(url)
+                check_response_status(response, message=('Unable to GET URL: %s' % url))
+                count = len(response.json().get('entities'))
+                total_ms = total_milliseconds(response.elapsed)
+                print ('GET %s from collection %s in %s' % (count, collection, total_ms))
+                print 'Deleting...'
+                response = session.delete(url)
+                check_response_status(response, message=('UNABLE TO DELETE on URL: %s' % url))
+                try:
+                    count = len(response.json().get('entities'))
+                    total_ms = total_milliseconds(response.elapsed)
+                    print ('Deleted %s from collection %s in %s' % (count, collection, total_ms))
+                    if (count == 0):
+                        count_with_zero += 1
+                        print ('Count with ZERO: %s' % count_with_zero)
+                        if (count_with_zero >= 10):
+                            keep_going = False
+                    else:
+                        count_with_zero = 0
+                except:
+                    print ('Error! HTTP Status: %s response: %s' % (response.status_code, response.text))
+            except KeyboardInterrupt:
+                exit()
+            except:
+                print traceback.format_exc()

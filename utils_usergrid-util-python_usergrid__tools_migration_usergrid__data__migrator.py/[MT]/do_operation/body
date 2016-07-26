@@ -1,0 +1,44 @@
+def do_operation(apps_and_collections, operation):
+    status_map = {}
+    logger.info('Creating queues...')
+    if ((_platform == 'linux') or (_platform == 'linux2')):
+        entity_queue = Queue(maxsize=config.get('queue_size_max'))
+        collection_queue = Queue(maxsize=config.get('queue_size_max'))
+        collection_response_queue = Queue(maxsize=config.get('queue_size_max'))
+    else:
+        entity_queue = Queue()
+        collection_queue = Queue()
+        collection_response_queue = Queue()
+    logger.info('Starting entity_workers...')
+    collection_count = 0
+    entity_workers = [EntityWorker(entity_queue, operation) for x in xrange(config.get('entity_workers'))]
+    collection_workers = [CollectionWorker(collection_queue, entity_queue, collection_response_queue) for x in xrange(config.get('collection_workers'))]
+    status_listener = StatusListener(collection_response_queue, entity_queue)
+    try:
+        for (app, app_data) in apps_and_collections.get('apps', {}).iteritems():
+            logger.info(('Processing app=[%s]' % app))
+            status_map[app] = {'iteration_started': str(datetime.datetime.now()), 'max_created': (-1), 'max_modified': (-1), 'min_created': 1584946416000, 'min_modified': 1584946416000, 'count': 0, 'bytes': 0, 'collections': {}, }
+            for collection_name in app_data.get('collections'):
+                logger.info(('Publishing app / collection: %s / %s' % (app, collection_name)))
+                collection_count += 1
+                collection_queue.put((app, collection_name))
+            logger.info(('Finished publishing [%s] collections for app [%s] !' % (collection_count, app)))
+        if (collection_count > 0):
+            status_listener.start()
+            [w.start() for w in collection_workers]
+            [w.start() for w in entity_workers]
+            wait_for(collection_workers, label='collection_workers', sleep_time=60)
+            wait_for(entity_workers, label='entity_workers', sleep_time=60)
+            status_listener.terminate()
+    except KeyboardInterrupt:
+        logger.warning('Keyboard Interrupt, aborting...')
+        entity_queue.close()
+        collection_queue.close()
+        collection_response_queue.close()
+        [os.kill(super(EntityWorker, p).pid, signal.SIGINT) for p in entity_workers]
+        [os.kill(super(CollectionWorker, p).pid, signal.SIGINT) for p in collection_workers]
+        os.kill(super(StatusListener, status_listener).pid, signal.SIGINT)
+        [w.terminate() for w in entity_workers]
+        [w.terminate() for w in collection_workers]
+        status_listener.terminate()
+    logger.info('entity_workers DONE!')

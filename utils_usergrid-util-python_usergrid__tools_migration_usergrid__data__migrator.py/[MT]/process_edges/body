@@ -1,0 +1,8 @@
+def process_edges(app, collection_name, source_entity, edge_name, connection_stack):
+    source_identifier = get_source_identifier(source_entity)
+    while (len(connection_stack) > 0):
+        target_entity = connection_stack.pop()
+        if (exclude_collection(collection_name) or exclude_collection(target_entity.get('type'))):
+            logger.debug(('EXCLUDING Edge (collection): [%s / %s / %s] --[%s]--> ?' % (app, collection_name, source_identifier, edge_name)))
+            continue
+        create_connection(app, collection_name, source_entity, edge_name, target_entity)

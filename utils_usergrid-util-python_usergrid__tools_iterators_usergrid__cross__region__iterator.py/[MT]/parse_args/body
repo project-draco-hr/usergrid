@@ -1,0 +1,15 @@
+def parse_args():
+    DEFAULT_WORKERS = 16
+    DEFAULT_TOKEN_TTL = 25200000
+    parser = argparse.ArgumentParser(description='Usergrid Cross-Region Repair Script')
+    parser.add_argument('-o', '--org', help='The org to iterate', type=str, required=True)
+    parser.add_argument('-a', '--app', help='The org to iterate', action='append', default=[])
+    parser.add_argument('-c', '--collection', help='The org to iterate', action='append', default=[])
+    parser.add_argument('-p', '--password', help='The Password for the token request', type=str, required=True)
+    parser.add_argument('-u', '--username', help='The Username for the token request', type=str, required=True)
+    parser.add_argument('-w', '--workers', help='The Password for the token request', type=int, default=DEFAULT_WORKERS)
+    parser.add_argument('--ttl', help='The TTL for the token request', type=int, default=DEFAULT_TOKEN_TTL)
+    parser.add_argument('-l', '--limit', help='The global limit for QL requests', type=int, default=(DEFAULT_WORKERS * 3))
+    parser.add_argument('-f', '--config', help='The file from which to load the configuration', type=str)
+    my_args = parser.parse_args(sys.argv[1:])
+    return vars(my_args)

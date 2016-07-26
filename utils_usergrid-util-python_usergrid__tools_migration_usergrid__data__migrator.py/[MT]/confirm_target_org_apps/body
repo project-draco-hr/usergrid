@@ -1,0 +1,21 @@
+def confirm_target_org_apps(apps_and_collections):
+    for app in apps_and_collections.get('apps'):
+        target_org = config.get('org_mapping', {}).get(config.get('org'), config.get('org'))
+        target_app = config.get('app_mapping', {}).get(app, app)
+        target_app_url = app_url_template.format(org=target_org, app=target_app, **config.get('target_endpoint'))
+        logger.info(('GET %s' % target_app_url))
+        r_target_apps = session_target.get(target_app_url)
+        if (r_target_apps.status_code != 200):
+            if config.get('create_apps', DEFAULT_CREATE_APPS):
+                create_app_url = org_management_app_url_template.format(org=target_org, app=target_app, **config.get('target_endpoint'))
+                app_request = {'name': target_app, }
+                r = session_target.post(create_app_url, data=json.dumps(app_request))
+                if (r.status_code != 200):
+                    logger.critical(('--create_apps specified and unable to create app [%s] at URL=[%s]: %s' % (target_app, create_app_url, r.text)))
+                    logger.critical('Process will now exit')
+                    exit()
+                else:
+                    logger.warning(('Created app=[%s] at URL=[%s]: %s' % (target_app, create_app_url, r.text)))
+            else:
+                logger.critical(('Target application DOES NOT EXIST at [%s] URL=%s' % (r_target_apps.status_code, target_app_url)))
+                continue

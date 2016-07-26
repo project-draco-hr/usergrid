@@ -1,0 +1,15 @@
+def main():
+    args = parse_args()
+    source_queue_name = args.get('source_queue_name')
+    target_queue_name = args.get('target_queue_name')
+    start_time = datetime.datetime.utcnow()
+    first_start_time = start_time
+    print ('first start: %s' % first_start_time)
+    with open(args.get('config'), 'r') as f:
+        config = json.load(f)
+    sqs_config = config.get('sqs')
+    work_queue = Queue()
+    readers = [Reader(source_queue_name, sqs_config, work_queue) for r in xrange(args.get('readers'))]
+    [r.start() for r in readers]
+    writers = [Writer(target_queue_name, sqs_config, work_queue) for r in xrange(args.get('writers'))]
+    [w.start() for w in writers]

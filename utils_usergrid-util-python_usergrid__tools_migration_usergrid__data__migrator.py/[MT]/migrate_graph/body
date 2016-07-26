@@ -1,0 +1,38 @@
+def migrate_graph(app, collection_name, source_entity, depth=0):
+    depth += 1
+    source_uuid = source_entity.get('uuid')
+    if (depth > config.get('graph_depth', 1)):
+        logger.debug(('Reached Max Graph Depth, stopping after [%s] on [%s / %s]' % (depth, collection_name, source_uuid)))
+        return True
+    else:
+        logger.debug(('Processing @ Graph Depth [%s]' % depth))
+    if exclude_collection(collection_name):
+        logger.warn(('Ignoring entity in filtered collection [%s]' % collection_name))
+        return True
+    key = ('%s:graph:%s' % (key_version, source_uuid))
+    entity_tag = ('[%s / %s / %s (%s)]' % (app, collection_name, source_uuid, get_uuid_time(source_uuid)))
+    if (not config.get('skip_cache_read', False)):
+        date_visited = cache.get(key)
+        if (date_visited not in [None, 'None']):
+            logger.debug(('Skipping GRAPH %s at %s' % (entity_tag, date_visited)))
+            return True
+        else:
+            cache.delete(key)
+    logger.info(('Visiting GRAPH %s at %s' % (entity_tag, str(datetime.datetime.utcnow()))))
+    if (not config.get('skip_cache_write', False)):
+        cache.set(name=key, value=str(int(time.time())), ex=config.get('visit_cache_ttl', (3600 * 2)))
+    response = migrate_data(app, collection_name, source_entity)
+    out_edge_names = [edge_name for edge_name in source_entity.get('metadata', {}).get('collections', [])]
+    out_edge_names += [edge_name for edge_name in source_entity.get('metadata', {}).get('connections', [])]
+    logger.debug(('Entity %s has [%s] OUT edges' % (entity_tag, len(out_edge_names))))
+    for edge_name in out_edge_names:
+        if (not exclude_edge(collection_name, edge_name)):
+            response = (migrate_out_graph_edge_type(app, collection_name, source_entity, edge_name, depth) and response)
+        if config.get('prune', False):
+            prune_edge_by_name(edge_name, app, collection_name, source_entity)
+    in_edge_names = [edge_name for edge_name in source_entity.get('metadata', {}).get('connecting', [])]
+    logger.debug(('Entity %s has [%s] IN edges' % (entity_tag, len(in_edge_names))))
+    for edge_name in in_edge_names:
+        if (not exclude_edge(collection_name, edge_name)):
+            response = (migrate_in_graph_edge_type(app, collection_name, source_entity, edge_name, depth) and response)
+    return response

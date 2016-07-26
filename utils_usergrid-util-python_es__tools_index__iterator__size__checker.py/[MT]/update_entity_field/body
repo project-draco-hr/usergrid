@@ -1,0 +1,43 @@
+def update_entity_field(entity, field_name, field_value):
+    entity_copy = entity.copy()
+    worked = True
+    is_array = False
+    array_length = 0
+    try:
+        parts = field_name.split('.')
+        if (parts[(len(parts) - 1)] != 'size'):
+            print parts
+            exit()
+        change_me = entity_copy
+        for (i, field_part) in enumerate(parts):
+            field_part = field_part_map.get(field_part, field_part)
+            if (field_part == 'size'):
+                break
+            if isinstance(change_me, dict):
+                if (field_part not in change_me):
+                    worked = False
+                    break
+                change_me = change_me[field_part]
+            elif isinstance(change_me, list):
+                array_length = len(change_me)
+                if ((i == (len(parts) - 2)) and (len(parts) > (i + 1)) and (parts[(i + 1)] == 'size')):
+                    for j in xrange(0, len(change_me)):
+                        print 'arrau!'
+                        change_me[j] = update_entity_field(change_me[j], '.'.join(parts[i:]), field_value)
+                elif (len(change_me) == 1):
+                    print 'single array'
+                    change_me = change_me[0][field_part]
+                else:
+                    print 'WTF!'
+        try:
+            change_me['size'] = field_value
+        except:
+            if (array_length != 1):
+                print traceback.format_exc()
+                print 'damn'
+    except:
+        print ('---Error updating field [%s] in document: %s' % (field_name, json.dumps(entity)))
+        print traceback.format_exc()
+    if (array_length > 1):
+        print ('++++++++ARRAY!!!!! %s' % array_length)
+    return entity_copy
