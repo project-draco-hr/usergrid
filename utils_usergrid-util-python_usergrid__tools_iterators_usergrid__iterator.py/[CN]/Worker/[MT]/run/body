@@ -1,0 +1,35 @@
+def run(self):
+    logger.info('starting run()...')
+    keep_going = True
+    count_processed = 0
+    count_failed = 0
+    empty_count = 0
+    while keep_going:
+        try:
+            (org, app, collection_name, entity) = self.queue.get(timeout=self.queue_timeout)
+            empty_count = 0
+            success = True
+            entity_param = entity
+            for handler in self.function_chain:
+                if (entity_param is not None):
+                    try:
+                        entity_param = handler(org, app, collection_name, entity_param, self.source_client, self.target_client)
+                    except Exception as e:
+                        logger.error(e)
+                        print traceback.format_exc()
+                        success = False
+            if success:
+                count_processed += 1
+                logger.info(('Processed [%sth] SUCCESS app/collection/name/uuid = %s / %s / %s / %s' % (count_processed, app, collection_name, entity.get('name'), entity.get('uuid'))))
+            else:
+                count_failed += 1
+                logger.warning(('Processed [%sth] FAILURE app/collection/name/uuid = %s / %s / %s / %s' % (count_processed, app, collection_name, entity.get('name'), entity.get('uuid'))))
+        except KeyboardInterrupt as e:
+            raise e
+        except Empty:
+            logger.warning(('No task received after timeout=[%s]! Empty Count=%s' % (self.queue_timeout, empty_count)))
+            empty_count += 1
+            if (empty_count >= self.max_empty_count):
+                logger.warning(('Stopping work after empty_count=[%s]' % empty_count))
+                keep_going = False
+    logger.info('Worker finished!')
