@@ -16,17 +16,14 @@
     if (!validateAdminInfo(username,name,email,password)) {
       return null;
     }
-    if (password == null && SubjectUtils.isServiceAdmin()) {
+    if ((password == null || password.isEmpty()) && SubjectUtils.isServiceAdmin()) {
       user=getAdminUserByEmail(email);
       if (user == null) {
         throw new IllegalArgumentException("Password should be sent in the request or should be a valid admin user email.");
       }
     }
- else     if (password == null) {
-      throw new IllegalArgumentException("Password should be sent in the request.");
-    }
     if (user == null) {
-      if ((tokens.isExternalSSOProviderEnabled() && SubjectUtils.isServiceAdmin()) || areActivationChecksDisabled()) {
+      if (tokens.isExternalSSOProviderEnabled() || areActivationChecksDisabled()) {
         user=createAdminUserInternal(null,username,name,email,password,true,false,userProperties);
       }
  else {
