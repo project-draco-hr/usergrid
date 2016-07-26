@@ -1,9 +1,6 @@
 {
-  String tokenUserName=SubjectUtils.getUser().getUsername();
-  if (tokens.isExternalSSOProviderEnabled()) {
-    if (!tokenUserName.equals(properties.getProperty(USERGRID_SYSADMIN_LOGIN_NAME))) {
-      throw new IllegalArgumentException("Organization / Admin Users must be created via " + properties.getProperty(USERGRID_EXTERNAL_PROVIDER_URL));
-    }
+  if ((System.getProperty("usergrid.management.allow-public-registration") != null && !Boolean.valueOf(System.getProperty("usergrid.management.allow-public-registration")) && !userServiceAdmin(null))) {
+    throw new IllegalArgumentException("Public organization registration is disabled");
   }
   Preconditions.checkArgument(StringUtils.isNotBlank(organizationName),"The organization parameter was missing");
   Preconditions.checkArgument(StringUtils.isNotBlank(organizationName),"The organization parameter was missing");

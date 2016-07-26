@@ -3,7 +3,10 @@
   try {
     uuid=getUUIDForToken(token);
   }
- catch (  Exception e) {
+ catch (  ExpiredTokenException expiredTokenException) {
+    throw new ExpiredTokenException(expiredTokenException.getMessage());
+  }
+catch (  Exception e) {
     try {
       if (isExternalSSOProviderEnabled() && !getExternalSSOProvider().equalsIgnoreCase("usergrid")) {
         return validateExternalToken(token,1,getExternalSSOProvider());
