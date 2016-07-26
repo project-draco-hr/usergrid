@@ -3,12 +3,8 @@
   if (ssoPublicKey == null) {
     throw new IllegalArgumentException("Public key must be provided with Apigee " + "token in order to verify signature.");
   }
-  byte[] publicBytes=decodeBase64(ssoPublicKey);
-  X509EncodedKeySpec keySpec=new X509EncodedKeySpec(publicBytes);
-  KeyFactory keyFactory=KeyFactory.getInstance("RSA");
-  PublicKey pubKey=keyFactory.generatePublic(keySpec);
   try {
-    claims=Jwts.parser().setSigningKey(pubKey).parseClaimsJws(token);
+    claims=Jwts.parser().setSigningKey(ssoPublicKey).parseClaimsJws(token);
   }
  catch (  SignatureException se) {
     if (logger.isDebugEnabled()) {

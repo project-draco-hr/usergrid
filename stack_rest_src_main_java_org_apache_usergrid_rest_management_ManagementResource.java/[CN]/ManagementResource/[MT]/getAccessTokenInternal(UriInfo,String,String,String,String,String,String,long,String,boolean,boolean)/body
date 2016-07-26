@@ -64,8 +64,9 @@ catch (        Exception e1) {
       OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription(errorDescription).buildJSONMessage();
       return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
     }
-    if (tokens.isExternalSSOProviderEnabled() && !userServiceAdmin(user.getUsername())) {
-      throw new RuntimeException("SSO Integration is enabled, Admin users must login via provider: " + properties.getProperty(TokenServiceImpl.USERGRID_EXTERNAL_PROVIDER));
+    if (tokens.isExternalSSOProviderEnabled() && !userServiceAdmin(username)) {
+      OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription("SSO Integration is enabled, Admin users must login via provider: " + properties.getProperty(TokenServiceImpl.USERGRID_EXTERNAL_PROVIDER)).buildJSONMessage();
+      return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
     }
     String token=management.getAccessTokenForAdminUser(user.getUuid(),ttl);
     Long passwordChanged=management.getLastAdminPasswordChange(user.getUuid());

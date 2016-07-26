@@ -2,7 +2,12 @@
   if (keyUrl != null && !keyUrl.isEmpty()) {
     try {
       Map<String,Object> publicKey=client.target(keyUrl).request().get(Map.class);
-      return publicKey.get(RESPONSE_PUBLICKEY_VALUE).toString().split("----\n")[1].split("\n---")[0];
+      String ssoPublicKey=publicKey.get(RESPONSE_PUBLICKEY_VALUE).toString().split("----\n")[1].split("\n---")[0];
+      byte[] publicBytes=decodeBase64(ssoPublicKey);
+      X509EncodedKeySpec keySpec=new X509EncodedKeySpec(publicBytes);
+      KeyFactory keyFactory=KeyFactory.getInstance("RSA");
+      PublicKey pubKey=keyFactory.generatePublic(keySpec);
+      return pubKey;
     }
  catch (    Exception e) {
       throw new IllegalArgumentException("error getting public key");
