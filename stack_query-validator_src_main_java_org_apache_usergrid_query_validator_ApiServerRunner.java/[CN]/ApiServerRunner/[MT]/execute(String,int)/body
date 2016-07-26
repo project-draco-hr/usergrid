@@ -1,15 +1,13 @@
 {
-  Map<String,Object> params=new HashMap<String,Object>();
-  params.put("ql",query);
-  params.put("limit",limit);
-  ApiResponse response=client.apiRequest(HttpMethod.GET,params,null,getOrg(),getApp(),getCollection());
+  UsergridQuery usergridQuery=new UsergridQuery().ql(query).limit(limit).type(getCollection());
+  UsergridResponse response=client.GET(usergridQuery);
   List<Entity> entities=new ArrayList<Entity>();
   if (response.getEntities() == null)   return entities;
-  for (  org.apache.usergrid.java.client.entities.Entity clientEntitity : response.getEntities()) {
+  for (  UsergridEntity clientEntity : response.getEntities()) {
     Entity entity=new QueryEntity();
-    entity.setUuid(clientEntitity.getUuid());
-    entity.setType(clientEntitity.getType());
-    Map<String,JsonNode> values=clientEntitity.getProperties();
+    entity.setUuid(UUID.fromString(clientEntity.getUuid()));
+    entity.setType(clientEntity.getType());
+    Map<String,JsonNode> values=clientEntity.getProperties();
     for (    String key : values.keySet()) {
       JsonNode node=values.get(key);
       if (node.isBoolean()) {
