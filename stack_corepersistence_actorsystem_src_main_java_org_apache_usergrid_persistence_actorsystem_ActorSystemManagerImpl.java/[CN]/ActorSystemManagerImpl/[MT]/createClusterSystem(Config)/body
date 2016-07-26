@@ -4,12 +4,15 @@
     logger.info("Class: {}. ActorSystem [{}] not initialized, creating...",this,clusterName);
     clusterSystem=ActorSystem.create(clusterName,config);
     for (    RouterProducer routerProducer : routerProducers) {
-      logger.info("Creating router producer [{}] for region [{}]",routerProducer.getName(),currentRegion);
-      routerProducer.createClusterSingletonManager(clusterSystem);
+      logger.info("Creating router [{}] for region [{}]",routerProducer.getRouterPath(),currentRegion);
+      routerProducer.produceRouter(clusterSystem,"io");
     }
     for (    RouterProducer routerProducer : routerProducers) {
-      logger.info("Creating [{}] proxy for region [{}] role 'io'",routerProducer.getName(),currentRegion);
-      routerProducer.createClusterSingletonProxy(clusterSystem,"io");
+      Iterator<Class> messageTypes=routerProducer.getMessageTypes().iterator();
+      while (messageTypes.hasNext()) {
+        Class messageType=messageTypes.next();
+        routersByMessageType.put(messageType,routerProducer.getRouterPath());
+      }
     }
     Runtime.getRuntime().addShutdownHook(new Thread(){
       @Override public void run(){
