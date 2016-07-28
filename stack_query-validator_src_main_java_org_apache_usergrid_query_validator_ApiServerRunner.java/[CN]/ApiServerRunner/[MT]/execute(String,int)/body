@@ -7,24 +7,10 @@
     Entity entity=new QueryEntity();
     entity.setUuid(UUID.fromString(clientEntity.getUuid()));
     entity.setType(clientEntity.getType());
-    Map<String,JsonNode> values=clientEntity.getProperties();
+    Map<String,?> values=clientEntity.toMapValue();
     for (    String key : values.keySet()) {
-      JsonNode node=values.get(key);
-      if (node.isBoolean()) {
-        entity.setProperty(key,node.asBoolean());
-      }
- else       if (node.isInt()) {
-        entity.setProperty(key,node.asInt());
-      }
- else       if (node.isLong()) {
-        entity.setProperty(key,node.asLong());
-      }
- else       if (node.isDouble()) {
-        entity.setProperty(key,node.asDouble());
-      }
- else {
-        entity.setProperty(key,node.asText());
-      }
+      Object node=values.get(key);
+      entity.setProperty(key,node);
     }
     entities.add(entity);
   }
