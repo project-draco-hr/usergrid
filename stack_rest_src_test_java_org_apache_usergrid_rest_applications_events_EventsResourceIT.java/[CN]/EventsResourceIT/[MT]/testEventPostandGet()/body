@@ -42,12 +42,15 @@
   Collection collection;
   for (int i=0; i < 3; i++) {
     collection=this.app().collection("events").get();
-    assertEquals("Expected Advertising",advertising,((Map<String,Object>)((Map<String,Object>)collection.getResponse().getProperties().get("messages")).get(0)).get("uuid").toString());
+    assertEquals("Expected Advertising",advertising,((Map)((ArrayList)collection.getResponse().getProperties().get("messages")).get(0)).get("uuid").toString());
     lastId=collection.getResponse().getProperties().get("last").toString();
   }
-  collection=this.app().collection("events").get();
-  assertEquals("Expected Sales",sales,((Map<String,Object>)((Map<String,Object>)collection.getResponse().getProperties().get("messages")).get(0)).get("uuid").toString());
+  QueryParameters queryParameters=new QueryParameters();
+  queryParameters.addParam("last",lastId);
+  collection=this.app().collection("events").get(queryParameters);
+  assertEquals("Expected Sales",sales,((Map<String,Object>)((ArrayList)collection.getResponse().getProperties().get("messages")).get(0)).get("uuid").toString());
   lastId=collection.getResponse().getProperties().get("last").toString();
-  collection=this.app().collection("events").get();
-  assertEquals("Expected Marketing",marketing,((Map<String,Object>)((Map<String,Object>)collection.getResponse().getProperties().get("messages")).get(0)).get("uuid").toString());
+  queryParameters.addParam("last",lastId);
+  collection=this.app().collection("events").get(queryParameters);
+  assertEquals("Expected Marketing",marketing,((Map<String,Object>)((ArrayList)collection.getResponse().getProperties().get("messages")).get(0)).get("uuid").toString());
 }
