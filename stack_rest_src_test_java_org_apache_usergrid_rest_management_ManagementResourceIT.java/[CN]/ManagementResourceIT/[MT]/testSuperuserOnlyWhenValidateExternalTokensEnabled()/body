@@ -5,7 +5,7 @@
   String suToken=clientSetup.getSuperuserToken().getAccessToken();
   Map<String,String> props=new HashMap<String,String>();
   props.put(USERGRID_EXTERNAL_SSO_ENABLED,"true");
-  props.put(USERGRID_EXTERNAL_PROVIDER_URL,getBaseURI().toURL().toExternalForm());
+  props.put(USERGRID_EXTERNAL_SSO_PROVIDER_URL,getBaseURI().toURL().toExternalForm());
   pathResource("testproperties").post(props);
   try {
     try {
@@ -18,7 +18,7 @@
       }
 ;
       ApiResponse postResponse=pathResource("management/token").post(false,ApiResponse.class,loginInfo);
-      fail("SSO Integration is enabled, Admin users must login via provider: " + USERGRID_EXTERNAL_PROVIDER_URL);
+      fail("SSO Integration is enabled, Admin users must login via provider: " + USERGRID_EXTERNAL_SSO_PROVIDER_URL);
     }
  catch (    ClientErrorException actual) {
       assertEquals(400,actual.getResponse().getStatus());
@@ -55,7 +55,7 @@ catch (    Exception e) {
     assertNotNull(postResponse4.getData());
   }
   finally {
-    props.put(USERGRID_EXTERNAL_PROVIDER_URL,"");
+    props.put(USERGRID_EXTERNAL_SSO_PROVIDER_URL,"");
     props.put(USERGRID_EXTERNAL_SSO_ENABLED,"");
     pathResource("testproperties").post(props);
   }

@@ -14,12 +14,12 @@
   String accessToken=accessInfoNode.get("access_token").asText();
   String suToken=clientSetup.getSuperuserToken().getAccessToken();
   Map<String,String> props=new HashMap<String,String>();
-  props.put(USERGRID_EXTERNAL_PROVIDER_URL,getBaseURI().toURL().toExternalForm());
+  props.put(USERGRID_EXTERNAL_SSO_PROVIDER_URL,getBaseURI().toURL().toExternalForm());
   pathResource("testproperties").post(props);
   JsonNode node=pathResource("/management/me").get(JsonNode.class,new QueryParameters().addParam("access_token",accessToken));
   logger.info("node: {}",node);
   String token=node.get("access_token").asText();
   assertNotNull(token);
-  props.put(USERGRID_EXTERNAL_PROVIDER_URL,"");
+  props.put(USERGRID_EXTERNAL_SSO_PROVIDER_URL,"");
   pathResource("testproperties").post(props);
 }
