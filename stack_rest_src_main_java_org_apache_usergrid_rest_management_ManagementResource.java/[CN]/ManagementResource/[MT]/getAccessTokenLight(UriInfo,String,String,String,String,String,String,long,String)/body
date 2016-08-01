@@ -1,0 +1,23 @@
+{
+  final UserInfo user=SubjectUtils.getUser();
+  if (user == null) {
+    return getAccessTokenInternal(ui,authorization,grant_type,username,password,client_id,client_secret,ttl,callback,false,true);
+  }
+  final long passwordChanged=management.getLastAdminPasswordChange(user.getUuid());
+  final boolean ssoEnabled=Boolean.parseBoolean(properties.getProperty(USERGRID_EXTERNAL_SSO_ENABLED));
+  long tokenTtl;
+  PrincipalIdentifier userPrincipal=(PrincipalIdentifier)SecurityUtils.getSubject().getPrincipal();
+  if (userPrincipal != null && userPrincipal.getAccessTokenCredentials() != null) {
+    this.access_token=userPrincipal.getAccessTokenCredentials().getToken();
+  }
+  if (ssoEnabled && !user.getUsername().equals(properties.getProperty(USERGRID_SYSADMIN_LOGIN_NAME))) {
+    ExternalSSOProvider provider=ssoProviderFactory.getProvider();
+    tokenTtl=Long.valueOf(provider.getDecodedTokenDetails(access_token).get("expiry")) - System.currentTimeMillis() / 1000;
+  }
+ else {
+    tokenTtl=tokens.getTokenInfo(access_token).getDuration();
+  }
+  final AccessInfo access_info=new AccessInfo().withExpiresIn(tokenTtl).withAccessToken(access_token).withPasswordChanged(passwordChanged);
+  access_info.setProperty("user",management.getAdminUserOrganizationData(user,true));
+  return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
+}

@@ -1,0 +1,17 @@
+{
+  final Provider specifiedProvider;
+  try {
+    specifiedProvider=Provider.valueOf(providerName.toUpperCase());
+  }
+ catch (  IllegalArgumentException e) {
+    throw new IllegalArgumentException("Unsupported provider");
+  }
+switch (specifiedProvider) {
+case APIGEE:
+    return ((CpEntityManagerFactory)emf).getApplicationContext().getBean(ApigeeSSO2Provider.class);
+case USERGRID:
+  return ((CpEntityManagerFactory)emf).getApplicationContext().getBean(UsergridExternalProvider.class);
+default :
+throw new RuntimeException("Unknown SSO provider");
+}
+}
