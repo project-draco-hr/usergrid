@@ -1,0 +1,20 @@
+def main():
+    init_logging()
+    logger = logging.getLogger('SimpleIterator')
+    if (len(sys.argv) <= 1):
+        logger.critical('usage: usergrid_iterator {url}')
+        exit(1)
+    url = sys.argv[1]
+    logger.info(('Beginning to iterate URL: %s' % url))
+    q = UsergridQueryIterator(url)
+    counter = 0
+    start = datetime.datetime.utcnow()
+    try:
+        for e in q:
+            counter += 1
+            logger.info(('Entity # [%s]: name=[%s] uuid=[%s] created=[%s] modified=[%s]' % (counter, e.get('name'), e.get('uuid'), e.get('created'), e.get('modified'))))
+    except KeyboardInterrupt:
+        logger.critical('KEYBOARD INTERRUPT')
+        pass
+    finish = datetime.datetime.utcnow()
+    logger.info(('final entity count is [%s] in  [%s] for query [%s]' % (counter, (finish - start), url)))

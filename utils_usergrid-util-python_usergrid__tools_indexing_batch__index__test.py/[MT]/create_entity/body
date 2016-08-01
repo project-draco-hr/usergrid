@@ -1,0 +1,20 @@
+def create_entity(work_item):
+    global config
+    try:
+        url = work_item[0]
+        entity = work_item[1]
+        logger.info(('creating entity [%s] at URL [%s]' % (entity.get('id'), url)))
+        r = session.post(url, data=json.dumps(entity))
+        if (r.status_code != 200):
+            logger.error(('HTTP %s: %s' % (r.status_code, r.text)))
+            print ('HTTP %s: %s' % (r.status_code, r.text))
+            return
+        entities = r.json().get('entities', [])
+        uuid = entities[0].get('uuid')
+        if (r.status_code != 200):
+            logger.info(('%s: %s' % (r.status_code, uuid)))
+        else:
+            logger.info(('Created entity UUID=[%s] at URL [%s]' % (uuid, url)))
+        return (uuid, entity)
+    except Exception as e:
+        print traceback.format_exc(e)

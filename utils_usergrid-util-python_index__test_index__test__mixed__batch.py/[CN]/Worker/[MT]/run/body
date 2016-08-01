@@ -1,0 +1,16 @@
+def run(self):
+    print ('Starting %s ' % self.name)
+    counter = 0
+    batch = []
+    while True:
+        index_batch_size = args.get('batch_size')
+        task = self.work_queue.get(timeout=600)
+        counter += 1
+        document = self.generate_document(task['field_count'])
+        flattened_doc = self.process_document(document, task['type'], task['uuid'], task['uuid'])
+        index_type_tuple = (task['index'], task['type'])
+        batch.append((index_type_tuple, flattened_doc))
+        if (len(batch) >= index_batch_size):
+            self.handle_batch(batch)
+            batch = []
+        self.work_queue.task_done()

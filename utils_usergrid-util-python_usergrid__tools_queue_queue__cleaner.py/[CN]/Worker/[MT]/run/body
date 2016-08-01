@@ -1,0 +1,25 @@
+def run(self):
+    sqs_conn = boto.sqs.connect_to_region(**self.sqs_config)
+    queue = sqs_conn.get_queue(self.queue_name)
+    last_size = queue.count()
+    print ('Starting Size: %s' % last_size)
+    delete_counter = 0
+    message_counter = 0
+    while True:
+        messages = queue.get_messages(num_messages=10, visibility_timeout=300)
+        for message in messages:
+            message_counter += 1
+            body = message.get_body()
+            try:
+                msg = json.loads(body)
+                if ('entityDeleteEvent' in msg):
+                    if (msg['entityDeleteEvent']['entityIdScope']['id']['type'] == 'stock'):
+                        self.delete_queue.put(message)
+                        delete_counter += 1
+                        if ((delete_counter % 100) == 0):
+                            print ('Deleted %s of %s' % (delete_counter, message_counter))
+                else:
+                    message.change_visibility(0)
+                    print json.dumps(msg)
+            except:
+                pass

@@ -1,0 +1,22 @@
+import json
+import traceback
+import requests
+__author__ = 'Jeff.West@yahoo.com'
+api_url = 'https://api.usergrid.com'
+data_map = {'orgs': {'myOrg': {'apps': {'myApp': {'collections': ['examples'], }, }, 'credentials': {'client_id': 'foo', 'client_secret': 'bar', }, }, }, }
+url_template = '{api_url}/{org}/{app}/{collection}?limit=250'
+session = requests.Session()
+for (org, org_data) in data_map.get('orgs', {}).iteritems():
+    credentials = org_data.get('credentials', {})
+    token_request = {'grant_type': 'client_credentials', 'client_id': credentials.get('client_id'), 'client_secret': credentials.get('client_secret'), }
+    token_url = '{api_url}/management/token'.format(api_url=api_url)
+    r = session.post(token_url, data=json.dumps(token_request))
+    check_response_status(r, message=('Unable to get Token at URL %s' % token_url))
+    token = r.json().get('access_token')
+    session.headers.update({'Authorization': ('Bearer ' + token), })
+    for (app, app_data) in org_data.get('apps', {}).iteritems():
+        collections = app_data.get('collections', [])
+        if (len(collections) == 0):
+            delete_all_collections(org, app, token)
+        else:
+            delete_collections(org, app, collections, token)

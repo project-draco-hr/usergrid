@@ -1,0 +1,28 @@
+__author__ = 'Jeff.West@yahoo.com'
+import json
+import requests
+collection_url_template = '{api_url}/{org}/{app}/{collection}'
+entity_url_template = '{api_url}/{org}/{app}/{collection}/{entity_id}'
+connection_query_url_template = '{api_url}/{org}/{app}/{collection}/{uuid}/{verb}'
+connection_create_url_template = '{api_url}/{org}/{app}/{collection}/{uuid}/{verb}/{target_uuid}'
+user_url_template = '{api_url}/{org}/{app}/users/{username}'
+user_feed_url_template = '{api_url}/{org}/{app}/users/{username}/feed'
+user_activity_url_template = '{api_url}/{org}/{app}/users/{username}/activities'
+user_follows_url_template = '{api_url}/{org}/{app}/users/{user2}/following/users/{user1}'
+url_data = {'api_url': 'https://amer-apibaas-prod.apigee.net/appservices', 'org': 'jwest-samples', 'app': 'feed-example', }
+session = requests.Session()
+user_base = 'natgeo'
+user1 = ('%s_%s' % (user_base, 1))
+user2 = ('%s_%s' % (user_base, 2))
+create_user(user1)
+post_activity(user1, 'Hello World!')
+get_feed(user1)
+create_user(user2)
+create_follows(user2, user1)
+post_activity(user2, "I'm here!")
+get_feed(user2)
+post_activity(user1, 'SEE YA!!')
+get_feed(user2)
+get_feed(user1)
+delete_user(user1)
+delete_user(user2)

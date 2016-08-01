@@ -1,0 +1,12 @@
+def __init__(self, queue, source_client, target_client, max_empty_count=3, queue_timeout=10, function_chain=None):
+    '\n        This is an example handler function which can transform an entity. Multiple handler functions can be used to\n        process a entity.  The response is an entity which will get passed to the next handler in the chain\n\n        :param queue: The queue on which to listen for work\n        :param source_client: The UsergridClient of the source Usergrid instance\n        :param target_client: The UsergridClient of the target Usergrid instance\n        :param max_empty_count: The maximum number of times for a worker to not receive work after checking the queue\n        :param queue_timeout: The timeout for waiting for work on the queue\n        :param function_chain: An array of function pointers which will be executed in array sequence, expeting the following parameters: org_name, app_name, collection_name, entity, source_client, target_client, attempts=0p\n        '
+    super(Worker, self).__init__()
+    logger.warning('Creating worker!')
+    if (not function_chain):
+        function_chain = []
+    self.function_chain = function_chain
+    self.queue = queue
+    self.source_client = source_client
+    self.target_client = target_client
+    self.max_empty_count = max_empty_count
+    self.queue_timeout = queue_timeout

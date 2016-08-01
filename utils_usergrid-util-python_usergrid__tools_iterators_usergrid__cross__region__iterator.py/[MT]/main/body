@@ -1,0 +1,66 @@
+def main():
+    global config
+    args = parse_args()
+    init(args)
+    management_region_id = config.get('management_region_id', '')
+    management_region = config.get('regions', {}).get(management_region_id)
+    query_region_id = config.get('query_region_id', '')
+    query_region = config.get('regions', {}).get(query_region_id)
+    start = datetime.datetime.now()
+    queue = JoinableQueue()
+    logger.warning('Starting workers...')
+    init_logging()
+    token_request = {'grant_type': 'password', 'username': args.get('username'), 'ttl': args.get('ttl'), }
+    url = token_url_template.format(**management_region)
+    logger.info(('getting token with url=[%s] data=[%s]' % (url, token_request)))
+    token_request['password'] = args.get('password')
+    r = requests.post(url, data=json.dumps(token_request))
+    if (r.status_code != 200):
+        logger.critical(('did not get access token! response: %s' % r.json()))
+        exit((-1))
+    logger.info(r.json())
+    config['access_token'] = r.json().get('access_token')
+    org_mgmt_url = org_management_url_template.format(org=args.get('org'), access_token=config['access_token'], **management_region)
+    logger.info(org_mgmt_url)
+    session = session_map[management_region_id]
+    r = session.get(org_mgmt_url)
+    logger.info(r.json())
+    logger.info(('starting [%s] workers...' % args.get('workers')))
+    workers = [Worker(queue, get_by_UUID) for x in xrange(args.get('workers'))]
+    [w.start() for w in workers]
+    try:
+        org_app_data = r.json().get('data')
+        logger.info(org_app_data)
+        apps_to_process = config.get('app', [])
+        collections_to_process = config.get('collection', [])
+        for (org_app, app_uuid) in org_app_data.iteritems():
+            parts = org_app.split('/')
+            app = parts[1]
+            if ((len(apps_to_process) > 0) and (app not in apps_to_process)):
+                logger.info(('Skipping app/uuid: %s/%s' % (org_app, app_uuid)))
+                continue
+            logger.info(('app UUID: %s' % app_uuid))
+            url = app_url_template.format(app=app, org=args.get('org'), access_token=config['access_token'], **management_region)
+            logger.info(('GET [...]: %s' % url))
+            session = session_map[management_region_id]
+            r = session.get(url)
+            for collection_name in r.json().get('entities', [{}])[0].get('metadata', {}).get('collections', {}):
+                if (collection_name in ['events']):
+                    continue
+                elif ((len(collections_to_process) > 0) and (collection_name not in collections_to_process)):
+                    logger.info(('skipping collection=%s' % collection_name))
+                    continue
+                logger.info(('processing collection=%s' % collection_name))
+                url = collection_query_url_template.format(ql='select * order by created asc', collection=collection_name, org=args['org'], app=app, limit=args['limit'], access_token=config['access_token'], **query_region)
+                q = UsergridQuery(url)
+                counter = 0
+                for (x, e) in enumerate(q):
+                    counter += 1
+                    queue.put((args['org'], app, collection_name, e))
+                logger.info(('collection=%s, count=%s' % (collection_name, counter)))
+    except KeyboardInterrupt:
+        [w.terminate() for w in workers]
+    logger.warning('Waiting for workers to finish...')
+    wait_for(workers)
+    finish = datetime.datetime.now()
+    logger.warning(('Done!  Took: %s ' % (finish - start)))

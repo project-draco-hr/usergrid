@@ -1,0 +1,12 @@
+def convert_parse_entity(collection, parse_entity):
+    parse_entity['type'] = collection
+    if (('name' not in parse_entity) and (collection.lower() != 'users')):
+        parse_entity['name'] = parse_entity['objectId']
+    connections = {}
+    for (name, value) in parse_entity.iteritems():
+        if isinstance(value, dict):
+            if (value.get('__type') == 'Pointer'):
+                class_name = (value.get('className') if (value.get('className')[0] != '_') else value.get('className')[1:])
+                connections[value.get('objectId')] = class_name
+                logger.info(('Connection found from [%s: %s] to entity [%s: %s]' % (collection, parse_entity['name'], class_name, value.get('objectId'))))
+    return (UsergridEntity(parse_entity), connections)

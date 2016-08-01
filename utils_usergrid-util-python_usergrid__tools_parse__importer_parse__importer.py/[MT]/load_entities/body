@@ -1,0 +1,30 @@
+def load_entities(working_directory):
+    files = [f for f in listdir(working_directory) if (isfile(os.path.join(working_directory, f)) and (os.path.getsize(os.path.join(working_directory, f)) > 0) and (f not in ['_Join:roles:_Role.json', '_Join:users:_Role.json', '_User.json', '_Product.json', '_Installation.json', '_Role.json']))]
+    for data_file in sorted(files):
+        if (data_file[0:6] == '_Join:'):
+            process_join_file(working_directory, data_file)
+            continue
+        file_path = os.path.join(working_directory, data_file)
+        collection = data_file.split('.')[0]
+        if (collection[0] == '_'):
+            logger.warn(('Found internal type: [%s]' % collection))
+            collection = collection[1:]
+        if (collection not in global_connections):
+            global_connections[collection] = {}
+        with open(file_path, 'r') as f:
+            try:
+                json_data = json.load(f)
+            except ValueError as e:
+                print traceback.format_exc(e)
+                logger.error(('Unable to process file: %s' % file_path))
+                continue
+            entities = json_data.get('results')
+            logger.info(('Found [%s] entities of type [%s]' % (len(entities), collection)))
+            for parse_entity in entities:
+                (usergrid_entity, connections) = convert_parse_entity(collection, parse_entity)
+                response = usergrid_entity.save()
+                global_connections[collection][usergrid_entity.get('uuid')] = connections
+                if response.ok:
+                    logger.info(('Saved Entity: %s' % parse_entity))
+                else:
+                    logger.info(('Error saving entity %s: %s' % (parse_entity, response)))

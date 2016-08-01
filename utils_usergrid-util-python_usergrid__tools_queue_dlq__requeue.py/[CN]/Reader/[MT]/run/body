@@ -1,0 +1,15 @@
+def run(self):
+    sqs_conn = boto.sqs.connect_to_region(**self.sqs_config)
+    sqs_queue = sqs_conn.get_queue(self.queue_name)
+    sqs_queue.set_message_class(RawMessage)
+    message_counter = 0
+    while True:
+        messages = sqs_queue.get_messages(num_messages=10)
+        print ('Read %s messages' % len(messages))
+        for message in messages:
+            message_counter += 1
+            if ((message_counter % 100) == 1):
+                print ('READ: %s' % message_counter)
+            body = message.get_body()
+            self.work_queue.put(body)
+        sqs_queue.delete_message_batch(messages)

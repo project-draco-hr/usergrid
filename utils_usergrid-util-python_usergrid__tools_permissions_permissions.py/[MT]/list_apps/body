@@ -1,0 +1,11 @@
+def list_apps():
+    apps = []
+    source_org_mgmt_url = org_management_url_template.format(org=org, limit=1000, api_url=api_url, **creds)
+    r = requests.get(source_org_mgmt_url)
+    print r.text
+    data = r.json().get('data')
+    for app_uuid in data:
+        if ('self-care' in app_uuid):
+            parts = app_uuid.split('/')
+            apps.append(parts[1])
+    return apps

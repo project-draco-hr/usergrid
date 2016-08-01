@@ -1,0 +1,14 @@
+def set_default_role(app):
+    print app
+    role_name = 'guest'
+    role = build_role('guest', 'Guest')
+    role_url = put_entity_url_template.format(org=org, app=app, uuid=role_name, collection='roles', api_url=api_url, **creds)
+    print ('DELETE ' + role_url)
+    permissions_url = permissions_url_template.format(org=org, limit=1000, app=app, collection='roles', uuid=role_name, api_url=api_url, **creds)
+    r = post(url=permissions_url, data=json.dumps({'permission': 'post:/users', }))
+    r = post(url=permissions_url, data=json.dumps({'permission': 'put:/devices/*', }))
+    r = post(url=permissions_url, data=json.dumps({'permission': 'put,post:/devices', }))
+    r = post(url=permissions_url, data=json.dumps({'permission': 'put:/device/*', }))
+    r = post(url=permissions_url, data=json.dumps({'permission': 'put,post:/device', }))
+    if (r.status_code != 200):
+        print r.text

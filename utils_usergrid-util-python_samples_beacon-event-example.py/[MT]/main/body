@@ -1,0 +1,15 @@
+def main():
+    beacons = ['b1', 'b2', 'b3', 'b4', 'b5', 'b6']
+    stores = ['store_123', 'store_456', 'store_789', 'store_901']
+    beacon_names = []
+    for store in stores:
+        for beacon in beacons:
+            beacon_names.append(('%s-%s' % (store, beacon)))
+    pool = Pool(16)
+    pool.map(create_beacon, beacon_names)
+    pool.map(create_store, stores)
+    processes = [EventGenerator(stores[0], 100, ['jeff', 'julie'], beacons=beacons), EventGenerator(stores[0], 100, ['russo', 'dunker'], beacons=beacons), EventGenerator(stores[2], 100, ['jeff', 'julie'], beacons=beacons), EventGenerator(stores[2], 100, ['russo', 'dunker'], beacons=beacons), EventGenerator(stores[3], 100, ['jeff', 'julie'], beacons=beacons), EventGenerator(stores[3], 100, ['russo', 'dunker'], beacons=beacons), EventGenerator(stores[1], 100, ['bala', 'shankar'], beacons=beacons), EventGenerator(stores[1], 100, ['chet', 'anant'], beacons=beacons)]
+    [p.start() for p in processes]
+    while (len([p for p in processes if p.is_alive()]) > 0):
+        print 'Processors active, waiting'
+        time.sleep(1)
