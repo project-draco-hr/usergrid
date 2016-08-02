@@ -71,7 +71,7 @@ catch (        Exception e1) {
     String token=management.getAccessTokenForAdminUser(user.getUuid(),ttl);
     Long passwordChanged=management.getLastAdminPasswordChange(user.getUuid());
     AccessInfo access_info=new AccessInfo().withExpiresIn(tokens.getMaxTokenAgeInSeconds(token)).withAccessToken(token).withPasswordChanged(passwordChanged);
-    access_info.setProperty("user",management.getAdminUserOrganizationData(user,me));
+    access_info.setProperty("user",management.getAdminUserOrganizationData(user,true,false));
     management.countAdminUserAction(user,"login");
     return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
   }
