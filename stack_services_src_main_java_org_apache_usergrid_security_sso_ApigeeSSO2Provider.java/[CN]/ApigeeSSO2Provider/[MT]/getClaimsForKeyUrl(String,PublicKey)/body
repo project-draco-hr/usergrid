@@ -24,5 +24,10 @@ catch (  ArrayIndexOutOfBoundsException aio) {
     }
     throw new BadTokenException("Malformed Apigee JWT");
   }
+catch (  ExpiredJwtException e) {
+    final long expiry=Long.valueOf(e.getClaims().get("exp").toString());
+    final long expirationDelta=((System.currentTimeMillis() / 1000) - expiry) * 1000;
+    throw new ExpiredTokenException(String.format("Token expired %d milliseconds ago.",expirationDelta));
+  }
   return claims;
 }
