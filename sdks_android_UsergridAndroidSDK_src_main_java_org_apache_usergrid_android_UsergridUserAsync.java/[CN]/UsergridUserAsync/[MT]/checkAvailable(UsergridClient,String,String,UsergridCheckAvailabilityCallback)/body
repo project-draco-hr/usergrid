@@ -1,0 +1,19 @@
+{
+  if (email == null && username == null) {
+    checkAvailabilityCallback.onResponse(false);
+    return;
+  }
+  UsergridQuery query=new UsergridQuery(UsergridUser.USER_ENTITY_TYPE);
+  if (username != null) {
+    query.eq(UsergridUserProperties.USERNAME.toString(),username);
+  }
+  if (email != null) {
+    query.or().eq(UsergridUserProperties.EMAIL.toString(),email);
+  }
+  UsergridAsync.GET(client,query,new UsergridResponseCallback(){
+    @Override public void onResponse(    @NotNull UsergridResponse response){
+      checkAvailabilityCallback.onResponse((response.ok() && response.first() != null));
+    }
+  }
+);
+}

@@ -1,0 +1,17 @@
+{
+  final UsergridQuery feedMessagesQuery=new UsergridQuery("users/me/feed").desc(UsergridEnums.UsergridEntityProperties.CREATED.toString());
+  UsergridAsync.GET(feedMessagesQuery,new UsergridResponseCallback(){
+    @Override public void onResponse(    @NotNull UsergridResponse response){
+      ArrayList<ActivityEntity> feedMessages=new ArrayList<>();
+      if (response.ok()) {
+        List feedEntities=response.getEntities();
+        if (feedEntities != null) {
+          Collections.reverse(feedEntities);
+          feedMessages.addAll((List<ActivityEntity>)feedEntities);
+        }
+      }
+      callback.onResponse(feedMessages);
+    }
+  }
+);
+}

@@ -1,0 +1,24 @@
+{
+  UsergridAsync.authenticateUser(new UsergridUserAuth(username,password),new UsergridResponseCallback(){
+    @Override public void onResponse(    @NotNull final UsergridResponse response){
+      final UsergridUser currentUser=Usergrid.getCurrentUser();
+      if (response.ok() && currentUser != null) {
+        UsergridAsync.connect("users","me","devices",UsergridSharedDevice.getSharedDeviceUUID(activity),new UsergridResponseCallback(){
+          @Override public void onResponse(          @NotNull UsergridResponse response){
+            AlertDialogHelpers.showScrollableAlert(activity,"Authenticate User Successful","User Description: \n\n " + currentUser.toPrettyString(),new DialogInterface.OnClickListener(){
+              public void onClick(              DialogInterface dialog,              int which){
+                activity.startActivity(new Intent(activity,FeedActivity.class));
+              }
+            }
+);
+          }
+        }
+);
+      }
+ else {
+        AlertDialogHelpers.showAlert(activity,"Error Authenticating User","Invalid username or password.");
+      }
+    }
+  }
+);
+}
