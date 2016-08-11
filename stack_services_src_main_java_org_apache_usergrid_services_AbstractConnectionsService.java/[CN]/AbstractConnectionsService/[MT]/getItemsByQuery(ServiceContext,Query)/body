@@ -29,6 +29,7 @@
   query.setResultsLevel(level);
   Results r=null;
   if (connecting()) {
+    query.setConnecting(true);
     if (query.hasQueryPredicates()) {
       if (logger.isTraceEnabled()) {
         logger.trace("Attempted query of backwards connections");
@@ -36,7 +37,7 @@
       return null;
     }
  else {
-      r=em.getSourceEntities(new SimpleEntityRef(context.getOwner().getType(),context.getOwner().getUuid()),query.getConnectionType(),query.getEntityType(),level,query.getLimit());
+      r=em.searchTargetEntities(context.getOwner(),query);
     }
   }
  else {
