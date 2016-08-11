@@ -18,9 +18,11 @@
     jsonOrganization.put(PROPERTY_NAME,organization.getValue());
     jsonOrganization.put(PROPERTY_UUID,organization.getKey());
     jsonOrganization.put("properties",getOrganizationByUuid(organization.getKey()).getProperties());
-    if (deep) {
+    if (includeApps) {
       BiMap<UUID,String> applications=getApplicationsForOrganization(organization.getKey());
       jsonOrganization.put("applications",applications.inverse());
+    }
+    if (includeOrgUsers) {
       List<UserInfo> users=getAdminUsersForOrganization(organization.getKey());
       Map<String,Object> jsonUsers=new HashMap<>();
       for (      UserInfo u : users) {

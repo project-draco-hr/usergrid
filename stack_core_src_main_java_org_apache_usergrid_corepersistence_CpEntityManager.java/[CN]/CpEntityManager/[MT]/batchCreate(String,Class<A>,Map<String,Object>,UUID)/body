@@ -90,8 +90,11 @@
         event.setProperty(prop_name,propertyValue);
       }
     }
-    counterUtils.addEventCounterMutations(null,applicationId,event,timestamp);
+    Mutator<ByteBuffer> batch=createMutator(cass.getApplicationKeyspace(applicationId),be);
+    Message message=storeEventAsMessage(batch,event,timestamp);
     incrementEntityCollection("events",timestamp);
+    entity.setUuid(message.getUuid());
+    batch.execute();
     return entity;
   }
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=entityToCpEntity(entity,importId);
