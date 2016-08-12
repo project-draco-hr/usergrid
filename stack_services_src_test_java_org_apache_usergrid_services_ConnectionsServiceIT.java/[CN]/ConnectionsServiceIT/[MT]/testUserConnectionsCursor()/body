@@ -1,0 +1,33 @@
+{
+  app.put("username","conn-user1");
+  app.put("email","conn-user1@apigee.com");
+  Entity user1=app.testRequest(ServiceAction.POST,1,"users").getEntity();
+  assertNotNull(user1);
+  app.testRequest(ServiceAction.GET,1,"users","conn-user1");
+  app.put("username","conn-user2");
+  app.put("email","conn-user2@apigee.com");
+  Entity user2=app.testRequest(ServiceAction.POST,1,"users").getEntity();
+  assertNotNull(user2);
+  app.put("username","conn-user3");
+  app.put("email","conn-user3@apigee.com");
+  Entity user3=app.testRequest(ServiceAction.POST,1,"users").getEntity();
+  assertNotNull(user3);
+  app.testRequest(ServiceAction.POST,1,"users","conn-user2","likes","users","conn-user1");
+  app.testRequest(ServiceAction.POST,1,"users","conn-user3","likes","users","conn-user1");
+  Query query=new Query().fromQLNullSafe("");
+  query.setLimit(1);
+  ServiceResults result=app.testRequest(ServiceAction.GET,1,"users","conn-user1","connecting","likes",query);
+  assertNotNull(result.getCursor());
+  String enityName1=result.getEntity().getProperty("email").toString();
+  Query newquery=new Query().fromQLNullSafe("");
+  query.setCursor(result.getCursor());
+  result=app.testRequest(ServiceAction.GET,1,"users","conn-user1","connecting","likes",query);
+  String enityName2=result.getEntity().getProperty("email").toString();
+  assertNotEquals(enityName1,enityName2);
+  newquery=new Query().fromQLNullSafe("");
+  query.setCursor(result.getCursor());
+  result=app.testRequest(ServiceAction.GET,0,"users","conn-user1","connecting","likes",query);
+  assertNull(result.getCursor());
+  app.testRequest(ServiceAction.DELETE,1,"users","conn-user2","likes","users","conn-user1");
+  app.testRequest(ServiceAction.GET,1,"users","conn-user1","connecting","likes");
+}
