@@ -1,0 +1,40 @@
+def main():
+    INDEX_COUNT = args.get('index_count')
+    TYPE_COUNT = args.get('type_count')
+    SETUP = args.get('setup')
+    indices = []
+    types = []
+    work_queue = JoinableQueue()
+    apiclient = APIClient(('http://%s:9200' % es_hosts[random.randint(1, (len(es_hosts) - 1))].get('host')))
+    workers = [Worker(work_queue) for x in xrange(args.get('workers'))]
+    [worker.start() for worker in workers]
+    try:
+        for x in xrange(TYPE_COUNT):
+            type_name = ('%s_%s' % (args.get('type_prefix'), x))
+            types.append(type_name)
+        for x in xrange(INDEX_COUNT):
+            index_name = ('%s_%s' % (args.get('index_prefix'), x))
+            indices.append(index_name)
+        if SETUP:
+            print 'Running setup...'
+            for index_name in indices:
+                apiclient.delete_index(index_name)
+            time.sleep(5)
+            for index_name in indices:
+                apiclient.create_index(index_name, shards=args['shard_count'], replicas=args['replica_count'])
+        total_messages = args.get('document_count')
+        batch_size = 100000
+        message_counter = 0
+        fields = random.randint(50, 100)
+        while (message_counter < total_messages):
+            for count in xrange(batch_size):
+                for index_name in indices:
+                    doc_id = str(uuid.uuid1())
+                    task = {'field_count': fields, 'uuid': doc_id, 'index': index_name, 'type': types[random.randint(0, (len(types) - 1))], }
+                    work_queue.put(task)
+            print ('Joining queue counter=[%s]...' % message_counter)
+            work_queue.join()
+            print ('Done queue counter=[%s]...' % message_counter)
+            message_counter += batch_size
+    except KeyboardInterrupt:
+        [worker.terminate() for worker in workers]

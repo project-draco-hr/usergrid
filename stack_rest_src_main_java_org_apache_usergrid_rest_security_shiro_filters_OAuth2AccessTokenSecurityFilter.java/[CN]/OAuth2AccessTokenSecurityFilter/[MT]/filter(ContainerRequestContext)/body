@@ -2,6 +2,9 @@
   if (logger.isTraceEnabled()) {
     logger.trace("Filtering: {}",request.getUriInfo().getBaseUri());
   }
+  if (bypassSecurityCheck(request)) {
+    return;
+  }
   try {
     try {
       String accessToken=httpServletRequest.getParameter("access_token");
@@ -25,6 +28,9 @@ catch (      ExpiredTokenException ete) {
       }
 catch (      InvalidTokenException ite) {
         throw mappableSecurityException(INVALID_AUTH_ERROR);
+      }
+catch (      ExternalSSOProviderAdminUserNotFoundException eAdminUserNotFound) {
+        throw mappableSecurityException(EXTERNALSSOPROVIDER_UNACTIVATED_ADMINUSER);
       }
 catch (      IndexOutOfBoundsException ioobe) {
         throw mappableSecurityException(BAD_ACCESS_TOKEN_ERROR);

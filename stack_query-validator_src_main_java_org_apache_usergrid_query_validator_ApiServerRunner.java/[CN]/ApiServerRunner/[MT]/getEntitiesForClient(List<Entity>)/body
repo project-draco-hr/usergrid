@@ -1,16 +1,15 @@
 {
-  List<org.apache.usergrid.java.client.entities.Entity> clientEntities=new ArrayList<org.apache.usergrid.java.client.entities.Entity>();
+  List<UsergridEntity> clientEntities=new ArrayList<>();
   for (  Entity entity : entities) {
-    org.apache.usergrid.java.client.entities.Entity clientEntity=new org.apache.usergrid.java.client.entities.Entity();
-    clientEntity.setType(entity.getType());
+    UsergridEntity clientEntity=new UsergridEntity(entity.getType());
     Map<String,Object> properties=Schema.getDefaultSchema().getEntityProperties(entity);
     for (    String key : properties.keySet()) {
       Object value=entity.getProperty(key);
-      if (value instanceof String)       clientEntity.setProperty(key,(String)value);
- else       if (value instanceof Long)       clientEntity.setProperty(key,(Long)value);
- else       if (value instanceof Integer)       clientEntity.setProperty(key,(Integer)value);
- else       if (value instanceof Float)       clientEntity.setProperty(key,(Float)value);
- else       if (value instanceof Boolean)       clientEntity.setProperty(key,(Boolean)value);
+      if (value instanceof String)       clientEntity.putProperty(key,(String)value);
+ else       if (value instanceof Long)       clientEntity.putProperty(key,(Long)value);
+ else       if (value instanceof Integer)       clientEntity.putProperty(key,(Integer)value);
+ else       if (value instanceof Float)       clientEntity.putProperty(key,(Float)value);
+ else       if (value instanceof Boolean)       clientEntity.putProperty(key,(Boolean)value);
     }
     clientEntities.add(clientEntity);
   }

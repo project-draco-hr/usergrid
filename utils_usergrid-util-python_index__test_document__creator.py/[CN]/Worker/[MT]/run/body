@@ -1,0 +1,9 @@
+def run(self):
+    print(('Starting %s ' % self.name))
+    while True:
+        task = self.work_queue.get(timeout=600)
+        field_count = random.randint(task['fields_min'], task['fields_max'])
+        document = self.generate_document(field_count)
+        flattened_doc = self.process_document(document, task['uuid'], task['uuid'])
+        self.response_queue.put(flattened_doc)
+        self.work_queue.task_done()

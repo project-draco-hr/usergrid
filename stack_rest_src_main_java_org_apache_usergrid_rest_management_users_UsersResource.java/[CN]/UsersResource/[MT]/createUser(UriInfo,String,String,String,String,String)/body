@@ -1,7 +1,6 @@
 {
-  final boolean externalTokensEnabled=!StringUtils.isEmpty(properties.getProperty(USERGRID_CENTRAL_URL));
-  if (externalTokensEnabled) {
-    throw new IllegalArgumentException("Admin Users must signup via " + properties.getProperty(USERGRID_CENTRAL_URL));
+  if (tokens.isExternalSSOProviderEnabled() && !isServiceAdmin()) {
+    throw new IllegalArgumentException("External SSO integration is enabled, admin users registering without an org" + " must do so via provider: " + properties.getProperty(TokenServiceImpl.USERGRID_EXTERNAL_SSO_PROVIDER));
   }
   if (StringUtils.isBlank(email)) {
     throw new IllegalArgumentException("email form parameter is required");
@@ -12,7 +11,13 @@
   logger.info("Create user: {}",(StringUtils.isNotBlank(username) ? username : email));
   ApiResponse response=createApiResponse();
   response.setAction("create user");
-  UserInfo user=management.createAdminUser(null,username,name,email,password,false,false);
+  UserInfo user=null;
+  if (tokens.isExternalSSOProviderEnabled()) {
+    user=management.createAdminUser(null,username,name,email,password,true,false);
+  }
+ else {
+    user=management.createAdminUser(null,username,name,email,password,false,false);
+  }
   Map<String,Object> result=new LinkedHashMap<String,Object>();
   if (user != null) {
     result.put("user",user);
@@ -22,5 +27,6 @@
  else {
     throw mappableSecurityException(AuthErrorInfo.BAD_CREDENTIALS_SYNTAX_ERROR);
   }
+  management.createAdminUserPostProcessing(user,null);
   return response;
 }

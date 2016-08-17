@@ -1,0 +1,23 @@
+def create_event(self, user, event):
+    print ('creating event: %s' % json.dumps(event))
+    url = collection_url_template.format(collection='general-events', **url_data)
+    r = self.session.post(url, data=json.dumps(event))
+    if (r.status_code == 200):
+        res = r.json()
+        entity = res.get('entities')[0]
+        event_uuid = entity.get('uuid')
+        create_connection_url = connection_create_url_template.format(collection='users', uuid=user, verb='events', target_uuid=event_uuid, **url_data)
+        r_connect = self.session.post(create_connection_url)
+        if (r_connect.status_code == 200):
+            print ('created connection: %s' % create_connection_url)
+        create_connection_url = connection_create_url_template.format(collection='stores', uuid=event.get('storeId'), verb='events', target_uuid=event_uuid, **url_data)
+        r_connect = self.session.post(create_connection_url)
+        if (r_connect.status_code == 200):
+            print ('created connection: %s' % create_connection_url)
+        if (event.get('eventType') == 'beacon'):
+            create_connection_url = connection_create_url_template.format(collection='beacons', uuid=event.get('beaconId'), verb='events', target_uuid=event_uuid, **url_data)
+            r_connect = self.session.post(create_connection_url)
+            if (r_connect.status_code == 200):
+                print ('created connection: %s' % create_connection_url)
+            else:
+                print ('Error creating connection at URL=[%s]: %s' % (create_connection_url, r.text))

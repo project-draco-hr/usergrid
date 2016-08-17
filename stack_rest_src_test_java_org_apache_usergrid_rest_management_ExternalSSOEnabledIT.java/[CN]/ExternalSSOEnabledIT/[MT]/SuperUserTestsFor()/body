@@ -1,0 +1,53 @@
+{
+  RestClient restClient=clientSetup.getRestClient();
+  Entity adminUserPayload=new Entity();
+  adminUserPayload.put("username","TestUser");
+  adminUserPayload.put("name",username);
+  adminUserPayload.put("email","adastagiri+ssotesting@apigee.com");
+  adminUserPayload.put("password",username);
+  ApiResponse adminUserEntityResponse=management().orgs().org(clientSetup.getOrganizationName()).users().post(ApiResponse.class,adminUserPayload);
+  Entity adminUserResponse=new Entity(adminUserEntityResponse);
+  assertNotNull(adminUserResponse);
+  assertEquals("TestUser",adminUserResponse.get("username"));
+  Map<String,String> props=new HashMap<String,String>();
+  props.put(USERGRID_EXTERNAL_SSO_ENABLED,"true");
+  props.put(USERGRID_EXTERNAL_PROVIDER,"apigee");
+  pathResource("testproperties").post(props);
+  Map<String,Object> loginInfo=new HashMap<String,Object>(){
+{
+      put("username","superuser");
+      put("password","superpassword");
+      put("grant_type","password");
+    }
+  }
+;
+  ApiResponse postResponse2=pathResource("management/token").post(false,ApiResponse.class,loginInfo);
+  assertTrue(postResponse2.getAccessToken() != null);
+  Map<String,Object> orgDetails=new HashMap<String,Object>(){
+{
+      put("email","adastagiri+ssotesting@apigee.com");
+      put("name","testuser");
+      put("organization",username);
+    }
+  }
+;
+  context().getToken().put("access_token",postResponse2.getAccessToken());
+  postResponse2=pathResource("management/orgs").post(true,ApiResponse.class,orgDetails);
+  assertTrue(postResponse2.getData() != null);
+  postResponse2=pathResource("management/orgs").get(ApiResponse.class,true);
+  assertTrue(postResponse2 != null);
+  compactJws=genrateToken();
+  SpringResource.getInstance().getAppContext().getBean(ApigeeSSO2Provider.class).setPublicKey(publicKey);
+  context().getToken().put("access_token",compactJws);
+  JsonNode responseToken=management().me().get(JsonNode.class,true);
+  assertTrue(responseToken.get("access_token") != null);
+  Map<String,Object> loginInfo1=new HashMap<String,Object>(){
+{
+      put("username","TestUser");
+      put("password",username);
+      put("grant_type","password");
+    }
+  }
+;
+  ApiResponse postResponse1=pathResource("management/token").post(false,ApiResponse.class,loginInfo1);
+}

@@ -1,16 +1,31 @@
 {
-  UUID uuid=getUUIDForToken(token);
-  long ssoTtl=1000000L;
-  if (uuid == null) {
-    return isSSOEnabled() ? validateExternalToken(token,ssoTtl) : null;
+  UUID uuid;
+  try {
+    uuid=getUUIDForToken(token);
   }
-  TokenInfo tokenInfo;
+ catch (  ExpiredTokenException expiredTokenException) {
+    throw new ExpiredTokenException(expiredTokenException.getMessage());
+  }
+catch (  Exception e) {
+    try {
+      if (isExternalSSOProviderEnabled() && !getExternalSSOProvider().equalsIgnoreCase("usergrid")) {
+        return validateExternalToken(token,1,getExternalSSOProvider());
+      }
+ else {
+        throw new IllegalArgumentException("invalid external provider : " + getExternalSSOProvider());
+      }
+    }
+ catch (    NullPointerException npe) {
+      throw new IllegalArgumentException("The SSO provider in the config is empty.");
+    }
+  }
+  final TokenInfo tokenInfo;
   try {
     tokenInfo=getTokenInfo(uuid);
   }
  catch (  InvalidTokenException e) {
-    if (isSSOEnabled()) {
-      return validateExternalToken(token,maxPersistenceTokenAge);
+    if (isExternalSSOProviderEnabled() && getExternalSSOProvider().equalsIgnoreCase("usergrid")) {
+      return validateExternalToken(token,maxPersistenceTokenAge,getExternalSSOProvider());
     }
  else {
       throw e;

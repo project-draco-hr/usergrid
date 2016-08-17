@@ -1,0 +1,30 @@
+def main():
+    global config
+    config = parse_args()
+    init_logging()
+    Usergrid.init(org_id=config.get('org'), app_id=config.get('app'), base_url=config.get('url'), client_id=config.get('client_id'), client_secret=config.get('client_secret'))
+    tmp_dir = config.get('tmp_dir')
+    file_path = config.get('file')
+    if (not os.path.isfile(file_path)):
+        logger.critical(('File path specified [%s] is not a file!' % file_path))
+        logger.critical('Unable to continue')
+        exit(1)
+    if (not os.path.isdir(tmp_dir)):
+        logger.critical(('Temp Directory path specified [%s] is not a directory!' % tmp_dir))
+        logger.critical('Unable to continue')
+        exit(1)
+    file_name = os.path.basename(file_path).split('.')[0]
+    working_directory = os.path.join(tmp_dir, file_name)
+    try:
+        with zipfile.ZipFile(file_path, 'r') as z:
+            logger.warn(('Extracting files to directory: %s' % working_directory))
+            z.extractall(working_directory)
+            logger.warn('Extraction complete')
+    except Exception as e:
+        logger.critical(traceback.format_exc(e))
+        logger.critical('Extraction failed')
+        logger.critical('Unable to continue')
+        exit(1)
+    load_users_and_roles(working_directory)
+    load_entities(working_directory)
+    create_connections()

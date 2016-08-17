@@ -1,0 +1,28 @@
+def get_by_UUID(org, app, collection, entity, counter, attempts=0):
+    response = False
+    if (attempts >= 10):
+        return False
+    for region_id in config.get('get_region_ids', []):
+        url_data = config.get('regions', {}).get(region_id)
+        url = get_entity_url_template.format(collection=collection, app=app, uuid=entity.get('uuid'), org=org, access_token=config['access_token'], **url_data)
+        logger.info(('GET [%s]: %s' % ('...', url)))
+        session = session_map[region_id]
+        while (not response):
+            try:
+                r = session.get(url)
+                if (r.status_code != 200):
+                    logger.error(('GET [%s] (%s): %s' % (r.status_code, r.elapsed, url)))
+                    logger.warning('Sleeping for 5 on connection retry...')
+                    return get_by_UUID(org, app, collection, entity, counter, attempts=(attempts + 1))
+                else:
+                    logger.info(('GET [%s] (%s): %s' % (r.status_code, r.elapsed, url)))
+                    response = True
+                if ((counter % 10) == 0):
+                    logger.info(('COUNTER=[%s] time=[%s] GET [%s]: %s' % (counter, r.elapsed, r.status_code, url)))
+            except:
+                logger.error(traceback.format_exc())
+                logger.error(('EXCEPTION on GET [...] (...): %s' % url))
+                response = False
+                logger.warning('Sleeping for 5 on connection retry...')
+                time.sleep(5)
+    return response

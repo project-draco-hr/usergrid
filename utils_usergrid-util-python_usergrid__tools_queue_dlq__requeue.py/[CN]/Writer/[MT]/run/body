@@ -1,0 +1,22 @@
+def run(self):
+    sqs_conn = boto.sqs.connect_to_region(**self.sqs_config)
+    sqs_queue = sqs_conn.get_queue(self.queue_name)
+    sqs_queue.set_message_class(RawMessage)
+    counter = 0
+    batch = []
+    while True:
+        try:
+            body = self.work_queue.get(timeout=10)
+            counter += 1
+            if ((counter % 100) == 1):
+                print ('WRITER %s' % counter)
+            batch.append((str(uuid.uuid1()), body, 0))
+            if (len(batch) >= 10):
+                print 'WRITING BATCH'
+                sqs_queue.write_batch(batch, delay_seconds=300)
+                batch = []
+        except Empty:
+            if (len(batch) > 0):
+                print 'WRITING BATCH'
+                sqs_queue.write_batch(batch, delay_seconds=300)
+                batch = []

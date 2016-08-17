@@ -1,0 +1,12 @@
+def wait_for(arr_threads, sleep_time=3):
+    '\n    This function pauses the thread until the array of threads which is provided all stop working\n\n    :param arr_threads: an array of Process objects to monitor\n    :param sleep_time: the time to sleep between evaluating the array for completion\n    :return: None\n    '
+    threads_working = 100
+    while (threads_working > 0):
+        threads_working = 0
+        for t in arr_threads:
+            if t.is_alive():
+                threads_working += 1
+        if (threads_working > 0):
+            logger.warn(('Waiting for [%s] threads to finish...' % threads_working))
+            time.sleep(sleep_time)
+    logger.warn('Worker Threads finished!')

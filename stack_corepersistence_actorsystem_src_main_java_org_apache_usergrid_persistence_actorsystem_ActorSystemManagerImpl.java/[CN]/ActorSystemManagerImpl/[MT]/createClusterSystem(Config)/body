@@ -1,0 +1,25 @@
+{
+  final String clusterName="ClusterSystem";
+  if (clusterSystem == null) {
+    logger.info("Class: {}. ActorSystem [{}] not initialized, creating...",this,clusterName);
+    clusterSystem=ActorSystem.create(clusterName,config);
+    for (    RouterProducer routerProducer : routerProducers) {
+      logger.info("Creating router [{}] for region [{}]",routerProducer.getRouterPath(),currentRegion);
+      routerProducer.produceRouter(clusterSystem,"io");
+    }
+    for (    RouterProducer routerProducer : routerProducers) {
+      Iterator<Class> messageTypes=routerProducer.getMessageTypes().iterator();
+      while (messageTypes.hasNext()) {
+        Class messageType=messageTypes.next();
+        routersByMessageType.put(messageType,routerProducer.getRouterPath());
+      }
+    }
+    Runtime.getRuntime().addShutdownHook(new Thread(){
+      @Override public void run(){
+        shutdownAll();
+      }
+    }
+);
+  }
+  return clusterSystem;
+}

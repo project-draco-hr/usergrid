@@ -1,0 +1,23 @@
+def main():
+    global config
+    config = parse_args()
+    init()
+    init_logging()
+    if ((config.get('client_id') is not None) and (config.get('client_secret') is not None)):
+        token_request = {'grant_type': 'client_credentials', 'client_id': config.get('client_id'), 'client_secret': config.get('client_secret'), }
+        r = session.post(config.get('token_url'), json.dumps(token_request))
+        if (r.status_code == 200):
+            access_token = r.json().get('access_token')
+            session.headers.update({'Authorization': ('Bearer %s' % access_token), })
+        else:
+            logger.critical(('unable to get token: %s' % r.text))
+            exit(1)
+    try:
+        created_map = test_multiple(999)
+        q_url = (config.get('url') + "?ql=select * where dataType='entitlements'&limit=1000")
+        wait_for_indexing(created_map=created_map, q_url=q_url, sleep_time=1)
+        delete_q_url = (config.get('url') + "?ql=select * where dataType='entitlements'&limit=1000")
+        clear(clear_url=delete_q_url)
+    except KeyboardInterrupt:
+        processes.terminate()
+    processes.terminate()

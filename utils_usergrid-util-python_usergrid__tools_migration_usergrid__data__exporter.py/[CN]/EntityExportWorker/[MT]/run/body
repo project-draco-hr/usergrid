@@ -1,0 +1,34 @@
+def run(self):
+    collection_worker_logger.info('starting run()...')
+    keep_going = True
+    empty_count = 0
+    app = 'NOT SET'
+    collection_name = 'NOT SET'
+    status_map = {}
+    entity_file = None
+    try:
+        while keep_going:
+            try:
+                (app, collection_name) = self.work_queue.get(timeout=30)
+                empty_count = 0
+                status_map = self.process_collection(app, collection_name)
+                status_map[collection_name]['iteration_finished'] = str(datetime.datetime.now())
+                collection_worker_logger.warning(('Collection [%s / %s / %s] loop complete!  Max Created entity %s' % (config.get('org'), app, collection_name, status_map[collection_name]['max_created'])))
+                collection_worker_logger.warning(('Sending FINAL stats for app/collection [%s / %s]: %s' % (app, collection_name, status_map)))
+                self.response_queue.put((app, collection_name, status_map))
+                collection_worker_logger.info(('Done! Finished app/collection: %s / %s' % (app, collection_name)))
+            except KeyboardInterrupt as e:
+                raise e
+            except Empty:
+                collection_worker_logger.warning(('EMPTY! Count=%s' % empty_count))
+                empty_count += 1
+                if (empty_count >= 2):
+                    keep_going = False
+            except Exception as e:
+                logger.exception(('Error in CollectionWorker processing collection [%s]' % collection_name))
+                print(traceback.format_exc())
+    finally:
+        if (entity_file is not None):
+            entity_file.close()
+        self.response_queue.put((app, collection_name, status_map))
+        collection_worker_logger.info('FINISHED!')

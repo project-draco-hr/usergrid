@@ -1,0 +1,27 @@
+def run(self):
+    logger.info('starting run()...')
+    keep_going = True
+    count_processed = 0
+    count_error = 0
+    while keep_going:
+        empty_count = 0
+        try:
+            (org, app, collection, entity) = self.queue.get(timeout=600)
+            logger.debug(('Task: org=[%s] app=[%s] collection=[%s] entity=[%s]' % (org, app, collection, entity)))
+            if (self.handler_function is not None):
+                processed = self.handler_function(org=org, app=app, collection=collection, entity=entity, counter=count_processed)
+                if processed:
+                    count_processed += 1
+                    logger.info(('Processed count=[%s] SUCCESS uuid/name = %s / %s' % (count_processed, entity.get('uuid'), entity.get('name'))))
+                else:
+                    count_error += 1
+                    logger.error(('Processed count=[%s] ERROR uuid/name = %s / %s' % (count_error, entity.get('uuid'), entity.get('name'))))
+            self.queue.task_done()
+        except KeyboardInterrupt as e:
+            raise e
+        except Empty:
+            logger.warning('EMPTY!')
+            empty_count += 1
+            if (empty_count > 30):
+                keep_going = False
+    logger.warning('WORKER DONE!')

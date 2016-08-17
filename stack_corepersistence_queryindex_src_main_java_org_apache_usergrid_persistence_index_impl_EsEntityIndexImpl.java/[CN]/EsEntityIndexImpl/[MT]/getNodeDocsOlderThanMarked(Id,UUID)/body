@@ -11,7 +11,7 @@
   try {
     long queryTimestamp=0L;
     QueryBuilder timestampQuery=QueryBuilders.rangeQuery(IndexingUtils.EDGE_TIMESTAMP_FIELDNAME).gte(queryTimestamp).lt(markedTimestamp);
-    QueryBuilder finalQuery=QueryBuilders.boolQuery().must(timestampQuery).must(nodeQuery);
+    QueryBuilder finalQuery=QueryBuilders.constantScoreQuery(QueryBuilders.boolQuery().must(timestampQuery).must(nodeQuery));
     searchResponse=srb.setQuery(finalQuery).setSize(searchLimit).execute().actionGet();
     candidates=aggregateScrollResults(candidates,searchResponse,markedVersion);
   }

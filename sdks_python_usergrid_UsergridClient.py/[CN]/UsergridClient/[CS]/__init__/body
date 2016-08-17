@@ -1,0 +1,16 @@
+def __init__(self, org_id, app_id, base_url='http://api.usergrid.com', client_id=None, client_secret=None, token_ttl_seconds=86400, auth_fallback='none'):
+    self.base_url = base_url
+    self.org_id = org_id
+    self.app_id = app_id
+    self.auth_fallback = auth_fallback
+    self.logger = logging.getLogger('usergrid.UsergridClient')
+    self.session = requests.Session()
+    self.url_data = {'base_url': base_url, 'org_id': org_id, 'app_id': app_id, }
+    if (client_id and (not client_secret)):
+        value_error('Client ID Specified but not Secret')
+    elif (client_secret and (not client_id)):
+        value_error('Client ID Specified but not Secret')
+    elif (client_secret and client_id):
+        self.auth = UsergridAppAuth(client_id=client_id, client_secret=client_secret, token_ttl_seconds=token_ttl_seconds)
+        self.auth.authenticate(self)
+        self.session.headers.update({'Authorization': ('Bearer %s' % self.auth.access_token), })

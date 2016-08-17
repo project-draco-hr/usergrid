@@ -1,0 +1,12 @@
+def index_docs(self, index, documents, type):
+    data = ''
+    for doc in documents:
+        data += ('{ "index" : { "_index" : "%s", "_type" : "%s", "_id" : "%s" } }\n' % (index, type, doc['entityId']))
+        data += json.dumps(doc)
+        data += '\n'
+    url = ('%s/_bulk' % self.base_url)
+    r = requests.post(url, data)
+    if (r.status_code == 200):
+        print ('PUT (%s) in %sms' % (r.status_code, total_milliseconds(r.elapsed)))
+        return r.json()
+    raise Exception(('HTTP %s calling POST URL=[%s]: %s' % (r.status_code, url, r.text)))

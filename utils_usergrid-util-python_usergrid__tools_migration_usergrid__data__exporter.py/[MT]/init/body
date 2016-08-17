@@ -1,0 +1,11 @@
+def init():
+    global config
+    config['collection_mapping'] = {}
+    config['app_mapping'] = {}
+    config['org_mapping'] = {}
+    with open(config.get('source_config'), 'r') as f:
+        config['source_config'] = json.load(f)
+    if (config['exclude_collection'] is None):
+        config['exclude_collection'] = []
+    config['source_endpoint'] = config['source_config'].get('endpoint').copy()
+    config['source_endpoint'].update(config['source_config']['credentials'][config['org']])

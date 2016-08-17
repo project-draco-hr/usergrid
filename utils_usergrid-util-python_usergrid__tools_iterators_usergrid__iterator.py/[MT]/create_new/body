@@ -1,0 +1,17 @@
+def create_new(org_name, app_name, collection_name, entity_data, source_client, target_client, attempts=0):
+    '\n    This is an example handler function which can be used to create a new entity in the target instance (based on the\n    target_client) parameter. Multiple handler functions can be used to process a entity.  The response is an entity\n    which will get passed to the next handler in the chain\n\n    :param org_name: The org name from whence this entity came\n    :param app_name: The app name from whence this entity came\n    :param collection_name: The collection name from whence this entity came\n    :param entity_data: The entity retrieved from the source instance\n    :param source_client: The UsergridClient for the source Usergrid instance\n    :param target_client: The UsergridClient for the target Usergrid instance\n    :param attempts: the number of previous attempts this function was run (manual, not part of the framework)\n    :return: an entity.  If response is None then the chain will stop.\n    '
+    attempts += 1
+    if ('metadata' in entity_data):
+        entity_data.pop('metadata')
+    target_org = config.get('target_org')
+    target_app = config.get('app_mapping', {}).get(app_name, app_name)
+    target_collection = config.get('collection_mapping', {}).get(collection_name, collection_name)
+    if target_client:
+        try:
+            c = target_client.org(target_org).app(target_app).collection(target_collection)
+            e = c.entity_from_data(entity_data)
+            e.put()
+        except UsergridError as err:
+            logger.error(err)
+            raise err
+    return None

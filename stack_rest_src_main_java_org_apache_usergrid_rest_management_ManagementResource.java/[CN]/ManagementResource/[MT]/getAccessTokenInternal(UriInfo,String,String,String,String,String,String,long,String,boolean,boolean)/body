@@ -9,9 +9,7 @@
     }
     String errorDescription="invalid username or password";
     if (user == null) {
-      if (!me) {
-        ensureAuthenticationAllowed(username,grant_type);
-      }
+      ensureAuthenticationAllowed(username,grant_type);
       if (authorization != null) {
         String type=stringOrSubstringBeforeFirst(authorization,' ').toUpperCase();
         if ("BASIC".equals(type)) {
@@ -66,10 +64,14 @@ catch (        Exception e1) {
       OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription(errorDescription).buildJSONMessage();
       return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
     }
+    if (tokens.isExternalSSOProviderEnabled() && !userServiceAdmin(username)) {
+      OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription("External SSO integration is enabled, admin users must login via provider: " + properties.getProperty(TokenServiceImpl.USERGRID_EXTERNAL_SSO_PROVIDER)).buildJSONMessage();
+      return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
+    }
     String token=management.getAccessTokenForAdminUser(user.getUuid(),ttl);
     Long passwordChanged=management.getLastAdminPasswordChange(user.getUuid());
     AccessInfo access_info=new AccessInfo().withExpiresIn(tokens.getMaxTokenAgeInSeconds(token)).withAccessToken(token).withPasswordChanged(passwordChanged);
-    access_info.setProperty("user",management.getAdminUserOrganizationData(user,me));
+    access_info.setProperty("user",management.getAdminUserOrganizationData(user,true,false));
     management.countAdminUserAction(user,"login");
     return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(access_info,callback)).build();
   }
