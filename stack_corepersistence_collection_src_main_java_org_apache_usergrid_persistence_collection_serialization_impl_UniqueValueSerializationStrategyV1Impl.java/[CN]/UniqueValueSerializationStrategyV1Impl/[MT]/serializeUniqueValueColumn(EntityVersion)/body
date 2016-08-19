@@ -4,9 +4,9 @@
   keys.add(entityVersion.getEntityVersion());
   keys.add(entityVersion.getEntityId().getUuid());
   keys.add(entityVersion.getEntityId().getType());
-  int size=16 + 16 + entityVersion.getEntityId().getType().length();
+  int size=16 + 16 + entityVersion.getEntityId().getType().getBytes().length;
   size+=keys.size() * 5;
-  size+=keys.size() * comparator.length();
+  size+=keys.size() * comparator.getBytes().length;
   ByteBuffer stuff=ByteBuffer.allocate(size);
   for (  Object key : keys) {
     if (key instanceof UUID) {
@@ -15,7 +15,7 @@
  else {
       comparator="UTF8Type";
     }
-    stuff.putShort((short)comparator.length());
+    stuff.putShort((short)comparator.getBytes().length);
     stuff.put(DataType.serializeValue(comparator,ProtocolVersion.NEWEST_SUPPORTED));
     ByteBuffer kb=DataType.serializeValue(key,ProtocolVersion.NEWEST_SUPPORTED);
     if (kb == null) {
