@@ -1,25 +1,25 @@
 {
-  LOG.debug("REMOVED {}",deviceUUID);
+  successes.incrementAndGet();
   try {
-    LOG.debug("notification {} removing device {} from remaining",notification.getUuid(),deviceUUID);
     EntityRef deviceRef=new SimpleEntityRef(Device.ENTITY_TYPE,deviceUUID);
     if (receipt != null) {
-      LOG.debug("notification {} sent to device {}. saving receipt.",notification.getUuid(),deviceUUID);
       receipt.setSent(System.currentTimeMillis());
       this.saveReceipt(notification,deviceRef,receipt,false);
-      LOG.debug("notification {} receipt saved for device {}",notification.getUuid(),deviceUUID);
-      successes.incrementAndGet();
+      if (logger.isTraceEnabled()) {
+        logger.trace("Notification {} receipt saved for device {}",notification.getUuid(),deviceUUID);
+      }
     }
     if (newProviderId != null) {
-      LOG.debug("notification {} replacing device {} notifierId",notification.getUuid(),deviceUUID);
+      if (logger.isTraceEnabled()) {
+        logger.trace("Notification {} replacing notifier id for device {} ",notification.getUuid(),deviceUUID);
+      }
       replaceProviderId(deviceRef,notifier,newProviderId);
     }
-    LOG.debug("notification {} completed device {}",notification.getUuid(),deviceUUID);
-  }
-  finally {
-    LOG.debug("COUNT is: {}",successes.get());
-    if (hasFinished) {
-      finishedBatch();
+    if (logger.isTraceEnabled()) {
+      logger.trace("Notification {} sending completed for device {}",notification.getUuid(),deviceUUID);
     }
+  }
+ catch (  Exception e) {
+    logger.error("Unable to mark notification {} as completed due to: {}",notification.getUuid(),e);
   }
 }

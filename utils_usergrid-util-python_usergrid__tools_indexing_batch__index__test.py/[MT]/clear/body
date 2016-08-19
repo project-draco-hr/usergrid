@@ -1,0 +1,11 @@
+def clear(clear_url):
+    logger.info(('deleting.... ' + clear_url))
+    r = session.delete(clear_url)
+    if (r.status_code != 200):
+        logger.info(('error deleting url=' + clear_url))
+        logger.info(json.dumps(r.json()))
+    else:
+        res = r.json()
+        len_entities = len(res.get('entities', []))
+        if (len_entities > 0):
+            clear(clear_url)

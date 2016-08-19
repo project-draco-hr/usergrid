@@ -1,0 +1,12 @@
+{
+  ConnectionPoolConfiguration config;
+  final String username=cassandraFig.getUsername();
+  final String password=cassandraFig.getPassword();
+  if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
+    config=new ConnectionPoolConfigurationImpl(poolName).setPort(cassandraFig.getThriftPort()).setLocalDatacenter(cassandraFig.getLocalDataCenter()).setMaxConnsPerHost(poolSize).setSeeds(cassandraFig.getHosts()).setConnectTimeout(cassandraFig.getTimeout()).setSocketTimeout(cassandraFig.getTimeout()).setAuthenticationCredentials(new SimpleAuthenticationCredentials(username,password));
+  }
+ else {
+    config=new ConnectionPoolConfigurationImpl(poolName).setPort(cassandraFig.getThriftPort()).setLocalDatacenter(cassandraFig.getLocalDataCenter()).setMaxConnsPerHost(poolSize).setSeeds(cassandraFig.getHosts()).setSocketTimeout(cassandraFig.getTimeout()).setConnectTimeout(cassandraFig.getTimeout());
+  }
+  return config;
+}

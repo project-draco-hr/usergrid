@@ -6,7 +6,9 @@
     this.binaryStore=awsSdkS3BinaryStore;
   }
   UUID assetId=UUID.fromString(entityId.getPath());
-  logger.info("In AssetsResource.findAsset with id: {}, range: {}, modifiedSince: {}",new Object[]{assetId,range,modifiedSince});
+  if (logger.isTraceEnabled()) {
+    logger.trace("In AssetsResource.findAsset with id: {}, range: {}, modifiedSince: {}",assetId,range,modifiedSince);
+  }
   EntityManager em=emf.getEntityManager(getApplicationId());
   Asset asset=em.get(assetId,Asset.class);
   Map<String,Object> fileMetadata=AssetUtils.getFileMetadata(asset);
@@ -26,13 +28,17 @@
   if (is == null) {
     return Response.status(Response.Status.NOT_FOUND).build();
   }
-  logger.info("AssetResource.findAsset read inputStream, composing response");
+  if (logger.isTraceEnabled()) {
+    logger.trace("AssetResource.findAsset read inputStream, composing response");
+  }
   Response.ResponseBuilder responseBuilder=Response.ok(is).type(fileMetadata.get("content-type").toString()).lastModified(new Date(asset.getModified()));
   if (fileMetadata.get(AssetUtils.E_TAG) != null) {
     responseBuilder.tag((String)fileMetadata.get(AssetUtils.E_TAG));
   }
   if (StringUtils.isNotBlank(range)) {
-    logger.info("Range header was not blank, sending back Content-Range");
+    if (logger.isTraceEnabled()) {
+      logger.trace("Range header was not blank, sending back Content-Range");
+    }
   }
   return responseBuilder.build();
 }

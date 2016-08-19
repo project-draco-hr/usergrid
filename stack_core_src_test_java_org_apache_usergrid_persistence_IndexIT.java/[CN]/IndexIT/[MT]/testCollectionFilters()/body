@@ -1,5 +1,5 @@
 {
-  LOG.info("testCollectionFilters");
+  logger.info("testCollectionFilters");
   UUID applicationId=app.getId();
   assertNotNull(applicationId);
   EntityManager em=setup.getEmf().getEntityManager(applicationId);
@@ -13,7 +13,7 @@
   app.refreshIndex();
   Query query=Query.fromQL("name < 'delta' order by name asc");
   Results r=em.searchCollection(em.getApplicationRef(),"items",query);
-  LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+  logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   int i=0;
   for (  Entity entity : r.getEntities()) {
     assertEquals(alphabet[i],entity.getProperty("name"));
@@ -22,7 +22,7 @@
   assertEquals(3,i);
   query=Query.fromQL("name <= 'delta' order by name asc");
   r=em.searchCollection(em.getApplicationRef(),"items",query);
-  LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+  logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   i=0;
   for (  Entity entity : r.getEntities()) {
     assertEquals(alphabet[i],entity.getProperty("name"));
@@ -31,7 +31,7 @@
   assertEquals(4,i);
   query=Query.fromQL("name <= 'foxtrot' and name > 'bravo' order by name asc");
   r=em.searchCollection(em.getApplicationRef(),"items",query);
-  LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+  logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   i=2;
   for (  Entity entity : r.getEntities()) {
     assertEquals(alphabet[i],entity.getProperty("name"));
@@ -40,7 +40,7 @@
   assertEquals(6,i);
   query=Query.fromQL("name < 'foxtrot' and name > 'bravo' order by name asc");
   r=em.searchCollection(em.getApplicationRef(),"items",query);
-  LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+  logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   i=2;
   for (  Entity entity : r.getEntities()) {
     assertEquals(alphabet[i],entity.getProperty("name"));
@@ -49,7 +49,7 @@
   assertEquals(5,i);
   query=Query.fromQL("name < 'foxtrot' and name >= 'bravo' order by name asc");
   r=em.searchCollection(em.getApplicationRef(),"items",query);
-  LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+  logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   i=1;
   for (  Entity entity : r.getEntities()) {
     assertEquals(alphabet[i],entity.getProperty("name"));
@@ -58,7 +58,7 @@
   assertEquals(5,i);
   query=Query.fromQL("name <= 'foxtrot' and name >= 'bravo' order by name asc");
   r=em.searchCollection(em.getApplicationRef(),"items",query);
-  LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+  logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   i=1;
   for (  Entity entity : r.getEntities()) {
     assertEquals(alphabet[i],entity.getProperty("name"));
@@ -67,7 +67,7 @@
   assertEquals(6,i);
   query=Query.fromQL("name <= 'foxtrot' and name >= 'bravo' order by name desc");
   r=em.searchCollection(em.getApplicationRef(),"items",query);
-  LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+  logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   i=6;
   for (  Entity entity : r.getEntities()) {
     i--;
@@ -76,7 +76,7 @@
   assertEquals(1,i);
   query=Query.fromQL("name < 'foxtrot' and name > 'bravo' order by name desc");
   r=em.searchCollection(em.getApplicationRef(),"items",query);
-  LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+  logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   i=5;
   for (  Entity entity : r.getEntities()) {
     i--;
@@ -85,7 +85,7 @@
   assertEquals(2,i);
   query=Query.fromQL("name < 'foxtrot' and name >= 'bravo' order by name desc");
   r=em.searchCollection(em.getApplicationRef(),"items",query);
-  LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+  logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   i=5;
   for (  Entity entity : r.getEntities()) {
     i--;
@@ -94,13 +94,13 @@
   assertEquals(1,i);
   query=Query.fromQL("name = 'foxtrot'");
   r=em.searchCollection(em.getApplicationRef(),"items",query);
-  LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+  logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   assertEquals(1,r.size());
   long created=r.getEntity().getCreated();
   UUID entityId=r.getEntity().getUuid();
   query=Query.fromQL("created = " + created);
   r=em.searchCollection(em.getApplicationRef(),"items",query);
-  LOG.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
+  logger.info(JsonUtils.mapToFormattedJsonString(r.getEntities()));
   assertEquals(1,r.size());
   assertEquals(entityId,r.getEntity().getUuid());
 }

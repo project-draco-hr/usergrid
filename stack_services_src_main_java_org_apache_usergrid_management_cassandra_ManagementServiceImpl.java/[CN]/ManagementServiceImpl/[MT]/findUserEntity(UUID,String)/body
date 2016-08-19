@@ -5,11 +5,15 @@
       Entity entity=getUserEntityByIdentifier(applicationId,Identifier.fromUUID(UUID.fromString(identifierString)));
       if (entity != null) {
         user=(User)entity.toTypedEntity();
-        logger.info("Found user {} as a UUID",identifierString);
+        if (logger.isTraceEnabled()) {
+          logger.trace("Found user {} as a UUID",identifierString);
+        }
       }
     }
  catch (    Exception e) {
-      logger.warn("Unable to get user " + identifierString + " as a UUID, trying username...");
+      if (logger.isTraceEnabled()) {
+        logger.trace("Unable to get user {} as a UUID, trying username...",identifierString);
+      }
     }
     return user;
   }
@@ -18,12 +22,13 @@
     Entity entity=getUserEntityByIdentifier(applicationId,identifier);
     if (entity != null) {
       user=(User)entity.toTypedEntity();
-      logger.info("Found user {} as an {}",identifierString,identifier.getType());
+      if (logger.isTraceEnabled()) {
+        logger.trace("Found user {} as an {}",identifierString,identifier.getType());
+      }
     }
   }
  catch (  Exception e) {
-    logger.warn("Unable to get user {} as a {}",identifierString,identifier.getType());
-    logger.warn("Exception",e);
+    logger.warn("Unable to get user {} as a {}",identifierString,identifier.getType(),e);
   }
   if (user != null) {
     return user;

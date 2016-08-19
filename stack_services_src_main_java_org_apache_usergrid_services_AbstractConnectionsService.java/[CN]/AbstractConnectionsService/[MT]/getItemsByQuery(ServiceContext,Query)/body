@@ -6,7 +6,7 @@
     if (nameProperty == null) {
       nameProperty="name";
     }
-    Entity entity=em.getUniqueEntityFromAlias(query.getEntityType(),name);
+    Entity entity=em.getUniqueEntityFromAlias(query.getEntityType(),name,false);
     if (entity == null) {
       return null;
     }
@@ -18,8 +18,8 @@
   if (!context.moreParameters()) {
     count=Query.MAX_LIMIT;
     level=Level.ALL_PROPERTIES;
-    if (logger.isDebugEnabled()) {
-      logger.debug("Query does not have more parameters, overwriting limit to: {} and level to {}",count,level.name());
+    if (logger.isTraceEnabled()) {
+      logger.trace("Query does not have more parameters, overwriting limit to: {} and level to {}",count,level.name());
     }
   }
   if (context.getRequest().isReturnsTree()) {
@@ -29,12 +29,15 @@
   query.setResultsLevel(level);
   Results r=null;
   if (connecting()) {
+    query.setConnecting(true);
     if (query.hasQueryPredicates()) {
-      logger.debug("Attempted query of backwards connections");
+      if (logger.isTraceEnabled()) {
+        logger.trace("Attempted query of backwards connections");
+      }
       return null;
     }
  else {
-      r=em.getSourceEntities(new SimpleEntityRef(context.getOwner().getType(),context.getOwner().getUuid()),query.getConnectionType(),query.getEntityType(),level,query.getLimit());
+      r=em.searchTargetEntities(context.getOwner(),query);
     }
   }
  else {

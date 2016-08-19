@@ -1,0 +1,18 @@
+{
+  if (user.isActivated()) {
+    sendAdminUserConfirmationEmail(organizationId,user);
+    sendAdminUserActivatedEmail(user);
+    sendSysAdminNewAdminActivatedNotificationEmail(organizationId,user);
+  }
+ else {
+    if (newAdminUsersRequireConfirmation()) {
+      sendAdminUserConfirmationEmail(organizationId,user);
+    }
+ else     if (newAdminUsersNeedSysAdminApproval()) {
+      sendSysAdminRequestAdminActivationEmail(organizationId,user);
+    }
+ else {
+      activateAdminUser(user.getUuid());
+    }
+  }
+}

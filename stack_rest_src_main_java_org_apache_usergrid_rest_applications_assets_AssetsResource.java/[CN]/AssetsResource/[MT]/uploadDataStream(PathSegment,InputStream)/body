@@ -6,11 +6,15 @@
     this.binaryStore=awsSdkS3BinaryStore;
   }
   UUID assetId=UUID.fromString(entityId.getPath());
-  logger.info("In AssetsResource.uploadDataStream with id: {}",assetId);
+  if (logger.isTraceEnabled()) {
+    logger.trace("In AssetsResource.uploadDataStream with id: {}",assetId);
+  }
   EntityManager em=emf.getEntityManager(getApplicationId());
   Asset asset=em.get(assetId,Asset.class);
   binaryStore.write(getApplicationId(),asset,uploadedInputStream);
-  logger.info("uploadDataStream written, returning response");
+  if (logger.isTraceEnabled()) {
+    logger.trace("uploadDataStream written, returning response");
+  }
   em.update(asset);
   return Response.status(200).build();
 }

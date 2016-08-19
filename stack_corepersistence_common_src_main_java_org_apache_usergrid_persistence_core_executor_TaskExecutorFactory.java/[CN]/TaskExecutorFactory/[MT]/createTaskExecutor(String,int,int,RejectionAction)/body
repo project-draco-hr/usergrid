@@ -1,12 +1,21 @@
 {
-  final BlockingQueue<Runnable> queue=new ArrayBlockingQueue<Runnable>(maxQueueSize);
-  if (rejectionAction.equals(RejectionAction.ABORT)) {
-    return new MaxSizeThreadPool(queue,schedulerName,maxThreadCount);
-  }
- else   if (rejectionAction.equals(RejectionAction.CALLERRUNS)) {
-    return new MaxSizeThreadPoolCallerRuns(queue,schedulerName,maxThreadCount);
+  final BlockingQueue<Runnable> queue;
+  if (maxQueueSize == 0) {
+    queue=new SynchronousQueue();
   }
  else {
+    queue=new ArrayBlockingQueue<>(maxQueueSize);
+  }
+  if (rejectionAction == RejectionAction.ABORT) {
     return new MaxSizeThreadPool(queue,schedulerName,maxThreadCount);
+  }
+ else   if (rejectionAction == RejectionAction.CALLERRUNS) {
+    return new MaxSizeThreadPoolCallerRuns(queue,schedulerName,maxThreadCount);
+  }
+ else   if (rejectionAction == RejectionAction.DROP) {
+    return new MaxSizeThreadPoolDrops(queue,schedulerName,maxThreadCount);
+  }
+ else {
+    throw new IllegalArgumentException("Unable to create a scheduler with the arguments provided");
   }
 }

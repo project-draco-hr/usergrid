@@ -1,11 +1,12 @@
 {
-  final boolean externalTokensEnabled=!StringUtils.isEmpty(properties.getProperty(ManagementResource.USERGRID_CENTRAL_URL));
-  if (externalTokensEnabled) {
-    throw new IllegalArgumentException("Organization / Admin Users must be created via " + properties.getProperty(ManagementResource.USERGRID_CENTRAL_URL));
+  if ((System.getProperty("usergrid.management.allow-public-registration") != null && !Boolean.valueOf(System.getProperty("usergrid.management.allow-public-registration")) && !userServiceAdmin(null))) {
+    throw new IllegalArgumentException("Public organization registration is disabled");
   }
   Preconditions.checkArgument(StringUtils.isNotBlank(organizationName),"The organization parameter was missing");
   Preconditions.checkArgument(StringUtils.isNotBlank(organizationName),"The organization parameter was missing");
-  logger.debug("New organization: {}",organizationName);
+  if (logger.isDebugEnabled()) {
+    logger.debug("New organization: {}",organizationName);
+  }
   ApiResponse response=createApiResponse();
   response.setAction("new organization");
   OrganizationOwnerInfo organizationOwner=management.createOwnerAndOrganization(organizationName,username,name,email,password,false,false,userProperties,orgProperties);
@@ -14,6 +15,9 @@
     return null;
   }
   applicationCreator.createSampleFor(organizationOwner.getOrganization());
+  management.createAdminUserPostProcessing(organizationOwner.getOwner(),null);
+  management.createOrganizationPostProcessing(organizationOwner.getOrganization(),null);
+  management.addUserToOrganizationPostProcessing(organizationOwner.getOwner(),organizationName,null);
   response.setData(organizationOwner);
   response.setSuccess();
   logger.info("New organization complete: {}",organizationName);

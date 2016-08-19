@@ -1,0 +1,16 @@
+{
+  EntityManager em=getEntityManager(getManagementAppId());
+  indexService.queueInitializeApplicationIndex(CpNamingUtils.getApplicationScope(getManagementAppId()));
+  try {
+    if (em.getApplication() == null) {
+      logger.info("Creating management application");
+      Map mgmtAppProps=new HashMap<String,Object>();
+      mgmtAppProps.put(PROPERTY_NAME,CassandraService.MANAGEMENT_APPLICATION);
+      em.create(getManagementAppId(),TYPE_APPLICATION,mgmtAppProps);
+      em.getApplication();
+    }
+  }
+ catch (  Exception ex) {
+    throw new RuntimeException("Fatal error creating management application",ex);
+  }
+}

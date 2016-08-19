@@ -17,9 +17,9 @@
   final String appUserEmail=uniqueEmail();
   final String appUserUsername=uniqueUsername();
   User user=setupAppUser(app.getId(),appUserUsername,appUserEmail,true);
+  OrganizationConfig orgConfig=setup.getMgmtSvc().getOrganizationConfigByUuid(orgOwner.getOrganization().getUuid());
   String subject="User Account Confirmation: " + appUserEmail;
-  String urlProp=setup.get(PROPERTIES_USER_CONFIRMATION_URL);
-  String confirmation_url=String.format(urlProp,orgName,appName,user.getUuid().toString());
+  String confirmation_url=orgConfig.getFullUrl(WorkflowUrl.USER_CONFIRMATION_URL,orgName,appName,user.getUuid().toString());
   setup.getMgmtSvc().startAppUserActivationFlow(app.getId(),user);
   List<Message> inbox=Mailbox.get(appUserEmail);
   assertFalse(inbox.isEmpty());
@@ -28,10 +28,10 @@
   Message confirmation=inbox.get(0);
   assertEquals(subject,confirmation.getSubject());
   String mailContent=(String)((MimeMultipart)confirmation.getContent()).getBodyPart(1).getContent();
-  LOG.info(mailContent);
+  logger.info(mailContent);
   assertTrue(StringUtils.contains(mailContent.toLowerCase(),confirmation_url.toLowerCase()));
   String token=getTokenFromMessage(confirmation);
-  LOG.info(token);
+  logger.info(token);
   ActivationState activeState=setup.getMgmtSvc().handleConfirmationTokenForAppUser(app.getId(),user.getUuid(),token);
   assertEquals(ActivationState.CONFIRMED_AWAITING_ACTIVATION,activeState);
 }

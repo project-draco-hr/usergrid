@@ -19,7 +19,7 @@ synchronized (this) {
         final InnerObserver<T> inner=nextObservers.pollFirst();
         nextValues.remove(lowestKey,inner);
         final T value=inner.pop();
-        log.trace("Emitting value {}",value);
+        if (logger.isTraceEnabled())         logger.trace("Emitting value {}",value);
         subscriber.onNext(value);
         final T nextKey=inner.peek();
         if (nextKey == null) {

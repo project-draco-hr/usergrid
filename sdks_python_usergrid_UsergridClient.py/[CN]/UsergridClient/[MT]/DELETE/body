@@ -1,0 +1,7 @@
+def DELETE(self, collection, uuid_name, auth=None, **kwargs):
+    url = delete_entity_url_template.format(collection=collection, uuid_name=uuid_name, **self.url_data)
+    if auth:
+        r = requests.delete(url, headers={'Authorization': ('Bearer %s' % auth.access_token), })
+    else:
+        r = self.session.delete(url)
+    return UsergridResponse(r, self)

@@ -1,11 +1,10 @@
 {
-  final boolean externalTokensEnabled=!StringUtils.isEmpty(properties.getProperty(ManagementResource.USERGRID_CENTRAL_URL));
-  if (externalTokensEnabled) {
-    throw new IllegalArgumentException("Admin Users must reactivate via " + properties.getProperty(ManagementResource.USERGRID_CENTRAL_URL));
+  if (tokens.isExternalSSOProviderEnabled() && !isServiceAdmin()) {
+    throw new IllegalArgumentException("External SSO integration is enabled, admin user must re-activate " + "via provider: " + properties.getProperty(TokenServiceImpl.USERGRID_EXTERNAL_SSO_PROVIDER));
   }
   logger.info("Send activation email for user: {}",user.getUuid());
   ApiResponse response=createApiResponse();
-  management.startAdminUserActivationFlow(user);
+  management.startAdminUserActivationFlow(null,user);
   response.setAction("reactivate user");
   return response;
 }

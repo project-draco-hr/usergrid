@@ -1,3 +1,11 @@
 {
-  finishedBatch(true,false);
+  long successes=this.successes.get();
+  long failures=this.failures.get();
+  this.successes.set(0);
+  this.failures.set(0);
+  notification=em.get(this.notification.getUuid(),Notification.class);
+  notification.updateStatistics(successes,failures);
+  notification.setModified(System.currentTimeMillis());
+  notification.setFinished(notification.getModified());
+  em.update(notification);
 }

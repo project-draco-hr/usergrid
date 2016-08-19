@@ -7,10 +7,11 @@
   final Optional<String> entityType=Optional.fromNullable(query.getEntityType());
   final Id sourceId=headEntity.asId();
   final Optional<String> queryString=query.isGraphSearch() ? Optional.<String>absent() : query.getQl();
+  final boolean isConnecting=query.isConnecting();
   if (query.getResultsLevel() == Level.REFS || query.getResultsLevel() == Level.IDS) {
     return new ConnectionRefQueryExecutor(toExecute.getCursor()){
       @Override protected Observable<ResultsPage<ConnectionRef>> buildNewResultsPage(      final Optional<String> cursor){
-        final ConnectionSearch search=new ConnectionSearch(applicationScope,sourceId,entityType,connection,toExecute.getLimit(),queryString,cursor);
+        final ConnectionSearch search=new ConnectionSearch(applicationScope,sourceId,entityType,connection,toExecute.getLimit(),queryString,cursor,isConnecting);
         return connectionService.searchConnectionAsRefs(search);
       }
     }
@@ -18,7 +19,7 @@
   }
   return new EntityQueryExecutor(toExecute.getCursor()){
     @Override protected Observable<ResultsPage<org.apache.usergrid.persistence.model.entity.Entity>> buildNewResultsPage(    final Optional<String> cursor){
-      final ConnectionSearch search=new ConnectionSearch(applicationScope,sourceId,entityType,connection,toExecute.getLimit(),queryString,cursor);
+      final ConnectionSearch search=new ConnectionSearch(applicationScope,sourceId,entityType,connection,toExecute.getLimit(),queryString,cursor,isConnecting);
       return connectionService.searchConnection(search);
     }
   }

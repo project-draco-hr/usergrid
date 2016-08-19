@@ -1,0 +1,20 @@
+{
+  initAkka();
+  final AtomicInteger successCounter=new AtomicInteger(0);
+  final AtomicInteger errorCounter=new AtomicInteger(0);
+  Multimap<String,Entity> usersCreated=generateDuplicateUsers(numUsers,successCounter,errorCounter);
+  int userCount=0;
+  int usernamesWithDuplicates=0;
+  for (  String username : usersCreated.keySet()) {
+    Collection<Entity> users=usersCreated.get(username);
+    if (users.size() > 1) {
+      usernamesWithDuplicates++;
+    }
+    userCount++;
+  }
+  Assert.assertEquals(0,usernamesWithDuplicates);
+  Assert.assertEquals(numUsers,successCounter.get());
+  Assert.assertEquals(0,errorCounter.get());
+  Assert.assertEquals(numUsers,usersCreated.size());
+  Assert.assertEquals(numUsers,userCount);
+}

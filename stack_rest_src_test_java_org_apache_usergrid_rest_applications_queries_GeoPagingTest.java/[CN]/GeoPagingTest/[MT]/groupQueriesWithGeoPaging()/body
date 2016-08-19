@@ -17,7 +17,9 @@
     Entity activity=this.app().collection("groups").post(props);
     activity=this.app().collection("groups").entity(activity).get();
     index[i]=(Long)activity.get("created");
-    log.debug("Activity {} created at {}",i,index[i]);
+    if (log.isDebugEnabled()) {
+      log.debug("Activity {} created at {}",i,index[i]);
+    }
   }
   this.refreshIndex();
   String query="select * where actor.location within 20000 of 37.0,-75.0 " + " and created > " + (index[0]) + " and created < "+ (index[2])+ " order by created";

@@ -1,6 +1,8 @@
 {
-  logger.debug("AdminUserFilter.authorize");
-  if (!isUser(getUserIdentifier())) {
+  if (logger.isTraceEnabled()) {
+    logger.trace("AdminUserFilter.authorize");
+  }
+  if (!isUser(getUserIdentifier()) && !isServiceAdmin() && !isBasicAuthServiceAdmin(request)) {
     throw mappableSecurityException("unauthorized","No admin user access authorized");
   }
 }

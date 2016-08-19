@@ -1,0 +1,23 @@
+{
+  Id owner=new SimpleId(indexEdge.getNodeId().getUuid(),TYPE_APPLICATION);
+  Set<String> defaultProperties;
+  String collectionName=CpNamingUtils.getCollectionNameFromEdgeName(indexEdge.getEdgeName());
+  CollectionSettings collectionSettings=collectionSettingsFactory.getInstance(new CollectionSettingsScopeImpl(owner,collectionName));
+  Optional<Map<String,Object>> collectionIndexingSchema=collectionSettings.getCollectionSettings(collectionName);
+  if (collectionIndexingSchema.isPresent()) {
+    Map jsonMapData=collectionIndexingSchema.get();
+    Schema schema=Schema.getDefaultSchema();
+    defaultProperties=schema.getRequiredProperties(collectionName);
+    Object fields=jsonMapData.get("fields");
+    if (fields != null && fields instanceof String && "all".equalsIgnoreCase(fields.toString())) {
+      return Optional.absent();
+    }
+    if (fields != null && fields instanceof List) {
+      defaultProperties.addAll((List)fields);
+    }
+  }
+ else {
+    return Optional.absent();
+  }
+  return Optional.of(defaultProperties);
+}

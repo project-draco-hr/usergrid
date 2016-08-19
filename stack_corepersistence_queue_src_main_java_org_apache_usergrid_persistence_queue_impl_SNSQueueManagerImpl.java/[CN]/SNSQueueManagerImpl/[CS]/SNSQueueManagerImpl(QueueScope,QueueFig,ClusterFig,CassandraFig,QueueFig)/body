@@ -5,6 +5,7 @@
   this.cassandraFig=cassandraFig;
   final ExecutorService executor=TaskExecutorFactory.createTaskExecutor("amazon-async-io",queueFig.getAsyncMaxThreads(),queueFig.getAsyncQueueSize(),TaskExecutorFactory.RejectionAction.CALLERRUNS);
   final Region region=getRegion();
+  this.clientConfiguration=new ClientConfiguration().withConnectionTimeout(queueFig.getQueueClientConnectionTimeout()).withSocketTimeout(Math.max(MIN_CLIENT_SOCKET_TIMEOUT,queueFig.getQueueClientSocketTimeout())).withGzip(true);
   try {
     sqs=createSQSClient(region);
     sns=createSNSClient(region);

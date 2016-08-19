@@ -2,5 +2,16 @@
   if (fieldValue.size() != 2) {
     return false;
   }
-  return fieldValue.containsKey(EntityToMapConverter.LAT) && fieldValue.containsKey(EntityToMapConverter.LON);
+  if (fieldValue.containsKey(EntityToMapConverter.LAT) && fieldValue.containsKey(EntityToMapConverter.LON)) {
+    for (    Map.Entry<String,?> value : fieldValue.entrySet()) {
+      if (!(value.getValue() instanceof Number) && !isDouble(String.valueOf(value.getValue()))) {
+        if (logger.isDebugEnabled()) {
+          logger.debug("Field [{}] with value [{}] is not a valid geo coordinate",value.getKey(),value.getValue());
+        }
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
 }

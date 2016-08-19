@@ -1,0 +1,41 @@
+{
+  if (certPassword == null) {
+    certPassword="";
+  }
+  SimpleDateFormat dateFormat=new SimpleDateFormat();
+  dateFormat.setTimeZone(new SimpleTimeZone(0,"GMT"));
+  dateFormat.applyPattern("EEE dd MMM yyyy HH:mm:ss z");
+  Map<String,Object> attributes=new HashMap<>(1);
+  try {
+    KeyStore p12=KeyStore.getInstance("pkcs12");
+    InputStream stream=new ByteArrayInputStream(certBytes);
+    p12.load(stream,certPassword.toCharArray());
+    Enumeration aliases=p12.aliases();
+    while (aliases.hasMoreElements()) {
+      String alias=(String)aliases.nextElement();
+      X509Certificate cert=(X509Certificate)p12.getCertificate(alias);
+      attributes.put("subject",cert.getSubjectDN().toString());
+      attributes.put("validFrom",dateFormat.format(cert.getNotBefore()));
+      attributes.put("validFromTimestamp",cert.getNotBefore().getTime());
+      attributes.put("validTo",dateFormat.format(cert.getNotAfter()));
+      attributes.put("validToTimestamp",cert.getNotAfter().getTime());
+      attributes.put("issuer",cert.getIssuerDN().toString());
+      attributes.put("subjectAlternativeNames",cert.getSubjectAlternativeNames());
+      Map<String,Object> extensions=new HashMap<>(1);
+      if (cert.getExtensionValue(APPLE_TOPIC_OID) != null) {
+        extensions.put(APPLE_TOPIC_OID,cert.getExtensionValue(APPLE_TOPIC_OID));
+      }
+      attributes.put("extensions",extensions);
+      attributes.put("extendedKeyUsages",cert.getExtendedKeyUsage());
+      attributes.put("version",cert.getVersion());
+      attributes.put("signatureAlgorithm",cert.getSigAlgName());
+      attributes.put("serialNumber",cert.getSerialNumber());
+      attributes.put("basicConstraints",cert.getBasicConstraints());
+    }
+  }
+ catch (  Exception e) {
+    String message="Unable load certificate details.  Possible invalid p12 file.";
+    throw new RuntimeException(message,e);
+  }
+  return attributes;
+}

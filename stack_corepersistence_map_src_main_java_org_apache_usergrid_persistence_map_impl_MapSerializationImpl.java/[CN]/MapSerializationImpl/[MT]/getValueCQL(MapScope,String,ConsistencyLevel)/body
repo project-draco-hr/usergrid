@@ -1,0 +1,7 @@
+{
+  Clause in=QueryBuilder.in("key",getMapEntryPartitionKey(scope,key));
+  Statement statement=QueryBuilder.select().all().from(MAP_ENTRIES_TABLE).where(in).setConsistencyLevel(consistencyLevel);
+  ResultSet resultSet=session.execute(statement);
+  com.datastax.driver.core.Row row=resultSet.one();
+  return row != null ? row.getBytes("value") : null;
+}

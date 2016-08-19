@@ -1,0 +1,15 @@
+import json
+import requests
+__author__ = 'Jeff.West@yahoo.com'
+cluster = 'cluster-1'
+work = {'remove': {'app-id-1': 'from-index', 'app-id-2': 'from-index', }, 'add': {'app-id-1': 'to-index', 'app-id-2': 'to-index', }, }
+actions = []
+for (app_id, index) in work.get('remove', {}).iteritems():
+    actions.append({'remove': {'index': index, 'alias': ('%s_%s_read_alias' % (cluster, app_id)), }, })
+    actions.append({'remove': {'index': index, 'alias': ('%s_%s_write_alias' % (cluster, app_id)), }, })
+for (app_id, index) in work['add'].iteritems():
+    actions.append({'add': {'index': index, 'alias': ('%s_%s_read_alias' % (cluster, app_id)), }, })
+    actions.append({'add': {'index': index, 'alias': ('%s_%s_write_alias' % (cluster, app_id)), }, })
+url = 'http://localhost:9200/_aliases'
+r = requests.post(url, data=json.dumps({'actions': actions, }))
+print ('%s: %s' % (r.status_code, r.text))

@@ -1,6 +1,8 @@
 {
   String tagName=pjp.toLongString();
-  logger.debug("Applyng trace on {}",tagName);
+  if (logger.isTraceEnabled()) {
+    logger.trace("Applying trace on {}",tagName);
+  }
   TimedOpTag timedOpTag=traceTagManager.timerInstance();
   boolean success=true;
   try {
@@ -13,6 +15,8 @@
  finally {
     timedOpTag.stopAndApply(tagName,success);
     traceTagManager.addTimer(timedOpTag);
-    logger.debug("TimedOpTag added in Aspect on {}",tagName);
+    if (logger.isTraceEnabled()) {
+      logger.trace("TimedOpTag added in Aspect on {}",tagName);
+    }
   }
 }

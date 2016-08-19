@@ -2,17 +2,17 @@
   try {
     ActivationState state=management.handleConfirmationTokenForAppUser(getApplicationId(),getUserUuid(),token);
     if (state == ActivationState.CONFIRMED_AWAITING_ACTIVATION) {
-      return handleViewable("confirm",this);
+      return handleViewable("confirm",this,getOrganizationName());
     }
-    return handleViewable("activate",this);
+    return handleViewable("activate",this,getOrganizationName());
   }
  catch (  TokenException e) {
-    return handleViewable("bad_confirmation_token",this);
+    return handleViewable("bad_confirmation_token",this,getOrganizationName());
   }
 catch (  RedirectionException e) {
     throw e;
   }
 catch (  Exception e) {
-    return handleViewable("error",e);
+    return handleViewable("error",e,getOrganizationName());
   }
 }

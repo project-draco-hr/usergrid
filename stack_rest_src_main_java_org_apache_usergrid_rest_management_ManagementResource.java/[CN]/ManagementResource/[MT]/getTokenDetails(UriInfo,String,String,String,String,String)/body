@@ -1,0 +1,20 @@
+{
+  ExternalSSOProvider externalprovider=null;
+  Map<String,Object> jwt=null;
+  if (!provider.isEmpty()) {
+    if (!ssoProviderFactory.getProvidersList().contains(StringUtils.upperCase(provider))) {
+      throw new IllegalArgumentException("Unsupported provider.");
+    }
+ else {
+      externalprovider=ssoProviderFactory.getSpecificProvider(provider);
+    }
+  }
+ else {
+    externalprovider=ssoProviderFactory.getProvider();
+  }
+  if (keyUrl.isEmpty()) {
+    keyUrl=externalprovider.getExternalSSOUrl();
+  }
+  jwt=externalprovider.getAllTokenDetails(token,keyUrl);
+  return Response.status(SC_OK).type(jsonMediaType(callback)).entity(wrapWithCallback(JsonUtils.mapToJsonString(jwt),callback)).build();
+}

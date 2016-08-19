@@ -1,10 +1,14 @@
 {
   if (StringUtils.isNotBlank(queuePath)) {
-    logger.info("QueueResource.executeGet: " + queuePath);
+    if (logger.isTraceEnabled()) {
+      logger.trace("QueueResource.executeGet: {}",queuePath);
+    }
     QueueQuery query=QueueQuery.fromQueryParams(ui.getQueryParameters());
     QueueResults results=mq.getFromQueue(queuePath,query);
     return results;
   }
-  logger.info("QueueResource.executeGet");
+  if (logger.isTraceEnabled()) {
+    logger.trace("QueueResource.executeGet");
+  }
   return mq.getQueues(firstQueuePath,limit);
 }

@@ -1,10 +1,12 @@
 {
   Map<String,Object> map=(Map<String,Object>)payload;
-  final String expiresKey="time_to_live";
-  if (!map.containsKey(expiresKey) && notification.getExpire() != null) {
+  if (!map.containsKey(ttlKey) && notification.getExpire() != null) {
     long ttlSeconds=notification.getExpireTTLSeconds();
     ttlSeconds=ttlSeconds <= 2419200 ? ttlSeconds : 2419200;
-    map.put(expiresKey,(int)ttlSeconds);
+    map.put(ttlKey,(int)ttlSeconds);
+  }
+  if (!map.containsKey(priorityKey) && notification.getPriority() != null) {
+    map.put(priorityKey,notification.getPriority());
   }
   Batch batch=getBatch(map);
   batch.add(providerId,tracker);

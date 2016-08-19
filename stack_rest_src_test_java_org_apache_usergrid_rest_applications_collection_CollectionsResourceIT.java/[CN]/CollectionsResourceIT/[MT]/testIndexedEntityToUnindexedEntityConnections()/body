@@ -1,0 +1,21 @@
+{
+  Entity payload=new Entity();
+  payload.put("fields","none");
+  String randomizer=RandomStringUtils.randomAlphanumeric(10);
+  String unIndexedCollectionName="col_" + randomizer;
+  app().collection(unIndexedCollectionName).collection("_settings").post(payload);
+  refreshIndex();
+  String entityName1="unindexed1";
+  Entity unindexed1=this.app().collection(unIndexedCollectionName).post(new Entity().withProp("name",entityName1).withProp("color","violet"));
+  String entityName2="unindexed2";
+  Entity unindexed2=this.app().collection(unIndexedCollectionName).post(new Entity().withProp("name",entityName2).withProp("color","violet"));
+  String indexedCollection="col_" + randomizer;
+  String indexedEntityName="indexedEntity";
+  Entity indexedEntity=this.app().collection(indexedCollection).post(new Entity().withProp("name",indexedEntityName).withProp("color","orange"));
+  app().collection(indexedCollection).entity(indexedEntity).connection("likes").entity(unindexed1).post();
+  app().collection(indexedCollection).entity(indexedEntity).connection("likes").entity(unindexed2).post();
+  Collection connectionsByGraph=app().collection(indexedCollection).entity(indexedEntity).connection("likes").get();
+  assertEquals(2,connectionsByGraph.getNumOfEntities());
+  Collection connectionsByQuery=app().collection(indexedCollection).entity(indexedEntity).connection("likes").get(new QueryParameters().setQuery("select * where color='violet'"));
+  assertEquals(0,connectionsByQuery.getNumOfEntities());
+}

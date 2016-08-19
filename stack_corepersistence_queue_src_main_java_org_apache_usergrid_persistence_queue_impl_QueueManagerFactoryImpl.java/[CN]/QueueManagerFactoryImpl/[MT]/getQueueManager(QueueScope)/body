@@ -1,13 +1,9 @@
 {
-  if (queueFig.overrideQueueForDefault()) {
-    QueueManager manager=defaultManager.get(scope.getName());
-    if (manager == null) {
-      manager=new LocalQueueManager();
-      defaultManager.put(scope.getName(),manager);
-    }
-    return manager;
+  try {
+    return queueManager.get(scope);
   }
- else {
-    return queuemanagerInternalFactory.getQueueManager(scope);
+ catch (  ExecutionException e) {
+    logger.error("Unable to load or retrieve queue manager from cache for queue {}",scope.getName());
+    throw new RuntimeException(e);
   }
 }

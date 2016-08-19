@@ -6,7 +6,9 @@
   for (  Message message : messages) {
     UUID expirationId=UUIDUtils.newTimeUUID(futureTimeout,counter);
     UUID messageId=message.getUuid();
-    logger.debug("Writing new timeout at '{}' for message '{}'",expirationId,messageId);
+    if (logger.isTraceEnabled()) {
+      logger.trace("Writing new timeout at '{}' for message '{}'",expirationId,messageId);
+    }
     mutator.addInsertion(key,CONSUMER_QUEUE_TIMEOUTS.getColumnFamily(),createColumn(expirationId,messageId,time,ue,ue));
     message.setTransaction(expirationId);
     counter++;

@@ -1,14 +1,22 @@
 {
   try {
-    testAndCreateKeyspace();
+    dataStaxCluster.createApplicationKeyspace();
     for (    Migration migration : migrations) {
-      final Collection<MultiTennantColumnFamilyDefinition> columnFamilies=migration.getColumnFamilies();
-      if (columnFamilies == null || columnFamilies.size() == 0) {
-        logger.warn("Class {} implements {} but returns null column families for migration.  Either implement" + " this method or remove the interface from the class",migration.getClass(),Migration.class);
+      final Collection<MultiTenantColumnFamilyDefinition> columnFamilies=migration.getColumnFamilies();
+      final Collection<TableDefinition> tables=migration.getTables();
+      if ((columnFamilies == null || columnFamilies.size() == 0) && (tables == null || tables.size() == 0)) {
+        logger.warn("Class {} implements {} but returns null for getColumnFamilies and getTables for migration.  Either implement this method or remove the interface from the class",migration.getClass().getSimpleName(),Migration.class.getSimpleName());
         continue;
       }
-      for (      MultiTennantColumnFamilyDefinition cf : columnFamilies) {
-        testAndCreateColumnFamilyDef(cf);
+      if (columnFamilies != null && !columnFamilies.isEmpty()) {
+        for (        MultiTenantColumnFamilyDefinition cf : columnFamilies) {
+          testAndCreateColumnFamilyDef(cf);
+        }
+      }
+      if (tables != null && !tables.isEmpty()) {
+        for (        TableDefinition tableDefinition : tables) {
+          createTable(tableDefinition);
+        }
       }
     }
   }

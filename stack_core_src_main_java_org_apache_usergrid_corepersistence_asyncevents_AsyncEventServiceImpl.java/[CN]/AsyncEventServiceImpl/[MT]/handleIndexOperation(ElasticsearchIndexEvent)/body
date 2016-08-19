@@ -1,0 +1,30 @@
+{
+  Preconditions.checkNotNull(elasticsearchIndexEvent,"elasticsearchIndexEvent cannot be null");
+  final UUID messageId=elasticsearchIndexEvent.getIndexBatchId();
+  Preconditions.checkNotNull(messageId,"messageId must not be null");
+  final String message=esMapPersistence.getString(messageId.toString());
+  final IndexOperationMessage indexOperationMessage;
+  if (message == null) {
+    if (queueFig.getQuorumFallback() && System.currentTimeMillis() > elasticsearchIndexEvent.getCreationTime() + queueFig.getLocalQuorumTimeout()) {
+      if (logger.isDebugEnabled()) {
+        logger.debug("ES batch with id {} not found, reading with strong consistency",messageId);
+      }
+      final String highConsistency=esMapPersistence.getStringHighConsistency(messageId.toString());
+      if (highConsistency == null) {
+        throw new RuntimeException("ES batch with id " + messageId + " not found when reading with strong consistency");
+      }
+      indexOperationMessage=ObjectJsonSerializer.INSTANCE.fromString(highConsistency,IndexOperationMessage.class);
+    }
+ else {
+      throw new IndexDocNotFoundException(elasticsearchIndexEvent.getIndexBatchId());
+    }
+  }
+ else {
+    indexOperationMessage=ObjectJsonSerializer.INSTANCE.fromString(message,IndexOperationMessage.class);
+  }
+  if (indexOperationMessage == null || indexOperationMessage.isEmpty()) {
+    throw new RuntimeException("IndexOperationMessage cannot be null or empty after retrieving from map persistence");
+  }
+  initializeEntityIndexes(indexOperationMessage);
+  indexProducer.put(indexOperationMessage).toBlocking().last();
+}

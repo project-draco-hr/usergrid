@@ -1,0 +1,44 @@
+{
+  if (this.fromStringValue != null) {
+    String requirementsString=this.fromStringValue;
+    if (autoURLEncode) {
+      requirementsString=UsergridQuery.encode(requirementsString);
+    }
+    return QUESTION_MARK + QL + EQUALS+ requirementsString;
+  }
+  String urlAppend=EMPTY_STRING;
+  if (this.limit != LIMIT_DEFAULT) {
+    urlAppend+=LIMIT + EQUALS + this.limit.toString();
+  }
+  String urlTermsString=this.constructURLTermsString();
+  if (!urlTermsString.isEmpty()) {
+    if (!urlAppend.isEmpty()) {
+      urlAppend+=AMPERSAND;
+    }
+    urlAppend+=urlTermsString;
+  }
+  if (this.cursor != null && !this.cursor.isEmpty()) {
+    if (!urlAppend.isEmpty()) {
+      urlAppend+=AMPERSAND;
+    }
+    urlAppend+=CURSOR + EQUALS + this.cursor;
+  }
+  String requirementsString=this.constructRequirementString();
+  String orderByString=this.constructOrderByString();
+  if (!orderByString.isEmpty()) {
+    requirementsString+=orderByString;
+  }
+  if (!requirementsString.isEmpty()) {
+    if (autoURLEncode) {
+      requirementsString=UsergridQuery.encode(requirementsString);
+    }
+    if (!urlAppend.isEmpty()) {
+      urlAppend+=AMPERSAND;
+    }
+    urlAppend+=QL + EQUALS + requirementsString;
+  }
+  if (!urlAppend.isEmpty()) {
+    urlAppend=QUESTION_MARK + urlAppend;
+  }
+  return urlAppend;
+}

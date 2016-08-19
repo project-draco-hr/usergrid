@@ -1,4 +1,7 @@
 {
+  if (tokens.isExternalSSOProviderEnabled() && !isServiceAdmin()) {
+    throw new IllegalArgumentException("External SSO integration is enabled, admin users must update" + " info via provider: " + properties.getProperty(TokenServiceImpl.USERGRID_EXTERNAL_SSO_PROVIDER));
+  }
   if (json == null) {
     return null;
   }
@@ -10,6 +13,9 @@
   String email=string(json.remove("email"));
   String username=string(json.remove("username"));
   String name=string(json.remove("name"));
+  if ("me".equals(username)) {
+    throw new IllegalArgumentException("Username 'me' is reserved");
+  }
   management.updateAdminUser(user,username,name,email,json);
   ApiResponse response=createApiResponse();
   response.setAction("update user info");

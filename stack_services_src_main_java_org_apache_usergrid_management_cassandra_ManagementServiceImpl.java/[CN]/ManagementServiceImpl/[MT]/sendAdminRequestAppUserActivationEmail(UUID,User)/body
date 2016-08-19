@@ -1,6 +1,8 @@
 {
   String token=getActivationTokenForAppUser(applicationId,user.getUuid());
-  String activation_url=buildUserAppUrl(applicationId,properties.getProperty(PROPERTIES_USER_ACTIVATION_URL),user,token);
   OrganizationInfo organization=this.getOrganizationForApplication(applicationId);
+  OrganizationConfig orgConfig=getOrganizationConfigByUuid(organization.getUuid());
+  String activationPropertyUrl=orgConfig.getFullUrlTemplate(WorkflowUrl.USER_ACTIVATION_URL);
+  String activation_url=buildUserAppUrl(applicationId,activationPropertyUrl,user,token);
   this.sendOrganizationEmail(organization,"Request For User Account Activation " + user.getEmail(),emailMsg(hashMap("organization_name",organization.getName()).map("activation_url",activation_url),PROPERTIES_EMAIL_ADMIN_USER_ACTIVATION));
 }

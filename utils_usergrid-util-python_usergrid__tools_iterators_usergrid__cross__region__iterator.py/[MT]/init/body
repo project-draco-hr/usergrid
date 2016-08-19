@@ -1,0 +1,14 @@
+def init(args):
+    global config
+    if (args.get('config') is not None):
+        config_filename = args.get('config')
+        logger.warning(('Using config file: %s' % config_filename))
+        try:
+            with open(config_filename, 'r') as f:
+                parsed_config = json.load(f)
+                logger.warning(('Updating config with: %s' % parsed_config))
+                config.update(parsed_config)
+        except:
+            print traceback.format_exc()
+    for (region_id, region_data) in config.get('regions', {}).iteritems():
+        session_map[region_id] = requests.Session()

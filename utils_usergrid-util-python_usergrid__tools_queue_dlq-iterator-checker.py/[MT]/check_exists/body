@@ -1,0 +1,25 @@
+def check_exists(sqs_message):
+    try:
+        message = json.loads(sqs_message.get_body())
+    except ValueError:
+        print ('Unable to decode JSON: %s' % sqs_message.get_body())
+        return
+    try:
+        for (event_name, event_data) in message.iteritems():
+            entity_id_scope = event_data.get('entityIdScope')
+            app_id = entity_id_scope.get('applicationScope', {}).get('application', {}).get('uuid')
+            entity_id_scope = entity_id_scope.get('id')
+            entity_id = entity_id_scope.get('uuid')
+            entity_type = entity_id_scope.get('type')
+            url = 'http://localhost:8080/{app_id}/{entity_type}/{entity_id}'.format(app_id=app_id, entity_id=entity_id, entity_type=entity_type)
+            url = 'https://{host}/{basepath}/{app_id}/{entity_type}/{entity_id}'.format(host='REPLACE', basepath='REPLACE', app_id=app_id, entity_id=entity_id, entity_type=entity_type)
+            r = requests.get(url=url, headers={'Authorization': 'Bearer XCA', })
+            if (r.status_code != 404):
+                print ('ERROR/FOUND [%s]: %s' % (r.status_code, url))
+            else:
+                print ('[%s]: %s' % (r.status_code, url))
+                deleted = sqs_conn.delete_message_from_handle(sqs_queue, sqs_message.receipt_handle)
+                if (not deleted):
+                    print 'no delete!'
+    except KeyboardInterrupt as e:
+        raise e

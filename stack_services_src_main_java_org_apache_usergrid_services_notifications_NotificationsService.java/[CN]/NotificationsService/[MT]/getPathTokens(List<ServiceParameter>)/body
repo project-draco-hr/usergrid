@@ -4,13 +4,18 @@
   for (int i=0; i < parameters.size() - 1; i+=2) {
     String collection=pluralize(parameters.get(i).getName());
     Identifier identifier=null;
+    String ql=null;
     ServiceParameter sp=parameters.get(i + 1);
-    if (collection.equals("devices") && sp.isName() && sp.getName().equals("notifications")) {
+    if (sp.isQuery()) {
+      ql=sp.getQuery().getQl().get();
+      pathTokens.getPathTokens().add(new Notification.PathToken(collection,ql));
     }
  else {
-      identifier=sp.getIdentifier();
+      if (sp.isName() && !sp.getName().equalsIgnoreCase("notifications") || sp.isId()) {
+        identifier=sp.getIdentifier();
+      }
+      pathTokens.getPathTokens().add(new Notification.PathToken(collection,identifier));
     }
-    pathTokens.getPathTokens().add(new Notification.PathToken(collection,identifier));
   }
   return pathTokens;
 }

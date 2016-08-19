@@ -1,12 +1,13 @@
 {
-  UserInfo userInfo=null;
-  logger.debug("verifyAdminUserPasswordCredentials for {}/{}",name,password);
+  if (logger.isTraceEnabled()) {
+    logger.trace("verifyAdminUserPasswordCredentials for {}",name);
+  }
   User user=findUserEntity(smf.getManagementAppId(),name);
   if (user == null) {
     return null;
   }
   if (verify(smf.getManagementAppId(),user.getUuid(),password)) {
-    userInfo=getUserInfo(smf.getManagementAppId(),user);
+    UserInfo userInfo=getUserInfo(smf.getManagementAppId(),user);
     boolean userIsSuperAdmin=properties.getSuperUser().isEnabled() && properties.getSuperUser().getEmail().equals(userInfo.getEmail());
     boolean testUserEnabled=parseBoolean(properties.getProperty(PROPERTIES_SETUP_TEST_ACCOUNT));
     boolean userIsTestUser=testUserEnabled && properties.getProperty(PROPERTIES_SYSADMIN_LOGIN_EMAIL).equals(userInfo.getEmail());

@@ -5,7 +5,7 @@
     user=managementService.getAppUserByIdentifier(entityManager.getApplication().getUuid(),Identifier.fromEmail(pingUser.get("username").toString()));
   }
  catch (  Exception ex) {
-    ex.printStackTrace();
+    logger.error("Unable to create/authenticate",ex);
   }
   if (user == null) {
     Map<String,Object> properties=new LinkedHashMap<String,Object>();
@@ -25,7 +25,7 @@
       entityManager.update(user);
     }
  catch (    Exception ex) {
-      ex.printStackTrace();
+      logger.error("Error in createOrAuthenticate()",ex);
     }
   }
   return user;

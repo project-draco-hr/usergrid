@@ -1,0 +1,16 @@
+{
+  final Map<String,Object> data=new HashMap<>(1);
+  final List<Object> arrayDifferentValueTypes=new ArrayList<>(2);
+  final Map<String,String> mapValue=new HashMap<>(1);
+  mapValue.put("mapkey","mapvalue");
+  arrayDifferentValueTypes.add(mapValue);
+  arrayDifferentValueTypes.add("stringvalue");
+  data.put("arrayDifferentValueTypes",arrayDifferentValueTypes);
+  MapToEntityConverter converter=new MapToEntityConverter();
+  Entity entity=converter.fromMap(data,true);
+  assertTrue(entity.getField("arrayDifferentValueTypes").getTypeName() == FieldTypeName.LIST);
+  List arrayReturned=(List)entity.getField("arrayDifferentValueTypes").getValue();
+  EntityObject convertedMapValue=(EntityObject)arrayReturned.get(0);
+  assertEquals(convertedMapValue.getField("mapkey").getValue(),mapValue.get("mapkey"));
+  assertEquals(arrayReturned.get(1),arrayDifferentValueTypes.get(1));
+}

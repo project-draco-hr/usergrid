@@ -2,8 +2,21 @@
   Id entityId=new SimpleId(entityRef.getUuid(),entityRef.getType());
   org.apache.usergrid.persistence.model.entity.Entity cpEntity=load(entityId);
   cpEntity.removeField(propertyName);
-  logger.debug("About to Write {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
-  cpEntity=ecm.write(cpEntity).toBlocking().last();
-  logger.debug("Wrote {}:{} version {}",new Object[]{cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion()});
-  indexService.queueEntityIndexUpdate(applicationScope,cpEntity);
+  if (logger.isTraceEnabled()) {
+    logger.trace("About to Write {}:{} version {}",cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion());
+  }
+  String region=null;
+  String collectionName=Schema.defaultCollectionName(entityRef.getType());
+  CollectionSettings collectionSettings=collectionSettingsFactory.getInstance(new CollectionSettingsScopeImpl(getAppIdObject(),collectionName));
+  Optional<Map<String,Object>> existingSettings=collectionSettings.getCollectionSettings(collectionName);
+  if (existingSettings.isPresent()) {
+    region=existingSettings.get().get("region").toString();
+  }
+  cpEntity=ecm.write(cpEntity,region).toBlocking().last();
+  if (logger.isTraceEnabled()) {
+    logger.trace("Wrote {}:{} version {}",cpEntity.getId().getType(),cpEntity.getId().getUuid(),cpEntity.getVersion());
+  }
+  if (!skipIndexingForType(cpEntity.getId().getType())) {
+    indexService.queueEntityIndexUpdate(applicationScope,cpEntity,0);
+  }
 }

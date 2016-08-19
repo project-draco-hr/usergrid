@@ -1,0 +1,11 @@
+{
+  Preconditions.checkNotNull(scope,"scope is required");
+  Preconditions.checkNotNull(key,"key is required");
+  final String rowKeyString=scope.getApplication().getUuid().toString();
+  final int bucket=BUCKET_LOCATOR.getCurrentBucket(rowKeyString);
+  final String columnName=key.toString();
+  final Clause inKey=QueryBuilder.eq("key",getPartitionKey(scope,rowKeyString,bucket));
+  final Clause inColumn=QueryBuilder.eq("column1",DataType.text().serialize(columnName,ProtocolVersion.NEWEST_SUPPORTED));
+  final Statement statement=QueryBuilder.delete().from(SCOPED_CACHE_TABLE).where(inKey).and(inColumn);
+  session.execute(statement);
+}

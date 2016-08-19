@@ -4,8 +4,10 @@
   Id entityId=new SimpleId(UUIDGenerator.newTimeUUID(),"entity");
   UUID version=UUIDGenerator.newTimeUUID();
   UniqueValue stored=new UniqueValueImpl(field,entityId,version);
-  strategy.write(scope,stored).execute();
-  strategy.delete(scope,stored).execute();
+  BatchStatement batch=strategy.writeCQL(scope,stored,-1);
+  session.execute(batch);
+  BatchStatement deleteBatch=strategy.deleteCQL(scope,stored);
+  session.execute(deleteBatch);
   UniqueValueSet fields=strategy.load(scope,entityId.getType(),Collections.<Field>singleton(field));
   UniqueValue nullExpected=fields.getValue(field.getName());
   Assert.assertNull(nullExpected);

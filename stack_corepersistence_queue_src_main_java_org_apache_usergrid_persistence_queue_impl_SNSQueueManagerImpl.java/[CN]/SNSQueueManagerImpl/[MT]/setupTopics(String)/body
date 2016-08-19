@@ -1,22 +1,22 @@
 {
   logger.info("Setting up setupTopics SNS/SQS...");
   String primaryTopicArn=AmazonNotificationUtils.getTopicArn(sns,queueName,true);
-  if (logger.isDebugEnabled()) {
-    logger.debug("SNS/SQS Setup: primaryTopicArn=" + primaryTopicArn);
+  if (logger.isTraceEnabled()) {
+    logger.trace("SNS/SQS Setup: primaryTopicArn={}",primaryTopicArn);
   }
   String queueUrl=AmazonNotificationUtils.getQueueUrlByName(sqs,queueName);
   String primaryQueueArn=AmazonNotificationUtils.getQueueArnByName(sqs,queueName);
-  if (logger.isDebugEnabled()) {
-    logger.debug("SNS/SQS Setup: primaryQueueArn=" + primaryQueueArn);
+  if (logger.isTraceEnabled()) {
+    logger.trace("SNS/SQS Setup: primaryQueueArn={}",primaryQueueArn);
   }
   if (primaryQueueArn == null) {
-    if (logger.isDebugEnabled()) {
-      logger.debug("SNS/SQS Setup: primaryQueueArn is null, creating queue...");
+    if (logger.isTraceEnabled()) {
+      logger.trace("SNS/SQS Setup: primaryQueueArn is null, creating queue...");
     }
     queueUrl=AmazonNotificationUtils.createQueue(sqs,queueName,fig);
     primaryQueueArn=AmazonNotificationUtils.getQueueArnByUrl(sqs,queueUrl);
-    if (logger.isDebugEnabled()) {
-      logger.debug("SNS/SQS Setup: New Queue URL=[{}] ARN=[{}]",queueUrl,primaryQueueArn);
+    if (logger.isTraceEnabled()) {
+      logger.trace("SNS/SQS Setup: New Queue URL=[{}] ARN=[{}]",queueUrl,primaryQueueArn);
     }
   }
   try {
@@ -27,12 +27,12 @@
     AmazonNotificationUtils.setQueuePermissionsToReceive(sqs,queueUrl,primaryTopicArnList);
   }
  catch (  AmazonServiceException e) {
-    logger.error(String.format("Unable to subscribe PRIMARY queue=[%s] to topic=[%s]",queueUrl,primaryTopicArn),e);
+    logger.error("Unable to subscribe PRIMARY queue=[{}] to topic=[{}]",queueUrl,primaryTopicArn,e);
   }
   if (fig.isMultiRegion() && scope.getRegionImplementation() == QueueScope.RegionImplementation.ALL) {
     String multiRegion=fig.getRegionList();
-    if (logger.isDebugEnabled()) {
-      logger.debug("MultiRegion Setup specified, regions: [{}]",multiRegion);
+    if (logger.isTraceEnabled()) {
+      logger.trace("MultiRegion Setup specified, regions: [{}]",multiRegion);
     }
     String[] regionNames=multiRegion.split(",");
     final Map<String,String> arrQueueArns=new HashMap<>(regionNames.length + 1);
@@ -54,7 +54,9 @@
       }
       arrQueueArns.put(queueArn,regionName);
     }
-    logger.debug("Creating Subscriptions...");
+    if (logger.isTraceEnabled()) {
+      logger.trace("Creating Subscriptions...");
+    }
     for (    Map.Entry<String,String> queueArnEntry : arrQueueArns.entrySet()) {
       String queueARN=queueArnEntry.getKey();
       String strSqsRegion=queueArnEntry.getValue();
@@ -75,15 +77,17 @@
           logger.info("Subscribing Queue ARN/Region=[{} / {}] and Topic ARN/Region=[{} / {}]",queueARN,strSqsRegion,topicARN,strSnsRegion);
           SubscribeResult subscribeResult=subscribeSnsClient.subscribe(subscribeRequest);
           String subscriptionARN=subscribeResult.getSubscriptionArn();
-          if (logger.isDebugEnabled()) {
-            logger.debug("Successfully subscribed Queue ARN=[{}] to Topic ARN=[{}], subscription ARN=[{}]",queueARN,topicARN,subscriptionARN);
+          if (logger.isTraceEnabled()) {
+            logger.trace("Successfully subscribed Queue ARN=[{}] to Topic ARN=[{}], subscription ARN=[{}]",queueARN,topicARN,subscriptionARN);
           }
         }
  catch (        Exception e) {
-          logger.error(String.format("ERROR Subscribing Queue ARN/Region=[%s / %s] and Topic ARN/Region=[%s / %s]",queueARN,strSqsRegion,topicARN,strSnsRegion),e);
+          logger.error("ERROR Subscribing Queue ARN/Region=[{} / {}] and Topic ARN/Region=[{} / {}]",queueARN,strSqsRegion,topicARN,strSnsRegion,e);
         }
       }
-      logger.info("Adding permission to receive messages...");
+      if (logger.isTraceEnabled()) {
+        logger.trace("Adding permission to receive messages...");
+      }
       AmazonNotificationUtils.setQueuePermissionsToReceive(subscribeSqsClient,subscribeQueueUrl,topicArnList);
     }
   }

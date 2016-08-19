@@ -1,0 +1,34 @@
+{
+  Instant timeInstance=Instant.now();
+  Long epoch=timeInstance.toEpochMilli();
+  Map<String,Object> updatedSettings=new HashMap<>();
+  updatedSettings.put("lastUpdated",epoch);
+  updatedSettings.put("lastUpdateBy",owner);
+  CollectionSettings collectionSettings=collectionSettingsFactory.getInstance(new CollectionSettingsScopeImpl(getAppIdObject(),collectionName));
+  Optional<Map<String,Object>> existingSettings=collectionSettings.getCollectionSettings(collectionName);
+  if (existingSettings.isPresent()) {
+    Map<String,Object> jsonMapData=existingSettings.get();
+    updatedSettings.put("lastReindexed",jsonMapData.get("lastReindexed"));
+  }
+ else {
+    updatedSettings.put("lastReindexed",0);
+  }
+  if (newSettings.get("fields") != null) {
+    updatedSettings.put("fields",newSettings.get("fields"));
+  }
+  Object region=newSettings.get("region");
+  if (region != null) {
+    if (region.toString().trim().isEmpty()) {
+      updatedSettings.remove("region");
+    }
+ else {
+      List regionList=Arrays.asList(entityManagerFig.getRegionList().toLowerCase().split(","));
+      if (!regionList.contains(region)) {
+        throw new NullArgumentException("Region " + region + " not in region list");
+      }
+      updatedSettings.put("region",region);
+    }
+  }
+  collectionSettings.putCollectionSettings(collectionName,JsonUtils.mapToJsonString(updatedSettings));
+  return updatedSettings;
+}

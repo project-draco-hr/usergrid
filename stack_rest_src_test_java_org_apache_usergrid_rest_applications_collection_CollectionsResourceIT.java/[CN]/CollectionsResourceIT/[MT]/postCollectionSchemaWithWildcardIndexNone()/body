@@ -1,0 +1,22 @@
+{
+  Entity payload=new Entity();
+  payload.put("fields","none");
+  String randomizer=RandomStringUtils.randomAlphanumeric(10);
+  String collectionName="col_" + randomizer;
+  app().collection(collectionName).collection("_settings").post(payload);
+  refreshIndex();
+  Collection collection=app().collection(collectionName).collection("_settings").get();
+  LinkedHashMap testCollectionSchema=(LinkedHashMap)collection.getResponse().getData();
+  String schema=(String)testCollectionSchema.get("fields");
+  assertEquals("none",schema);
+  String entityName="name_" + randomizer;
+  Entity postedEntity=this.app().collection(collectionName).post(new Entity().withProp("name",entityName).withProp("color","magenta"));
+  Entity getByIdEntity=app().collection(collectionName).entity(postedEntity.getUuid()).get();
+  assertNotNull(getByIdEntity);
+  assertEquals(postedEntity.getUuid(),getByIdEntity.getUuid());
+  Entity getByNameEntity=app().collection(collectionName).entity(entityName).get();
+  assertNotNull(getByNameEntity);
+  assertEquals(postedEntity.getUuid(),getByNameEntity.getUuid());
+  Iterator<Entity> getByQuery=app().collection(collectionName).get(new QueryParameters().setQuery("select * where color='magenta'")).iterator();
+  assertFalse(getByQuery.hasNext());
+}

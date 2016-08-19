@@ -1,0 +1,22 @@
+{
+  Callable<Boolean> callable=new Callable<Boolean>(){
+    @Override public Boolean call() throws Exception {
+      Lock lock=lockManager.createLock(application,entity.toString());
+      boolean locked=lock.tryLock(0,TimeUnit.MILLISECONDS);
+      if (locked) {
+        lock.unlock();
+      }
+      return locked;
+    }
+  }
+;
+  Future<Boolean> status=pool.submit(callable);
+  boolean wasLocked=true;
+  try {
+    wasLocked=status.get(2,TimeUnit.SECONDS);
+  }
+ catch (  Exception e) {
+    wasLocked=false;
+  }
+  return wasLocked;
+}

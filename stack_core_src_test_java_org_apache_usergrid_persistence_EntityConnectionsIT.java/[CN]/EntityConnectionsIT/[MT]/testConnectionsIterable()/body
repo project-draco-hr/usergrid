@@ -7,13 +7,13 @@
   Entity firstUserEntity=em.create(first);
   assertNotNull(firstUserEntity);
   final int connectionCount=100;
-  final List<Entity> things=new ArrayList<>(connectionCount);
+  final Map<UUID,Entity> things=new HashMap<>();
   for (int i=0; i < connectionCount; i++) {
     Map<String,Object> data=new HashMap<String,Object>();
     data.put("ordinal",i);
     Entity entity=em.create("thing",data);
     em.createConnection(firstUserEntity,"likes",entity);
-    things.add(entity);
+    things.put(entity.getUuid(),entity);
   }
   app.refreshIndex();
   Results r=em.getTargetEntities(firstUserEntity,"likes",null,Level.ALL_PROPERTIES);
@@ -21,7 +21,7 @@
   int checkedIndex=0;
   for (; checkedIndex < connectionCount && itr.hasNext(); checkedIndex++) {
     final Entity returned=(Entity)itr.next();
-    final Entity expected=things.get(checkedIndex);
+    final Entity expected=things.get(returned.getUuid());
     assertEquals("Entity expected",expected,returned);
   }
   assertEquals("Checked all entities",connectionCount,checkedIndex);

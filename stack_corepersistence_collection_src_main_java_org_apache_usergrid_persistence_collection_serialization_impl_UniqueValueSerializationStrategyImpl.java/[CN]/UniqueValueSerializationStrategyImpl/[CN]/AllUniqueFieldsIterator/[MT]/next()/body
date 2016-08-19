@@ -1,0 +1,10 @@
+{
+  com.datastax.driver.core.Row next=sourceIterator.next();
+  ByteBuffer column=next.getBytesUnsafe("column1");
+  List<Object> columnContents=deserializeUniqueValueLogColumn(column);
+  UUID version=(UUID)columnContents.get(0);
+  String name=(String)columnContents.get(1);
+  String value=(String)columnContents.get(2);
+  FieldTypeName fieldType=FieldTypeName.valueOf((String)columnContents.get(3));
+  return new UniqueValueImpl(getField(name,value,fieldType),entityId,version);
+}

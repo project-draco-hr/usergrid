@@ -1,21 +1,25 @@
 {
-  final boolean externalTokensEnabled=!StringUtils.isEmpty(properties.getProperty(ManagementResource.USERGRID_CENTRAL_URL));
-  if (externalTokensEnabled) {
-    throw new IllegalArgumentException("Admin Users must reset passwords via " + properties.getProperty(ManagementResource.USERGRID_CENTRAL_URL));
+  if (tokens.isExternalSSOProviderEnabled() && !isServiceAdmin()) {
+    throw new IllegalArgumentException("External SSO integration is enabled, admin users must reset password via" + " provider: " + properties.getProperty(TokenServiceImpl.USERGRID_EXTERNAL_SSO_PROVIDER));
   }
+  UUID organizationId=null;
   try {
     this.token=token;
-    if (management.checkPasswordResetTokenForAdminUser(user.getUuid(),token)) {
-      return handleViewable("resetpw_set_form",this);
+    TokenInfo tokenInfo=management.getPasswordResetTokenInfoForAdminUser(token);
+    if (tokenInfo != null) {
+      organizationId=tokenInfo.getWorkflowOrgId();
+    }
+    if (management.checkPasswordResetTokenForAdminUser(user.getUuid(),tokenInfo)) {
+      return handleViewable("resetpw_set_form",this,organizationId);
     }
  else {
-      return handleViewable("resetpw_email_form",this);
+      return handleViewable("resetpw_email_form",this,organizationId);
     }
   }
  catch (  RedirectionException e) {
     throw e;
   }
 catch (  Exception e) {
-    return handleViewable("error",e);
+    return handleViewable("error",e,organizationId);
   }
 }

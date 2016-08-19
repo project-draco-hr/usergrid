@@ -1,7 +1,6 @@
 {
   final int NUM_DEVICES=50;
-  int oldBatchSize=listener.getBatchSize();
-  listener.setBatchSize(10);
+  int oldBatchSize=QueueListener.MAX_TAKE;
   app.clear();
   app.put("name",UUID.randomUUID().toString());
   app.put("provider","noop");
@@ -29,10 +28,9 @@
   setup.getEntityIndex().refresh(app.getId());
   final Notification notification=(Notification)entity.toTypedEntity();
   try {
-    scheduleNotificationAndWait(notification);
+    notificationWaitForComplete(notification);
   }
   finally {
-    listener.setBatchSize(oldBatchSize);
   }
   checkReceipts(notification,NUM_DEVICES);
 }

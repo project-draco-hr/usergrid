@@ -1,5 +1,6 @@
 {
   install(new CommonModule());
+  install(new LockModule());
   install(new CacheModule());
   install(new CollectionModule(){
     /** 
@@ -33,13 +34,14 @@
 );
   bind(ManagerCache.class).to(CpManagerCache.class);
   bind(ApplicationIdCacheFactory.class);
+  bind(CollectionSettingsFactory.class);
+  bind(CollectionSettingsCache.class);
   Multibinder<DataMigration> dataMigrationMultibinder=Multibinder.newSetBinder(binder(),new TypeLiteral<DataMigration>(){
   }
 ,CoreMigration.class);
   dataMigrationMultibinder.addBinding().to(DeDupConnectionDataMigration.class);
   final Multibinder<MigrationPlugin> plugins=Multibinder.newSetBinder(binder(),MigrationPlugin.class);
   plugins.addBinding().to(CoreMigrationPlugin.class);
-  plugins.addBinding().to(MigrationModuleVersionPlugin.class);
   bind(AllApplicationsObservable.class).to(AllApplicationsObservableImpl.class);
   bind(AllEntityIdsObservable.class).to(AllEntityIdsObservableImpl.class);
   bind(IndexService.class).to(IndexServiceImpl.class);
@@ -52,7 +54,10 @@
   install(new GuicyFigModule(IndexProcessorFig.class));
   install(new GuicyFigModule(CoreIndexFig.class));
   install(new GuicyFigModule(ApplicationIdCacheFig.class));
+  install(new GuicyFigModule(CollectionSettingsCacheFig.class));
   install(new GuicyFigModule(EntityManagerFig.class));
+  install(new GuicyFigModule(AsyncEventsSchedulerFig.class));
+  install(new GuicyFigModule(ServiceSchedulerFig.class));
   install(new PipelineModule());
   bind(CollectionService.class).to(CollectionServiceImpl.class);
   bind(ConnectionService.class).to(ConnectionServiceImpl.class);

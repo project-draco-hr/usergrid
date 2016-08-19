@@ -1,22 +1,35 @@
 {
   if (cacheTtl == 0)   return null;
-  ScopedCache<String,V> scopedCache=getCacheScope(key);
-  if (scopedCache != null) {
-    V value=scopedCache.get(getKeyString(key),typeRef);
-    if (logger.isDebugEnabled()) {
-      if (value instanceof UsergridAuthorizationInfo) {
-        UsergridAuthorizationInfo info=(UsergridAuthorizationInfo)value;
-        logger.debug("Got from AUTHZ cache {} for app {}",getKeyString(key),info.toString());
-      }
- else       if (value instanceof UsergridAuthenticationInfo) {
-        UsergridAuthenticationInfo info=(UsergridAuthenticationInfo)value;
-        logger.debug("Got from AUTHC cache {} for app {}",getKeyString(key),info.toString());
-      }
- else       if (value == null) {
-        logger.debug("Got NULL from cache app {} for key {}",getKeyString(key),key.toString());
-      }
+  V value;
+  value=(V)localShiroCache.get(getKeyString(key));
+  if (value != null) {
+    if (logger.isTraceEnabled()) {
+      logger.trace("Shiro value served from local cache: {}",value);
     }
     return value;
   }
-  return null;
+  ScopedCache<String,V> scopedCache=getCacheScope(key);
+  if (scopedCache != null) {
+    value=scopedCache.get(getKeyString(key),typeRef);
+    if (value != null) {
+      if (logger.isTraceEnabled()) {
+        logger.trace("Shiro value service from cassandra cache: {}",value);
+      }
+      localShiroCache.put(getKeyString(key),value);
+    }
+    if (logger.isTraceEnabled()) {
+      if (value instanceof UsergridAuthorizationInfo) {
+        UsergridAuthorizationInfo info=(UsergridAuthorizationInfo)value;
+        logger.trace("Got from AUTHZ cache {} for app {}",getKeyString(key),info.toString());
+      }
+ else       if (value instanceof UsergridAuthenticationInfo) {
+        UsergridAuthenticationInfo info=(UsergridAuthenticationInfo)value;
+        logger.trace("Got from AUTHC cache {} for app {}",getKeyString(key),info.toString());
+      }
+ else       if (value == null) {
+        logger.trace("Got NULL from cache app {} for key {}",getKeyString(key),key.toString());
+      }
+    }
+  }
+  return value;
 }

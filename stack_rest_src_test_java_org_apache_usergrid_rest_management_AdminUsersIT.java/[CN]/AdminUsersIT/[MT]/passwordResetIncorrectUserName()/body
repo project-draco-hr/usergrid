@@ -1,0 +1,31 @@
+{
+  management().users().user(clientSetup.getUsername()).resetpw().post(new Form());
+  refreshIndex();
+  List<Message> inbox=Mailbox.get(clientSetup.getEmail());
+  assertFalse(inbox.isEmpty());
+  MockImapClient client=new MockImapClient("mockserver.com","test-user-47","somepassword");
+  client.processMail();
+  String token=null;
+  Iterator<Message> msgIterator=inbox.iterator();
+  while (token == null && msgIterator.hasNext()) {
+    Message msg=msgIterator.next();
+    if (msg.getSubject().equals("Password Reset")) {
+      token=getTokenFromMessage(msg);
+    }
+  }
+  assertNotNull(token);
+  Form formData=new Form();
+  formData.param("token",token);
+  formData.param("password1","sesame");
+  formData.param("password2","sesame");
+  try {
+    String html=management().users().user("mr_fatfinger").resetpw().getTarget().request().post(javax.ws.rs.client.Entity.form(formData),String.class);
+    fail("Password reset request should have failed");
+  }
+ catch (  BadRequestException expected) {
+    String body=expected.getResponse().readEntity(String.class);
+    assertTrue(body.contains("Could not find"));
+  }
+  String html=management().users().user(clientSetup.getUsername()).resetpw().getTarget().request().post(javax.ws.rs.client.Entity.form(formData),String.class);
+  assertTrue(html.contains("password set"));
+}

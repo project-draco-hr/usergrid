@@ -1,0 +1,24 @@
+{
+  UsergridQuery qDelete=new UsergridQuery(COLLECTION);
+  Usergrid.DELETE(qDelete);
+  Map<String,UsergridEntity> entityMapByUUID=SDKTestUtils.createColorShapes(COLLECTION);
+  Map<String,UsergridEntity> entityMapByName=new HashMap<>(entityMapByUUID.size());
+  for (  Map.Entry<String,UsergridEntity> uuidEntity : entityMapByUUID.entrySet()) {
+    entityMapByName.put(uuidEntity.getValue().getName(),uuidEntity.getValue());
+  }
+  SDKTestUtils.indexSleep();
+  Map<String,String> fields=new HashMap<>(7);
+  fields.put("red","square");
+  fields.put("blue","circle");
+  fields.put("yellow","triangle");
+  for (  Map.Entry<String,String> entry : fields.entrySet()) {
+    UsergridEntity targetEntity=entityMapByName.get(entry.getKey() + entry.getValue());
+    UsergridResponse response=Usergrid.GET(new UsergridQuery(COLLECTION).eq("color",entry.getKey()));
+    assertNotNull("entities returned should not be null.",response.getEntities());
+    assertTrue("query for " + entry.getKey() + " shape should return 1, not: "+ response.getEntities().size(),response.getEntities().size() == 1);
+    UsergridEntity responseEntity=response.first();
+    assertNotNull("first entity should not be null.",responseEntity);
+    assertEquals("query for " + entry.getKey() + " shape should the right UUID",responseEntity.getUuid(),targetEntity.getUuid());
+  }
+  Usergrid.DELETE(qDelete);
+}

@@ -22,7 +22,6 @@ def run(self):
             return
         if self.init:
             self.run_database_setup()
-            self.run_database_bootstrap()
             migration_system_updated = self.is_migration_system_updated()
             if (not migration_system_updated):
                 self.logger.info('Migration system needs to be updated.  Updating migration system..')
@@ -56,16 +55,26 @@ def run(self):
                 self.metrics['appinfo_migration_end'] = get_current_time()
                 break
         self.logger.info('AppInfo Migration Ended.')
+        job = self.start_dedup(MANAGEMENT_APP_ID)
+        self.logger.info('Started management dedup.  App=[%s], Job=[%s]', MANAGEMENT_APP_ID, job)
+        is_running = True
+        while is_running:
+            time.sleep(STATUS_INTERVAL_SECONDS)
+            is_running = self.is_dedup_running(job)
+            if (not is_running):
+                break
+        self.logger.info('Finished dedup. App=[%s], Job=[%s]', MANAGEMENT_APP_ID, job)
+        self.metrics[('dedup_end_' + MANAGEMENT_APP_ID)] = get_current_time()
         job = self.start_app_reindex(MANAGEMENT_APP_ID)
         self.metrics['reindex_start'] = get_current_time()
-        self.logger.info('Started Re-index.  Job=[%s]', job)
+        self.logger.info('Started management Re-index.  Job=[%s]', job)
         is_running = True
         while is_running:
             time.sleep(STATUS_INTERVAL_SECONDS)
             is_running = self.is_reindex_running(job)
             if (not is_running):
                 break
-        self.logger.info('Finished Re-index. Job=[%s]', job)
+        self.logger.info('Finished management Re-index. Job=[%s]', job)
         self.metrics['reindex_end'] = get_current_time()
         app_ids = self.get_app_ids()
         for app_id in app_ids:

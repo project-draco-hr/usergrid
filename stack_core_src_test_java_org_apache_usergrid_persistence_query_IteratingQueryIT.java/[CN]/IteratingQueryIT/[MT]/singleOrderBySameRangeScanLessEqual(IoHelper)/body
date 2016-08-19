@@ -4,7 +4,7 @@
   int queryLimit=5;
   int startValue=10;
   long start=System.currentTimeMillis();
-  LOG.info("Writing {} entities.",size);
+  logger.info("Writing {} entities.",size);
   List<String> expected=new ArrayList<String>(size);
   for (int i=0; i < size; i++) {
     String name=String.valueOf(i);
@@ -16,7 +16,7 @@
   }
   this.app.refreshIndex();
   long stop=System.currentTimeMillis();
-  LOG.info("Writes took {} ms",stop - start);
+  logger.info("Writes took {} ms",stop - start);
   Query query=Query.fromQL("select * where index >= " + startValue + " order by index desc");
   query.setLimit(queryLimit);
   int count=0;
@@ -34,5 +34,5 @@
  while (results.hasCursor());
   assertEquals(expected.size() - delta,count);
   stop=System.currentTimeMillis();
-  LOG.info("Query took {} ms to return {} entities",stop - start,count);
+  logger.info("Query took {} ms to return {} entities",stop - start,count);
 }

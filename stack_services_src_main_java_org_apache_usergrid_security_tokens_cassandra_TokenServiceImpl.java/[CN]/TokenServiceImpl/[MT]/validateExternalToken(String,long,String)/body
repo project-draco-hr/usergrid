@@ -1,0 +1,11 @@
+{
+  ExternalSSOProvider ssoProvider=ssoProviderFactory.getProvider();
+  if (provider.equalsIgnoreCase("usergrid")) {
+    UserInfo userinfo=ssoProvider.validateAndReturnUserInfo(extAccessToken,ttl);
+    importToken(extAccessToken,TokenCategory.ACCESS,null,new AuthPrincipalInfo(ADMIN_USER,userinfo.getUuid(),CpNamingUtils.MANAGEMENT_APPLICATION_ID),null,ttl);
+    return getTokenInfo(extAccessToken);
+  }
+ else {
+    return ssoProvider.validateAndReturnTokenInfo(extAccessToken,ttl);
+  }
+}

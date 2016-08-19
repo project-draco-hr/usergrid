@@ -3,8 +3,8 @@
   Preconditions.checkNotNull(group,"group cannot be null");
   Preconditions.checkArgument(group.isCompactionPending(),"Compaction is pending");
   Preconditions.checkArgument(group.shouldCompact(startTime),"Compaction cannot be run yet.  Ignoring compaction.");
-  if (LOG.isDebugEnabled()) {
-    LOG.debug("Compacting shard group. count is {} ",countAudits.get());
+  if (logger.isTraceEnabled()) {
+    logger.trace("Compacting shard group. Audit count is {} ",countAudits.get());
   }
   final CompactionResult.CompactionBuilder resultBuilder=CompactionResult.builder();
   final Shard targetShard=group.getCompactionTarget();
@@ -13,14 +13,18 @@
   final UUID timestamp=UUIDGenerator.newTimeUUID();
   final long newShardPivot=targetShard.getShardIndex();
   final int maxWorkSize=graphFig.getScanPageSize();
-  final MutationBatch newRowBatch=keyspace.prepareMutationBatch();
-  final MutationBatch deleteRowBatch=keyspace.prepareMutationBatch();
-  long edgeCount=0;
+  long totalEdgeCount=0;
   for (  Shard sourceShard : sourceShards) {
+    final MutationBatch newRowBatch=keyspace.prepareMutationBatch();
+    final MutationBatch deleteRowBatch=keyspace.prepareMutationBatch();
+    final MutationBatch updateShardMetaBatch=keyspace.prepareMutationBatch();
+    long edgeCount=0;
     Iterator<MarkedEdge> edges=edgeMeta.loadEdges(shardedEdgeSerialization,edgeColumnFamilies,scope,Collections.singleton(sourceShard),Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING);
+    MarkedEdge shardEnd=null;
     while (edges.hasNext()) {
       final MarkedEdge edge=edges.next();
       final long edgeTimestamp=edge.getTimestamp();
+      shardEnd=edge;
       if (edgeTimestamp < newShardPivot) {
         break;
       }
@@ -29,49 +33,81 @@
       edgeCount++;
       if (edgeCount % maxWorkSize == 0) {
         try {
-          newRowBatch.execute();
-          deleteRowBatch.execute();
+          newRowBatch.withAtomicBatch(true).execute();
+          sourceShard.setShardEnd(Optional.of(new DirectedEdge(shardEnd.getTargetNode(),shardEnd.getTimestamp())));
+          if (logger.isTraceEnabled()) {
+            logger.trace("Updating shard {} during batch removal with shardEnd {}",sourceShard,shardEnd);
+          }
+          updateShardMetaBatch.mergeShallow(edgeShardSerialization.writeShardMeta(scope,sourceShard,edgeMeta));
+          Thread.sleep(1000);
+          if (logger.isTraceEnabled()) {
+            logger.trace("Deleting batch of {} from old shard",maxWorkSize);
+          }
+          deleteRowBatch.withAtomicBatch(true).execute();
+          updateShardMetaBatch.execute();
         }
  catch (        Throwable t) {
-          LOG.error("Unable to move edges from shard {} to shard {}",sourceShard,targetShard);
+          logger.error("Unable to move edges from shard {} to shard {}",sourceShard,targetShard);
         }
+        totalEdgeCount+=edgeCount;
+        edgeCount=0;
       }
     }
+    totalEdgeCount+=edgeCount;
+    try {
+      newRowBatch.withAtomicBatch(true).execute();
+      Thread.sleep(1000);
+      if (logger.isTraceEnabled()) {
+        logger.trace("Deleting remaining {} edges from old shard",edgeCount);
+      }
+      deleteRowBatch.withAtomicBatch(true).execute();
+      if (shardEnd != null) {
+        sourceShard.setShardEnd(Optional.of(new DirectedEdge(shardEnd.getTargetNode(),shardEnd.getTimestamp())));
+        if (logger.isTraceEnabled()) {
+          logger.trace("Updating for last time shard {} with shardEnd {}",sourceShard,shardEnd);
+        }
+        updateShardMetaBatch.mergeShallow(edgeShardSerialization.writeShardMeta(scope,sourceShard,edgeMeta));
+        updateShardMetaBatch.execute();
+      }
+    }
+ catch (    Throwable t) {
+      logger.error("Unable to move edges to target shard {}",targetShard);
+    }
   }
-  try {
-    newRowBatch.execute();
-    deleteRowBatch.execute();
+  if (logger.isTraceEnabled()) {
+    logger.trace("Finished compacting {} shards and moved {} edges",sourceShards,totalEdgeCount);
   }
- catch (  Throwable t) {
-    LOG.error("Unable to move edges to target shard {}",targetShard);
-  }
-  LOG.info("Finished compacting {} shards and moved {} edges",sourceShards,edgeCount);
-  resultBuilder.withCopiedEdges(edgeCount).withSourceShards(sourceShards).withTargetShard(targetShard);
-  if (edgeCount == 0) {
+  resultBuilder.withCopiedEdges(totalEdgeCount).withSourceShards(sourceShards).withTargetShard(targetShard);
+  if (totalEdgeCount == 0) {
     final MutationBatch shardRemovalRollup=keyspace.prepareMutationBatch();
     for (    Shard source : sourceShards) {
       if (!group.canBeDeleted(source)) {
         continue;
       }
-      LOG.info("Source shards have been fully drained.  Removing shard {}",source);
+      logger.info("Source shards have been fully drained.  Removing shard {}",source);
       final MutationBatch shardRemoval=edgeShardSerialization.removeShardMeta(scope,source,edgeMeta);
       shardRemovalRollup.mergeShallow(shardRemoval);
       resultBuilder.withRemovedShard(source);
     }
     try {
       shardRemovalRollup.execute();
+      nodeShardCache.invalidate(scope,edgeMeta);
     }
  catch (    ConnectionException e) {
-      throw new RuntimeException("Unable to connect to casandra",e);
+      throw new RuntimeException("Unable to connect to cassandra",e);
     }
-    LOG.info("Shard has been fully compacted.  Marking shard {} as compacted in Cassandra",targetShard);
     Shard compactedShard=new Shard(targetShard.getShardIndex(),timeService.getCurrentTime(),true);
+    compactedShard.setShardEnd(targetShard.getShardEnd());
+    if (logger.isTraceEnabled()) {
+      logger.trace("Shard has been fully compacted.  Marking shard {} as compacted in Cassandra",compactedShard);
+    }
     final MutationBatch updateMark=edgeShardSerialization.writeShardMeta(scope,compactedShard,edgeMeta);
     try {
       updateMark.execute();
+      nodeShardCache.invalidate(scope,edgeMeta);
     }
  catch (    ConnectionException e) {
-      throw new RuntimeException("Unable to connect to casandra",e);
+      throw new RuntimeException("Unable to connect to cassandra",e);
     }
     resultBuilder.withCompactedShard(compactedShard);
   }

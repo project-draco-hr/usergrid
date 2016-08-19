@@ -3,14 +3,42 @@ synchronized (this) {
     if (ids.size() == 0)     return;
     Sender sender=new Sender(notifier.getApiKey());
     Message.Builder builder=new Message.Builder();
-    builder.setData(payload);
-    if (payload.containsKey("time_to_live")) {
-      int ttl=(int)payload.get("time_to_live");
-      builder.timeToLive(ttl);
+    if (payload.containsKey(ttlKey)) {
+      builder.timeToLive((int)payload.get(ttlKey));
+      payload.remove(ttlKey);
     }
+    if (payload.containsKey(priorityKey)) {
+      try {
+        builder.priority(Message.Priority.valueOf(payload.get(priorityKey).toString().toUpperCase()));
+      }
+ catch (      Exception e) {
+        builder.priority(Message.Priority.NORMAL);
+      }
+      payload.remove(priorityKey);
+    }
+    builder.setData(payload);
     Message message=builder.build();
-    MulticastResult multicastResult=sender.send(message,ids,SEND_RETRIES);
-    LOG.debug("sendNotification result: {}",multicastResult);
+    MulticastResult multicastResult;
+    try {
+      multicastResult=sender.send(message,ids,SEND_RETRIES);
+    }
+ catch (    IOException e) {
+      if (isInvalidRequestException(e)) {
+        String error=Constants.ERROR_INVALID_REGISTRATION;
+        for (int i=0; i < ids.size(); i++) {
+          trackers.get(i).failed(error,error);
+        }
+        this.ids.clear();
+        this.trackers.clear();
+        return;
+      }
+ else {
+        throw new ConnectionException(e.getMessage(),e);
+      }
+    }
+    if (logger.isTraceEnabled()) {
+      logger.trace("sendNotification result: {}",multicastResult);
+    }
     for (int i=0; i < multicastResult.getResults().size(); i++) {
       Result result=multicastResult.getResults().get(i);
       if (result.getMessageId() != null) {

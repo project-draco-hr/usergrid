@@ -1,0 +1,27 @@
+{
+  final String orgName=uniqueOrg();
+  UserInfo user=setup.getMgmtSvc().createAdminUser(null,uniqueUsername(),"Org Config Admin",uniqueEmail(),"test",true,false);
+  assertNotNull(user);
+  OrganizationInfo org=setup.getMgmtSvc().createOrganization(orgName,user,true);
+  assertNotNull(org);
+  setup.getEmf().getEntityManager(setup.getSmf().getManagementAppId());
+  OrganizationConfig orgConfig=setup.getMgmtSvc().getOrganizationConfigByName(orgName);
+  assertNotNull(orgConfig);
+  String userActivationPath="/%s/%s/users/%s/activate";
+  String defaultApiUrlBase="http://localhost:8080";
+  String userActivationUrlTemplate=orgConfig.getFullUrlTemplate(OrganizationConfigProps.WorkflowUrl.USER_ACTIVATION_URL);
+  assertTrue(userActivationUrlTemplate.equals(defaultApiUrlBase + userActivationPath));
+  Map<String,Object> propMap=new HashMap<>();
+  String baseKey=OrganizationConfigProps.ORGPROPERTIES_API_URL_BASE;
+  String newApiUrlBase="http://example.org";
+  propMap.put(baseKey,newApiUrlBase);
+  orgConfig.addProperties(propMap,false);
+  setup.getMgmtSvc().updateOrganizationConfig(orgConfig);
+  setup.getEmf().getEntityManager(setup.getSmf().getManagementAppId());
+  OrganizationConfig orgConfigUpdated=setup.getMgmtSvc().getOrganizationConfigByUuid(org.getUuid());
+  assertNotNull(orgConfigUpdated);
+  String updatedValue=orgConfigUpdated.getProperty(OrganizationConfigProps.ORGPROPERTIES_API_URL_BASE);
+  assertTrue(updatedValue.equals(newApiUrlBase));
+  String newUserActivationUrlTemplate=orgConfigUpdated.getFullUrlTemplate(OrganizationConfigProps.WorkflowUrl.USER_ACTIVATION_URL);
+  assertTrue(newUserActivationUrlTemplate.equals(newApiUrlBase + userActivationPath));
+}

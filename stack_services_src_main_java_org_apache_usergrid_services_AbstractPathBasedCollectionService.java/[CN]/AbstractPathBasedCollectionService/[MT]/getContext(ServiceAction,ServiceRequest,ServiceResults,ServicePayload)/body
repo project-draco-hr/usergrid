@@ -1,0 +1,79 @@
+{
+  EntityRef owner=request.getOwner();
+  String collectionName="application".equals(owner.getType()) ? pluralize(getServiceInfo().getItemType()) : getServiceInfo().getCollectionName();
+  EntityRef pathEntity=null;
+  List<ServiceParameter> parameters=filter(request.getParameters(),replaceParameters);
+  ServiceParameter first_parameter=null;
+  if (!isEmpty(parameters)) {
+    first_parameter=parameters.get(0);
+    if (first_parameter instanceof NameParameter) {
+      if (hasServiceMetadata(first_parameter.getName())) {
+        return new ServiceContext(this,action,request,previousResults,owner,collectionName,parameters,payload).withServiceMetadata(first_parameter.getName());
+      }
+ else       if (hasServiceCommand(first_parameter.getName())) {
+        return new ServiceContext(this,action,request,previousResults,owner,collectionName,parameters,payload).withServiceCommand(first_parameter.getName());
+      }
+      List<String> aliases=new ArrayList<String>();
+      String alias="";
+      String slash="";
+      for (      ServiceParameter parameter : parameters) {
+        if (parameter instanceof NameParameter) {
+          String name=parameter.getName();
+          if ((entityDictionaries != null) && (entityDictionaries.contains(new EntityDictionaryEntry(name)))) {
+            break;
+          }
+          if (Schema.getDefaultSchema().hasCollection(getServiceInfo().getItemType(),name)) {
+            break;
+          }
+          alias+=slash + name;
+          aliases.add(alias);
+          slash="/";
+        }
+ else {
+          break;
+        }
+      }
+      if (!isEmpty(aliases)) {
+        if (logger.isTraceEnabled()) {
+          logger.trace("Found {} potential paths",aliases.size());
+        }
+        Map<String,EntityRef> aliasedEntities=em.getAlias(getEntityType(),aliases);
+        for (int i=aliases.size() - 1; i >= 0; i--) {
+          alias=aliases.get(i);
+          pathEntity=aliasedEntities.get(alias);
+          if (pathEntity != null) {
+            if (logger.isTraceEnabled()) {
+              logger.trace("Found entity {} of type {} for alias {}",pathEntity.getUuid(),pathEntity.getType(),alias);
+            }
+            parameters=parameters.subList(i + 1,parameters.size());
+            first_parameter=new IdParameter(pathEntity.getUuid());
+            break;
+          }
+        }
+      }
+    }
+    if (pathEntity == null) {
+      parameters=dequeueCopy(parameters);
+    }
+  }
+  Query query=null;
+  if (first_parameter instanceof QueryParameter) {
+    query=first_parameter.getQuery();
+  }
+  parameters=mergeQueries(query,parameters);
+  if (first_parameter instanceof IdParameter) {
+    UUID id=first_parameter.getId();
+    return new ServiceContext(this,action,request,previousResults,owner,collectionName,Query.fromUUID(id),parameters,payload);
+  }
+ else   if (first_parameter instanceof NameParameter) {
+    String name=first_parameter.getName();
+    return new ServiceContext(this,action,request,previousResults,owner,collectionName,Query.fromIdentifier(name),parameters,payload);
+  }
+ else   if (query != null) {
+    return new ServiceContext(this,action,request,previousResults,owner,collectionName,query,parameters,payload);
+  }
+ else   if (first_parameter == null) {
+    return new ServiceContext(this,action,request,previousResults,owner,collectionName,null,null,payload);
+  }
+  throw new ServiceInvocationException(request,"No parameter found");
+}

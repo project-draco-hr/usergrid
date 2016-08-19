@@ -1,0 +1,17 @@
+{
+  ColumnFamily<String,String> cflocks=ColumnFamily.newColumnFamily(CF_NAME,StringSerializer.get(),StringSerializer.get());
+  final KeyspaceDefinition kd=keyspace.describeKeyspace();
+  final ColumnFamilyDefinition cfdef=kd.getColumnFamily(cflocks.getName());
+  if (cfdef == null) {
+    MultiTenantColumnFamilyDefinition mtcfd=new MultiTenantColumnFamilyDefinition(cflocks,BytesType.class.getSimpleName(),UTF8Type.class.getSimpleName(),BytesType.class.getSimpleName(),MultiTenantColumnFamilyDefinition.CacheOption.ALL);
+    Map<String,Object> cfOptions=mtcfd.getOptions();
+    cfOptions.put("gc_grace_seconds",60);
+    keyspace.createColumnFamily(mtcfd.getColumnFamily(),cfOptions);
+    logger.info("Created column family {}",mtcfd.getOptions());
+    cflocks=mtcfd.getColumnFamily();
+  }
+ else {
+    return getLocksColumnFamily();
+  }
+  return cflocks;
+}

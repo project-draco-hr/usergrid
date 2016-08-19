@@ -4,13 +4,16 @@
     Entity entity;
     if (query.containsSingleNameOrEmailIdentifier()) {
       String name=query.getSingleNameOrEmailIdentifier();
-      entity=em.getUniqueEntityFromAlias(query.getEntityType(),name);
+      entity=em.getUniqueEntityFromAlias(query.getEntityType(),name,true);
       if (entity == null) {
         throw new ServiceResourceNotFoundException(context);
       }
     }
  else {
       entity=em.create(query.getEntityType(),context.getProperties());
+      if (entity == null) {
+        throw new ServiceResourceNotFoundException(context);
+      }
     }
     entity=importEntity(context,entity);
     createConnection(context.getOwner(),query.getConnectionType(),entity);

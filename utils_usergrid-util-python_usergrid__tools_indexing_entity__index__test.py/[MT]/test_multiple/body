@@ -1,0 +1,17 @@
+def test_multiple(number_of_entities, processes):
+    global config
+    start = datetime.datetime.now()
+    logger.info(('Creating %s entities w/ url=%s' % (number_of_entities, config['url'])))
+    created_map = {}
+    work_items = []
+    for x in xrange(1, (number_of_entities + 1)):
+        entity = entity_template.copy()
+        entity['id'] = str(x)
+        work_items.append((config['url'], entity))
+    responses = processes.map(create_entity, work_items)
+    for res in responses:
+        if (len(res) > 0):
+            created_map[res[0]] = res[1]
+    stop = datetime.datetime.now()
+    logger.info(('Created [%s] entities in %s' % (number_of_entities, (stop - start))))
+    return created_map

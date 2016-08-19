@@ -1,0 +1,12 @@
+def create_entity(name, tag):
+    create_me = entity_template.copy()
+    start_tag = datetime.datetime.now().strftime('tag-%yx%mx%dx%Hx%Mx%S')
+    create_me['tag'] = start_tag
+    data = config.get('url_data')
+    url = collection_url_template.format(**data)
+    r = session.post(url, data=json.dumps(create_me))
+    if (r.status_code != 200):
+        logger.critical(('unable to create entity: %s' % r.text))
+        return None
+    else:
+        return r.json().get('entities')[0]

@@ -10,6 +10,10 @@
     @Override protected Iterator<MarkedEdge> getIterator(    final Collection<Shard> readShards){
       return shardedEdgeSerialization.getEdgesToTarget(edgeColumnFamilies,scope,edgeType,readShards);
     }
+    @Override protected Iterator<MarkedEdge> getIteratorFullRange(    final Collection<Shard> readShards){
+      final SearchByEdgeType edgeTypeFullRange=new SimpleSearchByEdgeType(edgeType.getNode(),edgeType.getType(),Long.MAX_VALUE,SearchByEdgeType.Order.DESCENDING,Optional.absent(),false);
+      return shardedEdgeSerialization.getEdgesToTarget(edgeColumnFamilies,scope,edgeTypeFullRange,readShards);
+    }
   }
 ;
 }

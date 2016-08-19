@@ -3,8 +3,19 @@
     return;
   }
   EntityManager em=emf.getEntityManager(smf.getManagementAppId());
-  em.addToCollection(new SimpleEntityRef(Group.ENTITY_TYPE,organization.getUuid()),"users",new SimpleEntityRef(User.ENTITY_TYPE,user.getUuid()));
+  EntityRef orgRef=new SimpleEntityRef(Group.ENTITY_TYPE,organization.getUuid());
+  EntityRef userRef=new SimpleEntityRef(User.ENTITY_TYPE,user.getUuid());
+  if (em.isCollectionMember(orgRef,Schema.COLLECTION_USERS,userRef)) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("addAdminUserToOrganization - Found value: {} already in collection",user.getName());
+    }
+    return;
+  }
+  em.addToCollection(orgRef,Schema.COLLECTION_USERS,userRef);
+  invalidateManagementAppAuthCache();
   if (email) {
-    sendAdminUserInvitedEmail(user,organization);
+    if (!tokens.isExternalSSOProviderEnabled()) {
+      sendAdminUserInvitedEmail(user,organization);
+    }
   }
 }

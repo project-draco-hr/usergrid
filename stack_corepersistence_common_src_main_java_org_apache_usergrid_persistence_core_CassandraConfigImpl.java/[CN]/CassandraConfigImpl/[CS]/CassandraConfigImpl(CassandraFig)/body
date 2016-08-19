@@ -1,0 +1,24 @@
+{
+  this.readCl=ConsistencyLevel.valueOf(cassandraFig.getAstyanaxReadCL());
+  this.writeCl=ConsistencyLevel.valueOf(cassandraFig.getAstyanaxWriteCL());
+  this.shardSettings=parseShardSettings(cassandraFig.getShardValues());
+  this.consistentCl=ConsistencyLevel.valueOf(cassandraFig.getAstyanaxConsistentReadCL());
+  this.dataStaxReadCl=com.datastax.driver.core.ConsistencyLevel.valueOf(cassandraFig.getReadCl());
+  this.dataStaxReadConsistentCl=com.datastax.driver.core.ConsistencyLevel.valueOf(cassandraFig.getReadClConsistent());
+  this.dataStaxWriteCl=com.datastax.driver.core.ConsistencyLevel.valueOf(cassandraFig.getWriteCl());
+  cassandraFig.addPropertyChangeListener(new PropertyChangeListener(){
+    @Override public void propertyChange(    final PropertyChangeEvent evt){
+      final String propName=evt.getPropertyName();
+      if (CassandraFig.ASTYANAX_READ_CL.equals(propName)) {
+        readCl=ConsistencyLevel.valueOf(evt.getNewValue().toString());
+      }
+ else       if (CassandraFig.ASTYANAX_WRITE_CL.equals(propName)) {
+        writeCl=ConsistencyLevel.valueOf(evt.getNewValue().toString());
+      }
+ else       if (CassandraFig.SHARD_VALUES.equals(propName)) {
+        shardSettings=parseShardSettings(cassandraFig.getShardValues());
+      }
+    }
+  }
+);
+}

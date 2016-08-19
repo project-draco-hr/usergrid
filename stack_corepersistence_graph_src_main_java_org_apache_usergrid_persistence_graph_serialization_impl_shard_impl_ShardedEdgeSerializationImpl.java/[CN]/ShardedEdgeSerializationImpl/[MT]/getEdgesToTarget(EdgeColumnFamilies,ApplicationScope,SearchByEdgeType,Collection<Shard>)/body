@@ -4,10 +4,14 @@
   final Id targetId=search.getNode();
   final String type=search.getType();
   final long maxTimestamp=search.getMaxTimestamp();
-  final MultiTennantColumnFamily<ScopedRowKey<RowKey>,DirectedEdge> columnFamily=columnFamilies.getTargetNodeCfName();
+  final MultiTenantColumnFamily<ScopedRowKey<RowKey>,DirectedEdge> columnFamily=columnFamilies.getTargetNodeCfName();
   final Serializer<DirectedEdge> serializer=columnFamily.getColumnSerializer();
   final OrderedComparator<MarkedEdge> comparator=new OrderedComparator<>(SourceDirectedEdgeDescendingComparator.INSTANCE,search.getOrder());
-  final EdgeSearcher<RowKey,DirectedEdge,MarkedEdge> searcher=new EdgeSearcher<RowKey,DirectedEdge,MarkedEdge>(scope,shards,search.getOrder(),comparator,maxTimestamp,search.last().transform(TRANSFORM)){
+  Optional<Long> lastTimestamp=Optional.absent();
+  if (search.last().isPresent()) {
+    lastTimestamp=Optional.of(search.last().get().getTimestamp());
+  }
+  final EdgeSearcher<RowKey,DirectedEdge,MarkedEdge> searcher=new EdgeSearcher<RowKey,DirectedEdge,MarkedEdge>(scope,shards,search.getOrder(),comparator,maxTimestamp,search.last().transform(TRANSFORM),lastTimestamp){
     @Override protected Serializer<DirectedEdge> getSerializer(){
       return serializer;
     }
@@ -26,5 +30,5 @@
     }
   }
 ;
-  return new ShardsColumnIterator<>(searcher,columnFamily,keyspace,cassandraConfig.getReadCL(),graphFig.getScanPageSize());
+  return new ShardsColumnIterator<>(searcher,columnFamily,keyspace,cassandraConfig.getReadCL(),graphFig.getScanPageSize(),graphFig.getSmartShardSeekEnabled());
 }

@@ -1,0 +1,30 @@
+{
+  String comparator="UTF8Type";
+  List<Object> keys=new ArrayList<>(3);
+  keys.add(entityVersion.getEntityVersion());
+  keys.add(entityVersion.getEntityId().getUuid());
+  keys.add(entityVersion.getEntityId().getType());
+  int size=16 + 16 + entityVersion.getEntityId().getType().getBytes().length;
+  size+=keys.size() * 5;
+  size+=keys.size() * comparator.getBytes().length;
+  ByteBuffer stuff=ByteBuffer.allocate(size);
+  for (  Object key : keys) {
+    if (key instanceof UUID) {
+      comparator="UUIDType";
+    }
+ else {
+      comparator="UTF8Type";
+    }
+    stuff.putShort((short)comparator.getBytes().length);
+    stuff.put(DataType.serializeValue(comparator,ProtocolVersion.NEWEST_SUPPORTED));
+    ByteBuffer kb=DataType.serializeValue(key,ProtocolVersion.NEWEST_SUPPORTED);
+    if (kb == null) {
+      kb=ByteBuffer.allocate(0);
+    }
+    stuff.putShort((short)kb.remaining());
+    stuff.put(kb.slice());
+    stuff.put((byte)0);
+  }
+  stuff.flip();
+  return stuff.duplicate();
+}

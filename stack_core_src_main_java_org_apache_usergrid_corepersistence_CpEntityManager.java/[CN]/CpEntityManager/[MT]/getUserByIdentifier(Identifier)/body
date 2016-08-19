@@ -1,9 +1,13 @@
 {
   if (identifier == null) {
-    logger.debug("getUserByIdentifier: returning null for null identifier");
+    if (logger.isDebugEnabled()) {
+      logger.debug("getUserByIdentifier: returning null for null identifier");
+    }
     return null;
   }
-  logger.debug("getUserByIdentifier {}:{}",identifier.getType(),identifier.toString());
+  if (logger.isTraceEnabled()) {
+    logger.trace("getUserByIdentifier {}:{}",identifier.getType(),identifier.toString());
+  }
   if (identifier.isUUID()) {
     return new SimpleEntityRef("user",identifier.getUUID());
   }
@@ -15,7 +19,6 @@
     for (    EntityRef firstRef : emailProperty) {
       return firstRef;
     }
-    logger.debug("return alias");
     return this.getAlias(new SimpleEntityRef(Application.ENTITY_TYPE,applicationId),"user",identifier.getEmail());
   }
   return null;

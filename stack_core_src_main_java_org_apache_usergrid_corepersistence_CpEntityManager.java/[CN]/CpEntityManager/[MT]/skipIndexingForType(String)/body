@@ -1,0 +1,14 @@
+{
+  boolean skipIndexing=false;
+  String collectionName=Schema.defaultCollectionName(type);
+  CollectionSettings collectionSettings=collectionSettingsFactory.getInstance(new CollectionSettingsScopeImpl(getAppIdObject(),collectionName));
+  Optional<Map<String,Object>> existingSettings=collectionSettings.getCollectionSettings(collectionName);
+  if (existingSettings.isPresent()) {
+    Map jsonMapData=existingSettings.get();
+    Object fields=jsonMapData.get("fields");
+    if (fields != null && "none".equalsIgnoreCase(fields.toString())) {
+      skipIndexing=true;
+    }
+  }
+  return skipIndexing;
+}

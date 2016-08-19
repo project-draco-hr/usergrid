@@ -1,0 +1,15 @@
+{
+  Map<String,String> payload=hashMap("name","assettest");
+  ApiResponse postResponse=pathResource(getOrgAppPath("missingFile")).post(payload);
+  UUID assetId=postResponse.getEntities().get(0).getUuid();
+  assertNotNull(assetId);
+  try {
+    pathResource(getOrgAppPath("missingFile/assettest")).getAssetAsStream(true);
+    fail("Should fail as there isn't an asset to retrieve.");
+  }
+ catch (  NotFoundException nfe) {
+  }
+catch (  Exception e) {
+    fail("Shouldn't return any other kind of exception");
+  }
+}

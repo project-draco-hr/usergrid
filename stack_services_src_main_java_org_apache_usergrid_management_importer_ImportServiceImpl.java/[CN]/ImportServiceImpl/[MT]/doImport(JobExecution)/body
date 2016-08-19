@@ -1,12 +1,14 @@
 {
-  logger.debug("doImport()");
-  Map<String,Object> config=(Map<String,Object>)jobExecution.getJobData().getProperty("importInfo");
+  if (logger.isTraceEnabled()) {
+    logger.trace("doImport()");
+  }
+  @SuppressWarnings("unchecked") Map<String,Object> config=(Map<String,Object>)jobExecution.getJobData().getProperty("importInfo");
   if (config == null) {
     logger.error("doImport(): Import Information passed through is null");
     return;
   }
-  Map<String,Object> properties=(Map<String,Object>)config.get("properties");
-  Map<String,Object> storage_info=(Map<String,Object>)properties.get("storage_info");
+  @SuppressWarnings("unchecked") Map<String,Object> properties=(Map<String,Object>)config.get("properties");
+  @SuppressWarnings("unchecked") Map<String,Object> storage_info=(Map<String,Object>)properties.get("storage_info");
   String bucketName=(String)storage_info.get("bucket_location");
   String accessId=(String)storage_info.get("s3_access_id");
   String secretKey=(String)storage_info.get("s3_key");
@@ -17,7 +19,9 @@
   importEntity.setStarted(System.currentTimeMillis());
   importEntity.setErrorMessage(" ");
   rootEM.update(importEntity);
-  logger.debug("doImport(): updated state");
+  if (logger.isTraceEnabled()) {
+    logger.trace("doImport(): updated state");
+  }
   S3Import s3Import;
   Object s3PlaceHolder=jobExecution.getJobData().getProperty("s3Import");
   try {
@@ -78,11 +82,15 @@
     while (!done && retries++ < maxRetries) {
       final int count=getConnectionCount(importEntity);
       if (count == fileJobs.size()) {
-        logger.debug("Got ALL {} of {} expected connections",count,fileJobs.size());
+        if (logger.isTraceEnabled()) {
+          logger.trace("Got ALL {} of {} expected connections",count,fileJobs.size());
+        }
         done=true;
       }
  else {
-        logger.debug("Got {} of {} expected connections. Waiting...",count,fileJobs.size());
+        if (logger.isTraceEnabled()) {
+          logger.trace("Got {} of {} expected connections. Waiting...",count,fileJobs.size());
+        }
         Thread.sleep(1000);
       }
     }

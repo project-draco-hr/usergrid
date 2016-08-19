@@ -7,12 +7,7 @@
     superuserToken=restClient.management().token().get(superuserName,superuserPassword);
   }
  catch (  BadRequestException e) {
-    if (logger.isDebugEnabled()) {
-      logger.debug("Error creating superuser, may already exist",e);
-    }
- else {
-      logger.warn("Error creating superuser, may already exist");
-    }
+    logger.warn("Error creating superuser, may already exist");
   }
   username="user_" + name + UUIDUtils.newTimeUUID();
   password=username;
@@ -24,6 +19,7 @@
   ApiResponse appResponse=restClient.management().orgs().org(organization.getName()).app().post(new Application(appName));
   appUuid=(String)appResponse.getEntities().get(0).get("uuid");
   application=new Application(appResponse);
+  appCredentials=restClient.pathResource("management/orgs/" + orgName + "/apps/"+ appName+ "/credentials").get(Credentials.class,true);
   refreshIndex();
   ApiResponse response=restClient.management().token().post(new Token(username,password));
   refreshIndex();

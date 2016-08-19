@@ -1,0 +1,16 @@
+{
+  if (logger.isTraceEnabled()) {
+    logger.trace("Get configuration for organization: {}",organization.getUuid());
+  }
+  ApiResponse response=createApiResponse();
+  response.setAction("get organization configuration");
+  OrganizationConfig orgConfig=management.getOrganizationConfigByUuid(organization.getUuid());
+  if (separateDefaults) {
+    response.setProperty("orgConfiguration",getConfigData(orgConfig,itemsParam,false,true));
+    response.setProperty("defaults",getConfigData(orgConfig,itemsParam,true,false));
+  }
+ else {
+    response.setProperty("configuration",getConfigData(orgConfig,itemsParam,true,true));
+  }
+  return response;
+}

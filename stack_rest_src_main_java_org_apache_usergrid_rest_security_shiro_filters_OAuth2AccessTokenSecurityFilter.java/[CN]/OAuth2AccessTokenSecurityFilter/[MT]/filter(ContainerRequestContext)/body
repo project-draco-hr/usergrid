@@ -1,5 +1,10 @@
 {
-  logger.debug("Filtering: " + request.getUriInfo().getBaseUri());
+  if (logger.isTraceEnabled()) {
+    logger.trace("Filtering: {}",request.getUriInfo().getBaseUri());
+  }
+  if (bypassSecurityCheck(request)) {
+    return;
+  }
   try {
     try {
       String accessToken=httpServletRequest.getParameter("access_token");
@@ -12,7 +17,7 @@
       }
       AuthPrincipalInfo principal=null;
       try {
-        TokenInfo tokenInfo=tokens.getTokenInfo(accessToken);
+        TokenInfo tokenInfo=tokens.getTokenInfo(accessToken,false);
         principal=tokenInfo.getPrincipal();
       }
  catch (      BadTokenException e1) {
@@ -23,6 +28,9 @@ catch (      ExpiredTokenException ete) {
       }
 catch (      InvalidTokenException ite) {
         throw mappableSecurityException(INVALID_AUTH_ERROR);
+      }
+catch (      ExternalSSOProviderAdminUserNotFoundException eAdminUserNotFound) {
+        throw mappableSecurityException(EXTERNALSSOPROVIDER_UNACTIVATED_ADMINUSER);
       }
 catch (      IndexOutOfBoundsException ioobe) {
         throw mappableSecurityException(BAD_ACCESS_TOKEN_ERROR);

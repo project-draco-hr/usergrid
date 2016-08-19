@@ -18,14 +18,18 @@
   countEntities(em,collectionName,2);
   logger.debug("Deleting app index");
   deleteIndex(em.getApplicationId());
-  logger.debug("Reading data, should fail this time ");
+  if (logger.isDebugEnabled()) {
+    logger.debug("Reading data, should fail this time ");
+  }
   countEntities(em,collectionName,0);
   final long firstUpdatedTimestamp=firstEntity.getModified();
   final long secondUpdatedTimestamp=secondEntity.getModified();
   assertTrue("second should be updated after second",firstUpdatedTimestamp < secondUpdatedTimestamp);
   try {
     final long updatedTimestamp=secondEntity.getModified();
-    logger.debug("Preparing to rebuild all indexes with timestamp {}",updatedTimestamp);
+    if (logger.isDebugEnabled()) {
+      logger.debug("Preparing to rebuild all indexes with timestamp {}",updatedTimestamp);
+    }
     final ReIndexRequestBuilder builder=reIndexService.getBuilder().withApplicationId(em.getApplicationId()).withStartTimestamp(updatedTimestamp);
     ReIndexService.ReIndexStatus status=reIndexService.rebuildIndex(builder);
     assertNotNull(status.getJobId(),"JobId is present");

@@ -1,0 +1,17 @@
+{
+  final UUID application=UUID.randomUUID();
+  final UUID entity=UUID.randomUUID();
+  logger.info("Locking:" + application.toString() + "/"+ entity.toString());
+  Lock lock=lockManager.createLock(application,entity.toString());
+  lock.lock();
+  lock.lock();
+  boolean wasLocked=lockInDifferentThread(application,entity);
+  Assert.assertEquals(false,wasLocked);
+  lock.unlock();
+  wasLocked=lockInDifferentThread(application,entity);
+  assertFalse(wasLocked);
+  logger.info("Releasing lock:" + application.toString() + "/"+ entity.toString());
+  lock.unlock();
+  wasLocked=lockInDifferentThread(application,entity);
+  Assert.assertEquals(true,wasLocked);
+}

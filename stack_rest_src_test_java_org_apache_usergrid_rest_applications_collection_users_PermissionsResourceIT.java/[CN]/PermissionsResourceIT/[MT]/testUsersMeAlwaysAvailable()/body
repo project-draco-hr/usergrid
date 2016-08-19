@@ -1,0 +1,34 @@
+{
+  app().collection("roles").entity("default").delete();
+  Token token=null;
+  try {
+    String password="s3cr3t";
+    Entity newUser=app().collection("users").post(new User("dave","Dave Johnson","dave@example.com",password));
+    token=app().token().post(new Token("password",(String)newUser.get("username"),password));
+  }
+ catch (  Exception e) {
+    logger.error("Error creating user and logging in: {}",e);
+  }
+  assertNotNull(token);
+  try {
+    Map<String,Object> catMap=new HashMap<String,Object>(){
+{
+        put("name","enzo");
+        put("color","orange");
+      }
+    }
+;
+    app().collection("cats").post(true,token,ApiResponse.class,catMap,null,false);
+    fail("Post should have failed");
+  }
+ catch (  Exception expected) {
+  }
+  Entity me=app().collection("users").entity("me").get();
+  assertNotNull(me);
+  try {
+    app().collection("users").entity("me").delete();
+    fail("Delete /users/me must fail");
+  }
+ catch (  Exception expected) {
+  }
+}

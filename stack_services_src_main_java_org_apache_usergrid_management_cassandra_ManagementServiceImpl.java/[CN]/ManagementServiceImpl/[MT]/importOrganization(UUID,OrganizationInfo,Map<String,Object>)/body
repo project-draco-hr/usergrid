@@ -1,11 +1,4 @@
 {
-  EntityManager em=emf.getEntityManager(smf.getManagementAppId());
-  if (!em.isPropertyValueUniqueForEntity(Group.ENTITY_TYPE,PROPERTY_PATH,organizationInfo.getName())) {
-    throw new DuplicateUniquePropertyExistsException(Group.ENTITY_TYPE,PROPERTY_PATH,organizationInfo.getName());
-  }
-  if (properties == null) {
-    properties=new HashMap<String,Object>();
-  }
   String organizationName=null;
   if (organizationInfo != null) {
     organizationName=organizationInfo.getName();
@@ -19,16 +12,21 @@
   if (organizationName == null) {
     return null;
   }
-  if (organizationId == null) {
-    if (organizationInfo != null) {
-      organizationId=organizationInfo.getUuid();
-    }
+  if (organizationId == null && organizationInfo != null) {
+    organizationId=organizationInfo.getUuid();
   }
   if (organizationId == null) {
     organizationId=uuid(properties.get(PROPERTY_UUID));
   }
   if (organizationId == null) {
     return null;
+  }
+  EntityManager em=emf.getEntityManager(smf.getManagementAppId());
+  if (!em.isPropertyValueUniqueForEntity(Group.ENTITY_TYPE,PROPERTY_PATH,organizationName)) {
+    throw new DuplicateUniquePropertyExistsException(Group.ENTITY_TYPE,PROPERTY_PATH,organizationName);
+  }
+  if (properties == null) {
+    properties=new HashMap<>();
   }
   properties.put(PROPERTY_PATH,organizationName);
   properties.put(PROPERTY_SECRET,generateOAuthSecretKey(AuthPrincipalType.ORGANIZATION));

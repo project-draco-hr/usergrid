@@ -1,0 +1,35 @@
+{
+  Map<String,Object> json=new HashMap<>();
+  json.putAll(JsonUtils.toJsonMap(user));
+  Map<String,Map<String,Object>> jsonOrganizations=new HashMap<>();
+  json.put("organizations",jsonOrganizations);
+  Map<UUID,String> organizations;
+  AccountCreationProps.SuperUser superUser=properties.getSuperUser();
+  if (superUser.isEnabled() && superUser.getUsername().equals(user.getUsername())) {
+    int maxOrganizations=this.getAccountCreationProps().getMaxOrganizationsForSuperUserLogin();
+    organizations=buildOrgBiMap(getOrganizations(null,maxOrganizations));
+  }
+ else {
+    organizations=getOrganizationsForAdminUser(user.getUuid());
+  }
+  for (  Entry<UUID,String> organization : organizations.entrySet()) {
+    Map<String,Object> jsonOrganization=new HashMap<>();
+    jsonOrganizations.put(organization.getValue(),jsonOrganization);
+    jsonOrganization.put(PROPERTY_NAME,organization.getValue());
+    jsonOrganization.put(PROPERTY_UUID,organization.getKey());
+    jsonOrganization.put("properties",getOrganizationByUuid(organization.getKey()).getProperties());
+    if (includeApps) {
+      BiMap<UUID,String> applications=getApplicationsForOrganization(organization.getKey());
+      jsonOrganization.put("applications",applications.inverse());
+    }
+    if (includeOrgUsers) {
+      List<UserInfo> users=getAdminUsersForOrganization(organization.getKey());
+      Map<String,Object> jsonUsers=new HashMap<>();
+      for (      UserInfo u : users) {
+        jsonUsers.put(u.getUsername(),u);
+      }
+      jsonOrganization.put("users",jsonUsers);
+    }
+  }
+  return json;
+}

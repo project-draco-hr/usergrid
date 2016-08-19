@@ -1,0 +1,39 @@
+{
+  if (message instanceof ClusterEvent.CurrentClusterState) {
+    ClusterEvent.CurrentClusterState state=(ClusterEvent.CurrentClusterState)message;
+    nodes.clear();
+    for (    Member member : state.getMembers()) {
+      if (member.hasRole("io") && member.status().equals(MemberStatus.up())) {
+        nodes.add(member.address());
+        logger.debug("RequestActor {} received cluster-state member-up for {}",name,member.address());
+      }
+    }
+  }
+ else   if (message instanceof ClusterEvent.MemberUp) {
+    ClusterEvent.MemberUp mUp=(ClusterEvent.MemberUp)message;
+    if (mUp.member().hasRole("io")) {
+      nodes.add(mUp.member().address());
+    }
+    logger.debug("{} received member-up for {}",name,mUp.member().address());
+  }
+ else   if (message instanceof ClusterEvent.MemberEvent) {
+    ClusterEvent.MemberEvent other=(ClusterEvent.MemberEvent)message;
+    nodes.remove(other.member().address());
+  }
+ else   if (message instanceof ClusterEvent.UnreachableMember) {
+    ClusterEvent.UnreachableMember unreachable=(ClusterEvent.UnreachableMember)message;
+    nodes.remove(unreachable.member().address());
+    logger.debug("{} received un-reachable for {}",name,unreachable.member().address());
+  }
+ else   if (message instanceof ClusterEvent.ReachableMember) {
+    ClusterEvent.ReachableMember reachable=(ClusterEvent.ReachableMember)message;
+    if (reachable.member().hasRole("io")) {
+      nodes.add(reachable.member().address());
+    }
+    logger.debug("{} received reachable for {}",name,reachable.member().address());
+  }
+ else {
+    logger.error("{}: unhandled message: {}",name,message.toString());
+    unhandled(message);
+  }
+}

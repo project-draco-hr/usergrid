@@ -1,0 +1,50 @@
+{
+  int numInstancesPerNode=uniqueValuesFig.getUniqueValueInstancesPerNode();
+  Map<String,Object> akka=(Map<String,Object>)configMap.get("akka");
+  final Map<String,Object> deploymentMap;
+  if (akka.get("actor") == null) {
+    deploymentMap=new HashMap<>();
+    akka.put("actor",new HashMap<String,Object>(){
+{
+        put("deployment",deploymentMap);
+      }
+    }
+);
+  }
+ else   if (((Map)akka.get("actor")).get("deployment") == null) {
+    deploymentMap=new HashMap<>();
+    ((Map)akka.get("actor")).put("deployment",deploymentMap);
+  }
+ else {
+    deploymentMap=(Map<String,Object>)((Map)akka.get("actor")).get("deployment");
+  }
+  deploymentMap.put("/uvRouter/singleton/router",new HashMap<String,Object>(){
+{
+      put("router","consistent-hashing-pool");
+      put("cluster",new HashMap<String,Object>(){
+{
+          put("enabled","on");
+          put("allow-local-routees","on");
+          put("use-role","io");
+          put("max-nr-of-instances-per-node",numInstancesPerNode);
+          put("failure-detector",new HashMap<String,Object>(){
+{
+              put("threshold","10");
+              put("acceptable-heartbeat-pause","3 s");
+              put("heartbeat-interval","1 s");
+              put("heartbeat-request",new HashMap<String,Object>(){
+{
+                  put("expected-response-after","3 s");
+                }
+              }
+);
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+}

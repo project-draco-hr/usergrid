@@ -7,11 +7,11 @@
     Edge returned=manager.writeEdge(edge).toBlocking().last();
     assertNotNull("Returned has a version",returned.getTimestamp());
     if (i % 1000 == 0) {
-      log.info("   Wrote: " + i);
+      logger.info("   Wrote: " + i);
     }
   }
   timer.stop();
-  log.info("Total time to write {} entries {} ms",writeLimit,timer.getTime());
+  logger.info("Total time to write {} entries {} ms",writeLimit,timer.getTime());
   timer.reset();
   timer.start();
   final CountDownLatch latch=new CountDownLatch(1);
@@ -24,11 +24,11 @@
       fail("Exception occurced " + throwable);
     }
     @Override public void onNext(    final List<MarkedEdge> edges){
-      log.info("Read {} edges",edges.size());
+      logger.info("Read {} edges",edges.size());
     }
   }
 );
   latch.await();
-  log.info("Total time to read {} entries {} ms",readCount,timer.getTime());
+  logger.info("Total time to read {} entries {} ms",readCount,timer.getTime());
   return true;
 }

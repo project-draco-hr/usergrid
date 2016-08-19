@@ -1,0 +1,24 @@
+{
+  String fieldValueString=fieldValue.toString().toLowerCase();
+  List<Object> keys=new ArrayList<>(6);
+  keys.add(0,appUUID);
+  keys.add(1,applicationType);
+  keys.add(2,entityType);
+  keys.add(3,fieldType);
+  keys.add(4,fieldName);
+  keys.add(5,fieldValueString);
+  int size=16 + applicationType.getBytes().length + entityType.getBytes().length+ fieldType.getBytes().length+ fieldName.getBytes().length+ fieldValueString.getBytes().length;
+  size+=keys.size() * 3;
+  ByteBuffer stuff=ByteBuffer.allocate(size);
+  for (  Object key : keys) {
+    ByteBuffer kb=DataType.serializeValue(key,ProtocolVersion.NEWEST_SUPPORTED);
+    if (kb == null) {
+      kb=ByteBuffer.allocate(0);
+    }
+    stuff.putShort((short)kb.remaining());
+    stuff.put(kb.slice());
+    stuff.put((byte)0);
+  }
+  stuff.flip();
+  return stuff.duplicate();
+}

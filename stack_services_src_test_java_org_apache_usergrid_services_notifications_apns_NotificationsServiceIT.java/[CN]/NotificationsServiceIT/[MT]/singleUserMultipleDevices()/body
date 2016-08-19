@@ -1,0 +1,20 @@
+{
+  app.testRequest(ServiceAction.POST,1,"users",user1.getUuid(),"devices",device1.getUuid()).getEntity();
+  app.testRequest(ServiceAction.POST,1,"users",user1.getUuid(),"devices",device2.getUuid()).getEntity();
+  List device1Users=app.getEntityManager().getCollection(device1,"users",null,100,Query.Level.REFS,false).getEntities();
+  assertEquals(device1Users.size(),1);
+  List user1Devices=app.getEntityManager().getCollection(user1,"devices",null,100,Query.Level.REFS,false).getEntities();
+  assertEquals(user1Devices.size(),2);
+  app.clear();
+  String payload=getPayload();
+  Map<String,String> payloads=new HashMap<String,String>(1);
+  payloads.put(notifier.getName(),payload);
+  app.put("payloads",payloads);
+  app.put("debug",true);
+  Entity e=app.testRequest(ServiceAction.POST,1,"users",user1.getUuid(),"notifications").getEntity();
+  app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
+  Notification notification=app.getEntityManager().get(e.getUuid(),Notification.class);
+  assertEquals(notification.getPayloads().get(notifier.getName()),payload);
+  notification=notificationWaitForComplete(notification);
+  checkReceipts(notification,2);
+}

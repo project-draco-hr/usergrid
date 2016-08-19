@@ -1,0 +1,24 @@
+{
+  Organization newOrg=createOrgPayload("updateManagementUserWrongAdminToken",null);
+  Organization orgReturned=clientSetup.getRestClient().management().orgs().post(newOrg);
+  assertNotNull(orgReturned.getOwner());
+  Entity adminUserPayload=new Entity();
+  String wrongAdminUsername="wrongAdminUser" + UUIDUtils.newTimeUUID();
+  adminUserPayload.put("username",wrongAdminUsername);
+  adminUserPayload.put("name",wrongAdminUsername);
+  adminUserPayload.put("email",wrongAdminUsername + "@usergrid.com");
+  adminUserPayload.put("password",wrongAdminUsername);
+  management().orgs().org(clientSetup.getOrganizationName()).users().post(User.class,adminUserPayload);
+  Token wrongAdminToken=management.token().get(wrongAdminUsername,wrongAdminUsername);
+  assertNotNull(wrongAdminToken);
+  management.token().setToken(wrongAdminToken);
+  try {
+    Entity userProperty=new Entity().chainPut("company","usergrid");
+    management().users().user(newOrg.getUsername()).put(userProperty);
+    fail("Should not have been allowed");
+  }
+ catch (  NotAuthorizedException e) {
+    int status=e.getResponse().getStatus();
+    assertEquals(401,status);
+  }
+}

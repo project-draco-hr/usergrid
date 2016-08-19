@@ -1,9 +1,7 @@
 {
   Preconditions.checkNotNull(collectionScope,"collectionScope is required");
   Preconditions.checkNotNull(entityId,"entity id is required");
-  final Id applicationId=collectionScope.getApplication();
-  final EntityKey entityKey=createEntityUniqueLogKey(applicationId,entityId);
-  final ScopedRowKey<EntityKey> rowKey=ScopedRowKey.fromKey(applicationId,entityKey);
-  RowQuery<ScopedRowKey<EntityKey>,UniqueFieldEntry> query=keyspace.prepareQuery(CF_ENTITY_UNIQUE_VALUE_LOG).getKey(rowKey).withColumnRange((UniqueFieldEntry)null,null,false,serializationFig.getBufferSize());
-  return new ColumnNameIterator(query,new UniqueEntryParser(entityId),false);
+  Clause inKey=QueryBuilder.in("key",getLogPartitionKey(collectionScope.getApplication(),entityId));
+  Statement statement=QueryBuilder.select().all().from(TABLE_UNIQUE_VALUES_LOG).where(inKey);
+  return new AllUniqueFieldsIterator(session,statement,entityId);
 }

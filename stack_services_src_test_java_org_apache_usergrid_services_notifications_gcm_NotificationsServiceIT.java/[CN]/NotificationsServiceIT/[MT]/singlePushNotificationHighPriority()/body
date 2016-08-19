@@ -1,0 +1,18 @@
+{
+  app.clear();
+  String payload="Hello, World!";
+  Map<String,String> payloads=new HashMap<String,String>(1);
+  payloads.put(notifier.getUuid().toString(),payload);
+  app.put("payloads",payloads);
+  app.put("queued",System.currentTimeMillis());
+  app.put("debug",true);
+  app.put("expire",System.currentTimeMillis() + 300000);
+  app.put("priority","high");
+  Entity e=app.testRequest(ServiceAction.POST,1,"devices",device1.getUuid(),"notifications").getEntity();
+  app.testRequest(ServiceAction.GET,1,"notifications",e.getUuid());
+  Notification notification=app.getEntityManager().get(e.getUuid(),Notification.class);
+  assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
+  notification=notificationWaitForComplete(notification);
+  assertEquals("high",notification.getPriority());
+  checkReceipts(notification,1);
+}

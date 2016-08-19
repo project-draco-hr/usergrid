@@ -1,0 +1,57 @@
+{
+  Config config=null;
+  try {
+    int numInstancesPerNode=300;
+    String region=currentRegion;
+    List<String> seeds=getSeedsByRegion().get(region);
+    logger.info("Akka Config for region [{}] is:\n" + "   Hostname [{}]\n" + "   Seeds [{}]\n",region,hostname,seeds);
+    int lastColon=seeds.get(0).lastIndexOf(":") + 1;
+    final Integer regionPort=Integer.parseInt(seeds.get(0).substring(lastColon));
+    Map<String,Object> configMap=new HashMap<String,Object>(){
+{
+        put("akka",new HashMap<String,Object>(){
+{
+            put("remote",new HashMap<String,Object>(){
+{
+                put("netty.tcp",new HashMap<String,Object>(){
+{
+                    put("hostname",hostname);
+                    put("bind-hostname",hostname);
+                    put("port",regionPort);
+                  }
+                }
+);
+              }
+            }
+);
+            put("cluster",new HashMap<String,Object>(){
+{
+                put("max-nr-of-instances-per-node",numInstancesPerNode);
+                put("roles",Collections.singletonList("io"));
+                put("seed-nodes",new ArrayList<String>(){
+{
+                    for (                    String seed : seeds) {
+                      add(seed);
+                    }
+                  }
+                }
+);
+              }
+            }
+);
+          }
+        }
+);
+      }
+    }
+;
+    for (    RouterProducer routerProducer : routerProducers) {
+      routerProducer.addConfiguration(configMap);
+    }
+    config=ConfigFactory.parseMap(configMap).withFallback(ConfigFactory.load("application.conf"));
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Error reading and adding to cluster config",e);
+  }
+  return config;
+}

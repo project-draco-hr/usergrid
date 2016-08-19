@@ -1,0 +1,13 @@
+{
+  KeyspaceMetadata keyspaceMetadata=dataStaxCluster.getClusterSession().getCluster().getMetadata().getKeyspace(CQLUtils.quote(cassandraFig.getApplicationKeyspace()));
+  boolean exists=keyspaceMetadata != null && keyspaceMetadata.getTable(tableDefinition.getTableName()) != null;
+  if (exists) {
+    return;
+  }
+  String CQL=CQLUtils.getTableCQL(cassandraFig,tableDefinition,CQLUtils.ACTION.CREATE);
+  if (logger.isDebugEnabled()) {
+    logger.debug(CQL);
+  }
+  dataStaxCluster.getApplicationSession().execute(CQL);
+  logger.info("Created table: {}",tableDefinition.getTableName());
+}

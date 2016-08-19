@@ -1,4 +1,4 @@
 {
-  Column<Boolean> col=getValue(scope,key,cassandraConfig.getConsistentReadCL());
-  return (col != null) ? col.getStringValue() : null;
+  ByteBuffer value=getValueCQL(scope,key,cassandraConfig.getDataStaxReadConsistentCl());
+  return value != null ? (String)DataType.text().deserialize(value,ProtocolVersion.NEWEST_SUPPORTED) : null;
 }

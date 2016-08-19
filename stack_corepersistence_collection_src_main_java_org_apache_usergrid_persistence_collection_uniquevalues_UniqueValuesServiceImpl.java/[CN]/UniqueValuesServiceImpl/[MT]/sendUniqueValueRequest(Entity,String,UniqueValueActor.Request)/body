@@ -1,0 +1,42 @@
+{
+  int maxRetries=uniqueValuesFig.getRequestRetryCount();
+  int retries=0;
+  UniqueValueActor.Response response=null;
+  while (retries++ < maxRetries) {
+    try {
+      Timeout t=new Timeout(uniqueValuesFig.getRequestTimeout(),TimeUnit.MILLISECONDS);
+      Future<Object> fut;
+      if (actorSystemManager.getCurrentRegion().equals(region)) {
+        ActorRef clientActor=actorSystemManager.getClientActor();
+        fut=Patterns.ask(clientActor,request,t);
+      }
+ else {
+        ActorRef clusterClient=actorSystemManager.getClusterClient(region);
+        fut=Patterns.ask(clusterClient,new ClusterClient.Send("/user/clientActor",request),t);
+      }
+      response=(UniqueValueActor.Response)Await.result(fut,t.duration());
+      if (response != null && (response.getStatus().equals(UniqueValueActor.Response.Status.IS_UNIQUE) || response.getStatus().equals(UniqueValueActor.Response.Status.NOT_UNIQUE))) {
+        if (retries > 1) {
+          logger.debug("IS_UNIQUE after retrying {} for entity {} rowkey {}",retries,entity.getId().getUuid(),request.getConsistentHashKey());
+        }
+        break;
+      }
+ else       if (response != null) {
+        logger.warn("ERROR status retrying {} entity {} rowkey {}",retries,entity.getId().getUuid(),request.getConsistentHashKey());
+      }
+ else {
+        logger.warn("Timed-out retrying {} entity {} rowkey",retries,entity.getId().getUuid(),request.getConsistentHashKey());
+      }
+    }
+ catch (    Exception e) {
+      logger.error("{} caused retry {} for entity {} rowkey {}",e.getClass().getSimpleName(),retries,entity.getId().getUuid(),request.getConsistentHashKey());
+    }
+  }
+  if (response == null || response.getStatus().equals(UniqueValueActor.Response.Status.ERROR)) {
+    logger.debug("ERROR after retrying {} for entity {} rowkey {}",retries,entity.getId().getUuid(),request.getConsistentHashKey());
+    throw new RuntimeException("Error verifying unique value after " + retries + " retries");
+  }
+  if (response.getStatus().equals(UniqueValueActor.Response.Status.NOT_UNIQUE)) {
+    throw new UniqueValueException("Error property not unique",request.getField());
+  }
+}

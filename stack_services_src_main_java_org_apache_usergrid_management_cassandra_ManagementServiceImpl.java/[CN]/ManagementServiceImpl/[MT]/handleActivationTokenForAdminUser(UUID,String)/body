@@ -1,11 +1,3 @@
 {
-  AuthPrincipalInfo principal=getPrincipalFromAccessToken(token,TOKEN_TYPE_ACTIVATION,ADMIN_USER);
-  if ((principal != null) && userId.equals(principal.getUuid())) {
-    activateAdminUser(principal.getUuid());
-    UserInfo user=getAdminUserByUuid(principal.getUuid());
-    sendAdminUserActivatedEmail(user);
-    sendSysAdminNewAdminActivatedNotificationEmail(user);
-    return ActivationState.ACTIVATED;
-  }
-  return ActivationState.UNKNOWN;
+  return handleActivationTokenForAdminUser(userId,getActivationTokenInfoForAdminUser(token));
 }

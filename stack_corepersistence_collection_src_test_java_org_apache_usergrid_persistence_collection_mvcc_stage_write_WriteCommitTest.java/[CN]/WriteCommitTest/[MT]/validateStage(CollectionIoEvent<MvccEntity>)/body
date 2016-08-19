@@ -1,4 +1,5 @@
 {
+  final Session session=mock(Session.class);
   final MvccLogEntrySerializationStrategy logStrategy=mock(MvccLogEntrySerializationStrategy.class);
   final MutationBatch logMutation=mock(MutationBatch.class);
   when(logStrategy.write(any(ApplicationScope.class),any(MvccLogEntry.class))).thenReturn(logMutation);
@@ -6,5 +7,5 @@
   final MutationBatch entityMutation=mock(MutationBatch.class);
   final UniqueValueSerializationStrategy uniqueValueStrategy=mock(UniqueValueSerializationStrategy.class);
   when(mvccEntityStrategy.write(any(ApplicationScope.class),any(MvccEntity.class))).thenReturn(entityMutation);
-  new WriteCommit(logStrategy,mvccEntityStrategy,uniqueValueStrategy).call(event);
+  new WriteCommit(logStrategy,mvccEntityStrategy,uniqueValueStrategy,null,null,null,session).call(event);
 }

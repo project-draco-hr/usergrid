@@ -1,0 +1,17 @@
+def init_logging(file_enabled=False, stdout_enabled=True):
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+    logging.getLogger('urllib3.connectionpool').setLevel(logging.WARN)
+    logging.getLogger('requests.packages.urllib3.connectionpool').setLevel(logging.WARN)
+    log_formatter = logging.Formatter(fmt='%(asctime)s | %(name)s | %(processName)s | %(levelname)s | %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+    if file_enabled:
+        log_file_name = './UsergridIterator.log'
+        rotating_file = logging.handlers.RotatingFileHandler(filename=log_file_name, mode='a', maxBytes=204857600, backupCount=10)
+        rotating_file.setFormatter(log_formatter)
+        rotating_file.setLevel(logging.INFO)
+        root_logger.addHandler(rotating_file)
+    if stdout_enabled:
+        stdout_logger = logging.StreamHandler(sys.stdout)
+        stdout_logger.setFormatter(log_formatter)
+        stdout_logger.setLevel(logging.INFO)
+        root_logger.addHandler(stdout_logger)

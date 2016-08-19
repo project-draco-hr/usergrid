@@ -1,0 +1,44 @@
+{
+  String testNonOrgProperty="usergrid.sysadmin.login.name";
+  String testOrgProperty="usergrid.admin.sysadmin.email";
+  String nonOrgPropsValue=setup.getProps().getProperty(testNonOrgProperty);
+  String orgPropsValue=setup.getProps().getProperty(testOrgProperty);
+  assertNotNull(nonOrgPropsValue);
+  assertNotNull(orgPropsValue);
+  final String orgName=uniqueOrg();
+  UserInfo user=setup.getMgmtSvc().createAdminUser(null,uniqueUsername(),"Org Config Admin",uniqueEmail(),"test",true,false);
+  assertNotNull(user);
+  OrganizationInfo org=setup.getMgmtSvc().createOrganization(orgName,user,true);
+  assertNotNull(org);
+  setup.getEmf().getEntityManager(setup.getSmf().getManagementAppId());
+  OrganizationConfig orgConfig=setup.getMgmtSvc().getOrganizationConfigByUuid(org.getUuid());
+  assertNotNull(orgConfig);
+  String nonOrgCfgValue=orgConfig.getProperty(testNonOrgProperty);
+  String orgCfgValue=orgConfig.getProperty(testOrgProperty);
+  assertNotNull(nonOrgCfgValue);
+  assertNotNull(orgCfgValue);
+  assertTrue(nonOrgPropsValue.equals(nonOrgCfgValue));
+  assertTrue(orgPropsValue.equals(orgCfgValue));
+  String newNonOrgPropertyValue="testNonOrgLoginName";
+  String newOrgPropertyValue="testNonOrgProperty@usergrid.com";
+  Map<String,Object> propMap=new HashMap<>();
+  propMap.put(testNonOrgProperty,newNonOrgPropertyValue);
+  propMap.put(testOrgProperty,newOrgPropertyValue);
+  try {
+    orgConfig.addProperties(propMap,true);
+    fail("Validation of orgConfig.addProperties should have thrown exception");
+  }
+ catch (  IllegalArgumentException e) {
+  }
+catch (  Exception e) {
+    fail("Validation of orgConfig.addProperties should have thrown IllegalArgumentException");
+  }
+  orgConfig.addProperties(propMap,false);
+  String nonOrgCfgValue2=orgConfig.getProperty(testNonOrgProperty);
+  String orgCfgValue2=orgConfig.getProperty(testOrgProperty);
+  assertNotNull(nonOrgCfgValue2);
+  assertNotNull(orgCfgValue2);
+  assertFalse(nonOrgCfgValue2.equals(newNonOrgPropertyValue));
+  assertTrue(nonOrgCfgValue2.equals(nonOrgCfgValue));
+  assertTrue(orgCfgValue2.equals(newOrgPropertyValue));
+}

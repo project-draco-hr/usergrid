@@ -1,25 +1,24 @@
 {
-{
-    final Entity entity=ioEvent.getEvent();
-    final ApplicationScope applicationScope=ioEvent.getEntityCollection();
-    final Id entityId=entity.getId();
-    final UUID newVersion=UUIDGenerator.newTimeUUID();
-    final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,newVersion,Stage.ACTIVE,MvccLogEntry.State.COMPLETE);
-    MutationBatch write=logStrategy.write(applicationScope,startEntry);
-    final MvccEntityImpl nextStage=new MvccEntityImpl(entityId,newVersion,MvccEntity.Status.COMPLETE,entity);
-    if (ioEvent.getEvent().hasVersion()) {
-      try {
-        write.execute();
-      }
- catch (      ConnectionException e) {
-        LOG.error("Failed to execute write ",e);
-        throw new WriteStartException(nextStage,applicationScope,"Failed to execute write ",e);
-      }
-catch (      NullPointerException e) {
-        LOG.error("Failed to execute write ",e);
-        throw new WriteStartException(nextStage,applicationScope,"Failed to execute write",e);
-      }
+  verifyEntityWrite(ioEvent.getEvent());
+  final Entity entity=ioEvent.getEvent();
+  final ApplicationScope applicationScope=ioEvent.getEntityCollection();
+  final Id entityId=entity.getId();
+  final UUID newVersion=UUIDGenerator.newTimeUUID();
+  final MvccLogEntry startEntry=new MvccLogEntryImpl(entityId,newVersion,Stage.ACTIVE,MvccLogEntry.State.COMPLETE);
+  MutationBatch write=logStrategy.write(applicationScope,startEntry);
+  final MvccEntityImpl nextStage=new MvccEntityImpl(entityId,newVersion,MvccEntity.Status.COMPLETE,entity);
+  if (ioEvent.getEvent().hasVersion()) {
+    try {
+      write.execute();
     }
-    return new CollectionIoEvent<>(applicationScope,nextStage);
+ catch (    ConnectionException e) {
+      logger.error("Failed to execute write ",e);
+      throw new WriteStartException(nextStage,applicationScope,"Failed to execute write ",e);
+    }
+catch (    NullPointerException e) {
+      logger.error("Failed to execute write ",e);
+      throw new WriteStartException(nextStage,applicationScope,"Failed to execute write",e);
+    }
   }
+  return new CollectionIoEvent<>(applicationScope,nextStage);
 }

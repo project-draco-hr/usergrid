@@ -4,28 +4,16 @@
     final MvccEntity mvccEntity=cre.getEntity();
     final ApplicationScope scope=cre.getApplicationScope();
     MutationBatch rollbackMb=null;
+    final BatchStatement uniqueDeleteBatch=new BatchStatement();
     final Optional<Entity> entity=mvccEntity.getEntity();
     if (entity.isPresent()) {
       for (      final Field field : entity.get().getFields()) {
         if (field.isUnique()) {
           UniqueValue toDelete=new UniqueValueImpl(field,entity.get().getId(),mvccEntity.getVersion());
-          MutationBatch deleteMb=uniqueValueStrat.delete(scope,toDelete);
-          if (rollbackMb == null) {
-            rollbackMb=deleteMb;
-          }
- else {
-            rollbackMb.mergeShallow(deleteMb);
-          }
+          uniqueDeleteBatch.add(uniqueValueStrat.deleteCQL(scope,toDelete));
         }
       }
-      if (rollbackMb != null) {
-        try {
-          rollbackMb.execute();
-        }
- catch (        ConnectionException ex) {
-          throw new RuntimeException("Error rolling back changes",ex);
-        }
-      }
+      session.execute(uniqueDeleteBatch);
       logEntryStrat.delete(scope,entity.get().getId(),mvccEntity.getVersion());
     }
   }

@@ -3,9 +3,7 @@
   QueueIndexUpdate indexUpdate=new QueueIndexUpdate(batch,queuePath,queueId,entryName,entryValue,timestampUuid);
   List<HColumn<ByteBuffer,ByteBuffer>> entries=null;
   entries=createSliceQuery(cass.getApplicationKeyspace(applicationId),ue,be,be).setColumnFamily(PROPERTY_INDEX_ENTRIES.getColumnFamily()).setKey(queueId).setRange(DynamicComposite.toByteBuffer(entryName),setGreaterThanEqualityFlag(new DynamicComposite(entryName)).serialize(),false,INDEX_ENTRY_LIST_COUNT).execute().get().getColumns();
-  if (logger.isInfoEnabled()) {
-    logger.info("Found {} previous index entries for {} of entity {}",new Object[]{entries.size(),entryName,queueId});
-  }
+  logger.info("Found {} previous index entries for {} of entity {}",entries.size(),entryName,queueId);
   for (  HColumn<ByteBuffer,ByteBuffer> entry : entries) {
     UUID prev_timestamp=null;
     Object prev_value=null;

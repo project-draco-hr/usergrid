@@ -11,6 +11,7 @@
   QueueScope queueScope=new QueueScopeImpl(name,QueueScope.RegionImplementation.LOCAL);
   queueManagerFactory=getApplicationContext().getBean(Injector.class).getInstance(QueueManagerFactory.class);
   QueueManager queueManager=queueManagerFactory.getQueueManager(queueScope);
-  notificationQueueManager=new ApplicationQueueManagerImpl(jobScheduler,em,queueManager,metricsService,props);
+  applicationQueueManagerCache=getApplicationContext().getBean(Injector.class).getInstance(ApplicationQueueManagerCache.class);
+  notificationQueueManager=applicationQueueManagerCache.getApplicationQueueManager(em,queueManager,jobScheduler,metricsService,props);
   gracePeriod=JobScheduler.SCHEDULER_GRACE_PERIOD;
 }

@@ -1,0 +1,23 @@
+{
+  ready();
+  try {
+    for (    Field field : entity.getFields()) {
+      if (field.isUnique()) {
+        reserveUniqueField(scope,entity,version,field,region);
+      }
+    }
+  }
+ catch (  UniqueValueException e) {
+    for (    Field field : entity.getFields()) {
+      if (field.isUnique()) {
+        try {
+          cancelUniqueField(scope,entity,version,field,region);
+        }
+ catch (        Throwable ignored) {
+          logger.error("Error canceling unique field",ignored);
+        }
+      }
+    }
+    throw e;
+  }
+}

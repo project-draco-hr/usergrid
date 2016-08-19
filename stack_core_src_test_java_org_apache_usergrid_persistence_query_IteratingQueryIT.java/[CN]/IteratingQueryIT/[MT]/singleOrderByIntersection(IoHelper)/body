@@ -5,7 +5,7 @@
   int intersectIncrement=5;
   long start=System.currentTimeMillis();
   List<String> expected=new ArrayList<String>(size / intersectIncrement);
-  LOG.info("Writing {} entities.",size);
+  logger.info("Writing {} entities.",size);
   for (int i=0; i < size; i++) {
     Map<String,Object> entity=new HashMap<String,Object>();
     String name=String.valueOf(i);
@@ -19,7 +19,7 @@
   }
   app.refreshIndex();
   long stop=System.currentTimeMillis();
-  LOG.info("Writes took {} ms",stop - start);
+  logger.info("Writes took {} ms",stop - start);
   Query query=Query.fromQL("select * where intersect = true order by created asc");
   query.setLimit(queryLimit);
   int count=0;
@@ -34,6 +34,6 @@
   }
  while (results.getCursor() != null);
   stop=System.currentTimeMillis();
-  LOG.info("Query took {} ms to return {} entities",stop - start,count);
+  logger.info("Query took {} ms to return {} entities",stop - start,count);
   assertEquals(expected.size(),count);
 }

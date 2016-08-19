@@ -1,0 +1,17 @@
+{
+  String collectionName="ect" + System.currentTimeMillis();
+  String entityName="testEntity1";
+  HashMap<String,JsonNode> map=new HashMap<>();
+  map.put("name",new TextNode(entityName));
+  map.put("color",new TextNode("red"));
+  map.put("shape",new TextNode("square"));
+  UsergridEntity entity=new UsergridEntity(collectionName,null,map);
+  UsergridResponse response=entity.save();
+  assertNull(response.getResponseError());
+  UsergridEntity eLookUp=Usergrid.GET(collectionName,entityName).first();
+  assertNotNull("The returned entity is null!",eLookUp);
+  assertEquals("entities has the correct type",eLookUp.getType(),collectionName);
+  assertEquals("entities has the correct name",eLookUp.getName(),entityName);
+  assertEquals("entities has the correct color",eLookUp.getStringProperty("color"),"red");
+  assertEquals("entities has the correct shape",eLookUp.getStringProperty("shape"),"square");
+}

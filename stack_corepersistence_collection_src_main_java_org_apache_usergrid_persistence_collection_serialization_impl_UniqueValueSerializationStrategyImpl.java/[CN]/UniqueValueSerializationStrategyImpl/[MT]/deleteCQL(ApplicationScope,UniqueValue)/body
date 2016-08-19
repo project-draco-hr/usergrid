@@ -1,0 +1,27 @@
+{
+  Preconditions.checkNotNull(value,"value is required");
+  final BatchStatement batch=new BatchStatement();
+  final Id entityId=value.getEntityId();
+  final UUID entityVersion=value.getEntityVersion();
+  final Field<?> field=value.getField();
+  ValidationUtils.verifyIdentity(entityId);
+  ValidationUtils.verifyVersion(entityVersion);
+  final EntityVersion ev=new EntityVersion(entityId,entityVersion);
+  final UniqueFieldEntry uniqueFieldEntry=new UniqueFieldEntry(entityVersion,field);
+  ByteBuffer partitionKey=getPartitionKey(scope.getApplication(),value.getEntityId().getType(),value.getField().getTypeName().toString(),value.getField().getName(),value.getField().getValue());
+  ByteBuffer columnValue=serializeUniqueValueColumn(ev);
+  final Clause uniqueEqKey=QueryBuilder.eq("key",partitionKey);
+  final Clause uniqueEqColumn=QueryBuilder.eq("column1",columnValue);
+  Statement uniqueDelete=QueryBuilder.delete().from(TABLE_UNIQUE_VALUES).where(uniqueEqKey).and(uniqueEqColumn);
+  batch.add(uniqueDelete);
+  ByteBuffer logPartitionKey=getLogPartitionKey(scope.getApplication(),entityId);
+  ByteBuffer logColumnValue=serializeUniqueValueLogColumn(uniqueFieldEntry);
+  final Clause uniqueLogEqKey=QueryBuilder.eq("key",logPartitionKey);
+  final Clause uniqueLogEqColumn=QueryBuilder.eq("column1",logColumnValue);
+  Statement uniqueLogDelete=QueryBuilder.delete().from(TABLE_UNIQUE_VALUES_LOG).where(uniqueLogEqKey).and(uniqueLogEqColumn);
+  batch.add(uniqueLogDelete);
+  if (logger.isTraceEnabled()) {
+    logger.trace("Building batch statement for unique value entity={} version={} name={} value={} ",value.getEntityId().getUuid(),value.getEntityVersion(),value.getField().getName(),value.getField().getValue());
+  }
+  return batch;
+}

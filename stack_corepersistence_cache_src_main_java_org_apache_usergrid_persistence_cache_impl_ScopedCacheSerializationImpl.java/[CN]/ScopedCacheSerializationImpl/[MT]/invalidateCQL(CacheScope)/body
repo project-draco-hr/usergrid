@@ -1,0 +1,8 @@
+{
+  Preconditions.checkNotNull(scope,"scope is required");
+  final String rowKeyString=scope.getApplication().getUuid().toString();
+  final int bucket=BUCKET_LOCATOR.getCurrentBucket(rowKeyString);
+  final Clause inKey=QueryBuilder.eq("key",getPartitionKey(scope,rowKeyString,bucket));
+  final Statement statement=QueryBuilder.delete().from(SCOPED_CACHE_TABLE).where(inKey);
+  session.execute(statement);
+}

@@ -1,0 +1,18 @@
+{
+  OrganizationConfig orgConfig;
+  try {
+    if (!StringUtils.isBlank(organizationName)) {
+      orgConfig=management.getOrganizationConfigByName(organizationName);
+    }
+ else {
+      orgConfig=management.getOrganizationConfigDefaultsOnly();
+    }
+  }
+ catch (  Exception e) {
+    if (logger.isInfoEnabled()) {
+      logger.info("handleViewable: unable to retrieve org config by org name: " + organizationName);
+    }
+    orgConfig=management.getOrganizationConfigDefaultsOnly();
+  }
+  return handleViewable(template,model,orgConfig);
+}

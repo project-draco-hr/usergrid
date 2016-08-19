@@ -1,10 +1,13 @@
 {
 synchronized (this) {
-    long hash=MurmurHash.hash64(payload);
-    Batch batch=batches.get(hash);
-    if (batch == null && payload != null) {
-      batch=new Batch(notifier,payload);
-      batches.put(hash,batch);
+    Batch batch=new Batch(notifier,null);
+    if (payload != null) {
+      long hash=payload.hashCode();
+      batch=batches.get(hash);
+      if (batch == null) {
+        batch=new Batch(notifier,payload);
+        batches.put(hash,batch);
+      }
     }
     return batch;
   }

@@ -1,0 +1,20 @@
+{
+  Entity payload=new Entity();
+  payload.put("fields","all");
+  app().collection("testCollection").collection("_settings").post(payload);
+  refreshIndex();
+  Entity testEntity=new Entity();
+  testEntity.put("one","helper");
+  testEntity.put("two","query");
+  app().collection("testCollection").post(testEntity);
+  refreshIndex();
+  String query="two ='query'";
+  QueryParameters queryParameters=new QueryParameters().setQuery(query);
+  Collection tempEntity=app().collection("testCollection").get(queryParameters,true);
+  Entity reindexedEntity=tempEntity.getResponse().getEntity();
+  assertEquals("helper",reindexedEntity.get("one"));
+  query="one = 'helper'";
+  queryParameters=new QueryParameters().setQuery(query);
+  tempEntity=app().collection("testCollection").get(queryParameters,true);
+  assertEquals(1,tempEntity.getResponse().getEntities().size());
+}

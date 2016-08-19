@@ -1,7 +1,9 @@
 {
   Timer.Context timer=execution.time();
   requests.mark();
-  logger.info("execute QueueJob {}",jobExecution);
+  if (logger.isTraceEnabled()) {
+    logger.trace("execute QueueJob {}",jobExecution);
+  }
   JobData jobData=jobExecution.getJobData();
   UUID applicationId=(UUID)jobData.getProperty("applicationId");
   ServiceManager sm=smf.getServiceManager(applicationId);
@@ -15,7 +17,9 @@
     UUID notificationId=(UUID)jobData.getProperty("notificationId");
     Notification notification=em.get(notificationId,Notification.class);
     if (notification == null) {
-      logger.info("notificationId {} no longer exists",notificationId);
+      if (logger.isDebugEnabled()) {
+        logger.trace("notificationId {} no longer exists",notificationId);
+      }
       return;
     }
     try {
@@ -34,5 +38,7 @@
   finally {
     timer.stop();
   }
-  logger.info("execute QueueJob completed normally");
+  if (logger.isTraceEnabled()) {
+    logger.trace("execute QueueJob completed normally");
+  }
 }

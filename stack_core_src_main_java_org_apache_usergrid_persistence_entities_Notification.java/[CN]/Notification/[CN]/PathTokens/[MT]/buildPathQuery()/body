@@ -1,0 +1,46 @@
+{
+  PathQuery pathQuery=null;
+  List<PathToken> pathTokens=getPathTokens();
+  for (  PathToken pathToken : pathTokens) {
+    String collection=pathToken.getCollection();
+    Query query=new Query();
+    if (pathToken.getQl() != null) {
+      query.setQl(pathToken.getQl());
+    }
+ else     if (pathToken.getIdentifier() != null) {
+      if (collection.equals("users") && pathToken.getIdentifier().getType() == Identifier.Type.NAME) {
+        query.setQl("select * where username ='" + pathToken.getIdentifier().getName() + "'");
+      }
+ else {
+        query.addIdentifier(pathToken.getIdentifier());
+      }
+    }
+    query.setLimit(100);
+    query.setCollection(collection);
+    if (pathQuery == null) {
+      pathQuery=new PathQuery(getApplicationRef(),query);
+      if (pathTokens.size() == 1 && collection.equals(InflectionUtils.pluralize(Group.ENTITY_TYPE))) {
+        final Query usersQuery=new Query();
+        usersQuery.setQl("select *");
+        usersQuery.setCollection("users");
+        usersQuery.setLimit(100);
+        final Query devicesQuery=new Query();
+        devicesQuery.setQl("select *");
+        devicesQuery.setCollection("devices");
+        devicesQuery.setLimit(100);
+        pathQuery=pathQuery.chain(usersQuery);
+      }
+ else       if (pathTokens.size() == 1 && collection.equals(InflectionUtils.pluralize(User.ENTITY_TYPE))) {
+        final Query devicesQuery=new Query();
+        devicesQuery.setQl("select *");
+        devicesQuery.setCollection("devices");
+        devicesQuery.setLimit(100);
+        pathQuery=pathQuery.chain(devicesQuery);
+      }
+    }
+ else {
+      pathQuery=pathQuery.chain(query);
+    }
+  }
+  return pathQuery;
+}

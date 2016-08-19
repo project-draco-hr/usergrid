@@ -1,0 +1,12 @@
+{
+  DynamicComposite composite=DynamicComposite.fromByteBuffer(byteBuffer);
+  Preconditions.checkArgument(composite.size() == 5,"Composite should 5 elements");
+  final byte version=composite.get(0,BYTE_SERIALIZER);
+  final long shardIndex=composite.get(1,LONG_SERIALIZER);
+  final long shardCreated=composite.get(2,LONG_SERIALIZER);
+  final DirectedEdge shardEnd=composite.get(3,EDGE_SERIALIZER);
+  final boolean isCompacted=composite.get(4,BOOLEAN_SERIALIZER);
+  final Shard shard=new Shard(shardIndex,shardCreated,isCompacted);
+  shard.setShardEnd(Optional.fromNullable(shardEnd));
+  return shard;
+}

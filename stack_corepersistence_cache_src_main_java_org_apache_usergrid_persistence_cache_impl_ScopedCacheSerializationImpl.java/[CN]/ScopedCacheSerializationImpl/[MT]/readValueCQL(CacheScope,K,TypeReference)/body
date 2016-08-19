@@ -1,0 +1,25 @@
+{
+  Preconditions.checkNotNull(scope,"scope is required");
+  Preconditions.checkNotNull(key,"key is required");
+  final String rowKeyString=scope.getApplication().getUuid().toString();
+  final int bucket=BUCKET_LOCATOR.getCurrentBucket(rowKeyString);
+  final String columnName=key.toString();
+  final Clause inKey=QueryBuilder.eq("key",getPartitionKey(scope,rowKeyString,bucket));
+  final Clause inColumn=QueryBuilder.eq("column1",DataType.text().serialize(columnName,ProtocolVersion.NEWEST_SUPPORTED));
+  final Statement statement=QueryBuilder.select().all().from(SCOPED_CACHE_TABLE).where(inKey).and(inColumn).setConsistencyLevel(cassandraConfig.getDataStaxReadCl());
+  final ResultSet resultSet=session.execute(statement);
+  final com.datastax.driver.core.Row row=resultSet.one();
+  if (row == null) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Cache value not found for key {}",key);
+    }
+    return null;
+  }
+  try {
+    return MAPPER.readValue(row.getBytes("value").array(),typeRef);
+  }
+ catch (  IOException ioe) {
+    logger.error("Unable to read cached value",ioe);
+    throw new RuntimeException("Unable to read cached value",ioe);
+  }
+}

@@ -14,9 +14,14 @@
  catch (    Exception e) {
       logger.error("Unable to retrieve token info",e);
     }
-    logger.debug("Token: {}",token);
+    if (logger.isDebugEnabled()) {
+      logger.debug("Token: {}",token);
+    }
   }
   grant(info,getPermissionFromPath(applicationId,"access"));
+  if (SubjectUtils.getUser() != null) {
+    grant(info,"applications:get:" + applicationId + ":/users/"+ SubjectUtils.getUser().getUuid());
+  }
   EntityManager em=emf.getEntityManager(applicationId);
   try {
     String appName=(String)em.getProperty(em.getApplicationRef(),"name");

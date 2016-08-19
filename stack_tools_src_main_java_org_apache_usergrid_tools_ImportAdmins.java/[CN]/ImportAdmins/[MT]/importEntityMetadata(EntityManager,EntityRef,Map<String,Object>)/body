@@ -58,39 +58,6 @@
     }
   }
  else {
-    logger.info("Processing duplicate username={} email={}",dup.email,dup.username);
-    Identifier identifier=dup.email != null ? Identifier.fromEmail(dup.email) : Identifier.from(dup.username);
-    User originalUser=em.get(em.getUserByIdentifier(identifier),User.class);
-    UserInfo originalUserInfo=managementService.getAdminUserByEmail(originalUser.getEmail());
-    Map<String,Object> originalUserOrgData=managementService.getAdminUserOrganizationData(originalUser.getUuid());
-    Map<String,Map<String,Object>> originalUserOrgs=(Map<String,Map<String,Object>>)originalUserOrgData.get("organizations");
-    List<Object> organizationsList=(List<Object>)metadata.get("organizations");
-    for (    Object orgObject : organizationsList) {
-      Map<String,Object> orgMap=(Map<String,Object>)orgObject;
-      UUID orgUuid=UUID.fromString((String)orgMap.get("uuid"));
-      String orgName=(String)orgMap.get("name");
-      if (originalUserOrgs.get(orgName) == null) {
-        OrganizationInfo orgInfo=managementService.getOrganizationByUuid(orgUuid);
-        if (orgInfo == null) {
-          try {
-            managementService.createOrganization(orgUuid,orgName,originalUserInfo,false);
-            orgInfo=managementService.getOrganizationByUuid(orgUuid);
-            logger.debug("Created new org {} for user {}:{}:{} from duplicate user {}:{}",new Object[]{orgInfo.getName(),originalUser.getUsername(),originalUser.getEmail(),originalUser.getUuid(),dup.username,dup.email});
-          }
- catch (          DuplicateUniquePropertyExistsException dpee) {
-            logger.debug("Org {} already exists",orgName);
-          }
-        }
- else {
-          try {
-            managementService.addAdminUserToOrganization(originalUserInfo,orgInfo,false);
-            logger.debug("Added to org user {}:{}:{} from duplicate user {}:{}",new Object[]{orgInfo.getName(),originalUser.getUsername(),originalUser.getEmail(),originalUser.getUuid(),dup.username,dup.email});
-          }
- catch (          Exception e) {
-            logger.error("Error Adding user {} to org {}",new Object[]{originalUserInfo.getEmail(),orgName});
-          }
-        }
-      }
-    }
+    logger.info("Not processing duplicate username={} email={}",dup.email,dup.username);
   }
 }

@@ -1,5 +1,6 @@
 {
   if (!USE_REAL_CONNECTIONS) {
+    return;
   }
   app.clear();
   String payload=getPayload();
@@ -14,7 +15,7 @@
   assertEquals(notification.getPayloads().get(notifier.getUuid().toString()),payload);
   assertNotNull(device1.getProperty(notifier.getName() + NOTIFIER_ID_POSTFIX));
   assertNotNull(device2.getProperty(notifier.getName() + NOTIFIER_ID_POSTFIX));
-  scheduleNotificationAndWait(notification);
+  notificationWaitForComplete(notification);
   device1=app.getEntityManager().get(device1,Device.class);
   assertNull(device1.getProperty(notifier.getName() + NOTIFIER_ID_POSTFIX));
   device2=app.getEntityManager().get(device2,Device.class);

@@ -1,0 +1,18 @@
+{
+  final CassandraFig cassandraFig=mock(CassandraFig.class);
+  when(cassandraFig.getVersion()).thenReturn("2.1");
+  Map<String,DataType.Name> columns=new HashMap<>();
+  columns.put("key",DataType.Name.BLOB);
+  columns.put("column1",DataType.Name.TEXT);
+  columns.put("value",DataType.Name.BLOB);
+  List<String> partitionKeys=new ArrayList<>();
+  partitionKeys.add("key");
+  List<String> columnKeys=new ArrayList<>();
+  columnKeys.add("column1");
+  Map<String,String> clusteringOrder=new HashMap<>();
+  clusteringOrder.put("column1","DESC");
+  TableDefinition table1=new TableDefinition(CQLUtils.quote("table1"),partitionKeys,columnKeys,columns,TableDefinition.CacheOption.KEYS,clusteringOrder);
+  String createCQL=CQLUtils.getTableCQL(cassandraFig,table1,CQLUtils.ACTION.CREATE);
+  logger.info(createCQL);
+  assertTrue(createCQL.contains("'keys':'ALL'") && !createCQL.contains("\"keys_only\""));
+}

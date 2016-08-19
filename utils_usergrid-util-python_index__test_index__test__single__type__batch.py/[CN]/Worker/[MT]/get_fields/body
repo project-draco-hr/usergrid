@@ -1,0 +1,26 @@
+@staticmethod
+def get_fields(document, base_name=None):
+    fields = []
+    for (name, value) in document.iteritems():
+        if base_name:
+            field_name = ('%s.%s' % (base_name, name))
+        else:
+            field_name = name
+        if isinstance(value, dict):
+            fields += Worker.get_fields(value, field_name)
+        else:
+            value_name = None
+            if isinstance(value, basestring):
+                value_name = 'string'
+            elif isinstance(value, bool):
+                value_name = 'boolean'
+            elif isinstance(value, (int, long)):
+                value_name = 'long'
+            elif isinstance(value, float):
+                value_name = 'double'
+            if value_name:
+                field = {'name': field_name, value_name: value, }
+            else:
+                field = {'name': field_name, 'string': str(value), }
+            fields.append(field)
+    return fields
