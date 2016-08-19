@@ -15,8 +15,9 @@
     loadBalancingPolicy=new DCAwareRoundRobinPolicy.Builder().build();
   }
   final PoolingOptions poolingOptions=new PoolingOptions().setCoreConnectionsPerHost(HostDistance.LOCAL,cassandraFig.getConnections() / 2).setMaxConnectionsPerHost(HostDistance.LOCAL,cassandraFig.getConnections()).setIdleTimeoutSeconds(cassandraFig.getTimeout() / 1000).setPoolTimeoutMillis(cassandraFig.getPoolTimeout());
+  final SocketOptions socketOptions=new SocketOptions().setConnectTimeoutMillis(cassandraFig.getPoolTimeout() + 2000).setReadTimeoutMillis(cassandraFig.getTimeout() + 2000);
   final QueryOptions queryOptions=new QueryOptions().setConsistencyLevel(defaultConsistencyLevel);
-  Cluster.Builder datastaxCluster=Cluster.builder().withClusterName(cassandraFig.getClusterName()).addContactPoints(cassandraFig.getHosts().split(",")).withMaxSchemaAgreementWaitSeconds(30).withCompression(ProtocolOptions.Compression.LZ4).withLoadBalancingPolicy(loadBalancingPolicy).withPoolingOptions(poolingOptions).withQueryOptions(queryOptions).withProtocolVersion(getProtocolVersion(cassandraFig.getVersion()));
+  Cluster.Builder datastaxCluster=Cluster.builder().withClusterName(cassandraFig.getClusterName()).addContactPoints(cassandraFig.getHosts().split(",")).withMaxSchemaAgreementWaitSeconds(30).withCompression(ProtocolOptions.Compression.LZ4).withLoadBalancingPolicy(loadBalancingPolicy).withPoolingOptions(poolingOptions).withQueryOptions(queryOptions).withSocketOptions(socketOptions).withProtocolVersion(getProtocolVersion(cassandraFig.getVersion()));
   if (!cassandraFig.getUsername().isEmpty() && !cassandraFig.getPassword().isEmpty()) {
     datastaxCluster.withCredentials(cassandraFig.getUsername(),cassandraFig.getPassword());
   }
