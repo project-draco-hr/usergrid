@@ -1,6 +1,6 @@
 {
   try {
-    dataStaxCluster.createOrUpdateKeyspace();
+    dataStaxCluster.createApplicationKeyspace();
     for (    Migration migration : migrations) {
       final Collection<MultiTenantColumnFamilyDefinition> columnFamilies=migration.getColumnFamilies();
       final Collection<TableDefinition> tables=migration.getTables();
@@ -12,6 +12,7 @@
         for (        MultiTenantColumnFamilyDefinition cf : columnFamilies) {
           testAndCreateColumnFamilyDef(cf);
         }
+        dataStaxCluster.waitForSchemaAgreement();
       }
       if (tables != null && !tables.isEmpty()) {
         for (        TableDefinition tableDefinition : tables) {
@@ -19,7 +20,6 @@
         }
       }
     }
-    dataStaxCluster.waitForSchemaAgreement();
   }
  catch (  Throwable t) {
     logger.error("Unable to perform migration",t);
