@@ -13,7 +13,11 @@
   receiveMessageRequest.setAttributeNames(requestMessageAttributeNames);
   receiveMessageRequest.setMaxNumberOfMessages(limit);
   receiveMessageRequest.setVisibilityTimeout(Math.max(MIN_VISIBILITY_TIMEOUT,fig.getVisibilityTimeout() / 1000));
-  receiveMessageRequest.setWaitTimeSeconds(Math.max(0,(fig.getQueueClientSocketTimeout() - fig.getQueuePollTimeshift()) / 1000));
+  int longPollTimeout=Math.min(20000,fig.getQueuePollTimeout());
+  if (fig.getQueueClientSocketTimeout() < longPollTimeout) {
+    longPollTimeout=Math.max(0,fig.getQueueClientSocketTimeout() - 1000);
+  }
+  receiveMessageRequest.setWaitTimeSeconds(longPollTimeout / 1000);
   try {
     ReceiveMessageResult result=sqs.receiveMessage(receiveMessageRequest);
     List<Message> messages=result.getMessages();
