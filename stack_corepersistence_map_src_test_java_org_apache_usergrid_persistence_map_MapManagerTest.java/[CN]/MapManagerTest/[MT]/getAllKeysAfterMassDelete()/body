@@ -1,0 +1,25 @@
+{
+  MapManager mm=mmf.createMapManager(this.scope);
+  final String value="value";
+  final int count=11000;
+  for (int i=0; i < 11000; i++) {
+    mm.putString("key" + i,value);
+  }
+  boolean done=false;
+  String cursor=null;
+  int total=0;
+  while (!done && total < count) {
+    MapKeyResults keyResults=mm.getKeys(cursor,1000);
+    if (keyResults.getCursor() == null) {
+      done=true;
+    }
+    cursor=keyResults.getCursor();
+    total+=keyResults.getKeys().size();
+  }
+  assertEquals(count,total);
+  for (int i=0; i < count - 500; i++) {
+    mm.delete("key" + i);
+  }
+  MapKeyResults keyResults2=mm.getKeys(null,1000);
+  assertEquals(500,keyResults2.getKeys().size());
+}

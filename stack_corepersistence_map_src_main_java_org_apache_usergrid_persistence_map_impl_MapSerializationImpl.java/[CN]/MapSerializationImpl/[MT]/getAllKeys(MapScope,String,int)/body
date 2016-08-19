@@ -1,0 +1,25 @@
+{
+  final int[] buckets=BUCKET_LOCATOR.getAllBuckets(scope.getName());
+  final List<ByteBuffer> partitionKeys=new ArrayList<>(NUM_BUCKETS.length);
+  for (  int bucket : buckets) {
+    partitionKeys.add(getMapKeyPartitionKey(scope,bucket));
+  }
+  Clause in=QueryBuilder.in("key",partitionKeys);
+  Statement statement;
+  if (isBlank(cursor)) {
+    statement=QueryBuilder.select().all().from(MAP_KEYS_TABLE).where(in).setFetchSize(limit);
+  }
+ else {
+    statement=QueryBuilder.select().all().from(MAP_KEYS_TABLE).where(in).setFetchSize(limit).setPagingState(PagingState.fromString(cursor));
+  }
+  ResultSet resultSet=session.execute(statement);
+  PagingState pagingState=resultSet.getExecutionInfo().getPagingState();
+  final List<String> keys=new ArrayList<>();
+  Iterator<Row> resultIterator=resultSet.iterator();
+  int size=0;
+  while (resultIterator.hasNext() && size < limit) {
+    size++;
+    keys.add((String)DataType.text().deserialize(resultIterator.next().getBytes("column1"),ProtocolVersion.NEWEST_SUPPORTED));
+  }
+  return new MapKeyResults(pagingState != null ? pagingState.toString() : null,keys);
+}
