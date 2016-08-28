@@ -1,0 +1,63 @@
+{
+  startSpring();
+  if (line.getOptionValue(APPLICATION_ARG).isEmpty()) {
+    throw new RuntimeException("Application ID not provided.");
+  }
+  final UUID app=UUID.fromString(line.getOptionValue(APPLICATION_ARG));
+  String entityType=line.getOptionValue(ENTITY_TYPE_ARG);
+  String repairTask=line.getOptionValue(REPAIR_TASK);
+  String shardType=line.getOptionValue(SHARD_TYPE_ARG);
+  boolean repair=false;
+  if (isNotEmpty(repairTask) && (repairTask.equalsIgnoreCase("removeAllShardEnds") || repairTask.equalsIgnoreCase("removeLastShardEnd") || repairTask.equalsIgnoreCase("resetAllCompactionStatus"))) {
+    repair=true;
+  }
+  logger.info("Starting Tool: ShardManager");
+  logger.info("Using Cassandra consistency level: {}",System.getProperty("usergrid.read.cl","CL_LOCAL_QUORUM"));
+  EntityRef headEntity=new SimpleEntityRef("application",app);
+  ApplicationScope applicationScope=new ApplicationScopeImpl(new SimpleId(app,"application"));
+  EdgeShardSerialization edgeShardSerialization=injector.getInstance(EdgeShardSerialization.class);
+  String collectionName=InflectionUtils.pluralize(entityType);
+  String metaType=CpNamingUtils.getEdgeTypeFromCollectionName(collectionName);
+  if (isNotEmpty(shardType)) {
+    if (shardType.equalsIgnoreCase("collection")) {
+      metaType=CpNamingUtils.getEdgeTypeFromCollectionName(collectionName);
+    }
+ else     if (shardType.equalsIgnoreCase("connection")) {
+      metaType=CpNamingUtils.getEdgeTypeFromConnectionType(entityType);
+    }
+  }
+  final DirectedEdgeMeta directedEdgeMeta=DirectedEdgeMeta.fromSourceNode(headEntity.asId(),metaType);
+  Iterator<Shard> shards=edgeShardSerialization.getShardMetaData(applicationScope,Optional.absent(),directedEdgeMeta);
+  boolean firstShard=true;
+  while (shards.hasNext()) {
+    Shard shard=shards.next();
+    logger.info("Seeking over shard: {}",shard);
+    if (repair) {
+      logger.info("Repair enabled with task: {}",repairTask);
+      if (repairTask.equalsIgnoreCase("removeLastShardEnd") && firstShard) {
+        logger.info("Removing shard end from shard: {}",shard);
+        shard.setShardEnd(Optional.absent());
+        edgeShardSerialization.writeShardMeta(applicationScope,shard,directedEdgeMeta).execute();
+      }
+ else       if (repairTask.equalsIgnoreCase("removeAllShardEnds")) {
+        logger.info("Removing shard end from shard: {}",shard);
+        shard.setShardEnd(Optional.absent());
+        edgeShardSerialization.writeShardMeta(applicationScope,shard,directedEdgeMeta).execute();
+      }
+ else       if (repairTask.equalsIgnoreCase("resetAllCompactionStatus")) {
+        logger.info("Setting compacted=false for shard: {}",shard);
+        shard.setCompacted(false);
+        edgeShardSerialization.writeShardMeta(applicationScope,shard,directedEdgeMeta).execute();
+      }
+      firstShard=false;
+    }
+  }
+  if (repair) {
+    Iterator<Shard> finalshards=edgeShardSerialization.getShardMetaData(applicationScope,Optional.absent(),directedEdgeMeta);
+    while (finalshards.hasNext()) {
+      Shard shard=finalshards.next();
+      logger.info("Shard after repair: {}",shard);
+    }
+  }
+  logger.info("ShardManager run complete");
+}
