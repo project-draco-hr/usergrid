@@ -1,10 +1,13 @@
 {
   reporter.stop();
   reporter.report();
-  if (writeExecutor != null) {
+  if (writeExecutor != null && !writeExecutor.isShutdown()) {
     writeExecutor.shutdownNow();
+    writeExecutor.awaitTermination(5000,TimeUnit.MILLISECONDS);
   }
-  if (deleteExecutor != null) {
+  if (deleteExecutor != null && !deleteExecutor.isShutdown()) {
     deleteExecutor.shutdownNow();
+    deleteExecutor.awaitTermination(5000,TimeUnit.MILLISECONDS);
   }
+  Thread.sleep(3000);
 }

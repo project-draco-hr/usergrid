@@ -29,6 +29,12 @@
         currentShard=currentShardIterator.next();
       }
     }
+    if (currentShard.isDeleted() && currentShardIterator.hasNext()) {
+      if (logger.isTraceEnabled()) {
+        logger.trace("Shard is marked deleted - {}",currentShard);
+      }
+      currentShard=currentShardIterator.next();
+    }
     if (logger.isTraceEnabled()) {
       logger.trace("all shards when starting: {}",rowKeysWithShardEnd);
       logger.trace("initializing iterator with shard: {}",currentShard);

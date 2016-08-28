@@ -2,7 +2,7 @@
   ValidationUtils.validateApplicationScope(scope);
   GraphValidation.validateEdge(markedEdge);
   ValidationUtils.verifyTimeUuid(timestamp,"timestamp");
-  return new TargetSourceTypeWriteOp(columnFamilies,markedEdge){
+  return new TargetSourceTypeWriteOp(columnFamilies,markedEdge,directedEdgeMeta){
     @Override void writeEdge(    final MutationBatch batch,    final MultiTenantColumnFamily<ScopedRowKey<RowKeyType>,DirectedEdge> columnFamily,    final ApplicationScope scope,    final RowKeyType rowKey,    final DirectedEdge edge,    final Shard shard,    final boolean isDeleted){
       batch.withRow(columnFamilies.getTargetNodeSourceTypeCfName(),ScopedRowKey.fromKey(scope.getApplication(),rowKey)).putColumn(edge,isDeleted);
     }

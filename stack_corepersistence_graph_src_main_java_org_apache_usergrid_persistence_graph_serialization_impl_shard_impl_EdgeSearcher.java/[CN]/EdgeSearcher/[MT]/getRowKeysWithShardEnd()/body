@@ -1,4 +1,7 @@
 {
+  if (logger.isTraceEnabled()) {
+    logger.trace("Shards: {}",shards);
+  }
   final List<SmartShard> rowKeysWithShardEnd=new ArrayList<>(shards.size());
   for (  Shard shard : shards) {
     final ScopedRowKey<R> rowKey=ScopedRowKey.fromKey(scope.getApplication(),generateRowKey(shard.getShardIndex()));
@@ -9,7 +12,10 @@
  else {
       shardEnd=null;
     }
-    rowKeysWithShardEnd.add(new SmartShard(rowKey,shard.getShardIndex(),shardEnd));
+    rowKeysWithShardEnd.add(new SmartShard(rowKey,shard.getShardIndex(),shardEnd,shard.isDeleted()));
+  }
+  if (logger.isTraceEnabled()) {
+    logger.trace("Resulting Smart Shards: {}",rowKeysWithShardEnd);
   }
   return rowKeysWithShardEnd;
 }

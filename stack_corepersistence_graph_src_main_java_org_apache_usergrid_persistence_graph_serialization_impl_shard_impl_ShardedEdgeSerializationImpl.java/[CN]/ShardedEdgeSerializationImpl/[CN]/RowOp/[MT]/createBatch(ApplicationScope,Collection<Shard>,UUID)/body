@@ -6,6 +6,11 @@
   for (  Shard shard : shards) {
     final R rowKey=getRowKey(shard);
     writeEdge(batch,columnFamily,scope,rowKey,column,shard,isDeleted);
+    if (shard.isDeleted() && !isDeleted) {
+      logger.info("Shard is deleted. Un-deleting as new data is being written to the shard - {}",shard);
+      shard.setDeleted(false);
+      batch.mergeShallow(edgeShardSerialization.writeShardMeta(scope,shard,getDirectedEdgeMeta()));
+    }
   }
   return batch;
 }

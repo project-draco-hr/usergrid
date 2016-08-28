@@ -1,8 +1,14 @@
 {
+  if (logger.isTraceEnabled()) {
+    logger.trace("Shards: {}",shards);
+  }
   List<ScopedRowKey<R>> rowKeys=new ArrayList<>(shards.size());
   for (  Shard shard : shards) {
     final ScopedRowKey<R> rowKey=ScopedRowKey.fromKey(scope.getApplication(),generateRowKey(shard.getShardIndex()));
     rowKeys.add(rowKey);
+  }
+  if (logger.isTraceEnabled()) {
+    logger.trace("Resulting Shards: {}",rowKeys);
   }
   return rowKeys;
 }
