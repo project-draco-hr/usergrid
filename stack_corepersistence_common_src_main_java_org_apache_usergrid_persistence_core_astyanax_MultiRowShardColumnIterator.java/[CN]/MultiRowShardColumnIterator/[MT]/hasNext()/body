@@ -8,15 +8,15 @@
       logger.trace("Shard before advance: {}",currentShard);
     }
     currentShard=currentShardIterator.next();
-    if (currentShard.isDeleted() && currentShardIterator.hasNext()) {
+    while (currentShard.isDeleted() && currentShardIterator.hasNext()) {
       if (logger.isTraceEnabled()) {
         logger.trace("Shard is marked deleted, advancing to next - {}",currentShard);
       }
       currentShard=currentShardIterator.next();
     }
- else     if (currentShard.isDeleted() && !currentShardIterator.hasNext()) {
+    if (currentShard.isDeleted() && !currentShardIterator.hasNext()) {
       if (logger.isTraceEnabled()) {
-        logger.trace("Shard is marked deleted, and there is no more - {}",currentShard);
+        logger.trace("Shard is marked deleted, and there are no more shards - {}",currentShard);
       }
       return false;
     }
