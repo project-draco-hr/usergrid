@@ -7,8 +7,9 @@
   String entityType=line.getOptionValue(ENTITY_TYPE_ARG);
   String repairTask=line.getOptionValue(REPAIR_TASK);
   String shardType=line.getOptionValue(SHARD_TYPE_ARG);
+  String shardIndex=line.getOptionValue(SHARD_INDEX_ARG);
   boolean repair=false;
-  if (isNotEmpty(repairTask) && (repairTask.equalsIgnoreCase("removeAllShardEnds") || repairTask.equalsIgnoreCase("removeLastShardEnd") || repairTask.equalsIgnoreCase("resetAllCompactionStatus"))) {
+  if (isNotEmpty(repairTask) && (repairTask.equalsIgnoreCase("removeAllShardEnds") || repairTask.equalsIgnoreCase("removeLastShardEnd") || repairTask.equalsIgnoreCase("resetAllCompactionStatus")|| repairTask.equalsIgnoreCase("setCompacted")|| repairTask.equalsIgnoreCase("clearCompacted"))) {
     repair=true;
   }
   logger.info("Starting Tool: ShardManager");
@@ -34,7 +35,17 @@
     logger.info("Seeking over shard: {}",shard);
     if (repair) {
       logger.info("Repair enabled with task: {}",repairTask);
-      if (repairTask.equalsIgnoreCase("removeLastShardEnd") && firstShard) {
+      if (repairTask.equalsIgnoreCase("setCompacted") && isNotEmpty(shardIndex) && Long.valueOf(shardIndex).equals(shard.getShardIndex())) {
+        logger.info("Setting compacted=true for shard: {}",shard);
+        shard.setCompacted(true);
+        edgeShardSerialization.writeShardMeta(applicationScope,shard,directedEdgeMeta).execute();
+      }
+ else       if (repairTask.equalsIgnoreCase("clearCompacted") && isNotEmpty(shardIndex) && Long.valueOf(shardIndex).equals(shard.getShardIndex())) {
+        logger.info("Setting compacted=false for shard: {}",shard);
+        shard.setCompacted(false);
+        edgeShardSerialization.writeShardMeta(applicationScope,shard,directedEdgeMeta).execute();
+      }
+ else       if (repairTask.equalsIgnoreCase("removeLastShardEnd") && firstShard) {
         logger.info("Removing shard end from shard: {}",shard);
         shard.setShardEnd(Optional.absent());
         edgeShardSerialization.writeShardMeta(applicationScope,shard,directedEdgeMeta).execute();
@@ -44,7 +55,7 @@
         shard.setShardEnd(Optional.absent());
         edgeShardSerialization.writeShardMeta(applicationScope,shard,directedEdgeMeta).execute();
       }
- else       if (repairTask.equalsIgnoreCase("resetAllCompactionStatus")) {
+ else       if (repairTask.equalsIgnoreCase("resetAllCompactionStatus") && shard.getShardIndex() != 0) {
         logger.info("Setting compacted=false for shard: {}",shard);
         shard.setCompacted(false);
         edgeShardSerialization.writeShardMeta(applicationScope,shard,directedEdgeMeta).execute();
