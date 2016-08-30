@@ -64,7 +64,7 @@ catch (        Exception e1) {
       OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription(errorDescription).buildJSONMessage();
       return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
     }
-    if (tokens.isExternalSSOProviderEnabled() && !userServiceAdmin(username)) {
+    if (tokens.isExternalSSOProviderEnabled() && properties.getProperty(TokenServiceImpl.USERGRID_EXTERNAL_SSO_PROVIDER).equalsIgnoreCase("usergrid") && !userServiceAdmin(username)) {
       OAuthResponse response=OAuthResponse.errorResponse(SC_BAD_REQUEST).setError(OAuthError.TokenResponse.INVALID_GRANT).setErrorDescription("External SSO integration is enabled, admin users must login via provider: " + properties.getProperty(TokenServiceImpl.USERGRID_EXTERNAL_SSO_PROVIDER)).buildJSONMessage();
       return Response.status(response.getResponseStatus()).type(jsonMediaType(callback)).entity(wrapWithCallback(response.getBody(),callback)).build();
     }
