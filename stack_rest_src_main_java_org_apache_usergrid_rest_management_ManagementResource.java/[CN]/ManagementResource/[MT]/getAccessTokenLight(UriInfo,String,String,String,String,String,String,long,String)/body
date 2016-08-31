@@ -13,11 +13,16 @@
   String ssoUserId=null;
   if (ssoEnabled && !user.getUsername().equals(properties.getProperty(USERGRID_SYSADMIN_LOGIN_NAME))) {
     ExternalSSOProvider provider=ssoProviderFactory.getProvider();
-    final Map<String,String> decodedTokenDetails=provider.getDecodedTokenDetails(access_token);
-    final String expiry=decodedTokenDetails.containsKey("expiry") ? decodedTokenDetails.get("expiry") : "0";
-    tokenTtl=Long.valueOf(expiry) - System.currentTimeMillis() / 1000;
-    if (provider instanceof ApigeeSSO2Provider) {
-      ssoUserId=decodedTokenDetails.get("user_id");
+    try {
+      final Map<String,String> decodedTokenDetails=provider.getDecodedTokenDetails(access_token);
+      final String expiry=decodedTokenDetails.containsKey("expiry") ? decodedTokenDetails.get("expiry") : "0";
+      tokenTtl=Long.valueOf(expiry) - System.currentTimeMillis() / 1000;
+      if (provider instanceof ApigeeSSO2Provider) {
+        ssoUserId=decodedTokenDetails.get("user_id");
+      }
+    }
+ catch (    BadTokenException e) {
+      tokenTtl=tokens.getTokenInfo(access_token).getDuration();
     }
   }
  else {
