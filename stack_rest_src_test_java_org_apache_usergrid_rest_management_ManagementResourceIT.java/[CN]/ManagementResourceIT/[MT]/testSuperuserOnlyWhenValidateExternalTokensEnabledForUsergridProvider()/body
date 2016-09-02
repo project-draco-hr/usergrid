@@ -1,0 +1,63 @@
+{
+  String rand=RandomStringUtils.randomAlphanumeric(10);
+  final String username="user_" + rand;
+  management().orgs().post(new Organization(username,username,username + "@example.com",username,"password",null));
+  String suToken=clientSetup.getSuperuserToken().getAccessToken();
+  Map<String,String> props=new HashMap<String,String>();
+  props.put(USERGRID_EXTERNAL_SSO_PROVIDER,"usergrid");
+  props.put(USERGRID_EXTERNAL_SSO_ENABLED,"true");
+  props.put(USERGRID_EXTERNAL_SSO_PROVIDER_URL,getBaseURI().toURL().toExternalForm());
+  pathResource("testproperties").post(props);
+  try {
+    try {
+      Map<String,Object> loginInfo=new HashMap<String,Object>(){
+{
+          put("username",username);
+          put("password","password");
+          put("grant_type","password");
+        }
+      }
+;
+      ApiResponse postResponse=pathResource("management/token").post(false,ApiResponse.class,loginInfo);
+      fail("External SSO integration is enabled, admin users must login via provider using configured property: " + TokenServiceImpl.USERGRID_EXTERNAL_SSO_PROVIDER);
+    }
+ catch (    ClientErrorException actual) {
+      assertEquals(400,actual.getResponse().getStatus());
+      String errorMsg=actual.getResponse().readEntity(JsonNode.class).get("error_description").toString();
+      logger.error("ERROR: " + errorMsg);
+      assertTrue(errorMsg.contains("admin users must login via"));
+    }
+catch (    Exception e) {
+      fail("We expected a ClientErrorException");
+    }
+    Map<String,Object> loginInfo=new HashMap<String,Object>(){
+{
+        put("username","superuser");
+        put("password","superpassword");
+        put("grant_type","password");
+      }
+    }
+;
+    ApiResponse postResponse2=pathResource("management/token").post(loginInfo);
+    String accessToken=postResponse2.getAccessToken();
+    assertNotNull(accessToken);
+    ApiResponse getResponse3=pathResource("management/me").get(ApiResponse.class,new QueryParameters().addParam("grant_type","password").addParam("password","superpassword").addParam("username","superuser"),false);
+    assertNotNull(getResponse3.getAccessToken());
+    Map<String,Object> orgAdminUserInfo=new HashMap<String,Object>(){
+{
+        put("username",username + "test");
+        put("password","RandomPassword");
+        put("email",username + "@gmail.com");
+        put("organization",username + "RandomOrgName");
+      }
+    }
+;
+    ApiResponse postResponse4=pathResource("management/orgs").post(false,orgAdminUserInfo,new QueryParameters().addParam("access_token",getResponse3.getAccessToken()));
+    assertNotNull(postResponse4.getData());
+  }
+  finally {
+    props.put(USERGRID_EXTERNAL_SSO_PROVIDER_URL,"");
+    props.put(USERGRID_EXTERNAL_SSO_ENABLED,"");
+    pathResource("testproperties").post(props);
+  }
+}

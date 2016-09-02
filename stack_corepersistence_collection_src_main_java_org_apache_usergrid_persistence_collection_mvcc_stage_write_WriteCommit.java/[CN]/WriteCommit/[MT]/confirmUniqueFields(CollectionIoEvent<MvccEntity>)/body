@@ -13,14 +13,14 @@
   MutationBatch entityMutation=entityStrat.write(applicationScope,mvccEntity);
   logMutation.mergeShallow(entityMutation);
   if (actorSystemFig != null && actorSystemFig.getEnabled()) {
-    String region=ioEvent.getRegion();
-    if (region == null) {
-      region=uniqueValuesFig.getAuthoritativeRegion();
+    String authoritativeRegion=ioEvent.getAuthoritativeRegion();
+    if (StringUtils.isEmpty(authoritativeRegion)) {
+      authoritativeRegion=uniqueValuesFig.getAuthoritativeRegion();
     }
-    if (region == null) {
-      region=actorSystemFig.getRegionLocal();
+    if (StringUtils.isEmpty(authoritativeRegion)) {
+      authoritativeRegion=actorSystemFig.getRegionLocal();
     }
-    confirmUniqueFieldsAkka(mvccEntity,version,applicationScope,region);
+    confirmUniqueFieldsAkka(mvccEntity,version,applicationScope,authoritativeRegion);
   }
  else {
     confirmUniqueFields(mvccEntity,version,applicationScope,logMutation);

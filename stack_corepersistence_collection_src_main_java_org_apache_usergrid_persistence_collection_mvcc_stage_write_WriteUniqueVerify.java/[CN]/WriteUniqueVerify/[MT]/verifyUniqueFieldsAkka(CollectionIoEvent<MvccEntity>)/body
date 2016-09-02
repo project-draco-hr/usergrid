@@ -3,15 +3,15 @@
   final MvccEntity mvccEntity=ioevent.getEvent();
   final Entity entity=mvccEntity.getEntity().get();
   final ApplicationScope applicationScope=ioevent.getEntityCollection();
-  String region=ioevent.getRegion();
-  if (region == null) {
-    region=uniqueValuesFig.getAuthoritativeRegion();
+  String authoritativeRegion=ioevent.getAuthoritativeRegion();
+  if (StringUtils.isEmpty(authoritativeRegion)) {
+    authoritativeRegion=uniqueValuesFig.getAuthoritativeRegion();
   }
-  if (region == null) {
-    region=actorSystemFig.getRegionLocal();
+  if (StringUtils.isEmpty(authoritativeRegion)) {
+    authoritativeRegion=actorSystemFig.getRegionLocal();
   }
   try {
-    akkaUvService.reserveUniqueValues(applicationScope,entity,mvccEntity.getVersion(),region);
+    akkaUvService.reserveUniqueValues(applicationScope,entity,mvccEntity.getVersion(),authoritativeRegion);
   }
  catch (  UniqueValueException e) {
     Map<String,Field> violations=new HashMap<>();

@@ -16,17 +16,17 @@
   if (newSettings.get("fields") != null) {
     updatedSettings.put("fields",newSettings.get("fields"));
   }
-  Object region=newSettings.get("region");
+  Object region=newSettings.get(AUTHORITATIVE_REGION_SETTING);
   if (region != null) {
     if (region.toString().trim().isEmpty()) {
-      updatedSettings.remove("region");
+      updatedSettings.remove(AUTHORITATIVE_REGION_SETTING);
     }
  else {
       List regionList=Arrays.asList(entityManagerFig.getRegionList().toLowerCase().split(","));
       if (!regionList.contains(region)) {
         throw new NullArgumentException("Region " + region + " not in region list");
       }
-      updatedSettings.put("region",region);
+      updatedSettings.put(AUTHORITATIVE_REGION_SETTING,region);
     }
   }
   collectionSettings.putCollectionSettings(collectionName,JsonUtils.mapToJsonString(updatedSettings));

@@ -48,7 +48,9 @@
     Futures.addCallback(future,new FutureCallback<Long>(){
       @Override public void onSuccess(      @Nullable final Long result){
         logger.info("Successfully ran the read, re-running");
-        writeExecutor.submit(new ReadWorker(gmf,generator,writeCount,readMeter));
+        if (!writeExecutor.isShutdown()) {
+          writeExecutor.submit(new ReadWorker(gmf,generator,writeCount,readMeter));
+        }
       }
       @Override public void onFailure(      final Throwable t){
         failures.add(t);
@@ -93,5 +95,4 @@
     Thread.sleep(2000);
   }
   Thread.sleep(30000);
-  writeExecutor.shutdownNow();
 }
