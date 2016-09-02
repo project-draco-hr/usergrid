@@ -1,0 +1,21 @@
+{
+  UsergridAsync.connect("users","me","following","users",username,new UsergridResponseCallback(){
+    @Override public void onResponse(    @NotNull UsergridResponse response){
+      if (response.ok()) {
+        activity.finish();
+      }
+ else {
+        String errorMessage="Unknown Error";
+        UsergridResponseError responseError=response.getResponseError();
+        if (responseError != null) {
+          String errorDescription=responseError.getErrorDescription();
+          if (errorDescription != null) {
+            errorMessage=errorDescription;
+          }
+        }
+        AlertDialogHelpers.showAlert(activity,"Error Following User",errorMessage);
+      }
+    }
+  }
+);
+}

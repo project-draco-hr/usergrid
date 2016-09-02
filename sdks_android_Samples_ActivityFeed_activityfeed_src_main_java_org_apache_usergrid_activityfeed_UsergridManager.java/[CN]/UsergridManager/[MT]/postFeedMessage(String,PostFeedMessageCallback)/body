@@ -1,0 +1,25 @@
+{
+  final UsergridUser currentUser=Usergrid.getCurrentUser();
+  if (currentUser != null) {
+    String usernameOrEmail=currentUser.usernameOrEmail();
+    if (usernameOrEmail == null) {
+      usernameOrEmail="";
+    }
+    String email=currentUser.getEmail();
+    if (email == null) {
+      email="";
+    }
+    String picture=currentUser.getPicture();
+    final ActivityEntity activityEntity=new ActivityEntity(usernameOrEmail,email,picture,messageText);
+    UsergridAsync.POST("users/me/activities",activityEntity.toMapValue(),new UsergridResponseCallback(){
+      @Override public void onResponse(      @NotNull UsergridResponse response){
+        final UsergridEntity responseEntity=response.entity();
+        if (response.ok() && responseEntity != null && responseEntity instanceof ActivityEntity) {
+          callback.onSuccess((ActivityEntity)responseEntity);
+          UsergridManager.sendPushToFollowers(messageText);
+        }
+      }
+    }
+);
+  }
+}

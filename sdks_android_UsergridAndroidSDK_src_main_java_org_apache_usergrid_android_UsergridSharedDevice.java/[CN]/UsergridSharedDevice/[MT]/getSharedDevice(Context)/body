@@ -1,0 +1,15 @@
+{
+  if (sharedDevice == null) {
+    sharedDevice=UsergridSharedDevice.getStoredSharedDevice(context);
+    if (sharedDevice == null) {
+      String sharedDeviceId=UsergridSharedDevice.getSharedDeviceUUID(context);
+      HashMap<String,JsonNode> map=new HashMap<String,JsonNode>();
+      map.put("uuid",new TextNode(sharedDeviceId));
+      sharedDevice=new UsergridDevice(map);
+      sharedDevice.setModel(Build.MODEL);
+      sharedDevice.setPlatform("android");
+      sharedDevice.setOsVersion(Build.VERSION.RELEASE);
+    }
+  }
+  return sharedDevice;
+}

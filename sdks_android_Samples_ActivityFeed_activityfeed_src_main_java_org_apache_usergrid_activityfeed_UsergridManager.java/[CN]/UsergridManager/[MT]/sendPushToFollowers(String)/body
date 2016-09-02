@@ -1,0 +1,31 @@
+{
+  HashMap<String,String> notificationMap=new HashMap<>();
+  notificationMap.put(ANDROID_NOTIFIER_ID,message);
+  final HashMap<String,HashMap<String,String>> payloadMap=new HashMap<>();
+  payloadMap.put("payloads",notificationMap);
+  UsergridAsync.GET("users/me/followers",new UsergridResponseCallback(){
+    @Override public void onResponse(    @NotNull UsergridResponse response){
+      if (response.ok()) {
+        String followerUserNames="";
+        final List<UsergridUser> users=response.users();
+        if (users != null && !users.isEmpty()) {
+          for (          UsergridUser user : users) {
+            String username=user.getUsername();
+            if (username != null && !username.isEmpty()) {
+              followerUserNames+=username + ";";
+            }
+          }
+          if (!followerUserNames.isEmpty()) {
+            final UsergridRequest notificationRequest=new UsergridRequest(UsergridEnums.UsergridHttpMethod.POST,UsergridRequest.APPLICATION_JSON_MEDIA_TYPE,Usergrid.clientAppUrl(),null,payloadMap,Usergrid.authForRequests(),"users",followerUserNames,"notifications");
+            UsergridAsync.sendRequest(notificationRequest,new UsergridResponseCallback(){
+              @Override public void onResponse(              @NonNull UsergridResponse response){
+              }
+            }
+);
+          }
+        }
+      }
+    }
+  }
+);
+}

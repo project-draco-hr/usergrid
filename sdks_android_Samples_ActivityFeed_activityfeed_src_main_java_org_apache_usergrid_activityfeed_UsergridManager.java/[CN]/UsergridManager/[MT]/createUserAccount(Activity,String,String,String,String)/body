@@ -1,0 +1,25 @@
+{
+  final UsergridUser user=new UsergridUser(name,username,email,password);
+  UsergridUserAsync.create(user,new UsergridResponseCallback(){
+    @Override public void onResponse(    @NotNull UsergridResponse response){
+      final UsergridUser responseUser=response.user();
+      if (response.ok() && responseUser != null) {
+        AlertDialogHelpers.showScrollableAlert(activity,"Creating Account Successful","User Description: \n\n " + responseUser.toPrettyString(),new DialogInterface.OnClickListener(){
+          @Override public void onClick(          DialogInterface dialog,          int which){
+            activity.finish();
+          }
+        }
+);
+      }
+ else {
+        String errorMessage="Unknown Error";
+        UsergridResponseError responseError=response.getResponseError();
+        if (responseError != null) {
+          errorMessage=responseError.getErrorDescription();
+        }
+        AlertDialogHelpers.showAlert(activity,"Error Creating Account",errorMessage);
+      }
+    }
+  }
+);
+}

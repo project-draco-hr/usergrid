@@ -1,0 +1,35 @@
+{
+  super.onCreate(savedInstanceState);
+  setContentView(R.layout.activity_main);
+  retrieveSavedPrefs();
+  Usergrid.initSharedInstance(ORG_ID,APP_ID,BASE_URL);
+  MainActivity.registerPush(this);
+  final ImageButton infoButton=(ImageButton)findViewById(R.id.infoButton);
+  if (infoButton != null) {
+    final Intent settingsActivity=new Intent(this,SettingsActivity.class);
+    infoButton.setOnClickListener(new View.OnClickListener(){
+      @Override public void onClick(      View v){
+        MainActivity.this.startActivity(settingsActivity);
+      }
+    }
+);
+  }
+  final Button pushToThisDeviceButton=(Button)findViewById(R.id.pushToThisDevice);
+  if (pushToThisDeviceButton != null) {
+    pushToThisDeviceButton.setOnClickListener(new View.OnClickListener(){
+      @Override public void onClick(      View v){
+        MainActivity.this.sendPush(UsergridSharedDevice.getSharedDeviceUUID(MainActivity.this),"Push To This Device");
+      }
+    }
+);
+  }
+  final Button pushToAllDevicesButton=(Button)findViewById(R.id.pushToAllDevices);
+  if (pushToAllDevicesButton != null) {
+    pushToAllDevicesButton.setOnClickListener(new View.OnClickListener(){
+      @Override public void onClick(      View v){
+        MainActivity.this.sendPush("*","Push To All Devices");
+      }
+    }
+);
+  }
+}
