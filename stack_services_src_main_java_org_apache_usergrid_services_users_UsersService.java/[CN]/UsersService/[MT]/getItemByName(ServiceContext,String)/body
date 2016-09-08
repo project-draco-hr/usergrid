@@ -1,8 +1,4 @@
 {
-  String nameProperty=Schema.getDefaultSchema().aliasProperty(getEntityType());
-  if (nameProperty == null) {
-    nameProperty="name";
-  }
   EntityRef entity=null;
   Identifier id=Identifier.from(name);
   if (id != null) {
@@ -13,6 +9,9 @@
   }
   if (!context.moreParameters()) {
     entity=em.get(entity);
+    if (entity == null) {
+      throw new ServiceResourceNotFoundException(context);
+    }
     entity=importEntity(context,(Entity)entity);
   }
   checkPermissionsForEntity(context,entity);

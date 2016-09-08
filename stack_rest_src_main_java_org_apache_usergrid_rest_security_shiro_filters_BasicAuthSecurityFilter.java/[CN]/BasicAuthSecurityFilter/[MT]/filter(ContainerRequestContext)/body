@@ -13,15 +13,25 @@
   if (values.length < 2) {
     return;
   }
-  String name=values[0].toLowerCase();
+  String name=values[0];
   String password=values[1];
   String sysadmin_login_name=properties.getProperty("usergrid.sysadmin.login.name");
   String sysadmin_login_password=properties.getProperty("usergrid.sysadmin.login.password");
   boolean sysadmin_login_allowed=Boolean.parseBoolean(properties.getProperty("usergrid.sysadmin.login.allowed"));
-  if (name.equals(sysadmin_login_name) && password.equals(sysadmin_login_password) && sysadmin_login_allowed) {
+  if (name.equalsIgnoreCase(sysadmin_login_name) && password.equals(sysadmin_login_password) && sysadmin_login_allowed) {
     request.setSecurityContext(new SysAdminRoleAuthenticator());
     if (logger.isTraceEnabled()) {
       logger.trace("System administrator access allowed");
+    }
+  }
+ else {
+    try {
+      PrincipalCredentialsToken token=management.getPrincipalCredentialsTokenForClientCredentials(name,password);
+      Subject subject=SubjectUtils.getSubject();
+      subject.login(token);
+    }
+ catch (    Exception e) {
+      throw mappableSecurityException(INVALID_CLIENT_CREDENTIALS_ERROR);
     }
   }
 }
