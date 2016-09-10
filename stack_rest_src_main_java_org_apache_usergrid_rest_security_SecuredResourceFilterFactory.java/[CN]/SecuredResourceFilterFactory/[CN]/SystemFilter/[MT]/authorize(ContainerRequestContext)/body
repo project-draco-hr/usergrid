@@ -3,7 +3,7 @@
     logger.trace("SystemFilter.authorize");
   }
   try {
-    if (!isBasicAuthServiceAdmin(request) && !isServiceAdmin()) {
+    if (!isServiceAdmin()) {
       if (logger.isTraceEnabled()) {
         logger.trace("You are not the system admin.");
       }
@@ -11,11 +11,7 @@
     }
   }
  catch (  IllegalStateException e) {
-    if (logger.isDebugEnabled()) {
-      logger.debug("This is an invalid state",e);
-    }
-    if ((request.getSecurityContext().getUserPrincipal() == null) || !ROLE_SERVICE_ADMIN.equals(request.getSecurityContext().getUserPrincipal().getName())) {
-      throw mappableSecurityException("unauthorized","No system access authorized",SecurityException.REALM);
-    }
+    logger.error("This is an invalid state",e);
+    throw mappableSecurityException("unauthorized","No system access authorized",SecurityException.REALM);
   }
 }

@@ -18,10 +18,22 @@
   String sysadmin_login_name=properties.getProperty("usergrid.sysadmin.login.name");
   String sysadmin_login_password=properties.getProperty("usergrid.sysadmin.login.password");
   boolean sysadmin_login_allowed=Boolean.parseBoolean(properties.getProperty("usergrid.sysadmin.login.allowed"));
-  if (name.equalsIgnoreCase(sysadmin_login_name) && password.equals(sysadmin_login_password) && sysadmin_login_allowed) {
-    request.setSecurityContext(new SysAdminRoleAuthenticator());
-    if (logger.isTraceEnabled()) {
-      logger.trace("System administrator access allowed");
+  if (name.equalsIgnoreCase(sysadmin_login_name) && sysadmin_login_allowed) {
+    if (!password.equals(sysadmin_login_password)) {
+      throw mappableSecurityException("unauthorized","No system access authorized",SecurityException.REALM);
+    }
+    try {
+      UserInfo userInfo=management.verifyAdminUserPasswordCredentials(name.toLowerCase(),password);
+      PrincipalCredentialsToken token=PrincipalCredentialsToken.getFromAdminUserInfoAndPassword(userInfo,password,emf.getManagementAppId());
+      Subject subject=SubjectUtils.getSubject();
+      subject.login(token);
+      if (logger.isTraceEnabled()) {
+        logger.trace("System administrator access allowed");
+      }
+    }
+ catch (    Exception e) {
+      logger.error("Unable to validate admin credentials");
+      throw mappableSecurityException("unauthorized","No system access authorized",SecurityException.REALM);
     }
   }
  else {
