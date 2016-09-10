@@ -23,7 +23,15 @@
       throw mappableSecurityException("unauthorized","No system access authorized",SecurityException.REALM);
     }
     try {
-      UserInfo userInfo=management.verifyAdminUserPasswordCredentials(name.toLowerCase(),password);
+      UserInfo userInfo=null;
+      String rawPath=request.getUriInfo().getAbsolutePath().getRawPath();
+      if (rawPath.contains("superuser/setup") || rawPath.contains("database/setup") || rawPath.contains("database/bootstrap")) {
+        request.setSecurityContext(new SysAdminRoleAuthenticator());
+        return;
+      }
+ else {
+        userInfo=management.verifyAdminUserPasswordCredentials(name.toLowerCase(),password);
+      }
       PrincipalCredentialsToken token=PrincipalCredentialsToken.getFromAdminUserInfoAndPassword(userInfo,password,emf.getManagementAppId());
       Subject subject=SubjectUtils.getSubject();
       subject.login(token);
