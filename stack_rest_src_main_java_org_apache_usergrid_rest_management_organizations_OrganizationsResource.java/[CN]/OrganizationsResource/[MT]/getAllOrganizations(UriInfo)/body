@@ -1,0 +1,39 @@
+{
+  ApiResponse response=createApiResponse();
+  String cursor=ui.getQueryParameters().getFirst("cursor");
+  String limitString=ui.getQueryParameters().getFirst("limit");
+  int limit=10;
+  if (isNotEmpty(limitString)) {
+    try {
+      limit=Integer.valueOf(limitString);
+    }
+ catch (    NumberFormatException e) {
+    }
+  }
+  limit=limit < 1000 ? limit : 10;
+  EntityManager em=emf.getManagementEntityManager();
+  Query query=new Query();
+  query.setCursor(cursor);
+  query.setLimit(limit);
+  Results results=em.searchCollection(em.getApplicationRef(),Schema.COLLECTION_GROUPS,query);
+  List<OrganizationInfo> orgs=new ArrayList<>(results.size());
+  OrganizationInfo orgInfo;
+  for (  Entity entity : results.getEntities()) {
+    String path=(String)entity.getProperty(PROPERTY_PATH);
+    orgInfo=new OrganizationInfo(entity.getUuid(),path);
+    orgs.add(orgInfo);
+  }
+  List<Object> jsonOrgList=new ArrayList<>();
+  for (  OrganizationInfo org : orgs) {
+    Map<String,Object> jsonOrg=new HashMap<>();
+    Map<String,UUID> apps=management.getApplicationsForOrganization(org.getUuid()).inverse();
+    jsonOrg.put("name",org.getName());
+    jsonOrg.put("uuid",org.getUuid());
+    jsonOrg.put("properties",org.getProperties());
+    jsonOrg.put("applications",apps);
+    jsonOrgList.add(jsonOrg);
+  }
+  response.setProperty("organizations",jsonOrgList);
+  response.setCursor(results.getCursor());
+  return response;
+}
