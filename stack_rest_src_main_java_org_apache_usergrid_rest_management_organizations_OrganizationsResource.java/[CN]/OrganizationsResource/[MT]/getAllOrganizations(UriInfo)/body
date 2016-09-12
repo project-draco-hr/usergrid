@@ -10,7 +10,12 @@
  catch (    NumberFormatException e) {
     }
   }
-  limit=limit < 1000 ? limit : 10;
+  if (limit < 1) {
+    limit=1;
+  }
+ else   if (limit > 1000) {
+    limit=1000;
+  }
   EntityManager em=emf.getManagementEntityManager();
   Query query=new Query();
   query.setCursor(cursor);
@@ -34,6 +39,7 @@
     jsonOrgList.add(jsonOrg);
   }
   response.setProperty("organizations",jsonOrgList);
+  response.setCount(orgs.size());
   response.setCursor(results.getCursor());
   return response;
 }
