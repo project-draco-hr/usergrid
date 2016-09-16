@@ -23,23 +23,6 @@
     grant(info,"users:access:*");
     grant(info,SubjectUtils.getPermissionFromPath(emf.getManagementAppId(),"access"));
     grant(info,SubjectUtils.getPermissionFromPath(emf.getManagementAppId(),"get,put,post,delete","/**"));
-    try {
-      Map<UUID,String> allOrganizations=management.getOrganizations();
-      if (allOrganizations != null) {
-        for (        UUID id : allOrganizations.keySet()) {
-          grant(info,"organizations:admin,access,get,put,post,delete:" + id);
-        }
-        organizationSet.putAll(allOrganizations);
-        Map<UUID,String> allApplications=management.getApplicationsForOrganizations(allOrganizations.keySet());
-        if ((allApplications != null) && !allApplications.isEmpty()) {
-          grant(info,"applications:admin,access,get,put,post,delete:" + StringUtils.join(allApplications.keySet(),','));
-          applicationSet.putAll(allApplications);
-        }
-      }
-    }
- catch (    Exception e) {
-      logger.error("Unable to construct superuser permissions",e);
-    }
   }
  else {
     grant(info,getPermissionFromPath(emf.getManagementAppId(),"access"));

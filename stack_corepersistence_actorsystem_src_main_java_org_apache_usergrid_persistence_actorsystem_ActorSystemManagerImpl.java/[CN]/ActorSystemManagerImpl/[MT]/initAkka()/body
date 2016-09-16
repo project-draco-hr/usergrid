@@ -13,6 +13,7 @@
   logger.info("Initializing Akka for hostname {} region {} regionList {} seeds {}",hostname,currentRegion,regionList,actorSystemFig.getSeeds());
   Config config=createConfiguration();
   clusterSystem=createClusterSystem(config);
+  clusterSystem.actorOf(Props.create(ClusterListener.class,getSeedsByRegion(),getCurrentRegion()),"clusterListener");
   createClientActors(clusterSystem);
   mediator=DistributedPubSub.get(clusterSystem).mediator();
 }

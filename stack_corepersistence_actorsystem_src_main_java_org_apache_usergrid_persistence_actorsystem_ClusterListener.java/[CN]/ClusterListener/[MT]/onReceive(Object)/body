@@ -1,0 +1,32 @@
+{
+  if (message instanceof ClusterEvent.MemberUp) {
+    ClusterEvent.MemberUp event=(ClusterEvent.MemberUp)message;
+    logger.info("Member is Up: {}, hostname: {}",event.member(),event.member().address().host().get());
+  }
+ else   if (message instanceof ClusterEvent.UnreachableMember) {
+    ClusterEvent.UnreachableMember event=(ClusterEvent.UnreachableMember)message;
+    logger.info("Member detected as unreachable: {}",event.member());
+    String hostname=event.member().address().host().get();
+    boolean networkReachable=java.lang.Runtime.getRuntime().exec("ping -c 1 " + hostname).waitFor() == 0;
+    if (networkReachable) {
+      logger.info("Unreachable member {} is accessible on the network, " + "application must have died. Marking member down",event.member());
+      cluster.down(event.member().address());
+    }
+ else {
+      logger.warn("Unreachable member {} is not accessible on the network, " + "there must be a network issue. Not marking member down",event.member());
+    }
+  }
+ else   if (message instanceof ClusterEvent.MemberRemoved) {
+    ClusterEvent.MemberRemoved event=(ClusterEvent.MemberRemoved)message;
+    logger.info("Member is Removed: {}",event.member());
+  }
+ else   if (message instanceof ClusterEvent.MemberEvent) {
+    ClusterEvent.MemberEvent event=(ClusterEvent.MemberEvent)message;
+    if (logger.isTraceEnabled()) {
+      logger.trace("MemberEvent occurred for member: {}, Event: {}",event.member(),event.toString());
+    }
+  }
+ else {
+    unhandled(message);
+  }
+}

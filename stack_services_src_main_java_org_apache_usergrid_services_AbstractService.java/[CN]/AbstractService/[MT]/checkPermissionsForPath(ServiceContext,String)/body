@@ -3,6 +3,12 @@
   if (currentUser == null) {
     return;
   }
+  if (isServiceAdmin()) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Subject is the sysadmin, short-circuiting and allowing access");
+    }
+    return;
+  }
   String perm=getPermissionFromPath(em.getApplicationRef().getUuid(),context.getAction().toString().toLowerCase(),path);
   boolean permitted=currentUser.isPermitted(perm);
   if (logger.isDebugEnabled()) {
