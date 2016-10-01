@@ -11,6 +11,20 @@
 {
         put("akka",new HashMap<String,Object>(){
 {
+            put("blocking-io-dispatcher",new HashMap<String,Object>(){
+{
+                put("type","Dispatcher");
+                put("executor",actorSystemFig.getClusterIoExecutorType());
+                put(actorSystemFig.getClusterIoExecutorType(),new HashMap<String,Object>(){
+{
+                    put("fixed-pool-size",actorSystemFig.getClusterIoExecutorThreadPoolSize());
+                    put("rejection-policy",actorSystemFig.getClusterIoExecutorRejectionPolicy());
+                  }
+                }
+);
+              }
+            }
+);
             put("remote",new HashMap<String,Object>(){
 {
                 put("netty.tcp",new HashMap<String,Object>(){
@@ -33,6 +47,20 @@
                     for (                    String seed : seeds) {
                       add(seed);
                     }
+                  }
+                }
+);
+                put("failure-detector",new HashMap<String,Object>(){
+{
+                    put("threshold","20");
+                    put("acceptable-heartbeat-pause","6 s");
+                    put("heartbeat-interval","1 s");
+                    put("heartbeat-request",new HashMap<String,Object>(){
+{
+                        put("expected-response-after","3 s");
+                      }
+                    }
+);
                   }
                 }
 );
