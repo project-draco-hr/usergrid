@@ -1,7 +1,12 @@
 {
   final Timer.Context timer=this.writeTimer.time();
   try {
-    this.queue.sendMessageToTopic(operation);
+    if (forUtilityQueue) {
+      this.utilityQueue.sendMessages(operations);
+    }
+ else {
+      this.queue.sendMessages(operations);
+    }
   }
  catch (  IOException e) {
     throw new RuntimeException("Unable to queue message",e);
