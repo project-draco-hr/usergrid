@@ -1,0 +1,11 @@
+{
+  Entity entity=usersResource.post(new User("edanuff","edanuff","edanuff@email.com","sesame"));
+  refreshIndex();
+  try {
+    usersResource.entity(entity).collection("password").post(new ChangePasswordEntity("sesame","abc"));
+    fail("Invalid password should have caused error");
+  }
+ catch (  ClientErrorException uie) {
+    errorParse(400,ERROR_POLICY_VIOLIATION,uie);
+  }
+}

@@ -1,0 +1,40 @@
+{
+  List<String> violations=new ArrayList<>(3);
+  if (password == null || password.length() < minLength) {
+    violations.add(PasswordPolicy.ERROR_LENGTH_POLICY + ": must be at least " + minLength+ " characters");
+  }
+  if (minUppercase > 0) {
+    int upperCaseCount=0;
+    for (    char c : password.toCharArray()) {
+      if (StringUtils.isAllUpperCase(String.valueOf(c))) {
+        upperCaseCount++;
+      }
+    }
+    if (upperCaseCount < minUppercase) {
+      violations.add(PasswordPolicy.ERROR_UPPERCASE_POLICY + ": requires " + minUppercase+ " uppercase characters");
+    }
+  }
+  if (minDigits > 0) {
+    int digitCount=0;
+    for (    char c : password.toCharArray()) {
+      if (StringUtils.isNumeric(String.valueOf(c))) {
+        digitCount++;
+      }
+    }
+    if (digitCount < minDigits) {
+      violations.add(PasswordPolicy.ERROR_DIGITS_POLICY + ": requires " + minDigits+ " digits");
+    }
+  }
+  if (minSpecialChars > 0) {
+    int specialCharCount=0;
+    for (    char c : password.toCharArray()) {
+      if (passwordPolicyFig.getAllowedSpecialChars().contains(String.valueOf(c))) {
+        specialCharCount++;
+      }
+    }
+    if (specialCharCount < minSpecialChars) {
+      violations.add(PasswordPolicy.ERROR_SPECIAL_CHARS_POLICY + ": requires " + minSpecialChars+ " special characters");
+    }
+  }
+  return violations;
+}
