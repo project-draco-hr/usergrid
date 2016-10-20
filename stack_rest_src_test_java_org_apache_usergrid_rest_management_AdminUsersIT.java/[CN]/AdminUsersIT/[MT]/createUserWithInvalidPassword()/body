@@ -1,0 +1,15 @@
+{
+  String rando=RandomStringUtils.randomAlphanumeric(10);
+  Form userForm=new Form();
+  userForm.param("username","user_" + rando);
+  userForm.param("name",rando);
+  userForm.param("email","user_" + rando + "@example.com");
+  userForm.param("password","abc");
+  try {
+    management().users().post(User.class,userForm);
+    fail("Invalid password should have caused error");
+  }
+ catch (  ClientErrorException uie) {
+    errorParse(400,ERROR_POLICY_VIOLIATION,uie);
+  }
+}

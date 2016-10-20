@@ -1,7 +1,8 @@
 {
   logger.info("createAdminUserInternal: {}",username);
-  if (isBlank(password)) {
-    password=encodeBase64URLSafeString(bytes(UUID.randomUUID()));
+  Collection<String> policyVioliations=passwordPolicy.policyCheck(password,true);
+  if (!policyVioliations.isEmpty()) {
+    throw new PasswordPolicyViolationException(passwordPolicy.getDescription(true),policyVioliations);
   }
   if (username == null) {
     username=email;

@@ -2,6 +2,10 @@
   if ((userId == null) || (newPassword == null)) {
     return;
   }
+  Collection<String> policyVioliations=passwordPolicy.policyCheck(newPassword,false);
+  if (!policyVioliations.isEmpty()) {
+    throw new PasswordPolicyViolationException(passwordPolicy.getDescription(false),policyVioliations);
+  }
   EntityManager em=emf.getEntityManager(applicationId);
   User user=em.get(userId,User.class);
   writeUserPassword(applicationId,user,encryptionService.defaultEncryptedCredentials(newPassword,user.getUuid(),applicationId));
