@@ -1,0 +1,14 @@
+{
+  String username=clientSetup.getUsername();
+  String password=clientSetup.getPassword();
+  Map<String,Object> passwordPayload=new HashMap<String,Object>();
+  passwordPayload.put("newpassword","abc");
+  passwordPayload.put("oldpassword",password);
+  try {
+    management.users().user(username).password().post(Entity.class,passwordPayload);
+    fail("Invalid password should have caused error");
+  }
+ catch (  ClientErrorException uie) {
+    errorParse(400,ERROR_POLICY_VIOLIATION,uie);
+  }
+}

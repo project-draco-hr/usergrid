@@ -1,3 +1,7 @@
 {
+  Collection<String> policyVioliations=passwordPolicy.policyCheck(password,false);
+  if (!policyVioliations.isEmpty()) {
+    throw new PasswordPolicyViolationException(passwordPolicy.getDescription(true),policyVioliations);
+  }
   return doCreateAdmin(organizationId,user,encryptionService.defaultEncryptedCredentials(password,user.getUuid(),smf.getManagementAppId()),encryptionService.plainTextCredentials(mongoPassword(user.getUsername(),password),user.getUuid(),smf.getManagementAppId()));
 }
