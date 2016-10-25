@@ -1,0 +1,14 @@
+{
+  KeyPair kp=RsaProvider.generateKeyPair(1024);
+  PublicKey publicKey=kp.getPublic();
+  ApigeeSSO2Provider provider=new MockApigeeSSO2Provider();
+  provider.setManagement(setup.getMgmtSvc());
+  provider.setPublicKey(publicKey);
+  try {
+    provider.getClaims("{;aklsjd;fkajsd;fkjasd;lfkj}");
+    Assert.fail("Should have failed due to malformed token");
+  }
+ catch (  BadTokenException e) {
+    Assert.assertTrue(e.getCause() instanceof MalformedJwtException);
+  }
+}

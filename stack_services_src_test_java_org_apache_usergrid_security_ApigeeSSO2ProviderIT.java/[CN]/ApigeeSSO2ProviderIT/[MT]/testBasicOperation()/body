@@ -1,0 +1,14 @@
+{
+  KeyPair kp=RsaProvider.generateKeyPair(1024);
+  PublicKey publicKey=kp.getPublic();
+  PrivateKey privateKey=kp.getPrivate();
+  ApigeeSSO2Provider provider=new MockApigeeSSO2Provider();
+  provider.setManagement(setup.getMgmtSvc());
+  provider.setPublicKey(publicKey);
+  User user=createUser();
+  long exp=System.currentTimeMillis() + 10000;
+  Map<String,Object> claims=createClaims(user.getUsername(),user.getEmail(),exp);
+  String token=Jwts.builder().setClaims(claims).signWith(SignatureAlgorithm.RS256,privateKey).compact();
+  TokenInfo tokenInfo=provider.validateAndReturnTokenInfo(token,86400L);
+  Assert.assertNotNull(tokenInfo);
+}

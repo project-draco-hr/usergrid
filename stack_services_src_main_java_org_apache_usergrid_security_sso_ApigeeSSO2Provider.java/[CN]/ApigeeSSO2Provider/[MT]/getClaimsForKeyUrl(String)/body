@@ -1,0 +1,43 @@
+{
+  Jws<Claims> claims=null;
+  Exception lastException=null;
+  int tries=0;
+  int maxTries=2;
+  while (claims == null && tries++ < maxTries) {
+    try {
+      claims=Jwts.parser().setSigningKey(publicKey).parseClaimsJws(token);
+    }
+ catch (    SignatureException se) {
+      lastException=se;
+    }
+catch (    ArrayIndexOutOfBoundsException aio) {
+      logger.debug("Error parsing JWT token",aio);
+      throw new BadTokenException("Unknown error processing JWT",aio);
+    }
+catch (    ExpiredJwtException e) {
+      final long expiry=Long.valueOf(e.getClaims().get("exp").toString());
+      final long expirationDelta=((System.currentTimeMillis() / 1000) - expiry) * 1000;
+      logger.debug(String.format("Apigee JWT Token expired %d milliseconds ago.",expirationDelta));
+      throw new BadTokenException("Expired JWT",e);
+    }
+catch (    MalformedJwtException me) {
+      logger.debug("Malformed JWT",me);
+      throw new BadTokenException("Malformed JWT",me);
+    }
+    long keyFreshness=System.currentTimeMillis() - lastPublicKeyFetch;
+    if (claims == null && keyFreshness > this.freshnessTime) {
+      logger.debug("Failed to get claims for token {}... fetching new public key",token);
+      publicKey=getPublicKey(getExternalSSOUrl());
+      lastPublicKeyFetch=System.currentTimeMillis();
+      logger.info("New public key is {}",publicKey);
+    }
+  }
+  if (claims == null) {
+    logger.error("Error getting Apigee JWT claims",lastException);
+    throw new BadTokenException("Error getting Apigee JWT claims",lastException);
+  }
+ else {
+    logger.debug("Success! Got claims for token {} key {}",token,publicKey.toString());
+  }
+  return claims;
+}

@@ -1,0 +1,15 @@
+{
+  String rando=RandomStringUtils.randomAlphanumeric(10);
+  String username="user_" + rando;
+  String email=username + "@example.com";
+  Map<String,Object> properties=new HashMap<String,Object>(){
+{
+      put("username",username);
+      put("email",email);
+    }
+  }
+;
+  EntityManager em=setup.getEmf().getEntityManager(setup.getEmf().getManagementAppId());
+  Entity entity=em.create("user",properties);
+  return em.get(new SimpleEntityRef(User.ENTITY_TYPE,entity.getUuid()),User.class);
+}

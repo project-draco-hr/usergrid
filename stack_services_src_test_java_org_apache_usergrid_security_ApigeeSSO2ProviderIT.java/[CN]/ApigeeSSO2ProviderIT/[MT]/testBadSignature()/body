@@ -1,0 +1,20 @@
+{
+  KeyPair kp=RsaProvider.generateKeyPair(1024);
+  PublicKey publicKey=kp.getPublic();
+  PrivateKey privateKey=kp.getPrivate();
+  KeyPair kpNew=RsaProvider.generateKeyPair(1024);
+  PrivateKey privateKeyNew=kpNew.getPrivate();
+  ApigeeSSO2Provider provider=new MockApigeeSSO2ProviderNewKey(publicKey,publicKey);
+  provider.setManagement(setup.getMgmtSvc());
+  User user=createUser();
+  long exp=System.currentTimeMillis() + 10000;
+  Map<String,Object> claims=createClaims(user.getUsername(),user.getEmail(),exp);
+  String token=Jwts.builder().setClaims(claims).signWith(SignatureAlgorithm.RS256,privateKeyNew).compact();
+  try {
+    provider.validateAndReturnTokenInfo(token,86400L);
+    Assert.fail("Should have failed due to bad signature");
+  }
+ catch (  BadTokenException e) {
+    Assert.assertTrue(e.getCause() instanceof SignatureException);
+  }
+}
